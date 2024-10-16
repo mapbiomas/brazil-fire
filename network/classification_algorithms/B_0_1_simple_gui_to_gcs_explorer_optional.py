@@ -29,7 +29,7 @@ def contar_arquivos(pasta):
 # Widget para selecionar o país
 dropdown_paises = widgets.Dropdown(
     options=listar_paises(pasta_base),
-    description='Países:',
+    description='Countries:',
     disabled=False,
 )
 
