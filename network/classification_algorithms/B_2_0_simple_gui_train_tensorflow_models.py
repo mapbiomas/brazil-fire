@@ -82,7 +82,7 @@ def ao_selecionar_pais(change):
     num_arquivos = len(arquivos_training)
     
     # Exibir o número total de arquivos e país selecionado no topo
-    titulo_pais = widgets.HTML(value=f"<b>País selecionado: {pais_selecionado} ({num_arquivos} arquivos encontrados)</b>")
+    titulo_pais = widgets.HTML(value=f"<b>Selected country: {pais_selecionado} ({num_arquivos} files found)</b>")
     display(titulo_pais)
     
     display(dropdown_paises)  # Reexibir o dropdown
@@ -102,7 +102,7 @@ def ao_selecionar_pais(change):
         
         # Título das amostras por sensor, região e versão
         num_amostras = len(arquivos_formatados)
-        titulo_amostras = widgets.HTML(value=f"<b>Amostras por sensor, região e versão disponíveis para executar o treinamento ({num_amostras} amostras):</b>")
+        titulo_amostras = widgets.HTML(value=f"<b>Samples by sensor, region, and version available to run the training ({num_amostras} samples):</b>")
         display(titulo_amostras)
         
         # Exibir checkboxes para cada arquivo formatado
@@ -117,8 +117,8 @@ def ao_selecionar_pais(change):
         display(painel_checkboxes)
     
         # Botões para simulação e treinamento
-        botao_simular = widgets.Button(description="Simular Processamento!", button_style='warning', layout=widgets.Layout(width='200px'))  # Botão amarelo
-        botao_treinar = widgets.Button(description="Treinar Modelos", button_style='success', layout=widgets.Layout(width='200px'))  # Botão verde
+        botao_simular = widgets.Button(description="Simulate Processing!", button_style='warning', layout=widgets.Layout(width='200px'))  # Botão amarelo
+        botao_treinar = widgets.Button(description="Train Models", button_style='success', layout=widgets.Layout(width='200px'))  # Botão verde
         
         # Vincular os botões às funções de clique
         botao_simular.on_click(simular_processamento_click)
@@ -129,13 +129,13 @@ def ao_selecionar_pais(change):
         display(rodape_layout)
     
     else:
-        mensagem = widgets.HTML(value="<b style='color: red;'>Nenhum arquivo encontrado na pasta 'training_samples'.</b>")
+        mensagem = widgets.HTML(value="<b style='color: red;'>No files found in the folder 'training_samples'.</b>")
         display(mensagem)
 
 # Widget de dropdown para selecionar o país
 dropdown_paises = widgets.Dropdown(
     options=listar_paises(pastaBase),
-    description='<b>Países:</b>',
+    description='<b>Countries:</b>',
     disabled=False
 )
 
