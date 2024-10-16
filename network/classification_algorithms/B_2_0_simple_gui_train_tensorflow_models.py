@@ -2,18 +2,22 @@ import gcsfs
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 
+bucketName = 'mapbiomas-fire'
+pastaBase = 'mapbiomas-fire/sudamerica/'
+
+
 # Inicializa o sistema de arquivos do Google Cloud Storage
-fs = gcsfs.GCSFileSystem(project=bucket_name)
+fs = gcsfs.GCSFileSystem(project=bucketName)
 
 # Função para listar os países (pastas principais)
-def listar_paises(pasta_base):
-    pastas = fs.ls(pasta_base)
+def listar_paises(pastaBase):
+    pastas = fs.ls(pastaBase)
     paises = [pasta.split('/')[-1] for pasta in pastas if pasta.split('/')[-1]]  # Remove itens vazios
     return paises
 
 # Função para listar o conteúdo da subpasta "training_samples" de cada país
 def listar_training_samples(pasta_pais):
-    pasta_training = f"{pasta_base}{pasta_pais}/training_samples/"
+    pasta_training = f"{pastaBase}{pasta_pais}/training_samples/"
     try:
         arquivos = fs.ls(pasta_training)
         return [arquivo.split('/')[-1] for arquivo in arquivos if arquivo.split('/')[-1]]  # Remove itens vazios
@@ -27,7 +31,7 @@ def formatar_arquivos(arquivos):
     for arquivo in arquivos:
         split = arquivo.split('_')  # Divide o nome do arquivo em partes
         if len(split) >= 6:  # Garantir que há partes suficientes para a formatação
-            formatted = f'trainings_{split[2]}_{split[3]}_{split[4]}_{split[5]}'  # Formatação personalizada
+            formatted = f'trainings_{split[2]}_{split[4]}_{split[5]}'  # Formatação personalizada
             if formatted not in formatted_list:
                 formatted_list.append(formatted)  # Adicionar se ainda não estiver na lista
     
@@ -51,8 +55,9 @@ def simular_processamento_click(b):
     amostras_selecionadas = coletar_amostras_selecionadas()
     if amostras_selecionadas:
         for amostra in amostras_selecionadas:
-            versao, satelite, regiao, ano = amostra
-            treinar_modelo(versao, satelite, regiao, ano, bucket_name, country, simulacao=True)
+            versao, pais, regiao, ano = amostra
+            
+            treinar_modelo(versao, regiao, ano, simulacao=True)
     else:
         print("Nenhuma amostra selecionada.")
 
@@ -61,8 +66,8 @@ def treinar_modelos_click(b):
     amostras_selecionadas = coletar_amostras_selecionadas()
     if amostras_selecionadas:
         for amostra in amostras_selecionadas:
-            versao, satelite, regiao, ano = amostra
-            treinar_modelo(versao, satelite, regiao, ano, bucket_name, country, simulacao=False)
+            versao, pais, regiao, ano = amostra
+            treinar_modelo(versao, pais, regiao, ano, simulacao=False)
     else:
         print("Nenhuma amostra selecionada.")
 
@@ -129,7 +134,7 @@ def ao_selecionar_pais(change):
 
 # Widget de dropdown para selecionar o país
 dropdown_paises = widgets.Dropdown(
-    options=listar_paises(pasta_base),
+    options=listar_paises(pastaBase),
     description='<b>Países:</b>',
     disabled=False
 )
