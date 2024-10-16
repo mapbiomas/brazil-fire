@@ -8,6 +8,18 @@ The methodology is designed to be replicable across different regions of the con
 ## Methodology Overview
 The methodology involves several key steps from data preparation to model training and classification, which can be adapted to various regions within South American countries:
 
+## Quick Start: Using Google Colab for Burned Area Classification
+To get started quickly, you can use Google Colab to clone this repository, run the scripts, and generate burned area classifications. Follow the steps below:
+
+1. Open the [MapBiomas Fire Landsat Burned Area Classification Notebook](https://github.com/mapbiomas/brazil-fire/blob/main/network/toolkit_mapbiomas_fire_landsat_burned_area_classification.ipynb) on Google Colab.
+2. Clone this repository by running the following command in the notebook:
+    ```bash
+    !git clone https://github.com/mapbiomas/brazil-fire.git
+    ```
+3. Follow the instructions in the notebook to run the classification for your desired region.
+
+This notebook allows users to run the classification process without needing a local setup, making it easier to test and adapt the scripts.
+
 ### 1. **Pre-Processing**
 #### Step 01: Export Annual Landsat Mosaics
 - Use Google Earth Engine (GEE) to generate annual Landsat mosaics for the region of interest.
