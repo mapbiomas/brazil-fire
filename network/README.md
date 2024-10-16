@@ -11,7 +11,7 @@ The methodology involves several key steps from data preparation to model traini
 ## Quick Start: Using Google Colab for Burned Area Classification
 To get started quickly, you can use Google Colab to clone this repository, run the scripts, and generate burned area classifications. Follow the steps below:
 
-1. Open the [MapBiomas Fire Landsat Burned Area Classification Notebook](https://github.com/mapbiomas/brazil-fire/blob/main/network/toolkit_mapbiomas_fire_landsat_burned_area_classification.ipynb) on Google Colab.
+1. Open the [MapBiomas Fire Landsat Burned Area Classification Notebook](https://github.com/mapbiomas/brazil-fire/blob/main/network/mapbiomas_fire_classification_v1.ipynb) on Google Colab.
 2. Clone this repository by running the following command in the notebook:
     ```bash
     !git clone https://github.com/mapbiomas/brazil-fire.git
