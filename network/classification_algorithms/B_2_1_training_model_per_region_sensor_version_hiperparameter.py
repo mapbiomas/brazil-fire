@@ -5,9 +5,13 @@ from osgeo import gdal
 import datetime
 import gcsfs
 from google.cloud import storage
+import glob
+import re  # Importa a biblioteca de expressões regulares
 
+
+bucketName = 'mapbiomas-fire'
 # Inicializando o sistema de arquivos do Google Cloud Storage
-fs = gcsfs.GCSFileSystem(project='seu_projeto_aqui')  # Altere conforme seu projeto
+fs = gcsfs.GCSFileSystem(project=bucketName)  # Altere conforme seu projeto
 
 # Funções de carregamento e processamento de imagens
 def load_image(image_path):
@@ -27,49 +31,74 @@ def log_message(message, log_file="treinamento_log.txt"):
     print(message)
 
 # Função para fazer upload de modelos para o GCS
-def upload_to_gcs(local_file_path, bucket_name, gcs_destination_path):
+def upload_to_gcs(local_file_path, gcs_destination_path):
     client = storage.Client()
-    bucket = client.get_bucket(bucket_name)
+    bucket = client.get_bucket(bucketName)
     blob = bucket.blob(gcs_destination_path)
     blob.upload_from_filename(local_file_path)
-    log_message(f"[INFO] Arquivo {local_file_path} enviado para {gcs_destination_path} no bucket {bucket_name}.")
+    log_message(f"[INFO] Arquivo {local_file_path} enviado para {gcs_destination_path} no bucket {bucketName}.")
 
 # Função para baixar arquivos do GCS
-def baixar_arquivos_gcs(bucket_name, file_path, local_dest_path):
+def baixar_arquivos_gcs(file_path, local_dest_path):
     """
     Usa gcsfs para copiar os arquivos do bucket GCS para o sistema de arquivos local.
     """
     try:
-        with fs.open(f'{bucket_name}/{file_path}', 'rb') as src_file:
+        caminho_gcs = f'gs://{bucketName}/{file_path}'  # Certifique-se de que file_path está correto
+        print(f"Tentando acessar o caminho: {caminho_gcs}")
+        
+        with fs.open(caminho_gcs, 'rb') as src_file:
             with open(local_dest_path, 'wb') as dest_file:
                 dest_file.write(src_file.read())
         log_message(f'[INFO] Arquivo baixado: {file_path} para {local_dest_path}')
     except Exception as e:
         log_message(f'[ERRO] Não foi possível baixar o arquivo {file_path}: {str(e)}')
 
-# Função principal de treinamento
-def treinar_modelo(versao, satelite, regiao, ano, bucket_name, country, hiperparametros=None, simulacao=False):
+# Função auxiliar para filtrar os arquivos
+def filtrar_arquivos_por_versao_e_regiao(arquivos, versao, regiao):
+    # Expressão regular simplificada para encontrar arquivos que contenham a versão e região especificadas
+    padrao = re.compile(rf".*{versao}.*{regiao}.*\.tif")
+    
+    # Filtrar arquivos que correspondem ao padrão
+    arquivos_filtrados = [arquivo for arquivo in arquivos if padrao.search(arquivo)]
+    
+    return arquivos_filtrados
+
+# Função principal de treinamento (com ajustes)
+def treinar_modelo(versao, pais, regiao, ano, hiperparametros=None, simulacao=False):
     """
     Função de treinamento com uma flag para simulação. Se simulacao=True, apenas emite prints simulados.
     """
     
     # Salvando em diretórios específicos no Colab
-    folder_samples = f"/content/training_samples/{versao}_{satelite}_{regiao}"  # Define a pasta de amostras local
-    folder_model = f"/content/models/{versao}_{satelite}_{regiao}"  # Pasta para salvar os modelos localmente
+    folder_samples = f"/content/mapbiomas-fire/sudamerica/{pais}/training_samples/"  # Define a pasta de amostras local
+    folder_model = f"/content/mapbiomas-fire/sudamerica/{pais}/models/"  # Pasta para salvar os modelos localmente
     
     if not os.path.exists(folder_samples):
         os.makedirs(folder_samples)
     if not os.path.exists(folder_model):
         os.makedirs(folder_model)
 
-    images_train_test = [f"samples_fire_{versao}_{satelite}_{regiao}_*.tif"]
-
+    # Listar os arquivos no bucket
+    bucket_path = f"mapbiomas-fire/sudamerica/{pais}/training_samples/"
+    arquivos_no_bucket = fs.ls(bucket_path)
+    
+    print('arquivos_no_bucket',arquivos_no_bucket)
+    # Filtrar os arquivos que correspondem à versão e região
+    images_train_test = filtrar_arquivos_por_versao_e_regiao(arquivos_no_bucket, versao, regiao)
+    
+    if not images_train_test:
+        log_message(f"[ERRO] Nenhum arquivo encontrado para versão: {versao}, região: {regiao}")
+        return
+    
+    log_message(f"Arquivos encontrados: {images_train_test}")
+    
     if simulacao:
-        log_message(f"[SIMULACAO] Iniciando simulação do treinamento para versão: {versao}, satélite: {satelite}, região: {regiao}")
+        log_message(f"[SIMULACAO] Iniciando simulação do treinamento para versão: {versao}, região: {regiao}")
         return
 
-    log_message(f"Iniciando o treinamento para versão: {versao}, satélite: {satelite}, região: {regiao}")
-
+    log_message(f"Iniciando o treinamento para versão: {versao}, região: {regiao}")
+    
     # Hiperparâmetros padrão
     default_hiperparametros = {
         'lr': 0.001,
@@ -96,21 +125,31 @@ def treinar_modelo(versao, satelite, regiao, ano, bucket_name, country, hiperpar
     N_ITER = default_hiperparametros['N_ITER']
     NUM_CLASSES = default_hiperparametros['NUM_CLASSES']
 
-    # 4.2 Processamento de Imagens de Treinamento e Teste
+    # Processamento de Imagens de Treinamento e Teste
     all_data_train_test_vector = []
 
-    # Ajuste: Baixar os arquivos do GCS com gcsfs
-    for index, images in enumerate(images_train_test):
-        log_message(f"[INFO] Tentando copiar arquivos com padrão: {images}")
-        image_path_gcs = f"mapbiomas-fire/sudamerica/{country}/training_samples/{images}"
-        local_path = f"{folder_samples}/{images}"
+    # Função para baixar arquivos do GCS para o sistema local
+    for index, image_gcs_path in enumerate(images_train_test):
+        log_message(f"[INFO] Tentando copiar arquivo: {image_gcs_path}")
         
-        # Aqui baixamos os arquivos do GCS para o Colab
-        baixar_arquivos_gcs(bucket_name, image_path_gcs, local_path)
+        # Extrair o nome do arquivo do caminho completo
+        image_name = os.path.basename(image_gcs_path)
+        
+        # Caminho local onde o arquivo será salvo
+        local_path = f"{folder_samples}/{image_name}"
+        
+        # Aqui, file_path é relativo ao bucket, preservando "sudamerica"
+        file_path = '/'.join(image_gcs_path.split('/')[1:])  # Remove apenas o gs://bucket_name
 
-        images_name = glob.glob(f'{folder_samples}/{images}')
+        # Verificação do caminho
+        print(f"Tentando acessar o caminho: gs://{bucketName}/{file_path}")
+        
+        # Baixar os arquivos do GCS para o sistema local
+        baixar_arquivos_gcs(file_path, local_path)
+
+        images_name = glob.glob(f'{folder_samples}/{image_name}')
         if not images_name:
-            log_message(f'[ERRO] Nenhuma imagem correspondente encontrada para o padrão: {images}')
+            log_message(f'[ERRO] Nenhuma imagem correspondente encontrada para o arquivo: {image_gcs_path}')
             continue
 
         for image in images_name:
@@ -174,10 +213,10 @@ def treinar_modelo(versao, satelite, regiao, ano, bucket_name, country, hiperpar
 
     log_message('[INFO] Treinamento concluído.')
 
-    model_path = f'{folder_model}/model.h5'
+    model_path = f'{folder_model}/model_{pais}_{versao}_{regiao}.h5'
     model.save(model_path)
     
-    gcs_model_path = f'sudamerica/{country}/models/{versao}_{satelite}_{regiao}/model.h5'
-    upload_to_gcs(model_path, bucket_name, gcs_model_path)
+    gcs_model_path = f'sudamerica/{pais}/models/model_{pais}_{versao}_{regiao}.h5'
+    upload_to_gcs(model_path, gcs_model_path)
 
     log_message(f'[INFO] Modelo final salvo em {gcs_model_path} no Google Cloud Storage.')
