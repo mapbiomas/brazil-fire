@@ -1,0 +1,51 @@
+# python
+
+# 0: Clonar o repositório para o Google Drive
+# Remover a pasta anterior para evitar conflitos (cuidado ao usar em produção, pode causar perda de dados)
+# !rm -rf /content/mapbiomas_fire_network
+# %cd .. # no caso de apagar o repositorio, é necessario retornar a pasta anterio antes de fazer um novo gitclone
+# Clonar o repositório do GitHub
+!git clone https://github.com/wallyboy22/mapbiomas_fire_network.git
+
+# 1: Verificar o endereço atual no disco
+!pwd
+
+# 2: Entrar no diretório do repositório clonado
+%cd mapbiomas_fire_network
+
+# 3: Verificar o diretório atual novamente
+!pwd
+
+# 4: Configurar as credenciais do GitHub (nome e email do usuário)
+!git config --global user.name "wallyboy22"
+!git config --global user.email "wallacevds22@gmail.com"
+
+# 5: Verificar o status do repositório para ver se há modificações
+!git status
+
+# 6: Listar os arquivos no diretório para confirmar se está na pasta correta
+!ls -la
+
+# 7: Adicionar os arquivos modificados ao stage (se houver modificações)
+!git add .
+
+# 8: Fazer o commit das alterações com uma mensagem
+!git commit -m "Atualização do nome da pasta"
+
+# 9: Autenticação via token e atualização da URL remota do Git
+
+import json
+
+# Lendo as credenciais do arquivo JSON
+with open('/content/credentials_github.json') as json_file:
+    credentials = json.load(json_file)
+
+# Acessar username e token
+username = "wallyboy22"
+token = credentials["github"]["token"]
+
+# Atualizar a URL remota com o token
+!git remote set-url origin https://{username}:{token}@github.com/{username}/mapbiomas_fire_network.git
+
+# 10: Enviar as alterações para o repositório remoto (push)
+!git push origin main
