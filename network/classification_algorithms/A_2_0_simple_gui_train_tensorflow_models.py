@@ -12,7 +12,7 @@ fs = gcsfs.GCSFileSystem(project=bucketName)
 # Função para listar os países (pastas principais)
 def listar_paises(pastaBase):
     pastas = fs.ls(pastaBase)
-    paises = [pasta.split('/')[-1] for pasta in pastas if pasta.split('/')[-1]]  # Remove itens vazios
+    paises = [pasta.split('/')[-1] for pasta in pastas]  # Mantém todos os itens, inclusive os vazios
     return paises
 
 # Função para listar o conteúdo da subpasta "training_samples" de cada país
