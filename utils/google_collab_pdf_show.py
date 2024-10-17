@@ -3,7 +3,9 @@ import subprocess
 import sys
 from IPython.display import clear_output, display, Image as IPyImage
 from PIL import Image as PILImage
-import fitz  # PyMuPDF
+import ipywidgets as widgets
+from IPython.display import HTML # Importing HTML from IPython.display
+
 
 # Verificação e instalação da biblioteca fitz (PyMuPDF)
 try:
