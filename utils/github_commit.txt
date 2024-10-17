@@ -45,7 +45,7 @@ username = "wallyboy22"
 token = credentials["github"]["token"]
 
 # Atualizar a URL remota com o token
-!git remote set-url origin https://{username}:{token}@github.com/{username}/mapbiomas_fire_network.git
+!git remote set-url origin https://{username}:{token}@github.com/{username}/brazil-fire.git
 
 # 10: Enviar as alterações para o repositório remoto (push)
 !git push origin main
