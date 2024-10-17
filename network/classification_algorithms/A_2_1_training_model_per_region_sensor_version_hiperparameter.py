@@ -1,3 +1,44 @@
+import subprocess
+import sys
+import importlib
+import os
+
+# Função para verificar e instalar bibliotecas
+def install_and_import(package):
+    try:
+        importlib.import_module(package)
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        clear_console()
+
+# Função para instalar pacotes do sistema via apt-get
+def apt_get_install(package):
+    subprocess.check_call(['sudo', 'apt-get', 'install', '-y', package], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    clear_console()
+
+# Função para limpar o console
+def clear_console():
+    # Limpa o console de acordo com o sistema operacional
+    if os.name == 'nt':  # Windows
+        os.system('cls')
+    else:  # MacOS/Linux
+        os.system('clear')
+
+# Verificar e instalar pacotes Python
+install_and_import('rasterio')
+install_and_import('gcsfs')
+install_and_import('ipywidgets')
+
+# Verificar e instalar pacotes Python
+install_and_import('rasterio')
+install_and_import('gcsfs')
+install_and_import('ipywidgets')
+
+# Instalar dependências de sistema (GDAL)
+apt_get_install('libgdal-dev')
+apt_get_install('gdal-bin')
+apt_get_install('python3-gdal')
+
 import os
 import numpy as np
 import tensorflow as tf
