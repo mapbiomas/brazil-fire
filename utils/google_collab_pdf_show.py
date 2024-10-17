@@ -1,8 +1,9 @@
+import os
 import subprocess
 import sys
-from IPython.display import clear_output
+from IPython.display import clear_output, display, Image as IPyImage
 from PIL import Image as PILImage
-
+import fitz  # PyMuPDF
 
 # Verificação e instalação da biblioteca fitz (PyMuPDF)
 try:
@@ -12,16 +13,10 @@ except ImportError:
     clear_output(wait=True)  # Limpa a saída após a instalação
     import fitz  # Tentar importar novamente após a instalação
 
-# Verificação e instalação da biblioteca PIL (Python Imaging Library)
-try:
-    from PIL import Image
-    from IPython.display import Image, display
-    from PIL import Image as PILImage
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "pillow"])
-    clear_output(wait=True)  # Limpa a saída após a instalação
-    from IPython.display import Image, display
-    from PIL import Image as PILImage
+# Função para criar uma pasta específica, se não existir
+def ensure_output_directory(output_dir):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
 def display_pdf_viewer(pdf_path, external_link=None):
     """
@@ -30,90 +25,81 @@ def display_pdf_viewer(pdf_path, external_link=None):
     Parameters:
     - pdf_path (str): Path to the PDF file to be displayed.
     - external_link (str, optional): An optional URL link for external access to the presentation.
-
-    The viewer includes "Next" and "Previous" buttons for page navigation, a text box indicating the current page and 
-    total number of pages, and optionally displays a link to access the PDF externally.
     """
+    
+    # Definir pasta de saída para armazenar as imagens
+    output_dir = "pdf_pages"
+    ensure_output_directory(output_dir)
 
-    # Open the PDF
+    # Abrir o PDF
     doc = fitz.open(pdf_path)
 
-    # Total number of pages in the PDF
+    # Número total de páginas no PDF
     total_pages = doc.page_count
 
-    # Initialize the current page (starts from 0)
+    # Página atual (inicializa em 0)
     current_page = 0
 
-    # Function to display a specific page
+    # Função para exibir uma página específica
     def display_page(page_number):
-        page = doc.load_page(page_number)  # Load the page
-        pix = page.get_pixmap()  # Render the page as an image
-        output = f"page_{page_number}.png"
-        pix.save(output)  # Save the image
-        
-        # Redimensionar a imagem usando PIL
-        img = PILImage.open(output)
-        img_resized = img.resize((800, int(img.height * 800 / img.width)))  # Ajustar largura para 800px
-        img_resized.save(output)  # Salva a imagem redimensionada
+        page = doc.load_page(page_number)  # Carregar a página
+        pix = page.get_pixmap(dpi=300)  # Renderizar a página com alta resolução (300 DPI)
+        output = os.path.join(output_dir, f"page_{page_number}.png")
+        pix.save(output)  # Salvar a imagem na pasta de saída
 
-        # Exibir a imagem redimensionada
+        # Exibir a imagem diretamente, com resolução maior
         with open(output, "rb") as file:
             img_data = file.read()
-        display(IPyImage(img_data))
+        display(IPyImage(img_data))  # Exibe a imagem na célula do notebook
 
-
-    # Function to update the page number and text box
+    # Função para atualizar o status da página
     def update_status():
         page_info.value = f"Page {current_page + 1} of {total_pages}"
 
-    # Function to go to the next page
+    # Função para ir para a próxima página
     def next_page(b):
         nonlocal current_page
         if current_page < total_pages - 1:
             current_page += 1
-            clear_output(wait=True)  # Clear the previous output
-            display_controls()  # Display buttons and page info
-            display_page(current_page)  # Display the next page
+            clear_output(wait=True)  # Limpar a saída anterior
+            display_controls()  # Exibir botões e informações da página
+            display_page(current_page)  # Exibir a próxima página
             update_status()
 
-    # Function to go to the previous page
+    # Função para ir para a página anterior
     def prev_page(b):
         nonlocal current_page
         if current_page > 0:
             current_page -= 1
-            clear_output(wait=True)  # Clear the previous output
-            display_controls()  # Display buttons and page info
-            display_page(current_page)  # Display the previous page
+            clear_output(wait=True)  # Limpar a saída anterior
+            display_controls()  # Exibir botões e informações da página
+            display_page(current_page)  # Exibir a página anterior
             update_status()
 
-    # Function to display navigation buttons and page info
+    # Função para exibir botões de navegação e informações da página
     def display_controls():
         next_button = widgets.Button(description="Next", button_style='success', style={'font_weight': 'bold', 'font_size': '20px'})
         prev_button = widgets.Button(description="Previous", button_style='danger', style={'font_weight': 'bold', 'font_size': '20px'})
-        
-        # Connect buttons to their respective functions
+
+        # Conectar botões às suas respectivas funções
         next_button.on_click(next_page)
         prev_button.on_click(prev_page)
 
-        # Display the page info and buttons side by side, centered
+        # Exibir as informações da página e botões lado a lado
         controls = widgets.HBox([prev_button, next_button], layout=widgets.Layout(justify_content='center', margin='10px'))
         display(controls)
-        
-        # Show current page info
+
+        # Mostrar informações da página atual
         display(page_info)
 
-    # Text box to show the current page status (e.g., "Page 1 of 10")
+    # Caixa de texto para mostrar o status da página atual
     page_info = widgets.Label(value=f"Page {current_page + 1} of {total_pages}")
 
-    # Display an external link if provided
+    # Exibir link externo, se fornecido
     if external_link:
         display(HTML(f'<a href="{external_link}" target="_blank">Access the presentation</a>'))
 
-    # Display the first page, controls, and initialize the status
+    # Exibir a primeira página, controles, e inicializar o status
     display_controls()
     display_page(current_page)
     update_status()
-
-# # Example usage:
-# pdf_path = '/content/brazil-fire/network/Entrenamiento_de_monitoreo_de_cicatrices_de_fuego_en_regiones_de_la_red_MapBiomas.pdf'
-# display_pdf_viewer(pdf_path, external_link="https://github.com/mapbiomas/brazil-fire/blob/main/network/Entrenamiento%20de%20monitoreo%20de%20cicatrices%20de%20fuego%20en%20regiones%20de%20la%20red%20MapBiomas.pdf")
