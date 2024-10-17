@@ -6,6 +6,8 @@ from ipywidgets import VBox, HBox
 bucketName = 'mapbiomas-fire'
 pastaBase = 'mapbiomas-fire/sudamerica/'
 
+
+
 # Inicializa o sistema de arquivos do Google Cloud Storage
 fs = gcsfs.GCSFileSystem(project=bucketName)
 
@@ -76,7 +78,7 @@ def exibir_mosaicos_selecionados(modelo, pais_selecionado, regiao):
     # Painel de legenda
     painel_legenda = widgets.Output(layout={'border': '1px solid black', 'padding': '5px', 'margin-top': '10px'})
     with painel_legenda:
-        print("⚠️ Arquivo já existe e será sobrescrito se o checkbox for mantido ligado.")
+        print("⚠️ Arquivos que já existem e são sobrescritos se o checkbox for mantido ligado.")
 
     return widgets.VBox([painel_mosaics, painel_legenda])
 
@@ -151,14 +153,28 @@ def classificar_area_queimada_click(b):
     modelos_selecionados = coletar_modelos_selecionados()
     if modelos_selecionados:
         for modelo in modelos_selecionados:
+            # Ajustando o nome do satélite e anos a partir do nome do arquivo
+            satellite = modelo.split('_')[2]  # Extraindo o satélite do nome do arquivo
+            regiao = modelo.split('_')[-1].split('.')[0]  # Extraindo a região como string (não tentar converter para int)
+            versao = modelo.split('_')[1]  # Extraindo a versão do modelo
+            ano = int(modelo.split('_')[-1].split('.')[0])  # Extraindo o ano (convertendo para int apenas o ano)
+
+            # Simulando a classificação para cada modelo selecionado
             print(f"Classificando área queimada para o modelo: {modelo}")
-            # Aqui chamamos a função render_classify para processar as imagens
-            dataset_classify = load_image(modelo)  # Função que você usa para carregar a imagem (GDAL)
-            output_image = render_classify(dataset_classify, model_path='path_to_model', country='guyana', region='region1', version='v1', year=2020)
-            # Salvar ou processar a imagem classificada conforme necessário
+            
+            # Montar o caminho do modelo (model_path)
+            bucketName = 'mapbiomas-fire'
+            country = dropdown_paises.value
+            model_path = f'gs://{bucketName}/sudamerica/{country}/models/burned_area_{satellite}_v{versao}_r{regiao}_{ano}.tif'
+
+            # Disparar a função render_classify com os parâmetros ajustados
+            satellite_years = [{'satellite': satellite, 'years': [ano]}]  # Montando a estrutura esperada
+            render_classify(satellite_years, model_path=model_path, country=country, region=regiao, version=versao)
     else:
         print("Nenhum modelo selecionado.")
 
+
+# Atualizar o evento do botão classificar
 
 # Coletar os modelos selecionados (apenas o nome completo do arquivo)
 def coletar_modelos_selecionados():
