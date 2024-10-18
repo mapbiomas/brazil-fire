@@ -473,7 +473,8 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
 
                             dataset_classify = load_image(NBR_clipped)
 
-                            image_data = process_single_image(dataset_classify, version, region)  # Call model for classification
+                            image_data = process_single_image(dataset_classify, NUM_CLASSES, DATA_MEAN, DATA_STD, version, region)
+
                             convert_to_raster(dataset_classify, image_data, output_image_name)
                             input_scenes.append(output_image_name)
                             total_scenes_done += 1
