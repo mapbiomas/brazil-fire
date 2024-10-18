@@ -301,10 +301,10 @@ def simulate_processing_click(b):
             else:
                 log_message(f'Nenhum mosaico encontrado para o modelo: {model_key}')
 
-        # Se tivermos modelos para simular, chamamos a render_classify
+        # Se tivermos modelos para simular, chamamos a render_classify_models
         if models_to_simulate:
-            log_message(f'Chamando render_classify para simulação com: {models_to_simulate}')
-            render_classify(models_to_simulate)  # Chamamos a função com a lista preparada para simulação
+            log_message(f'Chamando render_classify_models para simulação com: {models_to_simulate}')
+            render_classify_models(models_to_simulate)  # Chamamos a função com a lista preparada para simulação
         else:
             log_message("Nenhum mosaico foi selecionado para nenhum modelo.")
     else:
@@ -320,7 +320,7 @@ def classify_burned_area_click(b):
     """
 
     selected_models = collect_selected_models()  # Collect the selected models from checkboxes
-    models_to_classify = []  # This will store the objects to pass to render_classify
+    models_to_classify = []  # This will store the objects to pass to render_classify_models
     log_message('selected_models')
     log_message(selected_models)
     log_message('mosaic_checkboxes_dict')
@@ -362,10 +362,10 @@ def classify_burned_area_click(b):
             else:
                 log_message(f"No mosaics found for model: {model_key}")  # This shouldn't happen unless there's a bug
 
-        # If we have models to classify, call render_classify with the list of objects
+        # If we have models to classify, call render_classify_models with the list of objects
         if models_to_classify:
-            log_message(f"Calling render_classify with: {models_to_classify}")  # Debugging output
-            render_classify(models_to_classify)  # Call the function with the built data structure
+            log_message(f"Calling render_classify_models with: {models_to_classify}")  # Debugging output
+            render_classify_models(models_to_classify)  # Call the function with the built data structure
         else:
             log_message("No mosaics were selected for any models.")  # No mosaics were selected for any models
     else:
