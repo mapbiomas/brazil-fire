@@ -610,41 +610,6 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
 
     log_message('[INFO] Full processing completed.')
 
-# Função para processar uma única imagem e aplicar o modelo de classificação
-def process_single_image(dataset_classify, num_classes, data_mean, data_std, version, region):
-    """
-    Processa uma imagem classificada, aplicando o modelo e filtragem espacial para gerar o resultado final.
-
-    Args:
-    - dataset_classify: Dataset GDAL da imagem a ser classificada.
-    - num_classes: Número de classes no modelo.
-    - data_mean: Média dos dados (para normalização).
-    - data_std: Desvio padrão dos dados (para normalização).
-    - version: Versão do modelo.
-    - region: Região alvo para classificação.
-
-    Returns:
-    - Imagem classificada filtrada.
-    """
-    # Converte o dataset GDAL em um array NumPy
-    data_classify = convert_to_array(dataset_classify)
-
-    # Reshape para vetor único de pixels
-    data_classify_vector = reshape_single_vector(data_classify)
-
-    # Normaliza o vetor de entrada usando data_mean e data_std
-    data_classify_vector = (data_classify_vector - data_mean) / data_std
-
-    # Realiza a classificação usando o modelo
-    model_path = f'{folder_model}/col1_{country}_v{version}_{region}_rnn_lstm_ckpt'
-    output_data_classified = classify(data_classify_vector, model_path, NUM_INPUT, NUM_CLASSES, DATA_MEAN, DATA_STD)
-
-
-    # Reshape para o formato de imagem
-    output_image_data = reshape_image_output(output_data_classified, data_classify)
-
-    # Aplica filtro espacial
-    return filter_spatial(output_image_data)
 
 
 def create_model_graph(num_input, num_classes, data_mean, data_std):
@@ -1196,7 +1161,7 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
     log_message('[INFO] Full processing completed.')
 
 # Função para processar uma única imagem e aplicar o modelo de classificação
-def process_single_image(dataset_classify, num_classes, data_mean, data_std, version, region, country):
+def process_single_image(dataset_classify, num_classes, data_mean, data_std, version, region):
     """
     Processa uma imagem classificada, aplicando o modelo e filtragem espacial para gerar o resultado final.
 
@@ -1207,7 +1172,6 @@ def process_single_image(dataset_classify, num_classes, data_mean, data_std, ver
     - data_std: Desvio padrão dos dados (para normalização).
     - version: Versão do modelo.
     - region: Região alvo para classificação.
-    - country: País ao qual o modelo está relacionado.
 
     Returns:
     - Imagem classificada filtrada.
@@ -1221,38 +1185,16 @@ def process_single_image(dataset_classify, num_classes, data_mean, data_std, ver
     # Normaliza o vetor de entrada usando data_mean e data_std
     data_classify_vector = (data_classify_vector - data_mean) / data_std
 
-    # --- Definir o diretório temporário baseado em país, região e versão ---
-    folder = f'/content/mapbiomas-fire/sudamerica/{country}'
-    temp_model_dir = f'{folder}/temp_model_dir'
-
-    # Caminho do modelo no GCS baseado em país, versão e região
-    gcs_model_path = f'gs://mapbiomas-fire/sudamerica/{country}/models_col1/col1_{country}_{version}_{region}_rnn_lstm_ckpt'
-
-    # Caminho local onde os arquivos de modelo serão armazenados temporariamente
-    local_model_path = f'{temp_model_dir}/col1_{country}_{version}_{region}_rnn_lstm_ckpt'
-
-    # Se o diretório temporário não existir, criar
-    if not os.path.exists(temp_model_dir):
-        os.makedirs(temp_model_dir)
-
-    # Verificar se os arquivos do modelo já foram baixados. Se não, baixar do GCS.
-    if not os.path.exists(local_model_path + '.index'):  # Verifica um dos arquivos do modelo, ex: .index
-        log_message(f'[INFO] Baixando o modelo do GCS: {gcs_model_path}')
-        os.system(f'gsutil cp {gcs_model_path}* {temp_model_dir}/')
-
-    # Atualizar o caminho do modelo para o local temporário
-    model_path = local_model_path
-    # ---------------------------------------------------------------------------
-
     # Realiza a classificação usando o modelo
+    model_path = f'{folder_model}/col1_{country}_v{version}_{region}_rnn_lstm_ckpt'
     output_data_classified = classify(data_classify_vector, model_path, NUM_INPUT, NUM_CLASSES, DATA_MEAN, DATA_STD)
+
 
     # Reshape para o formato de imagem
     output_image_data = reshape_image_output(output_data_classified, data_classify)
 
     # Aplica filtro espacial
     return filter_spatial(output_image_data)
-
 
 def create_model_graph(num_input, num_classes, data_mean, data_std):
     """
