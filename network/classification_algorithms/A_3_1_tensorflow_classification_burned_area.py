@@ -85,6 +85,7 @@ def classify(data_classify_vector, version, region):
     - Classified data.
     """
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)  # Limits GPU memory usage
+    graph = tf.Graph()
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
         # Restore the trained model
         saver.restore(sess, f'{folder_model}/col1_{country}_v{version}_{region}_rnn_lstm_ckpt')
