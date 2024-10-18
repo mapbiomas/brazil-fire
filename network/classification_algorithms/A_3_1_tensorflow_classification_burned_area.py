@@ -85,8 +85,10 @@ def classify(data_classify_vector, version, region):
     - Classified data.
     """
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)  # Limits GPU memory usage
-    graph = tf.Graph()
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
+        # Definir saver para restaurar o modelo salvo
+        saver = tf.train.Saver()
+
         # Restore the trained model
         saver.restore(sess, f'{folder_model}/col1_{country}_v{version}_{region}_rnn_lstm_ckpt')
 
@@ -464,14 +466,11 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                         geometry_scene = grid['geometry']
                         NBR_clipped = f'{folder_images}/image_mosaic_col3_{country}_{region}_{version}_{orbit}_{point}_clipped_{year}.tif'
                         log_message(f'[INFO] Image clipped: {NBR_clipped}')
-                        print(f"[TESTE INFO] geometry_scene {geometry_scene}")
 
                         try:
                             clip_image_by_grid(geometry_scene, local_cog_path, NBR_clipped)
 
                             dataset_classify = load_image(NBR_clipped)
-                            print(f"[TESTE INFO] dataset_classify")
-                            print('[TESTE INFO] classifytrain_test',dataset_classify.GetRasterBand(1).ReadAsArray())  # Se for GDAL
 
                             image_data = process_single_image(dataset_classify, version, region)  # Call model for classification
                             convert_to_raster(dataset_classify, image_data, output_image_name)
