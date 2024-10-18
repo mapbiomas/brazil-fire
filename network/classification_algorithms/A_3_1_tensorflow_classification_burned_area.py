@@ -531,7 +531,7 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
     log_message('[INFO] Full processing completed.')
 
 # Function to classify and process a list of models and mosaics
-def process_single_image(models_to_classify):
+def process_single_image(dataset_classify):
     """
     Processes a classified image, applying spatial filtering and generating the final result.
 
