@@ -94,9 +94,14 @@ def load_image(image_path):
     return dataset
 
 # Function to convert a GDAL dataset to a NumPy array
+# def convert_to_array(dataset):
+#     bands_data = [dataset.GetRasterBand(i + 1).ReadAsArray() for i in range(dataset.RasterCount)]
+#     return np.stack(bands_data, axis=2)  # Stack the bands along the Z axis
 def convert_to_array(dataset):
     bands_data = [dataset.GetRasterBand(i + 1).ReadAsArray() for i in range(dataset.RasterCount)]
-    return np.stack(bands_data, axis=2)  # Stack the bands along the Z axis
+    stacked_data = np.stack(bands_data, axis=2)
+    return np.nan_to_num(stacked_data, nan=0)  # Substitui NaN por 0 # !perguntar para a Vera se tudo bem substituir valores mask, por NaN, no uso do convert_to_array do treinamento e no da classificação
+
 
 # Function to shuffle data and filter invalid values (NaN)
 def filter_valid_data_and_shuffle(data):
