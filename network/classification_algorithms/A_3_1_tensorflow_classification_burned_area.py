@@ -388,7 +388,7 @@ def remove_temporary_files(files_to_remove):
                 prilog_messagent(f'[ERROR] Failed to remove file: {file}. Details: {str(e)}')
 
 # Main processing function for satellite and year classification
-def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folder_images, suffix, ee_project, country, version, region_):
+def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folder_images, suffix, ee_project, country, version, region):
     """
     Processes satellite and year data to classify burned areas and upload the results to Google Earth Engine (GEE).
 
@@ -472,7 +472,7 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                             print(f"[TESTE INFO] dataset_classify")
                             print('[TESTE INFO] classifytrain_test',dataset_classify.GetRasterBand(1).ReadAsArray())  # Se for GDAL
 
-                            image_data = process_single_image(dataset_classify)  # Call model for classification
+                            image_data = process_single_image(dataset_classify, version, region)  # Call model for classification
                             convert_to_raster(dataset_classify, image_data, output_image_name)
                             input_scenes.append(output_image_name)
                             total_scenes_done += 1
@@ -531,7 +531,7 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
     log_message('[INFO] Full processing completed.')
 
 # Function to classify and process a list of models and mosaics
-def process_single_image(dataset_classify):
+def process_single_image(dataset_classify, version, region):
     """
     Processes a classified image, applying spatial filtering and generating the final result.
 
@@ -543,7 +543,7 @@ def process_single_image(dataset_classify):
     """
     data_classify = convert_to_array(dataset_classify)
     data_classify_vector = reshape_single_vector(data_classify)
-    output_data_classified = classify(data_classify_vector)
+    output_data_classified = classify(data_classify_vector, version, region)
     output_image_data = reshape_image_output(output_data_classified, data_classify)
     return filter_spatial(output_image_data)
 
