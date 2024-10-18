@@ -1,263 +1,63 @@
+import os
+from datetime import datetime
+import time
 import subprocess
-import sys
-import importlib
-import os
 
-# Função para verificar e instalar bibliotecas
-def install_and_import(package):
+# def log_message(message, country, collection_name, bucket_name):
+def log_message(message):
+
+    """
+    Log messages to both a local file and a GCS bucket. Combines previous logs from the bucket
+    with new messages to create a continuous log file.
+
+    Args:
+    - message: The message to log.
+    - country: The country name (part of log file naming convention).
+    - collection_name: The collection name (part of log file naming convention).
+    - bucket_name: The GCS bucket name to store the log file.
+    """
+
+    import os
+    from datetime import datetime
+    import time
+    import subprocess
+
+    # Current timestamp
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    log_entry = f"[{current_time}] {message}\n"
+    print('[LOG]',log_entry)
+    # Paths for log files
+    log_folder = f'/content/{bucket_name}/sudamerica/{country}/classification_logs'
+    log_file_name = f'burned_area_classification_log_{collection_name}_{country}.log'
+    log_file_path_local = os.path.join(log_folder, log_file_name)
+
+    # Create the local directory if it doesn't exist
+    if not os.path.exists(log_folder):
+        os.makedirs(log_folder)
+
+    # Path for the log file in the GCS bucket
+    bucket_log_folder = f'gs://{bucket_name}/sudamerica/{country}/classification_logs/'
+    gcs_log_file_path = f'{bucket_log_folder}{log_file_name}'
+
+    # Check if log file exists in the bucket and download it
     try:
-        importlib.import_module(package)
-    except ImportError:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        clear_console()
+        # Try to copy the existing log file from GCS to the local folder (if it exists)
+        subprocess.check_call(f'gsutil cp {gcs_log_file_path} {log_file_path_local}', shell=True)
+        # print(f"[INFO] Existing log file downloaded from GCS: {gcs_log_file_path}")
+    except subprocess.CalledProcessError:
+        # If the file doesn't exist, proceed with creating a new one
+        print(f"[LOG INFO] No existing log file found in GCS. A new log will be created.")
 
-# Função para instalar pacotes do sistema via apt-get
-def apt_get_install(package):
-    subprocess.check_call(['sudo', 'apt-get', 'install', '-y', package], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-    clear_console()
+    # Write the new log entry to the local file (append mode)
+    with open(log_file_path_local, 'a') as log_file:
+        log_file.write(log_entry)
 
-# Função para limpar o console
-def clear_console():
-    # Limpa o console de acordo com o sistema operacional
-    if os.name == 'nt':  # Windows
-        os.system('cls')
-    else:  # MacOS/Linux
-        os.system('clear')
+    # print(f"[LOG INFO] Log written locally to {log_file_path_local}")
 
-# Verificar e instalar pacotes Python
-install_and_import('rasterio')
-install_and_import('gcsfs')
-install_and_import('ipywidgets')
-
-# Verificar e instalar pacotes Python
-install_and_import('rasterio')
-install_and_import('gcsfs')
-install_and_import('ipywidgets')
-
-# Instalar dependências de sistema (GDAL)
-apt_get_install('libgdal-dev')
-apt_get_install('gdal-bin')
-apt_get_install('python3-gdal')
-
-import os
-import numpy as np
-import tensorflow as tf
-from osgeo import gdal
-import datetime
-import gcsfs
-from google.cloud import storage
-import glob
-import re  # Importa a biblioteca de expressões regulares
-
-
-bucketName = 'mapbiomas-fire'
-# Inicializando o sistema de arquivos do Google Cloud Storage
-fs = gcsfs.GCSFileSystem(project=bucketName)  # Altere conforme seu projeto
-
-# Funções de carregamento e processamento de imagens
-def load_image(image_path):
-    dataset = gdal.Open(image_path, gdal.GA_ReadOnly)
-    if dataset is None:
-        raise FileNotFoundError(f"Erro ao carregar a imagem: {image_path}. Verifique o caminho.")
-    return dataset
-
-def convert_to_array(dataset):
-    bands_data = [dataset.GetRasterBand(i + 1).ReadAsArray() for i in range(dataset.RasterCount)]
-    return np.stack(bands_data, axis=2)
-
-def log_message(message, log_file="treinamento_log.txt"):
-    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    with open(log_file, "a") as log:
-        log.write(f"{timestamp} - {message}\n")
-    print(message)
-
-# Função para fazer upload de modelos para o GCS
-def upload_to_gcs(local_file_path, gcs_destination_path):
-    client = storage.Client()
-    bucket = client.get_bucket(bucketName)
-    blob = bucket.blob(gcs_destination_path)
-    blob.upload_from_filename(local_file_path)
-    log_message(f"[INFO] Arquivo {local_file_path} enviado para {gcs_destination_path} no bucket {bucketName}.")
-
-# Função para baixar arquivos do GCS
-def baixar_arquivos_gcs(file_path, local_dest_path):
-    """
-    Usa gcsfs para copiar os arquivos do bucket GCS para o sistema de arquivos local.
-    """
+    # Upload the updated log file back to GCS
     try:
-        caminho_gcs = f'gs://{bucketName}/{file_path}'  # Certifique-se de que file_path está correto
-        print(f"Tentando acessar o caminho: {caminho_gcs}")
-        
-        with fs.open(caminho_gcs, 'rb') as src_file:
-            with open(local_dest_path, 'wb') as dest_file:
-                dest_file.write(src_file.read())
-        log_message(f'[INFO] Arquivo baixado: {file_path} para {local_dest_path}')
-    except Exception as e:
-        log_message(f'[ERRO] Não foi possível baixar o arquivo {file_path}: {str(e)}')
-
-# Função auxiliar para filtrar os arquivos
-def filtrar_arquivos_por_versao_e_regiao(arquivos, versao, regiao):
-    # Expressão regular simplificada para encontrar arquivos que contenham a versão e região especificadas
-    padrao = re.compile(rf".*{versao}.*{regiao}.*\.tif")
-    
-    # Filtrar arquivos que correspondem ao padrão
-    arquivos_filtrados = [arquivo for arquivo in arquivos if padrao.search(arquivo)]
-    
-    return arquivos_filtrados
-
-# Função principal de treinamento (com ajustes)
-def treinar_modelo(versao, pais, regiao, ano, hiperparametros=None, simulacao=False):
-    """
-    Função de treinamento com uma flag para simulação. Se simulacao=True, apenas emite prints simulados.
-    """
-    
-    # Salvando em diretórios específicos no Colab
-    folder_samples = f"/content/mapbiomas-fire/sudamerica/{pais}/training_samples/"  # Define a pasta de amostras local
-    folder_model = f"/content/mapbiomas-fire/sudamerica/{pais}/models/"  # Pasta para salvar os modelos localmente
-    
-    if not os.path.exists(folder_samples):
-        os.makedirs(folder_samples)
-    if not os.path.exists(folder_model):
-        os.makedirs(folder_model)
-
-    # Listar os arquivos no bucket
-    bucket_path = f"mapbiomas-fire/sudamerica/{pais}/training_samples/"
-    arquivos_no_bucket = fs.ls(bucket_path)
-    
-    print('arquivos_no_bucket',arquivos_no_bucket)
-    # Filtrar os arquivos que correspondem à versão e região
-    images_train_test = filtrar_arquivos_por_versao_e_regiao(arquivos_no_bucket, versao, regiao)
-    
-    if not images_train_test:
-        log_message(f"[ERRO] Nenhum arquivo encontrado para versão: {versao}, região: {regiao}")
-        return
-    
-    log_message(f"Arquivos encontrados: {images_train_test}")
-    
-    if simulacao:
-        log_message(f"[SIMULACAO] Iniciando simulação do treinamento para versão: {versao}, região: {regiao}")
-        return
-
-    log_message(f"Iniciando o treinamento para versão: {versao}, região: {regiao}")
-    
-    # Hiperparâmetros padrão
-    default_hiperparametros = {
-        'lr': 0.001,
-        'BATCH_SIZE': 1000,
-        'N_ITER': 7000,
-        'NUM_N_L1': 7,
-        'NUM_N_L2': 14,
-        'NUM_N_L3': 7,
-        'NUM_N_L4': 14,
-        'NUM_N_L5': 7,
-        'NUM_CLASSES': 2
-    }
-
-    if hiperparametros:
-        for param in default_hiperparametros:
-            if param in hiperparametros:
-                default_hiperparametros[param] = hiperparametros[param]
-
-    log_message(f"Hiperparâmetros utilizados: {default_hiperparametros}")
-
-    # Extração dos hiperparâmetros
-    lr = default_hiperparametros['lr']
-    BATCH_SIZE = default_hiperparametros['BATCH_SIZE']
-    N_ITER = default_hiperparametros['N_ITER']
-    NUM_CLASSES = default_hiperparametros['NUM_CLASSES']
-
-    # Processamento de Imagens de Treinamento e Teste
-    all_data_train_test_vector = []
-
-    # Função para baixar arquivos do GCS para o sistema local
-    for index, image_gcs_path in enumerate(images_train_test):
-        log_message(f"[INFO] Tentando copiar arquivo: {image_gcs_path}")
-        
-        # Extrair o nome do arquivo do caminho completo
-        image_name = os.path.basename(image_gcs_path)
-        
-        # Caminho local onde o arquivo será salvo
-        local_path = f"{folder_samples}/{image_name}"
-        
-        # Aqui, file_path é relativo ao bucket, preservando "sudamerica"
-        file_path = '/'.join(image_gcs_path.split('/')[1:])  # Remove apenas o gs://bucket_name
-
-        # Verificação do caminho
-        print(f"Tentando acessar o caminho: gs://{bucketName}/{file_path}")
-        
-        # Baixar os arquivos do GCS para o sistema local
-        baixar_arquivos_gcs(file_path, local_path)
-
-        images_name = glob.glob(f'{folder_samples}/{image_name}')
-        if not images_name:
-            log_message(f'[ERRO] Nenhuma imagem correspondente encontrada para o arquivo: {image_gcs_path}')
-            continue
-
-        for image in images_name:
-            log_message(f'Processando a imagem: {image}')
-            try:
-                dataset_train_test = load_image(image)
-                data_train_test = convert_to_array(dataset_train_test)
-                vector = data_train_test.reshape([data_train_test.shape[0] * data_train_test.shape[1], data_train_test.shape[2]])
-                dataclean = vector[~np.isnan(vector).any(axis=1)]
-                all_data_train_test_vector.append(dataclean)
-            except Exception as e:
-                log_message(f'Erro ao processar a imagem {image}: {str(e)}')
-                continue
-
-    if all_data_train_test_vector:
-        data_train_test_vector = np.concatenate(all_data_train_test_vector)
-        log_message(f"Dados concatenados: {data_train_test_vector.shape}")
-    else:
-        raise ValueError("Erro: Nenhum dado de treinamento ou teste disponível para concatenar.")
-
-    def filter_valid_data_and_shuffle(data):
-        valid_data = data[~np.isnan(data).any(axis=1)]
-        np.random.shuffle(valid_data)
-        return valid_data
-
-    valid_data_train_test = filter_valid_data_and_shuffle(data_train_test_vector)
-    bi = [0, 1, 2, 3]  # Índices para as bandas NBR
-    li = 4  # Índice para o rótulo (classe)
-    TRAIN_FRACTION = 0.7
-
-    if valid_data_train_test.shape[0] < 2:
-        raise ValueError("Erro: Dados insuficientes para dividir em treinamento e validação.")
-
-    training_size = int(valid_data_train_test.shape[0] * TRAIN_FRACTION)
-    training_data = valid_data_train_test[:training_size, :]
-    validation_data = valid_data_train_test[training_size:, :]
-
-    log_message(f"Tamanho do conjunto de validação: {validation_data.shape[0]} exemplos")
-
-    data_mean = training_data[:, bi].mean(axis=0)
-    data_std = training_data[:, bi].std(axis=0)
-
-    # 5.2 Definição da Rede Neural Usando TensorFlow 2.x (Keras API)
-    model = tf.keras.Sequential([
-        tf.keras.layers.InputLayer(input_shape=(len(bi),)),  # Número de entradas
-        tf.keras.layers.Dense(default_hiperparametros['NUM_N_L1'], activation='relu'),
-        tf.keras.layers.Dense(default_hiperparametros['NUM_N_L2'], activation='relu'),
-        tf.keras.layers.Dense(default_hiperparametros['NUM_N_L3'], activation='relu'),
-        tf.keras.layers.Dense(default_hiperparametros['NUM_N_L4'], activation='relu'),
-        tf.keras.layers.Dense(default_hiperparametros['NUM_N_L5'], activation='relu'),
-        tf.keras.layers.Dense(NUM_CLASSES, activation='softmax')
-    ])
-
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
-
-    log_message('[INFO] Modelo compilado e pronto para treinamento.')
-
-    model.fit(training_data[:, bi], training_data[:, li], validation_data=(validation_data[:, bi], validation_data[:, li]), epochs=10, batch_size=BATCH_SIZE)
-
-    log_message('[INFO] Treinamento concluído.')
-
-    model_path = f'{folder_model}/model_{pais}_{versao}_{regiao}.h5'
-    model.save(model_path)
-    
-    gcs_model_path = f'sudamerica/{pais}/models/model_{pais}_{versao}_{regiao}.h5'
-    upload_to_gcs(model_path, gcs_model_path)
-
-    log_message(f'[INFO] Modelo final salvo em {gcs_model_path} no Google Cloud Storage.')
+        # Copy the updated log file to the GCS bucket
+        subprocess.check_call(f'gsutil cp {log_file_path_local} {bucket_log_folder}', shell=True)
+        # print(f"[LOG INFO] Log file updated on GCS at {bucket_log_folder}")
+    except subprocess.CalledProcessError as e:
+        print(f"[LOG ERROR] Failed to update log file on GCS: {str(e)}")
