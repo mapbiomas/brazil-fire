@@ -178,7 +178,7 @@ def process_image(image, simulation):
     try:
         log_message(f"[INFO] Processing image: {image}")
         dataset_train_test = load_image(image)
-        print('dataset_train_test',dataset_train_test.GetRasterBand(1).ReadAsArray())  # Se for GDAL
+        # print('dataset_train_test',dataset_train_test.GetRasterBand(1).ReadAsArray())  # Se for GDAL
 
         data_train_test = convert_to_array(dataset_train_test)
         vector = data_train_test.reshape([data_train_test.shape[0] * data_train_test.shape[1], data_train_test.shape[2]])
