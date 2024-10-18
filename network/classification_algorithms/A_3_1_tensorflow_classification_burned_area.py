@@ -5,49 +5,60 @@ from scipy import ndimage
 from osgeo import gdal
 import rasterio
 from rasterio.mask import mask
-import ee  # Para integração com o Google Earth Engine
-from tqdm import tqdm  # Para barras de progresso
+import ee  # For Google Earth Engine integration
+from tqdm import tqdm  # For progress bars
 import time
+from datetime import datetime
 import math
 from shapely.geometry import shape, box, mapping
-import shutil  # Para operações de arquivos e pastas
+import shutil  # For file and folder operations
+import datetime  # For handling timestamps and date operations
 
-# 6.1 Funções para a predição de área queimada utilizando o modelo disponível
+import tensorflow.compat.v1 as tf  # TensorFlow compatibility mode for version 1.x
+tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
 # ---------------------------
-# Funções para Processamento
+# Functions for Burned Area Prediction Using the Available Model
 # ---------------------------
 
-# Função para transformar os dados classificados em um vetor único de pixels
+# Function to reshape classified data into a single pixel vector
 def reshape_single_vector(data_classify):
     """
-    Transforma os dados de uma imagem classificada em um vetor 1D de pixels.
+    Reshapes classified image data into a 1D vector of pixels.
 
-    :param data_classify: Imagem classificada (array 2D)
-    :return: Vetor 1D contendo os pixels da imagem
+    Args:
+    - data_classify: 2D classified image array.
+
+    Returns:
+    - 1D vector containing pixels from the image.
     """
     return data_classify.reshape([data_classify.shape[0] * data_classify.shape[1], data_classify.shape[2]])
 
-# Função para realizar a classificação utilizando o modelo TensorFlow
-def classify(data_classify_vector):
+# Function to perform classification using TensorFlow model
+def classify(data_classify_vector, version, region):
     """
-    Executa a classificação dos dados utilizando um modelo de rede neural.
-    O processamento é feito em blocos para evitar problemas de memória.
+    Executes classification using a neural network model.
+    The processing is done in blocks to avoid memory issues.
 
-    :param data_classify_vector: Vetor com os dados de entrada (pixels)
-    :return: Dados classificados
+    Args:
+    - data_classify_vector: Input data vector (pixels).
+    - version: Model version.
+    - region: Target region.
+
+    Returns:
+    - Classified data.
     """
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)  # Limita a fração de memória da GPU utilizada
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)  # Limits GPU memory usage
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-        # Restaura o modelo treinado
-        saver.restore(sess, f'{folder_model}/col1_{country}_v{version}_r{region}_rnn_lstm_ckpt')
+        # Restore the trained model
+        saver.restore(sess, f'{folder_model}/col1_{country}_v{version}_{region}_rnn_lstm_ckpt')
 
-        # Classificar os dados em blocos de tamanho máximo de 4.000.000 pixels
+        # Classify data in blocks with a maximum size of 4,000,000 pixels
         output_data_classify0 = outputs.eval({x_input: data_classify_vector[:4000000, bi]})
         output_data_classify1 = outputs.eval({x_input: data_classify_vector[4000000:8000000, bi]})
         output_data_classify2 = outputs.eval({x_input: data_classify_vector[8000000:12000000, bi]})
         output_data_classify3 = outputs.eval({x_input: data_classify_vector[12000000:, bi]})
 
-        # Concatenar todos os blocos classificados
+        # Concatenate all classified blocks
         output_data_classify = np.concatenate([
             output_data_classify0,
             output_data_classify1,
@@ -55,97 +66,86 @@ def classify(data_classify_vector):
             output_data_classify3
         ])
 
-    # Limpa a sessão do TensorFlow para liberar memória
+    # Clear TensorFlow session to release memory
     tf.keras.backend.clear_session()
     return output_data_classify
 
-# Função para remodelar os dados classificados de volta para o formato de imagem
+# Function to reshape classified data back into image format
 def reshape_image_output(output_data_classified, data_classify):
     """
-    Reorganiza os dados classificados em um formato de imagem 2D.
+    Reshapes classified data back into a 2D image format.
 
-    :param output_data_classified: Vetor com os dados classificados
-    :param data_classify: Imagem original
-    :return: Imagem classificada no formato 2D
+    Args:
+    - output_data_classified: 1D classified data vector.
+    - data_classify: Original image data.
+
+    Returns:
+    - 2D classified image.
     """
     return output_data_classified.reshape([data_classify.shape[0], data_classify.shape[1]])
 
-# Função para aplicar filtro espacial na imagem classificada
+# Function to apply spatial filtering on classified images
 def filter_spatial(output_image_data):
     """
-    Aplica um filtro espacial para remover regiões pequenas da imagem classificada.
+    Applies spatial filtering to remove small regions in the classified image.
 
-    :param output_image_data: Imagem classificada em formato binário
-    :return: Imagem com filtragem espacial aplicada
+    Args:
+    - output_image_data: Binary classified image.
+
+    Returns:
+    - Image with spatial filtering applied.
     """
     binary_image = output_image_data > 0
-    open_image = ndimage.binary_opening(binary_image, structure=np.ones((4, 4)))  # Remove pequenas regiões brancas
-    close_image = ndimage.binary_closing(open_image, structure=np.ones((8, 8)))  # Remove pequenos buracos pretos
+    open_image = ndimage.binary_opening(binary_image, structure=np.ones((4, 4)))  # Removes small white regions
+    close_image = ndimage.binary_closing(open_image, structure=np.ones((8, 8)))  # Fills small black holes
     return close_image
 
-# Função para converter um array NumPy de volta em um raster GeoTIFF
+# Function to convert a NumPy array back into a GeoTIFF raster
 def convert_to_raster(dataset_classify, image_data_scene, output_image_name):
     """
-    Converte um array NumPy em um arquivo raster GeoTIFF, aplicando a transformação geoespacial correta.
+    Converts a NumPy array into a GeoTIFF raster file with correct geospatial transformation.
 
-    :param dataset_classify: Dataset GDAL com os metadados da imagem original
-    :param image_data_scene: Dados da imagem classificados (NumPy array)
-    :param output_image_name: Nome do arquivo de saída
+    Args:
+    - dataset_classify: GDAL dataset with original image metadata.
+    - image_data_scene: Classified image data (NumPy array).
+    - output_image_name: Name of the output file.
     """
     cols, rows = dataset_classify.RasterXSize, dataset_classify.RasterYSize
     driver = gdal.GetDriverByName('GTiff')
     outDs = driver.Create(output_image_name, cols, rows, 1, gdal.GDT_Float32)
     outDs.GetRasterBand(1).WriteArray(image_data_scene)
 
-    # Aplica a GeoTransform e a Projeção do dataset original
+    # Apply GeoTransform and projection from the original dataset
     outDs.SetGeoTransform(dataset_classify.GetGeoTransform())
     outDs.SetProjection(dataset_classify.GetProjection())
     outDs.FlushCache()
-    outDs = None  # Libera o dataset de saída da memória
+    outDs = None  # Release the output dataset from memory
 
-# Função para processar a classificação da imagem
-def render_classify(dataset_classify):
-    """
-    Processa uma imagem classificada, aplicando filtragem espacial e gerando o resultado.
-
-    :param dataset_classify: Dataset GDAL da imagem a ser classificada
-    :return: Imagem classificada após o filtro espacial
-    """
-    data_classify = convert_to_array(dataset_classify)
-    data_classify_vector = reshape_single_vector(data_classify)
-    output_data_classified = classify(data_classify_vector)
-    output_image_data = reshape_image_output(output_data_classified, data_classify)
-    return filter_spatial(output_image_data)
-
-# Função para ler a grade Landsat a partir do Google Earth Engine
-def read_grid_landsat():
-    """
-    Lê a grade Landsat de uma coleção auxiliar no Google Earth Engine.
-
-    :return: GeoInformações sobre as regiões da grade Landsat
-    """
-    grid = ee.FeatureCollection(f'projects/mapbiomas-{country}/assets/FIRE/AUXILIARY_DATA/GRID_REGIONS/grid-{country}-r{region}')
-    return grid.getInfo()['features']
-
-# Função para converter metros em graus com base na latitude
+# Function to convert meters into degrees based on latitude
 def meters_to_degrees(meters, latitude):
     """
-    Converte uma distância em metros para graus, levando em consideração a latitude.
+    Converts a distance in meters to degrees, taking latitude into account.
 
-    :param meters: Distância em metros
-    :param latitude: Latitude em graus
-    :return: Distância em graus
+    Args:
+    - meters: Distance in meters.
+    - latitude: Latitude in degrees.
+
+    Returns:
+    - Distance in degrees.
     """
     return meters / (111320 * abs(math.cos(math.radians(latitude))))
 
-# Função para expandir a geometria com um buffer em metros
+# Function to expand geometry with a buffer in meters
 def expand_geometry(geometry, buffer_distance_meters=50):
     """
-    Expande a geometria aplicando um buffer em metros.
+    Expands the geometry by applying a buffer in meters.
 
-    :param geometry: Geometria original
-    :param buffer_distance_meters: Distância do buffer em metros
-    :return: Geometria expandida
+    Args:
+    - geometry: Original geometry.
+    - buffer_distance_meters: Buffer distance in meters.
+
+    Returns:
+    - Expanded geometry.
     """
     geom = shape(geometry)
     centroid_lat = geom.centroid.y
@@ -153,119 +153,165 @@ def expand_geometry(geometry, buffer_distance_meters=50):
     expanded_geom = geom.buffer(buffer_distance_degrees)
     return mapping(expanded_geom)
 
-# Função para verificar se há uma interseção significativa entre geometria e a imagem
+# Function to check if there is a significant intersection between the geometry and the image
 def has_significant_intersection(geom, image_bounds, min_intersection_area=0.01):
     """
-    Verifica se há uma interseção significativa entre a geometria e os limites da imagem.
+    Checks if there is a significant intersection between the geometry and image bounds.
 
-    :param geom: Geometria da cena
-    :param image_bounds: Limites da imagem
-    :param min_intersection_area: Área mínima para considerar uma interseção
-    :return: True se a interseção for significativa, False caso contrário
+    Args:
+    - geom: Geometry of the scene.
+    - image_bounds: Image boundaries.
+    - min_intersection_area: Minimum intersection area to consider (default: 0.01).
+
+    Returns:
+    - True if the intersection is significant, False otherwise.
     """
     geom_shape = shape(geom)
     image_shape = box(*image_bounds)
     intersection = geom_shape.intersection(image_shape)
     return intersection.area >= min_intersection_area
 
-# Função para recortar a imagem pela geometria fornecida
+# Function to clip an image based on the provided geometry
 def clip_image_by_grid(geom, image, output, buffer_distance_meters=100):
     """
-    Recorta a imagem com base em uma geometria e salva o resultado.
+    Clips an image based on a given geometry and saves the result.
 
-    :param geom: Geometria de recorte
-    :param image: Caminho para a imagem de entrada
-    :param output: Caminho para a imagem de saída
-    :param buffer_distance_meters: Distância do buffer para a geometria
+    Args:
+    - geom: Clipping geometry.
+    - image: Path to the input image.
+    - output: Path to the output image.
+    - buffer_distance_meters: Buffer distance for the geometry.
     """
     with rasterio.open(image) as src:
         expanded_geom = expand_geometry(geom, buffer_distance_meters)
 
         try:
-            # Verificar se há interseção suficiente para recortar a imagem
+            # Check if there is sufficient intersection to clip the image
             if has_significant_intersection(expanded_geom, src.bounds):
                 out_image, out_transform = mask(src, [expanded_geom], crop=True, nodata=np.nan, filled=True)
             else:
-                print(f'Skipping image: {image} - Insufficient overlap with raster.')
+                log_message(f'Skipping image: {image} - Insufficient overlap with raster.')
                 return
         except ValueError as e:
-            print(f'Skipping image: {image} - {str(e)}')
+            log_message(f'Skipping image: {image} - {str(e)}')
             return
 
-    # Atualiza os metadados e salva o arquivo raster de saída
+    # Update metadata and save the output raster file
     out_meta = src.meta.copy()
-    out_meta.update({"driver": "GTiff", "height": out_image.shape[1], "width": out_image.shape[2], "transform": out_transform})
+    out_meta.update({
+        "driver": "GTiff",
+        "height": out_image.shape[1],
+        "width": out_image.shape[2],
+        "transform": out_transform
+    })
 
     with rasterio.open(output, "w", **out_meta) as dest:
         dest.write(out_image)
 
-# Função para construir o VRT e traduzir usando gdal_translate
-def gerar_imagem_otimizada(name_out_vrt, name_out_tif, files_tif_str):
+# Function to build a VRT and translate using gdal_translate
+def generate_optimized_image(name_out_vrt, name_out_tif, files_tif_str):
     """
-    Gera um VRT a partir de múltiplos arquivos TIFF e converte para um TIFF otimizado e comprimido usando gdal_translate.
+    Generates a VRT from multiple TIFF files and converts it to an optimized and compressed TIFF using gdal_translate.
 
-    Parâmetros:
-    name_out_vrt: Caminho para o arquivo de saída VRT.
-    name_out_tif: Caminho para o arquivo TIFF de saída otimizado.
-    files_tif_str: String contendo os caminhos dos arquivos TIFF que serão processados.
+    Args:
+    - name_out_vrt: Path to the output VRT file.
+    - name_out_tif: Path to the optimized output TIFF file.
+    - files_tif_str: String containing the paths to the TIFF files to process.
     """
-    # Primeiro: criar o VRT a partir de várias cenas
-    print(f'[INFO] Construindo o VRT: {name_out_vrt}')
+    # Step 1: Create the VRT from multiple scenes
+    log_message(f'[INFO] Building VRT: {name_out_vrt}')
     os.system(f'gdalbuildvrt {name_out_vrt} {files_tif_str}')
 
-    # Segundo: traduzir o VRT para um TIFF otimizado e comprimido
-    print(f'[INFO] Traduzindo para TIFF otimizado: {name_out_tif}')
+    # Step 2: Translate the VRT into an optimized and compressed TIFF
+    log_message(f'[INFO] Translating to optimized TIFF: {name_out_tif}')
     os.system(f'gdal_translate -a_nodata 0 -co TILED=YES -co compress=DEFLATE -co PREDICTOR=2 -co COPY_SRC_OVERVIEWS=YES -co BIGTIFF=YES {name_out_vrt} {name_out_tif}')
 
-    print(f'[INFO] Tradução finalizada. Imagem otimizada salva em {name_out_tif}')
+    log_message(f'[INFO] Translation complete. Optimized image saved in {name_out_tif}')
 
-import os
-import shutil
-import datetime
 
-# Função para limpar as pastas antes do início do processamento
-def limpar_pastas(pastas_para_limpar):
-    for pasta in pastas_para_limpar:
-        if os.path.exists(pasta):
-            shutil.rmtree(pasta)  # Remove o diretório e todo o seu conteúdo
-            os.makedirs(pasta)  # Recria o diretório vazio
-            print(f'[INFO] Pasta limpa: {pasta}')
+import shutil  # For file and directory operations
+import datetime  # For handling date and time
+
+# Function to clean directories before processing begins
+def clean_directories(directories_to_clean):
+    """
+    Cleans specified directories by removing all contents and recreating the directory.
+
+    Args:
+    - directories_to_clean: List of directories to clean.
+    """
+    for directory in directories_to_clean:
+        if os.path.exists(directory):
+            shutil.rmtree(directory)  # Removes the directory and all its contents
+            os.makedirs(directory)  # Recreates the directory empty
+            log_message(f'[INFO] Directory cleaned: {directory}')
         else:
-            os.makedirs(pasta)
-            print(f'[INFO] Pasta criada: {pasta}')
+            os.makedirs(directory)
+            log_message(f'[INFO] Directory created: {directory}')
 
-# Função para construir o VRT e traduzir usando gdal_translate
-def gerar_imagem_otimizada(name_out_vrt, name_out_tif, files_tif_str):
+# Function to generate a VRT and convert it to an optimized TIFF using gdal_translate
+def generate_optimized_image(name_out_vrt, name_out_tif, files_tif_str):
+    """
+    Generates a VRT from multiple TIFF files and converts it to an optimized and compressed TIFF using gdal_translate.
+
+    Args:
+    - name_out_vrt: Path to the output VRT file.
+    - name_out_tif: Path to the optimized output TIFF file.
+    - files_tif_str: String containing the paths to the TIFF files to process.
+    """
+    # Build the VRT from multiple scenes
     os.system(f'gdalbuildvrt {name_out_vrt} {files_tif_str}')
+    # Translate the VRT into an optimized and compressed TIFF
     os.system(f'gdal_translate -a_nodata 0 -co compress=DEFLATE {name_out_vrt} {name_out_tif}')
 
-# Função para verificar e criar a coleção no GEE
-def verificar_ou_criar_colecao(colecao, eeProject):
-    check_command = f'earthengine --project {eeProject} asset info {colecao}'
+# Function to check or create a collection in Google Earth Engine (GEE)
+def check_or_create_collection(collection, ee_project):
+    """
+    Checks if a GEE collection exists, and if not, creates it.
+
+    Args:
+    - collection: The GEE collection path.
+    - ee_project: The Earth Engine project name.
+    """
+    check_command = f'earthengine --project {ee_project} asset info {collection}'
     status = os.system(check_command)
 
     if status != 0:
-        print(f'[INFO] Criando nova coleção no GEE: {colecao}')
-        create_command = f'earthengine --project {eeProject} create collection {colecao}'
+        log_message(f'[INFO] Creating new collection in GEE: {collection}')
+        create_command = f'earthengine --project {ee_project} create collection {collection}'
         os.system(create_command)
     else:
-        print(f'[INFO] Coleção já existe: {colecao}')
+        log_message(f'[INFO] Collection already exists: {collection}')
 
-# Função para realizar o upload de um arquivo para o GEE com metadados e verificar se o asset já existe
-def upload_para_gee(gcs_path, asset_id, satellite, region, year, version, eeProject):
+# Function to upload a file to GEE with metadata and check if the asset already exists
+def upload_to_gee(gcs_path, asset_id, satellite, region, year, version, ee_project):
+    """
+    Uploads a file to GEE, adding relevant metadata, and checks if the asset already exists.
+
+    Args:
+    - gcs_path: Path to the file in Google Cloud Storage (GCS).
+    - asset_id: Asset ID for the GEE upload.
+    - satellite: Name of the satellite used.
+    - region: Target region.
+    - year: Year of the data.
+    - version: Version of the dataset.
+    - ee_project: GEE project name.
+    """
+    # Define timestamps for start and end of the year
     timestamp_start = int(datetime.datetime(year, 1, 1).timestamp() * 1000)
     timestamp_end = int(datetime.datetime(year, 12, 31).timestamp() * 1000)
     creation_date = datetime.datetime.now().strftime('%Y-%m-%d')
 
-    # Verificar se o asset já existe no GEE
-    check_asset_command = f'earthengine --project {eeProject} asset info {asset_id}'
+    # Check if the asset already exists in GEE
+    check_asset_command = f'earthengine --project {ee_project} asset info {asset_id}'
     asset_status = os.system(check_asset_command)
 
     if asset_status == 0:
-        print(f'[INFO] Asset já existe, pulando upload: {asset_id}')
+        log_message(f'[INFO] Asset already exists, skipping upload: {asset_id}')
     else:
+        # Command to upload the image to GEE with metadata
         upload_command = (
-            f'earthengine --project {eeProject} upload image --asset_id={asset_id} '
+            f'earthengine --project {ee_project} upload image --asset_id={asset_id} '
             f'--pyramiding_policy=mode '
             f'--property satellite={satellite} '
             f'--property region={region} '
@@ -279,169 +325,239 @@ def upload_para_gee(gcs_path, asset_id, satellite, region, year, version, eeProj
             f'{gcs_path}'
         )
 
-        print(f'[INFO] Iniciando upload para o GEE: {asset_id}')
+        log_message(f'[INFO] Starting upload to GEE: {asset_id}')
         status = os.system(upload_command)
 
         if status == 0:
-            print(f'[INFO] Upload concluído com sucesso: {asset_id}')
+            log_message(f'[INFO] Upload successful: {asset_id}')
         else:
-            print(f'[ERRO] Falha no upload para o GEE: {asset_id}')
-            print(f'[ERRO] Status do comando: {status}')
+            log_message(f'[ERROR] Upload failed: {asset_id}')
+            log_message(f'[ERROR] Command status: {status}')
 
-# Função para remover arquivos temporários
-def remover_arquivos_temporarios(arquivos_para_remover):
-    for arquivo in arquivos_para_remover:
-        if os.path.exists(arquivo):
+# Function to remove temporary files
+def remove_temporary_files(files_to_remove):
+    """
+    Removes temporary files from the system.
+
+    Args:
+    - files_to_remove: List of file paths to remove.
+    """
+    for file in files_to_remove:
+        if os.path.exists(file):
             try:
-                os.remove(arquivo)
-                print(f'[INFO] Arquivo temporário removido: {arquivo}')
+                os.remove(file)
+                log_message(f'[INFO] Temporary file removed: {file}')
             except Exception as e:
-                print(f'[ERRO] Falha ao remover arquivo: {arquivo}. Detalhes: {str(e)}')
+                prilog_messagent(f'[ERROR] Failed to remove file: {file}. Details: {str(e)}')
 
-# Função principal de processamento
-def processar_ano_por_satelite(satellite_years, bucket_name, folder_mosaic, folder_images, sulfix, eeProject, country, version):
-    grid_landsat = read_grid_landsat()  # Carregar a grade Landsat
+# Main processing function for satellite and year classification
+def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folder_images, suffix, ee_project, country, version, region_):
+    """
+    Processes satellite and year data to classify burned areas and upload the results to Google Earth Engine (GEE).
+
+    Args:
+    - satellite_years: List of dictionaries containing satellite names and their corresponding years.
+    - bucket_name: Name of the Google Cloud Storage bucket.
+    - folder_mosaic: Folder path for storing mosaic files.
+    - folder_images: Folder path for storing temporary images.
+    - suffix: Optional suffix for naming the files.
+    - ee_project: Google Earth Engine project name.
+    - country: Country name.
+    - version: Dataset version.
+    - region_: Region code (e.g., 'r1').
+    """
+    # Load the Landsat grid from GEE for the region
+    grid = ee.FeatureCollection(f'projects/mapbiomas-{country}/assets/FIRE/AUXILIARY_DATA/GRID_REGIONS/grid-{country}-{region_}')
+    grid_landsat = grid.getInfo()['features']  # Load the Landsat grid
     start_time = time.time()
 
-    collection_name = f'projects/{eeProject}/assets/FIRE/COLLECTION1/CLASSIFICATION/burned_area_{country}_v{version}'
-    verificar_ou_criar_colecao(collection_name, eeProject)  # Verificar ou criar a coleção no GEE
+    # Define the GEE collection path
+    collection_name = f'projects/{ee_project}/assets/FIRE/COLLECTION1/CLASSIFICATION/burned_area_{country}_{version}'
+    check_or_create_collection(collection_name, ee_project)  # Check or create the GEE collection
 
-    # Loop principal para processar satélites e anos
+    # Main loop to process satellites and years
     for satellite_year in satellite_years:
         satellite = satellite_year['satellite']
-        print(f"\n{'='*60}")
-        print(f'[INFO] Iniciando o processamento para o satélite: {satellite.upper()}')
-        print(f"{'='*60}")
+        log_message(f"\n{'='*60}")
+        log_message(f'[INFO] Starting processing for satellite: {satellite.upper()}')
+        log_message(f"{'='*60}")
 
         years = satellite_year['years']
 
-        # Barra de progresso para o processamento dos anos
-        with tqdm(total=len(years), desc=f'Processando anos para o satélite {satellite.upper()}') as pbar_anos:
+        # Progress bar for processing years
+        with tqdm(total=len(years), desc=f'Processing years for satellite {satellite.upper()}') as pbar_years:
             for year in years:
-                print(f"\n{'-'*60}")
-                print(f'[INFO] Iniciando o processamento do ano {year} para o satélite {satellite.upper()}...')
-                print(f"{'-'*60}")
+                log_message(f"\n{'-'*60}")
+                log_message(f'[INFO] Processing year {year} for satellite {satellite.upper()}...')
+                log_message(f"{'-'*60}")
 
-                image_name = f"burned_area_{country}_{satellite}_v{version}_region{region}_{year}{sulfix}"
+                # File naming convention for the classified image
+                image_name = f"burned_area_{country}_{satellite}_v{version}_region{region_[1:]}_{year}{suffix}"
                 gcs_filename = f'gs://{bucket_name}/sudamerica/{country}/result_classified/{image_name}.tif'
 
-                local_cog_path = f'{folder_mosaic}/{satellite}_{country}_r{region}_{year}_cog.tif'
-                gcs_cog_path = f'gs://{bucket_name}/sudamerica/{country}/mosaics_col1_cog/{satellite}_{country}_r{region}_{year}_cog.tif'
+                # Paths for local and cloud-optimized images
+                local_cog_path = f'{folder_mosaic}/{satellite}_{country}_{region_}_{year}_cog.tif'
+                gcs_cog_path = f'gs://{bucket_name}/sudamerica/{country}/mosaics_col1_cog/{satellite}_{country}_{region_}_{year}_cog.tif'
 
+                # Copy COG file from GCS if not already copied locally
                 if os.path.exists(local_cog_path):
-                    print(f'[INFO] Arquivo COG já copiado localmente: {local_cog_path}')
+                    log_message(f'[INFO] COG file already copied locally: {local_cog_path}')
                 else:
-                    print(f'[INFO] Copiando arquivo COG do GCS para o diretório local...')
+                    log_message(f'[INFO] Copying COG file from GCS to local directory...')
                     os.system(f'gsutil cp {gcs_cog_path} {local_cog_path}')
 
                 input_scenes = []
                 total_scenes_done = 0
 
-                # Barra de progresso para o processamento das cenas dentro de um ano
-                with tqdm(total=len(grid_landsat), desc=f'Processando cenas para o ano {year}') as pbar_cenas:
+                # Progress bar for processing scenes within a year
+                with tqdm(total=len(grid_landsat), desc=f'Processing scenes for year {year}') as pbar_scenes:
                     for grid in grid_landsat:
                         orbit = grid['properties']['ORBITA']
                         point = grid['properties']['PONTO']
-                        output_image_name = f'{folder_images}/image_col3_{country}_r{region}_v{version}_{orbit}_{point}_{year}.tif'
+                        output_image_name = f'{folder_images}/image_col3_{country}_{region_}_{version}_{orbit}_{point}_{year}.tif'
 
+                        # Skip if the file already exists
                         if os.path.isfile(output_image_name):
-                            print(f'[INFO] Arquivo já existente: {output_image_name}. Pulando...')
-                            pbar_cenas.update(1)  # Atualiza a barra de progresso
+                            log_message(f'[INFO] File already exists: {output_image_name}. Skipping...')
+                            pbar_scenes.update(1)
                             continue
 
-                        geometry_cena = grid['geometry']
-                        NBR_clipped = f'{folder_images}/image_mosaic_col3_{country}_r{region}_v{version}_{orbit}_{point}_clipped_{year}.tif'
+                        # Clip the image based on the scene geometry
+                        geometry_scene = grid['geometry']
+                        NBR_clipped = f'{folder_images}/image_mosaic_col3_{country}_{region_}_{version}_{orbit}_{point}_clipped_{year}.tif'
+                        log_message(f'[INFO] Image clipped: {NBR_clipped}')
+                        print(f"[TESTE INFO] geometry_scene {geometry_scene}")
 
                         try:
-                            clip_image_by_grid(geometry_cena, local_cog_path, NBR_clipped)
+                            clip_image_by_grid(geometry_scene, local_cog_path, NBR_clipped)
+
                             dataset_classify = load_image(NBR_clipped)
-                            image_data = render_classify(dataset_classify)  # Aqui deve chamar o modelo
+                            print(f"[TESTE INFO] dataset_classify")
+                            print('[TESTE INFO] classifytrain_test',dataset_classify.GetRasterBand(1).ReadAsArray())  # Se for GDAL
+
+                            image_data = render_classify(dataset_classify)  # Call model for classification
                             convert_to_raster(dataset_classify, image_data, output_image_name)
                             input_scenes.append(output_image_name)
                             total_scenes_done += 1
 
-                            print(f'[PROGRESSO] {total_scenes_done}/{len(grid_landsat)} cenas processadas.')
-                            pbar_cenas.update(1)  # Atualiza a barra de progresso
+                            log_message(f'[PROGRESS] {total_scenes_done}/{len(grid_landsat)} scenes processed.')
+                            pbar_scenes.update(1)
                         except Exception as e:
-                            print(f'[ERRO] Falha ao processar cena {orbit}/{point}. Detalhes: {str(e)}')
-                            pbar_cenas.update(1)  # Mesmo em caso de erro, a barra de progresso é atualizada
+                            log_message(f'[ERROR] Failed to process scene {orbit}/{point}. Details: {str(e)}')
+                            pbar_scenes.update(1)
                             continue
 
-                # Realizar o merge das cenas
+                # Merge scenes if there are processed inputs
                 if input_scenes:
                     input_scenes_str = " ".join(input_scenes)
                     merge_output_temp = f"{folder_images}/merged_temp_{year}.tif"
                     output_image = f"{folder_images}/{image_name}.tif"
 
                     try:
-                        gerar_imagem_otimizada(merge_output_temp, output_image, input_scenes_str)
-                        print(f'[INFO] Merge de todas as {len(input_scenes)} cenas concluído para o ano {year}.')
+                        generate_optimized_image(merge_output_temp, output_image, input_scenes_str)
+                        log_message(f'[INFO] Merging {len(input_scenes)} scenes completed for year {year}.')
 
-                        # Realizar o upload para o GCS
+                        # Upload to GCS
                         upload_status = os.system(f'gsutil cp {output_image} {gcs_filename}')
                         if upload_status == 0:
-                            print(f'[INFO] Upload para o GCS bem-sucedido: {gcs_filename}')
+                            log_message(f'[INFO] Upload to GCS successful: {gcs_filename}')
                         else:
-                            print(f'[ERRO] Falha ao fazer o upload do arquivo: {output_image}')
+                            log_message(f'[ERROR] Upload failed for file: {output_image}')
                             continue
 
-                        # Upload para o Google Earth Engine (GEE) dentro da coleção
-                        outputAssetID = f'{collection_name}/{image_name}'
-                        print(f'[INFO] Fazendo upload para o GEE: {outputAssetID}')
-                        upload_para_gee(gcs_filename, outputAssetID, satellite, region, year, version, eeProject)
+                        # Upload to GEE within the collection
+                        output_asset_id = f'{collection_name}/{image_name}'
+                        log_message(f'[INFO] Uploading to GEE: {output_asset_id}')
+                        upload_to_gee(gcs_filename, output_asset_id, satellite, region_, year, version, ee_project)
 
                     except Exception as e:
-                        print(f'[ERRO] Falha ao realizar o merge das cenas para o ano {year}. Detalhes: {str(e)}')
+                        log_message(f'[ERROR] Failed to merge scenes for year {year}. Details: {str(e)}')
                         continue
 
-                # Limpar arquivos temporários após o subloop de cada ano
-                arquivos_temporarios = [local_cog_path, merge_output_temp] + input_scenes
-                remover_arquivos_temporarios(arquivos_temporarios)
+                # Clean up temporary files after processing each year
+                temporary_files = [local_cog_path, merge_output_temp] + input_scenes
+                remove_temporary_files(temporary_files)
 
-                # Limpar a pasta tmp1 após o processamento de cada ano
-                limpar_pastas([folder_images])
+                # Clean the folder after each year's processing
+                clean_directories([folder_images])
 
                 elapsed_time = time.time() - start_time
-                print(f'[INFO] Tempo total gasto até agora para o ano {year}: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))}')
+                log_message(f'[INFO] Total time spent so far for year {year}: {time.strftime("%H:%M:%S", time.gmtime(elapsed_time))}')
 
-                # Atualiza a barra de progresso do processamento do ano
-                pbar_anos.update(1)
+                # Update progress bar for year processing
+                pbar_years.update(1)
 
-        print(f"\n{'='*60}")
-        print(f'[INFO] Processamento do satélite {satellite.upper()} concluído.')
-        print(f"{'='*60}")
+        log_message(f"\n{'='*60}")
+        log_message(f'[INFO] Processing for satellite {satellite.upper()} completed.')
+        log_message(f"{'='*60}")
 
-    print('[INFO] Processamento completo.')
+    log_message('[INFO] Full processing completed.')
 
-def render_classify(satellite_years, model_path, country, region, version):
-    # Definir bucket e projeto GEE
-    bucketName = 'mapbiomas-fire'
-    eeProject = f'mapbiomas-{country}'
-    
-    # Definir diretórios e garantir que existam
-    folder = f'/content/mapbiomas-fire/sudamerica/{country}'
-    folder_model = f'{folder}/models_col1'
-    folder_images = f'{folder}/tmp1'  # Diretório para armazenamento temporário de imagens
-    folder_mosaic = f'{folder}/mosaics_cog'  # Diretório para arquivos COG (Cloud-Optimized GeoTIFF)
+# Function to classify and process a list of models and mosaics
+def render_classify(models_to_classify):
+    """
+    Processes a list of models and mosaics to classify burned areas and optionally simulate processing.
 
-    # Garantir que as pastas existam
-    if not os.path.exists(folder_model):
-        os.makedirs(folder_model)
-    
-    # Limpar pastas de imagens e mosaicos
-    limpar_pastas([folder_images, folder_mosaic])
+    Args:
+    - models_to_classify: List of objects containing models, mosaics, and a simulation flag.
+    """
+    # Define bucket name and start processing for each model
+    bucket_name = 'mapbiomas-fire'
 
-    # Chamar a função principal de processamento
-    processar_ano_por_satelite(
-        satellite_years=satellite_years,
-        bucket_name=bucketName,
-        folder_mosaic=folder_mosaic,
-        folder_images=folder_images,
-        sulfix='',  # Se precisar adicionar algum sufixo especial
-        eeProject=eeProject,
-        country=country,
-        version=version
-    )
+    for model_info in models_to_classify:
+        model_name = model_info["model"]
+        mosaics = model_info["mosaics"]
+        simulation = model_info["simulation"]
 
+        log_message(f"Processing model: {model_name}")
+        log_message(f"Selected mosaics: {mosaics}")
+        log_message(f"Simulation mode: {simulation}")
 
+        # Extract model information
+        parts = model_name.split('_')
+        country = parts[1]
+        version = parts[2]
+        region = parts[3]
+
+        # Define directories
+        folder = f'/content/mapbiomas-fire/sudamerica/{country}'
+        folder_model = f'{folder}/models_col1'
+        folder_images = f'{folder}/tmp1'
+        folder_mosaic = f'{folder}/mosaics_cog'
+
+        # Ensure directories exist
+        if not os.path.exists(folder_model):
+            os.makedirs(folder_model)
+
+        # Clean directories for images and mosaics
+        clean_directories([folder_images, folder_mosaic])
+
+        # Prepare satellite and year list based on mosaics
+        satellite_years = []
+        for mosaic in mosaics:
+            mosaic_parts = mosaic.split('_')
+            satellite = mosaic_parts[0]
+            year = int(mosaic_parts[3])
+
+            satellite_years.append({
+                "satellite": satellite,
+                "years": [year]
+            })
+
+        # If in simulation mode, just simulate the processing
+        if simulation:
+            log_message(f"[SIMULATION] Would process model: {model_name} with mosaics: {mosaics}")
+        else:
+            # Call the main processing function
+            process_year_by_satellite(
+                satellite_years=satellite_years,
+                bucket_name=bucket_name,
+                folder_mosaic=folder_mosaic,
+                folder_images=folder_images,
+                suffix='',
+                ee_project=f'mapbiomas-{country}',
+                country=country,
+                version=version,
+                region_=region
+            )
 
