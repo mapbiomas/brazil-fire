@@ -5,6 +5,7 @@ from IPython.display import display, clear_output
 from datetime import datetime
 from ipywidgets import VBox, HBox
 import time
+import re
 
 import tensorflow.compat.v1 as tf  # TensorFlow compatibility mode for version 1.x
 tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
