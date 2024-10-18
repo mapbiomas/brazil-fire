@@ -467,7 +467,7 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                             print(f"[TESTE INFO] dataset_classify")
                             print('[TESTE INFO] classifytrain_test',dataset_classify.GetRasterBand(1).ReadAsArray())  # Se for GDAL
 
-                            image_data = render_classify(dataset_classify)  # Call model for classification
+                            image_data = process_single_image(dataset_classify)  # Call model for classification
                             convert_to_raster(dataset_classify, image_data, output_image_name)
                             input_scenes.append(output_image_name)
                             total_scenes_done += 1
@@ -526,16 +526,33 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
     log_message('[INFO] Full processing completed.')
 
 # Function to classify and process a list of models and mosaics
-def render_classify(models_to_classify):
+def process_single_image(models_to_classify):
     """
-    Processes a list of models and mosaics to classify burned areas and optionally simulate processing.
+    Processes a classified image, applying spatial filtering and generating the final result.
 
     Args:
-    - models_to_classify: List of objects containing models, mosaics, and a simulation flag.
+    - dataset_classify: GDAL dataset of the image to be classified.
+
+    Returns:
+    - Filtered classified image.
     """
-    # Define bucket name and start processing for each model
+    data_classify = convert_to_array(dataset_classify)
+    data_classify_vector = reshape_single_vector(data_classify)
+    output_data_classified = classify(data_classify_vector)
+    output_image_data = reshape_image_output(output_data_classified, data_classify)
+    return filter_spatial(output_image_data)
+
+def render_classify_models(models_to_classify):
+    """
+    Processes a list of models and mosaics to classify burned areas.
+
+    Args:
+    - models_to_classify: List of dictionaries containing models, mosaics, and a simulation flag.
+    """
+    # Define bucket name
     bucket_name = 'mapbiomas-fire'
 
+    # Loop through each model
     for model_info in models_to_classify:
         model_name = model_info["model"]
         mosaics = model_info["mosaics"]
@@ -580,7 +597,7 @@ def render_classify(models_to_classify):
         if simulation:
             log_message(f"[SIMULATION] Would process model: {model_name} with mosaics: {mosaics}")
         else:
-            # Call the main processing function
+            # Call the main processing function (this will process all years for the satellite)
             process_year_by_satellite(
                 satellite_years=satellite_years,
                 bucket_name=bucket_name,
@@ -592,4 +609,3 @@ def render_classify(models_to_classify):
                 version=version,
                 region_=region
             )
-
