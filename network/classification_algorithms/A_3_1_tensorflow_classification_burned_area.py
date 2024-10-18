@@ -174,44 +174,34 @@ def convert_to_array(dataset):
     stacked_data = np.stack(bands_data, axis=2)
     return np.nan_to_num(stacked_data, nan=0)  # Substitui NaN por 0 # !perguntar para a Vera se tudo bem substituir valores mask, por NaN, no uso do convert_to_array do treinamento e no da classificação
 
-# Function to perform classification using TensorFlow model
-def classify(data_classify_vector, version, region):
+def classify(data_classify_vector, model_path, num_input, num_classes, data_mean, data_std):
     """
-    Executes classification using a neural network model.
-    The processing is done in blocks to avoid memory issues.
+    Realiza a classificação usando o grafo TensorFlow restaurado.
 
     Args:
-    - data_classify_vector: Input data vector (pixels).
-    - version: Model version.
-    - region: Target region.
+    - data_classify_vector: Vetor de entrada de dados (pixels).
+    - model_path: Caminho para o modelo salvo.
+    - num_input: Número de entradas (features).
+    - num_classes: Número de classes no modelo.
+    - data_mean: Média dos dados para normalização.
+    - data_std: Desvio padrão dos dados para normalização.
 
     Returns:
-    - Classified data.
+    - output_data_classify: Dados classificados.
     """
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)  # Limits GPU memory usage
+    graph, placeholders, saver = create_model_graph(num_input, num_classes, data_mean, data_std)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)
+
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-        # Definir saver para restaurar o modelo salvo
-        saver = tf.train.Saver()
+        # Restaurar o modelo treinado
+        saver.restore(sess, model_path)
 
-        # Restore the trained model
-        saver.restore(sess, f'{folder_model}/col1_{country}_v{version}_{region}_rnn_lstm_ckpt')
+        # Classificar os dados
+        output_data_classify = sess.run(
+            graph.get_tensor_by_name('predicted_class:0'),
+            feed_dict={placeholders['x_input']: data_classify_vector}
+        )
 
-        # Classify data in blocks with a maximum size of 4,000,000 pixels
-        output_data_classify0 = outputs.eval({x_input: data_classify_vector[:4000000, bi]})
-        output_data_classify1 = outputs.eval({x_input: data_classify_vector[4000000:8000000, bi]})
-        output_data_classify2 = outputs.eval({x_input: data_classify_vector[8000000:12000000, bi]})
-        output_data_classify3 = outputs.eval({x_input: data_classify_vector[12000000:, bi]})
-
-        # Concatenate all classified blocks
-        output_data_classify = np.concatenate([
-            output_data_classify0,
-            output_data_classify1,
-            output_data_classify2,
-            output_data_classify3
-        ])
-
-    # Clear TensorFlow session to release memory
-    tf.keras.backend.clear_session()
     return output_data_classify
 
 # Function to reshape classified data back into image format
