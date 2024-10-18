@@ -58,6 +58,13 @@ def reshape_single_vector(data_classify):
     """
     return data_classify.reshape([data_classify.shape[0] * data_classify.shape[1], data_classify.shape[2]])
 
+# Function to load an image using GDAL
+def load_image(image_path):
+    dataset = gdal.Open(image_path, gdal.GA_ReadOnly)
+    if dataset is None:
+        raise FileNotFoundError(f"Error loading image: {image_path}. Check the path.")
+    return dataset
+
 # Function to perform classification using TensorFlow model
 def classify(data_classify_vector, version, region):
     """
