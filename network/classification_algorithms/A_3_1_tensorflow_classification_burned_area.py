@@ -65,6 +65,11 @@ def load_image(image_path):
         raise FileNotFoundError(f"Error loading image: {image_path}. Check the path.")
     return dataset
 
+def convert_to_array(dataset):
+    bands_data = [dataset.GetRasterBand(i + 1).ReadAsArray() for i in range(dataset.RasterCount)]
+    stacked_data = np.stack(bands_data, axis=2)
+    return np.nan_to_num(stacked_data, nan=0)  # Substitui NaN por 0 # !perguntar para a Vera se tudo bem substituir valores mask, por NaN, no uso do convert_to_array do treinamento e no da classificação
+
 # Function to perform classification using TensorFlow model
 def classify(data_classify_vector, version, region):
     """
