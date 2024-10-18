@@ -16,6 +16,31 @@ import datetime  # For handling timestamps and date operations
 
 import tensorflow.compat.v1 as tf  # TensorFlow compatibility mode for version 1.x
 tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
+
+# Definir diretórios para o armazenamento de dados e saída do modelo
+folder = f'/content/mapbiomas-fire/sudamerica/{country}'  # Diretório principal onde os dados são armazenados
+
+folder_samples = f'{folder}/training_samples'  # Diretório para armazenamento de dados de amostra
+folder_model = f'{folder}/models_col1'  # Diretório para armazenamento da saída dos modelos
+folder_images = f'{folder}/tmp1'  # Diretório para armazenamento temporário de imagens
+folder_mosaic = f'{folder}/mosaics_cog'  # Diretório para arquivos COG (Cloud-Optimized GeoTIFF)
+
+import os
+
+if not os.path.exists(folder_samples):
+    os.makedirs(folder_samples)
+
+if not os.path.exists(folder_model):
+    os.makedirs(folder_model)
+
+if not os.path.exists(folder_images):
+    os.makedirs(folder_images)
+
+if not os.path.exists(folder_mosaic):
+    os.makedirs(folder_mosaic)
+
+
+
 # ---------------------------
 # Functions for Burned Area Prediction Using the Available Model
 # ---------------------------
