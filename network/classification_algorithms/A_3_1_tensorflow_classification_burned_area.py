@@ -530,22 +530,133 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
 
     log_message('[INFO] Full processing completed.')
 
-# Function to classify and process a list of models and mosaics
-def process_single_image(dataset_classify, version, region):
+def process_single_image(dataset_classify, model_path, num_input, num_classes, data_mean, data_std, version, region):
     """
-    Processes a classified image, applying spatial filtering and generating the final result.
+    Process a classified image using a specified model.
 
     Args:
     - dataset_classify: GDAL dataset of the image to be classified.
+    - model_path: Path to the saved model.
+    - num_input: Number of input features.
+    - num_classes: Number of output classes.
+    - data_mean: Mean value for normalization.
+    - data_std: Standard deviation for normalization.
+    - version: Model version.
+    - region: Target region.
 
     Returns:
-    - Filtered classified image.
+    - output_image_data: Filtered classified image data.
     """
+    # Convert dataset to array
     data_classify = convert_to_array(dataset_classify)
+
+    # Reshape the array into a single pixel vector
     data_classify_vector = reshape_single_vector(data_classify)
-    output_data_classified = classify(data_classify_vector, version, region)
+
+    # Classify the data using the loaded model
+    output_data_classified = classify_with_model(
+        model_path=model_path,
+        data_classify_vector=data_classify_vector,
+        num_input=num_input,
+        num_classes=num_classes,
+        data_mean=data_mean,
+        data_std=data_std
+    )
+
+    # Reshape the classified data back into an image format
     output_image_data = reshape_image_output(output_data_classified, data_classify)
+
+    # Apply spatial filtering to remove small regions
     return filter_spatial(output_image_data)
+
+def create_model_graph(num_input, num_classes, data_mean, data_std):
+    """
+    Create and return a TensorFlow computational graph dynamically based on model parameters.
+
+    Args:
+    - num_input: Number of input features (e.g., number of input pixels or bands).
+    - num_classes: Number of output classes for classification.
+    - data_mean: Mean value used for normalization.
+    - data_std: Standard deviation used for normalization.
+
+    Returns:
+    - graph: TensorFlow graph ready for classification.
+    - placeholders: Dictionary containing x_input and y_input placeholders.
+    - saver: TensorFlow saver object for restoring model weights.
+    """
+    graph = tf.Graph()
+    
+    with graph.as_default():
+        # Define placeholders for input data and labels
+        x_input = tf.placeholder(tf.float32, shape=[None, num_input], name='x_input')
+        y_input = tf.placeholder(tf.int64, shape=[None], name='y_input')
+
+        # Normalize input data
+        normalized = (x_input - data_mean) / data_std
+
+        # Build the neural network layers (you can adjust the number of layers or neurons)
+        hidden1 = fully_connected_layer(normalized, n_neurons=NUM_N_L1, activation='relu')
+        hidden2 = fully_connected_layer(hidden1, n_neurons=NUM_N_L2, activation='relu')
+        hidden3 = fully_connected_layer(hidden2, n_neurons=NUM_N_L3, activation='relu')
+        hidden4 = fully_connected_layer(hidden3, n_neurons=NUM_N_L4, activation='relu')
+        hidden5 = fully_connected_layer(hidden4, n_neurons=NUM_N_L5, activation='relu')
+
+        # Final output layer to produce the logits (raw values for each class)
+        logits = fully_connected_layer(hidden5, n_neurons=num_classes)
+
+        # Define the loss function (for training, although not needed in inference)
+        cross_entropy = tf.reduce_mean(
+            tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=y_input),
+            name='cross_entropy_loss'
+        )
+
+        # Define optimizer (for training, although not needed in inference)
+        optimizer = tf.train.AdamOptimizer().minimize(cross_entropy)
+
+        # Operation to get the predicted class (the class with the highest logit)
+        outputs = tf.argmax(logits, 1, name='predicted_class')
+
+        # Accuracy metric (for evaluation, although not needed in inference)
+        correct_prediction = tf.equal(outputs, y_input)
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name='accuracy')
+
+        # Initialize all variables
+        init = tf.global_variables_initializer()
+
+        # Define the saver to save or restore the model state
+        saver = tf.train.Saver()
+
+    return graph, {'x_input': x_input, 'y_input': y_input}, saver
+
+def classify_with_model(model_path, data_classify_vector, num_input, num_classes, data_mean, data_std):
+    """
+    Classify input data using a TensorFlow model restored from the specified path.
+
+    Args:
+    - model_path: Path to the saved TensorFlow model checkpoint.
+    - data_classify_vector: Input data to be classified (1D vector of pixels).
+    - num_input: Number of input features.
+    - num_classes: Number of output classes for classification.
+    - data_mean: Mean used for normalization.
+    - data_std: Standard deviation used for normalization.
+
+    Returns:
+    - output_data_classified: Classification results.
+    """
+    # Create the graph dynamically for the model
+    graph, placeholders, saver = create_model_graph(num_input, num_classes, data_mean, data_std)
+    
+    with tf.Session(graph=graph) as sess:
+        # Restore the model from the checkpoint
+        saver.restore(sess, model_path)
+
+        # Classify the input data
+        output_data_classified = sess.run(
+            graph.get_tensor_by_name('predicted_class:0'),  # Get the output tensor
+            feed_dict={placeholders['x_input']: data_classify_vector}
+        )
+
+    return output_data_classified
 
 def render_classify_models(models_to_classify):
     """
