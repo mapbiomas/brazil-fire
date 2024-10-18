@@ -389,7 +389,7 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
                 acc = accuracy.eval(validation_dict) * 100
 
                 # Save the model checkpoint
-                split_name = get_checkbox_ativo().split('_')
+                split_name = get_active_checkbox().split('_')
                 model_path = f'{folder_model}/col1_{country}_{split_name[1]}_{split_name[3]}_rnn_lstm_ckpt'
                 log_message(f'[INFO] Model saved locally at: {model_path}')
 
