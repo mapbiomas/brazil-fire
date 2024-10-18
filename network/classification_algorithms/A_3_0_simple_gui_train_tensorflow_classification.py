@@ -329,14 +329,25 @@ def classify_burned_area_click(b):
     if selected_models:
         for model in selected_models:
             log_message(f'Processing model: {model}')
+            
             # Normalize the model key by ensuring it has ".meta"
-            model_key = f"{model}.meta" if not model.endswith('.meta') else model  # Ensure the model key has ".meta"
+            model_key = f"{model}.meta" if not model.endswith('.meta') else model  
+            
             log_message(f'Checking for model_key: {model_key}')
+
+            # Extract country, version, region from model name
+            parts = model.split('_')  # Assuming the model name format: col1_country_vX_region.meta
+            country = parts[1]  # For example, 'guyana'
+            version = parts[2]  # For example, 'v1'
+            region = parts[3].split('.')[0]  # For example, 'r1'
+
+            log_message(f'Extracted country: {country}, version: {version}, region: {region}')
 
             # Retrieve the mosaic checkboxes for the current model
             if model_key in mosaic_checkboxes_dict:
                 log_message(f'Found mosaic checkboxes for model: {model_key}')
-                mosaic_checkboxes = mosaic_checkboxes_dict[model_key]  # Get the checkboxes for the current model
+                mosaic_checkboxes = mosaic_checkboxes_dict[model_key]  
+                
                 log_message('mosaic_checkboxes')
                 log_message(mosaic_checkboxes)
 
@@ -352,24 +363,27 @@ def classify_burned_area_click(b):
 
                 # Build the model object to classify
                 model_obj = {
-                    "model": model,  # The name of the model
-                    "mosaics": selected_mosaics,  # List of selected mosaic file names (without " ⚠️")
-                    "simulation": False  # Set this flag as needed; you might want to add logic to set it dynamically
+                    "model": model,  
+                    "mosaics": selected_mosaics,  
+                    "simulation": False, 
+                    "country": country,  
+                    "version": version,  
+                    "region": region  
                 }
 
                 # Append the model object to the list
                 models_to_classify.append(model_obj)
             else:
-                log_message(f"No mosaics found for model: {model_key}")  # This shouldn't happen unless there's a bug
+                log_message(f"No mosaics found for model: {model_key}")
 
         # If we have models to classify, call render_classify_models with the list of objects
         if models_to_classify:
-            log_message(f"Calling render_classify_models with: {models_to_classify}")  # Debugging output
-            render_classify_models(models_to_classify)  # Call the function with the built data structure
+            log_message(f"Calling render_classify_models with: {models_to_classify}")  
+            render_classify_models(models_to_classify)  
         else:
-            log_message("No mosaics were selected for any models.")  # No mosaics were selected for any models
+            log_message("No mosaics were selected for any models.")  
     else:
-        log_message("No models selected.")  # No models were selected
+        log_message("No models selected.")  
 
 def on_select_country(country_name):
     """
