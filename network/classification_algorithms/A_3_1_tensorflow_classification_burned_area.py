@@ -17,6 +17,21 @@ import datetime  # For handling timestamps and date operations
 import tensorflow.compat.v1 as tf  # TensorFlow compatibility mode for version 1.x
 tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
 
+# Definição de hiperparâmetros fixos
+NUM_INPUT = 30  # Exemplo: número de features de entrada (número de bandas ou pixels por vetor de entrada)
+NUM_CLASSES = 5  # Exemplo: número de classes para classificação
+NUM_N_L1 = 128  # Número de neurônios na camada oculta 1
+NUM_N_L2 = 64   # Número de neurônios na camada oculta 2
+NUM_N_L3 = 32   # Número de neurônios na camada oculta 3
+NUM_N_L4 = 16   # Número de neurônios na camada oculta 4
+NUM_N_L5 = 8    # Número de neurônios na camada oculta 5
+LEARNING_RATE = 0.001  # Taxa de aprendizado para o otimizador Adam
+
+# Parâmetros de normalização (você pode ajustá-los conforme o seu conjunto de dados)
+DATA_MEAN = 0.0  # Média dos dados (para normalização)
+DATA_STD = 1.0   # Desvio padrão dos dados (para normalização)
+
+
 # Definir diretórios para o armazenamento de dados e saída do modelo
 folder = f'/content/mapbiomas-fire/sudamerica/{country}'  # Diretório principal onde os dados são armazenados
 
@@ -24,6 +39,7 @@ folder_samples = f'{folder}/training_samples'  # Diretório para armazenamento d
 folder_model = f'{folder}/models_col1'  # Diretório para armazenamento da saída dos modelos
 folder_images = f'{folder}/tmp1'  # Diretório para armazenamento temporário de imagens
 folder_mosaic = f'{folder}/mosaics_cog'  # Diretório para arquivos COG (Cloud-Optimized GeoTIFF)
+
 
 import os
 
@@ -289,21 +305,6 @@ def clean_directories(directories_to_clean):
             os.makedirs(directory)
             log_message(f'[INFO] Directory created: {directory}')
 
-# Function to generate a VRT and convert it to an optimized TIFF using gdal_translate
-def generate_optimized_image(name_out_vrt, name_out_tif, files_tif_str):
-    """
-    Generates a VRT from multiple TIFF files and converts it to an optimized and compressed TIFF using gdal_translate.
-
-    Args:
-    - name_out_vrt: Path to the output VRT file.
-    - name_out_tif: Path to the optimized output TIFF file.
-    - files_tif_str: String containing the paths to the TIFF files to process.
-    """
-    # Build the VRT from multiple scenes
-    os.system(f'gdalbuildvrt {name_out_vrt} {files_tif_str}')
-    # Translate the VRT into an optimized and compressed TIFF
-    os.system(f'gdal_translate -a_nodata 0 -co compress=DEFLATE {name_out_vrt} {name_out_tif}')
-
 # Function to check or create a collection in Google Earth Engine (GEE)
 def check_or_create_collection(collection, ee_project):
     """
@@ -530,100 +531,81 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
 
     log_message('[INFO] Full processing completed.')
 
-def process_single_image(dataset_classify, model_path, num_input, num_classes, data_mean, data_std, version, region):
+# Função para processar uma única imagem e aplicar o modelo de classificação
+def process_single_image(dataset_classify, num_classes, data_mean, data_std, version, region):
     """
-    Process a classified image using a specified model.
+    Processa uma imagem classificada, aplicando o modelo e filtragem espacial para gerar o resultado final.
 
     Args:
-    - dataset_classify: GDAL dataset of the image to be classified.
-    - model_path: Path to the saved model.
-    - num_input: Number of input features.
-    - num_classes: Number of output classes.
-    - data_mean: Mean value for normalization.
-    - data_std: Standard deviation for normalization.
-    - version: Model version.
-    - region: Target region.
+    - dataset_classify: Dataset GDAL da imagem a ser classificada.
+    - num_classes: Número de classes no modelo.
+    - data_mean: Média dos dados (para normalização).
+    - data_std: Desvio padrão dos dados (para normalização).
+    - version: Versão do modelo.
+    - region: Região alvo para classificação.
 
     Returns:
-    - output_image_data: Filtered classified image data.
+    - Imagem classificada filtrada.
     """
-    # Convert dataset to array
+    # Converte o dataset GDAL em um array NumPy
     data_classify = convert_to_array(dataset_classify)
 
-    # Reshape the array into a single pixel vector
+    # Reshape para vetor único de pixels
     data_classify_vector = reshape_single_vector(data_classify)
 
-    # Classify the data using the loaded model
-    output_data_classified = classify_with_model(
-        model_path=model_path,
-        data_classify_vector=data_classify_vector,
-        num_input=num_input,
-        num_classes=num_classes,
-        data_mean=data_mean,
-        data_std=data_std
-    )
+    # Normaliza o vetor de entrada usando data_mean e data_std
+    data_classify_vector = (data_classify_vector - data_mean) / data_std
 
-    # Reshape the classified data back into an image format
+    # Realiza a classificação usando o modelo
+    output_data_classified = classify(data_classify_vector, version, region)
+
+    # Reshape para o formato de imagem
     output_image_data = reshape_image_output(output_data_classified, data_classify)
 
-    # Apply spatial filtering to remove small regions
+    # Aplica filtro espacial
     return filter_spatial(output_image_data)
+
 
 def create_model_graph(num_input, num_classes, data_mean, data_std):
     """
-    Create and return a TensorFlow computational graph dynamically based on model parameters.
-
-    Args:
-    - num_input: Number of input features (e.g., number of input pixels or bands).
-    - num_classes: Number of output classes for classification.
-    - data_mean: Mean value used for normalization.
-    - data_std: Standard deviation used for normalization.
-
-    Returns:
-    - graph: TensorFlow graph ready for classification.
-    - placeholders: Dictionary containing x_input and y_input placeholders.
-    - saver: TensorFlow saver object for restoring model weights.
+    Cria e retorna um grafo computacional TensorFlow dinamicamente com base nos parâmetros do modelo.
     """
     graph = tf.Graph()
     
     with graph.as_default():
-        # Define placeholders for input data and labels
+        # Define placeholders para dados de entrada e rótulos
         x_input = tf.placeholder(tf.float32, shape=[None, num_input], name='x_input')
         y_input = tf.placeholder(tf.int64, shape=[None], name='y_input')
 
-        # Normalize input data
+        # Normaliza os dados de entrada
         normalized = (x_input - data_mean) / data_std
 
-        # Build the neural network layers (you can adjust the number of layers or neurons)
+        # Constrói as camadas da rede neural com os hiperparâmetros definidos
         hidden1 = fully_connected_layer(normalized, n_neurons=NUM_N_L1, activation='relu')
         hidden2 = fully_connected_layer(hidden1, n_neurons=NUM_N_L2, activation='relu')
         hidden3 = fully_connected_layer(hidden2, n_neurons=NUM_N_L3, activation='relu')
         hidden4 = fully_connected_layer(hidden3, n_neurons=NUM_N_L4, activation='relu')
         hidden5 = fully_connected_layer(hidden4, n_neurons=NUM_N_L5, activation='relu')
 
-        # Final output layer to produce the logits (raw values for each class)
+        # Camada final de saída
         logits = fully_connected_layer(hidden5, n_neurons=num_classes)
-
-        # Define the loss function (for training, although not needed in inference)
+        
+        # Define a função de perda (para treinamento, embora não seja necessária na inferência)
         cross_entropy = tf.reduce_mean(
             tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=y_input),
             name='cross_entropy_loss'
         )
-
-        # Define optimizer (for training, although not needed in inference)
-        optimizer = tf.train.AdamOptimizer().minimize(cross_entropy)
-
-        # Operation to get the predicted class (the class with the highest logit)
+        
+        # Define o otimizador (para treinamento, embora não seja necessária na inferência)
+        optimizer = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE).minimize(cross_entropy)
+        
+        # Operação para obter a classe prevista
         outputs = tf.argmax(logits, 1, name='predicted_class')
-
-        # Accuracy metric (for evaluation, although not needed in inference)
-        correct_prediction = tf.equal(outputs, y_input)
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name='accuracy')
-
-        # Initialize all variables
+        
+        # Inicializa todas as variáveis
         init = tf.global_variables_initializer()
 
-        # Define the saver to save or restore the model state
+        # Definir o saver para salvar ou restaurar o estado do modelo
         saver = tf.train.Saver()
 
     return graph, {'x_input': x_input, 'y_input': y_input}, saver
