@@ -401,10 +401,10 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
     - ee_project: Google Earth Engine project name.
     - country: Country name.
     - version: Dataset version.
-    - region_: Region code (e.g., 'r1').
+    - region: Region code (e.g., 'r1').
     """
     # Load the Landsat grid from GEE for the region
-    grid = ee.FeatureCollection(f'projects/mapbiomas-{country}/assets/FIRE/AUXILIARY_DATA/GRID_REGIONS/grid-{country}-{region_}')
+    grid = ee.FeatureCollection(f'projects/mapbiomas-{country}/assets/FIRE/AUXILIARY_DATA/GRID_REGIONS/grid-{country}-{region}')
     grid_landsat = grid.getInfo()['features']  # Load the Landsat grid
     start_time = time.time()
 
@@ -429,12 +429,12 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                 log_message(f"{'-'*60}")
 
                 # File naming convention for the classified image
-                image_name = f"burned_area_{country}_{satellite}_v{version}_region{region_[1:]}_{year}{suffix}"
+                image_name = f"burned_area_{country}_{satellite}_v{version}_region{region[1:]}_{year}{suffix}"
                 gcs_filename = f'gs://{bucket_name}/sudamerica/{country}/result_classified/{image_name}.tif'
 
                 # Paths for local and cloud-optimized images
-                local_cog_path = f'{folder_mosaic}/{satellite}_{country}_{region_}_{year}_cog.tif'
-                gcs_cog_path = f'gs://{bucket_name}/sudamerica/{country}/mosaics_col1_cog/{satellite}_{country}_{region_}_{year}_cog.tif'
+                local_cog_path = f'{folder_mosaic}/{satellite}_{country}_{region}_{year}_cog.tif'
+                gcs_cog_path = f'gs://{bucket_name}/sudamerica/{country}/mosaics_col1_cog/{satellite}_{country}_{region}_{year}_cog.tif'
 
                 # Copy COG file from GCS if not already copied locally
                 if os.path.exists(local_cog_path):
@@ -451,7 +451,7 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                     for grid in grid_landsat:
                         orbit = grid['properties']['ORBITA']
                         point = grid['properties']['PONTO']
-                        output_image_name = f'{folder_images}/image_col3_{country}_{region_}_{version}_{orbit}_{point}_{year}.tif'
+                        output_image_name = f'{folder_images}/image_col3_{country}_{region}_{version}_{orbit}_{point}_{year}.tif'
 
                         # Skip if the file already exists
                         if os.path.isfile(output_image_name):
@@ -461,7 +461,7 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
 
                         # Clip the image based on the scene geometry
                         geometry_scene = grid['geometry']
-                        NBR_clipped = f'{folder_images}/image_mosaic_col3_{country}_{region_}_{version}_{orbit}_{point}_clipped_{year}.tif'
+                        NBR_clipped = f'{folder_images}/image_mosaic_col3_{country}_{region}_{version}_{orbit}_{point}_clipped_{year}.tif'
                         log_message(f'[INFO] Image clipped: {NBR_clipped}')
                         print(f"[TESTE INFO] geometry_scene {geometry_scene}")
 
@@ -505,7 +505,7 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                         # Upload to GEE within the collection
                         output_asset_id = f'{collection_name}/{image_name}'
                         log_message(f'[INFO] Uploading to GEE: {output_asset_id}')
-                        upload_to_gee(gcs_filename, output_asset_id, satellite, region_, year, version, ee_project)
+                        upload_to_gee(gcs_filename, output_asset_id, satellite, region, year, version, ee_project)
 
                     except Exception as e:
                         log_message(f'[ERROR] Failed to merge scenes for year {year}. Details: {str(e)}')
@@ -612,5 +612,5 @@ def render_classify_models(models_to_classify):
                 ee_project=f'mapbiomas-{country}',
                 country=country,
                 version=version,
-                region_=region
+                region=region
             )
