@@ -1,63 +1,403 @@
+import subprocess
+import sys
+import importlib
 import os
 from datetime import datetime
 import time
+
+# Função para verificar e instalar bibliotecas
+def install_and_import(package):
+    try:
+        importlib.import_module(package)
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        clear_console()
+
+# Função para instalar pacotes do sistema via apt-get
+def apt_get_install(package):
+    subprocess.check_call(['sudo', 'apt-get', 'install', '-y', package], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    clear_console()
+
+# Função para limpar o console
+def clear_console():
+    # Limpa o console de acordo com o sistema operacional
+    if os.name == 'nt':  # Windows
+        os.system('cls')
+    else:  # MacOS/Linux
+        os.system('clear')
+
+# Verificar e instalar pacotes Python
+install_and_import('rasterio')
+install_and_import('gcsfs')
+install_and_import('ipywidgets')
+
+# Verificar e instalar pacotes Python
+install_and_import('rasterio')
+install_and_import('gcsfs')
+install_and_import('ipywidgets')
+
+# Instalar dependências de sistema (GDAL)
+apt_get_install('libgdal-dev')
+apt_get_install('gdal-bin')
+apt_get_install('python3-gdal')
+
+import os
+import numpy as np
+import tensorflow as tf
+from osgeo import gdal
+import datetime
+import gcsfs
+from google.cloud import storage
+import glob
+import re  # Importa a biblioteca de expressões regulares
+import tensorflow.compat.v1 as tf  # TensorFlow compatibility mode for version 1.x
+tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
+import math  # Mathematical functions
 import subprocess
+import time
+from datetime import datetime
+from tqdm import tqdm  # Biblioteca para barra de progresso
+import ipywidgets as widgets
+from IPython.display import display, HTML, clear_output
+from ipywidgets import VBox, HBox
+# 4.1 Functions for running the training
 
-# def log_message(message, country, collection_name, bucket_name):
-def log_message(message):
+# Function to load an image using GDAL
+def load_image(image_path):
+    dataset = gdal.Open(image_path, gdal.GA_ReadOnly)
+    if dataset is None:
+        raise FileNotFoundError(f"Error loading image: {image_path}. Check the path.")
+    return dataset
 
+# Function to convert a GDAL dataset to a NumPy array
+def convert_to_array(dataset):
+    bands_data = [dataset.GetRasterBand(i + 1).ReadAsArray() for i in range(dataset.RasterCount)]
+    return np.stack(bands_data, axis=2)  # Stack the bands along the Z axis
+
+# Function to shuffle data and filter invalid values (NaN)
+def filter_valid_data_and_shuffle(data):
+    """Removes rows with NaN and shuffles the data."""
+    # Filter valid data by removing rows with NaN
+    valid_data = data[~np.isnan(data).any(axis=1)]
+    np.random.shuffle(valid_data)  # Shuffle the data
+    return valid_data
+
+def fully_connected_layer(input, n_neurons, activation=None):
     """
-    Log messages to both a local file and a GCS bucket. Combines previous logs from the bucket
-    with new messages to create a continuous log file.
+    Creates a fully connected layer.
 
-    Args:
-    - message: The message to log.
-    - country: The country name (part of log file naming convention).
-    - collection_name: The collection name (part of log file naming convention).
-    - bucket_name: The GCS bucket name to store the log file.
+    :param input: Input tensor from the previous layer
+    :param n_neurons: Number of neurons in this layer
+    :param activation: Activation function ('relu' or None)
+    :return: Layer output with or without activation applied
     """
+    input_size = input.get_shape().as_list()[1]  # Get input size (number of features)
 
-    import os
-    from datetime import datetime
-    import time
-    import subprocess
+    # Initialize weights (W) with a truncated normal distribution and initialize biases (b) with zeros
+    W = tf.Variable(tf.truncated_normal([input_size, n_neurons], stddev=1.0 / math.sqrt(float(input_size))), name='W')
+    b = tf.Variable(tf.zeros([n_neurons]), name='b')
 
-    # Current timestamp
-    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    log_entry = f"[{current_time}] {message}\n"
-    print('[LOG]',log_entry)
-    # Paths for log files
-    log_folder = f'/content/{bucket_name}/sudamerica/{country}/classification_logs'
-    log_file_name = f'burned_area_classification_log_{collection_name}_{country}.log'
-    log_file_path_local = os.path.join(log_folder, log_file_name)
+    # Apply the linear transformation (Wx + b)
+    layer = tf.matmul(input, W) + b
 
-    # Create the local directory if it doesn't exist
-    if not os.path.exists(log_folder):
-        os.makedirs(log_folder)
+    # Apply activation function, if specified
+    if activation == 'relu':
+        layer = tf.nn.relu(layer)
 
-    # Path for the log file in the GCS bucket
-    bucket_log_folder = f'gs://{bucket_name}/sudamerica/{country}/classification_logs/'
-    gcs_log_file_path = f'{bucket_log_folder}{log_file_name}'
+    return layer
 
-    # Check if log file exists in the bucket and download it
+# Function to monitor local file progress
+def monitor_file_progress(file_path):
     try:
-        # Try to copy the existing log file from GCS to the local folder (if it exists)
-        subprocess.check_call(f'gsutil cp {gcs_log_file_path} {log_file_path_local}', shell=True)
-        # print(f"[INFO] Existing log file downloaded from GCS: {gcs_log_file_path}")
-    except subprocess.CalledProcessError:
-        # If the file doesn't exist, proceed with creating a new one
-        print(f"[LOG INFO] No existing log file found in GCS. A new log will be created.")
+        initial_size = os.path.getsize(file_path)
+    except FileNotFoundError:
+        initial_size = 0  # If the file doesn't exist yet
 
-    # Write the new log entry to the local file (append mode)
-    with open(log_file_path_local, 'a') as log_file:
-        log_file.write(log_entry)
+    time.sleep(1)  # Waits 1 second before checking again
 
-    # print(f"[LOG INFO] Log written locally to {log_file_path_local}")
-
-    # Upload the updated log file back to GCS
     try:
-        # Copy the updated log file to the GCS bucket
-        subprocess.check_call(f'gsutil cp {log_file_path_local} {bucket_log_folder}', shell=True)
-        # print(f"[LOG INFO] Log file updated on GCS at {bucket_log_folder}")
-    except subprocess.CalledProcessError as e:
-        print(f"[LOG ERROR] Failed to update log file on GCS: {str(e)}")
+        current_size = os.path.getsize(file_path)
+    except FileNotFoundError:
+        current_size = 0  # If the file was removed or hasn't started downloading
+
+    return current_size - initial_size  # Returns the size difference
+import os
+import subprocess
+import numpy as np
+from tqdm import tqdm
+
+# Function to handle downloading an image
+def download_image(image, local_file, simulation):
+    if simulation:
+        log_message(f"[SIMULATION] Skipping download of: {image}")
+    else:
+        log_message(f"[INFO] Starting download of: {image}")
+        download_command = f'gsutil -m cp gs://{bucket_name}/sudamerica/{country}/training_samples/{image} {folder_samples}/'
+        process = subprocess.Popen(download_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process.wait()
+
+        if process.returncode == 0:
+            log_message(f"[SUCCESS] Download completed for {image}.")
+        else:
+            _, stderr = process.communicate()
+            log_message(f"[ERROR] Failed to download {image}: {stderr.decode()}")
+            return False
+
+    return True
+
+# Function to load and process an image
+def process_image(image, simulation):
+    if simulation:
+        log_message(f"[SIMULATION] Processing image: {image}")
+        return None
+
+    try:
+        log_message(f"[INFO] Processing image: {image}")
+        dataset_train_test = load_image(image)
+        print('dataset_train_test',dataset_train_test.GetRasterBand(1).ReadAsArray())  # Se for GDAL
+
+        data_train_test = convert_to_array(dataset_train_test)
+        vector = data_train_test.reshape([data_train_test.shape[0] * data_train_test.shape[1], data_train_test.shape[2]])
+        dataclean = vector[~np.isnan(vector).any(axis=1)]  # Remove NaN values
+        return dataclean
+    except Exception as e:
+        log_message(f"[ERROR] Failed to process image {image}: {str(e)}")
+        return None
+
+# Main function for handling image downloads and processing
+def sample_download_and_preparation(images_train_test, simulation=False):
+
+    # List to store the data vectors of all training and test images
+    all_data_train_test_vector = []
+
+    if simulation:
+        log_message(f"[SIMULATION] Starting simulation for {len(images_train_test)} images.")
+    else:
+        log_message(f"[INFO] Starting image download and preparation for {len(images_train_test)} images...")
+
+    # Adding the progress bar with the total number of files to be downloaded
+    with tqdm(total=len(images_train_test), desc="[INFO] Downloading and processing images") as pbar:
+        for index, image in enumerate(images_train_test):
+            local_file = os.path.join(folder_samples, image)
+
+            # Skip download if the file exists, but process it
+            if os.path.exists(local_file):
+                if simulation:
+                    log_message(f"[SIMULATION] The file {image} already exists. Skipping download.")
+                else:
+                    log_message(f"[INFO] The file {image} already exists. Skipping download, but processing it.")
+                images_name = [local_file]  # Treat as available
+            else:
+                success = download_image(image, local_file, simulation)
+                if not success:
+                    continue
+
+                images_name = [local_file] if not simulation else [image]
+
+            # Process images (either downloaded or pre-existing)
+            for img in images_name:
+                processed_data = process_image(img, simulation)
+                if processed_data is not None:
+                    all_data_train_test_vector.append(processed_data)
+
+            pbar.update(1)
+
+    # Check if any data was added to the list before attempting to concatenate
+    if not simulation and all_data_train_test_vector:
+        data_train_test_vector = np.concatenate(all_data_train_test_vector)
+        log_message(f"[INFO] Concatenated data: {data_train_test_vector.shape}")
+    elif not simulation:
+        raise ValueError("[ERROR] No training or test data available for concatenation.")
+
+    if not simulation:
+        # Filter and shuffle the data
+        valid_data_train_test = filter_valid_data_and_shuffle(data_train_test_vector)
+        log_message(f"[INFO] Valid data after filtering: {valid_data_train_test.shape}")
+
+        # Additional data splitting and training logic goes here
+        split_data_for_training(valid_data_train_test)
+    else:
+        log_message("[SIMULATION] Simulation completed.")
+
+def split_data_for_training(valid_data_train_test):
+    # Indices of input features (NBR bands) and label (class)
+    bi = [0, 1, 2, 3]  # Indices for NBR bands
+    li = 4  # Index for the label (class)
+
+    TRAIN_FRACTION = 0.7  # Proportion of data to be used for training
+
+    # Check if there is enough data to perform the split
+    if valid_data_train_test.shape[0] < 2:
+        raise ValueError("[ERROR] Insufficient data to split into training and validation.")
+
+    # Calculate the size of the training dataset
+    training_size = int(valid_data_train_test.shape[0] * TRAIN_FRACTION)
+    log_message(f"[INFO] Training set size: {training_size} examples")
+
+    # Split the data into training and validation sets
+    training_data = valid_data_train_test[:training_size, :]
+    validation_data = valid_data_train_test[training_size:, :]
+
+    log_message(f"[INFO] Validation set size: {validation_data.shape[0]} examples")
+
+    # Calculate the mean and standard deviation of each band (NBR) in the training set
+    data_mean = training_data[:, bi].mean(axis=0)
+    data_std = training_data[:, bi].std(axis=0)
+    log_message(f"[INFO] Mean of training bands: {data_mean}")
+    log_message(f"[INFO] Standard deviation of training bands: {data_std}")
+
+    # Start model training, passing training_size
+    train_model(training_data, validation_data, bi, li, data_mean, data_std, training_size)
+def train_model(training_data, validation_data, bi, li, data_mean, data_std, training_size):
+    # ### HYPERPARAMETERS ###
+
+    # Learning rate for the optimizer
+    lr = 0.001
+
+    # Batch size for training
+    BATCH_SIZE = 1000
+
+    # Number of training iterations
+    N_ITER = 7000
+
+    # Number of input features (NBR bands)
+    NUM_INPUT = len(bi)
+
+    # Definition of neurons in each hidden layer
+    NUM_N_L1 = 7  # Neurons in the first hidden layer
+    NUM_N_L2 = 14  # Neurons in the second hidden layer
+    NUM_N_L3 = 7  # Neurons in the third hidden layer
+    NUM_N_L4 = 14  # Neurons in the fourth hidden layer
+    NUM_N_L5 = 7  # Neurons in the fifth hidden layer
+
+    # Number of output classes (e.g., fire vs. no fire)
+    NUM_CLASSES = 2
+
+    # Creating a new TensorFlow computational graph
+    graph = tf.Graph()
+    with graph.as_default():  # Set the graph as the default for operations
+
+        log_message(f"[INFO] Setting up the TensorFlow graph...")
+
+        # Define placeholders for input data and labels
+        x_input = tf.placeholder(tf.float32, shape=[None, NUM_INPUT], name='x_input')  # Placeholder for input data
+        y_input = tf.placeholder(tf.int64, shape=[None], name='y_input')  # Placeholder for labels (class)
+
+        # Normalize input data using the previously calculated mean and standard deviation
+        normalized = (x_input - data_mean) / data_std
+
+        # Build the neural network with several fully connected layers
+        hidden1 = fully_connected_layer(normalized, n_neurons=NUM_N_L1, activation='relu')
+        hidden2 = fully_connected_layer(hidden1, n_neurons=NUM_N_L2, activation='relu')
+        hidden3 = fully_connected_layer(hidden2, n_neurons=NUM_N_L3, activation='relu')
+        hidden4 = fully_connected_layer(hidden3, n_neurons=NUM_N_L4, activation='relu')
+        hidden5 = fully_connected_layer(hidden4, n_neurons=NUM_N_L5, activation='relu')
+
+        """Additional hidden layers can be added here if necessary"""
+
+        # Final output layer to produce the logits (raw values for each class)
+        logits = fully_connected_layer(hidden5, n_neurons=NUM_CLASSES)
+
+        # Define the loss function: softmax cross-entropy (for multiclass classification)
+        cross_entropy = tf.reduce_mean(
+            tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=y_input),
+            name='cross_entropy_loss'
+        )
+
+        # Define the optimizer: Adam with the specified learning rate
+        optimizer = tf.train.AdamOptimizer(lr).minimize(cross_entropy)
+
+        # Operation to get the predicted class (the class with the highest logit)
+        outputs = tf.argmax(logits, 1, name='predicted_class')
+
+        # Accuracy metric: proportion of correct predictions
+        correct_prediction = tf.equal(outputs, y_input)
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name='accuracy')
+
+        # Initialize all variables in the graph
+        init = tf.global_variables_initializer()
+
+        # Define the saver to save the model state during training
+        saver = tf.train.Saver()
+
+        log_message(f"[INFO] TensorFlow graph setup complete.")
+
+    # 5.3 - Model Training
+    # --------------------------------------------------
+
+    # Record the start time of training
+    start_time = time.time()
+
+    # Configure GPU options to limit memory usage (optional)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
+
+    # Start a TensorFlow session to execute the graph
+    log_message('[INFO] Starting training session with GPU memory limited to 33.3% of available memory...')
+    with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
+        sess.run(init)  # Initialize all variables
+        log_message('[INFO] Initial variables loaded, session started.')
+
+        # Validation data dictionary
+        validation_dict = {
+            x_input: validation_data[:, bi],
+            y_input: validation_data[:, li]
+        }
+
+        log_message(f'[INFO] Starting training loop with {N_ITER} iterations...')
+
+        # Training loop: iterate over the specified number of iterations
+        for i in range(N_ITER + 1):
+            # Select a random batch of training data
+            batch = training_data[np.random.choice(training_size, BATCH_SIZE, False), :]
+
+            # Create the input dictionary for this batch
+            feed_dict = {
+                x_input: batch[:, bi],
+                y_input: batch[:, li]
+            }
+
+            # Run one step of the optimizer (training step)
+            optimizer.run(feed_dict=feed_dict)
+
+            # Every 100 iterations, evaluate accuracy and save the model
+            if i % 100 == 0:
+                # Calculate validation accuracy
+                acc = accuracy.eval(validation_dict) * 100
+
+                # Save the model checkpoint
+                split_name = get_checkbox_ativo().split('_')
+                model_path = f'{folder_model}/col1_{country}_{split_name[1]}_{split_name[3]}_rnn_lstm_ckpt'
+                log_message(f'[INFO] Model saved locally at: {model_path}')
+
+                # Upload model files to GCS
+                bucket_model_path = f'gs://{bucket_name}/sudamerica/{country}/models_col1/'
+                try:
+                    subprocess.check_call(f'gsutil cp {model_path}.* {bucket_model_path}', shell=True)
+                    log_message(f'[INFO] Model files successfully uploaded to GCS at {bucket_model_path}')
+                except subprocess.CalledProcessError as e:
+                    log_message(f'[ERROR] Failed to upload model files to GCS: {str(e)}')
+
+                # Save model in TensorFlow session
+                saver.save(sess, model_path)
+
+                # Display progress
+                log_message(f'[PROGRESS] Iteration {i}/{N_ITER} - Validation Accuracy: {acc:.2f}%')
+                log_message(f'[INFO] Model saved at: {model_path}')
+
+        # End of training process
+        end_time = time.time()
+        training_time = end_time - start_time
+        log_message(f'[INFO] Total training time: {time.strftime("%H:%M:%S", time.gmtime(training_time))}')
+
+        # Final model save message
+        log_message(f'[INFO] Final model saved at: {model_path}')
+
+        # Clean up temporary sample files after training
+        log_message('[INFO] Removing temporary sample files...')
+        remove_status = os.system(f'rm -rf {folder_samples}/samples_*')
+
+        # Confirm the removal of sample files
+        if remove_status == 0:
+            log_message('[SUCCESS] Sample files removed successfully.')
+        else:
+            log_message('[ERROR] Failed to remove temporary sample files.')
