@@ -1,3 +1,7 @@
+# last_update: '2024/10/22', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# MapBiomas Fire Classification Algorithms Step A_0_2_log_algorithm_monitor.py 
+### Step A_0_2 - Algoritmo para registrar logs de monitoramento da interface em um arquivo JSON na Google Cloud
+
 import os
 from datetime import datetime
 import time
