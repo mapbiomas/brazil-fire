@@ -1,3 +1,6 @@
+# last_update: '2024/10/22', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# MapBiomas Fire Classification Algorithms Step A_2_0_simple_gui_train_tensorflow_models.py 
+### Step A_2_0 - Simple graphic user interface for the routine of training TensorFlow models
 
 import gcsfs
 import ipywidgets as widgets
