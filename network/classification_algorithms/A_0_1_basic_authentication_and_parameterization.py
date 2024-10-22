@@ -1,5 +1,6 @@
-# A_0_1 Basic authentication and parameterization
-#####  Google Cloud Authentication #####
+# last_update: '2024/10/22', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# MapBiomas Fire Classification Algorithms Step A_0_1_basic_authentication_and_parameterization.py 
+### Step A_0_1 - Basic authentication and parameterization
 
 # Country options: ['bolivia', 'colombia', 'chile', 'peru', 'paraguay', 'guyana']
 # Specify the country for processing. Options: ['bolivia', 'colombia', 'chile', 'peru', 'paraguay', 'guyana']
