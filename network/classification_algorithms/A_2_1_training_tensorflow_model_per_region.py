@@ -1,3 +1,7 @@
+# last_update: '2024/10/22', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# MapBiomas Fire Classification Algorithms Step A_2_1_training_tensorflow_model_per_region.py 
+### Step A_2_1 - Functions for training TensorFlow models per region
+
 import subprocess
 import sys
 import importlib
