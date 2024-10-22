@@ -1,3 +1,7 @@
+# last_update: '2024/10/22', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# MapBiomas Fire Classification Algorithms Step A_0_3_simple_gui_to_gcs_explorer_optional.py 
+### Step A_0_3 - Optional step to visualize files in the folders of the Google Cloud Storage bucket
+
 import gcsfs
 import ipywidgets as widgets  # Biblioteca para criar widgets interativos em notebooks Jupyter
 from IPython.display import display, HTML, clear_output  # Utilitários para exibir conteúdo em notebooks Jupyter
