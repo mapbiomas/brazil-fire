@@ -37,17 +37,17 @@ DATA_STD = 1.0
 # Define directories for data and model output
 folder = f'/content/mapbiomas-fire/sudamerica/{country}'  
 folder_samples = f'{folder}/training_samples'
-folder_model = f'{folder}/models_col1'
-folder_images = f'{folder}/tmp1'
+# folder_model = f'{folder}/models_col1'
+folder_temp = f'{folder}/tmp1'
 folder_mosaic = f'{folder}/mosaics_cog'
 
 log_message(f"[INFO] Starting the classification process for country: {country}.")
 
 # Ensure necessary directories exist
-for directory in [folder_samples, folder_model, folder_images, folder_mosaic]:
+for directory in [folder_samples, folder_model, folder_temp, folder_mosaic]:
     if not os.path.exists(directory):
         os.makedirs(directory)
-        log_message(f"[INFO] Created directory: {directory}")
+        # log_message(f"[INFO] Created directory: {directory}")
     else:
         log_message(f"[INFO] Directory already exists: {directory}")
 
@@ -69,21 +69,6 @@ def convert_to_array(dataset):
     bands_data = [dataset.GetRasterBand(i + 1).ReadAsArray() for i in range(dataset.RasterCount)]
     stacked_data = np.stack(bands_data, axis=2)
     return np.nan_to_num(stacked_data, nan=0)
-
-# Function to classify data using a TensorFlow model
-def classify(data_classify_vector, model_path, num_input, num_classes, data_mean, data_std):
-    log_message(f"[INFO] Starting classification with model at path: {model_path}")
-    graph, placeholders, saver = create_model_graph(num_input, num_classes, data_mean, data_std)
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)
-
-    with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-        saver.restore(sess, model_path)
-        output_data_classify = sess.run(
-            graph.get_tensor_by_name('predicted_class:0'),
-            feed_dict={placeholders['x_input']: data_classify_vector}
-        )
-    log_message(f"[INFO] Classification completed")
-    return output_data_classify
 
 # Function to reshape classified data back into image format
 def reshape_image_output(output_data_classified, data_classify):
@@ -132,73 +117,6 @@ def has_significant_intersection(geom, image_bounds, min_intersection_area=0.01)
     image_shape = box(*image_bounds)
     intersection = geom_shape.intersection(image_shape)
     return intersection.area >= min_intersection_area
-
-# Main function to process satellite and year data
-def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folder_images, suffix, ee_project, country, version, region):
-    log_message(f"[INFO] Processing year by satellite for country: {country}, version: {version}, region: {region}")
-    grid = ee.FeatureCollection(f'projects/mapbiomas-{country}/assets/FIRE/AUXILIARY_DATA/GRID_REGIONS/grid-{country}-{region}')
-    grid_landsat = grid.getInfo()['features']
-    start_time = time.time()
-
-    collection_name = f'projects/{ee_project}/assets/FIRE/COLLECTION1/CLASSIFICATION/burned_area_{country}_{version}'
-    check_or_create_collection(collection_name, ee_project)
-
-    for satellite_year in satellite_years:
-        satellite = satellite_year['satellite']
-        years = satellite_year['years']
-
-        with tqdm(total=len(years), desc=f'Processing years for satellite {satellite.upper()}') as pbar_years:
-            for year in years:
-                log_message(f"[INFO] Processing year {year} for satellite {satellite.upper()}")
-                image_name = f"burned_area_{country}_{satellite}_v{version}_region{region[1:]}_{year}{suffix}"
-                gcs_filename = f'gs://{bucket_name}/sudamerica/{country}/result_classified/{image_name}.tif'
-
-                local_cog_path = f'{folder_mosaic}/{satellite}_{country}_{region}_{year}_cog.tif'
-                gcs_cog_path = f'gs://{bucket_name}/sudamerica/{country}/mosaics_col1_cog/{satellite}_{country}_{region}_{year}_cog.tif'
-
-                if not os.path.exists(local_cog_path):
-                    log_message(f"[INFO] Downloading COG from GCS: {gcs_cog_path}")
-                    os.system(f'gsutil cp {gcs_cog_path} {local_cog_path}')
-
-                input_scenes = []
-                with tqdm(total=len(grid_landsat), desc=f'Processing scenes for year {year}') as pbar_scenes:
-                    for grid in grid_landsat:
-                        orbit = grid['properties']['ORBITA']
-                        point = grid['properties']['PONTO']
-                        output_image_name = f'{folder_images}/image_col3_{country}_{region}_{version}_{orbit}_{point}_{year}.tif'
-
-                        if os.path.isfile(output_image_name):
-                            log_message(f"[INFO] Scene {orbit}/{point} already processed. Skipping.")
-                            pbar_scenes.update(1)
-                            continue
-
-                        geometry_scene = grid['geometry']
-                        NBR_clipped = f'{folder_images}/image_mosaic_col3_{country}_{region}_{version}_{orbit}_{point}_clipped_{year}.tif'
-                        log_message(f"[INFO] Clipping image: {local_cog_path}")
-                        
-                        clip_image_by_grid(geometry_scene, local_cog_path, NBR_clipped)
-                        dataset_classify = load_image(NBR_clipped)
-                        image_data = process_single_image(dataset_classify, NUM_CLASSES, DATA_MEAN, DATA_STD, version, region, country)
-
-                        convert_to_raster(dataset_classify, image_data, output_image_name)
-                        input_scenes.append(output_image_name)
-                        pbar_scenes.update(1)
-
-                # Merging scenes and uploading to GCS and GEE
-                if input_scenes:
-                    input_scenes_str = " ".join(input_scenes)
-                    merge_output_temp = f"{folder_images}/merged_temp_{year}.tif"
-                    output_image = f"{folder_images}/{image_name}.tif"
-                    log_message(f"[INFO] Merging scenes for year {year}")
-                    generate_optimized_image(merge_output_temp, output_image, input_scenes_str)
-                    os.system(f'gsutil cp {output_image} {gcs_filename}')
-                    log_message(f"[INFO] Uploading to GCS completed: {gcs_filename}")
-                    upload_to_gee(gcs_filename, f'{collection_name}/{image_name}', satellite, region, year, version, ee_project)
-
-                clean_directories([folder_images])
-                elapsed_time = time.time() - start_time
-                log_message(f"[INFO] Year {year} processing completed. Total time: {time.strftime('%H:%M:%S', time.gmtime(elapsed_time))}")
-                pbar_years.update(1)
 
 # Function to clip an image based on the provided geometry
 def clip_image_by_grid(geom, image, output, buffer_distance_meters=100):
@@ -351,3 +269,236 @@ def remove_temporary_files(files_to_remove):
             except Exception as e:
                 log_message(f"[ERROR] Failed to remove file: {file}. Details: {str(e)}")
 
+def create_model_graph(num_input, num_classes, data_mean, data_std):
+    """
+    Cria e retorna um grafo computacional TensorFlow dinamicamente com base nos parâmetros do modelo.
+    """
+    graph = tf.Graph()
+
+    with graph.as_default():
+        # Define placeholders para dados de entrada e rótulos
+        x_input = tf.placeholder(tf.float32, shape=[None, num_input], name='x_input')
+        y_input = tf.placeholder(tf.int64, shape=[None], name='y_input')
+        # Normaliza os dados de entrada
+        normalized = (x_input - data_mean) / data_std
+
+        # Constrói as camadas da rede neural com os hiperparâmetros definidos
+        hidden1 = fully_connected_layer(normalized, n_neurons=NUM_N_L1, activation='relu')
+        hidden2 = fully_connected_layer(hidden1, n_neurons=NUM_N_L2, activation='relu')
+        hidden3 = fully_connected_layer(hidden2, n_neurons=NUM_N_L3, activation='relu')
+        hidden4 = fully_connected_layer(hidden3, n_neurons=NUM_N_L4, activation='relu')
+        hidden5 = fully_connected_layer(hidden4, n_neurons=NUM_N_L5, activation='relu')
+
+        # Camada final de saída
+        logits = fully_connected_layer(hidden5, n_neurons=num_classes)
+        
+        # Define a função de perda (para treinamento, embora não seja necessária na inferência)
+        cross_entropy = tf.reduce_mean(
+            tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=y_input),
+            name='cross_entropy_loss'
+        )
+        
+        # Define o otimizador (para treinamento, embora não seja necessária na inferência)
+        optimizer = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE).minimize(cross_entropy)
+        
+        # Operação para obter a classe prevista
+        outputs = tf.argmax(logits, 1, name='predicted_class')
+        
+        # Inicializa todas as variáveis
+        init = tf.global_variables_initializer()
+        # Definir o saver para salvar ou restaurar o estado do modelo
+        saver = tf.train.Saver()
+
+    return graph, {'x_input': x_input, 'y_input': y_input}, saver
+
+# Function to classify data using a TensorFlow model
+def classify(data_classify_vector, model_path, num_input, num_classes, data_mean, data_std):
+    log_message(f"[INFO] Starting classification with model at path: {model_path}")
+    graph, placeholders, saver = create_model_graph(num_input, num_classes, data_mean, data_std)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)
+
+    with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
+        saver.restore(sess, model_path)
+        output_data_classify = sess.run(
+            graph.get_tensor_by_name('predicted_class:0'),
+            feed_dict={placeholders['x_input']: data_classify_vector}
+        )
+    log_message(f"[INFO] Classification completed")
+    return output_data_classify
+
+
+# Função para processar uma única imagem e aplicar o modelo de classificação
+def process_single_image(dataset_classify, num_classes, data_mean, data_std, version, region):
+    """
+    Processa uma imagem classificada, aplicando o modelo e filtragem espacial para gerar o resultado final.
+    Args:
+    - dataset_classify: Dataset GDAL da imagem a ser classificada.
+    - num_classes: Número de classes no modelo.
+    - data_mean: Média dos dados (para normalização).
+    - data_std: Desvio padrão dos dados (para normalização).
+    - version: Versão do modelo.
+    - region: Região alvo para classificação.
+    Returns:
+    - Imagem classificada filtrada.
+    """
+    # Converte o dataset GDAL em um array NumPy
+    log_message(f"[INFO] Converte o dataset GDAL em um array NumPy.")
+    data_classify = convert_to_array(dataset_classify)
+    # Reshape para vetor único de pixels
+    log_message(f"[INFO] Reshape para vetor único de pixels.")
+    data_classify_vector = reshape_single_vector(data_classify)
+    # Normaliza o vetor de entrada usando data_mean e data_std
+    log_message(f"[INFO] Normaliza o vetor de entrada usando data_mean e data_std.")
+    data_classify_vector = (data_classify_vector - data_mean) / data_std
+
+    # Caminho remoto com padrão para o Google Cloud Storage (usando coringas)
+    gcs_model_file = f'gs://{bucket_name}/sudamerica/{country}/models_col1/col1_{country}_{version}_{region}_rnn_lstm_ckpt*'
+    # Caminho remoto com padrão para o arquivo (usando coringas)
+    model_file_local_temp = f'{folder_temp}/col1_{country}_{version}_{region}_rnn_lstm_ckpt'
+
+    log_message(f"[INFO] Downloading TensorFlow models from GCS {gcs_model_file} to {folder_temp}")
+
+    # Comando para baixar os arquivos do GCS
+    try:
+        subprocess.run(f'gsutil cp {gcs_model_file} {model_file_local_temp}', shell=True, check=True)
+        log_message(f"[INFO] Download completed successfully.")
+    except subprocess.CalledProcessError as e:
+        log_message(f"[ERROR] Failed to download model from GCS: {e}")
+
+    log_message(f"[INFO] Realizando a classificação usando o modelo.")
+    output_data_classified = classify(data_classify_vector, model_file_local_temp, NUM_INPUT, NUM_CLASSES, DATA_MEAN, DATA_STD)
+    # Reshape para o formato de imagem
+    log_message(f"[INFO] Reshape para o formato de imagem.")
+    output_image_data = reshape_image_output(output_data_classified, data_classify)
+    # Aplica filtro espacial
+    log_message(f"[INFO] Aplicando filtro espacial e concluindo o processamento desta cena.")
+    return filter_spatial(output_image_data)
+
+
+# Main function to process satellite and year data
+def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folder_temp, suffix, ee_project, country, version, region):
+    log_message(f"[INFO] Processing year by satellite for country: {country}, version: {version}, region: {region}")
+    grid = ee.FeatureCollection(f'projects/mapbiomas-{country}/assets/FIRE/AUXILIARY_DATA/GRID_REGIONS/grid-{country}-{region}')
+    grid_landsat = grid.getInfo()['features']
+    start_time = time.time()
+
+    collection_name = f'projects/{ee_project}/assets/FIRE/COLLECTION1/CLASSIFICATION/burned_area_{country}_{version}'
+    check_or_create_collection(collection_name, ee_project)
+
+    for satellite_year in satellite_years:
+        satellite = satellite_year['satellite']
+        years = satellite_year['years']
+
+        with tqdm(total=len(years), desc=f'Processing years for satellite {satellite.upper()}') as pbar_years:
+            for year in years:
+                log_message(f"[INFO] Processing year {year} for satellite {satellite.upper()}")
+                image_name = f"burned_area_{country}_{satellite}_{version}_region{region[1:]}_{year}{suffix}"
+                gcs_filename = f'gs://{bucket_name}/sudamerica/{country}/result_classified/{image_name}.tif'
+
+                local_cog_path = f'{folder_mosaic}/{satellite}_{country}_{region}_{year}_cog.tif'
+                gcs_cog_path = f'gs://{bucket_name}/sudamerica/{country}/mosaics_col1_cog/{satellite}_{country}_{region}_{year}_cog.tif'
+
+                if not os.path.exists(local_cog_path):
+                    log_message(f"[INFO] Downloading COG from GCS: {gcs_cog_path}")
+                    os.system(f'gsutil cp {gcs_cog_path} {local_cog_path}')
+
+                input_scenes = []
+                with tqdm(total=len(grid_landsat), desc=f'Processing scenes for year {year}') as pbar_scenes:
+                    for grid in grid_landsat:
+                        orbit = grid['properties']['ORBITA']
+                        point = grid['properties']['PONTO']
+                        output_image_name = f'{folder_temp}/image_col3_{country}_{region}_{version}_{orbit}_{point}_{year}.tif'
+
+                        if os.path.isfile(output_image_name):
+                            log_message(f"[INFO] Scene {orbit}/{point} already processed. Skipping.")
+                            pbar_scenes.update(1)
+                            continue
+
+                        geometry_scene = grid['geometry']
+                        NBR_clipped = f'{folder_temp}/image_mosaic_col3_{country}_{region}_{version}_{orbit}_{point}_clipped_{year}.tif'
+                        log_message(f"[INFO] Clipping image: {local_cog_path}")
+                        
+                        clip_image_by_grid(geometry_scene, local_cog_path, NBR_clipped)
+                        dataset_classify = load_image(NBR_clipped)
+                        image_data = process_single_image(dataset_classify, NUM_CLASSES, DATA_MEAN, DATA_STD, version, region)
+
+                        log_message(f"[INFO] Convert to raster")
+
+                        convert_to_raster(dataset_classify, image_data, output_image_name)
+                        input_scenes.append(output_image_name)
+                        pbar_scenes.update(1)
+
+                # Merging scenes and uploading to GCS and GEE
+                if input_scenes:
+                    input_scenes_str = " ".join(input_scenes)
+                    merge_output_temp = f"{folder_temp}/merged_temp_{year}.tif"
+                    output_image = f"{folder_temp}/{image_name}.tif"
+                    log_message(f"[INFO] Merging scenes for year {year}")
+                    generate_optimized_image(merge_output_temp, output_image, input_scenes_str)
+                    os.system(f'gsutil cp {output_image} {gcs_filename}')
+                    log_message(f"[INFO] Uploading to GCS completed: {gcs_filename}")
+                    upload_to_gee(gcs_filename, f'{collection_name}/{image_name}', satellite, region, year, version, ee_project)
+
+                clean_directories([folder_temp])
+                elapsed_time = time.time() - start_time
+                log_message(f"[INFO] Year {year} processing completed. 🎉🎉🎉") 
+                log_message(f"Total time: {time.strftime('%H:%M:%S', time.gmtime(elapsed_time))}")
+                pbar_years.update(1)
+
+def render_classify_models(models_to_classify):
+    """
+    Processes a list of models and mosaics to classify burned areas.
+    Args:
+    - models_to_classify: List of dictionaries containing models, mosaics, and a simulation flag.
+    """
+    # Define bucket name
+    bucket_name = 'mapbiomas-fire'
+    # Loop through each model
+    for model_info in models_to_classify:
+        model_name = model_info["model"]
+        mosaics = model_info["mosaics"]
+        simulation = model_info["simulation"]
+        log_message(f"Processing model: {model_name}")
+        log_message(f"Selected mosaics: {mosaics}")
+        log_message(f"Simulation mode: {simulation}")
+        # Extract model information
+        parts = model_name.split('_')
+        country = parts[1]
+        version = parts[2]
+        region = parts[3]
+        # Define directories
+        folder = f'/content/mapbiomas-fire/sudamerica/{country}'
+        # folder_model = f'{folder}/models_col1'
+        folder_temp = f'{folder}/tmp1'
+        folder_mosaic = f'{folder}/mosaics_cog'
+        # Ensure directories exist
+        # if not os.path.exists(folder_model):
+        #     os.makedirs(folder_model)
+        # Clean directories for images and mosaics
+        clean_directories([folder_temp, folder_mosaic])
+        # Prepare satellite and year list based on mosaics
+        satellite_years = []
+        for mosaic in mosaics:
+            mosaic_parts = mosaic.split('_')
+            satellite = mosaic_parts[0]
+            year = int(mosaic_parts[3])
+            satellite_years.append({
+                "satellite": satellite,
+                "years": [year]
+            })
+        # If in simulation mode, just simulate the processing
+        if simulation:
+            log_message(f"[SIMULATION] Would process model: {model_name} with mosaics: {mosaics}")
+        else:
+            # Call the main processing function (this will process all years for the satellite)
+            process_year_by_satellite(
+                satellite_years=satellite_years,
+                bucket_name=bucket_name,
+                folder_mosaic=folder_mosaic,
+                folder_temp=folder_temp,
+                suffix='',
+                ee_project=f'mapbiomas-{country}',
+                country=country,
+                version=version,
+                region=region
+            )
