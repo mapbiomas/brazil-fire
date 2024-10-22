@@ -41,7 +41,7 @@ folder_model = f'{folder}/models_col1'
 folder_images = f'{folder}/tmp1'
 folder_mosaic = f'{folder}/mosaics_cog'
 
-log_message(f"[INFO] Starting the classification process for country: {country}, version: {version}, region: {region}.")
+log_message(f"[INFO] Starting the classification process for country: {country}.")
 
 # Ensure necessary directories exist
 for directory in [folder_samples, folder_model, folder_images, folder_mosaic]:
