@@ -360,7 +360,7 @@ def process_single_image(dataset_classify, num_classes, data_mean, data_std, ver
 
     # Comando para baixar os arquivos do GCS
     try:
-        subprocess.run(f'gsutil cp {gcs_model_file} {model_file_local_temp}', shell=True, check=True)
+        subprocess.run(f'gsutil cp {gcs_model_file} {folder_temp}', shell=True, check=True)
         log_message(f"[INFO] Download completed successfully.")
     except subprocess.CalledProcessError as e:
         log_message(f"[ERROR] Failed to download model from GCS: {e}")
