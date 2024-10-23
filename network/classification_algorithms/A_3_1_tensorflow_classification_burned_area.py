@@ -20,19 +20,6 @@ import shutil  # For file and folder operations
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
 
-# Fixed Hyperparameters
-NUM_INPUT = 30
-NUM_CLASSES = 5
-NUM_N_L1 = 128
-NUM_N_L2 = 64
-NUM_N_L3 = 32
-NUM_N_L4 = 16
-NUM_N_L5 = 8
-LEARNING_RATE = 0.001
-
-# Normalization Parameters
-DATA_MEAN = 0.0
-DATA_STD = 1.0
 
 # Define directories for data and model output
 folder = f'/content/mapbiomas-fire/sudamerica/{country}'  
@@ -326,52 +313,81 @@ def classify(data_classify_vector, model_path, num_input, num_classes, data_mean
     log_message(f"[INFO] Classification completed")
     return output_data_classify
 
+import json
+import subprocess
+import numpy as np
 
-# Função para processar uma única imagem e aplicar o modelo de classificação
 def process_single_image(dataset_classify, num_classes, data_mean, data_std, version, region):
     """
-    Processa uma imagem classificada, aplicando o modelo e filtragem espacial para gerar o resultado final.
+    Processes a single image by applying the classification model and spatial filtering to generate the final result.
+    
     Args:
-    - dataset_classify: Dataset GDAL da imagem a ser classificada.
-    - num_classes: Número de classes no modelo.
-    - data_mean: Média dos dados (para normalização).
-    - data_std: Desvio padrão dos dados (para normalização).
-    - version: Versão do modelo.
-    - region: Região alvo para classificação.
+    - dataset_classify: GDAL dataset of the image to be classified.
+    - num_classes: Number of classes in the model.
+    - data_mean: Mean of the data for normalization.
+    - data_std: Standard deviation of the data for normalization.
+    - version: Version of the model.
+    - region: Target region for classification.
+    
     Returns:
-    - Imagem classificada filtrada.
+    - Filtered classified image.
     """
-    # Converte o dataset GDAL em um array NumPy
-    log_message(f"[INFO] Converte o dataset GDAL em um array NumPy.")
+    # Convert GDAL dataset to a NumPy array
+    log_message(f"[INFO] Converting GDAL dataset to NumPy array.")
     data_classify = convert_to_array(dataset_classify)
-    # Reshape para vetor único de pixels
-    log_message(f"[INFO] Reshape para vetor único de pixels.")
+    
+    # Reshape into a single pixel vector
+    log_message(f"[INFO] Reshaping data into a single pixel vector.")
     data_classify_vector = reshape_single_vector(data_classify)
-    # Normaliza o vetor de entrada usando data_mean e data_std
-    log_message(f"[INFO] Normaliza o vetor de entrada usando data_mean e data_std.")
+    
+    # Normalize the input vector using data_mean and data_std
+    log_message(f"[INFO] Normalizing the input vector using data_mean and data_std.")
     data_classify_vector = (data_classify_vector - data_mean) / data_std
 
-    # Caminho remoto com padrão para o Google Cloud Storage (usando coringas)
+    # Path to the remote model in Google Cloud Storage (with wildcards)
     gcs_model_file = f'gs://{bucket_name}/sudamerica/{country}/models_col1/col1_{country}_{version}_{region}_rnn_lstm_ckpt*'
-    # Caminho remoto com padrão para o arquivo (usando coringas)
+    # Local path for the model files
     model_file_local_temp = f'{folder_temp}/col1_{country}_{version}_{region}_rnn_lstm_ckpt'
 
-    log_message(f"[INFO] Downloading TensorFlow models from GCS {gcs_model_file} to {folder_temp}")
+    log_message(f"[INFO] Downloading TensorFlow model from GCS {gcs_model_file} to {folder_temp}.")
 
-    # Comando para baixar os arquivos do GCS
+    # Command to download the model files from GCS
     try:
         subprocess.run(f'gsutil cp {gcs_model_file} {folder_temp}', shell=True, check=True)
-        log_message(f"[INFO] Download completed successfully.")
+        log_message(f"[INFO] Model downloaded successfully.")
     except subprocess.CalledProcessError as e:
         log_message(f"[ERROR] Failed to download model from GCS: {e}")
+        return None
 
-    log_message(f"[INFO] Realizando a classificação usando o modelo.")
+    # Path to the JSON file containing hyperparameters
+    json_path = f'{folder_temp}/col1_{country}_{version}_{region}_rnn_lstm_ckpt_hiperparametros.json'
+
+    # Load hyperparameters from the JSON file
+    with open(json_path, 'r') as json_file:
+        hyperparameters = json.load(json_file)
+
+    # Retrieve hyperparameter values from the JSON file
+    DATA_MEAN = np.array(hyperparameters['data_mean'])
+    DATA_STD = np.array(hyperparameters['data_std'])
+    NUM_N_L1 = hyperparameters['NUM_N_L1']
+    NUM_N_L2 = hyperparameters['NUM_N_L2']
+    NUM_N_L3 = hyperparameters['NUM_N_L3']
+    NUM_N_L4 = hyperparameters['NUM_N_L4']
+    NUM_N_L5 = hyperparameters['NUM_N_L5']
+    NUM_CLASSES = hyperparameters['NUM_CLASSES']
+
+    log_message(f"[INFO] Loaded hyperparameters: DATA_MEAN={DATA_MEAN}, DATA_STD={DATA_STD}, NUM_N_L1={NUM_N_L1}, NUM_N_L2={NUM_N_L2}, NUM_N_L3={NUM_N_L3}, NUM_N_L4={NUM_N_L4}, NUM_N_L5={NUM_N_L5}, NUM_CLASSES={NUM_CLASSES}")
+
+    # Perform the classification using the model
+    log_message(f"[INFO] Running classification using the model.")
     output_data_classified = classify(data_classify_vector, model_file_local_temp, NUM_INPUT, NUM_CLASSES, DATA_MEAN, DATA_STD)
-    # Reshape para o formato de imagem
-    log_message(f"[INFO] Reshape para o formato de imagem.")
+    
+    # Reshape the classified data back into image format
+    log_message(f"[INFO] Reshaping classified data back into image format.")
     output_image_data = reshape_image_output(output_data_classified, data_classify)
-    # Aplica filtro espacial
-    log_message(f"[INFO] Aplicando filtro espacial e concluindo o processamento desta cena.")
+    
+    # Apply spatial filtering
+    log_message(f"[INFO] Applying spatial filtering and completing the processing of this scene.")
     return filter_spatial(output_image_data)
 
 
