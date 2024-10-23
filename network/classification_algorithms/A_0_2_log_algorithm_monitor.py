@@ -8,7 +8,7 @@ import subprocess
 # Variável global para armazenar o caminho do arquivo de log
 log_file_path_local = None
 
-def log_message(message, country, collection_name, bucket_name):
+def log_message(message):
     """
     Grava uma nova mensagem de log no arquivo existente ou cria um novo arquivo de log na primeira execução.
     """
