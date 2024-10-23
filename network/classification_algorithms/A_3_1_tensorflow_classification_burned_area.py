@@ -241,7 +241,7 @@ def remove_temporary_files(files_to_remove):
                 log_message(f"[ERROR] Failed to remove file: {file}. Details: {str(e)}")
 
 # O resto do código estilo TensorFlow 1.x
-def create_model_graph(num_input, num_classes, data_mean, data_std):
+def create_model_graph(hyperparameters):
     """
     Cria e retorna um grafo computacional TensorFlow dinamicamente com base nos parâmetros do modelo.
     """
@@ -253,17 +253,17 @@ def create_model_graph(num_input, num_classes, data_mean, data_std):
         y_input = tf.placeholder(tf.int64, shape=[None], name='y_input')
 
         # Normaliza os dados de entrada
-        normalized = (x_input - data_mean) / data_std
+        normalized = (x_input - hyperparameters['DATA_MEAN']) / hyperparameters['DATA_STD']
 
         # Constrói as camadas da rede neural com os hiperparâmetros definidos
-        hidden1 = fully_connected_layer(normalized, n_neurons=NUM_N_L1, activation='relu')
-        hidden2 = fully_connected_layer(hidden1, n_neurons=NUM_N_L2, activation='relu')
-        hidden3 = fully_connected_layer(hidden2, n_neurons=NUM_N_L3, activation='relu')
-        hidden4 = fully_connected_layer(hidden3, n_neurons=NUM_N_L4, activation='relu')
-        hidden5 = fully_connected_layer(hidden4, n_neurons=NUM_N_L5, activation='relu')
+        hidden1 = fully_connected_layer(normalized, n_neurons=hyperparameters['NUM_N_L1'], activation='relu')
+        hidden2 = fully_connected_layer(hidden1, n_neurons=hyperparameters['NUM_N_L2'], activation='relu')
+        hidden3 = fully_connected_layer(hidden2, n_neurons=hyperparameters['NUM_N_L3'], activation='relu')
+        hidden4 = fully_connected_layer(hidden3, n_neurons=hyperparameters['NUM_N_L4'], activation='relu')
+        hidden5 = fully_connected_layer(hidden4, n_neurons=hyperparameters['NUM_N_L5'], activation='relu')
 
         # Camada final de saída
-        logits = fully_connected_layer(hidden5, n_neurons=num_classes)
+        logits = fully_connected_layer(hidden5, n_neurons=hyperparameters['NUM_CLASSES'])
         
         # Define a função de perda (para treinamento, embora não seja necessária na inferência)
         cross_entropy = tf.reduce_mean(
@@ -284,9 +284,9 @@ def create_model_graph(num_input, num_classes, data_mean, data_std):
 
     return graph, {'x_input': x_input, 'y_input': y_input}, saver
 # Function to classify data using a TensorFlow model
-def classify(data_classify_vector, model_path, num_input, num_classes, data_mean, data_std):
+def classify(data_classify_vector, model_path, hyperparameters):
     log_message(f"[INFO] Starting classification with model at path: {model_path}")
-    graph, placeholders, saver = create_model_graph(num_input, num_classes, data_mean, data_std)
+    graph, placeholders, saver = create_model_graph(hyperparameters)
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
 
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
@@ -362,7 +362,7 @@ def process_single_image(dataset_classify, version, region,folder_temp):
 
     # Perform the classification using the model
     log_message(f"[INFO] Running classification using the model.")
-    output_data_classified = classify(data_classify_vector, model_file_local_temp, NUM_INPUT, NUM_CLASSES, DATA_MEAN, DATA_STD)
+    output_data_classified = classify(data_classify_vector, model_file_local_temp, hyperparameters)
     
     # Reshape the classified data back into image format
     log_message(f"[INFO] Reshaping classified data back into image format.")
