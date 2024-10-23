@@ -449,7 +449,7 @@ def render_classify_models(models_to_classify):
     Args:
     - models_to_classify: List of dictionaries containing models, mosaics, and a simulation flag.
     """
-    log_message(f"[INFO] [render_classify_models] STARTING PROCESSINGS FOR CLASSIFY MODELS {model_info}")
+    log_message(f"[INFO] [render_classify_models] STARTING PROCESSINGS FOR CLASSIFY MODELS {models_to_classify}")
     # Define bucket name
     bucket_name = 'mapbiomas-fire'
     # Loop through each model
@@ -508,5 +508,5 @@ def render_classify_models(models_to_classify):
                 region=region
             )
    
-    log_message(f"[INFO] [render_classify_models] FINISH PROCESSINGS FOR CLASSIFY MODELS {model_info}")
+    log_message(f"[INFO] [render_classify_models] FINISH PROCESSINGS FOR CLASSIFY MODELS {models_to_classify}")
 
