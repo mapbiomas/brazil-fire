@@ -1,4 +1,4 @@
-# last_update: '2024/10/22', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# last_update: '2024/10/23', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms Step A_3_1_tensorflow_classification_burned_area.py 
 ### Step A_3_1 - Functions for TensorFlow classification of burned areas
 import os
