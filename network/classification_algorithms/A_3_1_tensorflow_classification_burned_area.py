@@ -23,24 +23,6 @@ import numpy as np
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
 
-
-# Define directories for data and model output
-folder = f'/content/mapbiomas-fire/sudamerica/{country}'  
-folder_samples = f'{folder}/training_samples'
-# folder_model = f'{folder}/models_col1'
-folder_temp = f'{folder}/tmp1'
-folder_mosaic = f'{folder}/mosaics_cog'
-
-log_message(f"[INFO] Starting the classification process for country: {country}.")
-
-# Ensure necessary directories exist
-for directory in [folder_samples, folder_model, folder_temp, folder_mosaic]:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-        # log_message(f"[INFO] Created directory: {directory}")
-    else:
-        log_message(f"[INFO] Directory already exists: {directory}")
-
 # Function to reshape classified data into a single pixel vector
 def reshape_single_vector(data_classify):
     return data_classify.reshape([data_classify.shape[0] * data_classify.shape[1], data_classify.shape[2]])
@@ -467,6 +449,7 @@ def render_classify_models(models_to_classify):
     Args:
     - models_to_classify: List of dictionaries containing models, mosaics, and a simulation flag.
     """
+    log_message(f"[INFO] [render_classify_models] STARTING PROCESSINGS FOR CLASSIFY MODELS {model_info}")
     # Define bucket name
     bucket_name = 'mapbiomas-fire'
     # Loop through each model
@@ -474,9 +457,9 @@ def render_classify_models(models_to_classify):
         model_name = model_info["model"]
         mosaics = model_info["mosaics"]
         simulation = model_info["simulation"]
-        log_message(f"Processing model: {model_name}")
-        log_message(f"Selected mosaics: {mosaics}")
-        log_message(f"Simulation mode: {simulation}")
+        log_message(f"[INFO] Processing model: {model_name}")
+        log_message(f"[INFO] Selected mosaics: {mosaics}")
+        log_message(f"[INFO] Simulation mode: {simulation}")
         # Extract model information
         parts = model_name.split('_')
         country = parts[1]
@@ -484,13 +467,19 @@ def render_classify_models(models_to_classify):
         region = parts[3]
         # Define directories
         folder = f'/content/mapbiomas-fire/sudamerica/{country}'
-        # folder_model = f'{folder}/models_col1'
         folder_temp = f'{folder}/tmp1'
         folder_mosaic = f'{folder}/mosaics_cog'
-        # Ensure directories exist
-        # if not os.path.exists(folder_model):
-        #     os.makedirs(folder_model)
-        # Clean directories for images and mosaics
+        
+        log_message(f"[INFO] Starting the classification process for country: {country}.")
+        
+        # Ensure necessary directories exist
+        for directory in [folder_temp, folder_mosaic]:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+                # log_message(f"[INFO] Created directory: {directory}")
+            else:
+                log_message(f"[INFO] Directory already exists: {directory}")
+        
         clean_directories([folder_temp, folder_mosaic])
         # Prepare satellite and year list based on mosaics
         satellite_years = []
@@ -518,3 +507,6 @@ def render_classify_models(models_to_classify):
                 version=version,
                 region=region
             )
+   
+    log_message(f"[INFO] [render_classify_models] FINISH PROCESSINGS FOR CLASSIFY MODELS {model_info}")
+
