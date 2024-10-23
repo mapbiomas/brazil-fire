@@ -90,14 +90,6 @@ from tqdm import tqdm  # Biblioteca para barra de progresso
 import ipywidgets as widgets
 from IPython.display import display, HTML, clear_output
 from ipywidgets import VBox, HBox
-# 4.1 Functions for running the training
-
-# Function to load an image using GDAL
-def load_image(image_path):
-    dataset = gdal.Open(image_path, gdal.GA_ReadOnly)
-    if dataset is None:
-        raise FileNotFoundError(f"Error loading image: {image_path}. Check the path.")
-    return dataset
 
 # Function to convert a GDAL dataset to a NumPy array
 # def convert_to_array(dataset):
@@ -111,11 +103,21 @@ def convert_to_array(dataset):
 
 
 # Function to shuffle data and filter invalid values (NaN)
+# def filter_valid_data_and_shuffle(data):
+#     """Removes rows with NaN and shuffles the data."""
+#     # Filter valid data by removing rows with NaN
+#     valid_data = data[~np.isnan(data).any(axis=1)]
+#     np.random.shuffle(valid_data)  # Shuffle the data
+#     return valid_data
+# Função otimizada para remover NaNs e embaralhar os dados
 def filter_valid_data_and_shuffle(data):
-    """Removes rows with NaN and shuffles the data."""
-    # Filter valid data by removing rows with NaN
-    valid_data = data[~np.isnan(data).any(axis=1)]
-    np.random.shuffle(valid_data)  # Shuffle the data
+    """Remove rows with NaN and shuffles the data, optimized."""
+    # Remove NaNs de forma vetorizada, sem loops
+    mask = np.all(~np.isnan(data), axis=1)  # Cria uma máscara que identifica as linhas válidas
+    valid_data = data[mask]  # Aplica a máscara para filtrar as linhas válidas
+
+    # Embaralha os dados de forma eficiente
+    np.random.default_rng().shuffle(valid_data)  # Usando Generator mais rápido para embaralhamento
     return valid_data
 
 def fully_connected_layer(input, n_neurons, activation=None):
@@ -180,6 +182,13 @@ def download_image(image, local_file, simulation):
             return False
 
     return True
+
+# Function to load an image using GDAL
+def load_image(image_path):
+    dataset = gdal.Open(image_path, gdal.GA_ReadOnly)
+    if dataset is None:
+        raise FileNotFoundError(f"Error loading image: {image_path}. Check the path.")
+    return dataset
 
 # Function to load and process an image
 def process_image(image, simulation):
@@ -364,7 +373,7 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
     start_time = time.time()
 
     # Configure GPU options to limit memory usage (optional)
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.666)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
 
     # Final save after training is complete
     split_name = get_active_checkbox().split('_')
@@ -374,10 +383,10 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
     json_path = f'{model_path}_hyperparameters.json'
 
     # Start a TensorFlow session to execute the graph
-    log_message('[INFO] Starting training session with GPU memory limited to 66.66% of available memory...')
+    log_message('[INFO] Starting training session with GPU memory limited to 33.33% of available memory...')
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
         sess.run(init)  # Initialize all variables
-        log_message('[INFO] Initial variables loaded, session started.')
+        print('[INFO] Initial variables loaded, session started.')
 
         # Validation data dictionary
         validation_dict = {
@@ -385,7 +394,7 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
             y_input: validation_data[:, li]
         }
 
-        log_message(f'[INFO] Starting training loop with {N_ITER} iterations...')
+        print(f'[INFO] Starting training loop with {N_ITER} iterations...')
 
         # Training loop: iterate over the specified number of iterations
         for i in range(N_ITER + 1):
@@ -408,7 +417,7 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
                 # Save model in TensorFlow session
                 saver.save(sess, model_path)
 
-                log_message(f'[PROGRESS] Iteration {i}/{N_ITER} - Validation Accuracy: {acc:.2f}%')
+                print(f'[PROGRESS] Iteration {i}/{N_ITER} - Validation Accuracy: {acc:.2f}%')
 
         # Save the hyperparameters to the JSON file locally
         hyperparameters = {
