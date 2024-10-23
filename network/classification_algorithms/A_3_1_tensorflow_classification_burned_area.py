@@ -348,7 +348,7 @@ def process_single_image(dataset_classify, version, region):
         return None
 
     # Path to the JSON file containing hyperparameters
-    json_path = f'{folder_temp}/col1_{country}_{version}_{region}_rnn_lstm_ckpt_hiperparametros.json'
+    json_path = f'{folder_temp}/col1_{country}_{version}_{region}_rnn_lstm_ckpt_hiperparameters.json'
 
     # Load hyperparameters from the JSON file
     with open(json_path, 'r') as json_file:
