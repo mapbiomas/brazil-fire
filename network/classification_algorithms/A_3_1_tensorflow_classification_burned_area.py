@@ -253,7 +253,7 @@ def create_model_graph(hyperparameters):
         y_input = tf.placeholder(tf.int64, shape=[None], name='y_input')
 
         # Normaliza os dados de entrada
-        normalized = (x_input - hyperparameters['DATA_MEAN']) / hyperparameters['DATA_STD']
+        normalized = (x_input - hyperparameters['data_mean']) / hyperparameters['data_std']
 
         # Constrói as camadas da rede neural com os hiperparâmetros definidos
         hidden1 = fully_connected_layer(normalized, n_neurons=hyperparameters['NUM_N_L1'], activation='relu')
