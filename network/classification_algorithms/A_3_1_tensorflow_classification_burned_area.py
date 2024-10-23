@@ -332,6 +332,13 @@ def process_single_image(dataset_classify, version, region):
     Returns:
     - Filtered classified image.
     """
+    # Path to the remote model in Google Cloud Storage (with wildcards)
+    gcs_model_file = f'gs://{bucket_name}/sudamerica/{country}/models_col1/col1_{country}_{version}_{region}_rnn_lstm_ckpt*'
+    # Local path for the model files
+    model_file_local_temp = f'{folder_temp}/col1_{country}_{version}_{region}_rnn_lstm_ckpt'
+
+    log_message(f"[INFO] Downloading TensorFlow model from GCS {gcs_model_file} to {folder_temp}.")
+    
     # Command to download the model files from GCS
     try:
         subprocess.run(f'gsutil cp {gcs_model_file} {folder_temp}', shell=True, check=True)
@@ -371,14 +378,6 @@ def process_single_image(dataset_classify, version, region):
     log_message(f"[INFO] Normalizing the input vector using data_mean and data_std.")
     data_classify_vector = (data_classify_vector - DATA_MEAN) / DATA_STD
 
-    # Path to the remote model in Google Cloud Storage (with wildcards)
-    gcs_model_file = f'gs://{bucket_name}/sudamerica/{country}/models_col1/col1_{country}_{version}_{region}_rnn_lstm_ckpt*'
-    # Local path for the model files
-    model_file_local_temp = f'{folder_temp}/col1_{country}_{version}_{region}_rnn_lstm_ckpt'
-
-    log_message(f"[INFO] Downloading TensorFlow model from GCS {gcs_model_file} to {folder_temp}.")
-
-    
     # Perform the classification using the model
     log_message(f"[INFO] Running classification using the model.")
     output_data_classified = classify(data_classify_vector, model_file_local_temp, NUM_INPUT, NUM_CLASSES, DATA_MEAN, DATA_STD)
