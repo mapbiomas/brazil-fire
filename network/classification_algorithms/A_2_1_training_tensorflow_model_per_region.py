@@ -424,6 +424,7 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
         hyperparameters = {
             'data_mean': data_mean.tolist(),
             'data_std': data_std.tolist(),
+            'lr':lr,
             'NUM_N_L1': NUM_N_L1,
             'NUM_N_L2': NUM_N_L2,
             'NUM_N_L3': NUM_N_L3,
