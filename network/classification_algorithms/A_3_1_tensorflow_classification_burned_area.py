@@ -55,7 +55,8 @@ def convert_to_array(dataset):
     log_message(f"[INFO] Converting dataset to NumPy array")
     bands_data = [dataset.GetRasterBand(i + 1).ReadAsArray() for i in range(dataset.RasterCount)]
     stacked_data = np.stack(bands_data, axis=2)
-    return np.nan_to_num(stacked_data, nan=0)
+    return stacked_data
+    # return np.nan_to_num(stacked_data, nan=0)
 
 # Function to reshape classified data back into image format
 def reshape_image_output(output_data_classified, data_classify):
