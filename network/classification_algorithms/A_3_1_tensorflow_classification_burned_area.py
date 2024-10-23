@@ -289,10 +289,13 @@ def create_model_graph(hyperparameters):
 
     return graph, {'x_input': x_input, 'y_input': y_input}, saver
 
-# Function to classify data using a TensorFlow model in blocks and clear memory
+import tensorflow as tf
+import numpy as np
+
+# Function to classify data using a TensorFlow model in blocks and handle memory manually
 def classify(data_classify_vector, model_path, hyperparameters, block_size=4000000):
     """
-    Classifies data in blocks using a TensorFlow model, and clears the session memory after each iteration.
+    Classifies data in blocks using a TensorFlow model, and resets the session to free memory.
 
     Args:
     - data_classify_vector: The input data (pixels) to classify.
@@ -305,27 +308,31 @@ def classify(data_classify_vector, model_path, hyperparameters, block_size=40000
     """
     log_message(f"[INFO] Starting classification with model at path: {model_path}")
     
-    # Create model graph using provided hyperparameters
-    graph, placeholders, saver = create_model_graph(hyperparameters)
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)
-    
-    # Start session and restore the model
-    with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-        saver.restore(sess, model_path)
+    # Number of pixels in the input data
+    num_pixels = data_classify_vector.shape[0]
+    num_blocks = (num_pixels + block_size - 1) // block_size  # Calculate the number of blocks
+
+    output_blocks = []  # List to hold the results of each block
+
+    # Process data in blocks
+    for i in range(num_blocks):
+        start_idx = i * block_size
+        end_idx = min((i + 1) * block_size, num_pixels)  # Ensure we don't exceed array length
+        log_message(f"[INFO] Processing block {i+1}/{num_blocks} (pixels {start_idx} to {end_idx})")
+
+        # Get the current block of data to classify
+        data_block = data_classify_vector[start_idx:end_idx]
         
-        num_pixels = data_classify_vector.shape[0]
-        num_blocks = (num_pixels + block_size - 1) // block_size  # Calculate the number of blocks
+        # Clear the graph before starting a new session for each block
+        tf.compat.v1.reset_default_graph()
 
-        output_blocks = []  # List to hold the results of each block
+        # Create model graph using provided hyperparameters for each block
+        graph, placeholders, saver = create_model_graph(hyperparameters)
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)
 
-        # Process data in blocks
-        for i in range(num_blocks):
-            start_idx = i * block_size
-            end_idx = min((i + 1) * block_size, num_pixels)  # Ensure we don't exceed array length
-            log_message(f"[INFO] Processing block {i+1}/{num_blocks} (pixels {start_idx} to {end_idx})")
-
-            # Get the current block of data to classify
-            data_block = data_classify_vector[start_idx:end_idx]
+        # Start a new session and restore the model
+        with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
+            saver.restore(sess, model_path)
             
             # Classify the current block of data
             output_block = sess.run(
@@ -336,24 +343,13 @@ def classify(data_classify_vector, model_path, hyperparameters, block_size=40000
             # Append the classified block to the result list
             output_blocks.append(output_block)
 
-            # Clear the session to free memory
-            sess.close()
-            tf.keras.backend.clear_session()
-
-            # Reopen the session for the next block
-            sess = tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options))
-            saver.restore(sess, model_path)
+            # No need to manually close the session as it's inside 'with', and will auto-close
 
     # Concatenate the classified blocks into a single array
     output_data_classify = np.concatenate(output_blocks, axis=0)
     log_message(f"[INFO] Classification completed")
     
-    # Clear the session after the entire process is done
-    tf.keras.backend.clear_session()
-    
     return output_data_classify
-
-
 
 def process_single_image(dataset_classify, version, region,folder_temp):
     """
