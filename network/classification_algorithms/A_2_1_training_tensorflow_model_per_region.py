@@ -363,10 +363,11 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
     start_time = time.time()
 
     # Configure GPU options to limit memory usage (optional)
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.9)
+
 
     # Start a TensorFlow session to execute the graph
-    log_message('[INFO] Starting training session with GPU memory limited to 33.3% of available memory...')
+    log_message('[INFO] Starting training session with GPU memory limited to 90.0% of available memory...')
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
         sess.run(init)  # Initialize all variables
         log_message('[INFO] Initial variables loaded, session started.')
