@@ -1,6 +1,3 @@
-# last_update: '2024/10/23', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
-# MapBiomas Fire Classification Algorithms Step A_0_2_log_algorithm_monitor.py 
-### Step A_0_2 - Algoritmo para registrar logs de monitoramento da interface em um arquivo JSON na Google Cloud
 import os
 from datetime import datetime
 import subprocess
@@ -11,7 +8,7 @@ log_file_path_local = None
 bucket_log_folder = None
 log_index = 0  # Variável global para armazenar o índice dos logs
 
-# Variáveis de contexto globais (defina esses valores aqui ou no início do programa)
+# # Variáveis de contexto globais (defina esses valores aqui ou no início do programa)
 # country = 'Brazil'
 # collection_name = 'Collection_1'
 # bucket_name = 'meu_bucket'
@@ -21,7 +18,6 @@ def log_message(message):
     Grava uma nova mensagem de log no arquivo existente ou cria um novo arquivo de log na primeira execução.
     """
     global log_file_path_local, bucket_log_folder, log_index
-    
     # Na primeira execução, cria o caminho para o log
     if log_file_path_local is None:
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -35,6 +31,8 @@ def log_message(message):
 
     # Formatar a mensagem de log
     log_entry = format_log_entry(message, log_index)
+    
+    print(log_entry)
     
     # Gravar a mensagem no arquivo de log local
     write_log_local(log_file_path_local, log_entry)
