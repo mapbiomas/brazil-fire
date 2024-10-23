@@ -1,3 +1,7 @@
+# last_update: '2024/10/23', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# MapBiomas Fire Classification Algorithms Step A_0_2_log_algorithm_monitor.py 
+### Step A_0_2 - Algoritmo para registrar logs de monitoramento da interface em um arquivo JSON na Google Cloud
+
 import os
 from datetime import datetime
 import subprocess
@@ -32,7 +36,9 @@ def log_message(message):
     # Formatar a mensagem de log
     log_entry = format_log_entry(message, log_index)
     
-    print(log_entry)
+    # Exibir no formato desejado
+    formatted_log = f"[LOG] [{log_index}] [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {message}"
+    print(formatted_log)
     
     # Gravar a mensagem no arquivo de log local
     write_log_local(log_file_path_local, log_entry)
@@ -68,6 +74,12 @@ def format_log_entry(message, log_index):
     """
     Formata a mensagem de log com timestamp e adiciona um índice.
     """
+    # Verificar se o objeto é serializável; se não for, converta-o para string
+    if isinstance(message, (dict, list)):
+        message = json.dumps(message, default=str)
+    elif not isinstance(message, str):
+        message = str(message)  # Converte qualquer objeto não serializável diretamente para string
+    
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     log_entry = {
         "index": log_index,
@@ -100,5 +112,5 @@ def upload_log_to_gcs(log_file_path_local, bucket_log_folder):
 
 # Exemplo de como usar a função
 # log_message('Processo de classificação iniciado')
-# log_message('Nova etapa do processo concluída')
-# log_message('Erro no processamento de dados')
+# log_message(['coll_guyana_v1_r3_rnn_lstm_ckpt'])
+# log_message('mosaic_checkboxes_dict')
