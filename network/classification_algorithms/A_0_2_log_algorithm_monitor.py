@@ -17,7 +17,7 @@ def log_message(message):
     # Na primeira execução, cria o caminho para o log
     if log_file_path_local is None:
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        log_folder, log_file_path_local, bucket_log_folder = create_log_paths(country, collection_name, bucket_name, timestamp)
+        log_folder, log_file_path_local, bucket_log_folder = create_log_paths(timestamp)
         
         # Verificar e criar o diretório local se necessário
         create_local_directory(log_folder)
@@ -32,7 +32,7 @@ def log_message(message):
     upload_log_to_gcs(log_file_path_local, bucket_log_folder)
 
 
-def create_log_paths(country, collection_name, bucket_name, timestamp):
+def create_log_paths(timestamp):
     """
     Cria os caminhos locais e no GCS para os arquivos de log.
     """
