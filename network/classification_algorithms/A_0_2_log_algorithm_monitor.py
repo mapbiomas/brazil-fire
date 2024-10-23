@@ -12,9 +12,9 @@ bucket_log_folder = None
 log_index = 0  # Variável global para armazenar o índice dos logs
 
 # Variáveis de contexto globais (defina esses valores aqui ou no início do programa)
-country = 'Brazil'
-collection_name = 'Collection_1'
-bucket_name = 'meu_bucket'
+# country = 'Brazil'
+# collection_name = 'Collection_1'
+# bucket_name = 'meu_bucket'
 
 def log_message(message):
     """
