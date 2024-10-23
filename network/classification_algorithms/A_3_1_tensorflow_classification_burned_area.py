@@ -4,6 +4,8 @@
 import os
 import numpy as np
 import tensorflow as tf
+import tensorflow.compat.v1 as tf  # TensorFlow compatibility mode for version 1.x
+tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
 from scipy import ndimage
 from osgeo import gdal
 import rasterio
