@@ -422,16 +422,17 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
                     json.dump(hyperparameters, json_file)
                 log_message(f'[INFO] Hyperparameters saved to JSON file: {json_path}')
 
+                # Save model in TensorFlow session first
+                saver.save(sess, model_path)
+
                 # Upload model files and JSON to GCS
                 bucket_model_path = f'gs://{bucket_name}/sudamerica/{country}/models_col1/'
+                
                 try:
                     subprocess.check_call(f'gsutil cp {model_path}.* {json_path} {bucket_model_path}', shell=True)
                     log_message(f'[INFO] Model and hyperparameters successfully uploaded to GCS at {bucket_model_path}')
                 except subprocess.CalledProcessError as e:
                     log_message(f'[ERROR] Failed to upload model or hyperparameters to GCS: {str(e)}')
-
-                # Save model in TensorFlow session
-                saver.save(sess, model_path)
 
                 # Display progress
                 log_message(f'[PROGRESS] Iteration {i}/{N_ITER} - Validation Accuracy: {acc:.2f}%')
