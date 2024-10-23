@@ -4,9 +4,8 @@
 import os
 import numpy as np
 import tensorflow as tf
-import tensorflow.compat.v1 as tf  # TensorFlow compatibility mode for version 1.x
-if tf.__version__.startswith('2'):
-    tf.disable_v2_behavior() # Disable TensorFlow 2.x behaviors and enable 1.x style
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()  # Usar somente a versão compatível 1.x
 from scipy import ndimage
 from osgeo import gdal
 import rasterio
@@ -241,6 +240,7 @@ def remove_temporary_files(files_to_remove):
             except Exception as e:
                 log_message(f"[ERROR] Failed to remove file: {file}. Details: {str(e)}")
 
+# O resto do código estilo TensorFlow 1.x
 def create_model_graph(num_input, num_classes, data_mean, data_std):
     """
     Cria e retorna um grafo computacional TensorFlow dinamicamente com base nos parâmetros do modelo.
@@ -251,6 +251,7 @@ def create_model_graph(num_input, num_classes, data_mean, data_std):
         # Define placeholders para dados de entrada e rótulos
         x_input = tf.placeholder(tf.float32, shape=[None, num_input], name='x_input')
         y_input = tf.placeholder(tf.int64, shape=[None], name='y_input')
+
         # Normaliza os dados de entrada
         normalized = (x_input - data_mean) / data_std
 
@@ -282,7 +283,6 @@ def create_model_graph(num_input, num_classes, data_mean, data_std):
         saver = tf.train.Saver()
 
     return graph, {'x_input': x_input, 'y_input': y_input}, saver
-
 # Function to classify data using a TensorFlow model
 def classify(data_classify_vector, model_path, num_input, num_classes, data_mean, data_std):
     log_message(f"[INFO] Starting classification with model at path: {model_path}")
