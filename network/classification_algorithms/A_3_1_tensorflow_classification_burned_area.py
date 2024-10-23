@@ -88,44 +88,46 @@ def has_significant_intersection(geom, image_bounds, min_intersection_area=0.01)
     image_shape = box(*image_bounds)
     intersection = geom_shape.intersection(image_shape)
     return intersection.area >= min_intersection_area
+import time
 
 # Function to clip an image based on the provided geometry
-def clip_image_by_grid(geom, image, output, buffer_distance_meters=100):
+def clip_image_by_grid(geom, image, output, buffer_distance_meters=100, max_attempts=5, retry_delay=5):
     """
-    Clips an image based on a given geometry and saves the result.
+    Clips an image based on a given geometry and saves the result. Tries multiple times if clipping fails.
 
     Args:
     - geom: Clipping geometry.
     - image: Path to the input image.
     - output: Path to the output image.
     - buffer_distance_meters: Buffer distance for the geometry.
-    """
-    log_message(f"[INFO] Clipping image: {image} with buffer: {buffer_distance_meters} meters")
-    with rasterio.open(image) as src:
-        expanded_geom = expand_geometry(geom, buffer_distance_meters)
-        try:
-            if has_significant_intersection(expanded_geom, src.bounds):
-                out_image, out_transform = mask(src, [expanded_geom], crop=True, nodata=np.nan, filled=True)
-                log_message(f"[INFO] Image clipped successfully: {output}")
-            else:
-                log_message(f"[INFO] Insufficient overlap for clipping: {image}")
-                return
-        except ValueError as e:
-            log_message(f"[ERROR] Error during clipping: {str(e)}")
-            return
+    - max_attempts: Maximum number of attempts for clipping.
+    - retry_delay: Time (in seconds) to wait between attempts.
 
-    # Save the clipped image
-    out_meta = src.meta.copy()
-    out_meta.update({
-        "driver": "GTiff",
-        "height": out_image.shape[1],
-        "width": out_image.shape[2],
-        "transform": out_transform
-    })
-    
-    with rasterio.open(output, "w", **out_meta) as dest:
-        dest.write(out_image)
-    log_message(f"[INFO] Clipped image saved: {output}")
+    Returns:
+    - success: Boolean indicating whether the clipping was successful.
+    """
+    attempt = 0
+    while attempt < max_attempts:
+        try:
+            log_message(f"[INFO] Attempt {attempt+1}/{max_attempts} to clip image: {image}")
+            with rasterio.open(image) as src:
+                expanded_geom = expand_geometry(geom, buffer_distance_meters)
+                if has_significant_intersection(expanded_geom, src.bounds):
+                    out_image, out_transform = mask(src, [expanded_geom], crop=True, nodata=np.nan, filled=True)
+                    with rasterio.open(output, 'w', **src.meta) as dest:
+                        dest.write(out_image)
+                    log_message(f"[INFO] Image clipped successfully: {output}")
+                    return True  # Clipping successful
+                else:
+                    log_message(f"[INFO] Insufficient overlap for clipping: {image}")
+                    return False  # No significant intersection, no need to retry
+        except Exception as e:
+            log_message(f"[ERROR] Error during clipping: {str(e)}. Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
+            attempt += 1
+
+    log_message(f"[ERROR] Failed to clip image after {max_attempts} attempts: {image}")
+    return False  # Clipping failed after all attempts
 
 # Function to build a VRT and translate using gdal_translate
 def generate_optimized_image(name_out_vrt, name_out_tif, files_tif_str):
@@ -374,7 +376,6 @@ def process_single_image(dataset_classify, version, region,folder_temp):
     log_message(f"[INFO] Applying spatial filtering and completing the processing of this scene.")
     return filter_spatial(output_image_data)
 
-
 # Main function to process satellite and year data
 def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folder_temp, suffix, ee_project, country, version, region):
     log_message(f"[INFO] Processing year by satellite for country: {country}, version: {version}, region: {region}")
@@ -418,14 +419,20 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                         NBR_clipped = f'{folder_temp}/image_mosaic_col3_{country}_{region}_{version}_{orbit}_{point}_clipped_{year}.tif'
                         log_message(f"[INFO] Clipping image: {local_cog_path}")
                         
-                        clip_image_by_grid(geometry_scene, local_cog_path, NBR_clipped)
-                        dataset_classify = load_image(NBR_clipped)
-                        image_data = process_single_image(dataset_classify, version, region, folder_temp)
+                        # Tenta o recorte até ser bem-sucedido ou esgotar as tentativas
+                        clipping_success = clip_image_by_grid(geometry_scene, local_cog_path, NBR_clipped)
 
-                        log_message(f"[INFO] Convert to raster")
+                        if clipping_success:
+                            dataset_classify = load_image(NBR_clipped)
+                            image_data = process_single_image(dataset_classify, version, region, folder_temp)
 
-                        convert_to_raster(dataset_classify, image_data, output_image_name)
-                        input_scenes.append(output_image_name)
+                            log_message(f"[INFO] Convert to raster")
+
+                            convert_to_raster(dataset_classify, image_data, output_image_name)
+                            input_scenes.append(output_image_name)
+                        else:
+                            log_message(f"[WARNING] Clipping failed for scene {orbit}/{point}. Proceeding to the next scene.")
+                        
                         pbar_scenes.update(1)
 
                 # Merging scenes and uploading to GCS and GEE
