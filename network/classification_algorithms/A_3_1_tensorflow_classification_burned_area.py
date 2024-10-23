@@ -272,7 +272,9 @@ def create_model_graph(hyperparameters):
         )
         
         # Define o otimizador (para treinamento, embora não seja necessária na inferência)
-        optimizer = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE).minimize(cross_entropy)
+        # optimizer = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE).minimize(cross_entropy)
+        # Define the optimizer: Adam with the specified learning rate
+        optimizer = tf.train.AdamOptimizer(hyperparameters['lr']).minimize(cross_entropy)
         
         # Operação para obter a classe prevista
         outputs = tf.argmax(logits, 1, name='predicted_class')
