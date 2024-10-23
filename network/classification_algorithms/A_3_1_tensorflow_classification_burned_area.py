@@ -299,7 +299,7 @@ def classify(data_classify_vector, model_path, num_input, num_classes, data_mean
     log_message(f"[INFO] Classification completed")
     return output_data_classify
 
-def process_single_image(dataset_classify, version, region):
+def process_single_image(dataset_classify, version, region,folder_temp):
     """
     Processes a single image by applying the classification model and spatial filtering to generate the final result.
     
@@ -418,7 +418,7 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                         
                         clip_image_by_grid(geometry_scene, local_cog_path, NBR_clipped)
                         dataset_classify = load_image(NBR_clipped)
-                        image_data = process_single_image(dataset_classify, version, region)
+                        image_data = process_single_image(dataset_classify, version, region, folder_temp)
 
                         log_message(f"[INFO] Convert to raster")
 
