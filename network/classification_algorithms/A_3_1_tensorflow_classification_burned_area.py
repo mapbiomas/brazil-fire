@@ -289,9 +289,6 @@ def create_model_graph(hyperparameters):
 
     return graph, {'x_input': x_input, 'y_input': y_input}, saver
 
-import tensorflow as tf
-import numpy as np
-
 # Function to classify data using a TensorFlow model in blocks and handle memory manually
 def classify(data_classify_vector, model_path, hyperparameters, block_size=4000000):
     """
