@@ -345,6 +345,7 @@ def process_single_image(dataset_classify, version, region,folder_temp):
     NUM_N_L4 = hyperparameters['NUM_N_L4']
     NUM_N_L5 = hyperparameters['NUM_N_L5']
     NUM_CLASSES = hyperparameters['NUM_CLASSES']
+    NUM_INPUT = hyperparameters['NUM_INPUT']
 
     log_message(f"[INFO] Loaded hyperparameters: DATA_MEAN={DATA_MEAN}, DATA_STD={DATA_STD}, NUM_N_L1={NUM_N_L1}, NUM_N_L2={NUM_N_L2}, NUM_N_L3={NUM_N_L3}, NUM_N_L4={NUM_N_L4}, NUM_N_L5={NUM_N_L5}, NUM_CLASSES={NUM_CLASSES}")
 
