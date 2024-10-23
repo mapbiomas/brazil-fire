@@ -249,7 +249,7 @@ def create_model_graph(hyperparameters):
 
     with graph.as_default():
         # Define placeholders para dados de entrada e rótulos
-        x_input = tf.placeholder(tf.float32, shape=[None, num_input], name='x_input')
+        x_input = tf.placeholder(tf.float32, shape=[None, hyperparameters['NUM_INPUT']], name='x_input')
         y_input = tf.placeholder(tf.int64, shape=[None], name='y_input')
 
         # Normaliza os dados de entrada
