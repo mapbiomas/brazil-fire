@@ -365,6 +365,13 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
     # Configure GPU options to limit memory usage (optional)
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.666)
 
+    # Final save after training is complete
+    split_name = get_active_checkbox().split('_')
+
+    # Save the model locally and upload to GCS, including the hyperparameters JSON
+    model_path = f'{folder_model}/col1_{country}_{split_name[1]}_{split_name[3]}_rnn_lstm_ckpt'
+    json_path = f'{model_path}_hyperparameters.json'
+
     # Start a TensorFlow session to execute the graph
     log_message('[INFO] Starting training session with GPU memory limited to 66.66% of available memory...')
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
@@ -401,12 +408,6 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
                 saver.save(sess, model_path)
 
                 log_message(f'[PROGRESS] Iteration {i}/{N_ITER} - Validation Accuracy: {acc:.2f}%')
-        # Final save after training is complete
-        split_name = get_active_checkbox().split('_')
-
-        # Save the model locally and upload to GCS, including the hyperparameters JSON
-        model_path = f'{folder_model}/col1_{country}_{split_name[1]}_{split_name[3]}_rnn_lstm_ckpt'
-        json_path = f'{model_path}_hyperparameters.json'
 
         # Save the hyperparameters to the JSON file locally
         hyperparameters = {
