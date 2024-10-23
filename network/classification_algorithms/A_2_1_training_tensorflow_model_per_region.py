@@ -363,11 +363,10 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
     start_time = time.time()
 
     # Configure GPU options to limit memory usage (optional)
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.9)
-
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.666)
 
     # Start a TensorFlow session to execute the graph
-    log_message('[INFO] Starting training session with GPU memory limited to 90.0% of available memory...')
+    log_message('[INFO] Starting training session with GPU memory limited to 66.66% of available memory...')
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
         sess.run(init)  # Initialize all variables
         log_message('[INFO] Initial variables loaded, session started.')
@@ -394,12 +393,14 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
             # Run one step of the optimizer (training step)
             optimizer.run(feed_dict=feed_dict)
 
-            # Every 100 iterations, evaluate accuracy and log progress
+            # Every 100 iterations, evaluate accuracy asave model 
             if i % 100 == 0:
                 # Calculate validation accuracy
                 acc = accuracy.eval(validation_dict) * 100
-                log_message(f'[PROGRESS] Iteration {i}/{N_ITER} - Validation Accuracy: {acc:.2f}%')
+                # Save model in TensorFlow session
+                saver.save(sess, model_path)
 
+                log_message(f'[PROGRESS] Iteration {i}/{N_ITER} - Validation Accuracy: {acc:.2f}%')
         # Final save after training is complete
         split_name = get_active_checkbox().split('_')
 
@@ -424,8 +425,6 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
             json.dump(hyperparameters, json_file)
         log_message(f'[INFO] Hyperparameters saved to JSON file: {json_path}')
 
-        # Save model in TensorFlow session
-        saver.save(sess, model_path)
 
         # Upload model files and JSON to GCS only after training completes
         bucket_model_path = f'gs://{bucket_name}/sudamerica/{country}/models_col1/'
