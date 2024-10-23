@@ -5,7 +5,8 @@ import os
 import numpy as np
 import tensorflow as tf
 import tensorflow.compat.v1 as tf  # TensorFlow compatibility mode for version 1.x
-tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
+if tf.__version__.startswith('2'):
+    tf.disable_v2_behavior()
 from scipy import ndimage
 from osgeo import gdal
 import rasterio
@@ -20,10 +21,6 @@ import shutil  # For file and folder operations
 import json
 import subprocess
 import numpy as np
-
-# TensorFlow compatibility mode for version 1.x
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
 
 # Function to reshape classified data into a single pixel vector
 def reshape_single_vector(data_classify):
