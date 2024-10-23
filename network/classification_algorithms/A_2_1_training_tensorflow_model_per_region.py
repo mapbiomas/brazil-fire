@@ -393,50 +393,47 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
             # Run one step of the optimizer (training step)
             optimizer.run(feed_dict=feed_dict)
 
-            # Every 100 iterations, evaluate accuracy and save the model
+            # Every 100 iterations, evaluate accuracy and log progress
             if i % 100 == 0:
                 # Calculate validation accuracy
                 acc = accuracy.eval(validation_dict) * 100
-
-                # Save the model checkpoint
-                split_name = get_active_checkbox().split('_')
-
-                # Save the model locally and upload to GCS, including the hyperparameters JSON
-                model_path = f'{folder_model}/col1_{country}_{split_name[1]}_{split_name[3]}_rnn_lstm_ckpt'
-                json_path = f'{model_path}_hyperparameters.json'
-
-                # Save the hyperparameters to the JSON file locally
-                hyperparameters = {
-                    'data_mean': data_mean.tolist(),
-                    'data_std': data_std.tolist(),
-                    'NUM_N_L1': NUM_N_L1,
-                    'NUM_N_L2': NUM_N_L2,
-                    'NUM_N_L3': NUM_N_L3,
-                    'NUM_N_L4': NUM_N_L4,
-                    'NUM_N_L5': NUM_N_L5,
-                    'NUM_CLASSES': NUM_CLASSES
-                }
-
-                # Save the hyperparameters JSON locally
-                with open(json_path, 'w') as json_file:
-                    json.dump(hyperparameters, json_file)
-                log_message(f'[INFO] Hyperparameters saved to JSON file: {json_path}')
-
-                # Save model in TensorFlow session first
-                saver.save(sess, model_path)
-
-                # Upload model files and JSON to GCS
-                bucket_model_path = f'gs://{bucket_name}/sudamerica/{country}/models_col1/'
-                
-                try:
-                    subprocess.check_call(f'gsutil cp {model_path}.* {json_path} {bucket_model_path}', shell=True)
-                    log_message(f'[INFO] Model and hyperparameters successfully uploaded to GCS at {bucket_model_path}')
-                except subprocess.CalledProcessError as e:
-                    log_message(f'[ERROR] Failed to upload model or hyperparameters to GCS: {str(e)}')
-
-                # Display progress
                 log_message(f'[PROGRESS] Iteration {i}/{N_ITER} - Validation Accuracy: {acc:.2f}%')
-                log_message(f'[INFO] Model saved at: {model_path}')
+
+        # Final save after training is complete
+        split_name = get_active_checkbox().split('_')
+
+        # Save the model locally and upload to GCS, including the hyperparameters JSON
+        model_path = f'{folder_model}/col1_{country}_{split_name[1]}_{split_name[3]}_rnn_lstm_ckpt'
+        json_path = f'{model_path}_hyperparameters.json'
+
+        # Save the hyperparameters to the JSON file locally
+        hyperparameters = {
+            'data_mean': data_mean.tolist(),
+            'data_std': data_std.tolist(),
+            'NUM_N_L1': NUM_N_L1,
+            'NUM_N_L2': NUM_N_L2,
+            'NUM_N_L3': NUM_N_L3,
+            'NUM_N_L4': NUM_N_L4,
+            'NUM_N_L5': NUM_N_L5,
+            'NUM_CLASSES': NUM_CLASSES
+        }
+
+        # Save the hyperparameters JSON locally
+        with open(json_path, 'w') as json_file:
+            json.dump(hyperparameters, json_file)
+        log_message(f'[INFO] Hyperparameters saved to JSON file: {json_path}')
+
+        # Save model in TensorFlow session
+        saver.save(sess, model_path)
+
+        # Upload model files and JSON to GCS only after training completes
+        bucket_model_path = f'gs://{bucket_name}/sudamerica/{country}/models_col1/'
+
+        try:
+            subprocess.check_call(f'gsutil cp {model_path}.* {json_path} {bucket_model_path}', shell=True)
+            log_message(f'[INFO] Model and hyperparameters successfully uploaded to GCS at {bucket_model_path}')
+        except subprocess.CalledProcessError as e:
+            log_message(f'[ERROR] Failed to upload model or hyperparameters to GCS: {str(e)}')
 
         # End of training process
         end_time = time.time()
