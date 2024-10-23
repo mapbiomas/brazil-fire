@@ -81,7 +81,8 @@ from google.cloud import storage
 import glob
 import re  # Importa a biblioteca de expressões regulares
 import tensorflow.compat.v1 as tf  # TensorFlow compatibility mode for version 1.x
-tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
+if tf.__version__.startswith('2'):
+    tf.disable_v2_behavior()# Disable TensorFlow 2.x behaviors and enable 1.x style
 import math  # Mathematical functions
 import subprocess
 import time
