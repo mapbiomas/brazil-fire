@@ -8,6 +8,8 @@ import importlib
 import os
 from datetime import datetime
 import time
+import json
+import numpy as np
 
 # Definir diretórios para o armazenamento de dados e saída do modelo
 folder = f'/content/mapbiomas-fire/sudamerica/{country}'  # Diretório principal onde os dados são armazenados
@@ -281,6 +283,8 @@ def split_data_for_training(valid_data_train_test):
 
     # Start model training, passing training_size
     train_model(training_data, validation_data, bi, li, data_mean, data_std, training_size)
+
+# Function to train the model and save hyperparameters
 def train_model(training_data, validation_data, bi, li, data_mean, data_std, training_size):
     # ### HYPERPARAMETERS ###
 
@@ -355,9 +359,6 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
 
         log_message(f"[INFO] TensorFlow graph setup complete.")
 
-    # 5.3 - Model Training
-    # --------------------------------------------------
-
     # Record the start time of training
     start_time = time.time()
 
@@ -399,16 +400,35 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
 
                 # Save the model checkpoint
                 split_name = get_active_checkbox().split('_')
-                model_path = f'{folder_model}/col1_{country}_{split_name[1]}_{split_name[3]}_rnn_lstm_ckpt'
-                log_message(f'[INFO] Model saved locally at: {model_path}')
 
-                # Upload model files to GCS
+                # Save the model locally and upload to GCS, including the hyperparameters JSON
+                model_path = f'{folder_model}/col1_{country}_{split_name[1]}_{split_name[3]}_rnn_lstm_ckpt'
+                json_path = f'{model_path}_hyperparameters.json'
+
+                # Save the hyperparameters to the JSON file locally
+                hyperparameters = {
+                    'data_mean': data_mean.tolist(),
+                    'data_std': data_std.tolist(),
+                    'NUM_N_L1': NUM_N_L1,
+                    'NUM_N_L2': NUM_N_L2,
+                    'NUM_N_L3': NUM_N_L3,
+                    'NUM_N_L4': NUM_N_L4,
+                    'NUM_N_L5': NUM_N_L5,
+                    'NUM_CLASSES': NUM_CLASSES
+                }
+
+                # Save the hyperparameters JSON locally
+                with open(json_path, 'w') as json_file:
+                    json.dump(hyperparameters, json_file)
+                log_message(f'[INFO] Hyperparameters saved to JSON file: {json_path}')
+
+                # Upload model files and JSON to GCS
                 bucket_model_path = f'gs://{bucket_name}/sudamerica/{country}/models_col1/'
                 try:
-                    subprocess.check_call(f'gsutil cp {model_path}.* {bucket_model_path}', shell=True)
-                    log_message(f'[INFO] Model files successfully uploaded to GCS at {bucket_model_path}')
+                    subprocess.check_call(f'gsutil cp {model_path}.* {json_path} {bucket_model_path}', shell=True)
+                    log_message(f'[INFO] Model and hyperparameters successfully uploaded to GCS at {bucket_model_path}')
                 except subprocess.CalledProcessError as e:
-                    log_message(f'[ERROR] Failed to upload model files to GCS: {str(e)}')
+                    log_message(f'[ERROR] Failed to upload model or hyperparameters to GCS: {str(e)}')
 
                 # Save model in TensorFlow session
                 saver.save(sess, model_path)
@@ -424,13 +444,3 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
 
         # Final model save message
         log_message(f'[INFO] Final model saved at: {model_path}')
-
-        # Clean up temporary sample files after training
-        log_message('[INFO] Removing temporary sample files...')
-        remove_status = os.system(f'rm -rf {folder_samples}/samples_*')
-
-        # Confirm the removal of sample files
-        if remove_status == 0:
-            log_message('[SUCCESS] Sample files removed successfully.')
-        else:
-            log_message('[ERROR] Failed to remove temporary sample files.')
