@@ -302,7 +302,7 @@ def create_model_graph(num_input, num_classes, data_mean, data_std):
 def classify(data_classify_vector, model_path, num_input, num_classes, data_mean, data_std):
     log_message(f"[INFO] Starting classification with model at path: {model_path}")
     graph, placeholders, saver = create_model_graph(num_input, num_classes, data_mean, data_std)
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.90)
 
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
         saver.restore(sess, model_path)
