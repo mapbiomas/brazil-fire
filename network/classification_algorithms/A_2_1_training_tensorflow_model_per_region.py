@@ -428,7 +428,8 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
             'NUM_N_L3': NUM_N_L3,
             'NUM_N_L4': NUM_N_L4,
             'NUM_N_L5': NUM_N_L5,
-            'NUM_CLASSES': NUM_CLASSES
+            'NUM_CLASSES': NUM_CLASSES,
+            'NUM_INPUT': NUM_INPUT, 
         }
 
         # Save the hyperparameters JSON locally
