@@ -21,10 +21,6 @@ import json
 import subprocess
 import numpy as np
 
-# Function to reshape classified data into a single pixel vector
-def reshape_single_vector(data_classify):
-    return data_classify.reshape([data_classify.shape[0] * data_classify.shape[1], data_classify.shape[2]])
-
 # Function to load an image using GDAL
 def load_image(image_path):
     log_message(f"[INFO] Loading image from path: {image_path}")
@@ -45,6 +41,11 @@ def convert_to_array(dataset):
 def reshape_image_output(output_data_classified, data_classify):
     log_message(f"[INFO] Reshaping classified data back to image format")
     return output_data_classified.reshape([data_classify.shape[0], data_classify.shape[1]])
+
+# Function to reshape classified data into a single pixel vector
+def reshape_single_vector(data_classify):
+    return data_classify.reshape([data_classify.shape[0] * data_classify.shape[1], data_classify.shape[2]])
+
 
 # Function to apply spatial filtering on classified images
 def filter_spatial(output_image_data):
@@ -287,20 +288,72 @@ def create_model_graph(hyperparameters):
         saver = tf.train.Saver()
 
     return graph, {'x_input': x_input, 'y_input': y_input}, saver
-# Function to classify data using a TensorFlow model
-def classify(data_classify_vector, model_path, hyperparameters):
-    log_message(f"[INFO] Starting classification with model at path: {model_path}")
-    graph, placeholders, saver = create_model_graph(hyperparameters)
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
 
+# Function to classify data using a TensorFlow model in blocks and clear memory
+def classify(data_classify_vector, model_path, hyperparameters, block_size=4000000):
+    """
+    Classifies data in blocks using a TensorFlow model, and clears the session memory after each iteration.
+
+    Args:
+    - data_classify_vector: The input data (pixels) to classify.
+    - model_path: Path to the TensorFlow model to be restored.
+    - hyperparameters: Hyperparameters to create the model graph.
+    - block_size: Number of pixels to process per block (default is 4,000,000).
+    
+    Returns:
+    - output_data_classify: Classified data.
+    """
+    log_message(f"[INFO] Starting classification with model at path: {model_path}")
+    
+    # Create model graph using provided hyperparameters
+    graph, placeholders, saver = create_model_graph(hyperparameters)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.50)
+    
+    # Start session and restore the model
     with tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
         saver.restore(sess, model_path)
-        output_data_classify = sess.run(
-            graph.get_tensor_by_name('predicted_class:0'),
-            feed_dict={placeholders['x_input']: data_classify_vector}
-        )
+        
+        num_pixels = data_classify_vector.shape[0]
+        num_blocks = (num_pixels + block_size - 1) // block_size  # Calculate the number of blocks
+
+        output_blocks = []  # List to hold the results of each block
+
+        # Process data in blocks
+        for i in range(num_blocks):
+            start_idx = i * block_size
+            end_idx = min((i + 1) * block_size, num_pixels)  # Ensure we don't exceed array length
+            log_message(f"[INFO] Processing block {i+1}/{num_blocks} (pixels {start_idx} to {end_idx})")
+
+            # Get the current block of data to classify
+            data_block = data_classify_vector[start_idx:end_idx]
+            
+            # Classify the current block of data
+            output_block = sess.run(
+                graph.get_tensor_by_name('predicted_class:0'),
+                feed_dict={placeholders['x_input']: data_block}
+            )
+            
+            # Append the classified block to the result list
+            output_blocks.append(output_block)
+
+            # Clear the session to free memory
+            sess.close()
+            tf.keras.backend.clear_session()
+
+            # Reopen the session for the next block
+            sess = tf.Session(graph=graph, config=tf.ConfigProto(gpu_options=gpu_options))
+            saver.restore(sess, model_path)
+
+    # Concatenate the classified blocks into a single array
+    output_data_classify = np.concatenate(output_blocks, axis=0)
     log_message(f"[INFO] Classification completed")
+    
+    # Clear the session after the entire process is done
+    tf.keras.backend.clear_session()
+    
     return output_data_classify
+
+
 
 def process_single_image(dataset_classify, version, region,folder_temp):
     """
@@ -359,10 +412,10 @@ def process_single_image(dataset_classify, version, region,folder_temp):
     # Reshape into a single pixel vector
     log_message(f"[INFO] Reshaping data into a single pixel vector.")
     data_classify_vector = reshape_single_vector(data_classify)
-    
+    # print('data_classify_vector',data_classify_vector)
     # Normalize the input vector using data_mean and data_std
-    log_message(f"[INFO] Normalizing the input vector using data_mean and data_std.")
-    data_classify_vector = (data_classify_vector - DATA_MEAN) / DATA_STD
+    # log_message(f"[INFO] Normalizing the input vector using data_mean and data_std.")
+    # data_classify_vector = (data_classify_vector - DATA_MEAN) / DATA_STD
 
     # Perform the classification using the model
     log_message(f"[INFO] Running classification using the model.")
