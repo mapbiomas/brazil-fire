@@ -211,14 +211,20 @@ def upload_to_gee(gcs_path, asset_id, satellite, region, year, version, ee_proje
         log_message(f"[INFO] Asset already exists: {asset_id}")
     else:
         log_message(f"[INFO] Uploading image to GEE: {asset_id}")
+
         upload_command = (
-            f'earthengine --project {ee_project} upload image --asset_id={asset_id} '
-            f'--pyramiding_policy=mode '
-            f'--property satellite={satellite} '
-            f'--property region={region} '
-            f'--property year={year} '
-            f'--property version={version} '
-            f'{gcs_path}'
+          f'earthengine --project {ee_project} upload image --asset_id={asset_id} '
+          f'--pyramiding_policy=mode '
+          f'--property satellite={satellite} '
+          f'--property region={region} '
+          f'--property year={year} '
+          f'--property version={version} '
+          f'--property source=IPAM '
+          f'--property type=annual_burned_area '
+          f'--property time_start={timestamp_start} '
+          f'--property time_end={timestamp_end} '
+          f'--property create_date={creation_date} '
+          f'{gcs_path}'
         )
         status = os.system(upload_command)
 
