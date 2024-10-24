@@ -64,7 +64,7 @@ def create_log_paths(timestamp):
     Creates the local and GCS paths for the log files.
     """
     log_folder = f'/content/{bucket_name}/sudamerica/{country}/classification_logs'
-    log_file_name = f'burned_area_classification_log_{collection_name}_{country}_{timestamp}.log'
+    log_file_name = f'burned_area_classification_log_{collection_name}_{country}_{timezone_switch[country].replace("/", "_").lower()}_{timestamp}.log'
     log_file_path_local = os.path.join(log_folder, log_file_name)
     bucket_log_folder = f'gs://{bucket_name}/sudamerica/{country}/classification_logs/{log_file_name}'
     
