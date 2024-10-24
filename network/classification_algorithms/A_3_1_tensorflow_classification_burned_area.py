@@ -290,7 +290,7 @@ def create_model_graph(hyperparameters):
     return graph, {'x_input': x_input, 'y_input': y_input}, saver
 
 # Function to classify data using a TensorFlow model in blocks and handle memory manually
-def classify(data_classify_vector, model_path, hyperparameters, block_size=4000000):
+def classify(data_classify_vector, model_path, hyperparameters, block_size=40000000):
     """
     Classifies data in blocks using a TensorFlow model, and resets the session to free memory.
 
