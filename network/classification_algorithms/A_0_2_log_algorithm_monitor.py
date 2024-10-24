@@ -1,55 +1,67 @@
-# last_update: '2024/10/23', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
-# MapBiomas Fire Classification Algorithms Step A_0_2_log_algorithm_monitor.py 
-### Step A_0_2 - Algoritmo para registrar logs de monitoramento da interface em um arquivo JSON na Google Cloud
-
 import os
 from datetime import datetime
+import pytz  # Library to handle timezones
 import subprocess
 import json
 
-# Variáveis globais
+# Global variables
 log_file_path_local = None
 bucket_log_folder = None
-log_index = 0  # Variável global para armazenar o índice dos logs
+log_index = 0  # Global variable to store the log index
 
-# # Variáveis de contexto globais (defina esses valores aqui ou no início do programa)
-# country = 'Brazil'
-# collection_name = 'Collection_1'
-# bucket_name = 'meu_bucket'
+# Dictionary that maps countries to their respective timezones
+timezone_switch = {
+    'brazil': 'America/Sao_Paulo',
+    'guyana': 'America/Guyana',
+    'bolivia': 'America/La_Paz',
+    'colombia': 'America/Bogota',
+    'chile': 'America/Santiago',
+    'peru': 'America/Lima',
+    'paraguay': 'America/Asuncion'
+}
+
+# Country variable (can be modified as needed)
+# country = 'brazil'  # Example: change to another country if needed
+
+# Get the country's timezone using the dictionary
+if country in timezone_switch:
+    country_tz = pytz.timezone(timezone_switch[country])
+else:
+    # If the country is not in the dictionary, use UTC by default
+    country_tz = pytz.UTC
 
 def log_message(message):
     """
-    Grava uma nova mensagem de log no arquivo existente ou cria um novo arquivo de log na primeira execução.
+    Records a new log message in the existing file or creates a new log file on first execution.
     """
     global log_file_path_local, bucket_log_folder, log_index
-    # Na primeira execução, cria o caminho para o log
+    # On the first execution, create the log path
     if log_file_path_local is None:
-        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        timestamp = datetime.now(country_tz).strftime('%Y-%m-%d_%H-%M-%S')
         log_folder, log_file_path_local, bucket_log_folder = create_log_paths(timestamp)
         
-        # Verificar e criar o diretório local se necessário
+        # Check and create the local directory if necessary
         create_local_directory(log_folder)
     
-    # Atualizar o índice de logs
+    # Update the log index
     log_index += 1
 
-    # Formatar a mensagem de log
+    # Format the log message
     log_entry = format_log_entry(message, log_index)
     
-    # Exibir no formato desejado
-    formatted_log = f"[LOG] [{log_index}] [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {message}"
+    # Display in the desired format
+    formatted_log = f"[LOG] [{log_index}] [{datetime.now(country_tz).strftime('%Y-%m-%d %H:%M:%S')}] {message}"
     print(formatted_log)
     
-    # Gravar a mensagem no arquivo de log local
+    # Write the message to the local log file
     write_log_local(log_file_path_local, log_entry)
     
-    # Subir o arquivo de log atualizado para o bucket no GCS
+    # Upload the updated log file to the GCS bucket
     upload_log_to_gcs(log_file_path_local, bucket_log_folder)
-
 
 def create_log_paths(timestamp):
     """
-    Cria os caminhos locais e no GCS para os arquivos de log.
+    Creates the local and GCS paths for the log files.
     """
     log_folder = f'/content/{bucket_name}/sudamerica/{country}/classification_logs'
     log_file_name = f'burned_area_classification_log_{collection_name}_{country}_{timestamp}.log'
@@ -58,10 +70,9 @@ def create_log_paths(timestamp):
     
     return log_folder, log_file_path_local, bucket_log_folder
 
-
 def create_local_directory(log_folder):
     """
-    Verifica se o diretório local existe, e o cria caso não exista.
+    Checks if the local directory exists, and creates it if it does not.
     """
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
@@ -69,48 +80,42 @@ def create_local_directory(log_folder):
     else:
         print(f"[LOG INFO] Local log directory already exists: {log_folder}")
 
-
 def format_log_entry(message, log_index):
     """
-    Formata a mensagem de log com timestamp e adiciona um índice.
+    Formats the log message with a timestamp and adds an index.
     """
-    # Verificar se o objeto é serializável; se não for, converta-o para string
+    # Check if the object is serializable; if not, convert it to a string
     if isinstance(message, (dict, list)):
         message = json.dumps(message, default=str)
     elif not isinstance(message, str):
-        message = str(message)  # Converte qualquer objeto não serializável diretamente para string
+        message = str(message)  # Convert any non-serializable object directly to string
     
-    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    current_time = datetime.now(country_tz).strftime('%Y-%m-%d %H:%M:%S')
     log_entry = {
         "index": log_index,
         "timestamp": current_time,
         "message": message
     }
-    # Retorna a entrada formatada como JSON
+    # Return the entry formatted as JSON
     return json.dumps(log_entry) + "\n"
-
 
 def write_log_local(log_file_path_local, log_entry):
     """
-    Escreve a mensagem de log no arquivo local.
+    Writes the log message to the local file.
     """
     with open(log_file_path_local, 'a') as log_file:
         log_file.write(log_entry)
-    # print(f"[LOG INFO] Log written locally to {log_file_path_local}")
-
 
 def upload_log_to_gcs(log_file_path_local, bucket_log_folder):
     """
-    Sobe o arquivo de log para o bucket no Google Cloud Storage.
+    Uploads the log file to the bucket on Google Cloud Storage.
     """
     try:
         subprocess.check_call(f'gsutil cp {log_file_path_local} {bucket_log_folder}', shell=True)
-        # print(f"[LOG INFO] Log file uploaded to GCS at {bucket_log_folder}")
     except subprocess.CalledProcessError as e:
         print(f"[LOG ERROR] Failed to upload log file to GCS: {str(e)}")
 
-
-# Exemplo de como usar a função
-# log_message('Processo de classificação iniciado')
+# Example usage:
+# log_message('Classification process started')
 # log_message(['coll_guyana_v1_r3_rnn_lstm_ckpt'])
 # log_message('mosaic_checkboxes_dict')
