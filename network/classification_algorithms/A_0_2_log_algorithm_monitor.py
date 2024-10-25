@@ -50,13 +50,13 @@ def log_message(message):
     log_index += 1
 
     # Get system information (RAM and Disk)
-    system_info = get_system_info()
+    system_info = get_system_info_compact()
 
     # Format the log message with system info
     log_entry = format_log_entry(message, log_index, system_info)
     
     # Display in the desired format
-    formatted_log = f"[LOG] [{log_index}] [{datetime.now(country_tz).strftime('%Y-%m-%d %H:%M:%S')}] {message}\n{system_info}"
+    formatted_log = f"[LOG] [{log_index}] [{datetime.now(country_tz).strftime('%Y-%m-%d %H:%M:%S')}] {message} | {system_info}"
     print(formatted_log)
     
     # Write the message to the local log file
@@ -65,31 +65,24 @@ def log_message(message):
     # Upload the updated log file to the GCS bucket
     upload_log_to_gcs(log_file_path_local, bucket_log_folder)
 
-def get_system_info():
+def get_system_info_compact():
     """
-    Returns the current system's RAM and Disk usage information.
+    Returns a compact system info string with RAM and Disk usage.
+    Format: disk:x/10x, ram:y/10y
     """
     # Get RAM information
     ram_info = psutil.virtual_memory()
     total_ram = ram_info.total / (1024 ** 3)  # Convert to GB
     available_ram = ram_info.available / (1024 ** 3)  # Convert to GB
-    used_ram = ram_info.used / (1024 ** 3)  # Convert to GB
 
     # Get Disk information
     disk_info = shutil.disk_usage('/')
     total_disk = disk_info.total / (1024 ** 3)  # Convert to GB
-    used_disk = disk_info.used / (1024 ** 3)  # Convert to GB
     free_disk = disk_info.free / (1024 ** 3)  # Convert to GB
 
-    # Format the system info string
+    # Format the system info string compactly
     system_info = (
-        f"System Info: \n"
-        f"  Total RAM: {total_ram:.2f} GB\n"
-        f"  Available RAM: {available_ram:.2f} GB\n"
-        f"  Used RAM: {used_ram:.2f} GB\n"
-        f"  Total Disk: {total_disk:.2f} GB\n"
-        f"  Used Disk: {used_disk:.2f} GB\n"
-        f"  Free Disk: {free_disk:.2f} GB\n"
+        f"disk:{free_disk:.1f}/{total_disk:.1f}GB, ram:{available_ram:.1f}/{total_ram:.1f}GB"
     )
 
     return system_info
@@ -117,7 +110,7 @@ def create_local_directory(log_folder):
 
 def format_log_entry(message, log_index, system_info):
     """
-    Formats the log message with a timestamp and adds an index and system info.
+    Formats the log message with a timestamp, an index, and system info.
     """
     # Check if the object is serializable; if not, convert it to a string
     if isinstance(message, (dict, list)):
