@@ -1,4 +1,4 @@
-# last_update: '2024/10/30', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# last_update: '2024/10/23', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms Step A_3_1_tensorflow_classification_burned_area.py 
 ### Step A_3_1 - Functions for TensorFlow classification of burned areas
 import os
@@ -218,7 +218,7 @@ def run_command(command_list):
         return e.returncode, e.stderr
 
 # Função para fazer upload de um arquivo para o GEE
-def upload_to_gee(gcs_path, asset_id, satellite, region, year, version, ee_project, source, collection_name):
+def upload_to_gee(gcs_path, asset_id, satellite, region, year, version, ee_project):
     """
     Faz upload de um arquivo para o GEE, adicionando metadados relevantes, e verifica se o asset já existe.
 
