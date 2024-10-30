@@ -1,4 +1,4 @@
-# last_update: '2024/10/23', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# last_update: '2024/10/30', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms Step A_3_1_tensorflow_classification_burned_area.py 
 ### Step A_3_1 - Functions for TensorFlow classification of burned areas
 import os
@@ -53,15 +53,27 @@ def filter_spatial(output_image_data):
     binary_image = output_image_data > 0
     open_image = ndimage.binary_opening(binary_image, structure=np.ones((4, 4)))
     close_image = ndimage.binary_closing(open_image, structure=np.ones((8, 8)))
-    return close_image
+    # **Converte para uint8 antes de retornar**
+    return close_image.astype('uint8')
 
 # Function to convert a NumPy array back into a GeoTIFF raster
 def convert_to_raster(dataset_classify, image_data_scene, output_image_name):
     log_message(f"[INFO] Converting array to GeoTIFF raster: {output_image_name}")
     cols, rows = dataset_classify.RasterXSize, dataset_classify.RasterYSize
     driver = gdal.GetDriverByName('GTiff')
-    outDs = driver.Create(output_image_name, cols, rows, 1, gdal.GDT_Float32)
-    outDs.GetRasterBand(1).WriteArray(image_data_scene)
+    
+    # **Adicione opções de criação para compressão e altere o tipo de dados**
+    options = [
+        'COMPRESS=DEFLATE',
+        'PREDICTOR=2',
+        'TILED=YES',
+        'BIGTIFF=YES'
+    ]
+    outDs = driver.Create(output_image_name, cols, rows, 1, gdal.GDT_Byte, options=options)
+    
+    # **Certifique-se de que os dados sejam do tipo uint8**
+    image_data_scene_uint8 = image_data_scene.astype('uint8')
+    outDs.GetRasterBand(1).WriteArray(image_data_scene_uint8)
     outDs.SetGeoTransform(dataset_classify.GetGeoTransform())
     outDs.SetProjection(dataset_classify.GetProjection())
     outDs.FlushCache()
@@ -93,20 +105,6 @@ import time
 
 # Function to clip an image based on the provided geometry
 def clip_image_by_grid(geom, image, output, buffer_distance_meters=100, max_attempts=5, retry_delay=5):
-    """
-    Clips an image based on a given geometry and saves the result. Tries multiple times if clipping fails.
-
-    Args:
-    - geom: Clipping geometry.
-    - image: Path to the input image.
-    - output: Path to the output image.
-    - buffer_distance_meters: Buffer distance for the geometry.
-    - max_attempts: Maximum number of attempts for clipping.
-    - retry_delay: Time (in seconds) to wait between attempts.
-
-    Returns:
-    - success: Boolean indicating whether the clipping was successful.
-    """
     attempt = 0
     while attempt < max_attempts:
         try:
@@ -115,7 +113,17 @@ def clip_image_by_grid(geom, image, output, buffer_distance_meters=100, max_atte
                 expanded_geom = expand_geometry(geom, buffer_distance_meters)
                 if has_significant_intersection(expanded_geom, src.bounds):
                     out_image, out_transform = mask(src, [expanded_geom], crop=True, nodata=np.nan, filled=True)
-                    with rasterio.open(output, 'w', **src.meta) as dest:
+                    
+                    # **Atualize os metadados aqui**
+                    out_meta = src.meta.copy()
+                    out_meta.update({
+                        "driver": "GTiff",
+                        "height": out_image.shape[1],
+                        "width": out_image.shape[2],
+                        "transform": out_transform
+                    })
+                    
+                    with rasterio.open(output, 'w', **out_meta) as dest:
                         dest.write(out_image)
                     log_message(f"[INFO] Image clipped successfully: {output}")
                     return True  # Clipping successful
@@ -165,10 +173,10 @@ def clean_directories(directories_to_clean):
             os.makedirs(directory)
             log_message(f"[INFO] Created directory: {directory}")
 
-# Function to check or create a GEE collection
+# Function to check or create a GEE collection and make it public
 def check_or_create_collection(collection, ee_project):
     """
-    Checks if a GEE collection exists, and if not, creates it.
+    Checks if a GEE collection exists, and if not, creates it and makes it public.
 
     Args:
     - collection: The GEE collection path.
@@ -181,58 +189,116 @@ def check_or_create_collection(collection, ee_project):
     if status != 0:
         log_message(f"[INFO] Creating new collection: {collection}")
         create_command = f'earthengine --project {ee_project} create collection {collection}'
-        os.system(create_command)
+        create_status = os.system(create_command)
+        
+        if create_status == 0:
+            log_message(f"[INFO] Collection created successfully: {collection}")
+            
+            # Make the collection public
+            log_message(f"[INFO] Making the collection public: {collection}")
+            set_acl_command = f'earthengine --project {ee_project} acl set public {collection}'
+            acl_status = os.system(set_acl_command)
+            
+            if acl_status == 0:
+                log_message(f"[INFO] Collection made public successfully: {collection}")
+            else:
+                log_message(f"[ERROR] Failed to make the collection public: {collection}")
+        else:
+            log_message(f"[ERROR] Failed to create the collection: {collection}")
     else:
         log_message(f"[INFO] Collection already exists: {collection}")
 
-# Function to upload a file to GEE
-def upload_to_gee(gcs_path, asset_id, satellite, region, year, version, ee_project):
-    """
-    Uploads a file to GEE, adding relevant metadata, and checks if the asset already exists.
+# Função para fazer upload de um arquivo para o GEE
+# Função para executar comandos de forma segura
+def run_command(command_list):
+    try:
+        result = subprocess.run(command_list, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        return result.returncode, result.stdout
+    except subprocess.CalledProcessError as e:
+        return e.returncode, e.stderr
 
-    Args:
-    - gcs_path: Path to the file in Google Cloud Storage (GCS).
-    - asset_id: Asset ID for the GEE upload.
-    - satellite: Name of the satellite used.
-    - region: Target region.
-    - year: Year of the data.
-    - version: Version of the dataset.
-    - ee_project: GEE project name.
+# Função para fazer upload de um arquivo para o GEE
+def upload_to_gee(gcs_path, asset_id, satellite, region, year, version, ee_project, source, collection_name):
     """
-    log_message(f"[INFO] Preparing to upload file to GEE: {gcs_path}")
-    timestamp_start = int(datetime(year, 1, 1).timestamp() * 1000)
-    timestamp_end = int(datetime(year, 12, 31).timestamp() * 1000)
+    Faz upload de um arquivo para o GEE, adicionando metadados relevantes, e verifica se o asset já existe.
+
+    Parâmetros:
+    - gcs_path: Caminho para o arquivo no Google Cloud Storage (GCS).
+    - asset_id: ID do asset para o upload no GEE.
+    - satellite: Nome do satélite utilizado.
+    - region: Região de destino.
+    - year: Ano dos dados.
+    - version: Versão do dataset.
+    - ee_project: Nome do projeto GEE.
+    - source: Fonte dos dados.
+    - collection_name: Nome da coleção de dados.
+    """
+    log_message(f"[INFO] Preparando para fazer upload do arquivo para o GEE: {gcs_path}")
+    
+    try:
+        # Converter ano para timestamps
+        timestamp_start = int(datetime(year, 1, 1).timestamp() * 1000)
+        timestamp_end = int(datetime(year, 12, 31).timestamp() * 1000)
+    except ValueError as ve:
+        log_message(f"[ERRO] Ano inválido fornecido: {year}. Detalhes: {ve}")
+        return
+
     creation_date = datetime.now().strftime('%Y-%m-%d')
 
-    check_asset_command = f'earthengine --project {ee_project} asset info {asset_id}'
-    asset_status = os.system(check_asset_command)
+    # Etapa 1: Configurar o projeto no gcloud
+    log_message(f"[INFO] Configurando o projeto GEE: {ee_project}")
+    set_project_command = ['gcloud', 'config', 'set', 'project', ee_project]
+    return_code, output = run_command(set_project_command)
+    if return_code != 0:
+        log_message(f"[ERRO] Falha ao configurar o projeto GEE: {output}")
+        return
 
-    if asset_status == 0:
-        log_message(f"[INFO] Asset already exists: {asset_id}")
-    else:
-        log_message(f"[INFO] Uploading image to GEE: {asset_id}")
+    # Etapa 2: Verificar se o asset já existe
+    log_message(f"[INFO] Verificando se o asset existe: {asset_id}")
+    check_asset_command = ['earthengine', 'asset', 'info', asset_id]
+    return_code, output = run_command(check_asset_command)
 
-        upload_command = (
-          f'earthengine --project {ee_project} upload image --asset_id={asset_id} '
-          f'--pyramiding_policy=mode '
-          f'--property satellite={satellite} '
-          f'--property region={region} '
-          f'--property year={year} '
-          f'--property version={version} '
-          f'--property source=IPAM '
-          f'--property type=annual_burned_area '
-          f'--property time_start={timestamp_start} '
-          f'--property time_end={timestamp_end} '
-          f'--property create_date={creation_date} '
-          f'{gcs_path}'
-        )
-        status = os.system(upload_command)
-
-        if status == 0:
-            log_message(f"[INFO] Upload to GEE successful: {asset_id}")
+    # Etapa 3: Se o asset existir, excluí-lo
+    if return_code == 0:
+        log_message(f"[INFO] O asset já existe: {asset_id}, excluindo antes do upload...")
+        delete_asset_command = ['earthengine', 'asset', 'delete', asset_id, '--force']
+        del_code, del_output = run_command(delete_asset_command)
+        
+        if del_code == 0:
+            log_message(f"[INFO] Asset existente excluído com sucesso: {asset_id}")
         else:
-            log_message(f"[ERROR] Upload to GEE failed: {asset_id}")
+            log_message(f"[ERRO] Falha ao excluir o asset existente: {asset_id}. Detalhes: {del_output}")
+            return  # Interromper execução se não for possível excluir o asset existente
+    elif 'Asset does not exist' not in output:
+        log_message(f"[ERRO] Erro ao verificar o asset: {asset_id}. Detalhes: {output}")
+        return
 
+    # Etapa 4: Prosseguir com o upload
+    log_message(f"[INFO] Fazendo upload da imagem para o GEE: {asset_id}")
+
+    upload_command = [
+        'earthengine', 'upload', 'image',
+        '--asset_id', asset_id,
+        '--pyramiding_policy', 'mode',
+        '--property', f'satellite={satellite}',
+        '--property', f'region={region}',
+        '--property', f'year={year}',
+        '--property', f'version={version}',
+        '--property', f'source={source_name}',
+        '--property', f'collection_name={collection_name}',
+        '--property', 'type=annual_burned_area',
+        '--property', f'time_start={timestamp_start}',
+        '--property', f'time_end={timestamp_end}',
+        '--property', f'create_date={creation_date}',
+        gcs_path
+    ]
+
+    status, upload_output = run_command(upload_command)
+
+    if status == 0:
+        log_message(f"[INFO] Upload para o GEE bem-sucedido: {asset_id}")
+    else:
+        log_message(f"[ERRO] Falha no upload para o GEE: {asset_id}. Detalhes: {upload_output}")
 # Function to remove temporary files
 def remove_temporary_files(files_to_remove):
     """
