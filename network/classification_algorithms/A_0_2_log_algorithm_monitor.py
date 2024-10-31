@@ -22,15 +22,28 @@ timezone_switch = {
     'paraguay': 'America/Asuncion'
 }
 
-# Country variable (can be modified as needed)
-# country = 'brazil'  # Example: change to another country if needed
-
-# Get the country's timezone using the dictionary
-if country in timezone_switch:
-    country_tz = pytz.timezone(timezone_switch[country])
+# Determine timezone, prioritizing specified_timezone if provided
+if specified_timezone:
+    country_tz = pytz.timezone(specified_timezone)
 else:
-    # If the country is not in the dictionary, use UTC by default
-    country_tz = pytz.UTC
+    country_tz = pytz.timezone(timezone_switch.get(country, 'UTC'))
+
+def create_header():
+    """
+    Creates a header for the log file with the initial date, timezone, country, source name, and collection name.
+    """
+    initial_date = datetime.now(country_tz).strftime('%Y-%m-%d %H:%M:%S')
+    timezone_str = specified_timezone if specified_timezone else timezone_switch.get(country, 'UTC')
+    header = (
+        f"Processing started on: {initial_date}\n"
+        f"Timezone: {timezone_str}\n"
+        f"Country: {country}\n"
+        f"Source: {source_name}\n"
+        f"Collection: {collection_name}\n"
+        "---------------------------------\n"
+    )
+    print(header)  # Print the header for visibility
+    return header
 
 def log_message(message):
     """
@@ -38,13 +51,19 @@ def log_message(message):
     Includes system information (RAM and disk).
     """
     global log_file_path_local, bucket_log_folder, log_index
-    # On the first execution, create the log path
+    
+    # On the first execution, create the log path and add the header
     if log_file_path_local is None:
         timestamp = datetime.now(country_tz).strftime('%Y-%m-%d_%H-%M-%S')
         log_folder, log_file_path_local, bucket_log_folder = create_log_paths(timestamp)
         
         # Check and create the local directory if necessary
         create_local_directory(log_folder)
+        
+        # Write header to the log file
+        header_text = create_header()
+        with open(log_file_path_local, 'w') as log_file:
+            log_file.write(header_text)
     
     # Update the log index
     log_index += 1
@@ -70,17 +89,14 @@ def get_system_info_compact():
     Returns a compact system info string with RAM and Disk usage.
     Format: disk:x/10x, ram:y/10y
     """
-    # Get RAM information
     ram_info = psutil.virtual_memory()
     total_ram = ram_info.total / (1024 ** 3)  # Convert to GB
     available_ram = ram_info.available / (1024 ** 3)  # Convert to GB
 
-    # Get Disk information
     disk_info = shutil.disk_usage('/')
     total_disk = disk_info.total / (1024 ** 3)  # Convert to GB
     free_disk = disk_info.free / (1024 ** 3)  # Convert to GB
 
-    # Format the system info string compactly
     system_info = (
         f"disk:{free_disk:.1f}/{total_disk:.1f}GB, ram:{available_ram:.1f}/{total_ram:.1f}GB"
     )
@@ -89,10 +105,10 @@ def get_system_info_compact():
 
 def create_log_paths(timestamp):
     """
-    Creates the local and GCS paths for the log files.
+    Creates the local and GCS paths for the log files without including timezone in the filename.
     """
     log_folder = f'/content/{bucket_name}/sudamerica/{country}/classification_logs'
-    log_file_name = f'burned_area_classification_log_{collection_name}_{country}_{timezone_switch[country].replace("/", "_").lower()}_{timestamp}.log'
+    log_file_name = f'burned_area_classification_log_{collection_name}_{country}_{timestamp}.log'
     log_file_path_local = os.path.join(log_folder, log_file_name)
     bucket_log_folder = f'gs://{bucket_name}/sudamerica/{country}/classification_logs/{log_file_name}'
     
@@ -112,11 +128,10 @@ def format_log_entry(message, log_index, system_info):
     """
     Formats the log message with a timestamp, an index, and system info.
     """
-    # Check if the object is serializable; if not, convert it to a string
     if isinstance(message, (dict, list)):
         message = json.dumps(message, default=str)
     elif not isinstance(message, str):
-        message = str(message)  # Convert any non-serializable object directly to string
+        message = str(message)
     
     current_time = datetime.now(country_tz).strftime('%Y-%m-%d %H:%M:%S')
     log_entry = {
@@ -125,7 +140,6 @@ def format_log_entry(message, log_index, system_info):
         "message": message,
         "system_info": system_info
     }
-    # Return the entry formatted as JSON
     return json.dumps(log_entry) + "\n"
 
 def write_log_local(log_file_path_local, log_entry):
