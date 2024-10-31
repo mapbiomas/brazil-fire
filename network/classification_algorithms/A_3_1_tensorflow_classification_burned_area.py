@@ -19,7 +19,6 @@ from shapely.geometry import shape, box, mapping
 import shutil  # For file and folder operations
 import json
 import subprocess
-import numpy as np
 
 # Function to load an image using GDAL
 def load_image(image_path):
