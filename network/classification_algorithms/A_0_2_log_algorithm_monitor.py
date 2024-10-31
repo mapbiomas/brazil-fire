@@ -11,6 +11,13 @@ log_file_path_local = None
 bucket_log_folder = None
 log_index = 0  # Global variable to store the log index
 
+# Define necessary variables
+country = 'guyana'  # Example country; modify as needed
+collection_name = 'collection_1'
+source_name = 'IPAM'
+specified_timezone = None  # Set a specific timezone if needed, e.g., 'America/Sao_Paulo'
+bucket_name = 'your_bucket_name'
+
 # Dictionary that maps countries to their respective timezones
 timezone_switch = {
     'brazil': 'America/Sao_Paulo',
@@ -31,10 +38,11 @@ else:
 def create_header():
     """
     Creates a header for the log file with the initial date, timezone, country, source name, and collection name.
+    Returns both a string representation and a dictionary for JSON logs.
     """
     initial_date = datetime.now(country_tz).strftime('%Y-%m-%d %H:%M:%S')
     timezone_str = specified_timezone if specified_timezone else timezone_switch.get(country, 'UTC')
-    header = (
+    header_str = (
         f"Processing started on: {initial_date}\n"
         f"Timezone: {timezone_str}\n"
         f"Country: {country}\n"
@@ -42,13 +50,23 @@ def create_header():
         f"Collection: {collection_name}\n"
         "---------------------------------\n"
     )
-    print(header)  # Print the header for visibility
-    return header
+    
+    # Header dictionary for JSON logging
+    header_dict = {
+        "initial_date": initial_date,
+        "timezone": timezone_str,
+        "country": country,
+        "source": source_name,
+        "collection": collection_name
+    }
+    
+    print(header_str)  # Print the header for visibility
+    return header_str, header_dict
 
 def log_message(message):
     """
     Records a new log message in the existing file or creates a new log file on first execution.
-    Includes system information (RAM and disk).
+    Includes system information (RAM and disk) and header info in each log entry.
     """
     global log_file_path_local, bucket_log_folder, log_index
     
@@ -61,18 +79,21 @@ def log_message(message):
         create_local_directory(log_folder)
         
         # Write header to the log file
-        header_text = create_header()
+        header_str, header_dict = create_header()
         with open(log_file_path_local, 'w') as log_file:
-            log_file.write(header_text)
-    
+            log_file.write(header_str)
+    else:
+        # Retrieve header_dict if log file already exists
+        _, header_dict = create_header()
+
     # Update the log index
     log_index += 1
 
     # Get system information (RAM and Disk)
     system_info = get_system_info_compact()
 
-    # Format the log message with system info
-    log_entry = format_log_entry(message, log_index, system_info)
+    # Format the log message with system info and header for JSON format
+    log_entry = format_log_entry(message, log_index, system_info, header_dict)
     
     # Display in the desired format
     formatted_log = f"[LOG] [{log_index}] [{datetime.now(country_tz).strftime('%Y-%m-%d %H:%M:%S')}] {message} | {system_info}"
@@ -124,9 +145,9 @@ def create_local_directory(log_folder):
     else:
         print(f"[LOG INFO] Local log directory already exists: {log_folder}")
 
-def format_log_entry(message, log_index, system_info):
+def format_log_entry(message, log_index, system_info, header_dict):
     """
-    Formats the log message with a timestamp, an index, and system info.
+    Formats the log message with a timestamp, an index, system info, and includes header information for JSON.
     """
     if isinstance(message, (dict, list)):
         message = json.dumps(message, default=str)
@@ -138,7 +159,8 @@ def format_log_entry(message, log_index, system_info):
         "index": log_index,
         "timestamp": current_time,
         "message": message,
-        "system_info": system_info
+        "system_info": system_info,
+        "header": header_dict  # Embedding header information in each log entry
     }
     return json.dumps(log_entry) + "\n"
 
