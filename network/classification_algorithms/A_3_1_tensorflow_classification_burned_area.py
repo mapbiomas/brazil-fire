@@ -210,7 +210,7 @@ def check_or_create_collection(collection, ee_project):
 
 
 # Function to upload a file to GEE with metadata and check if the asset already exists
-def upload_to_gee(gcs_path, asset_id, satellite, region, year, version, eeProject):
+def upload_to_gee(gcs_path, asset_id, satellite, region, year, version):
     timestamp_start = int(datetime.datetime(year, 1, 1).timestamp() * 1000)
     timestamp_end = int(datetime.datetime(year, 12, 31).timestamp() * 1000)
     creation_date = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -240,7 +240,7 @@ def upload_to_gee(gcs_path, asset_id, satellite, region, year, version, eeProjec
 
     # Build the upload command
     upload_command = (
-        f'earthengine --project {eeProject} upload image --asset_id={asset_id} '
+        f'earthengine --project {ee_project} upload image --asset_id={asset_id} '
         f'--pyramiding_policy=mode '
         f'--property satellite={satellite} '
         f'--property region={region} '
