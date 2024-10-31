@@ -11,13 +11,6 @@ log_file_path_local = None
 bucket_log_folder = None
 log_index = 0  # Global variable to store the log index
 
-# Define necessary variables
-country = 'guyana'  # Example country; modify as needed
-collection_name = 'collection_1'
-source_name = 'IPAM'
-specified_timezone = None  # Set a specific timezone if needed, e.g., 'America/Sao_Paulo'
-bucket_name = 'your_bucket_name'
-
 # Dictionary that maps countries to their respective timezones
 timezone_switch = {
     'brazil': 'America/Sao_Paulo',
