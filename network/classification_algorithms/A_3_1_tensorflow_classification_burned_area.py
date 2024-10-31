@@ -101,7 +101,6 @@ def has_significant_intersection(geom, image_bounds, min_intersection_area=0.01)
     image_shape = box(*image_bounds)
     intersection = geom_shape.intersection(image_shape)
     return intersection.area >= min_intersection_area
-import time
 
 # Function to clip an image based on the provided geometry
 def clip_image_by_grid(geom, image, output, buffer_distance_meters=100, max_attempts=5, retry_delay=5):
@@ -207,7 +206,6 @@ def check_or_create_collection(collection, ee_project):
             log_message(f"[ERROR] Failed to create the collection: {collection}")
     else:
         log_message(f"[INFO] Collection already exists: {collection}")
-
 
 # Function to upload a file to GEE with metadata and check if the asset already exists
 def upload_to_gee(gcs_path, asset_id, satellite, region, year, version):
