@@ -172,93 +172,54 @@ def clean_directories(directories_to_clean):
             log_message(f"[INFO] Created directory: {directory}")
 
 # Function to check or create a GEE collection and make it public
-def check_or_create_collection(collection, ee_project):
-    """
-    Checks if a GEE collection exists, and if not, creates it and makes it public.
-
-    Args:
-    - collection: The GEE collection path.
-    - ee_project: The Earth Engine project name.
-    """
-    log_message(f"[INFO] Checking if collection exists: {collection}")
+def check_or_create_collection(collection,ee_project):
     check_command = f'earthengine --project {ee_project} asset info {collection}'
     status = os.system(check_command)
 
     if status != 0:
-        log_message(f"[INFO] Creating new collection: {collection}")
+        print(f'[INFO] Criando nova coleção no GEE: {collection}')
         create_command = f'earthengine --project {ee_project} create collection {collection}'
-        create_status = os.system(create_command)
-        
-        if create_status == 0:
-            log_message(f"[INFO] Collection created successfully: {collection}")
-            
-            # Make the collection public
-            log_message(f"[INFO] Making the collection public: {collection}")
-            set_acl_command = f'earthengine --project {ee_project} acl set public {collection}'
-            acl_status = os.system(set_acl_command)
-            
-            if acl_status == 0:
-                log_message(f"[INFO] Collection made public successfully: {collection}")
-            else:
-                log_message(f"[ERROR] Failed to make the collection public: {collection}")
-        else:
-            log_message(f"[ERROR] Failed to create the collection: {collection}")
+        os.system(create_command)
     else:
-        log_message(f"[INFO] Collection already exists: {collection}")
+        print(f'[INFO] Coleção já existe: {collection}')
 
-# Function to upload a file to GEE with metadata and check if the asset already exists
+# Função para realizar o upload de um arquivo para o GEE com metadados e verificar se o asset já existe
 def upload_to_gee(gcs_path, asset_id, satellite, region, year, version):
     timestamp_start = int(datetime(year, 1, 1).timestamp() * 1000)
     timestamp_end = int(datetime(year, 12, 31).timestamp() * 1000)
     creation_date = datetime.now().strftime('%Y-%m-%d')
 
-    # Check if the asset already exists in GEE
-    try:
-        ee.data.getAsset(asset_id)
-        asset_exists = True
-    except ee.EEException as e:
-        # If the error indicates that the asset does not exist, print an informative message and continue
-        if 'Asset does not exist' in str(e):
-            asset_exists = False
-            print(f'[INFO] Asset {asset_id} does not exist. Attempting to upload new data.')
-        else:
-            print(f'[ERROR] Error checking the asset: {asset_id}. Details: {e}')
-            return
+    # Verificar se o asset já existe no GEE
+    check_asset_command = f'earthengine --project {ee_project} asset info {asset_id}'
+    asset_status = os.system(check_asset_command)
 
-    # If the asset exists, delete it
-    if asset_exists:
-        print(f'[INFO] Asset already exists, deleting before upload: {asset_id}')
-        try:
-            ee.data.deleteAsset(asset_id)
-            print(f'[INFO] Successfully deleted existing asset: {asset_id}')
-        except Exception as e:
-            print(f'[ERROR] Failed to delete the existing asset: {asset_id}. Details: {e}')
-            return  # Stop execution if unable to delete the existing asset
-
-    # Build the upload command
-    upload_command = (
-        f'earthengine --project {ee_project} upload image --asset_id={asset_id} '
-        f'--pyramiding_policy=mode '
-        f'--property satellite={satellite} '
-        f'--property region={region} '
-        f'--property year={year} '
-        f'--property version={version} '
-        f'--property source=IPAM '
-        f'--property type=annual_burned_area '
-        f'--property time_start={timestamp_start} '
-        f'--property time_end={timestamp_end} '
-        f'--property create_date={creation_date} '
-        f'{gcs_path}'
-    )
-
-    print(f'[INFO] Starting upload to GEE: {asset_id}')
-    status = os.system(upload_command)
-
-    if status == 0:
-        print(f'[INFO] Upload to GEE completed successfully: {asset_id}')
+    if asset_status == 0:
+        print(f'[INFO] Asset já existe, pulando upload: {asset_id}')
     else:
-        print(f'[ERROR] Upload to GEE failed: {asset_id}')
-        print(f'[ERROR] Command status: {status}')
+        upload_command = (
+            f'earthengine --project {ee_project} upload image --asset_id={asset_id} '
+            f'--pyramiding_policy=mode '
+            f'--property satellite={satellite} '
+            f'--property region={region} '
+            f'--property year={year} '
+            f'--property version={version} '
+            f'--property source=IPAM '
+            f'--property type=annual_burned_area '
+            f'--property time_start={timestamp_start} '
+            f'--property time_end={timestamp_end} '
+            f'--property create_date={creation_date} '
+            f'{gcs_path}'
+        )
+
+        print(f'[INFO] Iniciando upload para o GEE: {asset_id}')
+        status = os.system(upload_command)
+
+        if status == 0:
+            print(f'[INFO] Upload concluído com sucesso: {asset_id}')
+        else:
+            print(f'[ERRO] Falha no upload para o GEE: {asset_id}')
+            print(f'[ERRO] Status do comando: {status}')
+
 # Function to remove temporary files
 def remove_temporary_files(files_to_remove):
     """
