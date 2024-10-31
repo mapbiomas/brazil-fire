@@ -209,52 +209,44 @@ def check_or_create_collection(collection, ee_project):
         log_message(f"[INFO] Collection already exists: {collection}")
 
 
-# Função para fazer upload de um arquivo para o GEE
-import ee
-import datetime
-import os
-
-# Inicializar a biblioteca Earth Engine, se necessário
-ee.Initialize()
-
-# Função para realizar o upload de um arquivo para o GEE com metadados e verificar se o asset já existe
-def upload_para_gee(gcs_path, asset_id, satellite, region, year, version):
+# Function to upload a file to GEE with metadata and check if the asset already exists
+def upload_to_gee(gcs_path, asset_id, satellite, region, year, version, eeProject):
     timestamp_start = int(datetime.datetime(year, 1, 1).timestamp() * 1000)
     timestamp_end = int(datetime.datetime(year, 12, 31).timestamp() * 1000)
     creation_date = datetime.datetime.now().strftime('%Y-%m-%d')
 
-    # Verificar se o asset já existe no GEE
+    # Check if the asset already exists in GEE
     try:
         ee.data.getAsset(asset_id)
         asset_exists = True
     except ee.EEException as e:
+        # If the error indicates that the asset does not exist, print an informative message and continue
         if 'Asset does not exist' in str(e):
             asset_exists = False
+            print(f'[INFO] Asset {asset_id} does not exist. Attempting to upload new data.')
         else:
-            print(f'[ERRO] Erro ao verificar o asset: {asset_id}. Detalhes: {e}')
+            print(f'[ERROR] Error checking the asset: {asset_id}. Details: {e}')
             return
 
-    # Se o asset existir, excluí-lo
+    # If the asset exists, delete it
     if asset_exists:
-        print(f'[INFO] Asset já existe, excluindo antes do upload: {asset_id}')
+        print(f'[INFO] Asset already exists, deleting before upload: {asset_id}')
         try:
             ee.data.deleteAsset(asset_id)
-            print(f'[INFO] Asset excluído com sucesso: {asset_id}')
+            print(f'[INFO] Successfully deleted existing asset: {asset_id}')
         except Exception as e:
-            print(f'[ERRO] Falha ao excluir o asset existente: {asset_id}. Detalhes: {e}')
-            return  # Interromper execução se não for possível excluir o asset existente
+            print(f'[ERROR] Failed to delete the existing asset: {asset_id}. Details: {e}')
+            return  # Stop execution if unable to delete the existing asset
 
-    # Montar o comando de upload
+    # Build the upload command
     upload_command = (
-        f'earthengine --project {ee_project} upload image --asset_id={asset_id} '
+        f'earthengine --project {eeProject} upload image --asset_id={asset_id} '
         f'--pyramiding_policy=mode '
         f'--property satellite={satellite} '
         f'--property region={region} '
         f'--property year={year} '
         f'--property version={version} '
-        f'--property version={version} '
-        f'--property country={country} '
-        f'--property collection_name={collection_name} '
+        f'--property source=IPAM '
         f'--property type=annual_burned_area '
         f'--property time_start={timestamp_start} '
         f'--property time_end={timestamp_end} '
@@ -262,16 +254,14 @@ def upload_para_gee(gcs_path, asset_id, satellite, region, year, version):
         f'{gcs_path}'
     )
 
-    print(f'[INFO] Iniciando upload para o GEE: {asset_id}')
+    print(f'[INFO] Starting upload to GEE: {asset_id}')
     status = os.system(upload_command)
 
     if status == 0:
-        print(f'[INFO] Upload concluído com sucesso: {asset_id}')
+        print(f'[INFO] Upload to GEE completed successfully: {asset_id}')
     else:
-        print(f'[ERRO] Falha no upload para o GEE: {asset_id}')
-        print(f'[ERRO] Status do comando: {status}')
-
-
+        print(f'[ERROR] Upload to GEE failed: {asset_id}')
+        print(f'[ERROR] Command status: {status}')
 # Function to remove temporary files
 def remove_temporary_files(files_to_remove):
     """
