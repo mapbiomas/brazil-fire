@@ -208,9 +208,9 @@ def check_or_create_collection(collection, ee_project):
 
 # Function to upload a file to GEE with metadata and check if the asset already exists
 def upload_to_gee(gcs_path, asset_id, satellite, region, year, version):
-    timestamp_start = int(datetime.datetime(year, 1, 1).timestamp() * 1000)
-    timestamp_end = int(datetime.datetime(year, 12, 31).timestamp() * 1000)
-    creation_date = datetime.datetime.now().strftime('%Y-%m-%d')
+    timestamp_start = int(datetime(year, 1, 1).timestamp() * 1000)
+    timestamp_end = int(datetime(year, 12, 31).timestamp() * 1000)
+    creation_date = datetime.now().strftime('%Y-%m-%d')
 
     # Check if the asset already exists in GEE
     try:
