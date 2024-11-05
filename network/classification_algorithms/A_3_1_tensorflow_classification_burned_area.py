@@ -16,6 +16,8 @@ import time
 from datetime import datetime
 import math
 from shapely.geometry import shape, box, mapping
+from shapely.ops import transform
+import pyproj
 import shutil  # For file and folder operations
 import json
 import subprocess
@@ -87,9 +89,6 @@ def has_significant_intersection(geom, image_bounds, min_intersection_area=0.01)
     image_shape = box(*image_bounds)
     intersection = geom_shape.intersection(image_shape)
     return intersection.area >= min_intersection_area
-
-import pyproj
-from shapely.ops import transform
 
 def clip_image_by_grid(geom, image, output, buffer_distance_meters=100, max_attempts=5, retry_delay=5):
     attempt = 0
