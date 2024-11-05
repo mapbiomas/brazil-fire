@@ -242,6 +242,31 @@ def remove_temporary_files(files_to_remove):
             except Exception as e:
                 log_message(f"[ERROR] Failed to remove file: {file}. Details: {str(e)}")
 
+def fully_connected_layer(input, n_neurons, activation=None):
+    """
+    Creates a fully connected layer.
+
+    :param input: Input tensor from the previous layer
+    :param n_neurons: Number of neurons in this layer
+    :param activation: Activation function ('relu' or None)
+    :return: Layer output with or without activation applied
+    """
+    input_size = input.get_shape().as_list()[1]  # Get input size (number of features)
+
+    # Initialize weights (W) with a truncated normal distribution and initialize biases (b) with zeros
+    W = tf.Variable(tf.truncated_normal([input_size, n_neurons], stddev=1.0 / math.sqrt(float(input_size))), name='W')
+    b = tf.Variable(tf.zeros([n_neurons]), name='b')
+
+    # Apply the linear transformation (Wx + b)
+    layer = tf.matmul(input, W) + b
+
+    # Apply activation function, if specified
+    if activation == 'relu':
+        layer = tf.nn.relu(layer)
+
+    return layer
+
+
 # O resto do código estilo TensorFlow 1.x
 def create_model_graph(hyperparameters):
     """
