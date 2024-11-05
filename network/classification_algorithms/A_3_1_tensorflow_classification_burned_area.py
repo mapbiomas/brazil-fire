@@ -79,19 +79,6 @@ def convert_to_raster(dataset_classify, image_data_scene, output_image_name):
     outDs = None  # Release the output dataset from memory
     log_message(f"[INFO] Raster conversion completed and saved as: {output_image_name}")
 
-# Function to convert meters into degrees based on latitude
-def meters_to_degrees(meters, latitude):
-    log_message(f"[INFO] Converting meters to degrees based on latitude: {latitude}")
-    return meters / (111320 * abs(math.cos(math.radians(latitude))))
-
-# Function to expand geometry with a buffer in meters
-def expand_geometry(geometry, buffer_distance_meters=50):
-    log_message(f"[INFO] Expanding geometry by buffer of {buffer_distance_meters} meters")
-    geom = shape(geometry)
-    centroid_lat = geom.centroid.y
-    buffer_distance_degrees = meters_to_degrees(buffer_distance_meters, centroid_lat)
-    expanded_geom = geom.buffer(buffer_distance_degrees)
-    return mapping(expanded_geom)
 
 # Function to check if there is a significant intersection between the geometry and the image
 def has_significant_intersection(geom, image_bounds, min_intersection_area=0.01):
@@ -101,24 +88,40 @@ def has_significant_intersection(geom, image_bounds, min_intersection_area=0.01)
     intersection = geom_shape.intersection(image_shape)
     return intersection.area >= min_intersection_area
 
-# Function to clip an image based on the provided geometry
+import pyproj
+from shapely.ops import transform
+
 def clip_image_by_grid(geom, image, output, buffer_distance_meters=100, max_attempts=5, retry_delay=5):
     attempt = 0
     while attempt < max_attempts:
         try:
             log_message(f"[INFO] Attempt {attempt+1}/{max_attempts} to clip image: {image}")
             with rasterio.open(image) as src:
-                expanded_geom = expand_geometry(geom, buffer_distance_meters)
-                if has_significant_intersection(expanded_geom, src.bounds):
-                    out_image, out_transform = mask(src, [expanded_geom], crop=True, nodata=np.nan, filled=True)
+                # Obter o CRS da imagem
+                image_crs = src.crs
+
+                # Reprojetar a geometria para o CRS da imagem
+                geom_shape = shape(geom)
+                geom_proj = reproject_geometry(geom_shape, 'EPSG:4326', image_crs)
+
+                # Aplicar o buffer em metros
+                expanded_geom = geom_proj.buffer(buffer_distance_meters)
+
+                # Converter de volta para GeoJSON
+                expanded_geom_geojson = mapping(expanded_geom)
+
+                # Verificar a interseção significativa
+                if has_significant_intersection(expanded_geom_geojson, src.bounds):
+                    out_image, out_transform = mask(src, [expanded_geom_geojson], crop=True, nodata=np.nan, filled=True)
                     
-                    # **Atualize os metadados aqui**
+                    # Atualizar metadados
                     out_meta = src.meta.copy()
                     out_meta.update({
                         "driver": "GTiff",
                         "height": out_image.shape[1],
                         "width": out_image.shape[2],
-                        "transform": out_transform
+                        "transform": out_transform,
+                        "crs": src.crs
                     })
                     
                     with rasterio.open(output, 'w', **out_meta) as dest:
@@ -135,6 +138,10 @@ def clip_image_by_grid(geom, image, output, buffer_distance_meters=100, max_atte
 
     log_message(f"[ERROR] Failed to clip image after {max_attempts} attempts: {image}")
     return False  # Clipping failed after all attempts
+
+def reproject_geometry(geom, src_crs, dst_crs):
+    project = pyproj.Transformer.from_crs(src_crs, dst_crs, always_xy=True).transform
+    return transform(project, geom)
 
 # Function to build a VRT and translate using gdal_translate
 def generate_optimized_image(name_out_vrt, name_out_tif, files_tif_str):
