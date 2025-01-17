@@ -1,4 +1,4 @@
-# last_update: '2024/10/30', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# last_update: '2025/01/17', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms Step A_3_0_simple_gui_train_tensorflow_classification.py 
 ### Step A_3_0 - Simple graphic user interface for selecting years for burned area classification
 
@@ -245,13 +245,6 @@ def update_interface():
     mosaic_panels_widgets = [panel[2] for panel in mosaic_panels]
     display(HBox(mosaic_panels_widgets, layout=widgets.Layout(margin='10px 0', display='flex', flex_flow='row', overflow_x='auto')))
 
-    # Display buttons at the end of the interface
-    footer_layout = widgets.HBox(
-        [simulate_button, classify_button],
-        layout=widgets.Layout(justify_content='flex-start', margin='20px 0')
-    )
-    display(footer_layout)
-
 def collect_selected_models():
     """
     Collects all selected model files from the checkboxes.
@@ -461,23 +454,45 @@ def update_panels(change, file, region):
     # Update the interface
     update_interface()
 
-# Add buttons at the bottom of the interface
-simulate_button = widgets.Button(
-    description="Simulate Processing!",
-    button_style='warning',
-    layout=widgets.Layout(width='200px')  # Yellow button for simulation
-)
-classify_button = widgets.Button(
-    description="Classify Burned Area",
-    button_style='success',
-    layout=widgets.Layout(width='200px')  # Green button for classification
-)
-
-# Link the "Simulate Processing" button to its event handler
-simulate_button.on_click(simulate_processing_click)
-
-# Link the "Classify Burned Area" button to its event handler
-classify_button.on_click(classify_burned_area_click)
 
 # Trigger the initial interface setup by selecting the country
 on_select_country(country)
+
+def execute_burned_area_classification():
+    """
+    Executes the burned area classification process based on the selected models and mosaics.
+    This function processes the selections made in the interface checkboxes.
+    """
+    # Collect the selected models and their corresponding mosaics
+    models_to_classify = []
+
+    for model, mosaic_checkboxes in mosaic_checkboxes_dict.items():
+        # Check which mosaics are selected
+        selected_mosaics = [
+            cb.description.replace(" ⚠️", "").strip()
+            for cb in mosaic_checkboxes
+            if cb.value
+        ]
+
+        if not selected_mosaics:
+            print(f"[INFO] No mosaics selected for model: {model}")
+            continue
+
+        # Build the model object with the selections
+        model_obj = {
+            "model": model,
+            "mosaics": selected_mosaics,
+            "simulation": False  # Indicates this is not a simulation
+        }
+        models_to_classify.append(model_obj)
+
+    # Execute classification if there are selected models/mosaics
+    if models_to_classify:
+        print(f"[INFO] Starting classification for selected models.")
+        render_classify_models(models_to_classify)
+    else:
+        print("[INFO] No models or mosaics selected. Classification skipped.")
+
+# Update the interface to collect the selections (if necessary)
+update_interface()
+
