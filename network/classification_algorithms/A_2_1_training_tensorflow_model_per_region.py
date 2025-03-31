@@ -177,6 +177,8 @@ def download_image(image, local_file, simulation):
 
         if process.returncode == 0:
             log_message(f"[SUCCESS] Download completed for {image}.")
+            # Invalidação do cache aqui
+            fs.invalidate_cache()
         else:
             _, stderr = process.communicate()
             log_message(f"[ERROR] Failed to download {image}: {stderr.decode()}")
