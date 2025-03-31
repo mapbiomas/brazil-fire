@@ -177,7 +177,8 @@ def download_image(image, local_file, simulation):
 
         if process.returncode == 0:
             log_message(f"[SUCCESS] Download completed for {image}.")
-            # Invalidação do cache aqui
+            # Invalidação do cache
+            time.sleep(2)
             fs.invalidate_cache()
         else:
             _, stderr = process.communicate()
@@ -448,6 +449,9 @@ def train_model(training_data, validation_data, bi, li, data_mean, data_std, tra
         try:
             subprocess.check_call(f'gsutil cp {model_path}.* {json_path} {bucket_model_path}', shell=True)
             log_message(f'[INFO] Model and hyperparameters successfully uploaded to GCS at {bucket_model_path}')
+            time.sleep(2)
+            fs.invalidate_cache()
+
         except subprocess.CalledProcessError as e:
             log_message(f'[ERROR] Failed to upload model or hyperparameters to GCS: {str(e)}')
 
