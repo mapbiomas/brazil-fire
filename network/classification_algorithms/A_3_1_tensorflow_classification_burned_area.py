@@ -397,6 +397,8 @@ def process_single_image(dataset_classify, version, region,folder_temp):
     # Command to download the model files from GCS
     try:
         subprocess.run(f'gsutil cp {gcs_model_file} {folder_temp}', shell=True, check=True)
+        time.sleep(2)
+        fs.invalidate_cache()
         log_message(f"[INFO] Model downloaded successfully.")
     except subprocess.CalledProcessError as e:
         log_message(f"[ERROR] Failed to download model from GCS: {e}")
@@ -472,6 +474,8 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                 if not os.path.exists(local_cog_path):
                     log_message(f"[INFO] Downloading COG from GCS: {gcs_cog_path}")
                     os.system(f'gsutil cp {gcs_cog_path} {local_cog_path}')
+                    
+                    time.sleep(2)
                     fs.invalidate_cache()
                 input_scenes = []
                 with tqdm(total=len(grid_landsat), desc=f'Processing scenes for year {year}') as pbar_scenes:
@@ -513,7 +517,9 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                     log_message(f"[INFO] Merging scenes for year {year}")
                     generate_optimized_image(merge_output_temp, output_image, input_scenes_str)
                     os.system(f'gsutil cp {output_image} {gcs_filename}')
+                    time.sleep(2)
                     fs.invalidate_cache()
+
                     log_message(f"[INFO] Uploading to GCS completed: {gcs_filename}")
                     upload_to_gee(gcs_filename, f'{collection_name}/{image_name}', satellite, region, year, version)
 
