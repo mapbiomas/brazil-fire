@@ -15,12 +15,14 @@ base_folder = 'mapbiomas-fire/sudamerica/'
 
 # Function to list countries
 def list_countries(base_folder):
+    fs.invalidate_cache()
     folders = fs.ls(base_folder)
     countries = [folder.split('/')[-1] for folder in folders]
     return countries
 
 # Function to list subfolders or files of a country, ignoring directories
 def list_content(folder):
+    fs.invalidate_cache()
     folders = fs.ls(folder)
     content = [folder.split('/')[-1] for folder in folders if not folder.endswith('/')]  # Ignore directories
     return content
