@@ -195,36 +195,40 @@ def upload_to_gee(gcs_path, asset_id, satellite, region, year, version):
     timestamp_end = int(datetime(year, 12, 31).timestamp() * 1000)
     creation_date = datetime.now().strftime('%Y-%m-%d')
 
-    # Verificar se o asset já existe no GEE
-    check_asset_command = f'earthengine --project {ee_project} asset info {asset_id}'
-    asset_status = os.system(check_asset_command)
+    # Check if the asset exists in GEE and remove it if so
+    try:
+        asset_info = ee.data.getAsset(asset_id)
+        log_message(f"[INFO] Asset already exists. Deleting: {asset_id}")
+        ee.data.deleteAsset(asset_id)
+        time.sleep(2)
+    except ee.EEException:
+        log_message(f"[INFO] Asset does not exist yet. Proceeding with upload: {asset_id}")
 
-    if asset_status == 0:
-        print(f'[INFO] Asset já existe, pulando upload: {asset_id}')
+    # Perform the upload using Earth Engine CLI
+    upload_command = (
+        f'earthengine --project {ee_project} upload image --asset_id={asset_id} '
+        f'--pyramiding_policy=mode '
+        f'--property satellite={satellite} '
+        f'--property region={region} '
+        f'--property year={year} '
+        f'--property version={version} '
+        f'--property source=IPAM '
+        f'--property type=annual_burned_area '
+        f'--property time_start={timestamp_start} '
+        f'--property time_end={timestamp_end} '
+        f'--property create_date={creation_date} '
+        f'{gcs_path}'
+    )
+
+    log_message(f"[INFO] Starting upload to GEE: {asset_id}")
+    status = os.system(upload_command)
+
+    if status == 0:
+        log_message(f"[INFO] Upload completed successfully: {asset_id}")
     else:
-        upload_command = (
-            f'earthengine --project {ee_project} upload image --asset_id={asset_id} '
-            f'--pyramiding_policy=mode '
-            f'--property satellite={satellite} '
-            f'--property region={region} '
-            f'--property year={year} '
-            f'--property version={version} '
-            f'--property source=IPAM '
-            f'--property type=annual_burned_area '
-            f'--property time_start={timestamp_start} '
-            f'--property time_end={timestamp_end} '
-            f'--property create_date={creation_date} '
-            f'{gcs_path}'
-        )
+        log_message(f"[ERROR] Upload failed for GEE asset: {asset_id}")
+        log_message(f"[ERROR] Command status code: {status}")
 
-        print(f'[INFO] Iniciando upload para o GEE: {asset_id}')
-        status = os.system(upload_command)
-
-        if status == 0:
-            print(f'[INFO] Upload concluído com sucesso: {asset_id}')
-        else:
-            print(f'[ERRO] Falha no upload para o GEE: {asset_id}')
-            print(f'[ERRO] Status do comando: {status}')
 
 # Function to remove temporary files
 def remove_temporary_files(files_to_remove):
@@ -504,6 +508,10 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
 
                             convert_to_raster(dataset_classify, image_data, output_image_name)
                             input_scenes.append(output_image_name)
+
+                            # Limpa arquivos intermediários da cena após classificação
+                            remove_temporary_files([NBR_clipped])  # imagem recortada
+                            dataset_classify = None  # libera o dataset GDAL da memória
                         else:
                             log_message(f"[WARNING] Clipping failed for scene {orbit}/{point}. Proceeding to the next scene.")
                         
