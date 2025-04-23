@@ -154,10 +154,7 @@ def display_selected_mosaics(model, selected_country, region):
                 repo = ModelRepository(bucket_name=bucket_name, country=selected_country)
                 classified = repo.is_classified(file)
                 # Create checkbox for the mosaic; show warning ⚠️ if already classified
-                checkbox_mosaic = widgets.Checkbox(
-                    value=not classified,  # Default state
-                    description=file + (" ⚠️" if classified else "")
-                )
+                checkbox_mosaic = widgets.Checkbox( value=False, description=file + (" ⚠️" if classified else "") )
 
                 # If there are saved states, restore the checkbox value
                 if saved_states and idx < len(saved_states):
