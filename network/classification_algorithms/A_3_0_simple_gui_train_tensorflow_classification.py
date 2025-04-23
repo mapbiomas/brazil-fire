@@ -1,4 +1,4 @@
-# last_update: '2025/01/17', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# last_update: '2025/04/23', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms Step A_3_0_simple_gui_train_tensorflow_classification.py 
 ### Step A_3_0 - Simple graphic user interface for selecting years for burned area classification
 
@@ -72,97 +72,52 @@ base_folder = 'mapbiomas-fire/sudamerica/'
 # Initialize the Google Cloud Storage file system
 fs = gcsfs.GCSFileSystem(project=bucket_name)
 
-def list_model_training_samples(country_folder):
-    """
-    Lists all model files from the 'models_col1' folder in the bucket for the selected country.
+class ModelRepository:
+    def __init__(self, bucket_name, country):
+        self.bucket = bucket_name
+        self.country = country
+        self.base_folder = f'mapbiomas-fire/sudamerica/{country}'
+        self.fs = gcsfs.GCSFileSystem(project=bucket_name)
 
-    Args:
-    - country_folder (str): The folder path for the specific country within the GCS structure.
+    def list_models(self):
+        training_folder = f"{self.base_folder}/models_col1/"
+        try:
+            files = self.fs.ls(training_folder)
+            return [file.split('/')[-1] for file in files if file.endswith('.meta')], len(files)
+        except FileNotFoundError:
+            return [], 0
 
-    Returns:
-    - tuple: A list of file names from the 'models_col1' folder and the total file count.
-    """
-    training_folder = f"{base_folder}{country_folder}/models_col1/"
-    try:
-        files = fs.ls(training_folder)
-        return [file.split('/')[-1] for file in files if file.split('/')[-1]], len(files)  # Extract just file names and return file count
-    except FileNotFoundError:
-        return [], 0  # Return an empty list if the folder doesn't exist
+    def list_mosaics(self, region):
+        mosaics_folder = f"{self.base_folder}/mosaics_col1_cog/"
+        try:
+            files = self.fs.ls(mosaics_folder)
+            return [file.split('/')[-1] for file in files if f"_{region}_" in file], len(files)
+        except FileNotFoundError:
+            return [], 0
 
-def list_mosaics(country_folder, region):
-    """
-    Lists mosaic files (COG) from the 'mosaics_col1_cog' folder in the bucket, filtered by the given region.
+    def list_classified(self):
+        classified_folder = f"{self.base_folder}/result_classified/"
+        try:
+            files = self.fs.ls(classified_folder)
+            return [file.split('/')[-1] for file in files], len(files)
+        except FileNotFoundError:
+            return [], 0
 
-    Args:
-    - country_folder (str): The folder path for the specific country.
-    - region (str): The region filter (e.g., r1, r2).
-
-    Returns:
-    - tuple: A list of filtered mosaic file names from the 'mosaics_col1_cog' folder and the total file count.
-    """
-    mosaics_folder = f"{base_folder}{country_folder}/mosaics_col1_cog/"
-    try:
-        files = fs.ls(mosaics_folder)
-        return [file.split('/')[-1] for file in files if f"_{region}_" in file], len(files)
-    except FileNotFoundError:
-        return [], 0  # Return an empty list if the folder doesn't exist
-
-def list_classified(country_folder):
-    """
-    Lists the classified files from the 'result_classified' folder in the bucket.
-
-    Args:
-    - country_folder (str): The folder path for the specific country.
-
-    Returns:
-    - tuple: A list of file names from the 'result_classified' folder and the total file count.
-    """
-    classified_folder = f"{base_folder}{country_folder}/result_classified/"
-    try:
-        files = fs.ls(classified_folder)
-        return [file.split('/')[-1] for file in files], len(files)
-    except FileNotFoundError:
-        return [], 0  # Return an empty list if the folder doesn't exist
-
-def verify_classified(country_folder, mosaic_file):
-    """
-    Checks if a mosaic has already been classified in the GCS bucket by comparing with flexible naming patterns.
-
-    Args:
-    - country_folder (str): The path to the country's folder in GCS.
-    - mosaic_file (str): The name of the mosaic file to verify (e.g., l78_bolivia_r1_2013_cog.tif).
-
-    Returns:
-    - bool: True if the file is already classified in the bucket, False otherwise.
-    """
-    classified_folder = f"{base_folder}{country_folder}/result_classified/"
-
-    # Extract relevant parts from the mosaic file name
-    parts = mosaic_file.split('_')
-    sat = parts[0]        # Satellite (e.g., 'l78')
-    region = parts[2]     # Region (e.g., 'r1')
-    year = parts[3]       # Year (e.g., '2013')
-
-    # Expected classified file name pattern: 'burned_area_{country}_{sat}_v{version}_region{region}_{year}.tif'
-    # Search the GCS bucket for files matching this pattern.
-
-    try:
-        # List files in the 'result_classified' folder directly in the bucket
-        classified_files = fs.ls(classified_folder)
-
-        # Check if there is a classified file that corresponds to this mosaic
-        for classified_file in classified_files:
-            classified_name = classified_file.split('/')[-1]  # Get only the file name
-            # Extract parts from the classified file name
+    def is_classified(self, mosaic_file):
+        classified_files, _ = self.list_classified()
+        parts = mosaic_file.split('_')
+        sat = parts[0]
+        region = parts[2]
+        year = parts[3]
+        for classified_name in classified_files:
             if (sat in classified_name and
-                f"region{region[1:]}" in classified_name and  # Remove 'r' from region to match 'region'
+                f"region{region[1:]}" in classified_name and
                 year in classified_name):
-                return True  # Corresponding file found
-
-        return False  # No corresponding file found
-    except FileNotFoundError:
-        # If the folder doesn't exist, return False (not classified)
+                return True
         return False
+
+
+
 # Global dictionary to store mosaic checkboxes for each model
 mosaic_checkboxes_dict = {}
 
@@ -179,8 +134,9 @@ def display_selected_mosaics(model, selected_country, region):
     Returns:
     - VBox: A container with the available mosaic checkboxes and the file count.
     """
-    mosaic_files, mosaic_count = list_mosaics(selected_country, region)
-    classified_files, classified_count = list_classified(selected_country)
+    repo = ModelRepository(bucket_name='mapbiomas-fire', country=selected_country)
+    mosaic_files, mosaic_count = repo.list_mosaics(region)
+    classified_files, classified_count = repo.list_classified()
 
     # Create mosaic panel
     mosaics_panel = widgets.Output(layout={'border': '1px solid black', 'height': '200px', 'overflow_y': 'scroll'})
@@ -195,8 +151,8 @@ def display_selected_mosaics(model, selected_country, region):
         if mosaic_files:
             for idx, file in enumerate(mosaic_files):
                 # Check if the mosaic has already been classified
-                classified = verify_classified(selected_country, file)
-
+                repo = ModelRepository(bucket_name=bucket_name, country=selected_country)
+                classified = repo.is_classified(file)
                 # Create checkbox for the mosaic; show warning ⚠️ if already classified
                 checkbox_mosaic = widgets.Checkbox(
                     value=not classified,  # Default state
@@ -392,7 +348,8 @@ def on_select_country(country_name):
     selected_country = country_name
 
     # List files in the 'models_col1' folder
-    training_files, file_count = list_model_training_samples(country_name)
+    repo = ModelRepository(bucket_name='mapbiomas-fire', country=country_name)
+    training_files, file_count = repo.list_models()
 
     # If there are files, create checkboxes for each model
     if training_files:
