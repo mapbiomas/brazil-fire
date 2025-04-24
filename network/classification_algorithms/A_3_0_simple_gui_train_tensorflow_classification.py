@@ -2,6 +2,11 @@
 # MapBiomas Fire Classification Algorithms Step A_3_0_simple_gui_train_tensorflow_classification.py 
 ### Step A_3_0 - Simple graphic user interface for selecting years for burned area classification
 
+# ====================================
+# 📦 INSTALL AND IMPORT LIBRARIES
+# ====================================
+
+
 import subprocess
 import sys
 import importlib
@@ -64,6 +69,10 @@ from shapely.geometry import shape, box, mapping
 import shutil  # For file and folder operations
 import gcsfs
 
+# ====================================
+# 🌍 GLOBAL VARIABLES AND DIRECTORY SETUP
+# ====================================
+
 
 # Configuration for Google Cloud Storage
 bucket_name = 'mapbiomas-fire'
@@ -71,6 +80,10 @@ base_folder = 'mapbiomas-fire/sudamerica/'
 
 # Initialize the Google Cloud Storage file system
 fs = gcsfs.GCSFileSystem(project=bucket_name)
+
+# ====================================
+# 🧠 CORE CLASSES (ModelTrainer, ImageProcessor, FileManager)
+# ====================================
 
 class ModelRepository:
     def __init__(self, bucket_name, country):
@@ -117,6 +130,9 @@ class ModelRepository:
         return False
 
 
+# ====================================
+# 🧰 SUPPORT FUNCTIONS (utils)
+# ====================================
 
 # Global dictionary to store mosaic checkboxes for each model
 mosaic_checkboxes_dict = {}
@@ -412,6 +428,10 @@ def update_panels(change, file, region):
 # Trigger the initial interface setup by selecting the country
 on_select_country(country)
 
+# ====================================
+# 🚀 MAIN EXECUTION LOGIC
+# ====================================
+# execute_burned_area_classification: burnt area classification performed in another cell
 def execute_burned_area_classification():
     """
     Executes the burned area classification process based on the selected models and mosaics.
