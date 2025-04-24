@@ -1,141 +1,218 @@
-# last_update: '2024/10/22', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
-# MapBiomas Fire Classification Algorithms Step A_2_0_simple_gui_train_tensorflow_models.py 
-### Step A_2_0 - Simple graphic user interface for the routine of training TensorFlow models
+# last_update: '2025/04/24', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# MapBiomas Fire Classification Algorithms Step A_2_0 - Simple Graphic User Interface for Training Models
 
+# ====================================
+# 📦 IMPORT LIBRARIES
+# ====================================
+
+import re
+import time
 import gcsfs
 import ipywidgets as widgets
+import sys
 from IPython.display import display, clear_output
-from datetime import datetime
 from ipywidgets import VBox, HBox
-import time
-import re
 
-import tensorflow.compat.v1 as tf  # TensorFlow compatibility mode for version 1.x
-tf.disable_v2_behavior()  # Disable TensorFlow 2.x behaviors and enable 1.x style
+# TensorFlow in compatibility mode
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
+# ====================================
+# 🌍 GLOBAL SETTINGS AND FILESYSTEM
+# ====================================
+
+bucket_name = 'mapbiomas-fire'
+base_path = 'mapbiomas-fire/sudamerica/'
+
+# Initialize Google Cloud Storage file system
+fs = gcsfs.GCSFileSystem(project=bucket_name)
+
+# ====================================
+# 🎛️ INTERFACE CLASS
+# ====================================
+
+class TrainingInterface:
+    """
+    Interface for listing training sample files and triggering model training.
+    """
+
+    def __init__(self, country, preparation_function, log_func):
+        self.country = country
+        self.preparation_function = preparation_function
+        self.log = log_func
+        self.checkboxes = []
+        self.training_files = []
+        self.render_interface()
+
+    def list_training_samples_folder(self):
+        """
+        List files in 'training_samples' folder for the selected country.
+        """
+        path = f"{base_path}{self.country}/training_samples/"
+        try:
+            return [file.split('/')[-1] for file in fs.ls(path) if file.split('/')[-1]]
+        except FileNotFoundError:
+            return []
+
+    def get_active_checkbox(self):
+        """
+        Returns the label of the selected checkbox.
+        """
+        for checkbox in self.checkboxes:
+            if checkbox.value:
+                return checkbox.description
+        return None
+        
+    def generate_checkboxes(self):
+        """
+        Generate checkboxes for unique model IDs, matching training script naming and flagging existing models.
+        """
+        seen_ids = set()
+        fs.invalidate_cache()
+        existing_models = self.list_existing_models()
+
+        formatted_checkboxes = []
+
+        for file in self.training_files:
+            match = re.search(r'_r(\d+)_.*?_(\d{4})', file)
+            if match:
+                region = match.group(1)  # ex: 01
+                model_id = f'v1_r{region}'
+                model_ckpt = f'col1_{self.country}_{model_id}_rnn_lstm_ckpt'
+
+                if model_id not in seen_ids:
+                    label = f'trainings_{model_id}'
+                    exists = model_ckpt in existing_models
+
+                    if exists:
+                        label += '⚠️'
+
+                    checkbox = widgets.Checkbox(value=False, description=label, layout=widgets.Layout(width='auto'))
+                    checkbox.observe(self.on_checkbox_click, names='value')
+                    formatted_checkboxes.append(checkbox)
+                    seen_ids.add(model_id)
+
+        self.checkboxes = formatted_checkboxes
+        return widgets.VBox(formatted_checkboxes, layout=widgets.Layout(
+            border='1px solid black', padding='10px', margin='10px 0'
+        ))
+
+    def list_existing_models(self):
+        """
+        Return a set of model checkpoint base names (excluding hyperparameters).
+        """
+        prefix_path = f"{base_path}{self.country}/models_col1/"
+        try:
+            files = fs.ls(prefix_path)
+            model_files = [
+                os.path.basename(f).split('.')[0]
+                for f in files
+                if 'ckpt' in f and 'hyperparameters' not in f
+            ]
+            return set(model_files)
+        except Exception as e:
+            self.log(f"[WARNING] Could not list existing models: {str(e)}")
+            return set()
 
 
 
-bucketName = 'mapbiomas-fire'
-pastaBase = 'mapbiomas-fire/sudamerica/'
+    def on_checkbox_click(self, change):
+        """
+        Ensure that only one checkbox is selected at a time.
+        """
+        if change.new:  # Checkbox was just selected
+            for checkbox in self.checkboxes:
+                if checkbox != change.owner:
+                    checkbox.value = False
 
-# Initialize the Google Cloud Storage file system
-fs = gcsfs.GCSFileSystem(project=bucketName)
+    def train_models_click(self, b):
+        """
+        Handles the training button click. Extracts selected checkbox info,
+        matches training sample filenames, and calls the preparation function.
+        """
+        active_description = self.get_active_checkbox()
+        if not active_description:
+            self.log("[INFO] No checkbox selected.")
+            return
+    
+        # Clean label: remove emojis and whitespace
+        clean_label = active_description.replace('✅', '').replace('⚠️', '').strip()
+        check_parts = clean_label.split('_')
+    
+        # Verifica se temos partes suficientes: trainings_v1_r01
+        if len(check_parts) < 3:
+            self.log(f"[ERROR] Unexpected checkbox label format: {clean_label}")
+            return
+    
+        region = check_parts[2]  # ex: r01
+    
+        # Padrão: busca por arquivos que contenham essa região
+        pattern = re.compile(rf".*_{region}_.*\.tif")
+    
+        # Filtra arquivos correspondentes
+        selected_files = [f for f in self.training_files if pattern.search(f)]
+    
+        if selected_files:
+            self.log(f"[INFO] Selected files for training: {selected_files}")
+            self.preparation_function(selected_files)
+        else:
+            self.log(f"[WARNING] No matching training samples found for region: {region}")
+    
+    def display_existing_models(self):
+        """
+        Display a scrollable list of existing models from the GCS bucket.
+        """
+        fs.invalidate_cache()
+        existing = sorted(self.list_existing_models())
+        output = widgets.Output(layout={'border': '1px solid green', 'height': '150px', 'overflow_y': 'scroll', 'margin': '10px 0'})
+        display(widgets.HTML(value=f"<b>Existing trained models ({len(existing)}):</b>"))
+        with output:
+            for model in existing:
+                print(f'  - {model}')
+        display(output)
 
-# Function to list the content of the "training_samples" subfolder for each country
-def list_training_samples_folder(country_folder):
-    training_folder = f"{pastaBase}{country_folder}/training_samples/"
-    try:
-        files = fs.ls(training_folder)
-        return [file.split('/')[-1] for file in files if file.split('/')[-1]]  # Remove empty items
-    except FileNotFoundError:
-        return []  # Return an empty list if the subfolder doesn't exist
+    def render_interface(self):
+        """
+        Renders the full interface: title, file list, checkboxes, button.
+        """
+        self.training_files = self.list_training_samples_folder()
+        num_files = len(self.training_files)
 
-def list_training_samples(files):
-    check_select = get_active_checkbox().split('_')
-    pattern = re.compile(rf".*{check_select[1]}.*{check_select[3]}.*\.tif")
+        header = widgets.HTML(value=f"<b>Selected country: {self.country} ({num_files} files found)</b>")
+        display(header)
 
-    filtered_files = [file for file in files if pattern.search(file)]
-    log_message(f"[INFO] Filtered files: {filtered_files}")  # Check the filtered files
+        files_panel = widgets.Output(layout={'border': '1px solid black', 'height': '150px', 'overflow_y': 'scroll', 'margin': '10px 0'})
+        with files_panel:
+            for f in self.training_files:
+                print(f'  - {f}')
+        display(files_panel)
 
-    return filtered_files
+        if num_files == 0:
+            display(widgets.HTML("<b style='color: red;'>No files found in 'training_samples'.</b>"))
+            return
 
-def get_active_checkbox():
-    for checkbox in checkboxes:
-        if checkbox.value:  # Check if the checkbox is selected
-            return checkbox.description  # Return the description of the active checkbox
-    return None  # Return None if no checkbox is selected
+        # ⬇️ Show models before checkboxes
+        self.display_existing_models()
 
-# Function to display the content of "training_samples" when a country is selected
-def select_country(country_name):
-
-    # List and display the files in the "training_samples" folder
-    training_files = list_training_samples_folder(country_name)
-    num_files = len(training_files)
-
-    # Display the total number of files and the selected country at the top
-    country_title = widgets.HTML(value=f"<b>Selected country: {country_name} ({num_files} files found)</b>")
-    display(country_title)
-
-    # display(dropdown_countries)  # Re-display the dropdown
-
-    # Scrollable panel for files
-    files_panel = widgets.Output(layout={'border': '1px solid black', 'height': '150px', 'overflow_y': 'scroll', 'margin': '10px 0'})
-
-    with files_panel:
-        for file in training_files:
-            print(f'  - {file}')
-    display(files_panel)  # Display the scrollable panel
-
-    if training_files:
-        # Format the files
-        formatted_list = []
-
-        for file in training_files:
-            split = file.split('_')  # Split the file name into parts
-            if len(split) >= 6:  # Ensure there are enough parts for formatting
-                formatted = f'trainings_{split[2]}_{split[4]}_{split[5]}'  # Custom formatting
-                if formatted not in formatted_list:
-                    formatted_list.append(formatted)  # Add if not already in the list
-
-        formatted_files = formatted_list
-
-        # Title for samples by sensor, region, and version
-        num_samples = len(formatted_files)
-        samples_title = widgets.HTML(value=f"<b>Samples by region, and version available to run the training ({num_samples} samples):</b>")
+        samples_title = widgets.HTML(value="<b>Available model training versions:</b>")
         display(samples_title)
 
-        # Display checkboxes for each formatted file
-        global checkboxes  # Access the checkboxes globally
-        checkboxes = []
-
-        def checkbox_click(change):
-            # If the checkbox was selected (True value)
-            if change.new:
-                # Uncheck all other checkboxes
-                for checkbox in checkboxes:
-                    if checkbox != change.owner:  # Uncheck all except the current one
-                        checkbox.value = False
-
-        # Create checkboxes and add an observer
-        for file in formatted_files:
-            checkbox = widgets.Checkbox(value=False, description=file, layout=widgets.Layout(width='auto'))
-            checkboxes.append(checkbox)
-            checkbox.observe(checkbox_click, names='value')  # Adding observer
-
-        # Panel to organize checkboxes in vertical columns without limiting height
-        checkboxes_panel = widgets.VBox(checkboxes, layout=widgets.Layout(border='1px solid black', padding='10px', margin='10px 0'))
+        checkboxes_panel = self.generate_checkboxes()
         display(checkboxes_panel)
-        print("⚠️Attention, files that already exist, if selected, are reprocessed and overwrite the file at the final address.⚠️")
 
-        # Buttons for simulation and training
-        simulate_button = widgets.Button(description="Simulate Processing!", button_style='warning', layout=widgets.Layout(width='200px'))  # Yellow button
-        train_button = widgets.Button(description="Train Models", button_style='success', layout=widgets.Layout(width='200px'))  # Green button
+        train_button = widgets.Button(description="Train Models", button_style='success', layout=widgets.Layout(width='200px'))
+        train_button.on_click(self.train_models_click)
+        display(HBox([train_button], layout=widgets.Layout(justify_content='flex-start', margin='20px 0')))
 
-        # Function to handle the training button click
-        def train_models_click(b):
-            selected_samples = list_training_samples(training_files)
-            if selected_samples:
-                log_message(f"[INFO] Selected samples: {selected_samples}")  # Add print here
-                sample_download_and_preparation(selected_samples, simulation=False)
-            else:
-                log_message("[INFO] No samples selected.")
-        def simulate_processing_click(b):
-            selected_samples = list_training_samples(training_files)
-            if selected_samples:
-                sample_download_and_preparation(selected_samples,simulation=True)
-            else:
-                log_message("No samples selected.")
+        footer = widgets.HTML("<b style='color: orange;'>⚠️ Existing models will be overwritten if selected again.</b>")
+        display(footer)
 
-        # Link the buttons to their respective functions
-        simulate_button.on_click(simulate_processing_click)
-        train_button.on_click(train_models_click)
+# ====================================
+# 🚀 RUNNING THE INTERFACE
+# ====================================
+# TrainingInterface(
+#     country=country,
+#     preparation_function=sample_download_and_preparation,
+#     log_func=log_message
+# )
 
-        # Footer layout with both buttons side by side
-        footer_layout = widgets.HBox([simulate_button, train_button], layout=widgets.Layout(justify_content='flex-start', margin='20px 0'))
-        display(footer_layout)
-
-    else:
-        message = widgets.HTML(value="<b style='color: red;'>No files found in the folder 'training_samples'.</b>")
-        display(message)
-
-select_country(country)
