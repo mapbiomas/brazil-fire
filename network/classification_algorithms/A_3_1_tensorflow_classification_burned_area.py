@@ -1,6 +1,11 @@
 # last_update: '2024/10/23', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms Step A_3_1_tensorflow_classification_burned_area.py 
 ### Step A_3_1 - Functions for TensorFlow classification of burned areas
+
+# ====================================
+# 📦 INSTALL AND IMPORT LIBRARIES
+# ====================================
+
 import os
 import numpy as np
 import tensorflow as tf
@@ -21,6 +26,10 @@ import pyproj
 import shutil  # For file and folder operations
 import json
 import subprocess
+
+# ====================================
+# 🧰 SUPPORT FUNCTIONS (utils)
+# ====================================
 
 # Function to load an image using GDAL
 def load_image(image_path):
@@ -536,6 +545,10 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                 log_message(f"[INFO] Year {year} processing completed. 🎉🎉🎉") 
                 log_message(f"Total time: {time.strftime('%H:%M:%S', time.gmtime(elapsed_time))}")
                 pbar_years.update(1)
+
+# ====================================
+# 🚀 MAIN EXECUTION LOGIC
+# ====================================
 
 def render_classify_models(models_to_classify):
     """
