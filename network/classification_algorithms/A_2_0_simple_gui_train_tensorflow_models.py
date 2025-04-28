@@ -194,7 +194,7 @@ class TrainingInterface:
         # ⬇️ Show models before checkboxes
         self.display_existing_models()
 
-        samples_title = widgets.HTML(value="<b>Available model training versions:</b>")
+        samples_title = widgets.HTML(value="<b>Sample by region, and versions available to run the training:</b>")
         display(samples_title)
 
         checkboxes_panel = self.generate_checkboxes()
