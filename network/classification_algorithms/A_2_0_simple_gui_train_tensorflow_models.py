@@ -1,4 +1,4 @@
-# last_update: '2025/04/28', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# last_update: '2025/04/24', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms Step A_2_0 - Simple Graphic User Interface for Training Models
 
 # ====================================
@@ -74,11 +74,12 @@ class TrainingInterface:
         formatted_checkboxes = []
 
         for file in self.training_files:
-            # Novo padrão REGEX
-            match = re.search(r'_r(\d+)(?:_[^_]+)*?_(\d{4})', file)
+            # Agora extrai versão, região e ano!
+            match = re.search(r'_v(\d+)_.*?_r(\d+)(?:_[^_]+)*?_(\d{4})', file)
             if match:
-                region = match.group(1)  # ex: 01
-                model_id = f'v1_r{region}'
+                version = match.group(1)  # ex: 1, 2, 111
+                region = match.group(2)   # ex: 01, 05
+                model_id = f'v{version}_r{region}'
                 model_ckpt = f'col1_{self.country}_{model_id}_rnn_lstm_ckpt'
 
                 if model_id not in seen_ids:
@@ -91,6 +92,8 @@ class TrainingInterface:
                     checkbox = widgets.Checkbox(value=False, description=label, layout=widgets.Layout(width='auto'))
                     checkbox.observe(self.on_checkbox_click, names='value')
                     formatted_checkboxes.append(checkbox)
+                    seen_ids.add(model_id)
+
                     seen_ids.add(model_id)
 
         self.checkboxes = formatted_checkboxes
