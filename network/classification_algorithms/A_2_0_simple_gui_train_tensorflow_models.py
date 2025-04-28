@@ -1,4 +1,4 @@
-# last_update: '2025/04/24', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# last_update: '2025/04/28', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms Step A_2_0 - Simple Graphic User Interface for Training Models
 
 # ====================================
@@ -74,7 +74,8 @@ class TrainingInterface:
         formatted_checkboxes = []
 
         for file in self.training_files:
-            match = re.search(r'_r(\d+)_.*?_(\d{4})', file)
+            # Novo padrão REGEX
+            match = re.search(r'_r(\d+)(?:_[^_]+)*?_(\d{4})', file)
             if match:
                 region = match.group(1)  # ex: 01
                 model_id = f'v1_r{region}'
@@ -96,6 +97,7 @@ class TrainingInterface:
         return widgets.VBox(formatted_checkboxes, layout=widgets.Layout(
             border='1px solid black', padding='10px', margin='10px 0'
         ))
+
 
     def list_existing_models(self):
         """
