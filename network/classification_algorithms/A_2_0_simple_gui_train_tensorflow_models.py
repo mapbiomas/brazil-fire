@@ -148,11 +148,13 @@ class TrainingInterface:
         if len(check_parts) < 3:
             self.log(f"[ERROR] Unexpected checkbox label format: {clean_label}")
             return
-    
-        region = check_parts[2]  # ex: r01
+        
+        
+        version = check_parts[1]  # ex: v1 ou v2
+        region = check_parts[2]   # ex: r01 ou r04
     
         # Padrão: busca por arquivos que contenham essa região
-        pattern = re.compile(rf".*_{region}_.*\.tif")
+        pattern = re.compile(rf".*_({version})_.*_{region}_.*\.tif")
     
         # Filtra arquivos correspondentes
         selected_files = [f for f in self.training_files if pattern.search(f)]
@@ -220,4 +222,3 @@ class TrainingInterface:
 #     preparation_function=sample_download_and_preparation,
 #     log_func=log_message
 # )
-
