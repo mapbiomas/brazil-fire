@@ -16,11 +16,6 @@ def install_and_import(package):
         subprocess.check_call([sys.executable, "-m", "pip", "install", package], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         clear_console()
 
-# Função para instalar pacotes do sistema via apt-get
-def apt_get_install(package):
-    subprocess.check_call(['sudo', 'apt-get', 'install', '-y', package], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-    clear_console()
-
 # Função para limpar o console
 def clear_console():
     # Limpa o console de acordo com o sistema operacional
@@ -39,11 +34,6 @@ install_and_import('rasterio')
 install_and_import('gcsfs')
 install_and_import('ipywidgets')
 
-# Instalar dependências de sistema (GDAL)
-apt_get_install('libgdal-dev')
-apt_get_install('gdal-bin')
-apt_get_install('python3-gdal')
-
 import os
 import sys
 import re
@@ -53,6 +43,7 @@ import json
 import glob
 import subprocess
 import numpy as np
+import rasterio
 from datetime import datetime
 
 # TensorFlow 1.x modo compatível
@@ -60,7 +51,6 @@ import tensorflow.compat.v1 as tf
 if tf.__version__.startswith('2'):
     tf.disable_v2_behavior()
 
-from osgeo import gdal
 import gcsfs
 from google.cloud import storage
 from tqdm import tqdm
@@ -231,25 +221,27 @@ class ImageProcessor:
         self.log_message = log_func
 
     def load_image(self, image_path):
-        dataset = gdal.Open(image_path, gdal.GA_ReadOnly)
-        if dataset is None:
-            raise FileNotFoundError(f"Error loading image: {image_path}")
-        return dataset
+        try:
+            dataset = rasterio.open(image_path)
+            return dataset
+        except rasterio.errors.RasterioIOError as e:
+            raise FileNotFoundError(f"Erro ao carregar imagem {image_path}: {str(e)}")
 
     def convert_to_array(self, dataset):
-        bands_data = [dataset.GetRasterBand(i + 1).ReadAsArray() for i in range(dataset.RasterCount)]
-        return np.stack(bands_data, axis=2)
+        data = dataset.read()  # Formato: (bands, height, width)
+        data = np.transpose(data, (1, 2, 0))  # Para (height, width, bands)
+        return data
 
     def process_image(self, image_path):
         try:
-            self.log_message(f"[INFO] Processing image: {image_path}")
+            self.log_message(f"[INFO] Processando imagem: {image_path}")
             dataset = self.load_image(image_path)
             data = self.convert_to_array(dataset)
             vector = data.reshape(data.shape[0] * data.shape[1], data.shape[2])
             cleaned = vector[~np.isnan(vector).any(axis=1)]
             return cleaned
         except Exception as e:
-            self.log_message(f"[ERROR] Failed to process image {image_path}: {str(e)}")
+            self.log_message(f"[ERROR] Falha ao processar a imagem {image_path}: {str(e)}")
             return None
 
 class FileManager:
@@ -293,11 +285,6 @@ class FileManager:
 # 🧰 SUPPORT FUNCTIONS (utils)
 # ====================================
 
-def convert_to_array(dataset):
-    bands_data = [dataset.GetRasterBand(i + 1).ReadAsArray() for i in range(dataset.RasterCount)]
-    stacked_data = np.stack(bands_data, axis=2)
-    return stacked_data    
-# return np.nan_to_num(stacked_data, nan=0)  # Substitui NaN por 0 # !perguntar para a Vera se tudo bem substituir valores mask, por NaN, no uso do convert_to_array do treinamento e no da classificação
 
 # Função otimizada para remover NaNs e embaralhar os dados
 def filter_valid_data_and_shuffle(data):
