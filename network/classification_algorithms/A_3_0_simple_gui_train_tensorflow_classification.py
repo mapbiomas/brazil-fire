@@ -22,11 +22,6 @@ def install_and_import(package):
         subprocess.check_call([sys.executable, "-m", "pip", "install", package], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         clear_console()
 
-# Função para instalar pacotes do sistema via apt-get
-def apt_get_install(package):
-    subprocess.check_call(['sudo', 'apt-get', 'install', '-y', package], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-    clear_console()
-
 # Função para limpar o console
 def clear_console():
     # Limpa o console de acordo com o sistema operacional
@@ -39,16 +34,6 @@ def clear_console():
 install_and_import('rasterio')
 install_and_import('gcsfs')
 install_and_import('ipywidgets')
-
-# Verificar e instalar pacotes Python
-install_and_import('rasterio')
-install_and_import('gcsfs')
-install_and_import('ipywidgets')
-
-# Instalar dependências de sistema (GDAL)
-apt_get_install('libgdal-dev')
-apt_get_install('gdal-bin')
-apt_get_install('python3-gdal')
 
 import ipywidgets as widgets
 from IPython.display import display, HTML, clear_output
