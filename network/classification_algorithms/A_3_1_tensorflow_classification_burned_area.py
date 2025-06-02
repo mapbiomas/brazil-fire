@@ -1,4 +1,4 @@
-# last_update: '2024/10/23', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# last_update: '2025/06/02', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms Step A_3_1_tensorflow_classification_burned_area.py 
 ### Step A_3_1 - Functions for TensorFlow classification of burned areas
 
@@ -26,6 +26,7 @@ import pyproj
 import shutil  # For file and folder operations
 import json
 import subprocess
+
 
 # ====================================
 # 🧰 SUPPORT FUNCTIONS (utils)
@@ -152,22 +153,41 @@ def reproject_geometry(geom, src_crs, dst_crs):
     return transform(project, geom)
 
 # Function to build a VRT and translate using gdal_translate
-def generate_optimized_image(name_out_vrt, name_out_tif, files_tif_str):
-    """
-    Generates a VRT from multiple TIFF files and converts it to an optimized and compressed TIFF using gdal_translate.
+def generate_optimized_image(name_out_vrt, name_out_tif, files_tif_list):
+    try:
+        log_message(f"[INFO] Building VRT from: {files_tif_list}")
+        build_vrt(name_out_vrt, files_tif_list)
+        log_message(f"[INFO] VRT created: {name_out_vrt}")
 
-    Args:
-    - name_out_vrt: Path to the output VRT file.
-    - name_out_tif: Path to the optimized output TIFF file.
-    - files_tif_str: String containing the paths to the TIFF files to process.
-    """
-    log_message(f"[INFO] Building VRT from TIFF files: {files_tif_str}")
-    os.system(f'gdalbuildvrt {name_out_vrt} {files_tif_str}')
-    log_message(f"[INFO] VRT created: {name_out_vrt}")
+        log_message(f"[INFO] Translating VRT to optimized TIFF: {name_out_tif}")
+        translate_to_tiff(name_out_vrt, name_out_tif)
+        log_message(f"[INFO] Optimized TIFF saved: {name_out_tif}")
+    except Exception as e:
+        log_message(f"[ERROR] Failed to generate optimized image. {e}")
 
-    log_message(f"[INFO] Translating VRT to optimized TIFF: {name_out_tif}")
-    os.system(f'gdal_translate -a_nodata 0 -co TILED=YES -co compress=DEFLATE -co PREDICTOR=2 -co COPY_SRC_OVERVIEWS=YES -co BIGTIFF=YES {name_out_vrt} {name_out_tif}')
-    log_message(f"[INFO] Optimized TIFF saved: {name_out_tif}")
+def build_vrt(vrt_path, input_tif_list):
+    vrt = gdal.BuildVRT(vrt_path, input_tif_list)
+    if vrt is None:
+        raise RuntimeError(f"Failed to create VRT at {vrt_path}")
+    vrt = None  # close
+
+def translate_to_tiff(vrt_path, output_path):
+    options = gdal.TranslateOptions(
+        format="GTiff",
+        creationOptions=[
+            "TILED=YES",
+            "COMPRESS=DEFLATE",
+            "PREDICTOR=2",
+            "COPY_SRC_OVERVIEWS=YES",
+            "BIGTIFF=YES"
+        ],
+        noData=0
+    )
+    result = gdal.Translate(output_path, vrt_path, options=options)
+    if result is None:
+        raise RuntimeError(f"Failed to translate VRT to TIFF: {output_path}")
+    result = None  # close
+
 
 # Function to clean directories before processing begins
 def clean_directories(directories_to_clean):
@@ -461,8 +481,9 @@ def process_single_image(dataset_classify, version, region,folder_temp):
     log_message(f"[INFO] Applying spatial filtering and completing the processing of this scene.")
     return filter_spatial(output_image_data)
 
-# Main function to process satellite and year data
-def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folder_temp, suffix, ee_project, country, version, region):
+def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folder_temp, suffix,
+                              ee_project, country, version, region, simulate_test=False):
+
     log_message(f"[INFO] Processing year by satellite for country: {country}, version: {version}, region: {region}")
     grid = ee.FeatureCollection(f'projects/mapbiomas-{country}/assets/FIRE/AUXILIARY_DATA/GRID_REGIONS/grid-{country}-{region}')
     grid_landsat = grid.getInfo()['features']
@@ -471,14 +492,14 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
     collection_name = f'projects/{ee_project}/assets/FIRE/COLLECTION1/CLASSIFICATION/burned_area_{country}_{version}'
     check_or_create_collection(collection_name, ee_project)
 
-    for satellite_year in satellite_years:
+    for satellite_year in satellite_years[:1 if simulate_test else None]:  # apenas 1 satélite se teste
         satellite = satellite_year['satellite']
-        years = satellite_year['years']
+        years = satellite_year['years'][:1 if simulate_test else None]     # apenas 1 ano se teste
 
         with tqdm(total=len(years), desc=f'Processing years for satellite {satellite.upper()}') as pbar_years:
             for year in years:
-                log_message(f"[INFO] Processing year {year} for satellite {satellite.upper()}")
-                image_name = f"burned_area_{country}_{satellite}_{version}_region{region[1:]}_{year}{suffix}"
+                test_tag = "_test" if simulate_test else ""
+                image_name = f"burned_area_{country}_{satellite}_{version}_region{region[1:]}_{year}{suffix}{test_tag}"
                 gcs_filename = f'gs://{bucket_name}/sudamerica/{country}/result_classified/{image_name}.tif'
 
                 local_cog_path = f'{folder_mosaic}/{satellite}_{country}_{region}_{year}_cog.tif'
@@ -487,70 +508,93 @@ def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folde
                 if not os.path.exists(local_cog_path):
                     log_message(f"[INFO] Downloading COG from GCS: {gcs_cog_path}")
                     os.system(f'gsutil cp {gcs_cog_path} {local_cog_path}')
-                    
                     time.sleep(2)
                     fs.invalidate_cache()
+
                 input_scenes = []
-                with tqdm(total=len(grid_landsat), desc=f'Processing scenes for year {year}') as pbar_scenes:
-                    for grid in grid_landsat:
+                grids_to_process = [grid_landsat[0]] if simulate_test else grid_landsat
+
+                with tqdm(total=len(grids_to_process), desc=f'Processing scenes for year {year}') as pbar_scenes:
+                    for grid in grids_to_process:
                         orbit = grid['properties']['ORBITA']
                         point = grid['properties']['PONTO']
                         output_image_name = f'{folder_temp}/image_col3_{country}_{region}_{version}_{orbit}_{point}_{year}.tif'
+                        geometry_scene = grid['geometry']
+                        NBR_clipped = f'{folder_temp}/image_mosaic_col3_{country}_{region}_{version}_{orbit}_{point}_clipped_{year}.tif'
 
                         if os.path.isfile(output_image_name):
                             log_message(f"[INFO] Scene {orbit}/{point} already processed. Skipping.")
                             pbar_scenes.update(1)
                             continue
 
-                        geometry_scene = grid['geometry']
-                        NBR_clipped = f'{folder_temp}/image_mosaic_col3_{country}_{region}_{version}_{orbit}_{point}_clipped_{year}.tif'
-                        log_message(f"[INFO] Clipping image: {local_cog_path}")
-                        
-                        # Tenta o recorte até ser bem-sucedido ou esgotar as tentativas
                         clipping_success = clip_image_by_grid(geometry_scene, local_cog_path, NBR_clipped)
 
                         if clipping_success:
                             dataset_classify = load_image(NBR_clipped)
                             image_data = process_single_image(dataset_classify, version, region, folder_temp)
-
-                            log_message(f"[INFO] Convert to raster")
-
                             convert_to_raster(dataset_classify, image_data, output_image_name)
                             input_scenes.append(output_image_name)
-
-                            # Limpa arquivos intermediários da cena após classificação
-                            remove_temporary_files([NBR_clipped])  # imagem recortada
-                            dataset_classify = None  # libera o dataset GDAL da memória
+                            remove_temporary_files([NBR_clipped])
                         else:
-                            log_message(f"[WARNING] Clipping failed for scene {orbit}/{point}. Proceeding to the next scene.")
-                        
+                            log_message(f"[WARNING] Clipping failed for scene {orbit}/{point}.")
                         pbar_scenes.update(1)
 
-                # Merging scenes and uploading to GCS and GEE
                 if input_scenes:
                     input_scenes_str = " ".join(input_scenes)
                     merge_output_temp = f"{folder_temp}/merged_temp_{year}.tif"
                     output_image = f"{folder_temp}/{image_name}.tif"
-                    log_message(f"[INFO] Merging scenes for year {year}")
+
                     generate_optimized_image(merge_output_temp, output_image, input_scenes_str)
-                    os.system(f'gsutil cp {output_image} {gcs_filename}')
+
+                    # ⏱ Aguardar criação do arquivo até 10s
+                    wait_time = 0
+                    while not os.path.exists(output_image) and wait_time < 10:
+                        time.sleep(1)
+                        wait_time += 1
+
+                    if not os.path.exists(output_image):
+                        log_message(f"[ERROR] Output image not found locally after wait. Skipping upload: {output_image}")
+                        continue
+
+                    size_mb = os.path.getsize(output_image) / (1024 * 1024)
+                    if size_mb < 0.01:
+                        log_message(f"[ERROR] Output image too small ({size_mb:.2f} MB). Likely failed.")
+                        continue
+
+                    log_message(f"[INFO] Output image verified. Size: {size_mb:.2f} MB")
+
+                    status_upload = os.system(f'gsutil cp {output_image} {gcs_filename}')
                     time.sleep(2)
                     fs.invalidate_cache()
 
-                    log_message(f"[INFO] Uploading to GCS completed: {gcs_filename}")
-                    upload_to_gee(gcs_filename, f'{collection_name}/{image_name}', satellite, region, year, version)
+                    if status_upload == 0:
+                        log_message(f"[INFO] Upload to GCS succeeded: {gcs_filename}")
+                        if os.system(f'gsutil ls {gcs_filename}') == 0:
+                            upload_to_gee(
+                                gcs_filename,
+                                f'{collection_name}/{image_name}',
+                                satellite,
+                                region,
+                                year,
+                                version
+                            )
+                        else:
+                            log_message(f"[ERROR] File not found on GCS after upload.")
+                    else:
+                        log_message(f"[ERROR] Upload to GCS failed with code {status_upload}")
 
                 clean_directories([folder_temp])
-                elapsed_time = time.time() - start_time
-                log_message(f"[INFO] Year {year} processing completed. 🎉🎉🎉") 
-                log_message(f"Total time: {time.strftime('%H:%M:%S', time.gmtime(elapsed_time))}")
+                elapsed = time.time() - start_time
+                log_message(f"[INFO] Year {year} processing completed. Time: {time.strftime('%H:%M:%S', time.gmtime(elapsed))}")
                 pbar_years.update(1)
+
+
 
 # ====================================
 # 🚀 MAIN EXECUTION LOGIC
 # ====================================
 
-def render_classify_models(models_to_classify):
+def render_classify_models(models_to_classify, simulate_test=False):
     """
     Processes a list of models and mosaics to classify burned areas.
     Args:
@@ -612,7 +656,8 @@ def render_classify_models(models_to_classify):
                 ee_project=f'mapbiomas-{country}',
                 country=country,
                 version=version,
-                region=region
+                region=region,
+                simulate_test=simulate_test
             )
    
     log_message(f"[INFO] [render_classify_models] FINISH PROCESSINGS FOR CLASSIFY MODELS {models_to_classify}")
