@@ -26,8 +26,6 @@ import pyproj
 import shutil  # For file and folder operations
 import json
 import subprocess
-
-
 # ====================================
 # 🧰 SUPPORT FUNCTIONS (utils)
 # ====================================
@@ -153,25 +151,28 @@ def reproject_geometry(geom, src_crs, dst_crs):
     return transform(project, geom)
 
 # Function to build a VRT and translate using gdal_translate
-def generate_optimized_image(name_out_vrt, name_out_tif, files_tif_list):
-    try:
-        log_message(f"[INFO] Building VRT from: {files_tif_list}")
-        build_vrt(name_out_vrt, files_tif_list)
-        log_message(f"[INFO] VRT created: {name_out_vrt}")
-
-        log_message(f"[INFO] Translating VRT to optimized TIFF: {name_out_tif}")
-        translate_to_tiff(name_out_vrt, name_out_tif)
-        log_message(f"[INFO] Optimized TIFF saved: {name_out_tif}")
-    except Exception as e:
-        log_message(f"[ERROR] Failed to generate optimized image. {e}")
-
 def build_vrt(vrt_path, input_tif_list):
+    if isinstance(input_tif_list, str):
+        input_tif_list = input_tif_list.split()
+
+    missing_files = [f for f in input_tif_list if not os.path.exists(f)]
+    if missing_files:
+        raise RuntimeError(f"The following input files do not exist: {missing_files}")
+
+    if os.path.exists(vrt_path):
+        log_message(f"[INFO] VRT already exists. Removing: {vrt_path}")
+        os.remove(vrt_path)
+
     vrt = gdal.BuildVRT(vrt_path, input_tif_list)
     if vrt is None:
         raise RuntimeError(f"Failed to create VRT at {vrt_path}")
     vrt = None  # close
 
 def translate_to_tiff(vrt_path, output_path):
+    if os.path.exists(output_path):
+        log_message(f"[INFO] TIFF already exists. Removing: {output_path}")
+        os.remove(output_path)
+
     options = gdal.TranslateOptions(
         format="GTiff",
         creationOptions=[
@@ -187,6 +188,29 @@ def translate_to_tiff(vrt_path, output_path):
     if result is None:
         raise RuntimeError(f"Failed to translate VRT to TIFF: {output_path}")
     result = None  # close
+
+def generate_optimized_image(name_out_vrt, name_out_tif, files_tif_list, suffix=""):
+    try:
+        name_out_vrt_suffixed = name_out_vrt.replace(".tif", f"{suffix}.vrt") if suffix else name_out_vrt.replace(".tif", ".vrt")
+        name_out_tif_suffixed = name_out_tif.replace(".tif", f"{suffix}.tif") if suffix else name_out_tif
+
+        log_message(f"[INFO] Building VRT from: {files_tif_list}")
+        build_vrt(name_out_vrt_suffixed, files_tif_list)
+        log_message(f"[INFO] VRT created: {name_out_vrt_suffixed}")
+
+        log_message(f"[INFO] Translating VRT to optimized TIFF: {name_out_tif_suffixed}")
+        translate_to_tiff(name_out_vrt_suffixed, name_out_tif_suffixed)
+        log_message(f"[INFO] Optimized TIFF saved: {name_out_tif_suffixed}")
+
+    except Exception as e:
+        log_message(f"[ERROR] Failed to generate optimized image. {e}")
+        return False
+
+    if not os.path.exists(name_out_tif_suffixed):
+        log_message(f"[ERROR] Output image not found locally after generation: {name_out_tif_suffixed}")
+        return False
+
+    return True
 
 
 # Function to clean directories before processing begins
