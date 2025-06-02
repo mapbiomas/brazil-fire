@@ -1,4 +1,4 @@
-# last_update: '2025/04/23', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# last_update: '2025/06/02', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms Step A_3_0_simple_gui_train_tensorflow_classification.py 
 ### Step A_3_0 - Simple graphic user interface for selecting years for burned area classification
 
@@ -417,7 +417,7 @@ on_select_country(country)
 # 🚀 MAIN EXECUTION LOGIC
 # ====================================
 # execute_burned_area_classification: burnt area classification performed in another cell
-def execute_burned_area_classification():
+def execute_burned_area_classification(mode=None):
     """
     Executes the burned area classification process based on the selected models and mosaics.
     This function processes the selections made in the interface checkboxes.
@@ -446,9 +446,11 @@ def execute_burned_area_classification():
         models_to_classify.append(model_obj)
 
     # Execute classification if there are selected models/mosaics
+    simulate_test = mode == 'test'
+
     if models_to_classify:
         print(f"[INFO] Starting classification for selected models.")
-        render_classify_models(models_to_classify)
+        render_classify_models(models_to_classify, simulate_test=simulate_test)
     else:
         print("[INFO] No models or mosaics selected. Classification skipped.")
 
