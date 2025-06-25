@@ -60,7 +60,7 @@ def reshape_single_vector(data_classify):
 def filter_spatial(output_image_data):
     log_message(f"[INFO] Applying spatial filtering on classified image")
     binary_image = output_image_data > 0
-    open_image = ndimage.binary_opening(binary_image, structure=np.ones((4, 4)))
+    open_image = ndimage.binary_opening(binary_image, structure=np.ones((2, 2)))
     close_image = ndimage.binary_closing(open_image, structure=np.ones((8, 8)))
     # **Converte para uint8 antes de retornar**
     return close_image.astype('uint8')
