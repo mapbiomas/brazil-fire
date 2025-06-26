@@ -57,12 +57,63 @@ def reshape_single_vector(data_classify):
 
 
 # Function to apply spatial filtering on classified images
+# def filter_spatial(output_image_data):
+#     log_message(f"[INFO] Applying spatial filtering on classified image")
+#     binary_image = output_image_data > 0
+#     open_image = ndimage.binary_opening(binary_image, structure=np.ones((2, 2)))
+#     close_image = ndimage.binary_closing(open_image, structure=np.ones((8, 8)))
+#     # **Converte para uint8 antes de retornar**
+#     return close_image.astype('uint8')
+
+import numpy as np
+from scipy import ndimage
+
 def filter_spatial(output_image_data):
-    log_message(f"[INFO] Applying spatial filtering on classified image")
+    """
+    Apply spatial filtering on a classified image:
+      1) fixed opening with a 2×2 structuring element
+      2) conditional closing based on choose_spatial_filter
+
+    Global choose_spatial_filter (optional):
+      • False  → skip the closing step (close_image = open_image)
+      • None or undefined → default to closing with 4×4
+      • int N → closing with N×N
+      • anything else → warning + default to 4×4
+
+    Parameters:
+        output_image_data (ndarray): labeled or binary image where >0 is foreground.
+
+    Returns:
+        ndarray: result after opening+closing, as uint8.
+    """
+    # 1) Captura choose_spatial_filter sem estourar NameError
+    try:
+        csf = choose_spatial_filter
+    except NameError:
+        csf = None
+
+    log_message("[INFO] Applying spatial filtering on classified image")
+
+    # 2) Binariza e faz opening fixo 2×2
     binary_image = output_image_data > 0
-    open_image = ndimage.binary_opening(binary_image, structure=np.ones((2, 2)))
-    close_image = ndimage.binary_closing(open_image, structure=np.ones((8, 8)))
-    # **Converte para uint8 antes de retornar**
+    open_image   = ndimage.binary_opening(binary_image, structure=np.ones((2, 2)))
+
+    # 3) Decide o closing
+    if csf is False:
+        log_message("[INFO] Skipping closing step as requested.")
+        close_image = open_image
+    else:
+        # define N
+        try:
+            n = int(csf) if csf is not None else 4
+        except (ValueError, TypeError):
+            log_message(f"[WARNING] Invalid close filter size '{csf}'; defaulting to 4×4.")
+            n = 4
+
+        log_message(f"[INFO] Applying closing with {n}×{n} structuring element.")
+        close_image = ndimage.binary_closing(open_image, structure=np.ones((n, n)))
+
+    # 4) Converte e retorna
     return close_image.astype('uint8')
 
 # Function to convert a NumPy array back into a GeoTIFF raster
