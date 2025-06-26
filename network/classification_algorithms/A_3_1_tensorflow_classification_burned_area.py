@@ -55,19 +55,6 @@ def reshape_image_output(output_data_classified, data_classify):
 def reshape_single_vector(data_classify):
     return data_classify.reshape([data_classify.shape[0] * data_classify.shape[1], data_classify.shape[2]])
 
-
-# Function to apply spatial filtering on classified images
-# def filter_spatial(output_image_data):
-#     log_message(f"[INFO] Applying spatial filtering on classified image")
-#     binary_image = output_image_data > 0
-#     open_image = ndimage.binary_opening(binary_image, structure=np.ones((2, 2)))
-#     close_image = ndimage.binary_closing(open_image, structure=np.ones((8, 8)))
-#     # **Converte para uint8 antes de retornar**
-#     return close_image.astype('uint8')
-
-import numpy as np
-from scipy import ndimage
-
 def filter_spatial(output_image_data):
     """
     Apply spatial filtering on a classified image:
@@ -88,9 +75,9 @@ def filter_spatial(output_image_data):
     """
     # 1) Captura choose_spatial_filter sem estourar NameError
     try:
-        csf = choose_spatial_filter
+        cfs = closing_filter_size
     except NameError:
-        csf = None
+        cfs = None
 
     log_message("[INFO] Applying spatial filtering on classified image")
 
@@ -99,15 +86,15 @@ def filter_spatial(output_image_data):
     open_image   = ndimage.binary_opening(binary_image, structure=np.ones((2, 2)))
 
     # 3) Decide o closing
-    if csf is False:
+    if cfs is False:
         log_message("[INFO] Skipping closing step as requested.")
         close_image = open_image
     else:
         # define N
         try:
-            n = int(csf) if csf is not None else 4
+            n = int(cfs) if cfs is not None else 4
         except (ValueError, TypeError):
-            log_message(f"[WARNING] Invalid close filter size '{csf}'; defaulting to 4×4.")
+            log_message(f"[WARNING] Invalid close filter size '{cfs}'; defaulting to 4×4.")
             n = 4
 
         log_message(f"[INFO] Applying closing with {n}×{n} structuring element.")
