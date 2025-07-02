@@ -108,7 +108,7 @@ def filter_spatial(output_image_data):
           log_message(f"[WARNING] Invalid opening filter size '{ofs}'; defaulting to 2×2.")
           m = 2
 
-        log_message(f"[INFO] Applying opening filter step as requested.")
+        log_message(f"[INFO] Applying opening filter with {m}x{m} structuring element.")
         open_image   = ndimage.binary_opening(binary_image, structure=np.ones((m, m)))
 
     # 4) Decide o closing
