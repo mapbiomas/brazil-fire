@@ -58,14 +58,20 @@ def reshape_single_vector(data_classify):
 def filter_spatial(output_image_data):
     """
     Apply spatial filtering on a classified image:
-      1) fixed opening with a 2×2 structuring element
-      2) conditional closing based on choose_spatial_filter
+      1) conditional opening filter based on opening_spatial_filter
+      2) conditional closing filter based on choose_spatial_filter
 
-    Global choose_spatial_filter (optional):
+    Global opening_spatial_filter (optional):
       • False  → skip the closing step (close_image = open_image)
       • None or undefined → default to closing with 4×4
       • int N → closing with N×N
       • anything else → warning + default to 4×4
+
+    Global choose_spatial_filter (optional):
+      • False  → skip the closing step (open_image = binary_image)
+      • None or undefined → default to closing with 2×2
+      • int N → closing with N×N
+      • anything else → warning + default to 2×2
 
     Parameters:
         output_image_data (ndarray): labeled or binary image where >0 is foreground.
@@ -79,25 +85,45 @@ def filter_spatial(output_image_data):
     except NameError:
         cfs = None
 
+    try:
+        ofs = opening_filter_size
+    except NameError:
+        ofs = None
+
+
     log_message("[INFO] Applying spatial filtering on classified image")
 
     # 2) Binariza e faz opening fixo 2×2
     binary_image = output_image_data > 0
-    open_image   = ndimage.binary_opening(binary_image, structure=np.ones((2, 2)))
 
-    # 3) Decide o closing
+    # 3) Decide o opening
+    if ofs is False:
+        log_message("[INFO] Skipping opening filter step as requested.")
+        open_image = binary_image
+    else:
+      # define M
+        try:
+          m = int(ofs) if ofs is not None else 8
+        except (ValueError, TypeError):
+          log_message(f"[WARNING] Invalid opening filter size '{ofs}'; defaulting to 2×2.")
+          m = 2
+
+        log_message(f"[INFO] Applying opening filter step as requested.")
+        open_image   = ndimage.binary_opening(binary_image, structure=np.ones((m, m)))
+
+    # 4) Decide o closing
     if cfs is False:
-        log_message("[INFO] Skipping closing step as requested.")
+        log_message("[INFO] Skipping closing filter step as requested.")
         close_image = open_image
     else:
         # define N
         try:
             n = int(cfs) if cfs is not None else 4
         except (ValueError, TypeError):
-            log_message(f"[WARNING] Invalid close filter size '{cfs}'; defaulting to 4×4.")
+            log_message(f"[WARNING] Invalid closing filter size '{cfs}'; defaulting to 4×4.")
             n = 4
 
-        log_message(f"[INFO] Applying closing with {n}×{n} structuring element.")
+        log_message(f"[INFO] Applying closing filter with {n}×{n} structuring element.")
         close_image = ndimage.binary_closing(open_image, structure=np.ones((n, n)))
 
     # 4) Converte e retorna
