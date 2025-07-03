@@ -103,7 +103,7 @@ def filter_spatial(output_image_data):
     else:
       # define M
         try:
-          m = int(ofs) if ofs is not None else 8
+          m = int(ofs) if ofs is not None else 2
         except (ValueError, TypeError):
           log_message(f"[WARNING] Invalid opening filter size '{ofs}'; defaulting to 2×2.")
           m = 2
