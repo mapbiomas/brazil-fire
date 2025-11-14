@@ -16,8 +16,8 @@ from IPython.display import display, HTML, clear_output
 from ipywidgets import VBox, HBox
 import gcsfs
 import numpy as np
-# Assumimos que A_4_1 está no mesmo ambiente de execução
-from A_4_1_tensorflow_embedding_extraction import render_embedding_models 
+# # Assumimos que A_4_1 está no mesmo ambiente de execução
+# from A_4_1_tensorflow_embedding_extraction import render_embedding_models 
 
 # Variáveis globais assumidas: country, log_message
 
@@ -25,9 +25,9 @@ from A_4_1_tensorflow_embedding_extraction import render_embedding_models
 # 🌍 GLOBAL VARIABLES AND DIRECTORY SETUP
 # ====================================
 
-bucket_name = 'mapbiomas-fire'
-base_folder = 'mapbiomas-fire/sudamerica/'
-fs = gcsfs.GCSFileSystem(project=bucket_name)
+# bucket_name = 'mapbiomas-fire'
+# base_folder = 'mapbiomas-fire/sudamerica/'
+# fs = gcsfs.GCSFileSystem(project=bucket_name)
 
 # Variáveis de estado da GUI
 selected_country = ''
