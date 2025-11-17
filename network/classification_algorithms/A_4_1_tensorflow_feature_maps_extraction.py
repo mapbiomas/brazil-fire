@@ -325,7 +325,7 @@ def process_single_image_embedding (dataset_classify, version, region, folder_te
     # Assumimos que a variável 'country', 'bucket_name', 'fs' estão no escopo global ou foram passadas.
     
     # 1. Preparação: Download do Modelo (Idêntico ao A_3_1)
-    gcs_model_file = f'gs://{bucket_name}/sudamerica/{country}/models_coll/coll_{country}_{version}_{region}_rnn_lstm_ckpt*'
+    gcs_model_file = f'gs://{bucket_name}/sudamerica/{country}/models_col1/col1_{country}_{version}_{region}_rnn_lstm_ckpt*'
     model_file_local_temp = f' {folder_temp}/coll_{country}_{version}_{region}_rnn_lstm_ckpt'
     
     try:
