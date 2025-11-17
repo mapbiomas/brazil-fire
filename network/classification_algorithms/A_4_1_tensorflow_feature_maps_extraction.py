@@ -181,8 +181,13 @@ def remove_temporary_files(files_to_remove):
 
 # EMBEDDING CORE FUNCTIONS
 
+
 def create_embedding_model_graph (hyperparameters):
-    """Cria o grafo TensorFlow adaptado para extração de EMBEDDINGS (Camadas nomeadas)."""
+    """
+    Cria o grafo computacional TensorFlow adaptado para a extração de EMBEDDINGS.
+    Usa tf.variable_scope para garantir que a rede seja reconstruída com os 
+    mesmos nomes de variáveis do checkpoint (salvo via A_2_1/A_3_1).
+    """
     
     graph = tf.Graph()
     with graph.as_default():
@@ -193,27 +198,36 @@ def create_embedding_model_graph (hyperparameters):
         # Normaliza os dados
         normalized = (x_input - hyperparameters['data_mean']) / hyperparameters['data_std']
         
-        # Constrói as camadas (com nomes para extração dinâmica)
-        hidden1 = fully_connected_layer (normalized, n_neurons=hyperparameters['NUM_N_L1'], activation='relu', name='h1')
-        hidden2 = fully_connected_layer (hidden1, n_neurons=hyperparameters['NUM_N_L2'], activation='relu', name='h2')
-        hidden3 = fully_connected_layer (hidden2, n_neurons=hyperparameters['NUM_N_L3'], activation='relu', name='h3')
-        hidden4 = fully_connected_layer (hidden3, n_neurons=hyperparameters['NUM_N_L4'], activation='relu', name='h4')
+        # Constrói as camadas (USANDO SCOPE PARA RESTAURAR OS NOMES DO CHECKPOINT)
+        
+        with tf.variable_scope('hidden1'):
+            hidden1 = fully_connected_layer (normalized, n_neurons=hyperparameters['NUM_N_L1'], activation='relu', name='h1')
+        with tf.variable_scope('hidden2'):
+            hidden2 = fully_connected_layer (hidden1, n_neurons=hyperparameters['NUM_N_L2'], activation='relu', name='h2')
+        with tf.variable_scope('hidden3'):
+            hidden3 = fully_connected_layer (hidden2, n_neurons=hyperparameters['NUM_N_L3'], activation='relu', name='h3')
+        with tf.variable_scope('hidden4'):
+            hidden4 = fully_connected_layer (hidden3, n_neurons=hyperparameters['NUM_N_L4'], activation='relu', name='h4')
         
         # PONTO DE SAÍDA PADRÃO (L5)
-        embedding_output = fully_connected_layer (hidden4, n_neurons=hyperparameters['NUM_N_L5'], activation='relu', name='embedding_output_L5')
+        with tf.variable_scope('hidden5'): 
+            embedding_output = fully_connected_layer (hidden4, n_neurons=hyperparameters['NUM_N_L5'], activation='relu', name='embedding_output_L5')
         
         # O tensor de saída para a extração L5:
         outputs = embedding_output
-        tf.identity (outputs, name='extracted_embedding') # Tensor para L5: 'extracted_embedding:0'
+        tf.identity (outputs, name='extracted_embedding') # Tensor L5: 'extracted_embedding:0'
         
-        # O resto do grafo (logits, loss, optimizer) é mantido para carregar o checkpoint
-        logits = fully_connected_layer (embedding_output, n_neurons=hyperparameters['NUM_CLASSES'])
+        # O resto do grafo (logits) é mantido para carregar o checkpoint
+        with tf.variable_scope('logits'):
+            logits = fully_connected_layer (embedding_output, n_neurons=hyperparameters['NUM_CLASSES'])
+        
+        # Otimizador, Loss e Saver (necessários para o restore)
         cross_entropy = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=y_input))
         optimizer = tf.train.AdamOptimizer(hyperparameters['lr']).minimize(cross_entropy)
         
         saver = tf.train.Saver()
         return graph, {'x_input': x_input, 'y_input': y_input}, saver
-
+        
 def classify_for_embeddings (data_classify_vector, model_path, hyperparameters, selected_layer, block_size=40000000):
     """Extrai embeddings dos dados em blocos, buscando o tensor da camada escolhida."""
     
@@ -326,7 +340,7 @@ def process_single_image_embedding (dataset_classify, version, region, folder_te
     
     # 1. Preparação: Download do Modelo (Idêntico ao A_3_1)
     gcs_model_file = f'gs://{bucket_name}/sudamerica/{country}/models_col1/col1_{country}_{version}_{region}_rnn_lstm_ckpt*'
-    model_file_local_temp = f' {folder_temp}/coll_{country}_{version}_{region}_rnn_lstm_ckpt'
+    model_file_local_temp = f'{folder_temp}/col1_{country}_{version}_{region}_rnn_lstm_ckpt'
     
     try:
         subprocess.run(f'gsutil cp {gcs_model_file} {folder_temp}', shell=True, check=True)
@@ -337,7 +351,7 @@ def process_single_image_embedding (dataset_classify, version, region, folder_te
         return None
         
     # 2. Carregar Hiperparâmetros (Idêntico ao A_3_1)
-    json_path = f'{folder_temp}/coll_{country}_{version}_{region}_rnn_lstm_ckpt_hyperparameters.json'
+    json_path = f'{folder_temp}/col1_{country}_{version}_{region}_rnn_lstm_ckpt_hyperparameters.json'
     with open (json_path, 'r') as json_file:
         hyperparameters = json.load(json_file)
     
@@ -567,4 +581,3 @@ def render_embedding_models(models_to_process, simulate_test=False):
                 simulate_test=simulate_test,
                 embedding_layer=embedding_layer # Passa a camada
             )
-re
