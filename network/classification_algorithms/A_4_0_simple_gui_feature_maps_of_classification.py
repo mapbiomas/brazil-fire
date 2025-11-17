@@ -167,14 +167,16 @@ def update_interface():
     EMB_mosaic_panels_widgets = [panel[2] for panel in EMB_mosaic_panels]
     display(HBox(EMB_mosaic_panels_widgets, layout=widgets.Layout(margin='10px 0', display='flex', flex_flow='row', overflow_x='auto')))
 
-    # 4. Re-cria e exibe o botão de execução
-    execute_button = widgets.Button(
-        description="EXECUTAR EXTRAÇÃO DE EMBEDDINGS E UPLOAD (A_4_1)",
-        button_style='info',
-        layout=widgets.Layout(width='auto')
-    )
-    execute_button.on_click(execute_embedding_generation_click)
-    display(execute_button)
+   # 4. Exibe texto informativo para execução em célula separada
+    display(widgets.HTML("<b>Ação:</b> Após selecionar os modelos e anos, execute a célula separada com `execute_embedding_generation_click(None)`"))
+    # # 4. Re-cria e exibe o botão de execução
+    # execute_button = widgets.Button(
+    #     description="EXECUTAR EXTRAÇÃO DE EMBEDDINGS E UPLOAD (A_4_1)",
+    #     button_style='info',
+    #     layout=widgets.Layout(width='auto')
+    # )
+    # execute_button.on_click(execute_embedding_generation_click)
+    # display(execute_button)
 
 def create_layer_selector_panel():
     """Cria o painel de seleção de camadas de embedding (h1 a h5) com descrições mais ricas."""
