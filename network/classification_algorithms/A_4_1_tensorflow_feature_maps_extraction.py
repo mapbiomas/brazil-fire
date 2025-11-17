@@ -365,12 +365,23 @@ def process_single_image_embedding (dataset_classify, version, region, folder_te
 
 def process_year_by_satellite_embedding (satellite_years, bucket_name, folder_mosaic, folder_temp, suffix,
                                          ee_project, country, version, region, simulate_test=False, embedding_layer='h5'):
-    """Workflow principal para geração de embeddings, adaptado para camada dinâmica."""
+    """
+    Workflow principal para geração de embeddings, adaptado para camada dinâmica.
+    (Baseado em A_4_1 e A_3_1)
+    """
 
     # 1. Setup inicial
-    fs = gcsfs.GCSFileSystem(project=bucket_name) # Inicializa o FS
-    grid = ee.FeatureCollection(f'projects/mapbiomas-{country}/assets/FIRE/AUXILIARY_DATA/GRID_REGIONS/grid-{country}-{region}')
-    grid_landsat = grid.getInfo()['features']
+    # Assume-se que 'fs' (gcsfs.GCSFileSystem) foi definido globalmente no A_4_1
+    fs = gcsfs.GCSFileSystem(project=bucket_name)
+
+    # Assume-se que ee.FeatureCollection e ee.ImageCollection são acessíveis (EE inicializado)
+    try:
+        grid = ee.FeatureCollection(f'projects/mapbiomas-{country}/assets/FIRE/AUXILIARY_DATA/GRID_REGIONS/grid-{country}-{region}')
+        grid_landsat = grid.getInfo()['features']
+    except Exception as e:
+        log_message(f"[ERROR] Falha ao carregar grid do GEE: {e}")
+        return
+
     start_time = time.time()
     
     # Define a nova coleção GEE para embeddings
@@ -379,72 +390,82 @@ def process_year_by_satellite_embedding (satellite_years, bucket_name, folder_mo
     
     for satellite_year in satellite_years:
         satellite = satellite_year['satellite']
-        years = satellite_year['years']
+        # Limita a 1 ano se for simulação
+        years = satellite_year['years'][:1] if simulate_test else satellite_year['years']
         
-        with tqdm (total=len (years), desc=f'Processing years for satellite {satellite.upper()}') as pbar_years:
+        with tqdm (total=len(years), desc=f'Processing years for satellite {satellite.upper()}') as pbar_years:
             for year in years:
                 test_tag = "_test" if simulate_test else ""
                 
                 # Novo nome do arquivo TIFF para Embeddings
                 image_name = f"embedding_{country}_{satellite}_{version}_region{region[1:]}_{year}{suffix}{test_tag}"
                 gcs_filename = f'gs://{bucket_name}/sudamerica/{country}/result_embeddings/{image_name}.tif'
+                # Path para o mosaico COG (usando o formato iXX_country_rY_year_cog.tif)
                 local_cog_path = f'{folder_mosaic}/{satellite}_{country}_{region}_{year}_cog.tif'
-                gcs_cog_path = f'gs://{bucket_name}/sudamerica/{country}/mosaics_coll_cog/{satellite}_{country}_{region}_{year}_cog.tif'
-                
-                # Download do COG
+                gcs_cog_path = f'gs://{bucket_name}/sudamerica/{country}/mosaics_col1_cog/{satellite}_{country}_{region}_{year}_cog.tif' # Caminho corrigido
+
+                # 2. Download do COG
                 if not os.path.exists (local_cog_path):
-                    os.system(f'gsutil cp {gcs_cog_path} {local_cog_path}')
-                    time.sleep(2)
-                    fs.invalidate_cache()
+
+                    try:
+                        os.system(f'gsutil cp {gcs_cog_path} {local_cog_path}')
+                        time.sleep(2)
+                        fs.invalidate_cache()
+                    except Exception as e:
+                        log_message(f"[ERROR] Falha ao baixar COG: {gcs_cog_path}. {e}")
+                        continue
                 
                 input_scenes = []
+                # Limita a 1 cena se for simulação
                 grids_to_process = [grid_landsat[0]] if simulate_test else grid_landsat
                 
-                with tqdm (total=len (grids_to_process), desc=f'Processing scenes for year {year}') as pbar_scenes:
+                with tqdm (total=len(grids_to_process), desc=f'Processing scenes for year {year}') as pbar_scenes:
                     for grid_feature in grids_to_process:
                         orbit = grid_feature['properties']['ORBITA']
                         point = grid_feature['properties']['PONTO']
+                        # Nome TEMP diferente para evitar conflito com classificação
                         output_image_name = f'{folder_temp}/image_emb_{country}_{region}_{version}_{orbit}_{point}_{year}.tif'
                         geometry_scene = grid_feature['geometry']
-                        NBR_clipped = f'{folder_temp}/image_mosaic_emb_clipped_{orbit}_{point}_{year}.tif'
-                        
+                        # Nome TEMP diferente para o clip
+                        NBR_clipped = f'{folder_temp}/image_mosaic_emb_clipped_{orbit}_{point}_{year}.tif' 
+
                         if os.path.isfile (output_image_name):
                             pbar_scenes.update(1)
                             continue
                         
-                        # 1. Clipagem da Imagem
+                        # 3. Clipagem da Imagem
                         clipping_success = clip_image_by_grid(geometry_scene, local_cog_path, NBR_clipped)
                         
                         if clipping_success:
                             dataset_classify = load_image (NBR_clipped)
                             
-                            # 2. Extração de Embeddings (NOVO)
+                            # 4. Extração de Embeddings (CHAMA A FUNÇÃO COM O NOVO PARÂMETRO)
                             image_data_hwc = process_single_image_embedding (
                                 dataset_classify, 
                                 version, 
                                 region, 
                                 folder_temp, 
-                                embedding_layer, 
+                                embedding_layer, # <-- NOVO: Camada de embedding
                                 country, 
                                 bucket_name, 
                                 fs
                             )
                             
-                            # 3. Conversão para Raster Multi-Banda (NOVO)
+                            # 5. Conversão para Raster Multi-Banda
                             convert_to_raster_multiband (dataset_classify, image_data_hwc, output_image_name)
                             input_scenes.append(output_image_name)
                             remove_temporary_files([NBR_clipped])
                         
                         pbar_scenes.update(1)
 
-                # 4. Geração do TIFF Otimizado Multi-Banda (Merge VRT)
+                # 6. Geração do TIFF Otimizado Multi-Banda (Merge VRT)
                 if input_scenes:
                     input_scenes_str = " ".join(input_scenes)
                     merge_output_temp = f"{folder_temp}/merged_emb_temp_{year}.tif"
                     output_image = f"{folder_temp}/{image_name}.tif"
                     generate_optimized_image (merge_output_temp, output_image, input_scenes_str)
                     
-                    # 5. Upload para GCS e GEE
+                    # 7. Upload para GCS e GEE
                     status_upload = os.system(f'gsutil cp {output_image} {gcs_filename}')
                     time.sleep(2)
                     fs.invalidate_cache()
@@ -459,8 +480,8 @@ def process_year_by_satellite_embedding (satellite_years, bucket_name, folder_mo
                     clean_directories ([folder_temp])
                 
                 elapsed = time.time() - start_time
+                log_message(f"[INFO] Year {year} embedding generation completed. Time: {time.strftime('%H:%M:%S', time.gmtime(elapsed))}")
                 pbar_years.update(1)
-
 
 # MAIN EXECUTION LOGIC (render_embedding_models)
 def render_embedding_models(models_to_process, simulate_test=False):
@@ -499,12 +520,32 @@ def render_embedding_models(models_to_process, simulate_test=False):
         satellite_years = []
         for mosaic in mosaics:
             mosaic_parts = mosaic.split('_')
-            satellite = mosaic_parts[0]
-            year = int(mosaic_parts[-1].split('.')[0]) # Assumindo que o ano é o último
-            satellite_years.append({"satellite": satellite, "years": [year]})
+            
+            # --- CORREÇÃO DO PARSING DO ANO ---
+            try:
+                # O formato do mosaico é I89_guyana_r5_2022_cog.tif
+                satellite = mosaic_parts[0]
+                
+                # O ano é a quarta parte (índice 3)
+                year_str = mosaic_parts[3]
+                
+                # Garante que só pega os 4 dígitos e converte para int
+                import re
+                year_match = re.search(r'\d{4}', year_str)
+
+                if year_match:
+                    year = int(year_match.group(0))
+                else:
+                    log_message(f"[ERROR A_4_1] Não foi possível extrair o ano (4 dígitos) do mosaico: {mosaic}")
+                    continue
+                
+                satellite_years.append({"satellite": satellite, "years": [year]})
+                
+            except Exception as e:
+                log_message(f"[ERROR A_4_1] Falha ao processar o nome do mosaico {mosaic}: {e}")
+                continue
         
-        if not simulation:
-            process_year_by_satellite_embedding (
+        if not simulation:            process_year_by_satellite_embedding (
                 satellite_years=satellite_years,
                 bucket_name=bucket_name_global,
                 folder_mosaic=folder_mosaic,
@@ -517,3 +558,4 @@ def render_embedding_models(models_to_process, simulate_test=False):
                 simulate_test=simulate_test,
                 embedding_layer=embedding_layer # Passa a camada
             )
+re
