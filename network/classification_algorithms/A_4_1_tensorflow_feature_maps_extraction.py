@@ -402,11 +402,11 @@ def process_year_by_satellite_embedding (satellite_years, bucket_name, folder_mo
                 gcs_filename = f'gs://{bucket_name}/sudamerica/{country}/result_embeddings/{image_name}.tif'
                 # Path para o mosaico COG (usando o formato iXX_country_rY_year_cog.tif)
                 local_cog_path = f'{folder_mosaic}/{satellite}_{country}_{region}_{year}_cog.tif'
-                gcs_cog_path = f'gs://{bucket_name}/sudamerica/{country}/mosaics_col1_cog/{satellite}_{country}_{region}_{year}_cog.tif' # Caminho corrigido
+                # Caminho corrigido para models_col1_cog (assumindo que esta é a convenção)
+                gcs_cog_path = f'gs://{bucket_name}/sudamerica/{country}/mosaics_col1_cog/{satellite}_{country}_{region}_{year}_cog.tif' 
 
                 # 2. Download do COG
                 if not os.path.exists (local_cog_path):
-
                     try:
                         os.system(f'gsutil cp {gcs_cog_path} {local_cog_path}')
                         time.sleep(2)
@@ -445,12 +445,20 @@ def process_year_by_satellite_embedding (satellite_years, bucket_name, folder_mo
                                 version, 
                                 region, 
                                 folder_temp, 
-                                embedding_layer, # <-- NOVO: Camada de embedding
+                                embedding_layer, # Camada de embedding
                                 country, 
                                 bucket_name, 
                                 fs
                             )
                             
+                            # --- CORREÇÃO DE FLUXO: VERIFICA SE O EMBEDDING FOI GERADO (SE NÃO RETORNOU None) ---
+                            if image_data_hwc is None:
+                                log_message(f"[ERROR] Extração de embedding falhou (provavelmente download do modelo) para cena {orbit}/{point}. Pulando.")
+                                pbar_scenes.update(1)
+                                remove_temporary_files([NBR_clipped]) # Limpa o clip
+                                continue # Pula para a próxima cena
+                            # --- FIM DA CORREÇÃO DE FLUXO ---
+
                             # 5. Conversão para Raster Multi-Banda
                             convert_to_raster_multiband (dataset_classify, image_data_hwc, output_image_name)
                             input_scenes.append(output_image_name)
@@ -482,6 +490,7 @@ def process_year_by_satellite_embedding (satellite_years, bucket_name, folder_mo
                 elapsed = time.time() - start_time
                 log_message(f"[INFO] Year {year} embedding generation completed. Time: {time.strftime('%H:%M:%S', time.gmtime(elapsed))}")
                 pbar_years.update(1)
+
 
 # MAIN EXECUTION LOGIC (render_embedding_models)
 def render_embedding_models(models_to_process, simulate_test=False):
