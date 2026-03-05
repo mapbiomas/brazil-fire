@@ -373,6 +373,7 @@ def sample_download_and_preparation(images_train_test):
 # Cria a interface e guarda em uma variável global
 interface = TrainingInterface(
     country=country,
+    collection=collection,
     preparation_function=sample_download_and_preparation,
     log_func=log_message
 )
