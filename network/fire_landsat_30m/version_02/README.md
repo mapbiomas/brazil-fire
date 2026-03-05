@@ -34,8 +34,8 @@ This notebook allows users to run the classification process without needing a l
 - Train a Deep Neural Network (DNN) model using the collected training samples for the specified region.
 
 #### Step 04: Classify Burned Areas
-- Apply the trained model to classify burned areas for the respective region oof the country.
-- Validate the results using Landat mosaics to ensure accuracy.
+- Apply the trained model to classify burned areas for the respective region of the country.
+- Validate the results using Landsat mosaics to ensure accuracy.
 
 ## Repository Structure
 - **Scripts**: Contains all the code and algorithms used for mapping burned areas, including model training and classification scripts tailored to different regions and countries.
