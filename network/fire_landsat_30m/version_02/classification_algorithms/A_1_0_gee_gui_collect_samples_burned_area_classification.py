@@ -3,7 +3,7 @@
 ### Step A_1_0 - Simple script for share acess toolkt in Google Earth Engine toolkit interface to collect samples and avaliable results
 
 # Definindo os links
-presentation_link = "https://docs.google.com/presentation/d/1iMRXRH4xoWTFPSSzDOJkB6c7KJLPggxrnvYzVQ3BzP0/edit#slide=id.g220825c6698_0_546"
+presentation_link = "https://docs.google.com/presentation/d/1lUAyxFqfxhQBOT5gF0v-yTJsm6FBJdajYcTB9d4zd1A/edit?usp=drive_link"
 gee_toolkit_link = "https://code.earthengine.google.com/?scriptPath=users%2Fmapbiomasworkspace1%2Fmapbiomas-fire%3A1-Toolkit_Collection1%2FToolkit_samples_collection"
 
 # Função que imprime os labels e os links || Function that prints the labels and links
