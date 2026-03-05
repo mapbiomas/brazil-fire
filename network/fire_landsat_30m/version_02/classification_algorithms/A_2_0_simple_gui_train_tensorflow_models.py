@@ -36,8 +36,9 @@ class TrainingInterface:
     Interface for listing training sample files and triggering model training.
     """
 
-    def __init__(self, country, preparation_function, log_func):
+    def __init__(self, country, collection, preparation_function, log_func):
         self.country = country
+        self.collection = collection
         self.preparation_function = preparation_function
         self.log = log_func
         self.checkboxes = []
@@ -48,7 +49,7 @@ class TrainingInterface:
         """
         List files in 'training_samples' folder for the selected country.
         """
-        path = f"{base_path}{self.country}/training_samples/"
+        path = f"{base_path}{self.country}/{self.collection}/training_samples/"
         try:
             return [file.split('/')[-1] for file in fs.ls(path) if file.split('/')[-1]]
         except FileNotFoundError:
@@ -80,7 +81,7 @@ class TrainingInterface:
                 version = match.group(1)  # ex: 1, 2, 111
                 region = match.group(2)   # ex: 01, 05
                 model_id = f'v{version}_r{region}'
-                model_ckpt = f'col1_{self.country}_{model_id}_rnn_lstm_ckpt'
+                model_ckpt = f'{self.collection}_{self.country}_{model_id}_rnn_lstm_ckpt'
 
                 if model_id not in seen_ids:
                     label = f'trainings_{model_id}'
@@ -106,7 +107,7 @@ class TrainingInterface:
         """
         Return a set of model checkpoint base names (excluding hyperparameters).
         """
-        prefix_path = f"{base_path}{self.country}/models_col1/"
+        prefix_path = f"{base_path}{self.country}/{self.collection}/models/"
         try:
             files = fs.ls(prefix_path)
             model_files = [
@@ -219,6 +220,7 @@ class TrainingInterface:
 # ====================================
 # TrainingInterface(
 #     country=country,
+#     collection=collection,
 #     preparation_function=sample_download_and_preparation,
 #     log_func=log_message
 # )

@@ -71,14 +71,15 @@ fs = gcsfs.GCSFileSystem(project=bucket_name)
 # ====================================
 
 class ModelRepository:
-    def __init__(self, bucket_name, country):
+    def __init__(self, bucket_name, country, collection):
         self.bucket = bucket_name
         self.country = country
-        self.base_folder = f'mapbiomas-fire/sudamerica/{country}'
+        self.collection = collection
+        self.base_folder = f'mapbiomas-fire/sudamerica/{country}/{collection}'
         self.fs = gcsfs.GCSFileSystem(project=bucket_name)
 
     def list_models(self):
-        training_folder = f"{self.base_folder}/models_col1/"
+        training_folder = f"{self.base_folder}/models/"
         try:
             files = self.fs.ls(training_folder)
             return [file.split('/')[-1] for file in files if file.endswith('.meta')], len(files)
@@ -86,7 +87,7 @@ class ModelRepository:
             return [], 0
 
     def list_mosaics(self, region):
-        mosaics_folder = f"{self.base_folder}/mosaics_col1_cog/"
+        mosaics_folder = f"{self.base_folder}/mosaics_cog/"
         try:
             files = self.fs.ls(mosaics_folder)
             return [file.split('/')[-1] for file in files if f"_{region}_" in file], len(files)
@@ -135,7 +136,7 @@ def display_selected_mosaics(model, selected_country, region):
     Returns:
     - VBox: A container with the available mosaic checkboxes and the file count.
     """
-    repo = ModelRepository(bucket_name='mapbiomas-fire', country=selected_country)
+    repo = ModelRepository(bucket_name='mapbiomas-fire', country=selected_country, collection=collection)
     mosaic_files, mosaic_count = repo.list_mosaics(region)
     classified_files, classified_count = repo.list_classified()
 
@@ -152,7 +153,7 @@ def display_selected_mosaics(model, selected_country, region):
         if mosaic_files:
             for idx, file in enumerate(mosaic_files):
                 # Check if the mosaic has already been classified
-                repo = ModelRepository(bucket_name=bucket_name, country=selected_country)
+                repo = ModelRepository(bucket_name=bucket_name, country=selected_country, collection=collection)
                 classified = repo.is_classified(file)
                 # Create checkbox for the mosaic; show warning ⚠️ if already classified
                 checkbox_mosaic = widgets.Checkbox( value=False, description=file + (" ⚠️" if classified else "") )
@@ -346,7 +347,7 @@ def on_select_country(country_name):
     selected_country = country_name
 
     # List files in the 'models_col1' folder
-    repo = ModelRepository(bucket_name='mapbiomas-fire', country=country_name)
+    repo = ModelRepository(bucket_name='mapbiomas-fire', country=country_name, collection=collection)
     training_files, file_count = repo.list_models()
 
     # If there are files, create checkboxes for each model

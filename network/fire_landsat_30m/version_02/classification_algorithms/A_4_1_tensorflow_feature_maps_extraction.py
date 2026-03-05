@@ -522,10 +522,12 @@ def render_embedding_models(models_to_process, simulate_test=False):
         embedding_layer = model_info["embedding_layer"] # Extrai a camada
         
         try:
-            parts = model_name.split('_')
-            country = parts[1]
-            version = parts[2]
-            region = parts[3].split('.')[0]
+            # Improved parsing to handle collection names with underscores (e.g., collection_1)
+            model_name_clean = model_name.replace(f"{collection}_", "")
+            parts = model_name_clean.split('_')
+            country = parts[0]
+            version = parts[1]
+            region = parts[2].split('.')[0] if '.' in parts[2] else parts[2]
         except Exception:
             log_message(f"[ERROR] Não foi possível extrair info do modelo: {model_name}")
             continue

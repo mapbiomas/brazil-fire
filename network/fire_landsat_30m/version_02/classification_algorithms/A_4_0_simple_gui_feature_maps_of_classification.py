@@ -49,15 +49,16 @@ def log_message(msg):
 
 class ModelRepository:
     """Gerencia a listagem de modelos, mosaicos e a verificação de embeddings existentes no GCS."""
-    def __init__(self, bucket_name, country):
+    def __init__(self, bucket_name, country, collection):
         self.bucket = bucket_name
         self.country = country
-        self.base_folder = f'mapbiomas-fire/sudamerica/{country}'
+        self.collection = collection
+        self.base_folder = f'mapbiomas-fire/sudamerica/{country}/{collection}'
         self.fs = gcsfs.GCSFileSystem(project=bucket_name)
 
     def list_models(self):
         # CORRIGIDO: Usar models_col1/ e filtrar prefixos
-        training_folder = f"{self.base_folder}/models_col1/" 
+        training_folder = f"{self.base_folder}/models/" 
         try:
             files = self.fs.ls(training_folder)
             
@@ -80,7 +81,7 @@ class ModelRepository:
     def list_mosaics(self, region):
         """Lista mosaicos COG (os inputs) filtrando pela região exata."""
         # CORRIGIDO: Mudar para mosaics_col1_cog/ (igual A_3_0)
-        mosaics_folder = f"{self.base_folder}/mosaics_col1_cog/"
+        mosaics_folder = f"{self.base_folder}/mosaics_cog/"
         
         # CORRIGIDO: Usar o filtro _region_ para isolar (igual A_3_0)
         region_filter = f"_{region}_"
@@ -111,7 +112,7 @@ class ModelRepository:
 
 def display_selected_mosaics_embedding(model, selected_country, region):
     """Exibe o painel de seleção de mosaicos, marcando aqueles que já têm embeddings."""
-    repo = ModelRepository(bucket_name=bucket_name, country=selected_country)
+    repo = ModelRepository(bucket_name=bucket_name, country=selected_country, collection=collection)
     mosaic_files, mosaic_count = repo.list_mosaics(region)
     
     mosaics_panel = widgets.Output(layout={'border': '1px solid black', 'height': '200px', 'overflow_y': 'scroll'})
@@ -268,7 +269,7 @@ def on_select_country(country_name):
     
     EMB_selected_country = country_name
     
-    repo = ModelRepository(bucket_name=bucket_name, country=EMB_selected_country)
+    repo = ModelRepository(bucket_name=bucket_name, country=EMB_selected_country, collection=collection)
     training_files, file_count = repo.list_models()
     
     if training_files:

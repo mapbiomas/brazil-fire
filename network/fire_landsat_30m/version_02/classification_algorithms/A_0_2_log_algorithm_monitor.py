@@ -49,7 +49,7 @@ def create_header():
         f"Timezone: {timezone_str}\n"
         f"Country: {country}\n"
         f"Source: {source_name}\n"
-        f"Collection: {collection_name}\n"
+        f"Collection: {collection}\n"
         "---------------------------------\n"
     )
     
@@ -59,7 +59,7 @@ def create_header():
         "timezone": timezone_str,
         "country": country,
         "source": source_name,
-        "collection": collection_name
+        "collection": collection
     }
     
     print(header_str)  # Print the header only once at the beginning
@@ -127,10 +127,10 @@ def create_log_paths(timestamp):
     """
     Creates the local and GCS paths for the log files without including timezone in the filename.
     """
-    log_folder = f'/content/{bucket_name}/sudamerica/{country}/classification_logs'
-    log_file_name = f'burned_area_classification_log_{collection_name}_{country}_{timestamp}.log'
+    log_folder = f'/content/{bucket_name}/sudamerica/{country}/{collection}/classification_logs'
+    log_file_name = f'burned_area_classification_log_{collection}_{country}_{timestamp}.log'
     log_file_path_local = os.path.join(log_folder, log_file_name)
-    bucket_log_folder = f'gs://{bucket_name}/sudamerica/{country}/classification_logs/{log_file_name}'
+    bucket_log_folder = f'gs://{bucket_name}/sudamerica/{country}/{collection}/classification_logs/{log_file_name}'
     
     return log_folder, log_file_path_local, bucket_log_folder
 
