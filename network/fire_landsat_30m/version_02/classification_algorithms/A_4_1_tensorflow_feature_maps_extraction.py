@@ -378,7 +378,7 @@ def process_single_image_embedding (dataset_classify, version, region, folder_te
 
 
 def process_year_by_satellite_embedding (satellite_years, bucket_name, folder_mosaic, folder_temp, suffix,
-                                         ee_project, country, version, region, simulate_test=False, embedding_layer='h5'):
+                                         ee_project, country, collection, version, region, simulate_test=False, embedding_layer='h5'):
     """
     Workflow principal para geração de embeddings, adaptado para camada dinâmica.
     (Baseado em A_4_1 e A_3_1)
@@ -398,6 +398,8 @@ def process_year_by_satellite_embedding (satellite_years, bucket_name, folder_mo
 
     start_time = time.time()
     
+    # Calculate collection_ee internally to avoid NameError
+    collection_ee = collection.upper().replace('_', '')
     # Define a nova coleção GEE para embeddings
     collection_name = f'projects/{ee_project}/assets/FIRE/{collection_ee}/CLASSIFICATION_EMBEDDINGS/embedding_field_{country}_{version}'
     check_or_create_collection (collection_name, ee_project)
@@ -578,6 +580,7 @@ def render_embedding_models(models_to_process, simulate_test=False):
                 suffix='',
                 ee_project=ee_project_global, # Use sua variável global real
                 country=country,
+                collection=collection,
                 version=version,
                 region=region,
                 simulate_test=simulate_test,

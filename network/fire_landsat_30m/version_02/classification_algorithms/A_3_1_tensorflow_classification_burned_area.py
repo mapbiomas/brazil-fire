@@ -570,13 +570,15 @@ def process_single_image(dataset_classify, version, region,folder_temp):
     return filter_spatial(output_image_data)
 
 def process_year_by_satellite(satellite_years, bucket_name, folder_mosaic, folder_temp, suffix,
-                              ee_project, country, version, region, simulate_test=False):
+                              ee_project, country, collection, version, region, simulate_test=False):
 
     log_message(f"[INFO] Processing year by satellite for country: {country}, version: {version}, region: {region}")
     grid = ee.FeatureCollection(f'projects/mapbiomas-{country}/assets/FIRE/AUXILIARY_DATA/GRID_REGIONS/grid-{country}-{region}')
     grid_landsat = grid.getInfo()['features']
     start_time = time.time()
 
+    # Calculate collection_ee internally to avoid NameError
+    collection_ee = collection.upper().replace('_', '')
     collection_name = f'projects/{ee_project}/assets/FIRE/{collection_ee}/CLASSIFICATION/burned_area_{country}_{version}'
     check_or_create_collection(collection_name, ee_project)
 
@@ -745,6 +747,7 @@ def render_classify_models(models_to_classify, simulate_test=False):
                 suffix='',
                 ee_project=f'mapbiomas-{country}',
                 country=country,
+                collection=collection,
                 version=version,
                 region=region,
                 simulate_test=simulate_test
