@@ -1,4 +1,4 @@
-# last_update: '2026/01/26', github:'mapbiomas/chile-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
+# last_update: '2026/01/26', github:'mapbiomas/brazil-fire', source: 'IPAM', contact: 'contato@mapbiomas.org'
 # MapBiomas Fire Classification Algorithms - Step A_0_3_simple_gui_to_gcs_explorer_optional.py
 ### Step A_0_3 - Optional step to visualize and navigate files/folders in Google Cloud Storage (GCS)
 # Changes (2026/01/26):
