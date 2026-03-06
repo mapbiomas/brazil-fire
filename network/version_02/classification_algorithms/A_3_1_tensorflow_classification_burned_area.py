@@ -708,27 +708,33 @@ def render_classify_models(models_to_classify, simulate_test=False):
         region = model_info.get("region")
 
         if not all([country, version, region]):
-            # Improved parsing using backward indexing (safer for variable-length collection names)
-            # Format: {collection}_{country}_{version}_{region}_{architecture}_ckpt.meta
+            # Simple split based on the standard pattern: {collection}_{country}_{version}_{region}_...
             parts = model_name.split('_')
             try:
-                # Based on common pattern: ..._{country}_{version}_{region}_rnn_lstm_ckpt.meta
-                # region is usually at -4, version at -5, country at -6
-                country = parts[-6]
-                version = parts[-5]
-                region = parts[-4].split('.')[0] if '.' in parts[-4] else parts[-4]
+                detected_collection = parts[0]
+                country = parts[1]
+                version = parts[2]
+                region = parts[3].split('.')[0] if '.' in parts[3] else parts[3]
             except IndexError:
-                # Fallback to old forward parsing if name is too short
-                model_name_clean = model_name.replace(f"{collection}_", "")
-                parts_clean = model_name_clean.split('_')
-                country = parts_clean[0]
-                version = parts_clean[1]
-                region = parts_clean[2].split('.')[0] if '.' in parts_clean[2] else parts_clean[2]
+                # Fallback if the name is shorter than expected
+                country = country or "unknown"
+                version = version or "v1"
+                region = region or "r1"
+                detected_collection = collection
+        else:
+            # If metadata was provided, still need to detect collection from name if possible
+            parts = model_name.split('_')
+            detected_collection = parts[0] if parts else collection
 
+        log_message(f"[INFO] Detected country: {country}, version: {version}, region: {region}, collection: {detected_collection}")
+
+        
         # Define directories
-        folder = f'/content/mapbiomas-fire/sudamerica/{country}/{collection}'
+        folder = f'/content/mapbiomas-fire/sudamerica/{country}/{detected_collection}'
         folder_temp = f'{folder}/tmp1'
         folder_mosaic = f'{folder}/mosaics_cog'
+
+
         
         log_message(f"[INFO] Starting the classification process for country: {country}.")
         

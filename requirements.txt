@@ -1,0 +1,22 @@
+# MapBiomas Fire - General Requirements
+# This file includes the necessary libraries for running the project locally.
+
+# ── Core Dependencies ──────────────────────────────────────────────────────────
+numpy>=1.23
+scipy>=1.9
+rasterio>=1.3
+shapely>=2.0
+pyproj>=3.4
+gcsfs>=2023.1
+tqdm>=4.65
+
+# ── Google Services ────────────────────────────────────────────────────────────
+google-cloud-storage>=2.10
+earthengine-api>=0.1.370
+
+# ── TensorFlow ────────────────────────────────────────────────────────────────
+tensorflow>=2.16.1
+
+# ── Notebook / UI ─────────────────────────────────────────────────────────────
+jupyter>=1.0
+ipywidgets>=8.0

@@ -286,21 +286,25 @@ def classify_burned_area_click(b):
             
             log_message(f'Checking for model_key: {model_key}')
 
-            # Extract country, version, region from model name using backward indexing
-            # Format: {collection}_{country}_{version}_{region}_{architecture}_ckpt.meta
+            # Simple split based on the standard pattern: {collection}_{country}_{version}_{region}_...
             parts = model.split('_')
             try:
-                # region is usually at -4, version at -5, country at -6
-                country = parts[-6]
-                version = parts[-5]
-                region = parts[-4].split('.')[0] if '.' in parts[-4] else parts[-4]
+                country = parts[1]
+                version = parts[2]
+                region = parts[3].split('.')[0] if '.' in parts[3] else parts[3]
             except IndexError:
-                # Fallback to forward indexing if name structure is different
-                country = parts[1]  
-                version = parts[2]  
-                region = parts[3].split('.')[0] if len(parts) > 3 else parts[2]
+                # Fallback to defaults or global selection
+                try: country = selected_country
+                except: country = "unknown"
+                version = "v1"
+                region = "r1"
 
-            log_message(f'Extracted country: {country}, version: {version}, region: {region}')
+            log_message(f'Extracted metadata -> country: {country}, version: {version}, region: {region}')
+
+
+            log_message(f'Extracted metadata -> country: {country}, version: {version}, region: {region}')
+
+
 
 
             # Retrieve the mosaic checkboxes for the current model
@@ -447,12 +451,12 @@ def execute_burned_area_classification(mode=None):
             print(f"[INFO] No mosaics selected for model: {model}")
             continue
 
-        # Extract metadata for consistency
-        parts = model.split('_')
+        # Simple split for metadata consistency
+        parts_meta = model.split('_')
         try:
-            country_meta = parts[-6]
-            version_meta = parts[-5]
-            region_meta = parts[-4].split('.')[0] if '.' in parts[-4] else parts[-4]
+            country_meta = parts_meta[1]
+            version_meta = parts_meta[2]
+            region_meta = parts_meta[3].split('.')[0] if '.' in parts_meta[3] else parts_meta[3]
         except IndexError:
             country_meta = version_meta = region_meta = None
 
@@ -466,6 +470,9 @@ def execute_burned_area_classification(mode=None):
             "region": region_meta
         }
         models_to_classify.append(model_obj)
+
+
+
 
 
     # Execute classification if there are selected models/mosaics
