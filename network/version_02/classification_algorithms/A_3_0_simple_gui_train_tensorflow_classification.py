@@ -286,13 +286,22 @@ def classify_burned_area_click(b):
             
             log_message(f'Checking for model_key: {model_key}')
 
-            # Extract country, version, region from model name
-            parts = model.split('_')  # Assuming the model name format: col1_country_vX_region.meta
-            country = parts[1]  # For example, 'guyana'
-            version = parts[2]  # For example, 'v1'
-            region = parts[3].split('.')[0]  # For example, 'r1'
+            # Extract country, version, region from model name using backward indexing
+            # Format: {collection}_{country}_{version}_{region}_{architecture}_ckpt.meta
+            parts = model.split('_')
+            try:
+                # region is usually at -4, version at -5, country at -6
+                country = parts[-6]
+                version = parts[-5]
+                region = parts[-4].split('.')[0] if '.' in parts[-4] else parts[-4]
+            except IndexError:
+                # Fallback to forward indexing if name structure is different
+                country = parts[1]  
+                version = parts[2]  
+                region = parts[3].split('.')[0] if len(parts) > 3 else parts[2]
 
             log_message(f'Extracted country: {country}, version: {version}, region: {region}')
+
 
             # Retrieve the mosaic checkboxes for the current model
             if model_key in mosaic_checkboxes_dict:
@@ -438,13 +447,26 @@ def execute_burned_area_classification(mode=None):
             print(f"[INFO] No mosaics selected for model: {model}")
             continue
 
+        # Extract metadata for consistency
+        parts = model.split('_')
+        try:
+            country_meta = parts[-6]
+            version_meta = parts[-5]
+            region_meta = parts[-4].split('.')[0] if '.' in parts[-4] else parts[-4]
+        except IndexError:
+            country_meta = version_meta = region_meta = None
+
         # Build the model object with the selections
         model_obj = {
             "model": model,
             "mosaics": selected_mosaics,
-            "simulation": False  # Indicates this is not a simulation
+            "simulation": False,  # Indicates this is not a simulation
+            "country": country_meta,
+            "version": version_meta,
+            "region": region_meta
         }
         models_to_classify.append(model_obj)
+
 
     # Execute classification if there are selected models/mosaics
     simulate_test = mode == 'test'

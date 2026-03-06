@@ -701,13 +701,30 @@ def render_classify_models(models_to_classify, simulate_test=False):
         log_message(f"[INFO] Processing model: {model_name}")
         log_message(f"[INFO] Selected mosaics: {mosaics}")
         log_message(f"[INFO] Simulation mode: {simulation}")
-        # Extract model information
-        # Improved parsing to handle collection names with underscores (e.g., collection_1)
-        model_name_clean = model_name.replace(f"{collection}_", "")
-        parts = model_name_clean.split('_')
-        country = parts[0]
-        version = parts[1]
-        region = parts[2].split('.')[0] if '.' in parts[2] else parts[2]
+        # Extract model information (country, version, region)
+        # Use provided info if available (passing from GUI), otherwise parse from filename
+        country = model_info.get("country")
+        version = model_info.get("version")
+        region = model_info.get("region")
+
+        if not all([country, version, region]):
+            # Improved parsing using backward indexing (safer for variable-length collection names)
+            # Format: {collection}_{country}_{version}_{region}_{architecture}_ckpt.meta
+            parts = model_name.split('_')
+            try:
+                # Based on common pattern: ..._{country}_{version}_{region}_rnn_lstm_ckpt.meta
+                # region is usually at -4, version at -5, country at -6
+                country = parts[-6]
+                version = parts[-5]
+                region = parts[-4].split('.')[0] if '.' in parts[-4] else parts[-4]
+            except IndexError:
+                # Fallback to old forward parsing if name is too short
+                model_name_clean = model_name.replace(f"{collection}_", "")
+                parts_clean = model_name_clean.split('_')
+                country = parts_clean[0]
+                version = parts_clean[1]
+                region = parts_clean[2].split('.')[0] if '.' in parts_clean[2] else parts_clean[2]
+
         # Define directories
         folder = f'/content/mapbiomas-fire/sudamerica/{country}/{collection}'
         folder_temp = f'{folder}/tmp1'
