@@ -1,6 +1,16 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var region = 
+    /* color: #d63000 */
+    /* shown: false */
+    ee.Geometry.Polygon(
+        [[[-74.54343726505891, 6.276358376106893],
+          [-74.54343726505891, -34.4120391807966],
+          [-30.68601539005891, -34.4120391807966],
+          [-30.68601539005891, 6.276358376106893]]]);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
 /**
  * @Description 
- * MapBiomas Fogo Coleção 4
+ * MapBiomas Fogo Coleção 4.1
  * Este script exporta dois subprodutos de dados acumulados de área queimada:
  * 1. Dados acumulados de área queimada sem cruzamento com uso e cobertura (0 e 1):
  *    - Representa o total de vezes que um mesmo pixel teve evento de fogo.
@@ -13,20 +23,20 @@
  */
 
 // Nome dos arquivos de saída
-var outFileNameAccumulated = 'mapbiomas-fire-collection4-accumulated-burned-v1'; 
-var outFileNameAccumulatedCoverage = 'mapbiomas-fire-collection4-accumulated-burned-coverage-v1'; 
+var outFileNameAccumulated = 'mapbiomas-fire-collection41-accumulated-burned-v1'; 
+var outFileNameAccumulatedCoverage = 'mapbiomas-fire-collection41-accumulated-burned-coverage-v1'; 
 
 // Diretório de saída dos assets
-var assetOutput = 'projects/mapbiomas-workspace/FOGO_COL4/1_Subprodutos';
+var assetOutput = 'projects/mapbiomas-workspace/FOGO_COL4/2_Subprodutos_col41';
 
 // Coleção de imagens anuais de áreas queimadas
-var annualBurned_col = ee.ImageCollection('projects/ee-geomapeamentoipam/assets/MAPBIOMAS_FOGO/COLECAO_4/Colecao4_fogo_mask_v1');
+var annualBurned_col = ee.ImageCollection('projects/ee-geomapeamentoipam/assets/MAPBIOMAS_FOGO/COLECAO_4/Colecao41_fogo_mask_v1');
 
 // MapBiomas Uso e Cobertura 
-var coverageAsset = ee.Image('projects/mapbiomas-public/assets/brazil/lulc/collection9/mapbiomas_collection90_integration_v1');
+var coverageAsset = ee.Image('projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_integration_v2');
 
 // Adiciona a banda de classificação de 2023
-coverageAsset = coverageAsset.addBands(coverageAsset.select("classification_2023").rename("classification_2024"));
+//coverageAsset = coverageAsset.addBands(coverageAsset.select("classification_2023").rename("classification_2024"));
 
 // Períodos especiais de 5, 10 e 15 anos
 var specialPeriods = [

@@ -1,3 +1,13 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var region = 
+    /* color: #d63000 */
+    /* shown: false */
+    ee.Geometry.Polygon(
+        [[[-74.54343726505891, 6.276358376106893],
+          [-74.54343726505891, -34.4120391807966],
+          [-30.68601539005891, -34.4120391807966],
+          [-30.68601539005891, 6.276358376106893]]]);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
 /**
  * @Description 
  * MapBiomas Fogo Coleção 4

@@ -1,0 +1,21 @@
+# --- IGNORES PADRÃO ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+build/
+dist/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store
+
+# Google Source Auth
+.gitcookies
+
+# Earth Engine Source Clones (Local copies)
+gee_source/
