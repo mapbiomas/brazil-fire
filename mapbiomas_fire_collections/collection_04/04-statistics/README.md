@@ -1,10 +1,8 @@
-[LEMBRETE - REVISAR E TRADUZIR PARA O INGLES]
+# 04. Statistics
 
-# 04. Estatísticas
+This folder contains the **scripts responsible for exporting statistics from MapBiomas Fire Collection 4**.
 
-Esta pasta contém os **scripts responsáveis pela exportação das estatísticas da Coleção 4 do MapBiomas Fogo**.
-
-Os scripts processam os mapas de área queimada e exportam **tabelas CSV com estatísticas territoriais**, utilizadas posteriormente na geração de gráficos, análises e relatórios da coleção.
+The scripts process burned area maps and export **CSV tables with territorial statistics**, which are later used to generate charts, analyses, and collection reports.
 
 ---
 
@@ -12,12 +10,11 @@ Os scripts processam os mapas de área queimada e exportam **tabelas CSV com est
 
 ### `export-universal-col4.js`
 
-Script responsável por exportar as **estatísticas da Coleção 4**.
-Ele processa os mapas de área queimada e gera tabelas com diferentes métricas de fogo agregadas por territórios.
+Script responsible for exporting **Collection 4 statistics**.  
+It processes burned area maps and generates tables with different fire metrics aggregated by territories.
 
 ---
 
 ### `export-universal-col4_1.js`
 
-Versão adaptada do script anterior utilizada para exportar as **estatísticas da Coleção 4.1**, atualização baseada nas mascaras e informações da coleção 10 de mapas da cobertura e uso da terra do MapBiomas.
-
+Adapted version of the previous script used to export **Collection 4.1 statistics**, an update based on masks and information derived from **MapBiomas Collection 10 land cover and land use maps**.
