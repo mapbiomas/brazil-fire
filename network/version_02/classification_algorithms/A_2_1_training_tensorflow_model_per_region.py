@@ -176,7 +176,7 @@ class ModelTrainer:
             validation_dict = {x_input: validation_data[:, bi], y_input: validation_data[:, li]}
 
             for i in range(N_ITER + 1):
-                batch = training_data[np.random.choice(training_size, BATCH_SIZE, False), :]
+                batch = training_data[np.random.choice(training_size, min(BATCH_SIZE, training_size), False), :]
                 feed_dict = {x_input: batch[:, bi], y_input: batch[:, li]}
                 sess.run(optimizer, feed_dict=feed_dict)
 
