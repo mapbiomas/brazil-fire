@@ -271,8 +271,10 @@ def run_ui():
         for m in months:
             ui.state[m] = {"exported": False, "mosaiced": False, "vectorized_gcs": False, "vectorized_gee": False}
         ui._render_grid()
-        ui._log(f"{len(months)} meses encontrados na colecao. Clique em Sincronizar para verificar o status de cada etapa.", "info")
+        ui._log(f"{len(months)} meses na colecao. Sincronizando automaticamente...", "info")
     else:
-        ui._log("Nao foi possivel consultar a colecao. Verifique a autenticacao GEE e clique em Sincronizar.", "warning")
+        ui._log("Nao foi possivel consultar a colecao. Verifique a autenticacao GEE.", "warning")
+
+    ui._on_sync(None)
 
     return ui
