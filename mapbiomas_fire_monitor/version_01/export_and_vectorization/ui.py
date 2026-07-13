@@ -183,7 +183,8 @@ class MonitorUI:
             bg = "#fcfcfc" if i % 2 == 0 else "#fff"
 
             date_cell = widgets.HTML(
-                f'<div style="width:{self._DATE_W};font-family:monospace;font-size:13px;color:#212529;font-weight:600;">{m}</div>'
+                f'<div style="width:{self._DATE_W};font-family:monospace;font-size:13px;color:#212529;font-weight:600;'
+                f'background:#e9ecef;padding:2px 6px;border-radius:3px;">{m}</div>'
             )
 
             exp_cell = widgets.HTML(

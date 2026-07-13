@@ -42,11 +42,22 @@ def list_months_in_collection():
         dates = col.aggregate_array('system:index').getInfo()
         months = set()
         for d in dates:
-            parts = str(d).split('_')
-            for p in parts:
-                if len(p) == 6 and p.isdigit():
-                    y, m = p[:4], p[4:]
-                    months.add(f"{y}_{m}")
+            d_str = str(d)
+            y, m = None, None
+            if len(d_str) == 6 and d_str.isdigit():
+                y, m = d_str[:4], d_str[4:]
+            elif '_' in d_str:
+                parts = d_str.split('_')
+                for p in parts:
+                    if len(p) == 6 and p.isdigit():
+                        y, m = p[:4], p[4:]
+                        break
+                    elif len(p) == 4 and p.isdigit():
+                        y = p
+                    elif len(p) == 2 and p.isdigit():
+                        m = p
+            if y and m and len(y) == 4 and 1 <= int(m) <= 12:
+                months.add(f"{y}_{m}")
         return sorted(months, reverse=True)
     except Exception:
         return []
