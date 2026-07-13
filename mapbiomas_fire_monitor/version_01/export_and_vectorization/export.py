@@ -5,15 +5,16 @@ EXPORT_FLAG = ""
 
 
 def get_image_for_month(year, month):
-    col = ee.ImageCollection(IMAGE_COLLECTION)
-    date_str = f"{year}_{month:02d}"
-    filtered = col.filter(ee.Filter.eq("system:index", date_str))
-    count = filtered.size().getInfo()
-    if count == 0:
-        filtered = col.filterDate(f"{year}-{month:02d}-01", f"{year}-{month+1:02d}-01" if month < 12 else f"{year+1}-01-01")
-        count2 = filtered.size().getInfo()
-        if count2 == 0:
-            return None
+    end_month = month + 1
+    end_year = year
+    if end_month > 12:
+        end_month = 1
+        end_year += 1
+    start = f"{year}-{month:02d}-01"
+    end = f"{end_year}-{end_month:02d}-01"
+    filtered = ee.ImageCollection(IMAGE_COLLECTION).filterDate(start, end)
+    if filtered.size().getInfo() == 0:
+        return None
     return filtered.mosaic()
 
 
