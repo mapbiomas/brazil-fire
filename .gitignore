@@ -19,3 +19,6 @@ dist/
 
 # Earth Engine Source Clones (Local copies)
 gee_source/
+
+# Monitor scratch (notebooks de desenvolvimento local)
+mapbiomas_fire_monitor/version_01/scratch/
