@@ -2,6 +2,7 @@ import os
 import subprocess
 import time
 import gc
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from state import BUCKET, TILES_PREFIX, MOSAIC_PREFIX, tile_pattern, mosaic_name, _get_fs
 
 
@@ -95,3 +96,34 @@ def assemble_mosaic(year, month, logger=None):
         if os.path.exists(work_dir):
             shutil.rmtree(work_dir, ignore_errors=True)
         gc.collect()
+
+
+def mosaic_selected(ui, logger=None):
+    selected = ui.get_selected_months()
+    if not selected:
+        if logger:
+            logger("[MOSAIC] Nenhum mes selecionado.", "warning")
+        return
+
+    workers = os.cpu_count() or 4
+
+    def _process(ym):
+        y, m = ym
+        if not list_tiles(y, m):
+            return f"[SKIP] {y}_{m:02d} — sem tiles no GCS"
+        ok = assemble_mosaic(y, m, logger=None)
+        return f"{'[OK]' if ok else '[FAIL]'} {y}_{m:02d}"
+
+    if logger:
+        logger(f"[MOSAIC] Iniciando mosaico de {len(selected)} meses ({workers} workers)...", "info")
+
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futures = {ex.submit(_process, ym): ym for ym in selected}
+        for f in as_completed(futures):
+            if logger:
+                logger(f.result())
+
+    if logger:
+        logger("[MOSAIC] Concluido. Clique em Sincronizar para atualizar a grid.", "success")
+
+    ui.sync()

@@ -1,102 +1,32 @@
-import datetime
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 
 from state import get_state, build_state
-from export import start_export
-from mosaic import assemble_mosaic
-from vectorize import vectorize_month, upload_to_gee
 
+L = widgets.Layout
 
-_STATUS_CSS = """<style>
+_STATUS_CSS = widgets.HTML("""<style>
 .mfm-ok   { background:#d4edda !important; border:1px solid #c3e6cb !important; }
 .mfm-run  { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
 .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
-.mfm-grid { width:100%; border-collapse:collapse; font-size:12px; }
-.mfm-grid th { background:#343a40; color:#fff; padding:6px 8px; text-align:center; font-weight:600; position:sticky; top:0; z-index:2; }
-.mfm-grid td { padding:4px 8px; text-align:center; border-bottom:1px solid #dee2e6; }
-.mfm-grid tr:hover { background:#f1f3f5; }
-.mfm-grid .col-date { text-align:left; font-family:monospace; }
-.mfm-grid .col-sel { width:40px; }
-</style>"""
+</style>""")
 
 
-def _status_badge(ok, label_ok="OK", label_miss="MISS"):
+def _badge(ok, label_ok="OK", label_miss="MISS"):
     if ok:
         return f'<span style="color:#155724;font-weight:700;font-size:10px;">{label_ok}</span>'
     return f'<span style="color:#adb5bd;font-size:10px;">{label_miss}</span>'
 
 
-def _build_grid(state):
-    months = sorted(
-        [k for k in state.keys() if k != "updated_at"],
-        reverse=True
-    )
-
-    now = datetime.datetime.now()
-    current_ym = f"{now.year}_{now.month:02d}"
-
-    rows_html = []
-    for m in months:
-        info = state.get(m, {})
-        exp = info.get("exported", False)
-        mos = info.get("mosaiced", False)
-        vgc = info.get("vectorized_gcs", False)
-        vge = info.get("vectorized_gee", False)
-
-        exp_badge = _status_badge(exp)
-        mos_badge = _status_badge(mos)
-        vgc_badge = _status_badge(vgc)
-        vge_badge = _status_badge(vge)
-
-        show_sel = not (exp and mos and vgc and vge)
-
-        rows_html.append(
-            f'<tr>'
-            f'<td class="col-date">{m}</td>'
-            f'<td>{exp_badge}</td>'
-            f'<td>{mos_badge}</td>'
-            f'<td>{vgc_badge}</td>'
-            f'<td>{vge_badge}</td>'
-            f'<td class="col-sel">{"☐" if show_sel else "✓"}</td>'
-            f'</tr>'
-        )
-
-    grid_html = f'''
-    <div style="max-height:500px; overflow-y:auto; overflow-x:hidden; border:1px solid #ddd; background:#fff;">
-        <table class="mfm-grid">
-            <thead>
-                <tr>
-                    <th style="width:100px;">Data</th>
-                    <th style="width:80px;">Export</th>
-                    <th style="width:80px;">Mosaico</th>
-                    <th style="width:80px;">Vetor GCS</th>
-                    <th style="width:80px;">Vetor GEE</th>
-                    <th style="width:50px;">Sel</th>
-                </tr>
-            </thead>
-            <tbody>
-                {"".join(rows_html)}
-            </tbody>
-        </table>
-    </div>
-    <p style="font-size:10px;color:#666;margin-top:4px;">
-        <span style="color:#155724;font-weight:700">OK</span> = completo
-        &nbsp;|&nbsp;
-        <span style="color:#adb5bd">MISS</span> = pendente
-        &nbsp;|&nbsp;
-        {len(months)} meses encontrados
-    </p>
-    '''
-    return widgets.HTML(grid_html)
-
-
 class MonitorUI:
+    _DATE_W = "100px"
+    _CELL_W = "80px"
+    _SEL_W  = "42px"
+
     def __init__(self):
         self.state = {"updated_at": None}
         self.chk_dict = {}
         self.is_refreshing = False
-        self.is_processing = False
         self.log_area = widgets.Output()
 
         self.grid_container = widgets.VBox([
@@ -104,71 +34,52 @@ class MonitorUI:
         ])
 
         self.btn_sync = widgets.Button(
-            description="Sincronizar",
-            button_style="success",
-            icon="refresh",
-            layout=widgets.Layout(width="180px")
+            description="Sincronizar", button_style="success", icon="refresh",
+            layout=L(width="180px")
         )
         self.btn_sync.on_click(self._on_sync)
 
         self.btn_select_pending = widgets.Button(
-            description="Selecionar Pendentes",
-            button_style="info",
-            layout=widgets.Layout(width="180px")
+            description="Selecionar Pendentes", button_style="info",
+            layout=L(width="200px")
         )
         self.btn_select_pending.on_click(self._on_select_pending)
 
         self.btn_clear = widgets.Button(
-            description="Limpar",
-            button_style="warning",
-            layout=widgets.Layout(width="80px")
+            description="Limpar", button_style="warning",
+            layout=L(width="80px")
         )
         self.btn_clear.on_click(self._on_clear)
 
-        self.btn_process = widgets.Button(
-            description="Processar Selecionados",
-            button_style="danger",
-            layout=widgets.Layout(width="220px")
-        )
-        self.btn_process.on_click(self._on_process)
-
         self.loader = widgets.HTML(
-            value='<span id="mon-loader" style="display:none;margin-left:10px;color:#3498db;">⏳ Processando...</span>'
+            value='<span id="mon-loader" style="display:none;margin-left:10px;color:#3498db;">Sincronizando...</span>'
         )
 
-        header = widgets.HTML(f'''
+        header = widgets.HTML(f"""
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 12px;background:#fff;border-bottom:2px solid #333;margin-bottom:10px;">
             <div>
-                <span style="font-weight:bold;font-size:16px;color:#333;">Export & Vectorization</span>
-                <span style="color:#888;font-size:11px;margin-left:12px;">Monitor do Fogo — Brasil</span>
+                <span style="font-weight:bold;font-size:16px;color:#333;">Export &amp; Vectorization</span>
+                <span style="color:#888;font-size:11px;margin-left:12px;">Monitor do Fogo &mdash; Brasil</span>
             </div>
             <div style="padding:3px 12px;background:#fff1f0;border:1px solid #ffa39e;border-radius:4px;">
                 <span style="color:#cf1322;font-size:10px;font-weight:bold;">MapBiomas Fire Monitor</span>
             </div>
         </div>
-        ''')
+        """)
 
-        footer = widgets.VBox([
-            widgets.HBox([
-                self.btn_select_pending,
-                self.btn_clear,
-                self.btn_sync,
-                self.loader,
-            ], layout=widgets.Layout(margin="10px 0", gap="10px", align_items="center")),
-            widgets.HBox([self.btn_process], layout=widgets.Layout(margin="5px 0")),
-        ])
+        footer = widgets.HBox([
+            self.btn_select_pending, self.btn_clear, self.btn_sync, self.loader,
+        ], layout=L(margin="10px 0", gap="10px", align_items="center"))
 
         self.container = widgets.VBox([
-            widgets.HTML(_STATUS_CSS),
+            _STATUS_CSS,
             header,
             self.grid_container,
             footer,
             self.log_area,
-        ], layout=widgets.Layout(
-            border="1px solid #ccc",
-            padding="10px",
-            border_radius="5px",
-            margin="10px 0"
+        ], layout=L(
+            border="1px solid #ccc", padding="10px",
+            border_radius="5px", margin="10px 0"
         ))
 
     def display(self):
@@ -188,6 +99,7 @@ class MonitorUI:
         self.is_refreshing = True
         self.btn_sync.disabled = True
         self.btn_sync.description = "Sincronizando..."
+        self.loader.value = self.loader.value.replace("display:none", "display:flex")
         self._log("Iniciando sincronizacao (GCS + GEE)...", "info")
         try:
             self.state = build_state(logger=self._log)
@@ -199,77 +111,115 @@ class MonitorUI:
             self.is_refreshing = False
             self.btn_sync.disabled = False
             self.btn_sync.description = "Sincronizar"
+            self.loader.value = self.loader.value.replace("display:flex", "display:none")
 
     def _render_grid(self):
-        self.grid_container.children = [_build_grid(self.state)]
+        self.chk_dict = {}
+
+        header_row = widgets.HBox([
+            widgets.HTML(f'<div style="width:{self._DATE_W};font-weight:700;font-size:11px;color:#fff;">Data</div>'),
+            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:11px;color:#fff;">Export</div>'),
+            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:11px;color:#fff;">Mosaico</div>'),
+            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:11px;color:#fff;">Vetor GCS</div>'),
+            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:11px;color:#fff;">Vetor GEE</div>'),
+            widgets.HTML(f'<div style="width:{self._SEL_W};text-align:center;font-weight:700;font-size:11px;color:#fff;">Sel</div>'),
+        ], layout=L(
+            background="#343a40", padding="5px 8px", min_height="30px",
+            align_items="center", overflow="visible"
+        ))
+
+        rows = [header_row]
+
+        months = sorted(
+            [k for k in self.state.keys() if k != "updated_at"],
+            reverse=True
+        )
+
+        row_layout = L(
+            align_items="center", min_height="32px",
+            border_bottom="1px solid #eee", padding="2px 8px",
+            overflow="visible", width="100%"
+        )
+
+        for m in months:
+            info = self.state.get(m, {})
+            exp_ok = info.get("exported", False)
+            mos_ok = info.get("mosaiced", False)
+            vgc_ok = info.get("vectorized_gcs", False)
+            vge_ok = info.get("vectorized_gee", False)
+
+            all_ok = exp_ok and mos_ok and vgc_ok and vge_ok
+
+            date_cell = widgets.HTML(
+                f'<div style="width:{self._DATE_W};font-family:monospace;font-size:11px;">{m}</div>'
+            )
+
+            exp_cell = widgets.HTML(
+                f'<div style="width:{self._CELL_W};text-align:center;">{_badge(exp_ok)}</div>'
+            )
+            mos_cell = widgets.HTML(
+                f'<div style="width:{self._CELL_W};text-align:center;">{_badge(mos_ok)}</div>'
+            )
+            vgc_cell = widgets.HTML(
+                f'<div style="width:{self._CELL_W};text-align:center;">{_badge(vgc_ok)}</div>'
+            )
+            vge_cell = widgets.HTML(
+                f'<div style="width:{self._CELL_W};text-align:center;">{_badge(vge_ok)}</div>'
+            )
+
+            chk = widgets.Checkbox(value=False, indent=False, layout=L(width="18px", height="18px", margin="0 auto"))
+            if all_ok:
+                chk.disabled = True
+
+            chk_wrapper = widgets.HBox([chk], layout=L(width=self._SEL_W, justify_content="center"))
+
+            self.chk_dict[m] = chk
+
+            rows.append(widgets.HBox(
+                [date_cell, exp_cell, mos_cell, vgc_cell, vge_cell, chk_wrapper],
+                layout=row_layout
+            ))
+
+        legend = widgets.HTML(
+            '<p style="font-size:10px;color:#666;margin:4px 0 0 8px;">'
+            '<span style="color:#155724;font-weight:700">OK</span> = completo'
+            ' &nbsp;|&nbsp; '
+            '<span style="color:#adb5bd">MISS</span> = pendente'
+            f' &nbsp;|&nbsp; {len(months)} meses'
+            '</p>'
+        )
+
+        self.grid_container.children = [
+            widgets.VBox(rows, layout=L(
+                max_height="450px", width="100%",
+                overflow_y="auto", overflow_x="hidden",
+                padding="0", border="1px solid #ddd",
+                background_color="#fff"
+            )),
+            legend,
+        ]
 
     def _on_select_pending(self, _):
-        self._render_grid()
-        self._log("Grid atualizado. Meses pendentes podem ser processados.", "info")
+        for key, chk in self.chk_dict.items():
+            if not chk.disabled:
+                chk.value = True
 
     def _on_clear(self, _):
+        for chk in self.chk_dict.values():
+            chk.value = False
+
+    def get_selected_months(self):
+        result = []
+        for key, chk in self.chk_dict.items():
+            if chk.value and not chk.disabled:
+                parts = key.split("_")
+                if len(parts) >= 2:
+                    result.append((int(parts[0]), int(parts[1])))
+        return result
+
+    def sync(self):
+        self.state = build_state(logger=self._log)
         self._render_grid()
-        self._log("Selecao limpa.", "info")
-
-    def _on_process(self, _):
-        if self.is_processing:
-            self._log("Ja existe um processamento em andamento.", "warning")
-            return
-        self.is_processing = True
-        self.btn_process.disabled = True
-        self.btn_process.description = "Processando..."
-        self._log("Iniciando processamento dos meses pendentes...", "info")
-
-        try:
-            months = sorted(
-                [k for k in self.state.keys() if k != "updated_at"],
-                reverse=True
-            )
-            for m in months:
-                info = self.state.get(m, {})
-                if info.get("exported") and info.get("mosaiced") and info.get("vectorized_gcs") and info.get("vectorized_gee"):
-                    continue
-
-                parts = m.split("_")
-                y, mo = int(parts[0]), int(parts[1])
-                self._log(f"--- Processando {m} ---", "info")
-
-                if not info.get("exported"):
-                    self._log(f"[EXPORT] {m}", "info")
-                    start_export(y, mo, logger=self._log)
-                    self.state = build_state(logger=None)
-                    self._render_grid()
-
-                if not info.get("mosaiced"):
-                    if info.get("exported"):
-                        self._log(f"[MOSAIC] {m}", "info")
-                        assemble_mosaic(y, mo, logger=self._log)
-                        self.state = build_state(logger=None)
-                        self._render_grid()
-
-                info2 = self.state.get(m, {})
-                if not info2.get("vectorized_gcs"):
-                    if info2.get("mosaiced"):
-                        self._log(f"[VECTORIZE] {m}", "info")
-                        vectorize_month(y, mo, logger=self._log)
-                        self.state = build_state(logger=None)
-                        self._render_grid()
-
-                info3 = self.state.get(m, {})
-                if not info3.get("vectorized_gee"):
-                    if info3.get("vectorized_gcs"):
-                        self._log(f"[UPLOAD GEE] {m}", "info")
-                        upload_to_gee(y, mo, logger=self._log)
-                        self.state = build_state(logger=None)
-                        self._render_grid()
-
-            self._log("Processamento concluido.", "success")
-        except Exception as e:
-            self._log(f"Erro no processamento: {e}", "error")
-        finally:
-            self.is_processing = False
-            self.btn_process.disabled = False
-            self.btn_process.description = "Processar Selecionados"
 
 
 def run_ui():

@@ -2,6 +2,7 @@ import os
 import subprocess
 import time
 import gc
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import geopandas as gpd
 from state import BUCKET, GEE_PROJECT, MOSAIC_PREFIX, VECTOR_PREFIX, VECTOR_ASSET_PREFIX, mosaic_name, vector_name, _get_fs
 
@@ -129,3 +130,62 @@ def upload_to_gee(year, month, logger=None):
         if logger:
             logger(f"[ERROR] GEE upload failed (exit code {result})")
         return False
+
+
+def _check_mosaic_gcs(year, month):
+    from state import _get_fs as _fs
+    path = f"{BUCKET}/{MOSAIC_PREFIX}/{mosaic_name(year, month)}.tif"
+    try:
+        return _fs().exists(path)
+    except Exception:
+        return False
+
+
+def vectorize_selected(ui, logger=None):
+    selected = ui.get_selected_months()
+    if not selected:
+        if logger:
+            logger("[VECTORIZE] Nenhum mes selecionado.", "warning")
+        return
+
+    workers = os.cpu_count() or 4
+
+    def _process(ym):
+        y, m = ym
+        if not _check_mosaic_gcs(y, m):
+            return f"[SKIP] {y}_{m:02d} — mosaico nao encontrado no GCS"
+        ok = vectorize_month(y, m, logger=None)
+        return f"{'[OK]' if ok else '[FAIL]'} {y}_{m:02d}"
+
+    if logger:
+        logger(f"[VECTORIZE] Iniciando vetorizacao de {len(selected)} meses ({workers} workers)...", "info")
+
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futures = {ex.submit(_process, ym): ym for ym in selected}
+        for f in as_completed(futures):
+            if logger:
+                logger(f.result())
+
+    if logger:
+        logger("[VECTORIZE] Concluido. Clique em Sincronizar para atualizar a grid.", "success")
+
+    ui.sync()
+
+
+def gee_upload_selected(ui, logger=None):
+    selected = ui.get_selected_months()
+    if not selected:
+        if logger:
+            logger("[GEE UPLOAD] Nenhum mes selecionado.", "warning")
+        return
+
+    if logger:
+        logger(f"[GEE UPLOAD] Iniciando upload de {len(selected)} meses para o GEE...", "info")
+
+    for year, month in selected:
+        upload_to_gee(year, month, logger=logger)
+
+    if logger:
+        logger("[GEE UPLOAD] Concluido. Clique em Sincronizar para atualizar a grid.", "success")
+
+    ui.sync()

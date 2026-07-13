@@ -61,3 +61,22 @@ def start_export(year, month, logger=None):
         logger(f"[EXPORT] Task submitted: {task_desc}")
 
     return task
+
+
+def export_selected(ui, logger=None):
+    selected = ui.get_selected_months()
+    if not selected:
+        if logger:
+            logger("[EXPORT] Nenhum mes selecionado.", "warning")
+        return
+
+    if logger:
+        logger(f"[EXPORT] Iniciando export de {len(selected)} meses...", "info")
+
+    for year, month in selected:
+        start_export(year, month, logger=logger)
+
+    if logger:
+        logger("[EXPORT] Todos os exports foram submetidos. Aguarde as tasks do GEE finalizarem, depois clique em Sincronizar.", "success")
+
+    ui.sync()
