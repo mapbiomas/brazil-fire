@@ -4,7 +4,7 @@ import time
 import gc
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import geopandas as gpd
-from state import BUCKET, GEE_PROJECT, MOSAIC_PREFIX, VECTOR_PREFIX, VECTOR_ASSET_PREFIX, mosaic_name, vector_name, _get_fs
+from .state import BUCKET, GEE_PROJECT, MOSAIC_PREFIX, VECTOR_PREFIX, VECTOR_ASSET_PREFIX, mosaic_name, vector_name, _get_fs
 
 
 def check_vector_gcs_exists(year, month):
@@ -133,7 +133,7 @@ def upload_to_gee(year, month, logger=None):
 
 
 def _check_mosaic_gcs(year, month):
-    from state import _get_fs as _fs
+    from .state import _get_fs as _fs
     path = f"{BUCKET}/{MOSAIC_PREFIX}/{mosaic_name(year, month)}.tif"
     try:
         return _fs().exists(path)

@@ -3,7 +3,7 @@ import subprocess
 import time
 import gc
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from state import BUCKET, TILES_PREFIX, MOSAIC_PREFIX, tile_pattern, mosaic_name, _get_fs
+from .state import BUCKET, TILES_PREFIX, MOSAIC_PREFIX, tile_pattern, mosaic_name, _get_fs
 
 
 def list_tiles(year, month):

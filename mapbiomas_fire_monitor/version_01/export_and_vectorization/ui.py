@@ -1,7 +1,7 @@
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 
-from state import get_state, build_state
+from .state import get_state, build_state
 
 L = widgets.Layout
 

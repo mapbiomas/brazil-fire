@@ -1,5 +1,5 @@
 import ee
-from state import IMAGE_COLLECTION, BUCKET, TILES_PREFIX, tile_pattern, _get_fs
+from .state import IMAGE_COLLECTION, BUCKET, TILES_PREFIX, tile_pattern, _get_fs
 
 EXPORT_FLAG = ""
 
