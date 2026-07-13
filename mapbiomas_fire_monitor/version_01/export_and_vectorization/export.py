@@ -1,5 +1,7 @@
 import ee
-from state import IMAGE_COLLECTION, BUCKET, GEE_PROJECT, TILES_PREFIX, tile_pattern, _get_fs
+from state import IMAGE_COLLECTION, BUCKET, TILES_PREFIX, tile_pattern, _get_fs
+
+EXPORT_FLAG = ""
 
 
 def get_image_for_month(year, month):
@@ -38,7 +40,7 @@ def start_export(year, month, logger=None):
         return False
 
     prefix = tile_pattern(year, month)
-    task_desc = f"MONITOR_EXPORT_{year}_{month:02d}"
+    task_desc = f"{EXPORT_FLAG}MONITOR_EXPORT_{year}_{month:02d}"
 
     if logger:
         logger(f"[EXPORT] Starting export: {task_desc} -> gs://{BUCKET}/{TILES_PREFIX}/{prefix}_*.tif")

@@ -4,7 +4,7 @@ import time
 import gcsfs
 
 BUCKET = "mapbiomas-fire"
-GEE_PROJECT = "mapbiomas-brazil"
+GEE_PROJECT = "ee-ipam"
 IMAGE_COLLECTION = "projects/mapbiomas-public/assets/brazil/fire/monitor/mapbiomas_fire_monthly_burned_v1"
 TILES_PREFIX = "monitor/monthly_images/temp"
 MOSAIC_PREFIX = "monitor/monthly_images/monthly_burned"
