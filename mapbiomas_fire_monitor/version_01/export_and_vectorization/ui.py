@@ -225,12 +225,5 @@ class MonitorUI:
 def run_ui():
     ui = MonitorUI()
     ui.display()
-
-    state = get_state()
-    if state and len(state) > 1:
-        ui.state = state
-        ui._render_grid()
-    else:
-        ui._log("Cache vazio. Clique em Sincronizar para carregar o estado.", "info")
-
+    ui._log("Clique em Sincronizar para carregar o estado.", "info")
     return ui

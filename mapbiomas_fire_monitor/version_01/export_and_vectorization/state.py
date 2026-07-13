@@ -19,7 +19,7 @@ _fs = None
 def _get_fs():
     global _fs
     if _fs is None:
-        _fs = gcsfs.GCSFileSystem(project=GEE_PROJECT, token='google_default')
+        _fs = gcsfs.GCSFileSystem(token='google_default')
     return _fs
 
 
