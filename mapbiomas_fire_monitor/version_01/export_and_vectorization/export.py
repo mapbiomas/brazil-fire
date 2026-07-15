@@ -47,7 +47,7 @@ def start_export(year, month, logger=None):
         logger(f"[EXPORT] Starting export: {task_desc} -> gs://{BUCKET}/{TILES_PREFIX}/{prefix}_*.tif")
 
     task = ee.batch.Export.image.toCloudStorage(
-        image=image.toByte(),
+        image=image.selfMask().toByte(),
         description=task_desc,
         bucket=BUCKET,
         fileNamePrefix=f"{TILES_PREFIX}/{prefix}_",
