@@ -65,6 +65,7 @@ def assemble_mosaic(year, month, logger=None):
             "gdal_translate",
             "-of", "GTiff",
             "-ot", "Byte",
+            "-a_nodata", "0",
             "-co", "TILED=YES",
             "-co", "COMPRESS=LZW",
             "-co", "PREDICTOR=2",
