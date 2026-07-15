@@ -15,7 +15,7 @@ def get_image_for_month(year, month):
     filtered = ee.ImageCollection(IMAGE_COLLECTION).filterDate(start, end)
     if filtered.size().getInfo() == 0:
         return None
-    return filtered.mosaic()
+    return filtered.first()
 
 
 def check_tiles_exist(year, month):
@@ -52,6 +52,7 @@ def start_export(year, month, logger=None):
         bucket=BUCKET,
         fileNamePrefix=f"{TILES_PREFIX}/{prefix}_",
         scale=30,
+        region=image.geometry().bounds(),
         maxPixels=1e13,
         fileFormat="GeoTIFF",
         formatOptions={"cloudOptimized": True},
