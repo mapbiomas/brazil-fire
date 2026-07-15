@@ -126,8 +126,10 @@ class MonitorUI:
         self.loader.value = self.loader.value.replace("display:none", "display:flex")
         self._log("Verificando arquivos no GCS e assets no GEE...", "info")
         try:
+            selected = self._get_selected_keys()
             self.state = build_state(logger=self._log)
             self._render_grid()
+            self._restore_selected(selected)
             completed = sum(
                 1 for k, v in self.state.items()
                 if k != "updated_at" and v.get("exported") and v.get("mosaiced")
@@ -258,9 +260,19 @@ class MonitorUI:
                     result.append((int(parts[0]), int(parts[1])))
         return result
 
+    def _get_selected_keys(self):
+        return [k for k, chk in self.chk_dict.items() if chk.value and not chk.disabled]
+
+    def _restore_selected(self, keys):
+        for k in keys:
+            if k in self.chk_dict:
+                self.chk_dict[k].value = True
+
     def sync(self):
+        selected = self._get_selected_keys()
         self.state = build_state(logger=self._log)
         self._render_grid()
+        self._restore_selected(selected)
 
 
 def run_ui():
