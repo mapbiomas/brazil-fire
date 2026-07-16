@@ -1,0 +1,71 @@
+# This file contains metadata for your plugin.
+
+# This file should be included when you package your plugin.
+# Mandatory items:
+
+[general]
+name=MapBiomas Fire
+qgisMinimumVersion=3.0
+qgisMaximumVersion=4.99
+description=This plugin allows access to MapBiomas fire products directly in QGIS
+version=1.0
+author=Newton Monteiro, Wallace Silva, Felipe Martenexen, Vera Laísa, João Ribeiro, IPAM Amazônia
+email= newton.monteiro@ipam.org.br, contato@mapbiomas.org 
+
+about=This plugin allows access to MapBiomas fire products directly in QGIS
+
+tracker=https://github.com/Newton787/osgeo_qgis_plugin_mapbiomas_fogo/issues
+repository=https://github.com/Newton787/osgeo_qgis_plugin_mapbiomas_fogo
+# End of mandatory metadata
+
+# Recommended items:
+
+hasProcessingProvider=no
+# Uncomment the following line and add your changelog:
+changelog=
+    0.1 
+    - First public release of the MapBiomas Fire plugin
+    - Direct access to MapBiomas fire products in QGIS
+    - Historical fire data visualization
+    - Updated metadata links
+    - Updated tracker and repository URLs in the metadata
+    0.5
+    - Fixed issues with API links
+    - Fixed the year issue in the burned area frequency map
+    1.0
+    - Added support for the new MapBiomas API to load fire products directly in QGIS
+    - Added territorial clipping with hierarchical territory selection
+    - Added clipping by custom user polygon geometry, uploaded to the API as a custom territory
+    - Added a dynamic legend based on API responses, with layer legend updates driven by context
+    - Added a layer statistics panel with area queries based on the loaded context
+    - Improved the statistics table with legend colors, a separate unit column, and a highlighted total row
+    - Improved statistics export with numeric value, formatted value, unit, and year range in separate columns
+    - Improved statistics error handling with a retry button and debug logs in the Python console
+    - Fixed territoryId selection to avoid redundant territorial requests
+    - Fixed the year filter in the burned area frequency map
+    - Updated metadata links, tracker, and repository
+    - Fixed issues with API links
+
+# Tags are comma separated with spaces allowed
+tags=python, fire, fire detection, burn scar, landsat, mapbiomas, fire, burn scar, area, historical series
+
+homepage=https://brasil.mapbiomas.org/
+category=Web
+icon=icon.png
+# experimental flag
+experimental=False
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
+# Since QGIS 3.8, a comma separated list of plugins to be installed
+# (or upgraded) can be specified.
+# Check the documentation for more information.
+# plugin_dependencies=
+
+# Category of the plugin: Raster, Vector, Database or Web
+# category=Database
+
+# If the plugin can run on QGIS Server.
+server=False
+
