@@ -81,7 +81,7 @@ MapBiomas is a collaborative network that monitors land use and land cover chang
 All fire data is provided by the **MapBiomas Project**, a collaborative initiative that monitors land use and land cover changes in Brazil using satellite imagery and advanced classification algorithms.
 
 - **Spatial Resolution**: 30 meters
-- **Temporal Coverage**: 2000-2024 (updated annually)
+- **Temporal Coverage**: 2000-2025 (updated annually)
 - **Geographic Coverage**: Complete Brazilian territory
 - **Data Source**: Landsat satellite imagery processed through Google Earth Engine
 
