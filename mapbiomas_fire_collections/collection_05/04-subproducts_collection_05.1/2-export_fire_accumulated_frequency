@@ -1,0 +1,73 @@
+/** Gera acumulado e frequência — MapBiomas Fogo Coleção 5.1 */
+
+var assetOutput = 'projects/mapbiomas-workspace/FOGO/COLLECTIONS/COL05/2_Subproducts_col51',
+    scale = 30,
+    mapbiomas = ee.Image('projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_coverage_v3'),
+    fireCol = ee.ImageCollection('projects/ee-geomapeamentoipam/assets/MAPBIOMAS_FOGO/COLECAO_5/Colecao51_fogo_mask'),
+    outAccumulated = 'mapbiomas_fire_collection51_accumulated_burned_v1',
+    outAccumulatedCoverage = 'mapbiomas_fire_collection51_accumulated_burned_coverage_v1',
+    outFrequency = 'mapbiomas_fire_collection51_fire_frequency_v1',
+    outFrequencyCoverage = 'mapbiomas_fire_collection51_fire_frequency_coverage_v1';
+
+// Duplica última banda, se necessário
+// mapbiomas = mapbiomas.addBands(mapbiomas.select('classification_2025'));
+
+var periods = Array.apply(null, Array(41)).map(function(_, i) { return [1985, 1985 + i]; })
+  .concat(Array.apply(null, Array(40)).map(function(_, i) { return [2025 - i, 2025]; }));
+
+var annualBurned = ee.Image(ee.List.sequence(1985, 2025).iterate(function(year, prev) {
+  year = ee.Number(year).int();
+  return ee.Image(prev).addBands(fireCol.filter(ee.Filter.eq('year', year)).mosaic().rename(ee.String('burned_coverage_').cat(year)));
+}, ee.Image().select()));
+
+function bands(p) {
+  return ee.List.sequence(p[0], p[1]).map(function(y) {
+    return ee.String('burned_coverage_').cat(ee.Number(y).int16());
+  });
+}
+
+function frequency(p) {
+  return annualBurned.select(bands(p)).gt(0).reduce(ee.Reducer.sum());
+}
+
+var fireAccumulated = ee.Image.cat(periods.map(function(p) {
+  return frequency(p).gt(0).rename('fire_accumulated_' + p[0] + '_' + p[1]);
+})).uint8();
+
+var fireAccumulatedCoverage = ee.Image.cat(periods.map(function(p) {
+  return mapbiomas.select('classification_' + p[1]).updateMask(frequency(p).gte(1)).rename('fire_accumulated_' + p[0] + '_' + p[1]);
+})).uint8();
+
+var fireFrequency = ee.Image.cat(periods.map(function(p) {
+  return frequency(p).rename('fire_frequency_' + p[0] + '_' + p[1]);
+})).uint8();
+
+var fireFrequencyCoverage = ee.Image.cat(periods.map(function(p) {
+  return frequency(p).multiply(100).add(mapbiomas.select('classification_' + p[1])).rename('fire_frequency_' + p[0] + '_' + p[1]);
+})).uint16();
+
+print('annualBurned', annualBurned);
+print('fireAccumulated', fireAccumulated);
+print('fireAccumulatedCoverage', fireAccumulatedCoverage);
+print('fireFrequency', fireFrequency);
+print('fireFrequencyCoverage', fireFrequencyCoverage);
+
+Map.addLayer(fireFrequency.select('fire_frequency_1985_2025'), {min: 0, max: 41}, 'frequency 1985-2025');
+
+function exportAsset(image, name) {
+  Export.image.toAsset({
+    image: image,
+    description: name,
+    assetId: assetOutput + '/' + name,
+    pyramidingPolicy: {'.default': 'mode'},
+    region: region,
+    scale: scale,
+    maxPixels: 1e13,
+    overwrite: true
+  });
+}
+
+exportAsset(fireAccumulated, outAccumulated);
+exportAsset(fireAccumulatedCoverage, outAccumulatedCoverage);
+exportAsset(fireFrequency, outFrequency);
+exportAsset(fireFrequencyCoverage, outFrequencyCoverage);
