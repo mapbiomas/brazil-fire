@@ -1,0 +1,80 @@
+/**
+ * @Description
+ * MapBiomas Fire Collection 5.1
+ *
+ * Generates and exports monthly and annual burned-area subproducts for Brazil:
+ *  - Monthly burned coverage: burned month encoded together with MapBiomas LULC classes.
+ *  - Annual burned coverage: annual burned-area mask combined with MapBiomas LULC classes.
+ *  - Monthly burned area: month of burning (1–12) for each year.
+ *  - Annual burned area: binary burned-area mask for each year.
+ *
+ * Period: 1985–2025
+ * Spatial resolution: 30 m
+ * Output: Google Earth Engine Assets
+ */
+
+var assetOutput = 'projects/mapbiomas-workspace/FOGO/COLLECTIONS/COL05/2_Subproducts_col51',
+    scale = 30,
+    mapbiomas = ee.Image('projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_coverage_v3'),
+    monthlyBurnedArea_col = ee.ImageCollection('projects/ee-geomapeamentoipam/assets/MAPBIOMAS_FOGO/COLECAO_5/Colecao51_fogo_mask'),
+    outMonthlyCoverage = 'mapbiomas_fire_collection51_monthly_burned_coverage_v1',
+    outAnnualCoverage = 'mapbiomas_fire_collection51_annual_burned_coverage_v1',
+    outMonthlyBurned = 'mapbiomas_fire_collection51_monthly_burned_v1',
+    outAnnualBurned = 'mapbiomas_fire_collection51_annual_burned_v1';
+
+// Duplicate the last MapBiomas band if required
+// mapbiomas = mapbiomas.addBands(mapbiomas.select('classification_2025'));
+
+// Build a multiband image with monthly burned-area information for each year
+var monthlyBurnedArea = ee.Image(ee.List.sequence(1985, 2025).iterate(function(year, prev) {
+  year = ee.Number(year).int();
+  return ee.Image(prev).addBands(
+    monthlyBurnedArea_col
+      .filter(ee.Filter.eq('year', year))
+      .mosaic()
+      .rename(ee.String('burned_coverage_').cat(year))
+  );
+}, ee.Image().select()));
+
+// Generate monthly/annual burned coverage and burned-area products
+var monthlyBurnedCoverage = monthlyBurnedArea.multiply(100).add(mapbiomas).uint16(),
+    annualBurnedCoverage = monthlyBurnedArea.gte(1).multiply(mapbiomas).uint8(),
+    monthlyBandNames = monthlyBurnedCoverage.bandNames().map(function(b) {
+      return ee.String(b).replace('burned_coverage_', 'burned_monthly_');
+    }),
+    monthlyBurned = monthlyBurnedCoverage.rename(monthlyBandNames).select(monthlyBandNames).divide(100).uint8(),
+    annualBandNames = monthlyBandNames.map(function(b) {
+      return ee.String(b).replace('burned_monthly_', 'burned_area_');
+    }),
+    annualBurned = monthlyBurned.gt(0).rename(annualBandNames).uint8();
+
+// Inspect intermediate and final products
+print('monthlyBurnedArea_col', monthlyBurnedArea_col);
+print('monthlyBurnedArea', monthlyBurnedArea);
+print('monthlyBurnedCoverage', monthlyBurnedCoverage);
+print('annualBurnedCoverage', annualBurnedCoverage);
+print('monthlyBurned', monthlyBurned);
+print('annualBurned', annualBurned);
+
+// Visualize the latest annual burned-area mask
+Map.addLayer(annualBurned.select('burned_area_2025'), {min: 0, max: 1}, 'burned_area_2025');
+
+// Export image to asset
+function exportAsset(image, name) {
+  Export.image.toAsset({
+    image: image,
+    description: name,
+    assetId: assetOutput + '/' + name,
+    pyramidingPolicy: {'.default': 'mode'},
+    region: region,
+    scale: scale,
+    maxPixels: 1e13,
+    overwrite: true
+  });
+}
+
+// Export final products
+exportAsset(monthlyBurnedCoverage, outMonthlyCoverage);
+exportAsset(annualBurnedCoverage, outAnnualCoverage);
+exportAsset(monthlyBurned, outMonthlyBurned);
+exportAsset(annualBurned, outAnnualBurned);
