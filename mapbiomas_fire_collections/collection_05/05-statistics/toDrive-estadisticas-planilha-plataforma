@@ -1,0 +1,994 @@
+
+/**
+ * @description  - calculate scar fire area for conservation units, biomes, states, and land tenure.
+ * 
+ * @author: Instituto de Pesquisa Ambiental da Amazônia
+ * @development: Wallace Silva e Vera Laisa;
+ *
+ * Este script combina e universaliza versões anteriores para permitir análises flexíveis
+ * de 14 subprodutos da Coleção 5 do MapBiomas Fogo (7 puros + 7 cruzados com LULC)
+ * em diferentes unidades espaciais (Unidades de Conservação, Terras Indígenas, Biomas, Estados, Base Fundiária).
+ *
+ * ATUALIZADO PARA COLEÇÃO 5 DO MAPBIOMAS FOGO
+ *
+ */
+
+// --- 1. CONFIGURAÇÕES GLOBAIS ---
+var driverFolder = 'MapBiomas_Fogo_Analises_Universal_Col5'; // Pasta raiz no Google Drive para exportação
+var collection = 'MapBiomas Fogo Coleção 5';
+var scale = 30; // Resolução dos pixels em metros
+
+
+// --- 2. CARREGAMENTO DE DADOS BASE ---
+
+// Imagem de Uso e Cobertura da Terra (LULC) - Coleção 10.1
+var lulc = ee.Image('projects/mapbiomas-public/assets/brazil/lulc/collection10_1/mapbiomas_brazil_collection10_1_coverage_v1');
+// Duplica a última banda (2024) como 2025 (artificial)
+lulc = lulc.addBands(lulc.select('classification_2024').rename('classification_2025'));
+
+// Imagens de Fogo MapBiomas Coleção 5
+var annual_fire = ee.Image('projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_monthly_burned_v1');
+var annual_burned = ee.Image('projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_v1');
+var fire_frequency = ee.Image('projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_fire_frequency_v1').slice(0,41);
+var year_last_fire = ee.Image('projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_year_last_fire_v1');
+var scar_size_range = ee.Image('projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_scar_size_range_v1');
+var time_after_fire = ee.Image('projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_time_after_fire_v1');
+var accumulated_burned = ee.Image('projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_v1');
+
+// Combinações de dados de fogo com LULC
+var annual_burned_coverage = annual_burned.multiply(100).unmask().add(lulc);
+var monthly_burned_coverage = annual_fire.multiply(100).unmask().add(lulc);
+var fire_frequency_coverage = fire_frequency.multiply(100).unmask().add(lulc);
+var year_last_fire_coverage = year_last_fire.int().multiply(100).unmask().add(lulc.select('classification_2025'));
+var scar_size_range_coverage = scar_size_range.multiply(100).unmask().add(lulc);
+var time_after_fire_coverage = time_after_fire.int().multiply(100).unmask().add(lulc.select('classification_2025'));
+var accumulated_burned_coverage = accumulated_burned.multiply(100).unmask().add(lulc.select('classification_2025'));
+
+// Geometria global para reduceRegion (limite do Brasil ou área de interesse)
+var global_geometry = ee.FeatureCollection('users/geomapeamentoipam/AUXILIAR/regioes_biomas_col2').geometry().bounds();
+
+
+// --- 3. FERRAMENTAS E LEGENDAS ---
+
+// Módulos de lendas externos
+var legends = require('users/geomapeamentoipam/MapBiomas__Fogo:00_Tools/Legends.js');
+var legends_territorios = require('users/geomapeamentoipam/MapBiomas__Fogo:00_Tools/Legends_territorios.js');
+
+// Consolidação de todas as lendas para fácil acesso
+var LEGENDS = {
+    regions: ee.Dictionary(legends.get('fogo_regions_col2')),
+    biomes: ee.Dictionary(legends.get('biomas')),
+    estados: ee.Dictionary(legends.get('estados')),
+    ufs: ee.Dictionary(legends.get('ufs')),
+    tisNM: ee.Dictionary(legends_territorios.get('tis_name')),
+    estadual_ucs_pi_NM: ee.Dictionary(legends_territorios.get('estadual_ucs_pi_name')),
+    estadual_ucs_us_NM: ee.Dictionary(legends_territorios.get('estadual_ucs_us_name')),
+    federal_ucs_pi_NM: ee.Dictionary(legends_territorios.get('federal_ucs_pi_name')),
+    federal_ucs_us_NM: ee.Dictionary(legends_territorios.get('federal_ucs_us_name')),
+
+    // Lendas de LULC em um nível direto, conforme solicitado
+    lulc_nivel_0: ee.Dictionary(legends.get('lulc_mbc10_nivel_0')),
+    lulc_nivel_1: ee.Dictionary(legends.get('lulc_mbc10_nivel_1')),
+    lulc_nivel_1_1: ee.Dictionary(legends.get('lulc_mbc10_nivel_1_1')),
+    lulc_nivel_2: ee.Dictionary(legends.get('lulc_mbc10_nivel_2')),
+    lulc_nivel_3: ee.Dictionary(legends.get('lulc_mbc10_nivel_3')),
+    lulc_nivel_4: ee.Dictionary(legends.get('lulc_mbc10_nivel_4')),
+
+    fundiario_n1:ee.Dictionary({
+      1:'Terras Públicas',
+      2:'Terras Públicas',
+      3:'Terras Públicas',
+      4:'Terras Públicas',
+      5:'Terras Públicas',
+      6:'Terras Privadas',
+      7:'Terras Privadas',
+      8:'Terras Privadas',
+      9:'Terras Privadas',
+      10:'Terras Privadas',
+      11:'Terras sob regime do SNUC',
+      12:'Terras sob regime do SNUC',
+      16:'Terras Públicas',
+      17:'Terras Públicas',
+      18:'Terras Públicas',
+      19:'Terras Públicas',
+      20:'Terras Privadas',
+      99:'Outras sobreposições',
+      13:'Área sem Registro Fundiário Georreferenciado',
+      15:'Outras sobreposições',
+      14:'Outras sobreposições',
+    }),
+    fundiario_n2:ee.Dictionary({
+      1:'Terra Indígena',
+      2:'Terra Indígena',
+      3:'Áreas militares',
+      4:'Glebas públicas',
+      5:'Glebas públicas – FPND',
+      6:'Território Quilombola',
+      7:'Território Quilombola',
+      8:'Imóvel rural privado',
+      9:'Assentamento',
+      10:'Assentamento',
+      11:'Unidades de Conservação',
+      12:'Unidades de Conservação',
+      16:'Unidades de Conservação',
+      17:'Terra Indígena',
+      18:'Terra Indígena',
+      19:'Terra Indígena',
+      20:'Imóvel Rural Privado',
+      99:'Outras sobreposições',
+      13:'Área sem Registro Fundiário Georreferenciado',
+      15:'Outras sobreposições',
+      14:'Outras sobreposições',
+    }),
+    fundiario_n3: ee.Dictionary({
+      1:'Terras Indígena Homologada',
+      2:'Terras Indígena não Homologada',
+      3:'Áreas militares',
+      4:'Glebas públicas',
+      5:'Glebas públicas – FPND',
+      6:'Território Quilombola Declarado',
+      7:'Território Quilombola não Declarado',
+      8:'Imóvel rural privado',
+      9:'Assentamento-A',
+      10:'Assentamento-B',
+      11:'UC Uso Sustentável',
+      12:'UC Proteção Integral',
+      16:'Imóvel Rural Privado e UCPI',
+      17:'Terra Indígena Homologada e UCPI',
+      18:'Terra Indígena não Homologada e UCUS',
+      19:'Terra Indígena não Homologada e UCPI',
+      20:'Imóvel Rural Privado e UCUS',
+      99:'Outras sobreposições',
+      13:'Área sem Registro Fundiário Georreferenciado',
+      15:'Outras sobreposições',
+      14:'Outras sobreposições',
+    }),
+    fire_frequency_legend: (function(){
+      var d = {};
+      for(var i=0;i<=41;i++) d[i]=i;
+      return ee.Dictionary(d);
+    })(),
+    year_last_fire_legend: (function(){
+      var d = {0:0};
+      for(var i=1985;i<=2025;i++) d[i]=i;
+      return ee.Dictionary(d);
+    })(),
+    time_after_fire_legend: (function(){
+      var d = {};
+      for(var i=0;i<=41;i++) d[i]=i;
+      return ee.Dictionary(d);
+    })(),
+    binary_fire_legend: ee.Dictionary({0:'Não fogo', 1:'Fogo'}),
+    monthly: ee.Dictionary({0:'Não Observado', 1:'Janeiro',2:'Fevereiro',3:'Março',4:'Abril',5:'Maio',6:'Junho',7:'Julho',8:'Agosto',9:'Setembro',10:'Outubro',11:'Novembro',12:'Dezembro'}),
+    month: ee.Dictionary({0:0, 1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,11:11,12:12}),
+    tamanhos_n1:ee.Dictionary({
+      0:  'Não observado',
+      1:	'< 10 ha',
+      2:	'10 - 250 ha',
+      3:	'250 - 500 ha',
+      4:	'500 - 5.000 ha',
+      5:	'5.000 - 10.000 ha',
+      6:	'10.000 - 50.000 ha',
+      7:	'50.000 - 100.000 ha',
+      8:	'>= 100.000 ha',
+    }),
+    tamanhos_n2:ee.Dictionary({
+      0:  'Não observado',
+      1:	'< 10 ha',
+      2:	'10 - 250 ha',
+      3:	'250 - 500 ha',
+      4:	'500 - 5.000 ha',
+      5:	'5.000 - 10.000 ha',
+      6:	'10.000 - 50.000 ha',
+      7:	'50.000 - 100.000 ha',
+      8:	'>= 100.000 ha',
+    })
+
+};
+
+/**
+ * Área de pixel em km².
+ */
+var pixelArea = ee.Image.pixelArea().divide(1000000);
+
+/**
+ * Função universal para extrair o ano de um nome de banda,
+ * considerando que o ano são sempre os últimos 4 dígitos.
+ * @param {string} bandname O nome da banda.
+ * @returns {ee.Number} O ano extraído como um ee.Number.
+ */
+var getYearFromBandnameUniversal = function(bandname) {
+    return ee.Number.parse(ee.String(bandname).slice(-4));
+};
+
+
+// --- 4. DEFINIÇÃO DOS DATASETS DE ENTRADA (MAPAS) ---
+var FIRE_DATASETS = [
+    // ===== PRODUTOS PUROS (Apenas Fogo) =====
+    {
+        id:'annual_burned',
+        name:'annual_burned',
+        description: 'Área Queimada Anual',
+        image: annual_burned,
+        legend_column_name: 'Situação',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Situação', LEGENDS.binary_fire_legend.get(classId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Situação']
+    },
+    {
+        id:'monthly_burned',
+        name:'monthly_burned',
+        description: 'Área Queimada Mensal',
+        image: annual_fire,
+        legend_column_name: 'Mês',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Situação', LEGENDS.binary_fire_legend.get(classId.gte(1)));
+            pixel_props = pixel_props.set('Mês', LEGENDS.monthly.get(classId));
+            pixel_props = pixel_props.set('Meses', LEGENDS.month.get(classId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Situação', 'Mês', 'Meses']
+    },
+    {
+        id:'fire_frequency',
+        name:'fire_frequency',
+        description: 'Frequência de Fogo (1985-2025)',
+        image: fire_frequency,
+        legend_column_name: 'Frequência',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Frequência', LEGENDS.fire_frequency_legend.get(classId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Frequência']
+    },
+    {
+        id:'year_last_fire',
+        name:'year_last_fire',
+        description: 'Ano do Último Fogo',
+        image: year_last_fire,
+        legend_column_name: 'Ano do Último Fogo',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Ano do Último Fogo', LEGENDS.year_last_fire_legend.get(classId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Ano do Último Fogo']
+    },
+    {
+        id:'scar_size_range',
+        name:'scar_size_range',
+        description: 'Área Queimada por classe de tamanho (Col5)',
+        image: scar_size_range,
+        legend_column_name: 'Situação',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Situação', LEGENDS.binary_fire_legend.get(classId.gte(1)));
+            pixel_props = pixel_props.set('Tamanhos da cicatriz N1', LEGENDS.tamanhos_n1.get(classId));
+            pixel_props = pixel_props.set('Tamanhos da cicatriz N2', LEGENDS.tamanhos_n2.get(classId));
+            pixel_props = pixel_props.set('Classe de tamanho', LEGENDS.tamanhos_n2.get(classId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Situação', 'Tamanhos da cicatriz N1', 'Tamanhos da cicatriz N2', 'Classe de tamanho']
+    },
+    {
+        id:'time_after_fire',
+        name:'time_after_fire',
+        description: 'Tempo desde o último fogo (Col5)',
+        image: time_after_fire,
+        legend_column_name: 'Tempo desde o último fogo',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Tempo desde o último fogo', LEGENDS.time_after_fire_legend.get(classId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Tempo desde o último fogo']
+    },
+    {
+        id:'accumulated_burned',
+        name:'accumulated_burned',
+        description: 'Área Queimada Acumulada',
+        image: accumulated_burned,
+        legend_column_name: 'Situação',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Situação', LEGENDS.binary_fire_legend.get(classId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Situação']
+    },
+    // ===== PRODUTOS CRUZADOS (Fogo + LULC) =====
+    {
+        id:'annual_burned_coverage',
+        name:'annual_burned_coverage',
+        description: 'Área Queimada Anual + LULC',
+        image: annual_burned_coverage,
+        legend_column_name: 'Situação',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var burned = classId.divide(100).int();
+            var lulcId = classId.mod(100).int();
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Situação', LEGENDS.binary_fire_legend.get(burned));
+            pixel_props = pixel_props
+                .set('Nível 0', LEGENDS.lulc_nivel_0.get(lulcId))
+                .set('Nível 1', LEGENDS.lulc_nivel_1.get(lulcId))
+                .set('Nível 1_1', LEGENDS.lulc_nivel_1_1.get(lulcId))
+                .set('Nível 2', LEGENDS.lulc_nivel_2.get(lulcId))
+                .set('Nível 3', LEGENDS.lulc_nivel_3.get(lulcId))
+                .set('Nível 4', LEGENDS.lulc_nivel_4.get(lulcId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Situação', 'Nível 0', 'Nível 1', 'Nível 1_1', 'Nível 2', 'Nível 3', 'Nível 4']
+    },
+    {
+        id:'monthly_burned_coverage',
+        name:'monthly_burned_coverage',
+        description: 'Área Queimada Mensal + LULC',
+        image: monthly_burned_coverage,
+        legend_column_name: 'Situação',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var burned_status = classId.divide(100).int();
+            var lulcId = classId.mod(100).int();
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Situação', LEGENDS.binary_fire_legend.get(burned_status.gte(1)));
+            pixel_props = pixel_props.set('Mês', LEGENDS.monthly.get(burned_status));
+            pixel_props = pixel_props.set('Meses', LEGENDS.month.get(burned_status));
+            pixel_props = pixel_props
+                .set('Nível 0', LEGENDS.lulc_nivel_0.get(lulcId))
+                .set('Nível 1', LEGENDS.lulc_nivel_1.get(lulcId))
+                .set('Nível 1_1', LEGENDS.lulc_nivel_1_1.get(lulcId))
+                .set('Nível 2', LEGENDS.lulc_nivel_2.get(lulcId))
+                .set('Nível 3', LEGENDS.lulc_nivel_3.get(lulcId))
+                .set('Nível 4', LEGENDS.lulc_nivel_4.get(lulcId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Situação', 'Mês', 'Meses', 'Nível 0', 'Nível 1', 'Nível 1_1', 'Nível 2', 'Nível 3', 'Nível 4']
+    },
+    {
+        id:'fire_frequency_coverage',
+        name:'fire_frequency_coverage',
+        description: 'Frequência de Fogo (1985-2025) + LULC',
+        image: fire_frequency_coverage,
+        legend_column_name: 'Frequência',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var freq = classId.divide(100).int();
+            var lulcId = classId.mod(100).int();
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Frequência', LEGENDS.fire_frequency_legend.get(freq));
+            pixel_props = pixel_props
+                .set('Nível 0', LEGENDS.lulc_nivel_0.get(lulcId))
+                .set('Nível 1', LEGENDS.lulc_nivel_1.get(lulcId))
+                .set('Nível 1_1', LEGENDS.lulc_nivel_1_1.get(lulcId))
+                .set('Nível 2', LEGENDS.lulc_nivel_2.get(lulcId))
+                .set('Nível 3', LEGENDS.lulc_nivel_3.get(lulcId))
+                .set('Nível 4', LEGENDS.lulc_nivel_4.get(lulcId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Frequência', 'Nível 0', 'Nível 1', 'Nível 1_1', 'Nível 2', 'Nível 3', 'Nível 4']
+    },
+    {
+        id:'year_last_fire_coverage',
+        name:'year_last_fire_coverage',
+        description: 'Ano do Último Fogo (até 2025) + LULC 2025',
+        image: year_last_fire_coverage,
+        legend_column_name: 'Ano do Último Fogo',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var year = classId.divide(100).int();
+            var lulcId = classId.mod(100).int();
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Ano do Último Fogo', LEGENDS.year_last_fire_legend.get(year));
+            pixel_props = pixel_props
+                .set('Classe', lulcId)
+                .set('Nível 0', LEGENDS.lulc_nivel_0.get(lulcId))
+                .set('Nível 1', LEGENDS.lulc_nivel_1.get(lulcId))
+                .set('Nível 1_1', LEGENDS.lulc_nivel_1_1.get(lulcId))
+                .set('Nível 2', LEGENDS.lulc_nivel_2.get(lulcId))
+                .set('Nível 3', LEGENDS.lulc_nivel_3.get(lulcId))
+                .set('Nível 4', LEGENDS.lulc_nivel_4.get(lulcId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Ano do Último Fogo', 'Classe','Nível 0', 'Nível 1', 'Nível 1_1', 'Nível 2', 'Nível 3', 'Nível 4']
+    },
+    {
+        id:'scar_size_range_coverage',
+        name:'scar_size_range_coverage',
+        description: 'Área Queimada por classe de tamanho (Col5) + LULC',
+        image: scar_size_range_coverage,
+        legend_column_name: 'Situação',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var burned_status = classId.divide(100).int();
+            var lulcId = classId.mod(100).int();
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Situação', LEGENDS.binary_fire_legend.get(burned_status.gte(1)));
+            pixel_props = pixel_props.set('Tamanhos da cicatriz N1', LEGENDS.tamanhos_n1.get(burned_status));
+            pixel_props = pixel_props.set('Tamanhos da cicatriz N2', LEGENDS.tamanhos_n2.get(burned_status));
+            pixel_props = pixel_props.set('Classe de tamanho', LEGENDS.tamanhos_n2.get(burned_status));
+            pixel_props = pixel_props
+                .set('Classe', lulcId)
+                .set('Nível 0', LEGENDS.lulc_nivel_0.get(lulcId))
+                .set('Nível 1', LEGENDS.lulc_nivel_1.get(lulcId))
+                .set('Nível 1_1', LEGENDS.lulc_nivel_1_1.get(lulcId))
+                .set('Nível 2', LEGENDS.lulc_nivel_2.get(lulcId))
+                .set('Nível 3', LEGENDS.lulc_nivel_3.get(lulcId))
+                .set('Nível 4', LEGENDS.lulc_nivel_4.get(lulcId));
+            return pixel_props;
+        },
+        expected_output_columns: [
+          'Situação', 'Classe', 'Nível 0', 'Nível 1', 'Nível 1_1', 'Nível 2', 'Nível 3', 'Nível 4','Tamanhos da cicatriz N1','Tamanhos da cicatriz N2','Classe de tamanho'
+          ]
+    },
+    {
+        id:'time_after_fire_coverage',
+        name:'time_after_fire_coverage',
+        description: 'Tempo desde o último fogo (Col5) + LULC',
+        image: time_after_fire_coverage,
+        legend_column_name: 'Tempo desde o último fogo',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var time_since = classId.divide(100).int();
+            var lulcId = classId.mod(100).int();
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Tempo desde o último fogo', LEGENDS.time_after_fire_legend.get(time_since));
+            pixel_props = pixel_props
+                .set('Classe', lulcId)
+                .set('Nível 0', LEGENDS.lulc_nivel_0.get(lulcId))
+                .set('Nível 1', LEGENDS.lulc_nivel_1.get(lulcId))
+                .set('Nível 1_1', LEGENDS.lulc_nivel_1_1.get(lulcId))
+                .set('Nível 2', LEGENDS.lulc_nivel_2.get(lulcId))
+                .set('Nível 3', LEGENDS.lulc_nivel_3.get(lulcId))
+                .set('Nível 4', LEGENDS.lulc_nivel_4.get(lulcId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Tempo desde o último fogo', 'Classe', 'Nível 0', 'Nível 1', 'Nível 1_1', 'Nível 2', 'Nível 3', 'Nível 4']
+    },
+    {
+        id:'accumulated_burned_coverage',
+        name:'accumulated_burned_coverage',
+        description: 'Área Queimada Acumulada + LULC 2025',
+        image: accumulated_burned_coverage,
+        legend_column_name: 'Situação',
+        decodeStrategy: function(classId, legendColName) {
+            classId = ee.Number(classId);
+            var burned = classId.divide(100).int();
+            var lulcId = classId.mod(100).int();
+            var pixel_props = ee.Dictionary();
+            pixel_props = pixel_props.set('Situação', LEGENDS.binary_fire_legend.get(burned));
+            pixel_props = pixel_props
+                .set('Nível 0', LEGENDS.lulc_nivel_0.get(lulcId))
+                .set('Nível 1', LEGENDS.lulc_nivel_1.get(lulcId))
+                .set('Nível 1_1', LEGENDS.lulc_nivel_1_1.get(lulcId))
+                .set('Nível 2', LEGENDS.lulc_nivel_2.get(lulcId))
+                .set('Nível 3', LEGENDS.lulc_nivel_3.get(lulcId))
+                .set('Nível 4', LEGENDS.lulc_nivel_4.get(lulcId));
+            return pixel_props;
+        },
+        expected_output_columns: ['Situação', 'Nível 0', 'Nível 1', 'Nível 1_1', 'Nível 2', 'Nível 3', 'Nível 4']
+    }
+];
+
+
+// --- 5. DEFINIÇÃO DOS COMPONENTES E UNIDADES ESPACIAIS DE ANÁLISE ---
+
+// Definindo os componentes básicos dos territórios
+var SPATIAL_COMPONENTS = {
+    biomes_regions: {
+        id: 'bioma_regiao',
+        image_generator: function() {
+            var regions_table = ee.FeatureCollection('users/geomapeamentoipam/AUXILIAR/regioes_biomas_col2');
+            // Correção do bioma: dividir por 10 e depois int() para o ID do bioma (1-6)
+            return ee.Image().paint(regions_table, 'region').divide(10).int();
+        },
+        getProperties: function(combined_id) {
+            var regionsId = combined_id.int(); // Já é o ID do bioma (1-6)
+            return ee.Dictionary({
+                'Bioma': LEGENDS.biomes.get(regionsId),
+            });
+        }
+    },
+    states: {
+        id: 'estado',
+        image_generator: function() {
+            var states = ee.FeatureCollection('projects/mapbiomas-workspace/AUXILIAR/estados-2017')
+                .map(function(feat){return feat.set('CD_GEOCUF',ee.Number.parse(feat.get('CD_GEOCUF')))});
+            return ee.Image().paint(states,'CD_GEOCUF');
+        },
+        getProperties: function(combined_id) {
+            var stateId = combined_id.int();
+            return ee.Dictionary({
+                'Estado': LEGENDS.estados.get(stateId),
+                'UF': LEGENDS.ufs.get(stateId)
+            });
+        }
+    },
+    fundiario: {
+        id: 'fundiario',
+        image_generator: function() {
+            var fundiario = ee.Image('projects/mapbiomas-workspace/AUXILIAR/IMAFLORA2025/malhafundiaria_br_Imaflora_abril2025');
+            var classIdIn = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 18, 19, 20, 99, 13, 15, 14, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 116, 117, 118, 119, 120, 199, 113, 115, 114];
+            var classIdOut = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 1, 2, 2, 8, 99, 13, 15, 14, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 1, 2, 2, 8, 99, 13, 15, 14];
+            return fundiario.remap(classIdIn, classIdOut);
+        },
+        getProperties: function(combined_id) {
+            var fundiarioId = combined_id.int();
+            return ee.Dictionary({
+                'Tipo Fundiário N1': LEGENDS.fundiario_n1.get(fundiarioId),
+                'Tipo Fundiário N2': LEGENDS.fundiario_n2.get(fundiarioId),
+                'Tipo Fundiário N3': LEGENDS.fundiario_n3.get(fundiarioId),
+                'Código Fundiário': fundiarioId
+            });
+        }
+    }
+};
+
+// Definindo AS UNIDADES DE ANÁLISE DIRETAMENTE
+var SPATIAL_UNITS = [
+    // Recorte: Somente Bioma
+    {
+        id: 'bioma_only',
+        name: 'Bioma',
+        description: 'Recorte por Bioma',
+        image_generator: function() {
+            return SPATIAL_COMPONENTS.biomes_regions.image_generator();
+        },
+        getProperties: function(combined_territory_id) {
+            return SPATIAL_COMPONENTS.biomes_regions.getProperties(combined_territory_id);
+        },
+        expected_output_columns: ['Bioma']
+    },
+    // Recorte: Bioma e Estado
+    {
+        id: 'bioma_estado',
+        name: 'Bioma_Estado',
+        description: 'Recorte por Bioma e Estado',
+        image_generator: function() {
+            var biome_img = SPATIAL_COMPONENTS.biomes_regions.image_generator();
+            var state_img = SPATIAL_COMPONENTS.states.image_generator();
+            return biome_img.multiply(100).add(state_img); // Bioma * 100 + Estado
+        },
+        getProperties: function(combined_territory_id) {
+            var biome_id = combined_territory_id.divide(100).int();
+            var state_id = combined_territory_id.mod(100).int();
+            var props = ee.Dictionary();
+            props = props.combine(SPATIAL_COMPONENTS.biomes_regions.getProperties(biome_id));
+            props = props.combine(SPATIAL_COMPONENTS.states.getProperties(state_id));
+            return props;
+        },
+        expected_output_columns: ['Bioma', 'Estado', 'UF']
+    },
+    // Recorte: Bioma, Estado e Fundiário
+    {
+        id: 'bioma_estado_fundiario',
+        name: 'Bioma_Estado_Fundiario',
+        description: 'Recorte por Bioma, Estado e Base Fundiária',
+        image_generator: function() {
+            var biome_img = SPATIAL_COMPONENTS.biomes_regions.image_generator();
+            var state_img = SPATIAL_COMPONENTS.states.image_generator();
+            var fundiario_img = SPATIAL_COMPONENTS.fundiario.image_generator();
+            return biome_img.multiply(10000).add(state_img.multiply(100)).add(fundiario_img);
+        },
+        getProperties: function(combined_territory_id) {
+            var biome_id = combined_territory_id.divide(10000).int();
+            var state_id = combined_territory_id.divide(100).int().mod(100).int();
+            var fundiario_id = combined_territory_id.mod(100).int();
+            var props = ee.Dictionary();
+            props = props.combine(SPATIAL_COMPONENTS.biomes_regions.getProperties(biome_id));
+            props = props.combine(SPATIAL_COMPONENTS.states.getProperties(state_id));
+            props = props.combine(SPATIAL_COMPONENTS.fundiario.getProperties(fundiario_id));
+            return props;
+        },
+        expected_output_columns: ['Bioma', 'Estado', 'UF', 'Tipo Fundiário N1', 'Tipo Fundiário N2', 'Tipo Fundiário N3', 'Código Fundiário']
+    },
+    // --- Terras Indígenas (FC rasterizada, combinada com Bioma) ---
+    {
+        id: 'tis',
+        name: 'Terras_Indigenas',
+        description: 'Terras Indígenas por Bioma',
+        image_generator: function() {
+            var biome_img = SPATIAL_COMPONENTS.biomes_regions.image_generator();
+            var tis_fc = ee.FeatureCollection('projects/mapbiomas-workspace/AUXILIAR/ESTATISTICAS/COLECAO7/VERSAO-2/indigenous_land')
+                .map(function(feat){
+                    return feat.set('feature_id_numeric', ee.Number.parse(feat.get('feature_id')));
+                });
+            var tis_img = ee.Image().paint(tis_fc, 'feature_id_numeric');
+            return biome_img.multiply(1000000).add(tis_img);
+        },
+        getProperties: function(combined_territory_id) {
+            var biome_id = combined_territory_id.divide(1000000).int();
+            var tis_id = combined_territory_id.mod(1000000).int();
+            var props = ee.Dictionary();
+            props = props.combine(SPATIAL_COMPONENTS.biomes_regions.getProperties(biome_id));
+            props = props.combine(ee.Dictionary({
+                'Tipo Área Protegida': 'TI',
+                'Nome Área Protegida': LEGENDS.tisNM.get(tis_id),
+                'Código Área Protegida': tis_id
+            }));
+            return props;
+        },
+        expected_output_columns: ['Bioma', 'Tipo Área Protegida', 'Nome Área Protegida', 'Código Área Protegida']
+    },
+    // --- UC Estadual de Proteção Integral (FC rasterizada, combinada com Bioma) ---
+    {
+        id: 'estadual_ucs_pi',
+        name: 'UC_Estadual_PI',
+        description: 'UC Estadual de Proteção Integral por Bioma',
+        image_generator: function() {
+            var biome_img = SPATIAL_COMPONENTS.biomes_regions.image_generator();
+            var ucs_fc = ee.FeatureCollection('projects/mapbiomas-workspace/AUXILIAR/ESTATISTICAS/COLECAO7/VERSAO-2/state_conservation_units_integral_protection')
+                .map(function(feat){
+                    return feat.set('feature_id_numeric', ee.Number.parse(feat.get('feature_id')));
+                });
+            var ucs_img = ee.Image().paint(ucs_fc, 'feature_id_numeric');
+            return biome_img.multiply(1000000).add(ucs_img);
+        },
+        getProperties: function(combined_territory_id) {
+            var biome_id = combined_territory_id.divide(1000000).int();
+            var uc_id = combined_territory_id.mod(1000000).int();
+            var props = ee.Dictionary();
+            props = props.combine(SPATIAL_COMPONENTS.biomes_regions.getProperties(biome_id));
+            props = props.combine(ee.Dictionary({
+                'Tipo Área Protegida': 'UC Estadual PI',
+                'Nome Área Protegida': LEGENDS.estadual_ucs_pi_NM.get(uc_id),
+                'Código Área Protegida': uc_id
+            }));
+            return props;
+        },
+        expected_output_columns: ['Bioma', 'Tipo Área Protegida', 'Nome Área Protegida', 'Código Área Protegida']
+    },
+    // --- UC Estadual de Uso Sustentável (FC rasterizada, combinada com Bioma) ---
+    {
+        id: 'estadual_ucs_us',
+        name: 'UC_Estadual_US',
+        description: 'UC Estadual de Uso Sustentável por Bioma',
+        image_generator: function() {
+            var biome_img = SPATIAL_COMPONENTS.biomes_regions.image_generator();
+            var ucs_fc = ee.FeatureCollection('projects/mapbiomas-workspace/AUXILIAR/ESTATISTICAS/COLECAO7/VERSAO-2/state_conservation_units_sustainable_use')
+                .map(function(feat){
+                    return feat.set('feature_id_numeric', ee.Number.parse(feat.get('feature_id')));
+                });
+            var ucs_img = ee.Image().paint(ucs_fc, 'feature_id_numeric');
+            return biome_img.multiply(1000000).add(ucs_img);
+        },
+        getProperties: function(combined_territory_id) {
+            var biome_id = combined_territory_id.divide(1000000).int();
+            var uc_id = combined_territory_id.mod(1000000).int();
+            var props = ee.Dictionary();
+            props = props.combine(SPATIAL_COMPONENTS.biomes_regions.getProperties(biome_id));
+            props = props.combine(ee.Dictionary({
+                'Tipo Área Protegida': 'UC Estadual US',
+                'Nome Área Protegida': LEGENDS.estadual_ucs_us_NM.get(uc_id),
+                'Código Área Protegida': uc_id
+            }));
+            return props;
+        },
+        expected_output_columns: ['Bioma', 'Tipo Área Protegida', 'Nome Área Protegida', 'Código Área Protegida']
+    },
+    // --- UC Federal de Proteção Integral (FC rasterizada, combinada com Bioma) ---
+    {
+        id: 'federal_ucs_pi',
+        name: 'UC_Federal_PI',
+        description: 'UC Federal de Proteção Integral por Bioma',
+        image_generator: function() {
+            var biome_img = SPATIAL_COMPONENTS.biomes_regions.image_generator();
+            var ucs_fc = ee.FeatureCollection('projects/mapbiomas-workspace/AUXILIAR/ESTATISTICAS/COLECAO7/VERSAO-2/federal_conservation_units_integral_protection')
+                .map(function(feat){
+                    return feat.set('feature_id_numeric', ee.Number.parse(feat.get('feature_id')));
+                });
+            var ucs_img = ee.Image().paint(ucs_fc, 'feature_id_numeric');
+            return biome_img.multiply(1000000).add(ucs_img);
+        },
+        getProperties: function(combined_territory_id) {
+            var biome_id = combined_territory_id.divide(1000000).int();
+            var uc_id = combined_territory_id.mod(1000000).int();
+            var props = ee.Dictionary();
+            props = props.combine(SPATIAL_COMPONENTS.biomes_regions.getProperties(biome_id));
+            props = props.combine(ee.Dictionary({
+                'Tipo Área Protegida': 'UC Federal PI',
+                'Nome Área Protegida': LEGENDS.federal_ucs_pi_NM.get(uc_id),
+                'Código Área Protegida': uc_id
+            }));
+            return props;
+        },
+        expected_output_columns: ['Bioma', 'Tipo Área Protegida', 'Nome Área Protegida', 'Código Área Protegida']
+    },
+    // --- UC Federal de Uso Sustentável (FC rasterizada, combinada com Bioma) ---
+    {
+        id: 'federal_ucs_us',
+        name: 'UC_Federal_US',
+        description: 'UC Federal de Uso Sustentável por Bioma',
+        image_generator: function() {
+            var biome_img = SPATIAL_COMPONENTS.biomes_regions.image_generator();
+            var ucs_fc = ee.FeatureCollection('projects/mapbiomas-workspace/AUXILIAR/ESTATISTICAS/COLECAO7/VERSAO-2/federal_conservation_units_sustainable_use')
+                .map(function(feat){
+                    return feat.set('feature_id_numeric', ee.Number.parse(feat.get('feature_id')));
+                });
+            var ucs_img = ee.Image().paint(ucs_fc, 'feature_id_numeric');
+            return biome_img.multiply(1000000).add(ucs_img);
+        },
+        getProperties: function(combined_territory_id) {
+            var biome_id = combined_territory_id.divide(1000000).int();
+            var uc_id = combined_territory_id.mod(1000000).int();
+            var props = ee.Dictionary();
+            props = props.combine(SPATIAL_COMPONENTS.biomes_regions.getProperties(biome_id));
+            props = props.combine(ee.Dictionary({
+                'Tipo Área Protegida': 'UC Federal US',
+                'Nome Área Protegida': LEGENDS.federal_ucs_us_NM.get(uc_id),
+                'Código Área Protegida': uc_id
+            }));
+            return props;
+        },
+        expected_output_columns: ['Bioma', 'Tipo Área Protegida', 'Nome Área Protegida', 'Código Área Protegida']
+    }
+];
+
+
+// --- 6. FUNÇÃO PRINCIPAL DE CÁLCULO DE ÁREA ---
+
+var calculateArea = function (image, territory_image, dataset_config, spatial_unit_config, year, geometry) {
+
+    var reducer = ee.Reducer.sum().group(1, 'class').group(1, 'territory');
+
+    var territotiesData = pixelArea.addBands(territory_image.rename('territory')).addBands(image.rename('class'))
+        .reduceRegion({
+            reducer: reducer,
+            geometry: geometry,
+            scale: scale,
+            maxPixels: 1e12
+        });
+
+    territotiesData = ee.List(territotiesData.get('groups'));
+
+    var areas = territotiesData.map(
+        function (obj) {
+            obj = ee.Dictionary(obj);
+
+            var territory_int = obj.getNumber('territory').int();
+            var classesAndAreas = ee.List(obj.get('groups'));
+
+            var tableRows = classesAndAreas.map(
+                function (classAndArea) {
+                    classAndArea = ee.Dictionary(classAndArea);
+
+                    var classId = classAndArea.getNumber('class');
+
+                    var area_km2 = classAndArea.get('sum');
+                    var area_ha = ee.Number(area_km2).multiply(100);
+
+                    // 1. Propriedades base da linha (comuns a todos)
+                    var base_properties = ee.Dictionary({
+                        'Área ha': area_ha,
+                        'Ano': year,
+                    });
+
+                    // 2. Propriedades do dado do pixel (lenda principal, LULC ou não-LULC)
+                    var pixel_data_props = dataset_config.decodeStrategy(classId, dataset_config.legend_column_name);
+
+                    // 3. Propriedades do recorte espacial
+                    var spatial_props = spatial_unit_config.getProperties(territory_int);
+
+                    // 4. Combina todas as propriedades em um único dicionário final.
+                    var final_properties = base_properties
+                        .combine(pixel_data_props)
+                        .combine(spatial_props);
+
+                    return ee.Feature(null, final_properties);
+                }
+            );
+            return ee.FeatureCollection(ee.List(tableRows));
+        }
+    );
+    return ee.FeatureCollection(areas).flatten();
+};
+
+
+// --- FUNÇÕES DE INTERFACE E EXPORTAÇÃO ---
+
+// Define as colunas básicas que SEMPRE estarão presentes, e na ordem desejada
+var BASE_OUTPUT_COLUMNS = ['Área km²', 'Área ha', 'Ano', 'Coleção', 'Subproduto'];
+
+// Funções auxiliares para obter os objetos de configuração pelo ID
+var getDatasetConfigById = function(id) {
+    for (var i = 0; i < FIRE_DATASETS.length; i++) {
+        if (FIRE_DATASETS[i].id === id) {
+            return FIRE_DATASETS[i];
+        }
+    }
+    return null;
+};
+var getSpatialUnitConfigById = function(id) {
+    for (var i = 0; i < SPATIAL_UNITS.length; i++) {
+        if (SPATIAL_UNITS[i].id === id) {
+            return SPATIAL_UNITS[i];
+        }
+    }
+    return null;
+};
+
+/**
+ * Inicia uma tarefa de exportação para uma combinação específica de dataset e unidade espacial.
+ */
+var startExportTask = function(dataset_obj, s_unit_obj, message_label) {
+    message_label.setValue('Iniciando exportação: ' + dataset_obj.name + ' x ' + s_unit_obj.name + '...');
+    message_label.style().set('color', 'blue');
+
+    var mapbiomas_image = dataset_obj.image;
+    var territory_image = s_unit_obj.image_generator();
+
+    mapbiomas_image.bandNames().evaluate(function(bandnames) {
+        var all_areas_for_export = ee.List(bandnames).map(function (bandname) {
+            var image_to_process = mapbiomas_image.select([bandname]);
+            var year = getYearFromBandnameUniversal(bandname);
+
+            var areas = calculateArea(image_to_process, territory_image, dataset_obj, s_unit_obj, year, global_geometry);
+            return areas;
+        });
+
+        all_areas_for_export = ee.FeatureCollection(all_areas_for_export).flatten();
+
+        var final_folder_path = driverFolder + '/' + s_unit_obj.name;
+        var final_file_name_prefix = 'export_' + dataset_obj.name + '_' + s_unit_obj.name;
+
+        // --- COMPOSIÇÃO DINÂMICA DA LISTA 'SELECTORS' ---
+        var selectors = ee.List(BASE_OUTPUT_COLUMNS)
+            .cat(ee.List(dataset_obj.expected_output_columns))
+            .cat(ee.List(s_unit_obj.expected_output_columns));
+
+        selectors.evaluate(function(selectorsJsArray){
+
+          Export.table.toDrive({
+              collection: all_areas_for_export,
+              description: final_file_name_prefix,
+              folder: final_folder_path,
+              fileNamePrefix: final_file_name_prefix,
+              fileFormat: 'CSV',
+              selectors: selectorsJsArray
+          });
+
+          message_label.setValue('Tarefa "' + final_file_name_prefix + '" iniciada. Verifique a aba Tasks.');
+          message_label.style().set('color', 'green');
+       });
+
+    }, function(error) {
+        message_label.setValue('Erro na exportação de ' + dataset_obj.name + ' x ' + s_unit_obj.name + ': ' + error);
+        message_label.style().set('color', 'red');
+        print('Erro na evaluate de bandnames para ' + dataset_obj.name + ' x ' + s_unit_obj.name + ':', error);
+    });
+};
+
+
+// --- CONSTRUÇÃO DA INTERFACE ---
+
+// Painel principal para a interface
+var mainPanel = ui.Panel({
+    layout: ui.Panel.Layout.flow('vertical'),
+    style: {width: '400px', padding: '10px', stretch: 'horizontal'}
+});
+
+// Título da ferramenta
+mainPanel.add(ui.Label('Ferramenta Universal de Análise de Área - Coleção 5', {fontWeight: 'bold', fontSize: '20px', textAlign: 'center', margin: '0 0 10px 0'}));
+
+
+// --- SEÇÃO DE SELEÇÃO DE MAPAS (DATASETS) ---
+var datasetPanel = ui.Panel({
+    style: {border: '1px solid #ccc', padding: '10px', margin: '5px 0'}
+});
+datasetPanel.add(ui.Label('1. Selecione os Mapas:', {fontWeight: 'bold', fontSize: '16px', stretch: 'horizontal'}));
+
+var datasetCheckboxesContainer = ui.Panel({layout: ui.Panel.Layout.flow('vertical')});
+var datasetCheckboxes = [];
+FIRE_DATASETS.forEach(function(dataset) {
+    var checkbox = ui.Checkbox(dataset.description, false);
+    checkbox.datasetId = dataset.id;
+    datasetCheckboxes.push(checkbox);
+    datasetCheckboxesContainer.add(checkbox);
+});
+datasetPanel.add(datasetCheckboxesContainer);
+
+mainPanel.add(datasetPanel);
+
+
+// --- SEÇÃO DE SELEÇÃO DE RECORTES TERRITORIAIS ---
+var spatialPanel = ui.Panel({
+    style: {border: '1px solid #ccc', padding: '10px', margin: '5px 0'}
+});
+spatialPanel.add(ui.Label('2. Selecione os Recortes:', {fontWeight: 'bold', fontSize: '16px', stretch: 'horizontal'}));
+
+var spatialUnitCheckboxesContainer = ui.Panel({layout: ui.Panel.Layout.flow('vertical')});
+var spatialUnitCheckboxes = [];
+SPATIAL_UNITS.forEach(function(s_unit) {
+    var checkbox = ui.Checkbox(s_unit.description, false);
+    checkbox.spatialUnitId = s_unit.id;
+    spatialUnitCheckboxes.push(checkbox);
+    spatialUnitCheckboxesContainer.add(checkbox);
+});
+spatialPanel.add(spatialUnitCheckboxesContainer);
+
+mainPanel.add(spatialPanel);
+
+
+// --- ÁREA DE MENSAGENS DE STATUS ---
+var statusLabel = ui.Label('Aguardando seleção...', {color: 'gray', margin: '10px 0'});
+mainPanel.add(statusLabel);
+
+
+// --- BOTÕES DE EXPORTAÇÃO ---
+var exportButtonsPanel = ui.Panel({
+    layout: ui.Panel.Layout.flow('vertical'),
+    style: {margin: '10px 0', padding: '10px', border: '1px solid #ddd', backgroundColor: '#454545'}
+});
+
+// Botão "Exportar Mapas Selecionados com Recortes Selecionados"
+var exportSelectedCombinationsButton = ui.Button({
+    label: 'Exportar Mapas Selecionados com Recortes Selecionados',
+    style: {
+        backgroundColor: '#4CAF50',
+        padding: '10px',
+        margin: '5px 0',
+        width: '95%',
+    },
+    onClick: function() {
+        var selectedDatasets = datasetCheckboxes
+            .filter(function(cb) { return cb.getValue(); })
+            .map(function(cb) { return getDatasetConfigById(cb.datasetId); });
+
+        var selectedSpatialUnits = spatialUnitCheckboxes
+            .filter(function(cb) { return cb.getValue(); })
+            .map(function(cb) { return getSpatialUnitConfigById(cb.spatialUnitId); });
+
+        if (selectedDatasets.length === 0 || selectedSpatialUnits.length === 0) {
+            statusLabel.setValue('Por favor, selecione ao menos um Mapa E um Recorte Territorial pelo menos.', {color: 'orange'});
+            return;
+        }
+
+        statusLabel.setValue('Iniciando ' + (selectedDatasets.length * selectedSpatialUnits.length) + ' tarefas de exportação (Mapas x Recortes selecionados)...', {color: 'blue'});
+        selectedDatasets.forEach(function(dataset) {
+            selectedSpatialUnits.forEach(function(s_unit) {
+                startExportTask(dataset, s_unit, statusLabel);
+            });
+        });
+    }
+});
+exportButtonsPanel.add(exportSelectedCombinationsButton);
+
+// Botão "Exportar TUDO" (Todos os Mapas x Todos os Recortes)
+var exportAllButton = ui.Button({
+    label: 'EXPORTAR TUDO (Todos os Mapas x Todos os Recortes)',
+    style: {
+        backgroundColor: '#EA4335',
+        padding: '10px',
+        margin: '15px 0 5px 0',
+        width: '95%'
+    },
+    onClick: function() {
+        statusLabel.setValue('Iniciando exportação de TODAS as combinações...', {color: 'blue'});
+        FIRE_DATASETS.forEach(function(dataset) {
+            SPATIAL_UNITS.forEach(function(s_unit) {
+                startExportTask(dataset, s_unit, statusLabel);
+            });
+        });
+        statusLabel.setValue('Todas as exportações iniciadas. Verifique a aba Tasks.', {color: 'green'});
+    }
+});
+exportButtonsPanel.add(exportAllButton);
+
+
+mainPanel.add(exportButtonsPanel);
+
+// Adicionar o painel principal à interface do mapa
+ui.root.add(mainPanel);
+Map.centerObject(global_geometry, 4);
