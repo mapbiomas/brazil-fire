@@ -12,11 +12,12 @@ The following collections are currently organized in this directory:
   - Post-processing and LULC 9 / LULC 10 mask filters
   - Generation of derived products and annual/monthly statistics
 
-- **[collection_05](./collection_05/)**: Contains the processing structure and workflows for Collection 5.
-  - Data preprocessing
-  - Classification workflows
-  - Post-processing and filtering
-  - Generation of derived products and statistics
+- **[collection_05](./collection_05/)**: Contains the processing workflows for Collections 5 and 5.1.
+  - Pre-classification and data preparation
+  - Burned-area classification workflows
+  - Post-classification processing and refinement
+  - Generation of derived products for Collections 5 and 5.1
+  - Statistical analysis and exports
 
 ## 🎯 Objective
 
