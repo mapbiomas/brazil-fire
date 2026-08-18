@@ -1,0 +1,305 @@
+/**
+ * @Description
+ * MapBiomas Fire Collection 5
+ * //versão 30/03/2026: https://code.earthengine.google.com/4b949b558dd75200b97261bbccee5389
+ * //versão 05/04/2026:https://code.earthengine.google.com/ba3414c81fb60283cb02efd779158660
+ * 
+ * Export of subproducts with estimates of the chronosequences of burned areas annually in Brazil.
+ * Exports two images with integer values in decimal:
+ *  - The first one contains the information of years after fire for the entire mapped area as burned area, at least once,
+ *    from 1985 to 2025;
+ *  - The second one contains the information of years before fire for the entire mapped area as burned area, at least once,
+ *    from 2025 to 1985;
+ * Both data have
+ */
+
+// Annual burned area image collection
+var assetFire = 'projects/mapbiomas-workspace/FOGO/COLLECTIONS/COL05/1_Subproducts/mapbiomas_fire_collection5_annual_burned_v1';
+// Output file names
+var outFileName_taf = 'mapbiomas_fire_collection5_time_after_fire_v1';
+var outFileName_tbf = 'mapbiomas_fire_collection5_time_before_fire_v1';
+var outFileName_isf = 'mapbiomas_fire_collection5_interval_since_fire_v1';
+var outFileName_isf_class = 'mapbiomas_fire_collection5_interval_since_fire_class_v1';
+var outFileName_ylf = 'mapbiomas_fire_collection5_year_last_fire_v1';
+
+
+// Output directory of assets
+var assetOutput = 'projects/mapbiomas-workspace/FOGO/COLLECTIONS/COL05/1_Subproducts'
+
+var initialBand = 'classification_1985';
+var finalBand = 'classification_2025';
+// Export.image.toAsset() params
+var scale = 30;
+
+// Converting monthly burned coverage to time after fire
+var scars = ee.Image(assetFire).gte(1);
+Map.addLayer(scars, {}, 'Burned Areas', false);
+var scars2026 = scars.addBands(scars.select('burned_area_2025').rename('burned_area_2026'));
+// Iteration over years to calculate time after fire
+var years = scars.bandNames().map(function(bandname) {
+  return ee.Number.parse(ee.String(bandname).slice(-4));
+});
+
+// Function to calculate time after fire
+function timeAfterFire(current, previous) {
+  var year = ee.Number(current).int();
+  var yearPost = year.add(1);
+
+  var sliceIndex = years.indexOf(current);
+  sliceIndex = ee.Number(sliceIndex).add(1);
+  var sliceList = years.slice(0, sliceIndex, 1);
+
+  var alreadyBurned = sliceList.map(function(y) {
+    return scars.select([ee.String('burned_area_').cat(ee.Number(y).int())])
+      .rename('classification');
+  });
+  alreadyBurned = ee.ImageCollection(alreadyBurned).mosaic().byte();
+  alreadyBurned = ee.Image(1).updateMask(alreadyBurned).byte();
+
+  var burnedThisYear = ee.Image(1).updateMask(scars.select([ee.String('burned_area_').cat(year)]))
+    .byte();
+
+  var newImage = ee.Image(previous)
+    .select(ee.String('classification_').cat(year))
+    .add(alreadyBurned).byte();
+
+  newImage = newImage.blend(burnedThisYear);
+
+  return ee.Image(previous)
+    .addBands(
+      newImage.rename(ee.String('classification_').cat(yearPost))
+    );
+}
+
+var first = ee.Image(0).mask(0).rename(initialBand);
+var timeAfterFireImage = ee.Image(years.iterate(timeAfterFire, first));
+// preenche áreas queimadas inéditas com 0, agora compatível com 2026
+timeAfterFireImage = scars2026.multiply(0)
+  .blend(timeAfterFireImage)
+  .rename(timeAfterFireImage.bandNames());
+print('timeAfterFireImage', timeAfterFireImage);
+
+// Iteration over years to calculate time before fire
+years = years.reverse();
+
+function timeBeforeFire(current, previous) {
+  var year = ee.Number(current).int();
+  var yearPost = year.subtract(1);
+
+  var sliceIndex = years.indexOf(current);
+  sliceIndex = ee.Number(sliceIndex).add(1);
+  var sliceList = years.slice(0, sliceIndex, 1);
+
+  var alreadyBurned = sliceList.map(function(y) {
+    return scars.select([ee.String('burned_area_').cat(ee.Number(y).int())])
+      .rename('classification');
+  });
+  alreadyBurned = ee.ImageCollection(alreadyBurned).mosaic().byte();
+  alreadyBurned = ee.Image(1).updateMask(alreadyBurned).byte();
+
+  var burnedThisYear = ee.Image(1).updateMask(scars.select([ee.String('burned_area_').cat(year)]))
+    .byte();
+
+  var newImage = ee.Image(previous)
+    .select(ee.String('classification_').cat(year))
+    .add(alreadyBurned).byte();
+
+  newImage = newImage.blend(burnedThisYear);
+
+  return ee.Image(previous)
+    .addBands(
+      newImage.rename(ee.String('classification_').cat(yearPost))
+    );
+}
+
+var first = ee.Image(0).mask(0).rename(finalBand);
+var timeBeforeFireImage = years.iterate(timeBeforeFire, first);
+timeBeforeFireImage = ee.Image(timeBeforeFireImage);
+timeBeforeFireImage = timeBeforeFireImage
+  .select(timeBeforeFireImage.bandNames().reverse()).slice(1);
+// preenche áreas queimadas inéditas com 0
+timeBeforeFireImage = scars.multiply(0)
+  .blend(timeBeforeFireImage)
+  .rename(timeBeforeFireImage.bandNames());
+
+print('timeBeforeFireImage', timeBeforeFireImage);
+
+// Visualization
+var palette = [
+  "FFFFFF", "800000", "850708", "8B0E0F", "901417", "961B1E",
+  "9B2226", "9F2222", "A3211E", "A6211A", "AA2016", "AE2012",
+  "B42E0F", "B93C0C", "BF4B08", "C45905", "CA6702", "BF7C27",
+  "B4924D", "AAA772", "9FBD98", "94D2BD", "78C5B5", "5DB9AD",
+  "41ACA6", "26A09E", "0A9460", "0876AB", "0658C0", "043BD5",
+  "021DEA", "0000FF", "0000E6", "0000CC", "0000B3", "000080"
+];
+
+
+var year_vis = 2010;
+var visParams = {
+  bands: ['classification_' + year_vis],
+  min: 0,
+  max: 41,
+  palette: palette
+};
+
+var visParams_2 = {
+  bands: ['classification_' + year_vis],
+  min: 1985,
+  max: 2025,
+  palette: palette
+};
+
+Map.addLayer(timeAfterFireImage, visParams, 'Time After Fire');
+Map.addLayer(timeBeforeFireImage, visParams, 'Time Before Fire', false);
+
+
+// time-after-fire';
+// Exporting images to Asset
+Export.image.toAsset({
+  image: timeAfterFireImage.uint8(),
+  description: outFileName_taf,
+  assetId: assetOutput + '/' + outFileName_taf,
+  pyramidingPolicy: 'mode',
+  region: scars.geometry(),
+  scale: 30,
+  maxPixels: 1e13,
+  overwrite: true
+});
+// time-before-fire
+Export.image.toAsset({
+  image: timeBeforeFireImage.uint8(),
+  description: outFileName_tbf,
+  assetId: assetOutput + '/' + outFileName_tbf,
+  pyramidingPolicy: 'mode',
+  region: scars.geometry(),
+  scale: 30,
+  maxPixels: 1e13,
+  overwrite: true
+});
+
+//-- interval-since-fire
+
+var intervalBands = timeAfterFireImage
+  .bandNames()
+  .removeAll(['classification_2026']);
+
+var intervalSinceFireImage = timeAfterFireImage
+  .select(intervalBands)
+  .updateMask(scars)
+  .uint8();
+
+print('intervalSinceFireImage sem classification_2026', intervalSinceFireImage);
+print('Bandas ISF', intervalSinceFireImage.bandNames());
+
+Map.addLayer(intervalSinceFireImage, visParams, 'interval Since Fire');
+
+Export.image.toAsset({
+  image: intervalSinceFireImage,
+  description: outFileName_isf,
+  assetId: assetOutput + '/' + outFileName_isf,
+  pyramidingPolicy: 'mode',
+  region: scars.geometry(),
+  scale: 30,
+  maxPixels: 1e13,
+  overwrite: true
+});
+
+/////////////////////////
+/*var burnCount = scars.reduce(ee.Reducer.sum());
+
+// começa com 0 = não observado
+var classified_since = intervalSinceFireImage.multiply(0).unmask(0);
+
+// classes contínuas
+classified_since = classified_since
+  .where(intervalSinceFireImage.gt(0).and(intervalSinceFireImage.lte(2)), 1)
+  .where(intervalSinceFireImage.gt(2).and(intervalSinceFireImage.lte(3)), 2)
+  .where(intervalSinceFireImage.gt(3).and(intervalSinceFireImage.lte(4)), 3)
+  .where(intervalSinceFireImage.gt(4).and(intervalSinceFireImage.lte(5)), 4)
+  .where(intervalSinceFireImage.gt(5).and(intervalSinceFireImage.lte(7)), 5)
+  .where(intervalSinceFireImage.gt(7).and(intervalSinceFireImage.lte(10)), 6)
+  .where(intervalSinceFireImage.gt(10).and(intervalSinceFireImage.lte(15)), 7)
+  .where(intervalSinceFireImage.gt(15).and(intervalSinceFireImage.lte(20)), 8)
+  .where(intervalSinceFireImage.gt(20), 9)
+  .where(timeAfterFireImage.eq(0), 10)
+  .where(burnCount.eq(1), 11)
+  .selfMask();
+
+var palette_class = [
+  '000000', // 0 - não observado (mascarado)
+  'df2a23', // 1 - 1-2
+  'ee6a42', // 2 - 2-3
+  'f3a35c', // 3 - 3-4
+  'e2c98f', // 4 - 4-5
+  'd8d67a', // 5 - 5-7
+  'bdd97a', // 6 - 7-10
+  '9fcd67', // 7 - 10-15
+  '5fb45f', // 8 - 15-20
+  '2f9e55', // 9 - 20+
+  '4d4d4d', // 10 - pixel queimado apenas uma vez durante a série
+  '2b83ba'  // 11 - pixel queimado pela primeira vez
+];
+
+var visClass = {
+  min: 0,
+  max: 11,
+  palette: palette_class,
+  bands:['classification_2010']
+};
+
+Map.addLayer(classified_since,visClass,'classified_since')
+
+// interval-since-fire-class
+Export.image.toAsset({
+  image: classified_since
+    .set({
+      'collection': 'collection5',
+      'theme': 'fire',
+      'product': 'interval-since-fire-class',
+      'version': 1,
+      'overwrite': true
+    })
+    .uint8(),
+  description: outFileName_isf_class,
+  assetId: assetOutput + '/' + outFileName_isf_class,
+  pyramidingPolicy: 'mode',
+  region: scars.geometry(),
+  scale: 30,
+  maxPixels: 1e13,
+  overwrite: true
+});
+*/
+/////////////
+
+// year-last-fire 
+var taf2026 = timeAfterFireImage.select('classification_2026');
+
+var year_last_fire = ee.Image(
+  timeAfterFireImage.bandNames().sort().iterate(function(curr, prev) {
+    var bandname = ee.String(curr);
+    var year = ee.Number.parse(bandname.slice(-4));
+
+    var img = ee.Image.constant(year)
+      .rename(bandname)
+      .subtract(timeAfterFireImage.select(bandname).selfMask());
+
+    return ee.Image(prev).addBands(img);
+  }, ee.Image().select())
+).reproject('EPSG:4326', null, 30);
+
+print('year_last_fire',year_last_fire);
+Map.addLayer(year_last_fire, visParams_2, 'Year Last Fire');
+
+Export.image.toAsset({
+  image: year_last_fire.uint16(),
+  description: outFileName_ylf,
+  assetId: assetOutput + '/' + outFileName_ylf,
+  pyramidingPolicy: 'mode',
+  region: scars.geometry(),
+  scale: 30,
+  maxPixels: 1e13,
+  overwrite: true
+});
+
+
