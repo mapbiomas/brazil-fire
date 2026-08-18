@@ -1,0 +1,84 @@
+
+//v1: https://code.earthengine.google.com/c4e10a72f79735aa0df72634fb13ea95
+/**** Severidade — 1985–2024 | área queimada | 30 m
+
+ * Este script consolida uma série anual de imagens de severidade do fogo
+ * (uma imagem por ano, de 1985 a 2025) em uma única imagem multibanda.
+ *
+ * Estrutura de entrada: um asset por ano
+ * Estrutura de saída: Uma única imagem multibanda contendo 41 bandas
+ *
+  • Cada imagem anual é convertida para Byte, pois representa classes.
+  • Saída contém apenas pixels queimados
+
+****/
+
+
+// ===================== PARÂMETROS =====================
+// Intervalo temporal da série
+var startYear = 1985;
+var endYear = 2025;
+
+// Pasta com os assets anuais de entrada
+var inputRoot = 'projects/mapbiomas-workspace/FOGO/COLLECTIONS/COL05/2_Subproducts_col51/mapbiomas_fire_collection51_severity_class_imgCol/';
+
+// Asset final de saída (imagem multibanda)
+var outputAssetId = 'projects/mapbiomas-workspace/FOGO/COLLECTIONS/COL05/2_Subproducts_col51/mapbiomas_fire_collection5_severity_class_v1';
+
+
+// Nome da tarefa de exportação
+var outputDescription = 'mapbiomas_fire_collection51_severity_class_v1';
+
+var visClass = {
+  min: 1,
+  max: 6,
+  palette: ['#00441b','#7FFF00','#FFFF00','#FFA500','#FF0000','#8B0000']
+};
+
+// ================== CONSTRUÇÃO DA LISTA DE IMAGENS ==================
+
+var images = [];
+
+// Loop nos anos: carrega, renomeia banda e converte para Byte
+for (var year = startYear; year <= endYear; year++) {
+  var assetId = inputRoot + year;
+  
+  var img = ee.Image(assetId)
+    .rename('classification_' + year)
+    .toByte();
+  
+  images.push(img);
+}
+
+
+// ================== EMPILHAMENTO DAS BANDAS ==================
+
+// Inicializa multibanda com a primeira imagem
+var multiBand = ee.Image(images[0]);
+
+// Empilha as demais imagens como novas bandas
+for (var i = 1; i < images.length; i++) {
+  multiBand = multiBand.addBands(images[i]);
+}
+
+
+// ================== CHECAGENS ==================
+
+// Lista nomes das bandas
+print('Bandas', multiBand.bandNames());
+
+// Visualiza banda de exemplo (2025)
+Map.addLayer(multiBand.select('classification_2025'), visClass, 'classification_2025');
+
+
+// ================== EXPORTAÇÃO ==================
+
+// Exporta imagem multibanda para asset
+Export.image.toAsset({
+  image: multiBand,
+  description: outputDescription,
+  assetId: outputAssetId,
+  region: region,
+  scale: 30,
+  maxPixels: 1e13
+});
