@@ -1,0 +1,265 @@
+/**
+ * Exportação da versão final da Coleção 5 de Fogo do MapBiomas com máscaras LULC
+ * - Instituto de Pesquisa Ambiental da Amazônia (IPAM)
+ * - Wallace Silva e Vera Laisa
+ *
+ * Script reorganizado com regras automáticas por bioma, região e ano
+ * mantendo 100% da lógica original.
+ */
+
+// -------------------------
+// INPUTS
+// -------------------------
+
+var collection = 'projects/ee-geomapeamentoipam/assets/MAPBIOMAS_FOGO/COLECAO_5/Colecao5_fogo_no_mask';
+var collection_output = 'projects/ee-geomapeamentoipam/assets/MAPBIOMAS_FOGO/COLECAO_5/Colecao5_fogo_mask';
+
+var landcover = ee.Image('projects/mapbiomas-public/assets/brazil/lulc/collection10_1/mapbiomas_brazil_collection10_1_coverage_v1');
+
+var water_stable = ee.Image('projects/ee-arcplan/assets/mask_permanent_water_c10_v2');
+
+var collection_landsat = require('users/geomapeamentoipam/MapBiomas__Fogo:00_Tools/require-landsat-collection');
+
+Map.addLayer(water_stable,{min:0,max:1,palette:['ff0000']},"water stable c10",false);
+Map.addLayer(lakes_pantanal,{},"lakes pantanal",false);
+
+// CONTROLE DE EXECUÇÃO
+//Controle simples para rodar apenas partes da coleção.
+//Deixe vazio [] para rodar tudo.
+
+var RUN = {
+  biomes: ['PANTANAL'],//['AMAZONIA','CAATINGA','CERRADO','MATA_ATLANTICA','PAMPA','PANTANAL']
+  regions: [],//['r1','r2','r8']
+  years: ['2024']//['2024','2025']
+};
+// -------------------------
+// CONFIGURAÇÃO DE REGRAS
+// -------------------------
+
+/*
+Todas as regras científicas do script original ficam aqui.
+
+Assim não é necessário alterar código,
+apenas atualizar configurações.
+*/
+
+var CONFIG = {
+
+classes: {
+  AMAZONIA:[
+    33, // Rios, Lagos e Oceanos
+    31, // Aquicultura
+    24, // Área Urbanizada
+    30, // Mineração
+    23  // Praia, Duna e Areal
+  ],
+
+  CAATINGA:[
+    33, // Rios, Lagos e Oceanos
+    31, // Aquicultura
+    24, // Área Urbanizada
+    29  // Afloramento Rochoso
+  ],
+
+  CERRADO:[
+    33, // Rios, Lagos e Oceanos
+    31, // Aquicultura
+    24, // Área Urbanizada
+    30  // Mineração
+  ],
+
+  MATA_ATLANTICA:[
+    33, // Rios, Lagos e Oceanos
+    31, // Aquicultura
+    24, // Área Urbanizada
+    40, // Arroz
+    30, // Mineração
+    23  // Praia, Duna e Areal
+  ],
+
+  PAMPA:[
+    33, // Rios, Lagos e Oceanos
+    31, // Aquicultura
+    24, // Área Urbanizada
+    40, // Arroz
+    30, // Mineração
+    23, // Praia, Duna e Areal
+    39, // Soja
+    41, // Outras Lavouras Temporárias
+    21  // Mosaico de Usos
+  ],
+
+  PANTANAL:[
+    30, // Mineração    
+    39, // Soja
+    62, // Algodão
+    41  // Outras Lavouras Temporárias
+  ]
+},
+
+// classes adicionais por região
+region_rules:{
+  MATA_ATLANTICA:{
+    r6:[
+      19, // Lavouras Temporárias
+      20, // Cana
+      39, // Soja
+      41  // Outras Lavouras Temporárias
+    ],
+    r7:[
+      19, // Lavouras Temporárias
+      20, // Cana
+      39, // Soja
+      41  // Outras Lavouras Temporárias
+    ]
+  }
+},
+
+// exceções por ano
+year_rules:{
+  PAMPA:{
+    2024:[
+      3,  // Formação Florestal
+      49, // Restinga Arbórea
+      11  // Campo Alagado e Área Pantanosa
+    ]
+  }
+},
+
+  // buffer especial pantanal
+  pantanal_buffer_class:33,
+  // filtro de pixels isolados
+  pixel_filter:{
+    default:6,
+    PAMPA:2
+  }
+
+};
+
+// FUNÇÃO: classes finais por bioma
+function getMaskClasses(biome,region,year){
+  var classes = CONFIG.classes[biome].slice();
+  // regra regional
+  if(CONFIG.region_rules[biome] && CONFIG.region_rules[biome][region]){
+    classes = classes.concat(CONFIG.region_rules[biome][region]);}
+  // regra anual
+  if(CONFIG.year_rules[biome] && CONFIG.year_rules[biome][year]){
+    classes = classes.concat(CONFIG.year_rules[biome][year]);}
+  return classes;
+}
+
+// EXPORTAÇÃO
+function exportImage(obj){
+  var image = ee.Image(obj.id);
+  var name = obj.id.split('/')[6];
+  var split = name.split('-');
+  var biome = split[0];
+  var year = split[1];
+  var region = split[2];
+
+Map.addLayer(image, {min:0, max:1, palette:['red']}, 'burn BEFORE mask', false);
+
+  // regra de ano LULC
+  var yearAlternative = year === '2025' ? '2024' : year;
+  // classes automáticas
+  var mask_classes = getMaskClasses(biome,region,year);
+  var mask = landcover
+  .select(ee.String('classification_').cat(yearAlternative))
+  .eq(mask_classes)
+  .reduce('sum')
+  .gte(1);
+
+  // BUFFER ESPECIAL PANTANAL
+  if(biome === 'PANTANAL'){
+    var bufferPantanal = landcover
+    .select(ee.String('classification_').cat(yearAlternative))
+    .eq(CONFIG.pantanal_buffer_class)
+    .selfMask()
+    .focalMode({
+      radius:100,
+      kernelType:'square',
+      units:'meters'
+    })
+    .gte(1)
+    .clip(lakes_pantanal);
+    mask = mask.blend(bufferPantanal);
+
+  }
+
+  // MÁSCARA PANTANAL
+  var mask_pantanal = ee.Image(1).paint(mascara_pantanal,0);
+  mask = mask.updateMask(mask_pantanal);
+  // MÁSCARA ÁGUA ESTÁVEL
+  var water_mask = water_stable.unmask().neq(1);
+  // aplicar máscara
+  var image_mask = image.updateMask(water_mask);
+  Map.addLayer(image_mask, {min:0, max:1, palette:['black']}, 'burn AFTER water mask', false);  
+  // MÁSCARA FINAL
+  var final_mask = mask.neq(1);
+  image_mask = image_mask.updateMask(final_mask);
+  // REMOÇÃO PIXELS ISOLADOS
+  var connections = image_mask.connectedPixelCount({
+    maxSize:100,
+    eightConnected:false
+  });
+  var filter_size = CONFIG.pixel_filter[biome] || CONFIG.pixel_filter.default;
+  var solitary_pixels = connections.lte(filter_size);
+  image_mask = image_mask
+  .where(solitary_pixels,0)
+  .selfMask()
+  .reproject('EPSG:4326',null,30);
+  Map.addLayer(image_mask, {min:0, max:1, palette:['pink']}, 'burn AFTER ALL masks', false);
+  // QUALITY MOSAIC
+  ee.Number.parse(year).int().evaluate(function(y){
+    var qualityMosaic = collection_landsat
+    .landsat_year(y,geometry)
+    .qualityMosaic('nbr')
+    .select('monthOfYear')
+    .byte();
+    var startDate = ee.Date.fromYMD(y,1,1);
+    var endDate = ee.Date.fromYMD(y+1,1,1);
+    var image_final = qualityMosaic
+    .updateMask(image_mask)
+    .set({
+      source:'IPAM',
+      pixel_unit:'month',
+      name:name,
+      year:y,
+      region:region,
+      biome:biome,
+      system_time_start:startDate.millis(),
+      system_time_end:endDate.millis()
+    });
+
+    Export.image.toAsset({
+      image:image_final,
+      description:name,
+      assetId:collection_output + '/' + name,
+      pyramidingPolicy:'mode',
+      region:geometry,
+      scale:30,
+      maxPixels:1e13,
+      overwrite: true
+    });
+  });
+}
+
+// FILTRO DE EXECUÇÃO
+function runFilter(obj){
+  var name = obj.id.split('/')[6];
+  var split = name.split('-');
+  var biome = split[0];
+  var year = split[1];
+  var region = split[2];
+
+  if(RUN.biomes.length && RUN.biomes.indexOf(biome) === -1){return false;}
+  if(RUN.regions.length && RUN.regions.indexOf(region) === -1){return false;}
+  if(RUN.years.length && RUN.years.indexOf(year) === -1){return false;}
+
+  return true;
+
+}
+ee.data.listAssets(collection)
+.assets
+.filter(runFilter)
+.forEach(exportImage);
