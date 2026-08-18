@@ -1,0 +1,106 @@
+/**
+ * @Description
+ * MapBiomas Fire Collection 5.1
+ * Export of subproducts with estimates of the chronosequences of burned areas annually in Brazil.
+ * Exports two images with integer values in decimal:
+ *  - The first one contains the ID of burned areas annually.
+ *  - The second one contains the area of burned areas annually in hectares.
+ */
+
+
+// ===================== PARAMETERS =====================
+
+var YEAR0 = 1985;
+var YEAR1 = 2025;
+
+var OUT_ROOT = 'projects/mapbiomas-workspace/FOGO/COLLECTIONS/COL05/2_Subproducts_col51';
+
+// Input assets
+var NAME_ACCUMULATED = 'mapbiomas_fire_collection51_accumulated_burned_coverage_v1';
+var accumulatedBurnedAsset = OUT_ROOT + '/' + NAME_ACCUMULATED;
+var VECTOR_ROOT = OUT_ROOT + '/mapbiomas-fire-collection51-annual-burned-vectors';
+
+// Output file names
+var outFileName_id = 'mapbiomas_fire_collection51_annual_burned_id_v1';
+var outFileName_area_ha = 'mapbiomas_fire_collection51_annual_burned_area_ha_v1';
+
+// Export parameters
+var scale = 30;
+
+
+// ===================== REGION =====================
+
+var region = ee.Image(accumulatedBurnedAsset).geometry();
+
+
+// ===================== PROCESSING =====================
+
+ee.List.sequence(YEAR0, YEAR1, 1).evaluate(function(years) {
+
+  var scar_id = ee.Image().select();
+  var scar_area = ee.Image().select();
+
+  years.forEach(function(year) {
+
+    var scarVectorAsset = VECTOR_ROOT + '/mbfogo-col51-' + year + '-v1';
+
+    var scar_vector_year = ee.FeatureCollection(scarVectorAsset)
+      .map(function(feat) {
+        return feat.set({
+          area_ha: feat.geometry().area().int().divide(10000)
+        });
+      });
+
+    // Print limited scar_vector_year
+    // print(year, scar_vector_year.limit(10));
+
+    // Add scar_vector_year as a layer to the map
+    // Map.addLayer(scar_vector_year, {}, '' + year, false);
+
+    // Add scar ID bands
+    scar_id = scar_id.addBands(
+      ee.Image().paint(scar_vector_year, 'id')
+        .rename('scar_id_' + year)
+        .int()
+    );
+
+    // Add scar area bands
+    scar_area = scar_area.addBands(
+      ee.Image().paint(scar_vector_year, 'area_ha')
+        .rename('scar_area_ha_' + year)
+        .float()
+    );
+
+  });
+
+
+  // ===================== VISUALIZATION =====================
+
+  Map.addLayer(scar_id.aside(print, 'scar_id'), {}, 'All Scar ID', false);
+  Map.addLayer(scar_area.aside(print, 'scar_area_ha'), {}, 'All Scar Area', false);
+  Map.addLayer(scar_id.slice(-1).randomVisualizer().aside(print, 'scar_id'), {}, 'Scar ID');
+  Map.addLayer(scar_area.slice(-1).aside(print, 'scar_area_ha'),
+    {min: 100, max: 100000}, 'Scar Area');
+
+
+  // ===================== EXPORT =====================
+
+  [
+    [outFileName_id, scar_id, 'mode'],
+    [outFileName_area_ha, scar_area, 'median']
+  ].forEach(function(list) {
+
+    Export.image.toAsset({
+      image: list[1],
+      description: 'GT_Fogo-' + list[0],
+      assetId: OUT_ROOT + '/' + list[0],
+      pyramidingPolicy: list[2],
+      region: region,
+      scale: scale,
+      maxPixels: 1e11,
+      overwrite: true
+    });
+
+  });
+
+});
