@@ -27,10 +27,42 @@ def _badge(ok, label_ok="OK", label_miss="MISS"):
     )
 
 
+def _empty():
+    return {
+        "exported": False,
+        "mosaiced": False,
+        "vectorized_gcs": False,
+        "vectorized_gee": False,
+        "published": False,
+        "temp_cleaned": False,
+    }
+
+
+def _is_complete(v):
+    return bool(
+        v.get("exported") and v.get("mosaiced") and v.get("vectorized_gcs")
+        and v.get("vectorized_gee") and v.get("published") and v.get("temp_cleaned")
+    )
+
+
+_HINT = (
+    '<div style="font-size:11px;color:#495057;margin:4px 0 0 10px;padding:6px 10px;'
+    'background:#fffbe6;border:1px solid #ffe58f;border-radius:4px;">'
+    '<strong>MISS &rarr; OK:</strong> '
+    '<b>Export</b>=célula Export &nbsp;|&nbsp; '
+    '<b>Mosaico</b>=célula Mosaico &nbsp;|&nbsp; '
+    '<b>Vetor GCS</b>=célula Vetorização &nbsp;|&nbsp; '
+    '<b>Vetor GEE</b>=célula Upload GEE &nbsp;|&nbsp; '
+    '<b>Publico</b>=célula Publicar &nbsp;|&nbsp; '
+    '<b>Clean temp</b>=célula Publicar (após consolidação)'
+    '</div>'
+)
+
+
 class MonitorUI:
     _DATE_W = "110px"
-    _CELL_W = "85px"
-    _SEL_W  = "44px"
+    _CELL_W = "80px"
+    _SEL_W  = "56px"
 
     def __init__(self):
         self.state = {"updated_at": None}
@@ -84,7 +116,7 @@ class MonitorUI:
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;background:#fff;border-bottom:2px solid #333;margin-bottom:10px;">
             <div>
                 <span style="font-weight:bold;font-size:17px;color:#333;">Export &amp; Vectorization</span>
-                <span style="color:#6c757d;font-size:12px;margin-left:14px;">Monitor do Fogo &mdash; {config.COUNTRY.title()}</span>
+                <span style="color:#6c757d;font-size:12px;margin-left:14px;">Monitor do Fogo &mdash; {config.flag(config.COUNTRY)} {config.COUNTRY.title()}</span>
             </div>
             <div style="padding:4px 14px;background:#fff1f0;border:1px solid #ffa39e;border-radius:4px;">
                 <span style="color:#cf1322;font-size:11px;font-weight:bold;">MapBiomas Fire Monitor</span>
@@ -95,9 +127,10 @@ class MonitorUI:
         instructions = widgets.HTML("""
         <div style="padding:6px 10px;margin-bottom:8px;background:#e8f4fd;border:1px solid #bee5eb;border-radius:4px;font-size:12px;color:#0c5460;line-height:1.6;">
             <strong>Como usar:</strong>
-            a) Clique em <strong>Sincronizar</strong> para verificar o status de cada mes no GCS e GEE.
-            b) Marque os checkboxes dos meses que deseja processar.
-            c) Execute as celulas abaixo em ordem: <em>Export</em> &rarr; <em>Mosaico</em> &rarr; <em>Vetorizacao</em> &rarr; <em>Upload GEE</em>.
+            a) Escolha o pais na aba acima (cada aba tem sua propria grid).
+            b) Clique em <strong>Sincronizar</strong> para verificar o status de cada mes no GCS e GEE.
+            c) Marque os meses que deseja processar e execute as celulas em ordem:
+               <em>Export</em> &rarr; <em>Mosaico</em> &rarr; <em>Vetorizacao</em> &rarr; <em>Upload GEE</em> &rarr; <em>Publicar</em>.
             <br>
             <span style="color:#28a745;font-weight:700;">OK</span> = etapa concluida &nbsp;|&nbsp;
             <span style="color:#6c757d;">MISS</span> = etapa pendente
@@ -132,6 +165,17 @@ class MonitorUI:
                 f'<span style="color:{color};font-size:12px;">[{type.upper()}] {message}</span>'
             ))
 
+    def start(self):
+        months = list_months_in_collection()
+        if months:
+            for m in months:
+                self.state[m] = _empty()
+            self._render_grid()
+            self._log(f"{len(months)} meses na colecao. Sincronizando automaticamente...", "info")
+        else:
+            self._log("Nao foi possivel consultar a colecao. Verifique a autenticacao GEE.", "warning")
+        self._on_sync(None)
+
     def _on_sync(self, _):
         if self.is_refreshing:
             return
@@ -145,11 +189,7 @@ class MonitorUI:
             self.state = build_state(logger=self._log)
             self._render_grid()
             self._restore_selected(selected)
-            completed = sum(
-                1 for k, v in self.state.items()
-                if k != "updated_at" and v.get("exported") and v.get("mosaiced")
-                and v.get("vectorized_gcs") and v.get("vectorized_gee")
-            )
+            completed = sum(1 for k, v in self.state.items() if k != "updated_at" and _is_complete(v))
             total = len([k for k in self.state if k != "updated_at"])
             self._log(f"Sincronizacao concluida: {completed}/{total} meses completos.", "success")
         except Exception as e:
@@ -195,6 +235,8 @@ class MonitorUI:
             widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Mosaico</div>'),
             widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Vetor GCS</div>'),
             widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Vetor GEE</div>'),
+            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Publico</div>'),
+            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Clean temp</div>'),
             widgets.HTML(f'<div style="width:{self._SEL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Sel</div>'),
         ], layout=L(
             background="#343a40", padding="6px 10px", min_height="34px",
@@ -218,8 +260,10 @@ class MonitorUI:
             mos_ok = info.get("mosaiced", False)
             vgc_ok = info.get("vectorized_gcs", False)
             vge_ok = info.get("vectorized_gee", False)
+            pub_ok = info.get("published", False)
+            tmp_ok = info.get("temp_cleaned", False)
 
-            all_ok = exp_ok and mos_ok and vgc_ok and vge_ok
+            all_ok = _is_complete(info)
 
             bg = "#fcfcfc" if i % 2 == 0 else "#fff"
 
@@ -228,47 +272,38 @@ class MonitorUI:
                 f'background:#e9ecef;padding:2px 6px;border-radius:3px;">{m}</div>'
             )
 
-            exp_cell = widgets.HTML(
-                f'<div style="width:{self._CELL_W};text-align:center;">{_badge(exp_ok)}</div>'
-            )
-            mos_cell = widgets.HTML(
-                f'<div style="width:{self._CELL_W};text-align:center;">{_badge(mos_ok)}</div>'
-            )
-            vgc_cell = widgets.HTML(
-                f'<div style="width:{self._CELL_W};text-align:center;">{_badge(vgc_ok)}</div>'
-            )
-            vge_cell = widgets.HTML(
-                f'<div style="width:{self._CELL_W};text-align:center;">{_badge(vge_ok)}</div>'
-            )
+            def _cell(ok):
+                return widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;">{_badge(ok)}</div>')
 
-            chk = widgets.Checkbox(value=False, indent=False, layout=L(width="20px", height="20px", margin="0 auto"))
+            exp_cell = _cell(exp_ok)
+            mos_cell = _cell(mos_ok)
+            vgc_cell = _cell(vgc_ok)
+            vge_cell = _cell(vge_ok)
+            pub_cell = _cell(pub_ok)
+            tmp_cell = _cell(tmp_ok)
+
+            chk = widgets.Checkbox(value=False, indent=False, layout=L(width="20px", height="20px"))
             if all_ok:
                 chk.disabled = True
 
-            chk_wrapper = widgets.HBox([chk], layout=L(width=self._SEL_W, justify_content="center"))
+            chk_wrapper = widgets.HBox([chk], layout=L(
+                width=self._SEL_W, justify_content="center",
+                align_items="center", overflow="hidden"
+            ))
 
             self.chk_dict[m] = chk
 
             row = widgets.HBox(
-                [date_cell, exp_cell, mos_cell, vgc_cell, vge_cell, chk_wrapper],
+                [date_cell, exp_cell, mos_cell, vgc_cell, vge_cell, pub_cell, tmp_cell, chk_wrapper],
                 layout=row_layout
             )
             row.layout.background = bg
             rows.append(row)
 
-        n_complete = sum(
-            1 for k, v in self.state.items()
-            if k != "updated_at" and v.get("exported") and v.get("mosaiced")
-            and v.get("vectorized_gcs") and v.get("vectorized_gee")
-        )
-
-        n_visible = len(months)
-        n_visible_complete = sum(
-            1 for k in months
-            if self.state[k].get("exported") and self.state[k].get("mosaiced")
-            and self.state[k].get("vectorized_gcs") and self.state[k].get("vectorized_gee")
-        )
         n_all = len(self._all_months())
+        n_complete = sum(1 for k in self._all_months() if _is_complete(self.state[k]))
+        n_visible = len(months)
+        n_visible_complete = sum(1 for k in months if _is_complete(self.state[k]))
 
         if self.year_filter is not None:
             label = (
@@ -290,6 +325,8 @@ class MonitorUI:
             f'</div>'
         )
 
+        hint = widgets.HTML(_HINT)
+
         self.grid_container.children = [
             widgets.VBox(rows, layout=L(
                 max_height="460px", width="100%",
@@ -298,6 +335,7 @@ class MonitorUI:
                 background_color="#fff"
             )),
             legend,
+            hint,
         ]
 
     def _on_select_pending(self, _):
@@ -338,19 +376,65 @@ class MonitorUI:
         self._restore_selected(selected)
 
 
-def run_ui():
-    ui = MonitorUI()
-    ui.display()
+class CountryTabs:
+    """Aba por pais. Cada aba tem seu proprio MonitorUI (build lazy).
 
-    months = list_months_in_collection()
-    if months:
-        for m in months:
-            ui.state[m] = {"exported": False, "mosaiced": False, "vectorized_gcs": False, "vectorized_gee": False}
-        ui._render_grid()
-        ui._log(f"{len(months)} meses na colecao. Sincronizando automaticamente...", "info")
-    else:
-        ui._log("Nao foi possivel consultar a colecao. Verifique a autenticacao GEE.", "warning")
+    Delega get_selected_months/_log/sync para o painel da aba ativa, entao
+    as celulas de processamento continuam usando `ui` sem mudanca.
+    """
 
-    ui._on_sync(None)
+    def __init__(self, countries):
+        self.countries = list(countries)
+        if not self.countries:
+            raise ValueError("Nenhum pais configurado para as abas.")
+        for c in self.countries:
+            if c not in config.COUNTRIES:
+                raise ValueError(f"Pais '{c}' nao existe em config.COUNTRIES.")
 
-    return ui
+        self._panels = {}
+        self._active_code = self.countries[0]
+        self._active_panel = None
+
+        self._placeholders = [widgets.VBox([]) for _ in self.countries]
+        self.tab = widgets.Tab(children=self._placeholders)
+        for i, c in enumerate(self.countries):
+            self.tab.set_title(i, f"{config.flag(c)} {c.title()}")
+
+        self.tab.observe(self._on_tab_change, names="selected_index")
+        self._activate(0)
+
+    def _on_tab_change(self, change):
+        idx = change.get("new")
+        if idx is None:
+            return
+        self._activate(idx)
+
+    def _activate(self, idx):
+        code = self.countries[idx]
+        self._active_code = code
+        if code not in self._panels:
+            config.set_country(code, verbose=False)
+            panel = MonitorUI()
+            panel.start()
+            self._panels[code] = panel
+            self._placeholders[idx].children = [panel.container]
+        else:
+            panel = self._panels[code]
+            panel.sync()
+        self._active_panel = panel
+
+    def __getattr__(self, name):
+        panel = self.__dict__.get("_active_panel")
+        if panel is None:
+            raise AttributeError(name)
+        return getattr(panel, name)
+
+    def display(self):
+        display(self.tab)
+
+
+def run_ui(countries=None):
+    countries = countries or config.COUNTRIES_AVAILABLE
+    tabs = CountryTabs(countries)
+    tabs.display()
+    return tabs

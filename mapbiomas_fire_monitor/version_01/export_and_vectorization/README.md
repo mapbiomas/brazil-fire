@@ -24,23 +24,39 @@ export_and_vectorization/
 1. Abra o notebook `mapbiomas_fire_monitor_brazil.ipynb` no Google Colab.
 2. Execute a celula 1 para instalar dependencias.
 3. Execute a celula 2 para autenticar no GCP e Google Earth Engine.
-4. Na celula de config, escolha o pais via `COUNTRY` (uma linha).
+4. Na celula de config, defina `COUNTRIES` (lista de abas) e demais configs.
 5. Opcional: células "Zerar estado local" e "Diagnostico" antes de comecar.
 6. Execute a celula da UI para abrir a interface.
-7. Use o **dropdown de Ano** para filtrar e trabalhar um ano por vez.
-8. Clique em **Sincronizar** e processe as etapas pendentes.
+7. Troque de pais pela **aba** (cada aba tem sua propria grid).
+8. Use o **dropdown de Ano** para filtrar e trabalhar um ano por vez.
+9. Clique em **Sincronizar** e processe as etapas pendentes.
 
-## Trocar de pais (Brasil / Indonesia)
+## Trocar de pais (abas)
 
-Na celula de config, basta mudar uma linha e reexecutar:
+A UI abre uma **aba por pais** (com bandeira). Trocar de aba reconfigura o pais
+ativo e re-sincroniza a grid daquele pais — sem editar codigo e sem reiniciar o
+kernel. As celulas de processamento (Export/Mosaico/Vetorizacao/Upload/Publicar)
+sempre atuam sobre o pais da aba ativa.
 
 ```python
-COUNTRY = "brazil"        # 'brazil' | 'indonesia'
+COUNTRIES = ["brazil", "indonesia"]   # abas disponiveis na UI
 ```
 
-Toda a config (coleção, GCS, assets GEE) é derivada de `COUNTRY` em tempo de
-chamada — reexecutar a celula sempre propaga, sem reimportar modulos. O
-`config.set_country(COUNTRY)` valida e imprime os destinos de cada pais.
+Toda a config (coleção, GCS, assets GEE) é derivada do pais ativo em tempo de
+chamada, entao trocar de aba sempre propaga para os modulos.
+
+## Colunas da grid (etapas)
+
+| Coluna | Quando vira **OK** | Celula |
+|--------|--------------------|--------|
+| Export | tiles no GCS (`temp/`) | Export |
+| Mosaico | COG montado | Mosaico |
+| Vetor GCS | ZIP vetorial no GCS | Vetorizacao |
+| Vetor GEE | FeatureCollection no GEE | Upload GEE |
+| Publico | COG espelhado no `mapbiomas-public` | Publicar |
+| Clean temp | tiles de `temp/` removidos apos consolidacao | Publicar |
+
+A legenda da grid traz a dica **MISS → OK** com a celula que resolve cada coluna.
 
 ## Selecionar um ano ou meses especificos
 

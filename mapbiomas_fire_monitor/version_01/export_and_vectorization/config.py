@@ -37,19 +37,33 @@ COUNTRIES = {
 
 COUNTRY = "brazil"
 
+# Paises expostos como abas na UI (ordem de exibicao).
+COUNTRIES_AVAILABLE = ["brazil", "indonesia"]
+
+COUNTRIES_FLAGS = {
+    "brazil": "🇧🇷",
+    "indonesia": "🇮🇩",
+}
+
+
+def flag(code):
+    return COUNTRIES_FLAGS.get(code, "🌍")
+
 
 def _country():
     return COUNTRIES.get(COUNTRY, COUNTRIES["brazil"])
 
 
-def set_country(name):
-    """Seleciona o pais ativo. Valida e imprime os caminhos derivados."""
+def set_country(name, verbose=True):
+    """Seleciona o pais ativo. Valida e (se verbose) imprime os caminhos."""
     global COUNTRY
     if name not in COUNTRIES:
         raise ValueError(
             f"Pais '{name}' nao configurado. Disponiveis: {sorted(COUNTRIES)}"
         )
     COUNTRY = name
+    if not verbose:
+        return
     print("Pais:", COUNTRY)
     print("Colecao:", image_collection())
     print("GCS tiles:", f"gs://{BUCKET}/{tiles_prefix()}")

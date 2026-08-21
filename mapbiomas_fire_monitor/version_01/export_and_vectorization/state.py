@@ -4,10 +4,6 @@ import time
 import gcsfs
 from . import config
 from .config import (
-    BUCKET,
-    PUBLIC_BUCKET,
-    STATE_FILE,
-    COUNTRY,
     tiles_prefix,
     mosaic_prefix,
     vector_prefix,
@@ -44,38 +40,54 @@ def list_months_in_collection():
 
 
 def _new_entry():
-    return {"exported": False, "mosaiced": False, "vectorized_gcs": False, "vectorized_gee": False}
+    return {
+        "exported": False,
+        "mosaiced": False,
+        "vectorized_gcs": False,
+        "vectorized_gee": False,
+        "published": False,
+        "temp_cleaned": False,
+    }
+
+
+def _month_from_basename(basename, prefix_strip, suffix):
+    name = basename.replace(prefix_strip, "").replace(suffix, "")
+    parts = name.split("_")
+    if len(parts) >= 2:
+        return f"{parts[0]}_{parts[1]}"
+    return None
 
 
 def scan_gcs(logger=None):
     fs = _get_fs()
     state = {}
+    tiles_present = set()
+    cog_present = set()
 
     def _log(msg):
         if logger:
             logger(msg)
 
-    _log(f"Scanning GCS: gs://{BUCKET}/{tiles_prefix()}/ ...")
+    # Tiles (temp)
+    _log(f"Scanning GCS: gs://{config.BUCKET}/{tiles_prefix()}/ ...")
     try:
-        tile_files = fs.glob(f"{BUCKET}/{tiles_prefix()}/fire_monitor_v1_monthly_burned_{COUNTRY}_*.tif")
+        tile_files = fs.glob(f"{config.BUCKET}/{tiles_prefix()}/fire_monitor_v1_monthly_burned_{config.COUNTRY}_*.tif")
         for f in tile_files:
-            basename = f.split('/')[-1]
-            parts = basename.replace(f'fire_monitor_v1_monthly_burned_{COUNTRY}_', '').split('_')
-            if len(parts) >= 2:
-                key = f"{parts[0]}_{parts[1][:2]}"
+            key = _month_from_basename(f.split('/')[-1], f'fire_monitor_v1_monthly_burned_{config.COUNTRY}_', '.tif')
+            if key:
+                tiles_present.add(key)
                 state.setdefault(key, _new_entry())["exported"] = True
     except Exception as e:
         _log(f"Error scanning tiles: {e}")
 
-    _log(f"Scanning GCS: gs://{BUCKET}/{mosaic_prefix()}/ ...")
+    # COGs (bucket de processamento)
+    _log(f"Scanning GCS: gs://{config.BUCKET}/{mosaic_prefix()}/ ...")
     try:
-        mosaic_files = fs.glob(f"{BUCKET}/{mosaic_prefix()}/monthly_burned-{COUNTRY}_*.tif")
+        mosaic_files = fs.glob(f"{config.BUCKET}/{mosaic_prefix()}/monthly_burned-{config.COUNTRY}_*.tif")
         for f in mosaic_files:
-            basename = f.split('/')[-1]
-            name = basename.replace(f'monthly_burned-{COUNTRY}_', '').replace('.tif', '')
-            parts = name.split('_')
-            if len(parts) >= 2:
-                key = f"{parts[0]}_{parts[1]}"
+            key = _month_from_basename(f.split('/')[-1], f'monthly_burned-{config.COUNTRY}_', '.tif')
+            if key:
+                cog_present.add(key)
                 entry = state.setdefault(key, _new_entry())
                 # COG so existe se houve export + mosaic; tiles podem ja ter sido limpos
                 entry["exported"] = True
@@ -83,18 +95,32 @@ def scan_gcs(logger=None):
     except Exception as e:
         _log(f"Error scanning mosaics: {e}")
 
-    _log(f"Scanning GCS: gs://{BUCKET}/{vector_prefix()}/ ...")
+    # Vetores ZIP (bucket de processamento)
+    _log(f"Scanning GCS: gs://{config.BUCKET}/{vector_prefix()}/ ...")
     try:
-        vector_files = fs.glob(f"{BUCKET}/{vector_prefix()}/monthly_burned-{COUNTRY}_*.zip")
+        vector_files = fs.glob(f"{config.BUCKET}/{vector_prefix()}/monthly_burned-{config.COUNTRY}_*.zip")
         for f in vector_files:
-            basename = f.split('/')[-1]
-            name = basename.replace(f'monthly_burned-{COUNTRY}_', '').replace('.zip', '')
-            parts = name.split('_')
-            if len(parts) >= 2:
-                key = f"{parts[0]}_{parts[1]}"
+            key = _month_from_basename(f.split('/')[-1], f'monthly_burned-{config.COUNTRY}_', '.zip')
+            if key:
                 state.setdefault(key, _new_entry())["vectorized_gcs"] = True
     except Exception as e:
         _log(f"Error scanning vectors: {e}")
+
+    # Publico (espelho no bucket publico) — raster COG
+    _log(f"Scanning public GCS: gs://{config.PUBLIC_BUCKET}/{mosaic_prefix()}/ ...")
+    try:
+        pub_mosaic_files = fs.glob(f"{config.PUBLIC_BUCKET}/{mosaic_prefix()}/monthly_burned-{config.COUNTRY}_*.tif")
+        for f in pub_mosaic_files:
+            key = _month_from_basename(f.split('/')[-1], f'monthly_burned-{config.COUNTRY}_', '.tif')
+            if key:
+                state.setdefault(key, _new_entry())["published"] = True
+    except Exception as e:
+        _log(f"Error scanning public mosaics: {e}")
+
+    # Temp limpo = COG existe e nao ha tiles de temp para o mes
+    for key in cog_present:
+        entry = state.setdefault(key, _new_entry())
+        entry["temp_cleaned"] = key not in tiles_present
 
     return state
 
@@ -118,9 +144,8 @@ def scan_gee(logger=None):
     def _collect(assets_list):
         for a in assets_list.get("assets", []):
             asset_name = a["name"].split("/")[-1]
-            parts = asset_name.replace(f"monthly_burned-{COUNTRY}_", "").split("_")
-            if len(parts) >= 2:
-                key = f"{parts[0]}_{parts[1]}"
+            key = _month_from_basename(asset_name, f"monthly_burned-{config.COUNTRY}_", "")
+            if key:
                 state.setdefault(key, _new_entry())["vectorized_gee"] = True
 
     try:
@@ -145,6 +170,8 @@ def merge_states(gcs_state, gee_state, months_from_collection):
             "mosaiced": gcs_state.get(key, {}).get("mosaiced", False),
             "vectorized_gcs": gcs_state.get(key, {}).get("vectorized_gcs", False),
             "vectorized_gee": gee_state.get(key, {}).get("vectorized_gee", False),
+            "published": gcs_state.get(key, {}).get("published", False),
+            "temp_cleaned": gcs_state.get(key, {}).get("temp_cleaned", False),
         }
     return result
 
@@ -166,7 +193,7 @@ def build_state(logger=None):
 
 def load_state():
     try:
-        with open(STATE_FILE, "r") as f:
+        with open(config.STATE_FILE, "r") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
@@ -174,7 +201,7 @@ def load_state():
 
 def save_state(state):
     try:
-        with open(STATE_FILE, "w") as f:
+        with open(config.STATE_FILE, "w") as f:
             json.dump(state, f, indent=2)
     except Exception as e:
         print(f"Warning: Could not save state: {e}")
