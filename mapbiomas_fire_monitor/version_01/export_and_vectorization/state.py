@@ -2,19 +2,24 @@ import os
 import json
 import time
 import gcsfs
-
-BUCKET = "mapbiomas-fire"
-GEE_PROJECT = "ee-ipam"
-IMAGE_COLLECTION = "projects/mapbiomas-public/assets/brazil/fire/monitor/mapbiomas_fire_monthly_burned_v1"
-TILES_PREFIX = "monitor/monthly_images/temp"
-MOSAIC_PREFIX = "monitor/monthly_images/monthly_burned"
-VECTOR_PREFIX = "monitor/monthly_vectors/monthly_burned"
-VECTOR_ASSET_PREFIX = "projects/mapbiomas-workspace/FOGO/MONITORAMENTO/fire_monitor_v1_monthly_burned_brazil_vectors"
-
-STATE_FILE = "monitor_state.json"
-START_YEAR = 2019
+from . import config
+from .config import (
+    BUCKET,
+    PUBLIC_BUCKET,
+    STATE_FILE,
+    COUNTRY,
+    tiles_prefix,
+    mosaic_prefix,
+    vector_prefix,
+    vector_asset_prefix,
+    image_collection,
+    tile_pattern,
+    mosaic_name,
+    vector_name,
+)
 
 _fs = None
+
 
 def _get_fs():
     global _fs
@@ -23,23 +28,11 @@ def _get_fs():
     return _fs
 
 
-def tile_pattern(year, month):
-    return f"fire_monitor_v1_monthly_burned_brazil_{year}_{month:02d}"
-
-
-def mosaic_name(year, month):
-    return f"monthly_burned-brazil_{year}_{month:02d}"
-
-
-def vector_name(year, month):
-    return f"monthly_burned-brazil_{year}_{month:02d}"
-
-
 def list_months_in_collection():
     import ee
     import datetime
     try:
-        col = ee.ImageCollection(IMAGE_COLLECTION)
+        col = ee.ImageCollection(image_collection())
         times = col.aggregate_array('system:time_start').getInfo()
         months = set()
         for t in times:
@@ -50,6 +43,10 @@ def list_months_in_collection():
         return []
 
 
+def _new_entry():
+    return {"exported": False, "mosaiced": False, "vectorized_gcs": False, "vectorized_gee": False}
+
+
 def scan_gcs(logger=None):
     fs = _get_fs()
     state = {}
@@ -58,48 +55,44 @@ def scan_gcs(logger=None):
         if logger:
             logger(msg)
 
-    _log(f"Scanning GCS: gs://{BUCKET}/{TILES_PREFIX}/ ...")
+    _log(f"Scanning GCS: gs://{BUCKET}/{tiles_prefix()}/ ...")
     try:
-        tile_files = fs.glob(f"{BUCKET}/{TILES_PREFIX}/fire_monitor_v1_monthly_burned_brazil_*.tif")
+        tile_files = fs.glob(f"{BUCKET}/{tiles_prefix()}/fire_monitor_v1_monthly_burned_{COUNTRY}_*.tif")
         for f in tile_files:
             basename = f.split('/')[-1]
-            parts = basename.replace('fire_monitor_v1_monthly_burned_brazil_', '').split('_')
+            parts = basename.replace(f'fire_monitor_v1_monthly_burned_{COUNTRY}_', '').split('_')
             if len(parts) >= 2:
-                year, month = parts[0], parts[1][:2]
-                key = f"{year}_{month}"
-                if key not in state:
-                    state[key] = {"exported": False, "mosaiced": False, "vectorized_gcs": False, "vectorized_gee": False}
-                state[key]["exported"] = True
+                key = f"{parts[0]}_{parts[1][:2]}"
+                state.setdefault(key, _new_entry())["exported"] = True
     except Exception as e:
         _log(f"Error scanning tiles: {e}")
 
-    _log(f"Scanning GCS: gs://{BUCKET}/{MOSAIC_PREFIX}/ ...")
+    _log(f"Scanning GCS: gs://{BUCKET}/{mosaic_prefix()}/ ...")
     try:
-        mosaic_files = fs.glob(f"{BUCKET}/{MOSAIC_PREFIX}/monthly_burned-brazil_*.tif")
+        mosaic_files = fs.glob(f"{BUCKET}/{mosaic_prefix()}/monthly_burned-{COUNTRY}_*.tif")
         for f in mosaic_files:
             basename = f.split('/')[-1]
-            name = basename.replace('monthly_burned-brazil_', '').replace('.tif', '')
+            name = basename.replace(f'monthly_burned-{COUNTRY}_', '').replace('.tif', '')
             parts = name.split('_')
             if len(parts) >= 2:
                 key = f"{parts[0]}_{parts[1]}"
-                if key not in state:
-                    state[key] = {"exported": False, "mosaiced": False, "vectorized_gcs": False, "vectorized_gee": False}
-                state[key]["mosaiced"] = True
+                entry = state.setdefault(key, _new_entry())
+                # COG so existe se houve export + mosaic; tiles podem ja ter sido limpos
+                entry["exported"] = True
+                entry["mosaiced"] = True
     except Exception as e:
         _log(f"Error scanning mosaics: {e}")
 
-    _log(f"Scanning GCS: gs://{BUCKET}/{VECTOR_PREFIX}/ ...")
+    _log(f"Scanning GCS: gs://{BUCKET}/{vector_prefix()}/ ...")
     try:
-        vector_files = fs.glob(f"{BUCKET}/{VECTOR_PREFIX}/monthly_burned-brazil_*.shp")
+        vector_files = fs.glob(f"{BUCKET}/{vector_prefix()}/monthly_burned-{COUNTRY}_*.zip")
         for f in vector_files:
             basename = f.split('/')[-1]
-            name = basename.replace('monthly_burned-brazil_', '').replace('.shp', '')
+            name = basename.replace(f'monthly_burned-{COUNTRY}_', '').replace('.zip', '')
             parts = name.split('_')
             if len(parts) >= 2:
                 key = f"{parts[0]}_{parts[1]}"
-                if key not in state:
-                    state[key] = {"exported": False, "mosaiced": False, "vectorized_gcs": False, "vectorized_gee": False}
-                state[key]["vectorized_gcs"] = True
+                state.setdefault(key, _new_entry())["vectorized_gcs"] = True
     except Exception as e:
         _log(f"Error scanning vectors: {e}")
 
@@ -114,29 +107,28 @@ def scan_gee(logger=None):
         if logger:
             logger(msg)
 
-    _log("Scanning GEE assets...")
+    prefix = vector_asset_prefix()
+    _log(f"Scanning GEE assets: {prefix} ...")
     try:
-        assets = ee.data.listAssets({"parent": VECTOR_ASSET_PREFIX})
-        for a in assets.get("assets", []):
+        assets = ee.data.listAssets({"parent": prefix})
+    except Exception as e:
+        _log(f"[WARN] Pasta de assets GEE nao encontrada ou sem acesso: {prefix} ({e})")
+        return state
+
+    def _collect(assets_list):
+        for a in assets_list.get("assets", []):
             asset_name = a["name"].split("/")[-1]
-            parts = asset_name.replace("monthly_burned-brazil_", "").split("_")
+            parts = asset_name.replace(f"monthly_burned-{COUNTRY}_", "").split("_")
             if len(parts) >= 2:
                 key = f"{parts[0]}_{parts[1]}"
-                if key not in state:
-                    state[key] = {"exported": False, "mosaiced": False, "vectorized_gcs": False, "vectorized_gee": False}
-                state[key]["vectorized_gee"] = True
+                state.setdefault(key, _new_entry())["vectorized_gee"] = True
 
+    try:
+        _collect(assets)
         page_token = assets.get("nextPageToken")
         while page_token:
-            assets = ee.data.listAssets({"parent": VECTOR_ASSET_PREFIX, "pageToken": page_token})
-            for a in assets.get("assets", []):
-                asset_name = a["name"].split("/")[-1]
-                parts = asset_name.replace("monthly_burned-brazil_", "").split("_")
-                if len(parts) >= 2:
-                    key = f"{parts[0]}_{parts[1]}"
-                    if key not in state:
-                        state[key] = {"exported": False, "mosaiced": False, "vectorized_gcs": False, "vectorized_gee": False}
-                    state[key]["vectorized_gee"] = True
+            assets = ee.data.listAssets({"parent": prefix, "pageToken": page_token})
+            _collect(assets)
             page_token = assets.get("nextPageToken")
     except Exception as e:
         _log(f"Error scanning GEE: {e}")

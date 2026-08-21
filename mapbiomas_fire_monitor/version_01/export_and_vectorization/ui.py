@@ -1,6 +1,7 @@
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 
+from . import config
 from .state import list_months_in_collection, build_state
 
 L = widgets.Layout
@@ -62,15 +63,28 @@ class MonitorUI:
         )
         self.btn_clear.on_click(self._on_clear)
 
+        self.btn_select_all = widgets.Button(
+            description="Selecionar Todos", button_style="info",
+            layout=L(width="150px", height="34px")
+        )
+        self.btn_select_all.on_click(self._on_select_all)
+
+        self.year_filter = None
+        self.year_dropdown = widgets.Dropdown(
+            options=["Todos os anos"], value="Todos os anos",
+            description="Ano:", layout=L(width="240px")
+        )
+        self.year_dropdown.observe(self._on_year_change, names="value")
+
         self.loader = widgets.HTML(
             value='<span id="mon-loader" style="display:none;margin-left:10px;color:#3498db;font-size:13px;">Sincronizando...</span>'
         )
 
-        header = widgets.HTML("""
+        header = widgets.HTML(f"""
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;background:#fff;border-bottom:2px solid #333;margin-bottom:10px;">
             <div>
                 <span style="font-weight:bold;font-size:17px;color:#333;">Export &amp; Vectorization</span>
-                <span style="color:#6c757d;font-size:12px;margin-left:14px;">Monitor do Fogo &mdash; Brasil</span>
+                <span style="color:#6c757d;font-size:12px;margin-left:14px;">Monitor do Fogo &mdash; {config.COUNTRY.title()}</span>
             </div>
             <div style="padding:4px 14px;background:#fff1f0;border:1px solid #ffa39e;border-radius:4px;">
                 <span style="color:#cf1322;font-size:11px;font-weight:bold;">MapBiomas Fire Monitor</span>
@@ -91,13 +105,14 @@ class MonitorUI:
         """)
 
         footer = widgets.HBox([
-            self.btn_select_pending, self.btn_clear, self.btn_sync, self.loader,
+            self.btn_select_pending, self.btn_select_all, self.btn_clear, self.btn_sync, self.loader,
         ], layout=L(margin="10px 0 6px 0", gap="10px", align_items="center"))
 
         self.container = widgets.VBox([
             _STATUS_CSS,
             header,
             instructions,
+            widgets.HBox([self.year_dropdown], layout=L(margin="0 0 8px 10px")),
             self.grid_container,
             footer,
             self.log_area,
@@ -145,6 +160,32 @@ class MonitorUI:
             self.btn_sync.description = "Sincronizar"
             self.loader.value = self.loader.value.replace("display:flex", "display:none")
 
+    def _all_months(self):
+        return sorted(
+            [k for k in self.state.keys() if k != "updated_at"],
+            reverse=True
+        )
+
+    def _filtered_months(self):
+        months = self._all_months()
+        if self.year_filter is not None:
+            months = [k for k in months if k.startswith(f"{self.year_filter}_")]
+        return months
+
+    def _refresh_year_dropdown(self):
+        years = sorted({int(k.split("_")[0]) for k in self._all_months()}, reverse=True)
+        options = ["Todos os anos"] + [str(y) for y in years]
+        if self.year_dropdown.value not in options:
+            self.year_dropdown.value = "Todos os anos"
+        self.year_dropdown.options = options
+
+    def _on_year_change(self, change):
+        value = change.get("new")
+        self.year_filter = int(value) if value != "Todos os anos" else None
+        selected = self._get_selected_keys()
+        self._render_grid()
+        self._restore_selected(selected)
+
     def _render_grid(self):
         self.chk_dict = {}
 
@@ -162,10 +203,8 @@ class MonitorUI:
 
         rows = [header_row]
 
-        months = sorted(
-            [k for k in self.state.keys() if k != "updated_at"],
-            reverse=True
-        )
+        self._refresh_year_dropdown()
+        months = self._filtered_months()
 
         row_layout = L(
             align_items="center", min_height="38px",
@@ -223,12 +262,31 @@ class MonitorUI:
             and v.get("vectorized_gcs") and v.get("vectorized_gee")
         )
 
+        n_visible = len(months)
+        n_visible_complete = sum(
+            1 for k in months
+            if self.state[k].get("exported") and self.state[k].get("mosaiced")
+            and self.state[k].get("vectorized_gcs") and self.state[k].get("vectorized_gee")
+        )
+        n_all = len(self._all_months())
+
+        if self.year_filter is not None:
+            label = (
+                f'{n_visible} meses de {self.year_filter} no filtro &nbsp;|&nbsp; '
+                f'<span style="color:#28a745;font-weight:700;">{n_visible_complete}</span> completos &nbsp;|&nbsp; '
+                f'<span style="color:#6c757d;">{n_visible - n_visible_complete}</span> pendentes'
+            )
+        else:
+            label = (
+                f'{n_all} meses na colecao &nbsp;|&nbsp; '
+                f'<span style="color:#28a745;font-weight:700;">{n_complete}</span> completos &nbsp;|&nbsp; '
+                f'<span style="color:#6c757d;">{n_all - n_complete}</span> pendentes'
+            )
+
         legend = widgets.HTML(
             f'<div style="font-size:11px;color:#6c757d;margin:6px 0 0 10px;padding:6px 10px;'
             f'background:#f8f9fa;border-radius:4px;">'
-            f'{len(months)} meses na colecao &nbsp;|&nbsp; '
-            f'<span style="color:#28a745;font-weight:700;">{n_complete}</span> completos &nbsp;|&nbsp; '
-            f'<span style="color:#6c757d;">{len(months) - n_complete}</span> pendentes'
+            f'{label}'
             f'</div>'
         )
 
@@ -244,6 +302,11 @@ class MonitorUI:
 
     def _on_select_pending(self, _):
         for key, chk in self.chk_dict.items():
+            if not chk.disabled:
+                chk.value = True
+
+    def _on_select_all(self, _):
+        for chk in self.chk_dict.values():
             if not chk.disabled:
                 chk.value = True
 

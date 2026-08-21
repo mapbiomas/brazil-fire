@@ -2,13 +2,15 @@ import os
 import subprocess
 import time
 import gc
+import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from .state import BUCKET, TILES_PREFIX, MOSAIC_PREFIX, tile_pattern, mosaic_name, _get_fs
+from . import config
+from .state import _get_fs
 
 
 def list_tiles(year, month):
     fs = _get_fs()
-    pattern = f"{BUCKET}/{TILES_PREFIX}/{tile_pattern(year, month)}*.tif"
+    pattern = f"{config.BUCKET}/{config.tiles_prefix()}/{config.tile_pattern(year, month)}*.tif"
     try:
         files = fs.glob(pattern)
         return sorted(files)
@@ -18,7 +20,7 @@ def list_tiles(year, month):
 
 def check_mosaic_exists(year, month):
     fs = _get_fs()
-    path = f"{BUCKET}/{MOSAIC_PREFIX}/{mosaic_name(year, month)}.tif"
+    path = f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name(year, month)}.tif"
     try:
         return fs.exists(path)
     except Exception:
@@ -47,7 +49,7 @@ def assemble_mosaic(year, month, logger=None):
 
     input_list = os.path.join(work_dir, "input_files.txt")
     vrt_file = os.path.join(work_dir, f"mosaic_{year}_{month:02d}.vrt")
-    output_file = os.path.join(work_dir, mosaic_name(year, month) + ".tif")
+    output_file = os.path.join(work_dir, config.mosaic_name(year, month) + ".tif")
 
     try:
         with open(input_list, "w") as f:
@@ -61,11 +63,11 @@ def assemble_mosaic(year, month, logger=None):
                 logger(f"[ERROR] gdalbuildvrt failed: {result.stderr}")
             return False
 
+        # Saida Byte 0/1 puro, sem nodata (maxima compressao + compat com polygonize -mask).
         translate_cmd = [
             "gdal_translate",
             "-of", "GTiff",
             "-ot", "Byte",
-            "-a_nodata", "0",
             "-co", "TILED=YES",
             "-co", "COMPRESS=LZW",
             "-co", "PREDICTOR=2",
@@ -80,12 +82,11 @@ def assemble_mosaic(year, month, logger=None):
                 logger(f"[ERROR] gdal_translate failed: {result.stderr}")
             return False
 
-        import gcsfs as _gcsfs_module
         fs = _get_fs()
-        dest = f"{BUCKET}/{MOSAIC_PREFIX}/{mosaic_name(year, month)}.tif"
+        dest = f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name(year, month)}.tif"
         fs.put(output_file, dest)
         if logger:
-            logger(f"[OK] Mosaic uploaded to gs://{dest}")
+            logger(f"[OK] Mosaic ({len(tiles)} tiles) uploaded to gs://{dest}")
 
         return True
     except Exception as e:
@@ -93,7 +94,6 @@ def assemble_mosaic(year, month, logger=None):
             logger(f"[ERROR] Mosaic assembly failed: {e}")
         return False
     finally:
-        import shutil
         if os.path.exists(work_dir):
             shutil.rmtree(work_dir, ignore_errors=True)
         gc.collect()
@@ -106,14 +106,15 @@ def mosaic_selected(ui, logger=None):
             logger("[MOSAIC] Nenhum mes selecionado.", "warning")
         return
 
-    workers = os.cpu_count() or 4
+    # Cap de workers evita OOM no Colab com varios gdal_translate simultaneos.
+    workers = min(os.cpu_count() or 4, 4)
 
     def _process(ym):
         y, m = ym
         if not list_tiles(y, m):
             return f"[SKIP] {y}_{m:02d} — sem tiles no GCS"
         ok = assemble_mosaic(y, m, logger=None)
-        return f"{'[OK]' if ok else '[FAIL]'} {y}_{m:02d}"
+        return f"[{'OK' if ok else 'FAIL'}] {y}_{m:02d}"
 
     if logger:
         logger(f"[MOSAIC] Iniciando mosaico de {len(selected)} meses ({workers} workers)...", "info")
