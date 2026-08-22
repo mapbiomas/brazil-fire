@@ -553,9 +553,11 @@ class MonitorUI:
 
         header_row = widgets.HBox(
             [widgets.HTML(f'<div style="width:{self._DATE_W};font-weight:700;font-size:12px;color:{p["grid_header_fg"]};'
-                          f'box-sizing:border-box;border-right:1px solid {p["sep"]};">Date</div>')]
+                          f'box-sizing:border-box;border-left:1px solid {p["sep"]};'
+                          f'border-right:1px solid {p["sep"]};">Date</div>')]
             + [_header_cell(self._CELL_W, t, e) for _, t, e, _ in _COLS]
-            + [widgets.HTML(f'<div style="width:{self._SEL_W};text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};">Select</div>')],
+            + [widgets.HTML(f'<div style="width:{self._SEL_W};text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};'
+                            f'box-sizing:border-box;border-right:1px solid {p["sep"]};">Select</div>')],
             layout=L(
                 background=p["grid_header_bg"], padding="6px 10px", min_height="44px",
                 align_items="center", overflow="visible"
@@ -581,7 +583,7 @@ class MonitorUI:
             date_cell = widgets.HTML(
                 f'<div style="width:{self._DATE_W};font-family:monospace;font-size:13px;color:{p["date_fg"]};font-weight:600;'
                 f'background:{p["date_bg"]};padding:2px 6px;border-radius:3px;box-sizing:border-box;'
-                f'border-right:1px solid {p["sep"]};">{m}</div>'
+                f'border-left:1px solid {p["sep"]};border-right:1px solid {p["sep"]};">{m}</div>'
             )
 
             cells = [date_cell]
@@ -594,8 +596,9 @@ class MonitorUI:
 
             chk = widgets.Checkbox(value=False, indent=False, layout=L(width="20px", height="20px"))
             chk_wrapper = widgets.HBox([chk], layout=L(
-                width=self._SEL_W, justify_content="center",
-                align_items="center", overflow="hidden"
+                width=f"calc({self._SEL_W} - 2px)", justify_content="center",
+                align_items="center", overflow="hidden",
+                border=f"1px solid {p['sep']}"
             ))
             self.chk_dict[m] = chk
 
