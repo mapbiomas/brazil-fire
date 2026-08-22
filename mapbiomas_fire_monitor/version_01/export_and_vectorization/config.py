@@ -322,6 +322,23 @@ def product():
     return PRODUCT
 
 
+def product_kind():
+    n = PRODUCT.lower()
+    if "monthly" in n:
+        return "monthly"
+    if "annual" in n:
+        return "annual"
+    return "period"
+
+
+def unit_key_for_image(kind, time_start_ms):
+    import datetime
+    dt = datetime.datetime.utcfromtimestamp(time_start_ms / 1000)
+    if kind == "monthly":
+        return f"{dt.year}_{dt.month:02d}"
+    return f"{dt.year}"
+
+
 def is_vectorizable():
     return bool(product_meta().get("vectorize"))
 

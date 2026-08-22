@@ -12,18 +12,18 @@ from . import config
 from .state import _get_fs
 
 
-def check_vector_gcs_exists(year, month):
+def check_vector_gcs_exists(unit_key):
     fs = _get_fs()
-    path = f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name(year, month)}.zip"
+    path = f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name_unit(unit_key)}.zip"
     try:
         return fs.exists(path)
     except Exception:
         return False
 
 
-def check_vector_gee_exists(year, month):
+def check_vector_gee_exists(unit_key):
     import ee
-    asset_id = f"{config.vector_asset_prefix()}/{config.vector_name(year, month)}"
+    asset_id = f"{config.vector_asset_prefix()}/{config.vector_name_unit(unit_key)}"
     try:
         ee.data.getAsset(asset_id)
         return True
@@ -31,33 +31,33 @@ def check_vector_gee_exists(year, month):
         return False
 
 
-def vectorize_month(year, month, force=False, logger=None):
-    if check_vector_gcs_exists(year, month):
+def vectorize_unit(unit_key, force=False, logger=None):
+    if check_vector_gcs_exists(unit_key):
         if force:
             if logger:
-                logger(f"[VECTORIZE] {year}_{month:02d}: force=True — removing ZIP and re-vectorizing.")
+                logger(f"[VECTORIZE] {unit_key}: force=True — removing ZIP and re-vectorizing.")
             try:
-                _get_fs().rm(f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name(year, month)}.zip")
+                _get_fs().rm(f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name_unit(unit_key)}.zip")
             except Exception as e:
                 if logger:
-                    logger(f"[ERROR] Failed to delete ZIP of {year}_{month:02d}: {e}")
+                    logger(f"[ERROR] Failed to delete ZIP of {unit_key}: {e}")
         else:
             if logger:
-                logger(f"[SKIP] Vector for {year}_{month:02d} already exists in GCS.")
+                logger(f"[SKIP] Vector for {unit_key} already exists in GCS.")
             return True
 
-    mosaic_path = f"{config.mosaic_prefix()}/{config.mosaic_name(year, month)}.tif"
+    mosaic_path = f"{config.mosaic_prefix()}/{config.mosaic_name_unit(unit_key)}.tif"
     fs = _get_fs()
     if not fs.exists(f"{config.BUCKET}/{mosaic_path}"):
         if logger:
-            logger(f"[WARN] Mosaic not found for {year}_{month:02d}.")
+            logger(f"[WARN] Mosaic not found for {unit_key}.")
         return False
 
-    work_dir = f"/content/temp/vectorize_{year}_{month:02d}_{int(time.time())}"
+    work_dir = f"/content/temp/vectorize_{unit_key.replace('/', '_')}_{int(time.time())}"
     os.makedirs(work_dir, exist_ok=True)
 
-    local_raster = os.path.join(work_dir, config.mosaic_name(year, month) + ".tif")
-    local_vector = os.path.join(work_dir, config.vector_name(year, month))
+    local_raster = os.path.join(work_dir, config.mosaic_name_unit(unit_key) + ".tif")
+    local_vector = os.path.join(work_dir, config.vector_name_unit(unit_key))
 
     try:
         if logger:
@@ -101,9 +101,9 @@ def vectorize_month(year, month, force=False, logger=None):
                     zf.write(p, arcname=os.path.basename(p))
 
         if logger:
-            logger(f"[UPLOAD] Uploading zip to GCS...")
+            logger("[UPLOAD] Uploading zip to GCS...")
 
-        dest = f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name(year, month)}.zip"
+        dest = f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name_unit(unit_key)}.zip"
         fs.put(zip_path, dest)
         if logger:
             logger(f"[OK] gs://{dest}")
@@ -154,11 +154,7 @@ def _ensure_folder(folder, logger=None):
 
 
 def make_vectors_public(logger=None):
-    """Seta all_users_can_read=True em todos os assets da pasta de vetores (idempotente).
-
-    Rode apos as tasks de upload concluirem para garantir a visibilidade por asset
-    (a pasta ja herda publica para os novos).
-    """
+    """Seta all_users_can_read=True em todos os assets da pasta de vetores (idempotente)."""
     import ee
     folder = config.vector_asset_prefix()
     _ensure_folder(folder, logger=logger)
@@ -235,29 +231,29 @@ def _fallback_upload(asset_id, zip_remote, logger=None):
         shutil.rmtree(work_dir, ignore_errors=True)
 
 
-def upload_to_gee(year, month, force=False, logger=None):
+def upload_to_gee(unit_key, force=False, logger=None):
     import ee
-    if check_vector_gee_exists(year, month):
+    if check_vector_gee_exists(unit_key):
         if force:
             if logger:
-                logger(f"[UPLOAD GEE] {year}_{month:02d}: force=True — removing asset and re-uploading.")
+                logger(f"[UPLOAD GEE] {unit_key}: force=True — removing asset and re-uploading.")
             try:
-                asset_id_existing = f"{config.vector_asset_prefix()}/{config.vector_name(year, month)}"
+                asset_id_existing = f"{config.vector_asset_prefix()}/{config.vector_name_unit(unit_key)}"
                 ee.data.deleteAsset(asset_id_existing)
             except Exception as e:
                 if logger:
                     logger(f"[WARN] Failed to delete existing asset: {e}")
         else:
             if logger:
-                logger(f"[SKIP] Asset already in GEE for {year}_{month:02d}.")
+                logger(f"[SKIP] Asset already in GEE for {unit_key}.")
             return True
 
-    if not check_vector_gcs_exists(year, month):
+    if not check_vector_gcs_exists(unit_key):
         if logger:
-            logger(f"[WARN] Vector not in GCS for {year}_{month:02d}. Vectorize first.")
+            logger(f"[WARN] Vector not in GCS for {unit_key}. Vectorize first.")
         return False
 
-    asset_id = f"{config.vector_asset_prefix()}/{config.vector_name(year, month)}"
+    asset_id = f"{config.vector_asset_prefix()}/{config.vector_name_unit(unit_key)}"
 
     if _has_active_upload(asset_id):
         if logger:
@@ -266,7 +262,7 @@ def upload_to_gee(year, month, force=False, logger=None):
 
     _ensure_folder(config.vector_asset_prefix(), logger=logger)
 
-    zip_remote = f"gs://{config.BUCKET}/{config.vector_prefix()}/{config.vector_name(year, month)}.zip"
+    zip_remote = f"gs://{config.BUCKET}/{config.vector_prefix()}/{config.vector_name_unit(unit_key)}.zip"
 
     if _run_upload(asset_id, zip_remote, logger):
         return True
@@ -276,8 +272,8 @@ def upload_to_gee(year, month, force=False, logger=None):
     return _fallback_upload(asset_id, zip_remote, logger)
 
 
-def _check_mosaic_gcs(year, month):
-    path = f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name(year, month)}.tif"
+def _check_mosaic_gcs(unit_key):
+    path = f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name_unit(unit_key)}.tif"
     try:
         return _get_fs().exists(path)
     except Exception:
@@ -285,27 +281,30 @@ def _check_mosaic_gcs(year, month):
 
 
 def vectorize_selected(ui, logger=None, force=False):
-    selected = ui.get_selected_months()
-    if not selected:
+    if not config.is_vectorizable():
         if logger:
-            logger("[VECTORIZE] No month selected.", "warning")
+            logger("[VECTORIZE] SKIP: this product is not vectorizable (only annual_burned / monitor monthly_burned).", "warning")
         return
 
-    # Cap de workers evita OOM no Colab com varios polygonize simultaneos.
+    units = ui.get_selected_units()
+    if not units:
+        if logger:
+            logger("[VECTORIZE] No unit selected.", "warning")
+        return
+
     workers = min(os.cpu_count() or 4, 4)
 
-    def _process(ym):
-        y, m = ym
-        if not _check_mosaic_gcs(y, m):
-            return f"[SKIP] {y}_{m:02d} — mosaic not found in GCS"
-        ok = vectorize_month(y, m, force=force, logger=None)
-        return f"[{'OK' if ok else 'FAIL'}] {y}_{m:02d}"
+    def _process(unit):
+        if not _check_mosaic_gcs(unit):
+            return f"[SKIP] {unit} — mosaic not found in GCS"
+        ok = vectorize_unit(unit, force=force, logger=None)
+        return f"[{'OK' if ok else 'FAIL'}] {unit}"
 
     if logger:
-        logger(f"[VECTORIZE] Starting vectorization of {len(selected)} months ({workers} workers)...", "info")
+        logger(f"[VECTORIZE] Starting vectorization of {len(units)} units ({workers} workers)...", "info")
 
     with ThreadPoolExecutor(max_workers=workers) as ex:
-        futures = {ex.submit(_process, ym): ym for ym in selected}
+        futures = {ex.submit(_process, u): u for u in units}
         for f in as_completed(futures):
             if logger:
                 logger(f.result())
@@ -317,19 +316,23 @@ def vectorize_selected(ui, logger=None, force=False):
 
 
 def gee_upload_selected(ui, logger=None, force=False):
-    selected = ui.get_selected_months()
-    if not selected:
+    if not config.is_vectorizable():
         if logger:
-            logger("[GEE UPLOAD] No month selected.", "warning")
+            logger("[GEE UPLOAD] SKIP: this product is not vectorizable.", "warning")
+        return
+
+    units = ui.get_selected_units()
+    if not units:
+        if logger:
+            logger("[GEE UPLOAD] No unit selected.", "warning")
         return
 
     if logger:
-        logger(f"[GEE UPLOAD] Starting upload of {len(selected)} months to GEE...", "info")
+        logger(f"[GEE UPLOAD] Starting upload of {len(units)} units to GEE...", "info")
 
-    for year, month in selected:
-        upload_to_gee(year, month, force=force, logger=logger)
+    for unit in units:
+        upload_to_gee(unit, force=force, logger=logger)
 
-    # Visibilidade publica: pasta ja e publica; garante tambem por asset.
     try:
         make_vectors_public(logger=logger)
     except Exception as e:

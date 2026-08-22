@@ -678,6 +678,9 @@ class MonitorUI:
                     result.append((int(parts[0]), int(parts[1])))
         return result
 
+    def get_selected_units(self):
+        return [k for k, chk in self.chk_dict.items() if chk.value]
+
     def _get_selected_keys(self):
         return [k for k, chk in self.chk_dict.items() if chk.value]
 

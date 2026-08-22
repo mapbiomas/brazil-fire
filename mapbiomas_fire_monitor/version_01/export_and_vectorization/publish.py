@@ -1,12 +1,9 @@
-"""Publicacao incremental em 3 etapas.
+"""Publicacao incremental em 3 etapas (por produto/unidade ativo).
 
 1. publish_mosaic_all  — copia COGs do bucket de processamento para o publico.
-2. publish_vector_all  — copia vetores ZIP do bucket de processamento para o publico.
-3. cleanup_temp_all    — apaga tiles de temp/ dos meses com COG + ZIP validados
-                         no publico (consolidados).
-
-publish_all() encadeia as tres etapas. Tudo idempotente: pode rodar quando quiser
-para pegar os meses que ficaram faltando.
+2. publish_vector_all  — copia vetores ZIP para o publico.
+3. cleanup_temp_all    — apaga tiles de temp/ das unidades consolidadas
+                         (COG + ZIP validados no publico).
 """
 
 from . import config
@@ -15,22 +12,17 @@ from .state import _get_fs
 _OK = {"exists", "copied"}
 
 
-def _month_from_name(name, suffix, prefix_strip):
+def _unit_from_name(name, suffix, prefix_strip):
     body = name.replace(prefix_strip, "").replace(suffix, "")
-    parts = body.split("_")
-    if len(parts) >= 2:
-        try:
-            return (int(parts[0]), int(parts[1]))
-        except ValueError:
-            pass
-    return None
+    return body or None
+
+
+def _art_prefix():
+    return f"{config.PRODUCT}-{config.COUNTRY}_"
 
 
 def _copy_file(fs, src, dst, logger=None, force=False):
-    """Copia src -> dst se faltar ou divergir em tamanho. Retorna status.
-
-    force=True: sempre copia (sobrescreve o destino) e valida o tamanho.
-    """
+    """Copia src -> dst se faltar ou divergir em tamanho. force=True sobrescreve."""
     try:
         src_info = fs.info(src)
         src_size = src_info.get("size")
@@ -66,16 +58,15 @@ def _copy_file(fs, src, dst, logger=None, force=False):
 
 
 def publish_mosaic_all(logger=None, force=False):
-    """Etapa 5 — espelha os COGs mensais no bucket publico."""
     fs = _get_fs()
-    prefix_strip = f"monthly_burned-{config.COUNTRY}_"
+    prefix = _art_prefix()
     src = f"{config.BUCKET}/{config.mosaic_prefix()}"
     dst = f"{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}"
     _log = logger or (lambda *_: None)
 
     _log(f"[PUBLISH MOSAIC] Syncing COGs to gs://{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}/ ...")
     try:
-        cogs = sorted(fs.glob(f"{src}/monthly_burned-{config.COUNTRY}_*.tif"))
+        cogs = sorted(fs.glob(f"{src}/{prefix}*.tif"))
     except Exception as e:
         cogs = []
         _log(f"[ERROR] Listing COGs: {e}")
@@ -83,11 +74,11 @@ def publish_mosaic_all(logger=None, force=False):
     status = {}
     for c in cogs:
         name = c.split("/")[-1]
-        ym = _month_from_name(name, ".tif", prefix_strip)
-        if ym is None:
+        unit = _unit_from_name(name, ".tif", prefix)
+        if unit is None:
             continue
         s = _copy_file(fs, c, f"{dst}/{name}", logger, force=force)
-        status[ym] = s
+        status[unit] = s
         if s == "copied":
             _log(f"[OK] Published COG: {name}")
         elif s == "exists":
@@ -98,16 +89,19 @@ def publish_mosaic_all(logger=None, force=False):
 
 
 def publish_vector_all(logger=None, force=False):
-    """Etapa 6 — espelha os vetores ZIP no bucket publico."""
     fs = _get_fs()
-    prefix_strip = f"monthly_burned-{config.COUNTRY}_"
+    prefix = _art_prefix()
     src = f"{config.BUCKET}/{config.vector_prefix()}"
     dst = f"{config.PUBLIC_BUCKET}/{config.vector_prefix()}"
     _log = logger or (lambda *_: None)
 
+    if not config.is_vectorizable():
+        _log("[PUBLISH VECTOR] SKIP: product not vectorizable.", "warning")
+        return {}
+
     _log(f"[PUBLISH VECTOR] Syncing vector ZIPs to gs://{config.PUBLIC_BUCKET}/{config.vector_prefix()}/ ...")
     try:
-        zips = sorted(fs.glob(f"{src}/monthly_burned-{config.COUNTRY}_*.zip"))
+        zips = sorted(fs.glob(f"{src}/{prefix}*.zip"))
     except Exception as e:
         zips = []
         _log(f"[ERROR] Listing ZIPs: {e}")
@@ -115,11 +109,11 @@ def publish_vector_all(logger=None, force=False):
     status = {}
     for z in zips:
         name = z.split("/")[-1]
-        ym = _month_from_name(name, ".zip", prefix_strip)
-        if ym is None:
+        unit = _unit_from_name(name, ".zip", prefix)
+        if unit is None:
             continue
         s = _copy_file(fs, z, f"{dst}/{name}", logger, force=force)
-        status[ym] = s
+        status[unit] = s
         if s == "copied":
             _log(f"[OK] Published ZIP: {name}")
         elif s == "exists":
@@ -130,40 +124,38 @@ def publish_vector_all(logger=None, force=False):
 
 
 def cleanup_temp_all(logger=None):
-    """Etapa 7 — apaga tiles de temp/ apenas dos meses consolidados no publico
-    (COG + ZIP validados)."""
     fs = _get_fs()
-    prefix_strip = f"monthly_burned-{config.COUNTRY}_"
+    prefix = _art_prefix()
     _log = logger or (lambda *_: None)
 
     try:
         pub_cogs = set(
-            ym for ym in (
-                _month_from_name(f.split('/')[-1], ".tif", prefix_strip)
-                for f in fs.glob(f"{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}/monthly_burned-{config.COUNTRY}_*.tif")
-            ) if ym
+            u for u in (
+                _unit_from_name(f.split('/')[-1], ".tif", prefix)
+                for f in fs.glob(f"{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}/{prefix}*.tif")
+            ) if u
         )
     except Exception as e:
         pub_cogs = set()
-        _log(f"[ERROR] Listando COGs publicos: {e}")
+        _log(f"[ERROR] Listing public COGs: {e}")
 
     try:
         pub_zips = set(
-            ym for ym in (
-                _month_from_name(f.split('/')[-1], ".zip", prefix_strip)
-                for f in fs.glob(f"{config.PUBLIC_BUCKET}/{config.vector_prefix()}/monthly_burned-{config.COUNTRY}_*.zip")
-            ) if ym
+            u for u in (
+                _unit_from_name(f.split('/')[-1], ".zip", prefix)
+                for f in fs.glob(f"{config.PUBLIC_BUCKET}/{config.vector_prefix()}/{prefix}*.zip")
+            ) if u
         )
     except Exception as e:
         pub_zips = set()
-        _log(f"[ERROR] Listando ZIPs publicos: {e}")
+        _log(f"[ERROR] Listing public ZIPs: {e}")
 
     consolidated = sorted(pub_cogs & pub_zips)
-    _log(f"[CLEAN TEMP] {len(consolidated)} months consolidated in public (COG+ZIP).")
+    _log(f"[CLEAN TEMP] {len(consolidated)} units consolidated in public (COG+ZIP).")
 
     deleted = 0
-    for y, m in consolidated:
-        pattern = f"{config.BUCKET}/{config.tiles_prefix()}/{config.tile_pattern(y, m)}*.tif"
+    for unit in consolidated:
+        pattern = f"{config.BUCKET}/{config.tiles_prefix()}/{config.tile_pattern_unit(unit)}*.tif"
         try:
             tiles = fs.glob(pattern)
         except Exception:

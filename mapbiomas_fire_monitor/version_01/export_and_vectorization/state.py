@@ -51,12 +51,20 @@ def _new_entry():
     }
 
 
-def _month_from_basename(basename, prefix_strip, suffix):
+def _tile_unit(basename):
+    """Extrai a unidade de um tile: fire_monitor_v1_{product}_{country}_{unit}_{tileid}.tif."""
+    prefix = f"fire_monitor_v1_{config.PRODUCT}_{config.COUNTRY}_"
+    if not basename.startswith(prefix):
+        return None
+    rest = basename[len(prefix):]
+    if "_" in rest:
+        return rest.rsplit("_", 1)[0]
+    return rest.replace(".tif", "")
+
+
+def _unit_from_name(basename, prefix_strip, suffix):
     name = basename.replace(prefix_strip, "").replace(suffix, "")
-    parts = name.split("_")
-    if len(parts) >= 2:
-        return f"{parts[0]}_{parts[1]}"
-    return None
+    return name or None
 
 
 def scan_gcs(logger=None):
@@ -69,70 +77,66 @@ def scan_gcs(logger=None):
         if logger:
             logger(msg)
 
-    # Tiles (temp)
+    tile_prefix = f"fire_monitor_v1_{config.PRODUCT}_{config.COUNTRY}_"
+    art_prefix = f"{config.PRODUCT}-{config.COUNTRY}_"
+
     _log(f"Scanning GCS: gs://{config.BUCKET}/{tiles_prefix()}/ ...")
     try:
-        tile_files = fs.glob(f"{config.BUCKET}/{tiles_prefix()}/fire_monitor_v1_monthly_burned_{config.COUNTRY}_*.tif")
+        tile_files = fs.glob(f"{config.BUCKET}/{tiles_prefix()}/{tile_prefix}*.tif")
         for f in tile_files:
-            key = _month_from_basename(f.split('/')[-1], f'fire_monitor_v1_monthly_burned_{config.COUNTRY}_', '.tif')
-            if key:
-                tiles_present.add(key)
-                state.setdefault(key, _new_entry())["exported"] = True
+            unit = _tile_unit(f.split('/')[-1])
+            if unit:
+                tiles_present.add(unit)
+                state.setdefault(unit, _new_entry())["exported"] = True
     except Exception as e:
         _log(f"Error scanning tiles: {e}")
 
-    # COGs (bucket de processamento)
     _log(f"Scanning GCS: gs://{config.BUCKET}/{mosaic_prefix()}/ ...")
     try:
-        mosaic_files = fs.glob(f"{config.BUCKET}/{mosaic_prefix()}/monthly_burned-{config.COUNTRY}_*.tif")
+        mosaic_files = fs.glob(f"{config.BUCKET}/{mosaic_prefix()}/{art_prefix}*.tif")
         for f in mosaic_files:
-            key = _month_from_basename(f.split('/')[-1], f'monthly_burned-{config.COUNTRY}_', '.tif')
-            if key:
-                cog_present.add(key)
-                entry = state.setdefault(key, _new_entry())
-                # COG so existe se houve export + mosaic; tiles podem ja ter sido limpos
+            unit = _unit_from_name(f.split('/')[-1], art_prefix, ".tif")
+            if unit:
+                cog_present.add(unit)
+                entry = state.setdefault(unit, _new_entry())
                 entry["exported"] = True
                 entry["mosaiced"] = True
     except Exception as e:
         _log(f"Error scanning mosaics: {e}")
 
-    # Vetores ZIP (bucket de processamento)
     _log(f"Scanning GCS: gs://{config.BUCKET}/{vector_prefix()}/ ...")
     try:
-        vector_files = fs.glob(f"{config.BUCKET}/{vector_prefix()}/monthly_burned-{config.COUNTRY}_*.zip")
+        vector_files = fs.glob(f"{config.BUCKET}/{vector_prefix()}/{art_prefix}*.zip")
         for f in vector_files:
-            key = _month_from_basename(f.split('/')[-1], f'monthly_burned-{config.COUNTRY}_', '.zip')
-            if key:
-                state.setdefault(key, _new_entry())["vectorized_gcs"] = True
+            unit = _unit_from_name(f.split('/')[-1], art_prefix, ".zip")
+            if unit:
+                state.setdefault(unit, _new_entry())["vectorized_gcs"] = True
     except Exception as e:
         _log(f"Error scanning vectors: {e}")
 
-    # Publico (espelho no bucket publico) — COG (mosaico)
     _log(f"Scanning public GCS: gs://{config.PUBLIC_BUCKET}/{mosaic_prefix()}/ ...")
     try:
-        pub_mosaic_files = fs.glob(f"{config.PUBLIC_BUCKET}/{mosaic_prefix()}/monthly_burned-{config.COUNTRY}_*.tif")
+        pub_mosaic_files = fs.glob(f"{config.PUBLIC_BUCKET}/{mosaic_prefix()}/{art_prefix}*.tif")
         for f in pub_mosaic_files:
-            key = _month_from_basename(f.split('/')[-1], f'monthly_burned-{config.COUNTRY}_', '.tif')
-            if key:
-                state.setdefault(key, _new_entry())["published_mosaic"] = True
+            unit = _unit_from_name(f.split('/')[-1], art_prefix, ".tif")
+            if unit:
+                state.setdefault(unit, _new_entry())["published_mosaic"] = True
     except Exception as e:
         _log(f"Error scanning public mosaics: {e}")
 
-    # Publico (espelho no bucket publico) — ZIP (vetor)
     _log(f"Scanning public GCS: gs://{config.PUBLIC_BUCKET}/{vector_prefix()}/ ...")
     try:
-        pub_vector_files = fs.glob(f"{config.PUBLIC_BUCKET}/{vector_prefix()}/monthly_burned-{config.COUNTRY}_*.zip")
+        pub_vector_files = fs.glob(f"{config.PUBLIC_BUCKET}/{vector_prefix()}/{art_prefix}*.zip")
         for f in pub_vector_files:
-            key = _month_from_basename(f.split('/')[-1], f'monthly_burned-{config.COUNTRY}_', '.zip')
-            if key:
-                state.setdefault(key, _new_entry())["published_vector"] = True
+            unit = _unit_from_name(f.split('/')[-1], art_prefix, ".zip")
+            if unit:
+                state.setdefault(unit, _new_entry())["published_vector"] = True
     except Exception as e:
         _log(f"Error scanning public vectors: {e}")
 
-    # Temp limpo = COG existe e nao ha tiles de temp para o mes
-    for key in cog_present:
-        entry = state.setdefault(key, _new_entry())
-        entry["temp_cleaned"] = key not in tiles_present
+    for unit in cog_present:
+        entry = state.setdefault(unit, _new_entry())
+        entry["temp_cleaned"] = unit not in tiles_present
 
     return state
 
@@ -146,6 +150,7 @@ def scan_gee(logger=None):
             logger(msg)
 
     prefix = vector_asset_prefix()
+    art_prefix = f"{config.PRODUCT}-{config.COUNTRY}_"
     _log(f"Scanning GEE assets: {prefix} ...")
     try:
         assets = ee.data.listAssets({"parent": prefix})
@@ -156,9 +161,9 @@ def scan_gee(logger=None):
     def _collect(assets_list):
         for a in assets_list.get("assets", []):
             asset_name = a["name"].split("/")[-1]
-            key = _month_from_basename(asset_name, f"monthly_burned-{config.COUNTRY}_", "")
-            if key:
-                state.setdefault(key, _new_entry())["vectorized_gee"] = True
+            unit = _unit_from_name(asset_name, art_prefix, "")
+            if unit:
+                state.setdefault(unit, _new_entry())["vectorized_gee"] = True
 
     try:
         _collect(assets)
@@ -173,9 +178,9 @@ def scan_gee(logger=None):
     return state
 
 
-def merge_states(gcs_state, gee_state, months_from_collection):
+def merge_states(gcs_state, gee_state, units_from_collection):
     result = {}
-    all_keys = set(list(gcs_state.keys()) + list(gee_state.keys()) + months_from_collection)
+    all_keys = set(list(gcs_state.keys()) + list(gee_state.keys()) + units_from_collection)
     for key in all_keys:
         result[key] = {
             "exported": gcs_state.get(key, {}).get("exported", False),
