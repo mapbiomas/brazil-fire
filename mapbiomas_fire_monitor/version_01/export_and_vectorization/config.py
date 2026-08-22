@@ -45,6 +45,25 @@ def _p(country, theme, collection, product, assetid, ptype, vectorize=False, vis
             "vectorize": vectorize, "visible": visible, "scale": scale, "decode": decode}
 
 
+def _gee_collection_name(collection):
+    """Normaliza nome da coleção para paths GEE (mapbiomas-public).
+    collection_02 -> collection2, collection_03_1 -> collection3_1, collection_00 -> collection (beta).
+    Mantém a chave original no OBJ/UI."""
+    if not collection.startswith("collection_"):
+        return collection
+    rest = collection[len("collection_"):]
+    # Handle collection_00 (beta) -> collection
+    if rest == "00":
+        return "collection"
+    if rest.startswith("00_"):
+        return "collection" + rest[2:].replace("_", "_")
+    # Handle collection_0X -> collectionX, collection_0X_Y -> collectionX_Y
+    if rest[0] == "0" and len(rest) > 1 and rest[1].isdigit():
+        return "collection" + rest[1:].replace("_", "_")
+    # Already normalized like collection11, collection4_1
+    return "collection" + rest
+
+
 OBJ = {
     "brasil": {
         "lulc_10m": {
@@ -128,9 +147,9 @@ OBJ = {
                 _p("brasil", "fire", "collection4_1", "accumulated_burned",
                    "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_accumulated_burned_v1", "byte"),
                 _p("brasil", "fire", "collection4_1", "fire_frequency",
-                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_fire_frequency_v1", "int16"),
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_fire_frequency_v1", "byte"),
                 _p("brasil", "fire", "collection4_1", "time_after_fire",
-                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_time_after_fire_v1", "int16"),
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_time_after_fire_v1", "byte"),
                 _p("brasil", "fire", "collection4_1", "year_last_fire",
                    "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_year_last_fire_v1", "int16"),
             ],
@@ -469,7 +488,8 @@ def vector_prefix():
 
 
 def vector_asset_prefix():
-    return (f"projects/mapbiomas-public/assets/{storage_country()}/{THEME}/{COLLECTION}/"
+    gee_coll = _gee_collection_name(COLLECTION)
+    return (f"projects/mapbiomas-public/assets/{storage_country()}/{THEME}/{gee_coll}/"
             f"{PRODUCT}_vectors_v01")
 
 
@@ -492,7 +512,8 @@ def _sanitize(unit):
 
 def state_file(country=None, theme=None, collection=None, product=None):
     """Arquivo de estado isolado por contexto de processamento."""
-    parts = [country or COUNTRY, theme or THEME, collection or COLLECTION, product or PRODUCT]
+    coll = _gee_collection_name(collection or COLLECTION)
+    parts = [country or COUNTRY, theme or THEME, coll, product or PRODUCT]
     return "monitor_state_" + "_".join(_sanitize(p) for p in parts if p) + ".json"
 
 
@@ -505,11 +526,13 @@ def processing_context(country=None, theme=None, collection=None, product=None):
     storage_product = product
     if collection == "monitor" and product == "monthly_burned":
         storage_product = "mapbiomas_fire_monthly_burned_v1"
+    gee_collection = _gee_collection_name(collection)
     return {
         "country": country,
         "storage_country": storage_country(country),
         "theme": theme,
         "collection": collection,
+        "gee_collection": gee_collection,
         "product": product,
         "storage_product": storage_product,
         "root": f"{BUCKET_PATH}/{storage_country(country)}/{theme}/{collection}/{storage_product}",

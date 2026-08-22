@@ -201,8 +201,9 @@ def scan_gee(context=None, logger=None):
         if logger:
             logger(msg)
 
+    gee_coll = context.get('gee_collection', context['collection'])
     prefix = (f"projects/mapbiomas-public/assets/{context['storage_country']}/"
-              f"{context['theme']}/{context['collection']}/{context['product']}_vectors_v01")
+              f"{context['theme']}/{gee_coll}/{context['product']}_vectors_v01")
     art_prefix = f"{context['product']}-{context['storage_country']}_"
     _log(f"Scanning GEE assets: {prefix} ...")
     try:

@@ -11,9 +11,19 @@ L = widgets.Layout
 
 _STATUS_CSS = widgets.HTML("""<style>
 @keyframes mfm-spin { to { transform: rotate(360deg); } }
+@keyframes mfm-pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    50% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
 .mfm-ok   { background:#d4edda !important; border:1px solid #c3e6cb !important; }
 .mfm-run  { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
 .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
+.mfm-unloaded {
+    animation: mfm-pulse-red 1.5s infinite;
+    border: 3px solid #dc3545 !important;
+    border-radius: 4px;
+}
 </style>""")
 
 STORY_SEQUENCES = [
@@ -491,11 +501,18 @@ class UnitGridPanel:
         self.year_dropdown.observe(self._on_year_change, names="value")
 
         self.story_loader = StoryLoader("Checking GCS and Earth Engine...")
+        self.btn_load_data = widgets.Button(
+            description="Load Data", button_style="danger", icon="download",
+            layout=L(width="130px", height="34px"),
+            tooltip="Discover bands/units from GEE and GCS for this product"
+        )
+        self.btn_load_data.on_click(self._on_load_data)
         self.toolbar = widgets.HBox([
             self.year_dropdown, self.btn_select_pending, self.btn_select_all,
-            self.btn_clear, self.btn_sync, self.story_loader.widget,
+            self.btn_clear, self.btn_sync, self.btn_load_data, self.story_loader.widget,
         ], layout=L(margin="0 0 8px 0", gap="8px", align_items="center"))
 
+        self._data_loaded = False
         self.container = widgets.VBox([_STATUS_CSS, self.toolbar, self.grid_container])
         self._render_panel()
 
@@ -524,8 +541,40 @@ class UnitGridPanel:
         self.units = _catalog_units(self.country, self.theme, self.collection, product)
         if not self.units and config.product_kind() == "monthly":
             self.units = list_months_in_collection()
-        self.state = {"updated_at": None}
+        # Keep existing state if available, don't auto-sync
+        if not hasattr(self, 'state') or not self.state:
+            self.state = {"updated_at": None}
+        self._data_loaded = False
+        self._update_load_data_button_style()
+        # Notify parent ProductTabs to update tab style
+        self._notify_tab_style()
+
+    def _on_load_data(self, _):
+        """Explicitly load data (discover bands/units from GEE/GCS)."""
+        if self.is_refreshing:
+            return
+        if not self.product:
+            return
+        self._data_loaded = True
+        self._update_load_data_button_style()
+        self._notify_tab_style()
         self._on_sync(None)
+
+    def _update_load_data_button_style(self):
+        """Update Load Data button style based on loaded state."""
+        if self._data_loaded:
+            self.btn_load_data.button_style = "success"
+            self.btn_load_data.description = "Data Loaded"
+            self.btn_load_data.icon = "check"
+        else:
+            self.btn_load_data.button_style = "danger"
+            self.btn_load_data.description = "Load Data"
+            self.btn_load_data.icon = "download"
+
+    def _notify_tab_style(self):
+        """Notify parent ProductTabs to update tab style for this product."""
+        if self._on_data_loaded_change:
+            self._on_data_loaded_change(self.product, self._data_loaded)
 
     def _all_units(self):
         keys = set(self.units) | {k for k in self.state.keys() if k != "updated_at"}
@@ -715,6 +764,10 @@ class UnitGridPanel:
             result = f"Sync complete: {n_ok}/{len(self._all_units())} units complete."
             self.story_loader.stop(result)
             self._log(result, "success")
+            # Mark data as loaded and update UI
+            self._data_loaded = True
+            self._update_load_data_button_style()
+            self._notify_tab_style()
         except Exception as e:
             self.story_loader.stop("Sync failed")
             self._log(f"Sync error: {e}", "error")
@@ -757,11 +810,12 @@ class UnitGridPanel:
 class ProductTabs:
     """Abas de produtos visiveis + um grid independente por produto."""
 
-    def __init__(self, country, theme, collection, log_area=None):
+    def __init__(self, country, theme, collection, log_area=None, on_data_loaded_change=None):
         self.country = country
         self.theme = theme
         self.collection = collection
         self.log_area = log_area
+        self._on_data_loaded_change = on_data_loaded_change
         products = config.list_products(country, theme, collection)
         self.products = [p["product"] for p in products if p.get("visible", True)]
         self._panels = {}
@@ -771,6 +825,7 @@ class ProductTabs:
             self.tab.set_title(index, product)
         self.tab.observe(self._on_product_tab, names="selected_index")
         self._active_panel = None
+        self._loaded_products = set()
         if self.products:
             self._activate_product(0)
         self.container = self.tab
@@ -785,11 +840,47 @@ class ProductTabs:
             return
         product = self.products[index]
         if product not in self._panels:
-            panel = UnitGridPanel(self.country, self.theme, self.collection, self.log_area)
+            panel = UnitGridPanel(
+                self.country, self.theme, self.collection, self.log_area,
+                on_data_loaded_change=self._on_panel_data_loaded
+            )
             panel._activate_product(product)
             self._panels[product] = panel
             self._placeholders[index].children = [panel.container]
-        self._active_panel = self._panels[product]
+        else:
+            panel = self._panels[product]
+        self._active_panel = panel
+        # Update tab style for this product
+        self._update_tab_style(product)
+
+    def _on_panel_data_loaded(self, product, loaded):
+        """Callback when a panel's data loaded state changes."""
+        if loaded:
+            self._loaded_products.add(product)
+        self._update_tab_style(product)
+
+    def _update_tab_style(self, product):
+        """Update tab style based on whether data is loaded for this product."""
+        try:
+            index = self.products.index(product)
+            panel = self._panels.get(product)
+            if panel and getattr(panel, '_data_loaded', False):
+                self._loaded_products.add(product)
+                # Remove unloaded style
+                tab_children = list(self.tab.children)
+                if index < len(tab_children):
+                    child = tab_children[index]
+                    if hasattr(child, 'remove_class'):
+                        child.remove_class('mfm-unloaded')
+            elif product not in self._loaded_products:
+                # Add unloaded style (red pulsing outline)
+                tab_children = list(self.tab.children)
+                if index < len(tab_children):
+                    child = tab_children[index]
+                    if hasattr(child, 'add_class'):
+                        child.add_class('mfm-unloaded')
+        except (ValueError, IndexError):
+            pass
 
     def __getattr__(self, name):
         if name == "_active_panel":
