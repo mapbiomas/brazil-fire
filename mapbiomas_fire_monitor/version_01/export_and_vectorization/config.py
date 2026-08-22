@@ -373,7 +373,10 @@ def save_options():
 
 
 def _rel(prod):
-    return f"{BUCKET_PATH}/{storage_country()}/{THEME}/{COLLECTION}/{prod}"
+    physical = prod
+    if COLLECTION == "monitor" and prod == "monthly_burned":
+        physical = "mapbiomas_fire_monthly_burned_v1"
+    return f"{BUCKET_PATH}/{storage_country()}/{THEME}/{COLLECTION}/{physical}"
 
 
 def tiles_prefix():

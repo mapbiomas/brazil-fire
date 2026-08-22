@@ -67,6 +67,7 @@ class StoryLoader:
 
     def stop(self, message=None):
         self._running = False
+        self._thread = None
         if message:
             self._render(message)
 
@@ -690,7 +691,6 @@ class UnitGridPanel:
         self.btn_sync.description = "Syncing..."
         self.story_loader.label = "Checking GCS and Earth Engine..."
         self.story_loader.start()
-        self.grid_container.children = [self.story_loader.widget]
         self._log("Checking files in GCS and assets in GEE...", "info")
         try:
             selected = self._get_selected_keys()
@@ -706,11 +706,13 @@ class UnitGridPanel:
             self._render_grid()
             self._restore_selected(selected)
             n_ok = sum(1 for u in self._all_units() if _is_complete(self.state.get(u, {})))
-            self._log(f"Sync complete: {n_ok}/{len(self._all_units())} units complete.", "success")
+            result = f"Sync complete: {n_ok}/{len(self._all_units())} units complete."
+            self.story_loader.stop(result)
+            self._log(result, "success")
         except Exception as e:
+            self.story_loader.stop("Sync failed")
             self._log(f"Sync error: {e}", "error")
         finally:
-            self.story_loader.stop()
             self.is_refreshing = False
             self.btn_sync.disabled = False
             self.btn_sync.description = "Sync"
