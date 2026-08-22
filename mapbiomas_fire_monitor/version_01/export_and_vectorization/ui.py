@@ -721,7 +721,6 @@ class CountryTabs:
             self.tab.set_title(i, f"{config.flag(c)} {c.title()}")
 
         self.tab.observe(self._on_tab_change, names="selected_index")
-        self._activate(0)
 
     def _on_tab_change(self, change):
         idx = change.get("new")
@@ -816,5 +815,8 @@ class FireMonitorApp:
 def run_ui(countries=None):
     countries = countries or config.COUNTRIES_AVAILABLE
     app = FireMonitorApp(countries)
+    # exibe o shell (cabecalho + abas) imediatamente; depois monta/sincroniza
+    # o painel do primeiro pais (nao bloqueia a renderizacao).
     app.display()
+    app.interface._activate(0)
     return app
