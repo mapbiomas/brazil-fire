@@ -39,9 +39,10 @@ STATE_FILE = "monitor_state.json"
 SCALE = 30
 
 
-def _p(country, theme, collection, product, assetid, ptype, vectorize=False, visible=True):
+def _p(country, theme, collection, product, assetid, ptype, vectorize=False, visible=True,
+       scale=30, decode=None):
     return {"product": product, "assetid": assetid, "type": ptype,
-            "vectorize": vectorize, "visible": visible}
+            "vectorize": vectorize, "visible": visible, "scale": scale, "decode": decode}
 
 
 OBJ = {
@@ -52,13 +53,13 @@ OBJ = {
                    "projects/mapbiomas-public/assets/brazil/fire/monitor/mapbiomas_fire_monthly_burned_v1",
                    "byte", vectorize=True),
             ],
-            "collection3": [
+            "collection_03": [
                 _p("brasil", "fire", "collection3", "annual_burned_coverage",
                    "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection31_annual_burned_coverage_v1", "byte"),
                 _p("brasil", "fire", "collection3", "monthly_burned",
                    "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection31_monthly_burned_v1", "byte"),
             ],
-            "collection4": [
+            "collection_04": [
                 _p("brasil", "fire", "collection4", "annual_burned",
                    "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_annual_burned_v1", "byte", vectorize=True),
                 _p("brasil", "fire", "collection4", "annual_burned_coverage",
@@ -76,7 +77,7 @@ OBJ = {
                 _p("brasil", "fire", "collection4", "year_last_fire",
                    "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_year_last_fire_v1", "int16"),
             ],
-            "collection4_1": [
+            "collection_04_1": [
                 _p("brasil", "fire", "collection4_1", "annual_burned",
                    "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_annual_burned_v1", "byte", vectorize=True),
                 _p("brasil", "fire", "collection4_1", "annual_burned_scar_size_range",
@@ -92,7 +93,7 @@ OBJ = {
                 _p("brasil", "fire", "collection4_1", "year_last_fire",
                    "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_year_last_fire_v1", "int16"),
             ],
-            "collection5": [
+            "collection_05": [
                 _p("brasil", "fire", "collection5", "annual_burned",
                    "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_v1", "byte", vectorize=True),
                 _p("brasil", "fire", "collection5", "annual_burned_coverage",
@@ -125,7 +126,7 @@ OBJ = {
                    "projects/mapbiomas-public/assets/indonesia/fire/monitor/mapbiomas_fire_monthly_burned_v1",
                    "byte", vectorize=True),
             ],
-            "collection1": [
+            "collection_01": [
                 _p("indonesia", "fire", "collection1", "annual_burned",
                    "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_annual_burned_v1", "byte", vectorize=True),
                 _p("indonesia", "fire", "collection1", "annual_burned_coverage",
@@ -143,7 +144,7 @@ OBJ = {
     },
     "bolivia": {
         "fire": {
-            "collection1": [
+            "collection_01": [
                 _p("bolivia", "fire", "collection1", "annual_burned",
                    "projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_annual_burned_v1", "byte", vectorize=True),
                 _p("bolivia", "fire", "collection1", "annual_burned_scar_size_range",
@@ -161,33 +162,33 @@ OBJ = {
     },
     "peru": {
         "fire": {
-            "collection1": [
+            "collection_01": [
                 _p("peru", "fire", "collection1", "annual_burned_coverage",
-                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_annual_burned_coverage_v1", "byte"),
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_annual_burned_coverage_v1", "byte", decode={"div": 100, "dtype": "byte"}),
                 _p("peru", "fire", "collection1", "monthly_burned_coverage",
-                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_monthly_burned_coverage_v1", "byte"),
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_monthly_burned_coverage_v1", "byte", decode={"div": 100, "dtype": "byte"}),
                 _p("peru", "fire", "collection1", "frequency_burned_coverage",
-                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_frequency_burned_coverage_v1", "int16"),
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_frequency_burned_coverage_v1", "int16", decode={"div": 100, "dtype": "int16"}),
                 _p("peru", "fire", "collection1", "accumulated_burned_coverage",
-                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_accumulated_burned_coverage_v1", "byte"),
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_accumulated_burned_coverage_v1", "byte", decode={"div": 100, "dtype": "byte"}),
                 _p("peru", "fire", "collection1", "annual_burned_scar_size_range",
-                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_annual_burned_scar_size_range_v1", "byte"),
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_annual_burned_scar_size_range_v1", "byte", decode={"div": 100, "dtype": "byte"}),
                 _p("peru", "fire", "collection1", "year_last_fire",
-                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_year_last_fire_v1", "int16"),
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_year_last_fire_v1", "int16", decode={"div": 100, "dtype": "int16"}),
             ],
         },
     },
     "paraguay": {
         "fire": {
-            "collection1": [
+            "collection_01": [
                 _p("paraguay", "fire", "collection1", "annual_burned_coverage",
-                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_annual_burned_coverage_v1", "byte"),
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_annual_burned_coverage_v1", "byte", decode={"div": 100, "dtype": "byte"}),
                 _p("paraguay", "fire", "collection1", "monthly_burned_coverage",
-                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_monthly_burned_coverage-v1", "byte"),
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_monthly_burned_coverage-v1", "byte", decode={"div": 100, "dtype": "byte"}),
                 _p("paraguay", "fire", "collection1", "frequency_burned_coverage",
-                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_frequency_burned_coverage_v1", "int16"),
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_frequency_burned_coverage_v1", "int16", decode={"div": 100, "dtype": "int16"}),
                 _p("paraguay", "fire", "collection1", "accumulated_burned_coverage",
-                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_accumulated_burned_coverage_v1", "byte"),
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_accumulated_burned_coverage_v1", "byte", decode={"div": 100, "dtype": "byte"}),
             ],
         },
     },
@@ -273,7 +274,8 @@ def set_theme(name):
     colls = OBJ[COUNTRY][THEME]
     COLLECTION = next(iter(colls), None)
     prods = colls.get(COLLECTION, [])
-    PRODUCT = prods[0]["product"] if prods else None
+    visible = [p for p in prods if p.get("visible", True)]
+    PRODUCT = visible[0]["product"] if visible else None
 
 
 def set_collection(name):
@@ -283,7 +285,8 @@ def set_collection(name):
         raise ValueError(f"Collection '{name}' not configured for {COUNTRY}/{THEME}.")
     COLLECTION = name
     prods = colls.get(COLLECTION, [])
-    PRODUCT = prods[0]["product"] if prods else None
+    visible = [p for p in prods if p.get("visible", True)]
+    PRODUCT = visible[0]["product"] if visible else None
 
 
 def set_product(name):
@@ -307,7 +310,7 @@ def image_collection():
 
 
 def scale():
-    return SCALE
+    return product_meta().get("scale", SCALE)
 
 
 def theme():
@@ -409,7 +412,8 @@ def add_collection(country, theme, collection, products):
     OBJ.setdefault(country, {}).setdefault(theme, {})[collection] = [
         _p(country, theme, collection, p.get("product"), p.get("assetid"),
            p.get("type", "byte"), vectorize=p.get("vectorize", False),
-           visible=p.get("visible", True))
+           visible=p.get("visible", True), scale=p.get("scale", SCALE),
+           decode=p.get("decode"))
         for p in products
     ]
     if country not in COUNTRIES_AVAILABLE:

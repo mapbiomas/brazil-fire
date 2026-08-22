@@ -22,11 +22,11 @@ def _palette():
         "header_border": "#333333",
         "title": "#333333",
         "subtitle": "#6c757d",
-        "grid_header_bg": "#343a40",
+        "grid_header_bg": "#263238",
         "grid_header_fg": "#ffffff",
-        "row_a": "#fcfcfc",
+        "row_a": "#f7f9fb",
         "row_b": "#ffffff",
-        "date_bg": "#e9ecef",
+        "date_bg": "#e8eef3",
         "date_fg": "#212529",
         "legend_bg": "#f8f9fa",
         "legend_fg": "#6c757d",
@@ -37,7 +37,7 @@ def _palette():
         "guide_border": "#dddddd",
         "guide_fg": "#333333",
         "border": "#cccccc",
-        "sep": "#dee2e6",
+        "sep": "#cbd5df",
     }
 
 
@@ -341,9 +341,9 @@ def _catalog_units(country, theme, collection, product):
 
 
 class UnitGridPanel:
-    _DATE_W = "100px"
-    _CELL_W = "76px"
-    _SEL_W  = "64px"
+    _DATE_W = "150px"
+    _CELL_W = "88px"
+    _SEL_W  = "72px"
 
     def __init__(self, country, theme, collection):
         self.country = country
@@ -479,7 +479,7 @@ class UnitGridPanel:
 
         def _header_cell(width, title, etapa):
             return widgets.HTML(
-                f'<div style="width:{width};text-align:center;font-weight:700;font-size:10px;'
+                f'<div style="width:{width};text-align:center;font-weight:700;font-size:11px;'
                 f'color:{p["grid_header_fg"]};line-height:1.25;box-sizing:border-box;'
                 f'border-right:1px solid {p["sep"]};">'
                 f'{title}<br><span style="font-size:9px;font-weight:400;opacity:.85;">Step {etapa}</span>'
@@ -617,37 +617,51 @@ class UnitGridPanel:
 
 
 # ---------------------------------------------------------------------------
-# Navegacao: pais -> tema -> colecao -> produto (dropdown) -> grid de unidades
+# Navegacao: pais -> tema -> colecao -> produto (abas) -> grid de unidades
 # ---------------------------------------------------------------------------
-class ProductPanel:
-    """Dropdown de produto + grid de unidades de uma colecao."""
+class ProductTabs:
+    """Abas de produtos visiveis + um grid independente por produto."""
 
     def __init__(self, country, theme, collection):
         self.country = country
         self.theme = theme
         self.collection = collection
-        prods = [p["product"] for p in config.OBJ.get(country, {}).get(theme, {}).get(collection, [])
-                 if p.get("visible", True)]
-        self.products = prods
-        self.product_dd = widgets.Dropdown(options=prods, value=prods[0] if prods else None,
-                                           description="Product:", layout=L(width="380px"))
-        self.product_dd.observe(self._on_product, names="value")
-        self.grid = UnitGridPanel(country, theme, collection)
-        self.container = widgets.VBox([self.product_dd, self.grid.container])
-        self._active_panel = self.grid
-        if prods:
-            self._activate_product(prods[0])
+        products = config.list_products(country, theme, collection)
+        self.products = [p["product"] for p in products if p.get("visible", True)]
+        self._panels = {}
+        self._placeholders = [widgets.VBox([]) for _ in self.products]
+        self.tab = widgets.Tab(children=self._placeholders)
+        for index, product in enumerate(self.products):
+            self.tab.set_title(index, product)
+        self.tab.observe(self._on_product_tab, names="selected_index")
+        self._active_panel = None
+        if self.products:
+            self._activate_product(0)
+        self.container = self.tab
 
-    def _on_product(self, change):
-        self._activate_product(change.get("new"))
+    def _on_product_tab(self, change):
+        index = change.get("new")
+        if index is not None:
+            self._activate_product(index)
 
-    def _activate_product(self, product):
-        if not product:
+    def _activate_product(self, index):
+        if index < 0 or index >= len(self.products):
             return
-        self.grid._activate_product(product)
+        product = self.products[index]
+        if product not in self._panels:
+            panel = UnitGridPanel(self.country, self.theme, self.collection)
+            panel._activate_product(product)
+            self._panels[product] = panel
+            self._placeholders[index].children = [panel.container]
+        self._active_panel = self._panels[product]
 
     def __getattr__(self, name):
-        return getattr(self.grid, name)
+        if name == "_active_panel":
+            raise AttributeError(name)
+        panel = self.__dict__.get("_active_panel")
+        if panel is None:
+            raise AttributeError(name)
+        return getattr(panel, name)
 
 
 class CollectionTabs:
@@ -678,7 +692,7 @@ class CollectionTabs:
     def _activate(self, idx):
         coll = self.collections[idx]
         if coll not in self._panels:
-            pp = ProductPanel(self.country, self.theme, coll)
+            pp = ProductTabs(self.country, self.theme, coll)
             self._panels[coll] = pp
             self._placeholders[idx].children = [pp.container]
         else:
