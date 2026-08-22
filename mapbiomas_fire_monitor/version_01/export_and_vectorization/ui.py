@@ -91,7 +91,6 @@ class LogDrawer:
         self.last.value = f'<div style="padding:5px 8px;color:#495057;font-size:12px;">{html}</div>'
         with self.output:
             display(widgets.HTML(html))
-        self.tab.selected_index = 1
 
 
 def _palette():
