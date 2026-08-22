@@ -368,6 +368,9 @@ class MonitorUI:
         self.state = {"updated_at": None}
         self.chk_dict = {}
         self.is_refreshing = False
+        # Pais fixado neste painel: qualquer scan/sync sempre usa ESTE pais,
+        # independente do config.COUNTRY global (evita misturar dados de paises).
+        self.country = config.COUNTRY
         self.log_area = widgets.Output()
 
         self.grid_container = widgets.VBox([
@@ -432,21 +435,28 @@ class MonitorUI:
             border=f"1px solid {p['panel_border']}", padding="10px",
             border_radius="5px", margin="10px 0", background=p["panel_bg"]
         )
-        self.log_area.layout = L(background=p["panel_bg"])
+        self.log_area.layout = L(
+            background=p["panel_bg"], border=f"1px solid {p['border']}",
+            border_radius="3px", padding="4px",
+            max_height="240px", overflow="auto"
+        )
         self._render_grid()
 
     def display(self):
         display(self.container)
 
     def _log(self, message, type="info"):
+        import datetime
+        ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         colors = {"info": "#3498db", "success": "#27ae60", "error": "#d32f2f", "warning": "#e67e22"}
         color = colors.get(type, "#333")
         with self.log_area:
             display(widgets.HTML(
-                f'<span style="color:{color};font-size:12px;">[{type.upper()}] {message}</span>'
+                f'<span style="color:{color};font-size:12px;">[{ts}] [{type.upper()}] {message}</span>'
             ))
 
     def start(self):
+        config.set_country(self.country, verbose=False)
         months = list_months_in_collection()
         if months:
             for m in months:
@@ -460,6 +470,7 @@ class MonitorUI:
     def _on_sync(self, _):
         if self.is_refreshing:
             return
+        config.set_country(self.country, verbose=False)
         self.is_refreshing = True
         self.btn_sync.disabled = True
         self.btn_sync.description = "Syncing..."
@@ -673,6 +684,7 @@ class MonitorUI:
                 self.chk_dict[k].value = True
 
     def sync(self):
+        config.set_country(self.country, verbose=False)
         selected = self._get_selected_keys()
         self.state = build_state(logger=self._log)
         self._render_grid()
