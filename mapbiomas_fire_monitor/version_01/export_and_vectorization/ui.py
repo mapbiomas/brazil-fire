@@ -1,3 +1,4 @@
+import datetime
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 
@@ -11,6 +12,7 @@ _STATUS_CSS = widgets.HTML("""<style>
 .mfm-run  { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
 .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
 </style>""")
+
 
 def _palette():
     return {
@@ -31,9 +33,6 @@ def _palette():
         "hint_bg": "#fffbe6",
         "hint_border": "#ffe58f",
         "hint_fg": "#495057",
-        "inst_bg": "#e8f4fd",
-        "inst_border": "#bee5eb",
-        "inst_fg": "#0c5460",
         "guide_bg": "#ffffff",
         "guide_border": "#dddddd",
         "guide_fg": "#333333",
@@ -53,6 +52,14 @@ def _badge(ok):
         '<span style="background:#e9ecef;color:#6c757d;padding:2px 7px;'
         'border-radius:3px;font-size:11px;line-height:16px;'
         'display:inline-block;box-sizing:border-box;">MISS</span>'
+    )
+
+
+def _badge_na():
+    return (
+        '<span style="background:#f1f3f5;color:#adb5bd;padding:2px 7px;'
+        'border-radius:3px;font-size:11px;line-height:16px;'
+        'display:inline-block;box-sizing:border-box;">N/A</span>'
     )
 
 
@@ -88,6 +95,8 @@ _COLS = [
     ("temp_cleaned",     "Clean temp",      7, "badge"),
 ]
 
+_VECTOR_KINDS = {"link_vector", "copy_asset", "link_pub_vector"}
+
 
 def _empty():
     return {
@@ -102,11 +111,11 @@ def _empty():
 
 
 def _is_complete(v):
-    return bool(
-        v.get("exported") and v.get("mosaiced") and v.get("vectorized_gcs")
-        and v.get("vectorized_gee") and v.get("published_mosaic")
-        and v.get("published_vector") and v.get("temp_cleaned")
-    )
+    base = bool(v.get("exported") and v.get("mosaiced")
+                and v.get("published_mosaic") and v.get("temp_cleaned"))
+    if config.is_vectorizable():
+        return base and v.get("vectorized_gcs") and v.get("vectorized_gee")
+    return base
 
 
 # ---------------------------------------------------------------------------
@@ -117,218 +126,172 @@ LANG_ORDER = ["PT", "EN", "FR", "ID", "ES", "NL", "ZH"]
 GUIDES = {
     "PT": {
         "name": "Português",
-        "what": "Este aplicativo exporta os mapas mensais de área queimada do Monitor do Fogo: "
-                "do Earth Engine para o GCS como tiles 0/1 leves, monta um COG mensal, vetoriza "
-                "(shapefile + unique_id, zipado), publica no Earth Engine, espelha COG e vetor no "
-                "bucket público e, por fim, remove os tiles temporários.",
+        "what": "Este aplicativo exporta os mapas de área queimada/incêndio do MapBiomas Fire: "
+                "do Earth Engine para o GCS, monta mosaicos por unidade (banda/imagem), vetoriza "
+                "(quando aplicável), publica no Earth Engine e no bucket público e remove os "
+                "arquivos temporários.",
         "howto_title": "Como usar",
         "steps": [
-            "Etapa 1 — Export: envia as imagens do GEE como tiles 0/1 para o GCS (temp/).",
-            "Etapa 2 — Mosaic: monta um COG por mês.",
-            "Etapa 3 — Vectorize: converte o raster em shapefile (unique_id) e zipa.",
-            "Etapa 4 — Upload GEE: publica o ZIP como FeatureCollection.",
-            "Etapa 5 — Public mosaic: espelha os COGs no bucket público.",
-            "Etapa 6 — Public vector: espelha os ZIPs no bucket público.",
-            "Etapa 7 — Clean temp: remove tiles temporários dos meses consolidados.",
+            "Escolha o país, o tema (ex.: fire), a coleção e o produto.",
+            "No produto, marque as unidades (bandas ou imagens) desejadas.",
+            "Execute as etapas em ordem: Export, Mosaico, Vetorização (se houver), Upload GEE (se houver), Publicar mosaico, Publicar vetor, Limpar temp.",
         ],
         "cols_title": "Colunas da grade",
         "cols": [
-            ("Export", "tiles 0/1 no GCS (temp/)"),
-            ("Mosaic", "COG mensal"),
-            ("Vector GCS", "vetor zipado no GCS"),
+            ("Export", "unidade exportada do GEE (temp/)"),
+            ("Mosaic", "COG montado"),
+            ("Vector GCS", "vetor zipado (só produtos vetorizáveis)"),
             ("Vector GEE", "FeatureCollection no Earth Engine"),
             ("Public mosaic", "COG espelhado no bucket público"),
             ("Public vector", "ZIP espelhado no bucket público"),
             ("Clean temp", "tiles temporários removidos após consolidação"),
         ],
-        "links": "Badges OK de Mosaic/Vector/Publico abrem link direto de download "
-                 "(storage.googleapis.com).",
-        "theme": "Use o botão 🌙/☀️ no cabeçalho para alternar entre claro e escuro.",
-        "legend": "OK = etapa concluída  |  MISS = etapa pendente",
+        "links": "Badges 🔗 OK abrem o link de download.",
+        "legend": "OK = etapa concluída  |  MISS = etapa pendente  |  N/A = não se aplica",
     },
     "EN": {
         "name": "English",
-        "what": "This app exports the Fire Monitor's monthly burned-area maps: from Earth Engine "
-                "to cloud storage as lightweight 0/1 tiles, builds a monthly COG, vectorizes it "
-                "(shapefile + unique_id, zipped), publishes it to Earth Engine, mirrors COG and "
-                "vector to the public bucket, and finally removes the temporary tiles.",
+        "what": "This app exports the MapBiomas Fire burned/fire maps: from Earth Engine to cloud "
+                "storage, builds per-unit mosaics (band/image), vectorizes (when applicable), "
+                "publishes to Earth Engine and the public bucket, and removes temporary files.",
         "howto_title": "How to use",
         "steps": [
-            "Step 1 — Export: sends the GEE images as 0/1 tiles to GCS (temp/).",
-            "Step 2 — Mosaic: builds one COG per month.",
-            "Step 3 — Vectorize: raster to shapefile (unique_id) and zips it.",
-            "Step 4 — Upload GEE: publishes the ZIP as a FeatureCollection.",
-            "Step 5 — Public mosaic: mirrors COGs to the public bucket.",
-            "Step 6 — Public vector: mirrors vector ZIPs to the public bucket.",
-            "Step 7 — Clean temp: removes temp tiles of consolidated months.",
+            "Pick the country, theme (e.g., fire), collection and product.",
+            "In the product, check the units (bands or images) you want.",
+            "Run the steps in order: Export, Mosaic, Vectorize (if any), Upload GEE (if any), Publish mosaic, Publish vector, Clean temp.",
         ],
         "cols_title": "Grid columns",
         "cols": [
-            ("Export", "0/1 tiles in GCS (temp/)"),
-            ("Mosaic", "monthly COG"),
-            ("Vector GCS", "zipped vector in GCS"),
+            ("Export", "unit exported from GEE (temp/)"),
+            ("Mosaic", "built COG"),
+            ("Vector GCS", "zipped vector (vectorizable products only)"),
             ("Vector GEE", "FeatureCollection in Earth Engine"),
             ("Public mosaic", "COG mirrored to public bucket"),
             ("Public vector", "ZIP mirrored to public bucket"),
             ("Clean temp", "temp tiles removed after consolidation"),
         ],
-        "links": "OK badges in the Mosaic/Vector/Publico columns open a direct download link "
-                 "(storage.googleapis.com).",
-        "theme": "Use the 🌙/☀️ button in the header to switch between light and dark.",
-        "legend": "OK = stage done  |  MISS = stage pending",
+        "links": "🔗 OK badges open the download link.",
+        "legend": "OK = stage done  |  MISS = stage pending  |  N/A = not applicable",
     },
     "FR": {
         "name": "Français",
-        "what": "Cette application exporte les cartes mensuelles des surfaces brûlées du Fire "
-                "Monitor : depuis Earth Engine vers le GCS en tuiles 0/1 légères, construit un "
-                "COG mensuel, vectorise (shapefile + unique_id, compressé), publie dans Earth "
-                "Engine, reflète le COG et le vecteur dans le bucket public et supprime les "
-                "tuiles temporaires.",
+        "what": "Cette application exporte les cartes de brûlage MapBiomas Fire : d'Earth Engine "
+                "vers le stockage cloud, construit des mosaïques par unité (bande/image), vectorise "
+                "(si applicable), publie dans Earth Engine et le bucket public et supprime les "
+                "fichiers temporaires.",
         "howto_title": "Comment utiliser",
         "steps": [
-            "Étape 1 — Export : envoie les images GEE en tuiles 0/1 vers le GCS (temp/).",
-            "Étape 2 — Mosaic : construit un COG par mois.",
-            "Étape 3 — Vectorize : raster → shapefile (unique_id) puis zip.",
-            "Étape 4 — Upload GEE : publie le ZIP comme FeatureCollection.",
-            "Étape 5 — Public mosaic : reflète les COG dans le bucket public.",
-            "Étape 6 — Public vector : reflète les ZIP dans le bucket public.",
-            "Étape 7 — Clean temp : supprime les tuiles temporaires des mois consolidés.",
+            "Choisissez le pays, le thème, la collection et le produit.",
+            "Dans le produit, cochez les unités (bandes ou images) souhaitées.",
+            "Exécutez les étapes en ordre : Export, Mosaic, Vectorize (si applicable), Upload GEE, Public mosaic, Public vector, Clean temp.",
         ],
         "cols_title": "Colonnes de la grille",
         "cols": [
-            ("Export", "tuiles 0/1 dans GCS (temp/)"),
-            ("Mosaic", "COG mensuel"),
-            ("Vector GCS", "vecteur zippé dans GCS"),
+            ("Export", "unité exportée (temp/)"),
+            ("Mosaic", "COG construit"),
+            ("Vector GCS", "vecteur zippé (produits vectorisables)"),
             ("Vector GEE", "FeatureCollection dans Earth Engine"),
             ("Public mosaic", "COG reflété dans le bucket public"),
             ("Public vector", "ZIP reflété dans le bucket public"),
-            ("Clean temp", "tuiles temporaires supprimées après consolidation"),
+            ("Clean temp", "tuiles temporaires supprimées"),
         ],
-        "links": "Les badges OK de Mosaic/Vector/Publico ouvrent un lien de téléchargement "
-                 "direct (storage.googleapis.com).",
-        "theme": "Utilisez le bouton 🌙/☀️ dans l'en-tête pour basculer clair/sombre.",
-        "legend": "OK = étape terminée  |  MISS = étape en attente",
+        "links": "Les badges 🔗 OK ouvrent le lien de téléchargement.",
+        "legend": "OK = étape terminée  |  MISS = en attente  |  N/A = non applicable",
     },
     "ID": {
         "name": "Bahasa Indonesia",
-        "what": "Aplikasi ini mengekspor peta bulanan area terbakar Fire Monitor: dari Earth "
-                "Engine ke cloud storage sebagai tile 0/1 ringan, membangun COG bulanan, "
-                "memvektorisasi (shapefile + unique_id, zip), mempublikasikan ke Earth Engine, "
-                "menyalin COG dan vektor ke bucket publik, lalu menghapus tile sementara.",
+        "what": "Aplikasi ini mengekspor peta kebakaran MapBiomas Fire: dari Earth Engine ke cloud "
+                "storage, membangun mozaik per unit (band/citra), vektorisasi (jika berlaku), "
+                "mempublikasikan ke Earth Engine dan bucket publik, lalu menghapus file sementara.",
         "howto_title": "Cara penggunaan",
         "steps": [
-            "Langkah 1 — Export: mengirim gambar GEE sebagai tile 0/1 ke GCS (temp/).",
-            "Langkah 2 — Mosaic: membangun satu COG per bulan.",
-            "Langkah 3 — Vectorize: raster → shapefile (unique_id) lalu zip.",
-            "Langkah 4 — Upload GEE: memublikasikan ZIP sebagai FeatureCollection.",
-            "Langkah 5 — Public mosaic: menyalin COG ke bucket publik.",
-            "Langkah 6 — Public vector: menyalin ZIP vektor ke bucket publik.",
-            "Langkah 7 — Clean temp: menghapus tile sementara bulan yang terkonsolidasi.",
+            "Pilih negara, tema, koleksi, dan produk.",
+            "Di produk, centang unit (band atau citra) yang diinginkan.",
+            "Jalankan langkah: Export, Mosaic, Vectorize (jika ada), Upload GEE, Public mosaic, Public vector, Clean temp.",
         ],
         "cols_title": "Kolom grid",
         "cols": [
-            ("Export", "tile 0/1 di GCS (temp/)"),
-            ("Mosaic", "COG bulanan"),
-            ("Vector GCS", "vektor zip di GCS"),
+            ("Export", "unit diekspor (temp/)"),
+            ("Mosaic", "COG dibangun"),
+            ("Vector GCS", "vektor zip (produk yang dapat divektor)"),
             ("Vector GEE", "FeatureCollection di Earth Engine"),
             ("Public mosaic", "COG disalin ke bucket publik"),
             ("Public vector", "ZIP disalin ke bucket publik"),
-            ("Clean temp", "tile sementara dihapus setelah konsolidasi"),
+            ("Clean temp", "tile sementara dihapus"),
         ],
-        "links": "Lencana OK di kolom Mosaic/Vector/Publico membuka tautan unduhan langsung "
-                 "(storage.googleapis.com).",
-        "theme": "Gunakan tombol 🌙/☀️ di header untuk beralih terang/gelap.",
-        "legend": "OK = tahap selesai  |  MISS = tahap tertunda",
+        "links": "Lencana 🔗 OK membuka tautan unduhan.",
+        "legend": "OK = tahap selesai  |  MISS = tertunda  |  N/A = tidak berlaku",
     },
     "ES": {
         "name": "Español",
-        "what": "Esta aplicación exporta los mapas mensuales de área quemada del Fire Monitor: "
-                "desde Earth Engine a GCS como tiles 0/1 ligeros, construye un COG mensual, "
-                "vectoriza (shapefile + unique_id, comprimido), publica en Earth Engine, refleja "
-                "el COG y el vector en el bucket público y elimina los tiles temporales.",
+        "what": "Esta aplicación exporta los mapas de fuego MapBiomas Fire: desde Earth Engine a "
+                "cloud storage, construye mosaicos por unidad (banda/imagen), vectoriza (si "
+                "aplica), publica en Earth Engine y el bucket público y elimina archivos temporales.",
         "howto_title": "Cómo usar",
         "steps": [
-            "Paso 1 — Export: envía las imágenes GEE como tiles 0/1 a GCS (temp/).",
-            "Paso 2 — Mosaic: construye un COG por mes.",
-            "Paso 3 — Vectorize: ráster → shapefile (unique_id) y comprime.",
-            "Paso 4 — Upload GEE: publica el ZIP como FeatureCollection.",
-            "Paso 5 — Public mosaic: refleja los COG en el bucket público.",
-            "Paso 6 — Public vector: refleja los ZIP en el bucket público.",
-            "Paso 7 — Clean temp: elimina tiles temporales de meses consolidados.",
+            "Elija país, tema, colección y producto.",
+            "En el producto, marque las unidades (bandas o imágenes) deseadas.",
+            "Ejecute las etapas: Export, Mosaic, Vectorize (si aplica), Upload GEE, Public mosaic, Public vector, Clean temp.",
         ],
         "cols_title": "Columnas de la cuadrícula",
         "cols": [
-            ("Export", "tiles 0/1 en GCS (temp/)"),
-            ("Mosaic", "COG mensual"),
-            ("Vector GCS", "vector comprimido en GCS"),
+            ("Export", "unidad exportada (temp/)"),
+            ("Mosaic", "COG construido"),
+            ("Vector GCS", "vector comprimido (productos vectorizables)"),
             ("Vector GEE", "FeatureCollection en Earth Engine"),
             ("Public mosaic", "COG reflejado en el bucket público"),
             ("Public vector", "ZIP reflejado en el bucket público"),
-            ("Clean temp", "tiles temporales eliminados tras consolidación"),
+            ("Clean temp", "tiles temporales eliminados"),
         ],
-        "links": "Las insignias OK de Mosaic/Vector/Publico abren un enlace de descarga directa "
-                 "(storage.googleapis.com).",
-        "theme": "Use el botón 🌙/☀️ en el encabezado para alternar claro/oscuro.",
-        "legend": "OK = etapa completada  |  MISS = etapa pendiente",
+        "links": "Las insignias 🔗 OK abren el enlace de descarga.",
+        "legend": "OK = etapa completada  |  MISS = pendiente  |  N/A = no aplica",
     },
     "NL": {
         "name": "Nederlands",
-        "what": "Deze app exporteert de maandelijkse verbrande-oppervlaktekaarten van de Fire "
-                "Monitor: van Earth Engine naar cloud storage als lichte 0/1 tiles, bouwt een "
-                "maandelijkse COG, vectoriseert (shapefile + unique_id, gezipt), publiceert naar "
-                "Earth Engine, spiegelt COG en vector naar de publieke bucket en verwijdert "
-                "tijdelijke tiles.",
+        "what": "Deze app exporteert de MapBiomas Fire-brandkaarten: van Earth Engine naar cloud "
+                "storage, bouwt mozaïeken per eenheid (band/beeld), vectoriseert (indien van "
+                "toepassing), publiceert naar Earth Engine en de publieke bucket en verwijdert "
+                "tijdelijke bestanden.",
         "howto_title": "Hoe te gebruiken",
         "steps": [
-            "Stap 1 — Export: stuurt de GEE-beelden als 0/1 tiles naar GCS (temp/).",
-            "Stap 2 — Mosaic: bouwt één COG per maand.",
-            "Stap 3 — Vectorize: raster → shapefile (unique_id) en zipt.",
-            "Stap 4 — Upload GEE: publiceert de ZIP als FeatureCollection.",
-            "Stap 5 — Public mosaic: spiegelt COG's naar de publieke bucket.",
-            "Stap 6 — Public vector: spiegelt vector-ZIP's naar de publieke bucket.",
-            "Stap 7 — Clean temp: verwijdert tijdelijke tiles van geconsolideerde maanden.",
+            "Kies land, thema, collectie en product.",
+            "Vink in het product de eenheden (banden of beelden) aan.",
+            "Voer de stappen uit: Export, Mosaic, Vectorize (indien van toepassing), Upload GEE, Public mosaic, Public vector, Clean temp.",
         ],
         "cols_title": "Grid-kolommen",
         "cols": [
-            ("Export", "0/1 tiles in GCS (temp/)"),
-            ("Mosaic", "maandelijkse COG"),
-            ("Vector GCS", "gezipte vector in GCS"),
+            ("Export", "eenheid geëxporteerd (temp/)"),
+            ("Mosaic", "gebouwde COG"),
+            ("Vector GCS", "gezipte vector (vectoriseerbare producten)"),
             ("Vector GEE", "FeatureCollection in Earth Engine"),
             ("Public mosaic", "COG gespiegeld naar publieke bucket"),
             ("Public vector", "ZIP gespiegeld naar publieke bucket"),
-            ("Clean temp", "tijdelijke tiles verwijderd na consolidatie"),
+            ("Clean temp", "tijdelijke tiles verwijderd"),
         ],
-        "links": "OK-badges in de kolommen Mosaic/Vector/Publico openen een directe "
-                 "downloadlink (storage.googleapis.com).",
-        "theme": "Gebruik de 🌙/☀️-knop in de header om licht/donker te wisselen.",
-        "legend": "OK = fase klaar  |  MISS = fase in afwachting",
+        "links": "🔗 OK-badges openen de downloadlink.",
+        "legend": "OK = fase klaar  |  MISS = in afwachting  |  N/A = niet van toepassing",
     },
     "ZH": {
         "name": "中文",
-        "what": "此应用导出 Fire Monitor 的月度过火面积地图：从 Earth Engine 到云端存储作为轻量 0/1 瓦片，构建月度 COG，矢量化为带 unique_id 的压缩 shapefile，发布到 Earth Engine，镜像 COG 和矢量到公共存储桶，最后删除临时瓦片。",
+        "what": "此应用导出 MapBiomas Fire 火灾地图：从 Earth Engine 到云存储，按单元（波段/影像）构建镶嵌图，在适用时进行矢量化，发布到 Earth Engine 和公共存储桶，并删除临时文件。",
         "howto_title": "使用方法",
         "steps": [
-            "步骤 1 — Export：将 GEE 影像作为 0/1 瓦片发送到 GCS（temp/）。",
-            "步骤 2 — Mosaic：每月构建一个 COG。",
-            "步骤 3 — Vectorize：栅格转 shapefile（unique_id）并压缩。",
-            "步骤 4 — Upload GEE：将 ZIP 发布为 FeatureCollection。",
-            "步骤 5 — Public mosaic：将 COG 镜像到公共存储桶。",
-            "步骤 6 — Public vector：将矢量 ZIP 镜像到公共存储桶。",
-            "步骤 7 — Clean temp：删除已合并月份的临时瓦片。",
+            "选择国家、主题、集合和产品。",
+            "在产品中勾选所需的单元（波段或影像）。",
+            "按顺序执行：导出、镶嵌、矢量化（如适用）、上传 GEE、公开镶嵌、公开矢量、清理临时文件。",
         ],
         "cols_title": "网格列",
         "cols": [
-            ("Export", "GCS 中的 0/1 瓦片 (temp/)"),
-            ("Mosaic", "月度 COG"),
-            ("Vector GCS", "GCS 中的压缩矢量"),
+            ("Export", "导出的单元 (temp/)"),
+            ("Mosaic", "构建的 COG"),
+            ("Vector GCS", "压缩矢量（可矢量化产品）"),
             ("Vector GEE", "Earth Engine 中的 FeatureCollection"),
             ("Public mosaic", "镜像到公共存储桶的 COG"),
             ("Public vector", "镜像到公共存储桶的 ZIP"),
             ("Clean temp", "合并后删除的临时瓦片"),
         ],
-        "links": "Mosaic/Vector/Publico 列的 OK 徽章会打开直接下载链接（storage.googleapis.com）。",
-        "theme": "使用标题栏中的 🌙/☀️ 按钮在明暗模式间切换。",
-        "legend": "OK = 阶段完成 | MISS = 阶段待处理",
+        "links": "🔗 OK 徽章打开下载链接。",
+        "legend": "OK = 阶段完成 | MISS = 待处理 | N/A = 不适用",
     },
 }
 
@@ -343,15 +306,18 @@ def _guide_html(lang):
         for c, m in g["cols"]
     )
     steps = "".join(f"<li>{s}</li>" for s in g["steps"])
+    legend = g["legend"]
     return (
         f'<div style="font-size:12px;color:{p["guide_fg"]};line-height:1.6;">'
         f'<p><b>{g["name"]}</b> — {g["what"]}</p>'
         f'<h4 style="margin:10px 0 4px 0;">{g["howto_title"]}</h4>'
         f'<ol style="margin:0 0 8px 0;padding-left:20px;">{steps}</ol>'
         f'<p><span style="background:#28a745;color:#fff;padding:1px 6px;border-radius:3px;'
-        f'font-size:10px;">OK</span> = {g["legend"].split("|")[0].split("=")[1].strip()} &nbsp;|&nbsp; '
+        f'font-size:10px;">OK</span> / '
         f'<span style="background:#e9ecef;color:#6c757d;padding:1px 6px;border-radius:3px;'
-        f'font-size:10px;">MISS</span> = {g["legend"].split("|")[1].split("=")[1].strip()}</p>'
+        f'font-size:10px;">MISS</span> / '
+        f'<span style="background:#f1f3f5;color:#adb5bd;padding:1px 6px;border-radius:3px;'
+        f'font-size:10px;">N/A</span> — {legend}</p>'
         f'<h4 style="margin:10px 0 4px 0;">{g["cols_title"]}</h4>'
         f'<table style="border-collapse:collapse;">{cols_rows}</table>'
         f'<p>{g["links"]}</p>'
@@ -359,94 +325,82 @@ def _guide_html(lang):
     )
 
 
-class MonitorUI:
+# ---------------------------------------------------------------------------
+# Grid de unidades de um produto
+# ---------------------------------------------------------------------------
+def _catalog_units(country, theme, collection, product):
+    try:
+        from .catalog import build_inventory
+        inv = build_inventory([country])
+        for p in inv.get(country, {}).get(theme, {}).get(collection, []):
+            if p.get("name") == product:
+                return [u.get("key") for u in (p.get("units") or [])]
+    except Exception:
+        pass
+    return []
+
+
+class UnitGridPanel:
     _DATE_W = "100px"
     _CELL_W = "76px"
     _SEL_W  = "64px"
 
-    def __init__(self):
+    def __init__(self, country, theme, collection):
+        self.country = country
+        self.theme = theme
+        self.collection = collection
+        self.product = None
+        self.units = []
         self.state = {"updated_at": None}
         self.chk_dict = {}
         self.is_refreshing = False
-        # Pais fixado neste painel: qualquer scan/sync sempre usa ESTE pais,
-        # independente do config.COUNTRY global (evita misturar dados de paises).
-        self.country = config.COUNTRY
+        self.year_filter = None
         self.log_area = widgets.Output()
 
         self.grid_container = widgets.VBox([
-            widgets.HTML(
-                '<div style="padding:20px;text-align:center;color:#6c757d;font-size:13px;">'
-                '<i>Loading months from the collection...</i></div>'
-            )
+            widgets.HTML('<div style="padding:20px;text-align:center;color:#6c757d;font-size:13px;">'
+                         '<i>Loading units...</i></div>')
         ])
 
-        self.btn_sync = widgets.Button(
-            description="Sync", button_style="success", icon="refresh",
-            layout=L(width="120px", height="34px")
-        )
+        self.btn_sync = widgets.Button(description="Sync", button_style="success", icon="refresh",
+                                       layout=L(width="120px", height="34px"))
         self.btn_sync.on_click(self._on_sync)
-
-        self.btn_select_pending = widgets.Button(
-            description="Select Pending", button_style="info",
-            layout=L(width="150px", height="34px")
-        )
+        self.btn_select_pending = widgets.Button(description="Select Pending", button_style="info",
+                                                 layout=L(width="150px", height="34px"))
         self.btn_select_pending.on_click(self._on_select_pending)
-
-        self.btn_clear = widgets.Button(
-            description="Clear", button_style="warning",
-            layout=L(width="90px", height="34px")
-        )
+        self.btn_select_all = widgets.Button(description="Select All", button_style="info",
+                                             layout=L(width="120px", height="34px"))
+        self.btn_select_all.on_click(self._on_select_all)
+        self.btn_clear = widgets.Button(description="Clear", button_style="warning",
+                                        layout=L(width="90px", height="34px"))
         self.btn_clear.on_click(self._on_clear)
 
-        self.btn_select_all = widgets.Button(
-            description="Select All", button_style="info",
-            layout=L(width="120px", height="34px")
-        )
-        self.btn_select_all.on_click(self._on_select_all)
-
-        self.year_filter = None
-        self.year_dropdown = widgets.Dropdown(
-            options=["All years"], value="All years",
-            description="Year:", layout=L(width="220px")
-        )
+        self.year_dropdown = widgets.Dropdown(options=["All units"], value="All units",
+                                              description="Year:", layout=L(width="200px"))
         self.year_dropdown.observe(self._on_year_change, names="value")
 
         self.loader = widgets.HTML(
             value='<span id="mon-loader" style="display:none;margin-left:10px;color:#3498db;font-size:13px;">Syncing...</span>'
         )
-
         self.toolbar = widgets.HBox([
             self.year_dropdown, self.btn_select_pending, self.btn_select_all,
             self.btn_clear, self.btn_sync, self.loader,
         ], layout=L(margin="0 0 8px 0", gap="8px", align_items="center"))
 
         self.container = widgets.VBox([
-            _STATUS_CSS,
-            self.toolbar,
-            self.grid_container,
-            self.log_area,
+            _STATUS_CSS, self.toolbar, self.grid_container, self.log_area,
         ])
-
         self._render_panel()
 
     def _render_panel(self):
         p = _palette()
-        self.container.layout = L(
-            border=f"1px solid {p['panel_border']}", padding="10px",
-            border_radius="5px", margin="10px 0", background=p["panel_bg"]
-        )
-        self.log_area.layout = L(
-            background=p["panel_bg"], border=f"1px solid {p['border']}",
-            border_radius="3px", padding="4px",
-            max_height="240px", overflow="auto"
-        )
+        self.container.layout = L(border=f"1px solid {p['panel_border']}", padding="10px",
+                                  border_radius="5px", margin="6px 0", background=p["panel_bg"])
+        self.log_area.layout = L(background=p["panel_bg"], border=f"1px solid {p['border']}",
+                                 border_radius="3px", padding="4px", max_height="240px", overflow="auto")
         self._render_grid()
 
-    def display(self):
-        display(self.container)
-
     def _log(self, message, type="info"):
-        import datetime
         ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         colors = {"info": "#3498db", "success": "#27ae60", "error": "#d32f2f", "warning": "#e67e22"}
         color = colors.get(type, "#333")
@@ -455,86 +409,67 @@ class MonitorUI:
                 f'<span style="color:{color};font-size:12px;">[{ts}] [{type.upper()}] {message}</span>'
             ))
 
-    def start(self):
-        config.set_country(self.country, verbose=False)
-        months = list_months_in_collection()
-        if months:
-            for m in months:
-                self.state[m] = _empty()
-            self._render_grid()
-            self._log(f"{len(months)} months in collection. Syncing automatically...", "info")
-        else:
-            self._log("Could not query the collection. Check GEE authentication.", "warning")
-        self._on_sync(None)
-
-    def _on_sync(self, _):
-        if self.is_refreshing:
+    def _activate_product(self, product):
+        if not product:
             return
         config.set_country(self.country, verbose=False)
-        self.is_refreshing = True
-        self.btn_sync.disabled = True
-        self.btn_sync.description = "Syncing..."
-        self.loader.value = self.loader.value.replace("display:none", "display:flex")
-        self._log("Checking files in GCS and assets in GEE...", "info")
-        try:
-            selected = self._get_selected_keys()
-            self.state = build_state(logger=self._log)
-            self._render_grid()
-            self._restore_selected(selected)
-            completed = sum(1 for k, v in self.state.items() if k != "updated_at" and _is_complete(v))
-            total = len([k for k in self.state if k != "updated_at"])
-            self._log(f"Sync complete: {completed}/{total} months complete.", "success")
-        except Exception as e:
-            self._log(f"Sync error: {e}", "error")
-        finally:
-            self.is_refreshing = False
-            self.btn_sync.disabled = False
-            self.btn_sync.description = "Sync"
-            self.loader.value = self.loader.value.replace("display:flex", "display:none")
+        config.set_theme(self.theme)
+        config.set_collection(self.collection)
+        config.set_product(product)
+        self.product = product
+        self.units = _catalog_units(self.country, self.theme, self.collection, product)
+        if not self.units:
+            self.units = list_months_in_collection()
+        self.state = {"updated_at": None}
+        self._on_sync(None)
 
-    def _all_months(self):
-        return sorted(
-            [k for k in self.state.keys() if k != "updated_at"],
-            reverse=True
-        )
+    def _all_units(self):
+        keys = set(self.units) | {k for k in self.state.keys() if k != "updated_at"}
+        return sorted(keys, reverse=True)
 
-    def _filtered_months(self):
-        months = self._all_months()
+    def _filtered_units(self):
+        units = self._all_units()
         if self.year_filter is not None:
-            months = [k for k in months if k.startswith(f"{self.year_filter}_")]
-        return months
+            units = [u for u in units if str(u).startswith(f"{self.year_filter}")]
+        return units
 
     def _refresh_year_dropdown(self):
-        years = sorted({int(k.split("_")[0]) for k in self._all_months()}, reverse=True)
-        options = ["All years"] + [str(y) for y in years]
+        years = set()
+        for u in self._all_units():
+            s = str(u)
+            if s[:4].isdigit():
+                years.add(s[:4])
+        options = ["All units"] + sorted(years, reverse=True)
         if self.year_dropdown.value not in options:
-            self.year_dropdown.value = "All years"
+            self.year_dropdown.value = "All units"
         self.year_dropdown.options = options
 
     def _on_year_change(self, change):
         value = change.get("new")
-        self.year_filter = int(value) if value != "All years" else None
+        self.year_filter = int(value) if value != "All units" else None
         selected = self._get_selected_keys()
         self._render_grid()
         self._restore_selected(selected)
 
-    def _col_content(self, kind, ok, y, m):
+    def _col_content(self, kind, ok, unit):
+        if not config.is_vectorizable() and kind in _VECTOR_KINDS:
+            return _badge_na()
         if not ok:
             return _badge(False)
         if kind == "link_mosaic":
-            url = f"https://storage.googleapis.com/{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name(y, m)}.tif"
+            url = f"https://storage.googleapis.com/{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name_unit(unit)}.tif"
             return _badge_link(url)
         if kind == "link_vector":
-            url = f"https://storage.googleapis.com/{config.BUCKET}/{config.vector_prefix()}/{config.vector_name(y, m)}.zip"
+            url = f"https://storage.googleapis.com/{config.BUCKET}/{config.vector_prefix()}/{config.vector_name_unit(unit)}.zip"
             return _badge_link(url)
         if kind == "link_pub_mosaic":
-            url = f"https://storage.googleapis.com/{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name(y, m)}.tif"
+            url = f"https://storage.googleapis.com/{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name_unit(unit)}.tif"
             return _badge_link(url)
         if kind == "link_pub_vector":
-            url = f"https://storage.googleapis.com/{config.PUBLIC_BUCKET}/{config.vector_prefix()}/{config.vector_name(y, m)}.zip"
+            url = f"https://storage.googleapis.com/{config.PUBLIC_BUCKET}/{config.vector_prefix()}/{config.vector_name_unit(unit)}.zip"
             return _badge_link(url)
         if kind == "copy_asset":
-            asset_id = f"{config.vector_asset_prefix()}/{config.vector_name(y, m)}"
+            asset_id = f"{config.vector_asset_prefix()}/{config.vector_name_unit(unit)}"
             return _badge_copy(asset_id)
         return _badge(True)
 
@@ -554,107 +489,104 @@ class MonitorUI:
         header_row = widgets.HBox(
             [widgets.HTML(f'<div style="width:{self._DATE_W};font-weight:700;font-size:12px;color:{p["grid_header_fg"]};'
                           f'box-sizing:border-box;border-left:1px solid {p["sep"]};'
-                          f'border-right:1px solid {p["sep"]};">Date</div>')]
+                          f'border-right:1px solid {p["sep"]};">Unit</div>')]
             + [_header_cell(self._CELL_W, t, e) for _, t, e, _ in _COLS]
             + [widgets.HTML(f'<div style="width:{self._SEL_W};text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};'
                             f'box-sizing:border-box;border-right:1px solid {p["sep"]};">Select</div>')],
-            layout=L(
-                background=p["grid_header_bg"], padding="6px 10px", min_height="44px",
-                align_items="center", overflow="visible"
-            )
+            layout=L(background=p["grid_header_bg"], padding="6px 10px", min_height="44px",
+                     align_items="center", overflow="visible")
         )
 
         rows = [header_row]
-
         self._refresh_year_dropdown()
-        months = self._filtered_months()
+        units = self._filtered_units()
+        row_layout = L(align_items="center", min_height="38px",
+                       border_bottom=f"1px solid {p['border']}", padding="3px 10px",
+                       overflow="visible", width="100%")
 
-        row_layout = L(
-            align_items="center", min_height="38px",
-            border_bottom=f"1px solid {p['border']}", padding="3px 10px",
-            overflow="visible", width="100%"
-        )
-
-        for i, m in enumerate(months):
-            info = self.state.get(m, {})
-            y, mm = int(m.split("_")[0]), int(m.split("_")[1])
+        for i, unit in enumerate(units):
+            info = self.state.get(unit, {})
             bg = p["row_a"] if i % 2 == 0 else p["row_b"]
-
             date_cell = widgets.HTML(
-                f'<div style="width:{self._DATE_W};font-family:monospace;font-size:13px;color:{p["date_fg"]};font-weight:600;'
+                f'<div style="width:{self._DATE_W};font-family:monospace;font-size:12px;color:{p["date_fg"]};font-weight:600;'
                 f'background:{p["date_bg"]};padding:2px 6px;border-radius:3px;box-sizing:border-box;'
-                f'border-left:1px solid {p["sep"]};border-right:1px solid {p["sep"]};">{m}</div>'
+                f'border-left:1px solid {p["sep"]};border-right:1px solid {p["sep"]};">{unit}</div>'
             )
-
             cells = [date_cell]
             for key, _t, _e, kind in _COLS:
                 ok = info.get(key, False)
                 cells.append(widgets.HTML(
                     f'<div style="width:{self._CELL_W};text-align:center;box-sizing:border-box;'
-                    f'border-right:1px solid {p["sep"]};">{self._col_content(kind, ok, y, mm)}</div>'
+                    f'border-right:1px solid {p["sep"]};">{self._col_content(kind, ok, unit)}</div>'
                 ))
-
             chk = widgets.Checkbox(value=False, indent=False, layout=L(width="20px", height="20px"))
             chk_wrapper = widgets.HBox([chk], layout=L(
                 width=f"calc({self._SEL_W} - 2px)", justify_content="center",
-                align_items="center", overflow="hidden",
-                border=f"1px solid {p['sep']}"
+                align_items="center", overflow="hidden", border=f"1px solid {p['sep']}"
             ))
-            self.chk_dict[m] = chk
-
+            self.chk_dict[unit] = chk
             row = widgets.HBox(cells + [chk_wrapper], layout=row_layout)
             row.layout.background = bg
             rows.append(row)
 
-        n_all = len(self._all_months())
-        n_complete = sum(1 for k in self._all_months() if _is_complete(self.state[k]))
-        n_visible = len(months)
-        n_visible_complete = sum(1 for k in months if _is_complete(self.state[k]))
+        n_all = len(self._all_units())
+        n_visible = len(units)
+        n_complete = sum(1 for u in self._all_units() if _is_complete(self.state.get(u, {})))
 
         if self.year_filter is not None:
-            label = (
-                f'{n_visible} months of {self.year_filter} in filter &nbsp;|&nbsp; '
-                f'<span style="color:#28a745;font-weight:700;">{n_visible_complete}</span> complete &nbsp;|&nbsp; '
-                f'<span style="color:#6c757d;">{n_visible - n_visible_complete}</span> pending'
-            )
+            label = (f'{n_visible} units of {self.year_filter} in filter &nbsp;|&nbsp; '
+                     f'<span style="color:#28a745;font-weight:700;">{n_complete}</span> complete')
         else:
-            label = (
-                f'{n_all} months in collection &nbsp;|&nbsp; '
-                f'<span style="color:#28a745;font-weight:700;">{n_complete}</span> complete &nbsp;|&nbsp; '
-                f'<span style="color:#6c757d;">{n_all - n_complete}</span> pending'
-            )
+            label = (f'{n_all} units &nbsp;|&nbsp; '
+                     f'<span style="color:#28a745;font-weight:700;">{n_complete}</span> complete')
 
         legend = widgets.HTML(
             f'<div style="font-size:11px;color:{p["legend_fg"]};margin:6px 0 0 10px;padding:6px 10px;'
-            f'background:{p["legend_bg"]};border-radius:4px;">'
-            f'{label}'
-            f'</div>'
+            f'background:{p["legend_bg"]};border-radius:4px;">{label}</div>'
         )
-
         hint = widgets.HTML(
             f'<div style="font-size:11px;color:{p["hint_fg"]};margin:4px 0 0 10px;padding:6px 10px;'
             f'background:{p["hint_bg"]};border:1px solid {p["hint_border"]};border-radius:4px;line-height:1.5;">'
-            f'<strong>MISS &rarr; OK:</strong> '
-            f'<b>Export</b>=Step 1 cell &nbsp;|&nbsp; '
-            f'<b>Mosaic</b>=Step 2 cell &nbsp;|&nbsp; '
-            f'<b>Vector GCS</b>=Step 3 cell &nbsp;|&nbsp; '
-            f'<b>Vector GEE</b>=Step 4 cell &nbsp;|&nbsp; '
-            f'<b>Public mosaic</b>=Step 5 cell &nbsp;|&nbsp; '
-            f'<b>Public vector</b>=Step 6 cell &nbsp;|&nbsp; '
-            f'<b>Clean temp</b>=Step 7 cell (after both published)'
+            f'<strong>MISS &rarr; OK:</strong> Export=Step 1 &nbsp;|&nbsp; Mosaic=Step 2 &nbsp;|&nbsp; '
+            f'Vector GCS=Step 3 &nbsp;|&nbsp; Vector GEE=Step 4 &nbsp;|&nbsp; Public mosaic=Step 5 &nbsp;|&nbsp; '
+            f'Public vector=Step 6 &nbsp;|&nbsp; Clean temp=Step 7 (after both published)'
             f'</div>'
         )
-
         self.grid_container.children = [
-            widgets.VBox(rows, layout=L(
-                max_height="460px", width="100%",
-                overflow_y="auto", overflow_x="auto",
-                padding="0", border=f"1px solid {p['border']}",
-                background_color=p["row_b"]
-            )),
-            legend,
-            hint,
+            widgets.VBox(rows, layout=L(max_height="460px", width="100%",
+                                        overflow_y="auto", overflow_x="auto", padding="0",
+                                        border=f"1px solid {p['border']}", background_color=p["row_b"])),
+            legend, hint,
         ]
+
+    def _on_sync(self, _):
+        if self.is_refreshing:
+            return
+        if not self.product:
+            return
+        config.set_country(self.country, verbose=False)
+        config.set_theme(self.theme)
+        config.set_collection(self.collection)
+        config.set_product(self.product)
+        self.is_refreshing = True
+        self.btn_sync.disabled = True
+        self.btn_sync.description = "Syncing..."
+        self.loader.value = self.loader.value.replace("display:none", "display:flex")
+        self._log("Checking files in GCS and assets in GEE...", "info")
+        try:
+            selected = self._get_selected_keys()
+            self.state = build_state(logger=self._log)
+            self._render_grid()
+            self._restore_selected(selected)
+            n_ok = sum(1 for u in self._all_units() if _is_complete(self.state.get(u, {})))
+            self._log(f"Sync complete: {n_ok}/{len(self._all_units())} units complete.", "success")
+        except Exception as e:
+            self._log(f"Sync error: {e}", "error")
+        finally:
+            self.is_refreshing = False
+            self.btn_sync.disabled = False
+            self.btn_sync.description = "Sync"
+            self.loader.value = self.loader.value.replace("display:flex", "display:none")
 
     def _on_select_pending(self, _):
         for key, chk in self.chk_dict.items():
@@ -669,15 +601,6 @@ class MonitorUI:
         for chk in self.chk_dict.values():
             chk.value = False
 
-    def get_selected_months(self):
-        result = []
-        for key, chk in self.chk_dict.items():
-            if chk.value:
-                parts = key.split("_")
-                if len(parts) >= 2:
-                    result.append((int(parts[0]), int(parts[1])))
-        return result
-
     def get_selected_units(self):
         return [k for k, chk in self.chk_dict.items() if chk.value]
 
@@ -690,33 +613,138 @@ class MonitorUI:
                 self.chk_dict[k].value = True
 
     def sync(self):
-        config.set_country(self.country, verbose=False)
-        selected = self._get_selected_keys()
-        self.state = build_state(logger=self._log)
-        self._render_grid()
-        self._restore_selected(selected)
+        self._on_sync(None)
+
+
+# ---------------------------------------------------------------------------
+# Navegacao: pais -> tema -> colecao -> produto (dropdown) -> grid de unidades
+# ---------------------------------------------------------------------------
+class ProductPanel:
+    """Dropdown de produto + grid de unidades de uma colecao."""
+
+    def __init__(self, country, theme, collection):
+        self.country = country
+        self.theme = theme
+        self.collection = collection
+        prods = [p["product"] for p in config.OBJ.get(country, {}).get(theme, {}).get(collection, [])
+                 if p.get("visible", True)]
+        self.products = prods
+        self.product_dd = widgets.Dropdown(options=prods, value=prods[0] if prods else None,
+                                           description="Product:", layout=L(width="380px"))
+        self.product_dd.observe(self._on_product, names="value")
+        self.grid = UnitGridPanel(country, theme, collection)
+        self.container = widgets.VBox([self.product_dd, self.grid.container])
+        self._active_panel = self.grid
+        if prods:
+            self._activate_product(prods[0])
+
+    def _on_product(self, change):
+        self._activate_product(change.get("new"))
+
+    def _activate_product(self, product):
+        if not product:
+            return
+        self.grid._activate_product(product)
+
+    def __getattr__(self, name):
+        return getattr(self.grid, name)
+
+
+class CollectionTabs:
+    """Abas de colecao dentro de um tema."""
+
+    def __init__(self, country, theme):
+        self.country = country
+        self.theme = theme
+        colls = [c for c, prods in config.OBJ.get(country, {}).get(theme, {}).items()
+                 if [p for p in prods if p.get("visible", True)]]
+        self.collections = colls
+        self._panels = {}
+        self._placeholders = [widgets.VBox([]) for _ in colls]
+        self.tab = widgets.Tab(children=self._placeholders)
+        for i, c in enumerate(colls):
+            self.tab.set_title(i, c)
+        self.tab.observe(self._on_tab_change, names="selected_index")
+        self._active_panel = None
+        if colls:
+            self._activate(0)
+
+    def _on_tab_change(self, change):
+        idx = change.get("new")
+        if idx is None:
+            return
+        self._activate(idx)
+
+    def _activate(self, idx):
+        coll = self.collections[idx]
+        if coll not in self._panels:
+            pp = ProductPanel(self.country, self.theme, coll)
+            self._panels[coll] = pp
+            self._placeholders[idx].children = [pp.container]
+        else:
+            pp = self._panels[coll]
+        self._active_panel = pp
+
+    def __getattr__(self, name):
+        return getattr(self._active_panel, name)
+
+
+class ThemeTabs:
+    """Abas de tema dentro de um pais."""
+
+    def __init__(self, country):
+        self.country = country
+        themes = [t for t, colls in config.OBJ.get(country, {}).items()
+                  if any([p for p in prods if p.get("visible", True)] for prods in colls.values())]
+        self.themes = themes
+        self._panels = {}
+        self._placeholders = [widgets.VBox([]) for _ in themes]
+        self.tab = widgets.Tab(children=self._placeholders)
+        for i, t in enumerate(themes):
+            self.tab.set_title(i, t)
+        self.tab.observe(self._on_tab_change, names="selected_index")
+        self._active_panel = None
+        if themes:
+            self._activate(0)
+
+    def _on_tab_change(self, change):
+        idx = change.get("new")
+        if idx is None:
+            return
+        self._activate(idx)
+
+    def _activate(self, idx):
+        theme = self.themes[idx]
+        if theme not in self._panels:
+            ct = CollectionTabs(self.country, theme)
+            self._panels[theme] = ct
+            self._placeholders[idx].children = [ct.tab]
+        else:
+            ct = self._panels[theme]
+        self._active_panel = ct
+
+    def __getattr__(self, name):
+        return getattr(self._active_panel, name)
 
 
 class CountryTabs:
-    """Abas por pais dentro da aba Interface. Cada aba tem seu proprio MonitorUI."""
+    """Abas de pais -> tema -> colecao -> produto -> unidades."""
 
     def __init__(self, countries):
         self.countries = list(countries)
         if not self.countries:
             raise ValueError("No countries configured for the tabs.")
         for c in self.countries:
-            if c not in config.COUNTRIES:
-                raise ValueError(f"Country '{c}' not in config.COUNTRIES.")
+            if c not in config.OBJ:
+                raise ValueError(f"Country '{c}' not in config.OBJ.")
 
         self._panels = {}
         self._active_code = self.countries[0]
         self._active_panel = None
-
         self._placeholders = [widgets.VBox([]) for _ in self.countries]
         self.tab = widgets.Tab(children=self._placeholders)
         for i, c in enumerate(self.countries):
             self.tab.set_title(i, f"{config.flag(c)} {c.title()}")
-
         self.tab.observe(self._on_tab_change, names="selected_index")
 
     def _on_tab_change(self, change):
@@ -729,28 +757,19 @@ class CountryTabs:
         code = self.countries[idx]
         self._active_code = code
         if code not in self._panels:
-            config.set_country(code, verbose=False)
-            panel = MonitorUI()
-            panel.start()
-            self._panels[code] = panel
-            self._placeholders[idx].children = [panel.container]
+            tt = ThemeTabs(code)
+            self._panels[code] = tt
+            self._placeholders[idx].children = [tt.tab]
         else:
-            panel = self._panels[code]
-            panel.sync()
-        self._active_panel = panel
+            tt = self._panels[code]
+        self._active_panel = tt
 
     def __getattr__(self, name):
-        panel = self.__dict__.get("_active_panel")
-        if panel is None:
-            raise AttributeError(name)
-        return getattr(panel, name)
-
-    def display(self):
-        display(self.tab)
+        return getattr(self._active_panel, name)
 
 
 class FireMonitorApp:
-    """App em guias: Interface (abas de pais) + guias em 7 idiomas."""
+    """App em guias: Interface (navegacao) + guias em 7 idiomas."""
 
     def __init__(self, countries):
         self.interface = CountryTabs(countries)
@@ -796,8 +815,6 @@ class FireMonitorApp:
 def run_ui(countries=None):
     countries = countries or config.COUNTRIES_AVAILABLE
     app = FireMonitorApp(countries)
-    # exibe o shell (cabecalho + abas) imediatamente; depois monta/sincroniza
-    # o painel do primeiro pais (nao bloqueia a renderizacao).
     app.display()
     app.interface._activate(0)
     return app
