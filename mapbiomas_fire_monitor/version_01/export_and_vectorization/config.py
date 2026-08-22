@@ -216,6 +216,14 @@ COUNTRIES_FLAGS = {
 # Compat com ui (valida chaves por pais)
 COUNTRIES = {code: {} for code in OBJ}
 
+COUNTRY_STORAGE = {"brasil": "brazil"}
+
+
+def storage_country(country=None):
+    """Retorna o codigo usado nos caminhos GCS e nos assets publicados."""
+    code = country or COUNTRY
+    return COUNTRY_STORAGE.get(code, code)
+
 
 def flag(code):
     return COUNTRIES_FLAGS.get(code, "🌍")
@@ -365,7 +373,7 @@ def save_options():
 
 
 def _rel(prod):
-    return f"{BUCKET_PATH}/{COUNTRY}/{THEME}/{COLLECTION}/{prod}"
+    return f"{BUCKET_PATH}/{storage_country()}/{THEME}/{COLLECTION}/{prod}"
 
 
 def tiles_prefix():
@@ -381,7 +389,7 @@ def vector_prefix():
 
 
 def vector_asset_prefix():
-    return (f"projects/mapbiomas-public/assets/{COUNTRY}/{THEME}/{COLLECTION}/"
+    return (f"projects/mapbiomas-public/assets/{storage_country()}/{THEME}/{COLLECTION}/"
             f"{PRODUCT}_vectors_v01")
 
 
@@ -403,15 +411,15 @@ def _sanitize(unit):
 
 
 def tile_pattern_unit(unit):
-    return f"fire_monitor_v1_{PRODUCT}_{COUNTRY}_{_sanitize(unit)}"
+    return f"fire_monitor_v1_{PRODUCT}_{storage_country()}_{_sanitize(unit)}"
 
 
 def mosaic_name_unit(unit):
-    return f"{PRODUCT}-{COUNTRY}_{_sanitize(unit)}"
+    return f"{PRODUCT}-{storage_country()}_{_sanitize(unit)}"
 
 
 def vector_name_unit(unit):
-    return f"{PRODUCT}-{COUNTRY}_{_sanitize(unit)}"
+    return f"{PRODUCT}-{storage_country()}_{_sanitize(unit)}"
 
 
 def add_collection(country, theme, collection, products):

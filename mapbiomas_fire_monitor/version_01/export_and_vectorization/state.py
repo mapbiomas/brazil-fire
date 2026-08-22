@@ -53,7 +53,7 @@ def _new_entry():
 
 def _tile_unit(basename):
     """Extrai a unidade de um tile: fire_monitor_v1_{product}_{country}_{unit}_{tileid}.tif."""
-    prefix = f"fire_monitor_v1_{config.PRODUCT}_{config.COUNTRY}_"
+    prefix = f"fire_monitor_v1_{config.PRODUCT}_{config.storage_country()}_"
     if not basename.startswith(prefix):
         return None
     rest = basename[len(prefix):].removesuffix(".tif")
@@ -77,8 +77,8 @@ def scan_gcs(logger=None):
         if logger:
             logger(msg)
 
-    tile_prefix = f"fire_monitor_v1_{config.PRODUCT}_{config.COUNTRY}_"
-    art_prefix = f"{config.PRODUCT}-{config.COUNTRY}_"
+    tile_prefix = f"fire_monitor_v1_{config.PRODUCT}_{config.storage_country()}_"
+    art_prefix = f"{config.PRODUCT}-{config.storage_country()}_"
 
     _log(f"Scanning GCS: gs://{config.BUCKET}/{tiles_prefix()}/ ...")
     try:
@@ -150,7 +150,7 @@ def scan_gee(logger=None):
             logger(msg)
 
     prefix = vector_asset_prefix()
-    art_prefix = f"{config.PRODUCT}-{config.COUNTRY}_"
+    art_prefix = f"{config.PRODUCT}-{config.storage_country()}_"
     _log(f"Scanning GEE assets: {prefix} ...")
     try:
         assets = ee.data.listAssets({"parent": prefix})
