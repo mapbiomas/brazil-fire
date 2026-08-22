@@ -121,11 +121,13 @@ def _is_complete(v):
 # ---------------------------------------------------------------------------
 # Guias (7 idiomas)
 # ---------------------------------------------------------------------------
-LANG_ORDER = ["PT", "EN", "FR", "ID", "ES", "NL", "ZH"]
+LANG_ORDER = ["PT", "ES", "EN", "ID", "FR", "NL", "ZH"]
 
 GUIDES = {
     "PT": {
         "name": "Português",
+        "tab_title": "Guia: Português",
+        "welcome_note": "Bem-vindo! A interface do aplicativo está em inglês por padrão, mas preparamos esta documentação completa em Português para orientar você em cada etapa — desde a escolha do país e produto até a publicação final. Sinta-se à vontade para explorar as abas acima e consultar este guia sempre que precisar.",
         "what": "Este aplicativo exporta os mapas de área queimada/incêndio do MapBiomas Fire: "
                 "do Earth Engine para o GCS, monta mosaicos por unidade (banda/imagem), vetoriza "
                 "(quando aplicável), publica no Earth Engine e no bucket público e remove os "
@@ -151,6 +153,8 @@ GUIDES = {
     },
     "EN": {
         "name": "English",
+        "tab_title": "Guide: English",
+        "welcome_note": "Welcome! The application interface defaults to English, and this documentation is provided in English to walk you through every step — from choosing the country and product to final publication. Feel free to explore the tabs above and refer to this guide whenever you need.",
         "what": "This app exports the MapBiomas Fire burned/fire maps: from Earth Engine to cloud "
                 "storage, builds per-unit mosaics (band/image), vectorizes (when applicable), "
                 "publishes to Earth Engine and the public bucket, and removes temporary files.",
@@ -175,6 +179,8 @@ GUIDES = {
     },
     "FR": {
         "name": "Français",
+        "tab_title": "Guide: Français",
+        "welcome_note": "Bienvenue ! L'interface de l'application est en anglais par défaut, mais nous avons préparé cette documentation complète en Français pour vous accompagner à chaque étape — du choix du pays et du produit jusqu'à la publication finale. N'hésitez pas à explorer les onglets ci-dessus et à consulter ce guide quand vous en avez besoin.",
         "what": "Cette application exporte les cartes de brûlage MapBiomas Fire : d'Earth Engine "
                 "vers le stockage cloud, construit des mosaïques par unité (bande/image), vectorise "
                 "(si applicable), publie dans Earth Engine et le bucket public et supprime les "
@@ -200,6 +206,8 @@ GUIDES = {
     },
     "ID": {
         "name": "Bahasa Indonesia",
+        "tab_title": "Panduan: Bahasa Indonesia",
+        "welcome_note": "Selamat datang! Antarmuka aplikasi ini menggunakan bahasa Inggris secara default, namun kami menyediakan dokumentasi lengkap dalam Bahasa Indonesia untuk memandu Anda di setiap langkah — dari memilih negara dan produk hingga publikasi akhir. Silakan jelajahi tab di atas dan rujuk panduan ini kapan saja diperlukan.",
         "what": "Aplikasi ini mengekspor peta kebakaran MapBiomas Fire: dari Earth Engine ke cloud "
                 "storage, membangun mozaik per unit (band/citra), vektorisasi (jika berlaku), "
                 "mempublikasikan ke Earth Engine dan bucket publik, lalu menghapus file sementara.",
@@ -224,6 +232,8 @@ GUIDES = {
     },
     "ES": {
         "name": "Español",
+        "tab_title": "Guía: Español",
+        "welcome_note": "¡Bienvenido! La interfaz de la aplicación está en inglés por defecto, pero hemos preparado esta documentación completa en Español para guiarle en cada paso — desde la selección del país y producto hasta la publicación final. No dude en explorar las pestañas superiores y consultar esta guía cuando lo necesite.",
         "what": "Esta aplicación exporta los mapas de fuego MapBiomas Fire: desde Earth Engine a "
                 "cloud storage, construye mosaicos por unidad (banda/imagen), vectoriza (si "
                 "aplica), publica en Earth Engine y el bucket público y elimina archivos temporales.",
@@ -248,6 +258,8 @@ GUIDES = {
     },
     "NL": {
         "name": "Nederlands",
+        "tab_title": "Handleiding: Nederlands",
+        "welcome_note": "Welkom! De interface van de applicatie is standaard in het Engels, maar we hebben deze complete documentatie in het Nederlands voorbereid om u te begeleiden bij elke stap — van het kiezen van het land en product tot de uiteindelijke publicatie. Verken gerust de tabbladen bovenaan en raadpleeg deze handleiding wanneer u dat wilt.",
         "what": "Deze app exporteert de MapBiomas Fire-brandkaarten: van Earth Engine naar cloud "
                 "storage, bouwt mozaïeken per eenheid (band/beeld), vectoriseert (indien van "
                 "toepassing), publiceert naar Earth Engine en de publieke bucket en verwijdert "
@@ -273,6 +285,8 @@ GUIDES = {
     },
     "ZH": {
         "name": "中文",
+        "tab_title": "指南: 中文",
+        "welcome_note": "欢迎使用！应用界面默认为英语，但我们准备了完整的中文文档，引导您完成每一个步骤——从选择国家和产品到最终发布。请随意探索上方的标签页，并在需要时随时查阅本指南。",
         "what": "此应用导出 MapBiomas Fire 火灾地图：从 Earth Engine 到云存储，按单元（波段/影像）构建镶嵌图，在适用时进行矢量化，发布到 Earth Engine 和公共存储桶，并删除临时文件。",
         "howto_title": "使用方法",
         "steps": [
@@ -307,8 +321,15 @@ def _guide_html(lang):
     )
     steps = "".join(f"<li>{s}</li>" for s in g["steps"])
     legend = g["legend"]
+    welcome = g.get("welcome_note", "")
+    welcome_html = (
+        f'<div style="background:{p["hint_bg"]};border:1px solid {p["hint_border"]};'
+        f'border-radius:4px;padding:10px;margin-bottom:12px;font-size:12px;color:{p["hint_fg"]};line-height:1.5;">'
+        f'{welcome}</div>'
+    ) if welcome else ""
     return (
         f'<div style="font-size:12px;color:{p["guide_fg"]};line-height:1.6;">'
+        f'{welcome_html}'
         f'<p><b>{g["name"]}</b> — {g["what"]}</p>'
         f'<h4 style="margin:10px 0 4px 0;">{g["howto_title"]}</h4>'
         f'<ol style="margin:0 0 8px 0;padding-left:20px;">{steps}</ol>'
@@ -810,7 +831,7 @@ class FireMonitorApp:
         self.tab = widgets.Tab(children=[self.interface.tab] + self.guide_widgets)
         self.tab.set_title(0, "Interface")
         for i, lang in enumerate(LANG_ORDER, start=1):
-            self.tab.set_title(i, GUIDES[lang]["name"])
+            self.tab.set_title(i, GUIDES[lang]["tab_title"])
 
         self.container = widgets.VBox([self.header, self.tab])
         self._render()
