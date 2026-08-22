@@ -28,10 +28,24 @@ def check_mosaic_exists(year, month):
 
 
 def assemble_mosaic(year, month, force=False, logger=None):
+    # Checa tiles ANTES de qualquer exclusao: nunca apaga o COG se nao houver
+    # como reconstruir (evita perder um mosaico valido sem recuperacao).
+    tiles = list_tiles(year, month)
+    if not tiles:
+        if check_mosaic_exists(year, month) and not force:
+            if logger:
+                logger(f"[SKIP] Mosaic for {year}_{month:02d} already exists.")
+            return True
+        if logger:
+            logger(f"[WARN] No tiles found for {year}_{month:02d}. Cannot rebuild mosaic.")
+        return False
+
     if check_mosaic_exists(year, month):
         if force:
             if logger:
                 logger(f"[MOSAIC] {year}_{month:02d}: force=True — removing COG and rebuilding.")
+                logger("[MOSAIC] Note: se o COG ja estava publicado no bucket publico, "
+                       "ele ficara desatualizado ate rodar a Etapa 5 com FORCE_PUBLISH_MOSAIC=True.")
             try:
                 _get_fs().rm(f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name(year, month)}.tif")
             except Exception as e:
@@ -41,12 +55,6 @@ def assemble_mosaic(year, month, force=False, logger=None):
             if logger:
                 logger(f"[SKIP] Mosaic for {year}_{month:02d} already exists.")
             return True
-
-    tiles = list_tiles(year, month)
-    if not tiles:
-        if logger:
-            logger(f"[WARN] No tiles found for {year}_{month:02d}.")
-        return False
 
     if logger:
         logger(f"[MOSAIC] Assembling {len(tiles)} tiles for {year}_{month:02d}...")
