@@ -186,7 +186,7 @@ OBJ = {
                 _p("indonesia", "fire", "collection1", "accumulated_burned_coverage",
                    "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_accumulated_burned_coverage_v1", "byte"),
                 _p("indonesia", "fire", "collection1", "fire_frequency",
-                   "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_fire_frequency_v1", "int16"),
+                   "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_fire_frequency_v1", "byte"),
             ],
             # Collection 02 is publicly distributed as GeoTIFFs in GCS.  Keep
             # the public prefix as the source so the catalog can discover the
@@ -241,13 +241,13 @@ OBJ = {
         "fire": {
             "collection_01": [
                 _p("paraguay", "fire", "collection1", "annual_burned_coverage",
-                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_annual_burned_coverage_v1", "byte", decode={"div": 100, "dtype": "byte"}),
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_annual_burned_coverage_v1", "byte"),
                 _p("paraguay", "fire", "collection1", "monthly_burned_coverage",
                    "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_monthly_burned_coverage-v1", "byte", decode={"div": 100, "dtype": "byte"}),
                 _p("paraguay", "fire", "collection1", "frequency_burned_coverage",
-                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_frequency_burned_coverage_v1", "int16", decode={"div": 100, "dtype": "int16"}),
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_frequency_burned_coverage_v1", "int16", decode={"div": 100, "dtype": "byte"}),
                 _p("paraguay", "fire", "collection1", "accumulated_burned_coverage",
-                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_accumulated_burned_coverage_v1", "byte", decode={"div": 100, "dtype": "byte"}),
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_accumulated_burned_coverage_v1", "byte"),
             ],
         },
     },
