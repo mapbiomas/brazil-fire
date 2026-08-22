@@ -72,43 +72,26 @@ class StoryLoader:
 
 
 class LogDrawer:
-    """Gaveta global: fechada mostra o ultimo log; aberta mostra o historico."""
+    """Guia global com uma visao do ultimo log e outra do historico."""
 
     def __init__(self):
         self.output = widgets.Output()
-        self.button = widgets.Button(description="Show logs", icon="chevron-down",
-                                     layout=L(width="120px", height="28px"))
-        self.button.on_click(self._toggle)
         self.history = []
-        self.open = False
-        self.container = widgets.VBox()
-        self._render()
-
-    def _render(self):
-        if self.open:
-            self.button.description = "Hide logs"
-            self.button.icon = "chevron-up"
-            self.output.layout = L(max_height="240px", overflow="auto", padding="4px",
-                                   border="1px solid #cccccc", background="#ffffff")
-            self.container.children = [self.button, self.output]
-        else:
-            self.button.description = "Show logs"
-            self.button.icon = "chevron-down"
-            latest = self.history[-1] if self.history else "No messages yet."
-            self.container.children = [self.button, widgets.HTML(
-                f'<div style="padding:5px 8px;color:#495057;font-size:12px;">{latest}</div>'
-            )]
-
-    def _toggle(self, _):
-        self.open = not self.open
-        self._render()
+        self.last = widgets.HTML(value="<div style='padding:5px 8px;color:#6c757d;'>No messages yet.</div>")
+        self.output = widgets.Output()
+        self.tab = widgets.Tab(children=[self.last, self.output])
+        self.tab.set_title(0, "Last log")
+        self.tab.set_title(1, "Log history")
+        self.container = widgets.VBox([self.tab])
+        self.output.layout = L(max_height="240px", overflow="auto", padding="4px",
+                               border="1px solid #cccccc", background="#ffffff")
 
     def append(self, html):
         self.history.append(html)
+        self.last.value = f'<div style="padding:5px 8px;color:#495057;font-size:12px;">{html}</div>'
         with self.output:
             display(widgets.HTML(html))
-        if not self.open:
-            self._render()
+        self.tab.selected_index = 1
 
 
 def _palette():
