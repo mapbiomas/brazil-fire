@@ -465,13 +465,6 @@ class UnitGridPanel:
                                               description="Year:", layout=L(width="200px"))
         self.year_dropdown.observe(self._on_year_change, names="value")
 
-        self.loader = widgets.HTML(
-            value='<span id="mon-loader" style="display:none;margin-left:10px;color:#3498db;font-size:13px;">'
-                  '<span style="display:inline-block;width:10px;height:10px;margin-right:5px;border:2px solid #b9d7f0;'
-                  'border-top-color:#3498db;border-radius:50%;animation:mfm-spin 0.8s linear infinite;' +
-                  '</span>'
-                  'Syncing...</span>'
-        )
         self.story_loader = StoryLoader("Checking GCS and Earth Engine...")
         self.toolbar = widgets.HBox([
             self.year_dropdown, self.btn_select_pending, self.btn_select_all,
@@ -678,7 +671,6 @@ class UnitGridPanel:
         self.is_refreshing = True
         self.btn_sync.disabled = True
         self.btn_sync.description = "Syncing..."
-        self.loader.value = self.loader.value.replace("display:none", "display:flex")
         self.story_loader.label = "Checking GCS and Earth Engine..."
         self.story_loader.start()
         self.grid_container.children = [self.story_loader.widget]
@@ -705,7 +697,6 @@ class UnitGridPanel:
             self.is_refreshing = False
             self.btn_sync.disabled = False
             self.btn_sync.description = "Sync"
-            self.loader.value = self.loader.value.replace("display:flex", "display:none")
 
     def _on_select_pending(self, _):
         for key, chk in self.chk_dict.items():

@@ -422,13 +422,17 @@ def processing_context(country=None, theme=None, collection=None, product=None):
     theme = theme or THEME
     collection = collection or COLLECTION
     product = product or PRODUCT
+    storage_product = product
+    if collection == "monitor" and product == "monthly_burned":
+        storage_product = "mapbiomas_fire_monthly_burned_v1"
     return {
         "country": country,
         "storage_country": storage_country(country),
         "theme": theme,
         "collection": collection,
         "product": product,
-        "root": f"{BUCKET_PATH}/{storage_country(country)}/{theme}/{collection}/{product}",
+        "storage_product": storage_product,
+        "root": f"{BUCKET_PATH}/{storage_country(country)}/{theme}/{collection}/{storage_product}",
     }
 
 
