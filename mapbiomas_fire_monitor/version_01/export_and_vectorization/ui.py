@@ -1,4 +1,6 @@
 import datetime
+import random
+import threading
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 
@@ -13,6 +15,60 @@ _STATUS_CSS = widgets.HTML("""<style>
 .mfm-run  { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
 .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
 </style>""")
+
+STORY_SEQUENCES = [
+    ["[ 🌲 🌲 🌲 🌲 🌲 ]", "[ 🌲 🌲 🦅 🌲 🌲 ]", "[ 🌲 🌲 🔥 🌲 🌲 ]",
+     "[ 🛰️ 🔥 🔥 🔥 🌲 ]", "[ 💻 🧠 ⚙️ ☁️ ☁️ ]", "[ 🗺️ 📍 ✅ ✨ ✨ ]"],
+    ["🕛", "🕒", "🕕", "🕘"],
+    ["🌍", "🛰️", "🔥", "🤖", "🗺️"],
+    ["🛰️", "📡", "🔥", "💻", "🗺️"],
+    ["🌲", "🔎", "🔥", "🚨", "🧠", "🗺️"],
+    ["🛰️ 🌍", "🛰️ 🔎", "🛰️ 🔥", "📡 💻", "🤖 🧠", "📊 🗺️"],
+]
+
+
+class StoryLoader:
+    """Animacao de carregamento que nao bloqueia o kernel do notebook."""
+
+    def __init__(self, label="Loading...", interval=0.7):
+        self.label = label
+        self.interval = interval
+        self.widget = widgets.HTML()
+        self._running = False
+        self._thread = None
+
+    def _render(self, frame):
+        self.widget.value = (
+            '<div style="padding:14px 18px;color:#3498db;font-size:18px;line-height:1.5;">'
+            f'<code>{frame}</code> <span style="font-size:12px;">{self.label}</span></div>'
+        )
+
+    def _run(self):
+        sequence = random.choice(STORY_SEQUENCES)
+        index = 0
+        repeats = 0
+        while self._running:
+            self._render(sequence[index])
+            index = (index + 1) % len(sequence)
+            if index == 0:
+                repeats += 1
+                if repeats >= 2:
+                    sequence = random.choice(STORY_SEQUENCES)
+                    repeats = 0
+            threading.Event().wait(self.interval)
+
+    def start(self):
+        if self._running:
+            return self.widget
+        self._running = True
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+        return self.widget
+
+    def stop(self, message=None):
+        self._running = False
+        if message:
+            self._render(message)
 
 
 def _palette():
@@ -416,6 +472,7 @@ class UnitGridPanel:
                   '</span>'
                   'Syncing...</span>'
         )
+        self.story_loader = StoryLoader("Checking GCS and Earth Engine...")
         self.toolbar = widgets.HBox([
             self.year_dropdown, self.btn_select_pending, self.btn_select_all,
             self.btn_clear, self.btn_sync, self.loader,
@@ -622,6 +679,9 @@ class UnitGridPanel:
         self.btn_sync.disabled = True
         self.btn_sync.description = "Syncing..."
         self.loader.value = self.loader.value.replace("display:none", "display:flex")
+        self.story_loader.label = "Checking GCS and Earth Engine..."
+        self.story_loader.start()
+        self.grid_container.children = [self.story_loader.widget]
         self._log("Checking files in GCS and assets in GEE...", "info")
         try:
             selected = self._get_selected_keys()
@@ -632,6 +692,8 @@ class UnitGridPanel:
                 product=self.product,
                 logger=self._log,
             )
+            self._log(f"[DEBUG] UI units={self.units}", "info")
+            self._log(f"[DEBUG] state units={[u for u in self.state if u != 'updated_at']}", "info")
             self._render_grid()
             self._restore_selected(selected)
             n_ok = sum(1 for u in self._all_units() if _is_complete(self.state.get(u, {})))
@@ -639,6 +701,7 @@ class UnitGridPanel:
         except Exception as e:
             self._log(f"Sync error: {e}", "error")
         finally:
+            self.story_loader.stop()
             self.is_refreshing = False
             self.btn_sync.disabled = False
             self.btn_sync.description = "Sync"

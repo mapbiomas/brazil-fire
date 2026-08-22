@@ -105,12 +105,16 @@ def scan_gcs(context=None, logger=None):
     tile_prefix = f"fire_monitor_v1_{product}_{storage_country}_"
     art_prefix = f"{product}-{storage_country}_"
 
+    _log(f"[DEBUG] context={context}")
+
     _log(f"Scanning GCS: gs://{config.BUCKET}/{tiles_path}/{tile_prefix}*.tif ...")
     try:
         tile_files = fs.glob(f"{config.BUCKET}/{tiles_path}/{tile_prefix}*.tif")
+        _log(f"[DEBUG] tile matches={len(tile_files)}")
         for f in tile_files:
             unit = _tile_unit(f.split('/')[-1], context)
             if unit:
+                _log(f"[FOUND] Export unit={unit} path={f}")
                 tiles_present.add(unit)
                 state.setdefault(unit, _new_entry())["exported"] = True
     except Exception as e:
@@ -120,16 +124,20 @@ def scan_gcs(context=None, logger=None):
     if context["collection"] == "monitor" and "monthly" in product:
         for unit in _fallback_months():
             tile_glob = f"{tiles_path}/{tile_prefix}{unit}_*.tif"
-            if fs.glob(f"{config.BUCKET}/{tile_glob}"):
+            matches = fs.glob(f"{config.BUCKET}/{tile_glob}")
+            if matches:
+                _log(f"[FOUND] Export unit={unit} path={matches[0]}")
                 tiles_present.add(unit)
                 _merge_unit(state, unit, exported=True)
 
     _log(f"Scanning GCS: gs://{config.BUCKET}/{mosaic_path}/{art_prefix}*.tif ...")
     try:
         mosaic_files = fs.glob(f"{config.BUCKET}/{mosaic_path}/{art_prefix}*.tif")
+        _log(f"[DEBUG] mosaic matches={len(mosaic_files)}")
         for f in mosaic_files:
             unit = _unit_from_name(f.split('/')[-1], art_prefix, ".tif")
             if unit:
+                _log(f"[FOUND] Mosaic unit={unit} path={f}")
                 cog_present.add(unit)
                 entry = state.setdefault(unit, _new_entry())
                 entry["exported"] = True
@@ -141,6 +149,7 @@ def scan_gcs(context=None, logger=None):
         for unit in _fallback_months():
             object_path = f"{mosaic_path}/{art_prefix}{unit}.tif"
             if _object_exists(fs, config.BUCKET, object_path):
+                _log(f"[FOUND] Mosaic unit={unit} path={config.BUCKET}/{object_path}")
                 cog_present.add(unit)
                 _merge_unit(state, unit, exported=True, mosaiced=True)
 
@@ -177,6 +186,8 @@ def scan_gcs(context=None, logger=None):
     for unit in cog_present:
         entry = state.setdefault(unit, _new_entry())
         entry["temp_cleaned"] = unit not in tiles_present
+
+    _log(f"[DEBUG] state units={sorted(state)}")
 
     return state
 
