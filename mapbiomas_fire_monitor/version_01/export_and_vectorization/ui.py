@@ -8,6 +8,7 @@ from .state import list_months_in_collection, build_state
 L = widgets.Layout
 
 _STATUS_CSS = widgets.HTML("""<style>
+@keyframes mfm-spin { to { transform: rotate(360deg); } }
 .mfm-ok   { background:#d4edda !important; border:1px solid #c3e6cb !important; }
 .mfm-run  { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
 .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
@@ -81,6 +82,15 @@ def _badge_copy(asset_id):
         f'style="background:#28a745;color:#fff;padding:2px 7px;border-radius:3px;'
         f'font-size:11px;font-weight:700;line-height:16px;display:inline-block;box-sizing:border-box;'
         f'text-decoration:none;cursor:pointer;">OK</a>'
+    )
+
+
+def _loading_html(label="Loading..."):
+    return widgets.HTML(
+        value=(f'<div style="padding:18px;color:#3498db;font-size:13px;">'
+               f'<span style="display:inline-block;width:12px;height:12px;margin-right:8px;'
+               f'border:2px solid #b9d7f0;border-top-color:#3498db;border-radius:50%;'
+               f'animation:mfm-spin 0.8s linear infinite;vertical-align:-2px;"></span>{label}</div>')
     )
 
 
@@ -379,8 +389,7 @@ class UnitGridPanel:
         self.log_area = widgets.Output()
 
         self.grid_container = widgets.VBox([
-            widgets.HTML('<div style="padding:20px;text-align:center;color:#6c757d;font-size:13px;">'
-                         '<i>Loading units...</i></div>')
+            _loading_html("Loading units...")
         ])
 
         self.btn_sync = widgets.Button(description="Sync", button_style="success", icon="refresh",
@@ -401,7 +410,11 @@ class UnitGridPanel:
         self.year_dropdown.observe(self._on_year_change, names="value")
 
         self.loader = widgets.HTML(
-            value='<span id="mon-loader" style="display:none;margin-left:10px;color:#3498db;font-size:13px;">Syncing...</span>'
+            value='<span id="mon-loader" style="display:none;margin-left:10px;color:#3498db;font-size:13px;">'
+                  '<span style="display:inline-block;width:10px;height:10px;margin-right:5px;border:2px solid #b9d7f0;'
+                  'border-top-color:#3498db;border-radius:50%;animation:mfm-spin 0.8s linear infinite;' +
+                  '</span>'
+                  'Syncing...</span>'
         )
         self.toolbar = widgets.HBox([
             self.year_dropdown, self.btn_select_pending, self.btn_select_all,
@@ -735,6 +748,7 @@ class CollectionTabs:
     def _activate(self, idx):
         coll = self.collections[idx]
         if coll not in self._panels:
+            self._placeholders[idx].children = [_loading_html("Loading products...")]
             pp = ProductTabs(self.country, self.theme, coll)
             self._panels[coll] = pp
             self._placeholders[idx].children = [pp.container]
@@ -773,6 +787,7 @@ class ThemeTabs:
     def _activate(self, idx):
         theme = self.themes[idx]
         if theme not in self._panels:
+            self._placeholders[idx].children = [_loading_html("Loading collections...")]
             ct = CollectionTabs(self.country, theme)
             self._panels[theme] = ct
             self._placeholders[idx].children = [ct.tab]
@@ -814,6 +829,7 @@ class CountryTabs:
         code = self.countries[idx]
         self._active_code = code
         if code not in self._panels:
+            self._placeholders[idx].children = [_loading_html("Loading themes...")]
             tt = ThemeTabs(code)
             self._panels[code] = tt
             self._placeholders[idx].children = [tt.tab]

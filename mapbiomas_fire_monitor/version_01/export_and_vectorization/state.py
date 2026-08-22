@@ -4,17 +4,6 @@ import time
 import gcsfs
 import urllib.request
 from . import config
-from .config import (
-    tiles_prefix,
-    mosaic_prefix,
-    vector_prefix,
-    vector_asset_prefix,
-    image_collection,
-    tile_pattern,
-    mosaic_name,
-    vector_name,
-)
-
 _fs = None
 
 
@@ -52,9 +41,10 @@ def _new_entry():
     }
 
 
-def _tile_unit(basename):
+def _tile_unit(basename, context=None):
     """Extrai a unidade de um tile: fire_monitor_v1_{product}_{country}_{unit}_{tileid}.tif."""
-    prefix = f"fire_monitor_v1_{config.PRODUCT}_{config.storage_country()}_"
+    context = context or config.processing_context()
+    prefix = f"fire_monitor_v1_{context['product']}_{context['storage_country']}_"
     if not basename.startswith(prefix):
         return None
     rest = basename[len(prefix):].removesuffix(".tif")
@@ -95,7 +85,8 @@ def _fallback_months():
             for month in range(1, 13)]
 
 
-def scan_gcs(logger=None):
+def scan_gcs(context=None, logger=None):
+    context = context or config.processing_context()
     fs = _get_fs()
     state = {}
     tiles_present = set()
@@ -105,14 +96,20 @@ def scan_gcs(logger=None):
         if logger:
             logger(msg)
 
-    tile_prefix = f"fire_monitor_v1_{config.PRODUCT}_{config.storage_country()}_"
-    art_prefix = f"{config.PRODUCT}-{config.storage_country()}_"
+    product = context["product"]
+    storage_country = context["storage_country"]
+    root = context["root"]
+    tiles_path = f"{root}/temp"
+    mosaic_path = root
+    vector_path = f"{root}_vectors"
+    tile_prefix = f"fire_monitor_v1_{product}_{storage_country}_"
+    art_prefix = f"{product}-{storage_country}_"
 
-    _log(f"Scanning GCS: gs://{config.BUCKET}/{tiles_prefix()}/ ...")
+    _log(f"Scanning GCS: gs://{config.BUCKET}/{tiles_path}/{tile_prefix}*.tif ...")
     try:
-        tile_files = fs.glob(f"{config.BUCKET}/{tiles_prefix()}/{tile_prefix}*.tif")
+        tile_files = fs.glob(f"{config.BUCKET}/{tiles_path}/{tile_prefix}*.tif")
         for f in tile_files:
-            unit = _tile_unit(f.split('/')[-1])
+            unit = _tile_unit(f.split('/')[-1], context)
             if unit:
                 tiles_present.add(unit)
                 state.setdefault(unit, _new_entry())["exported"] = True
@@ -120,16 +117,16 @@ def scan_gcs(logger=None):
         _log(f"Error scanning tiles: {e}")
 
     # Fallback para exports conhecidos quando a listagem GCS falha ou esta vazia.
-    if config.COLLECTION == "monitor" and config.product_kind() == "monthly":
+    if context["collection"] == "monitor" and "monthly" in product:
         for unit in _fallback_months():
-            tile_path = f"{tiles_prefix()}/{config.tile_pattern_unit(unit)}_0000000000-0000000000.tif"
-            if _object_exists(fs, config.BUCKET, tile_path):
+            tile_glob = f"{tiles_path}/{tile_prefix}{unit}_*.tif"
+            if fs.glob(f"{config.BUCKET}/{tile_glob}"):
                 tiles_present.add(unit)
                 _merge_unit(state, unit, exported=True)
 
-    _log(f"Scanning GCS: gs://{config.BUCKET}/{mosaic_prefix()}/ ...")
+    _log(f"Scanning GCS: gs://{config.BUCKET}/{mosaic_path}/{art_prefix}*.tif ...")
     try:
-        mosaic_files = fs.glob(f"{config.BUCKET}/{mosaic_prefix()}/{art_prefix}*.tif")
+        mosaic_files = fs.glob(f"{config.BUCKET}/{mosaic_path}/{art_prefix}*.tif")
         for f in mosaic_files:
             unit = _unit_from_name(f.split('/')[-1], art_prefix, ".tif")
             if unit:
@@ -140,16 +137,16 @@ def scan_gcs(logger=None):
     except Exception as e:
         _log(f"Error scanning mosaics: {e}")
 
-    if config.COLLECTION == "monitor" and config.product_kind() == "monthly":
+    if context["collection"] == "monitor" and "monthly" in product:
         for unit in _fallback_months():
-            mosaic_path = f"{mosaic_prefix()}/{config.mosaic_name_unit(unit)}.tif"
-            if _object_exists(fs, config.BUCKET, mosaic_path):
+            object_path = f"{mosaic_path}/{art_prefix}{unit}.tif"
+            if _object_exists(fs, config.BUCKET, object_path):
                 cog_present.add(unit)
                 _merge_unit(state, unit, exported=True, mosaiced=True)
 
-    _log(f"Scanning GCS: gs://{config.BUCKET}/{vector_prefix()}/ ...")
+    _log(f"Scanning GCS: gs://{config.BUCKET}/{vector_path}/{art_prefix}*.zip ...")
     try:
-        vector_files = fs.glob(f"{config.BUCKET}/{vector_prefix()}/{art_prefix}*.zip")
+        vector_files = fs.glob(f"{config.BUCKET}/{vector_path}/{art_prefix}*.zip")
         for f in vector_files:
             unit = _unit_from_name(f.split('/')[-1], art_prefix, ".zip")
             if unit:
@@ -157,9 +154,9 @@ def scan_gcs(logger=None):
     except Exception as e:
         _log(f"Error scanning vectors: {e}")
 
-    _log(f"Scanning public GCS: gs://{config.PUBLIC_BUCKET}/{mosaic_prefix()}/ ...")
+    _log(f"Scanning public GCS: gs://{config.PUBLIC_BUCKET}/{mosaic_path}/{art_prefix}*.tif ...")
     try:
-        pub_mosaic_files = fs.glob(f"{config.PUBLIC_BUCKET}/{mosaic_prefix()}/{art_prefix}*.tif")
+        pub_mosaic_files = fs.glob(f"{config.PUBLIC_BUCKET}/{mosaic_path}/{art_prefix}*.tif")
         for f in pub_mosaic_files:
             unit = _unit_from_name(f.split('/')[-1], art_prefix, ".tif")
             if unit:
@@ -167,9 +164,9 @@ def scan_gcs(logger=None):
     except Exception as e:
         _log(f"Error scanning public mosaics: {e}")
 
-    _log(f"Scanning public GCS: gs://{config.PUBLIC_BUCKET}/{vector_prefix()}/ ...")
+    _log(f"Scanning public GCS: gs://{config.PUBLIC_BUCKET}/{vector_path}/{art_prefix}*.zip ...")
     try:
-        pub_vector_files = fs.glob(f"{config.PUBLIC_BUCKET}/{vector_prefix()}/{art_prefix}*.zip")
+        pub_vector_files = fs.glob(f"{config.PUBLIC_BUCKET}/{vector_path}/{art_prefix}*.zip")
         for f in pub_vector_files:
             unit = _unit_from_name(f.split('/')[-1], art_prefix, ".zip")
             if unit:
@@ -184,7 +181,8 @@ def scan_gcs(logger=None):
     return state
 
 
-def scan_gee(logger=None):
+def scan_gee(context=None, logger=None):
+    context = context or config.processing_context()
     import ee
     state = {}
 
@@ -192,8 +190,9 @@ def scan_gee(logger=None):
         if logger:
             logger(msg)
 
-    prefix = vector_asset_prefix()
-    art_prefix = f"{config.PRODUCT}-{config.storage_country()}_"
+    prefix = (f"projects/mapbiomas-public/assets/{context['storage_country']}/"
+              f"{context['theme']}/{context['collection']}/{context['product']}_vectors_v01")
+    art_prefix = f"{context['product']}-{context['storage_country']}_"
     _log(f"Scanning GEE assets: {prefix} ...")
     try:
         assets = ee.data.listAssets({"parent": prefix})
@@ -238,16 +237,9 @@ def merge_states(gcs_state, gee_state, units_from_collection):
 
 
 def build_state(country=None, theme=None, collection=None, product=None, logger=None):
-    if country:
-        config.set_country(country, verbose=False)
-    if theme:
-        config.set_theme(theme)
-    if collection:
-        config.set_collection(collection)
-    if product:
-        config.set_product(product)
-    gcs_state = scan_gcs(logger=logger)
-    gee_state = scan_gee(logger=logger)
+    context = config.processing_context(country, theme, collection, product)
+    gcs_state = scan_gcs(context=context, logger=logger)
+    gee_state = scan_gee(context=context, logger=logger)
     months = list_months_in_collection()
     full = merge_states(gcs_state, gee_state, months)
 

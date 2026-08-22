@@ -416,6 +416,22 @@ def state_file(country=None, theme=None, collection=None, product=None):
     return "monitor_state_" + "_".join(_sanitize(p) for p in parts if p) + ".json"
 
 
+def processing_context(country=None, theme=None, collection=None, product=None):
+    """Retorna contexto independente dos seletores globais da UI."""
+    country = country or COUNTRY
+    theme = theme or THEME
+    collection = collection or COLLECTION
+    product = product or PRODUCT
+    return {
+        "country": country,
+        "storage_country": storage_country(country),
+        "theme": theme,
+        "collection": collection,
+        "product": product,
+        "root": f"{BUCKET_PATH}/{storage_country(country)}/{theme}/{collection}/{product}",
+    }
+
+
 def tile_pattern_unit(unit):
     return f"fire_monitor_v1_{PRODUCT}_{storage_country()}_{_sanitize(unit)}"
 
