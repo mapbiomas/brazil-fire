@@ -479,7 +479,8 @@ class UnitGridPanel:
 
         def _header_cell(width, title, etapa):
             return widgets.HTML(
-                f'<div style="width:{width};text-align:center;font-weight:700;font-size:11px;'
+                f'<div style="width:{width};height:42px;background:{p["grid_header_bg"]};'
+                f'text-align:center;font-weight:700;font-size:11px;padding:5px 3px;'
                 f'color:{p["grid_header_fg"]};line-height:1.25;box-sizing:border-box;'
                 f'border-right:1px solid {p["sep"]};">'
                 f'{title}<br><span style="font-size:9px;font-weight:400;opacity:.85;">Step {etapa}</span>'
@@ -487,11 +488,13 @@ class UnitGridPanel:
             )
 
         header_row = widgets.HBox(
-            [widgets.HTML(f'<div style="width:{self._DATE_W};font-weight:700;font-size:12px;color:{p["grid_header_fg"]};'
+            [widgets.HTML(f'<div style="width:{self._DATE_W};height:42px;background:{p["grid_header_bg"]};'
+                          f'font-weight:700;font-size:12px;color:{p["grid_header_fg"]};padding:12px 6px;'
                           f'box-sizing:border-box;border-left:1px solid {p["sep"]};'
                           f'border-right:1px solid {p["sep"]};">Unit</div>')]
             + [_header_cell(self._CELL_W, t, e) for _, t, e, _ in _COLS]
-            + [widgets.HTML(f'<div style="width:{self._SEL_W};text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};'
+            + [widgets.HTML(f'<div style="width:{self._SEL_W};height:42px;background:{p["grid_header_bg"]};'
+                            f'text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};padding:12px 3px;'
                             f'box-sizing:border-box;border-right:1px solid {p["sep"]};">Select</div>')],
             layout=L(background=p["grid_header_bg"], padding="6px 10px", min_height="44px",
                      align_items="center", overflow="visible")

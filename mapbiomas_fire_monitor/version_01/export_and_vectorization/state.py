@@ -56,14 +56,14 @@ def _tile_unit(basename):
     prefix = f"fire_monitor_v1_{config.PRODUCT}_{config.COUNTRY}_"
     if not basename.startswith(prefix):
         return None
-    rest = basename[len(prefix):]
-    if "_" in rest:
-        return rest.rsplit("_", 1)[0]
-    return rest.replace(".tif", "")
+    rest = basename[len(prefix):].removesuffix(".tif")
+    # Tile IDs are appended after the canonical unit. Keep YYYY_MM and bands intact.
+    parts = rest.rsplit("_", 1)
+    return parts[0] if len(parts) == 2 else rest
 
 
 def _unit_from_name(basename, prefix_strip, suffix):
-    name = basename.replace(prefix_strip, "").replace(suffix, "")
+    name = basename.removeprefix(prefix_strip).removesuffix(suffix)
     return name or None
 
 
