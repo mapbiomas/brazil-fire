@@ -150,7 +150,7 @@ def scan_gee(logger=None):
     try:
         assets = ee.data.listAssets({"parent": prefix})
     except Exception as e:
-        _log(f"[WARN] Pasta de assets GEE nao encontrada ou sem acesso: {prefix} ({e})")
+        _log(f"[WARN] GEE assets folder not found or no access: {prefix} ({e})")
         return state
 
     def _collect(assets_list):

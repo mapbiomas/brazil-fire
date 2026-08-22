@@ -31,12 +31,12 @@ def assemble_mosaic(year, month, force=False, logger=None):
     if check_mosaic_exists(year, month):
         if force:
             if logger:
-                logger(f"[MOSAIC] {year}_{month:02d}: force=True — excluindo COG e remontando.")
+                logger(f"[MOSAIC] {year}_{month:02d}: force=True — removing COG and rebuilding.")
             try:
                 _get_fs().rm(f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name(year, month)}.tif")
             except Exception as e:
                 if logger:
-                    logger(f"[ERROR] Falha ao apagar COG de {year}_{month:02d}: {e}")
+                    logger(f"[ERROR] Failed to delete COG of {year}_{month:02d}: {e}")
         else:
             if logger:
                 logger(f"[SKIP] Mosaic for {year}_{month:02d} already exists.")
@@ -116,7 +116,7 @@ def mosaic_selected(ui, logger=None):
     selected = ui.get_selected_months()
     if not selected:
         if logger:
-            logger("[MOSAIC] Nenhum mes selecionado.", "warning")
+            logger("[MOSAIC] No month selected.", "warning")
         return
 
     # Cap de workers evita OOM no Colab com varios gdal_translate simultaneos.
@@ -125,12 +125,12 @@ def mosaic_selected(ui, logger=None):
     def _process(ym):
         y, m = ym
         if not list_tiles(y, m):
-            return f"[SKIP] {y}_{m:02d} — sem tiles no GCS"
+            return f"[SKIP] {y}_{m:02d} — no tiles in GCS"
         ok = assemble_mosaic(y, m, logger=None)
         return f"[{'OK' if ok else 'FAIL'}] {y}_{m:02d}"
 
     if logger:
-        logger(f"[MOSAIC] Iniciando mosaico de {len(selected)} meses ({workers} workers)...", "info")
+        logger(f"[MOSAIC] Starting mosaic of {len(selected)} months ({workers} workers)...", "info")
 
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futures = {ex.submit(_process, ym): ym for ym in selected}
@@ -139,6 +139,6 @@ def mosaic_selected(ui, logger=None):
                 logger(f.result())
 
     if logger:
-        logger("[MOSAIC] Concluido. Clique em Sincronizar para atualizar a grid.", "success")
+        logger("[MOSAIC] Done. Click Sync to update the grid.", "success")
 
     ui.sync()

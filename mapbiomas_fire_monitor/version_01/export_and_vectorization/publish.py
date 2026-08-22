@@ -36,7 +36,7 @@ def _copy_file(fs, src, dst, logger=None, force=False):
         src_size = src_info.get("size")
     except Exception as e:
         if logger:
-            logger(f"[ERROR] Sem info de {src}: {e}")
+            logger(f"[ERROR] No info for {src}: {e}")
         return "error"
 
     if not force:
@@ -48,7 +48,7 @@ def _copy_file(fs, src, dst, logger=None, force=False):
             pass
         except Exception as e:
             if logger:
-                logger(f"[ERROR] Checando {dst}: {e}")
+                logger(f"[ERROR] Checking {dst}: {e}")
             return "error"
 
     try:
@@ -56,12 +56,12 @@ def _copy_file(fs, src, dst, logger=None, force=False):
         dst_info = fs.info(dst)
         if dst_info.get("size") != src_size:
             if logger:
-                logger(f"[ERROR] Copia divergiu em tamanho: {dst}")
+                logger(f"[ERROR] Copy size mismatch: {dst}")
             return "error"
         return "copied"
     except Exception as e:
         if logger:
-            logger(f"[ERROR] Copia falhou ({src} -> {dst}): {e}")
+            logger(f"[ERROR] Copy failed ({src} -> {dst}): {e}")
         return "error"
 
 
@@ -73,12 +73,12 @@ def publish_mosaic_all(logger=None, force=False):
     dst = f"{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}"
     _log = logger or (lambda *_: None)
 
-    _log(f"[PUBLISH MOSAIC] Sincronizando COGs para gs://{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}/ ...")
+    _log(f"[PUBLISH MOSAIC] Syncing COGs to gs://{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}/ ...")
     try:
         cogs = sorted(fs.glob(f"{src}/monthly_burned-{config.COUNTRY}_*.tif"))
     except Exception as e:
         cogs = []
-        _log(f"[ERROR] Listando COGs: {e}")
+        _log(f"[ERROR] Listing COGs: {e}")
 
     status = {}
     for c in cogs:
@@ -89,11 +89,11 @@ def publish_mosaic_all(logger=None, force=False):
         s = _copy_file(fs, c, f"{dst}/{name}", logger, force=force)
         status[ym] = s
         if s == "copied":
-            _log(f"[OK] Publicado COG: {name}")
+            _log(f"[OK] Published COG: {name}")
         elif s == "exists":
-            _log(f"[SKIP] COG ja no publico: {name}")
+            _log(f"[SKIP] COG already in public: {name}")
 
-    _log(f"[PUBLISH MOSAIC] Resumo: {len(status)} COGs verificados.", "success")
+    _log(f"[PUBLISH MOSAIC] Summary: {len(status)} COGs verified.", "success")
     return status
 
 
@@ -105,12 +105,12 @@ def publish_vector_all(logger=None, force=False):
     dst = f"{config.PUBLIC_BUCKET}/{config.vector_prefix()}"
     _log = logger or (lambda *_: None)
 
-    _log(f"[PUBLISH VECTOR] Sincronizando vetores ZIP para gs://{config.PUBLIC_BUCKET}/{config.vector_prefix()}/ ...")
+    _log(f"[PUBLISH VECTOR] Syncing vector ZIPs to gs://{config.PUBLIC_BUCKET}/{config.vector_prefix()}/ ...")
     try:
         zips = sorted(fs.glob(f"{src}/monthly_burned-{config.COUNTRY}_*.zip"))
     except Exception as e:
         zips = []
-        _log(f"[ERROR] Listando ZIPs: {e}")
+        _log(f"[ERROR] Listing ZIPs: {e}")
 
     status = {}
     for z in zips:
@@ -121,11 +121,11 @@ def publish_vector_all(logger=None, force=False):
         s = _copy_file(fs, z, f"{dst}/{name}", logger, force=force)
         status[ym] = s
         if s == "copied":
-            _log(f"[OK] Publicado ZIP: {name}")
+            _log(f"[OK] Published ZIP: {name}")
         elif s == "exists":
-            _log(f"[SKIP] ZIP ja no publico: {name}")
+            _log(f"[SKIP] ZIP already in public: {name}")
 
-    _log(f"[PUBLISH VECTOR] Resumo: {len(status)} ZIPs verificados.", "success")
+    _log(f"[PUBLISH VECTOR] Summary: {len(status)} ZIPs verified.", "success")
     return status
 
 
@@ -159,7 +159,7 @@ def cleanup_temp_all(logger=None):
         _log(f"[ERROR] Listando ZIPs publicos: {e}")
 
     consolidated = sorted(pub_cogs & pub_zips)
-    _log(f"[CLEAN TEMP] {len(consolidated)} meses consolidados no publico (COG+ZIP).")
+    _log(f"[CLEAN TEMP] {len(consolidated)} months consolidated in public (COG+ZIP).")
 
     deleted = 0
     for y, m in consolidated:
@@ -174,9 +174,9 @@ def cleanup_temp_all(logger=None):
                 deleted += 1
                 _log(f"[DEL] temp: {t.split('/')[-1]}")
             except Exception as e:
-                _log(f"[ERROR] Nao consegui apagar {t}: {e}")
+                _log(f"[ERROR] Could not delete {t}: {e}")
 
-    _log(f"[CLEAN TEMP] Resumo: {deleted} tiles removidos.", "success")
+    _log(f"[CLEAN TEMP] Summary: {deleted} tiles removed.", "success")
     return {"consolidated": consolidated, "deleted_tiles": deleted}
 
 

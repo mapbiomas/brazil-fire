@@ -42,10 +42,10 @@ def delete_tiles(year, month, logger=None):
             deleted += 1
     except Exception as e:
         if logger:
-            logger(f"[ERROR] Falha ao apagar tiles de {year}_{month:02d}: {e}")
+            logger(f"[ERROR] Failed to delete tiles of {year}_{month:02d}: {e}")
         return 0
     if logger:
-        logger(f"[EXPORT] {deleted} tile(s) excluidos de temp/ para {year}_{month:02d}.")
+        logger(f"[EXPORT] {deleted} tile(s) removed from temp/ for {year}_{month:02d}.")
     return deleted
 
 
@@ -53,7 +53,7 @@ def start_export(year, month, force=False, logger=None):
     if check_tiles_exist(year, month):
         if force:
             if logger:
-                logger(f"[EXPORT] {year}_{month:02d}: force=True — excluindo tiles e reexportando.")
+                logger(f"[EXPORT] {year}_{month:02d}: force=True — removing tiles and re-exporting.")
             delete_tiles(year, month, logger=logger)
         else:
             if logger:
@@ -61,7 +61,7 @@ def start_export(year, month, force=False, logger=None):
                 if n == 0:
                     logger(f"[SKIP] Tiles for {year}_{month:02d} already exist in GCS.")
                 else:
-                    logger(f"[WARN] {year}_{month:02d}: {n} tile(s) ja no GCS. Export pode estar incompleto. Use force=True para refazer.")
+                    logger(f"[WARN] {year}_{month:02d}: {n} tile(s) already in GCS. Export may be incomplete. Use force=True to redo.")
             return True
 
     image = get_image_for_month(year, month)
@@ -79,7 +79,7 @@ def start_export(year, month, force=False, logger=None):
             xs = [c[0] for c in coords]
             ys = [c[1] for c in coords]
             area_km2 = (max(xs) - min(xs)) * (max(ys) - min(ys)) * 111.32 * 111.32
-            logger(f"[EXPORT] Bounds area aprox: {area_km2:,.0f} km² — verifique se nao e bbox mundial.")
+            logger(f"[EXPORT] Bounds area aprox: {area_km2:,.0f} km² — check it is not a world-wide bbox.")
         except Exception:
             pass
 
@@ -112,16 +112,16 @@ def export_selected(ui, logger=None, force=False):
     selected = ui.get_selected_months()
     if not selected:
         if logger:
-            logger("[EXPORT] Nenhum mes selecionado.", "warning")
+            logger("[EXPORT] No month selected.", "warning")
         return
 
     if logger:
-        logger(f"[EXPORT] Iniciando export de {len(selected)} meses...", "info")
+        logger(f"[EXPORT] Starting export of {len(selected)} months...", "info")
 
     for year, month in selected:
         start_export(year, month, force=force, logger=logger)
 
     if logger:
-        logger("[EXPORT] Todos os exports foram submetidos. Aguarde as tasks do GEE finalizarem, depois clique em Sincronizar.", "success")
+        logger("[EXPORT] All exports submitted. Wait for the GEE tasks to finish, then click Sync.", "success")
 
     ui.sync()

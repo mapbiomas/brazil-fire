@@ -59,16 +59,16 @@ def set_country(name, verbose=True):
     global COUNTRY
     if name not in COUNTRIES:
         raise ValueError(
-            f"Pais '{name}' nao configurado. Disponiveis: {sorted(COUNTRIES)}"
+            f"Country '{name}' not configured. Available: {sorted(COUNTRIES)}"
         )
     COUNTRY = name
     if not verbose:
         return
-    print("Pais:", COUNTRY)
-    print("Colecao:", image_collection())
+    print("Country:", COUNTRY)
+    print("Collection:", image_collection())
     print("GCS tiles:", f"gs://{BUCKET}/{tiles_prefix()}")
     print("GCS COG:", f"gs://{BUCKET}/{mosaic_prefix()}")
-    print("GCS vetores:", f"gs://{BUCKET}/{vector_prefix()}")
+    print("GCS vectors:", f"gs://{BUCKET}/{vector_prefix()}")
     print("GEE assets:", vector_asset_prefix())
 
 

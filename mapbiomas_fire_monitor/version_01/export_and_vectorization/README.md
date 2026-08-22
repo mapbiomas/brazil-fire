@@ -31,6 +31,10 @@ export_and_vectorization/
 8. Use o **dropdown de Ano** para filtrar e trabalhar um ano por vez.
 9. Clique em **Sincronizar** e processe as etapas pendentes.
 
+> **Células recolhíveis:** todas as células de código comecam com `#@title`
+> (ex.: `#@title Etapa 1: Export`). No Colab, o título vira um cabeçalho
+> clicável que recolhe/expande o codigo — o texto de introducao permanece visivel.
+
 ## Trocar de pais (abas)
 
 A UI abre uma **aba por pais** (com bandeira). Trocar de aba reconfigura o pais
@@ -88,9 +92,8 @@ uma etapa, ative a variavel `FORCE_<ETAPA>` na propria celula (default `False`):
 | 6. Publicar vetor | `FORCE_PUBLISH_VECTOR` | sobrescreve o ZIP no publico |
 | 7. Limpar temp | — | idempotente |
 
-Para reprocessar um mes ja completo, marque **"Forçar reprocessamento"** na UI
-(habilito os checkboxes dos meses completos), selecione os meses e rode a etapa
-com a `FORCE_<ETAPA> = True`.
+Para reprocessar um mes ja completo, selecione o mes na grid (todos os checkboxes
+ficam habilitados) e rode a etapa com a `FORCE_<ETAPA> = True`.
 
 ## Tema claro / escuro
 
@@ -170,8 +173,9 @@ graca via mascara interna do COG, e o DEFLATE comprime melhor que o LZW em dados
 
 A vetorizacao usa `gdal_polygonize -mask` e ignora o pixel 0 (nodata) normalmente.
 
-Para comparar codecs num mes real, rode a celula **Benchmark de compressao** do
-notebook (LZW vs DEFLATE vs ZSTD).
+Para comparar codecs num mes real, rode o script
+`python -m export_and_vectorization.benchmark_compression --country indonesia --year 2024 --month 7`
+(LZW vs DEFLATE vs ZSTD; opcional `--blocksize`).
 
 ## Publicacao (etapas 5-7)
 

@@ -35,12 +35,12 @@ def vectorize_month(year, month, force=False, logger=None):
     if check_vector_gcs_exists(year, month):
         if force:
             if logger:
-                logger(f"[VECTORIZE] {year}_{month:02d}: force=True — excluindo ZIP e revetorizando.")
+                logger(f"[VECTORIZE] {year}_{month:02d}: force=True — removing ZIP and re-vectorizing.")
             try:
                 _get_fs().rm(f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name(year, month)}.zip")
             except Exception as e:
                 if logger:
-                    logger(f"[ERROR] Falha ao apagar ZIP de {year}_{month:02d}: {e}")
+                    logger(f"[ERROR] Failed to delete ZIP of {year}_{month:02d}: {e}")
         else:
             if logger:
                 logger(f"[SKIP] Vector for {year}_{month:02d} already exists in GCS.")
@@ -66,7 +66,7 @@ def vectorize_month(year, month, force=False, logger=None):
         remote_path = f"{config.BUCKET}/{mosaic_path}"
         fs.get(remote_path, local_raster)
         if not os.path.exists(local_raster):
-            raise RuntimeError("Download via gcsfs falhou.")
+            raise RuntimeError("Download via gcsfs failed.")
 
         if logger:
             logger(f"[POLYGONIZE] {local_raster} -> {local_vector}.shp")
@@ -138,19 +138,19 @@ def _ensure_folder(folder, logger=None):
         ee.data.getAsset(folder)
     except Exception:
         if logger:
-            logger(f"[GEE FOLDER] Criando pasta: {folder}")
+            logger(f"[GEE FOLDER] Creating folder: {folder}")
         try:
             ee.data.createAsset({'type': 'Folder', 'name': folder}, folder)
         except Exception as e:
             if logger:
-                logger(f"[WARN] Nao foi possivel criar a pasta {folder}: {e}")
+                logger(f"[WARN] Could not create folder {folder}: {e}")
     try:
         ee.data.setAssetAcl(folder, {'all_users_can_read': True})
         if logger:
-            logger(f"[GEE FOLDER] ACL publica garantida em: {folder}")
+            logger(f"[GEE FOLDER] Public ACL ensured on: {folder}")
     except Exception as e:
         if logger:
-            logger(f"[WARN] Nao foi possivel setar ACL publica em {folder}: {e}")
+            logger(f"[WARN] Could not set public ACL on {folder}: {e}")
 
 
 def make_vectors_public(logger=None):
@@ -173,7 +173,7 @@ def make_vectors_public(logger=None):
             to_scan.extend(assets.get("assets", []))
             page_token = assets.get("nextPageToken")
     except Exception as e:
-        _log(f"[WARN] Listando assets de {folder}: {e}")
+        _log(f"[WARN] Listing assets of {folder}: {e}")
         return 0
 
     for a in to_scan:
@@ -183,9 +183,9 @@ def make_vectors_public(logger=None):
             changed += 1
             _log(f"[PUBLIC] {asset_id.split('/')[-1]}")
         except Exception as e:
-            _log(f"[WARN] ACL falhou em {asset_id}: {e}")
+            _log(f"[WARN] ACL failed on {asset_id}: {e}")
 
-    _log(f"[PUBLIC] {changed} assets publicados (all_users_can_read).", "success")
+    _log(f"[PUBLIC] {changed} assets made public (all_users_can_read).", "success")
     return changed
 
 
@@ -203,12 +203,12 @@ def _run_upload(asset_id, source, logger=None):
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode == 0:
         if logger:
-            logger(f"[OK] Upload submetido: {asset_id}")
+            logger(f"[OK] Upload submitted: {asset_id}")
         return True
 
     if logger:
         err = (result.stderr or result.stdout or "").strip()
-        logger(f"[ERROR] GEE upload falhou (exit {result.returncode}): {err}")
+        logger(f"[ERROR] GEE upload failed (exit {result.returncode}): {err}")
     return False
 
 
@@ -224,12 +224,12 @@ def _fallback_upload(asset_id, zip_remote, logger=None):
         shp_files = [p for p in os.listdir(work_dir) if p.endswith(".shp")]
         if not shp_files:
             if logger:
-                logger("[ERROR] Fallback upload: nenhum .shp dentro do zip.")
+                logger("[ERROR] Fallback upload: no .shp inside the zip.")
             return False
         return _run_upload(asset_id, os.path.join(work_dir, shp_files[0]), logger)
     except Exception as e:
         if logger:
-            logger(f"[ERROR] Fallback upload falhou: {e}")
+            logger(f"[ERROR] Fallback upload failed: {e}")
         return False
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
@@ -240,13 +240,13 @@ def upload_to_gee(year, month, force=False, logger=None):
     if check_vector_gee_exists(year, month):
         if force:
             if logger:
-                logger(f"[UPLOAD GEE] {year}_{month:02d}: force=True — excluindo asset e re-uploadando.")
+                logger(f"[UPLOAD GEE] {year}_{month:02d}: force=True — removing asset and re-uploading.")
             try:
                 asset_id_existing = f"{config.vector_asset_prefix()}/{config.vector_name(year, month)}"
                 ee.data.deleteAsset(asset_id_existing)
             except Exception as e:
                 if logger:
-                    logger(f"[WARN] Falha ao apagar asset existente: {e}")
+                    logger(f"[WARN] Failed to delete existing asset: {e}")
         else:
             if logger:
                 logger(f"[SKIP] Asset already in GEE for {year}_{month:02d}.")
@@ -261,7 +261,7 @@ def upload_to_gee(year, month, force=False, logger=None):
 
     if _has_active_upload(asset_id):
         if logger:
-            logger(f"[WARN] Upload ja em andamento para {asset_id}. Aguarde concluir.")
+            logger(f"[WARN] Upload already in progress for {asset_id}. Wait for it to finish.")
         return False
 
     _ensure_folder(config.vector_asset_prefix(), logger=logger)
@@ -272,7 +272,7 @@ def upload_to_gee(year, month, force=False, logger=None):
         return True
 
     if logger:
-        logger("[UPLOAD GEE] Tentando fallback com .shp extraido localmente...")
+        logger("[UPLOAD GEE] Trying fallback with locally extracted .shp...")
     return _fallback_upload(asset_id, zip_remote, logger)
 
 
@@ -288,7 +288,7 @@ def vectorize_selected(ui, logger=None, force=False):
     selected = ui.get_selected_months()
     if not selected:
         if logger:
-            logger("[VECTORIZE] Nenhum mes selecionado.", "warning")
+            logger("[VECTORIZE] No month selected.", "warning")
         return
 
     # Cap de workers evita OOM no Colab com varios polygonize simultaneos.
@@ -297,12 +297,12 @@ def vectorize_selected(ui, logger=None, force=False):
     def _process(ym):
         y, m = ym
         if not _check_mosaic_gcs(y, m):
-            return f"[SKIP] {y}_{m:02d} — mosaico nao encontrado no GCS"
+            return f"[SKIP] {y}_{m:02d} — mosaic not found in GCS"
         ok = vectorize_month(y, m, force=force, logger=None)
         return f"[{'OK' if ok else 'FAIL'}] {y}_{m:02d}"
 
     if logger:
-        logger(f"[VECTORIZE] Iniciando vetorizacao de {len(selected)} meses ({workers} workers)...", "info")
+        logger(f"[VECTORIZE] Starting vectorization of {len(selected)} months ({workers} workers)...", "info")
 
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futures = {ex.submit(_process, ym): ym for ym in selected}
@@ -311,7 +311,7 @@ def vectorize_selected(ui, logger=None, force=False):
                 logger(f.result())
 
     if logger:
-        logger("[VECTORIZE] Concluido. Clique em Sincronizar para atualizar a grid.", "success")
+        logger("[VECTORIZE] Done. Click Sync to update the grid.", "success")
 
     ui.sync()
 
@@ -320,11 +320,11 @@ def gee_upload_selected(ui, logger=None, force=False):
     selected = ui.get_selected_months()
     if not selected:
         if logger:
-            logger("[GEE UPLOAD] Nenhum mes selecionado.", "warning")
+            logger("[GEE UPLOAD] No month selected.", "warning")
         return
 
     if logger:
-        logger(f"[GEE UPLOAD] Iniciando upload de {len(selected)} meses para o GEE...", "info")
+        logger(f"[GEE UPLOAD] Starting upload of {len(selected)} months to GEE...", "info")
 
     for year, month in selected:
         upload_to_gee(year, month, force=force, logger=logger)
@@ -334,9 +334,9 @@ def gee_upload_selected(ui, logger=None, force=False):
         make_vectors_public(logger=logger)
     except Exception as e:
         if logger:
-            logger(f"[WARN] make_vectors_public falhou: {e}")
+            logger(f"[WARN] make_vectors_public failed: {e}")
 
     if logger:
-        logger("[GEE UPLOAD] Concluido. Apos as tasks do GEE finalizarem, rode make_vectors_public para garantir ACL por asset. Clique em Sincronizar.", "success")
+        logger("[GEE UPLOAD] Done. After GEE tasks finish, run make_vectors_public to ensure per-asset ACL. Click Sync.", "success")
 
     ui.sync()
