@@ -27,11 +27,20 @@ def check_mosaic_exists(year, month):
         return False
 
 
-def assemble_mosaic(year, month, logger=None):
+def assemble_mosaic(year, month, force=False, logger=None):
     if check_mosaic_exists(year, month):
-        if logger:
-            logger(f"[SKIP] Mosaic for {year}_{month:02d} already exists.")
-        return True
+        if force:
+            if logger:
+                logger(f"[MOSAIC] {year}_{month:02d}: force=True — excluindo COG e remontando.")
+            try:
+                _get_fs().rm(f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name(year, month)}.tif")
+            except Exception as e:
+                if logger:
+                    logger(f"[ERROR] Falha ao apagar COG de {year}_{month:02d}: {e}")
+        else:
+            if logger:
+                logger(f"[SKIP] Mosaic for {year}_{month:02d} already exists.")
+            return True
 
     tiles = list_tiles(year, month)
     if not tiles:
@@ -63,13 +72,17 @@ def assemble_mosaic(year, month, logger=None):
                 logger(f"[ERROR] gdalbuildvrt failed: {result.stderr}")
             return False
 
-        # Saida Byte 0/1 puro, sem nodata (maxima compressao + compat com polygonize -mask).
+        # Saida Byte 0/1 com 0 = nodata (-a_nodata 0): tiles 100% oceano ficam
+        # quase de graca via mascara interna do COG. DEFLATE comprime melhor que
+        # LZW em dados 0/1 -> mosaicos bem menores.
         translate_cmd = [
             "gdal_translate",
             "-of", "GTiff",
             "-ot", "Byte",
+            "-a_nodata", "0",
             "-co", "TILED=YES",
-            "-co", "COMPRESS=LZW",
+            "-co", "COMPRESS=DEFLATE",
+            "-co", "ZLEVEL=9",
             "-co", "PREDICTOR=2",
             "-co", "NUM_THREADS=ALL_CPUS",
             "-co", "BIGTIFF=YES",

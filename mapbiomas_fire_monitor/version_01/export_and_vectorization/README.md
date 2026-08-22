@@ -1,8 +1,8 @@
 # Export & Vectorization — Monitor do Fogo
 
-Pipeline de 5 etapas para processar os mapas mensais de area queimada do Monitor
-do Fogo (multipais): exportacao do GEE, mosaico, vetorizacao, publicacao no GEE
-e sincronizacao com o bucket publico.
+Pipeline de 7 etapas para processar os mapas mensais de area queimada do Monitor
+do Fogo (multipais): exportacao do GEE, mosaico, vetorizacao, publicacao no GEE,
+publicacao no bucket publico e limpeza do temp.
 
 ## Estrutura
 
@@ -47,16 +47,56 @@ chamada, entao trocar de aba sempre propaga para os modulos.
 
 ## Colunas da grid (etapas)
 
-| Coluna | Quando vira **OK** | Celula |
-|--------|--------------------|--------|
-| Export | tiles no GCS (`temp/`) | Export |
-| Mosaico | COG montado | Mosaico |
-| Vetor GCS | ZIP vetorial no GCS | Vetorizacao |
-| Vetor GEE | FeatureCollection no GEE | Upload GEE |
-| Publico | COG espelhado no `mapbiomas-public` | Publicar |
-| Clean temp | tiles de `temp/` removidos apos consolidacao | Publicar |
+| Etapa | Coluna | Quando vira **OK** | Celula |
+|-------|--------|--------------------|--------|
+| 1 | Export | tiles no GCS (`temp/`) | Export |
+| 2 | Mosaico | COG montado | Mosaico |
+| 3 | Vetor GCS | ZIP vetorial no GCS | Vetorizacao |
+| 4 | Vetor GEE | FeatureCollection no GEE | Upload GEE |
+| 5 | Publico mosaico | COG espelhado no `mapbiomas-public` | Publicar mosaico |
+| 6 | Publico vetor | ZIP espelhado no `mapbiomas-public` | Publicar vetor |
+| 7 | Clean temp | tiles de `temp/` removidos apos consolidacao | Limpar temp |
 
 A legenda da grid traz a dica **MISS → OK** com a celula que resolve cada coluna.
+O cabeçalho de cada coluna mostra o numero da **Etapa**.
+
+## Links de download nos badges OK
+
+Badges **OK** de algumas colunas viram links (apenas quando a etapa esta OK):
+
+- **Mosaico** → baixa o COG: `https://storage.googleapis.com/mapbiomas-fire/{...}/monthly_burned-{country}_{Y}_{M}.tif`
+- **Vetor GCS** → baixa o ZIP: `https://storage.googleapis.com/mapbiomas-fire/{...}/monthly_burned-{country}_{Y}_{M}.zip`
+- **Vetor GEE** → clique copia o asset ID (`projects/mapbiomas-{country}/assets/FIRE/MONITOR/...`)
+- **Publico mosaico** → baixa o COG do bucket publico: `https://storage.googleapis.com/mapbiomas-public/{...}`
+- **Publico vetor** → baixa o ZIP do bucket publico: `https://storage.googleapis.com/mapbiomas-public/{...}`
+- **Export** (tiles) e **Clean temp** ficam sem link.
+
+Os buckets `mapbiomas-fire` e `mapbiomas-public` sao leitura publica (links diretos).
+
+## Forcar reprocessamento (FORCE por etapa)
+
+Por padrao, cada etapa **pula** (SKIP) os meses que ja estao OK. Para refazer
+uma etapa, ative a variavel `FORCE_<ETAPA>` na propria celula (default `False`):
+
+| Etapa | Variavel | Com `True` |
+|-------|----------|-----------|
+| 1. Export | `FORCE_EXPORT` | exclui todos os tiles de `temp/` do mes **antes** de exportar |
+| 2. Mosaico | `FORCE_MOSAIC` | exclui o COG existente e remonta |
+| 3. Vetorizacao | `FORCE_VECTOR` | exclui o ZIP existente e revetoriza |
+| 4. Upload GEE | `FORCE_UPLOAD` | exclui o asset GEE existente e re-uploada |
+| 5. Publicar mosaico | `FORCE_PUBLISH_MOSAIC` | sobrescreve o COG no publico |
+| 6. Publicar vetor | `FORCE_PUBLISH_VECTOR` | sobrescreve o ZIP no publico |
+| 7. Limpar temp | — | idempotente |
+
+Para reprocessar um mes ja completo, marque **"Forçar reprocessamento"** na UI
+(habilito os checkboxes dos meses completos), selecione os meses e rode a etapa
+com a `FORCE_<ETAPA> = True`.
+
+## Tema claro / escuro
+
+O botao **🌙/☀️** no rodape alterna o tema do painel. O UI é autossuficiente
+(fundo e cores explicitos de alto contraste), entao fica legivel tanto no tema
+claro quanto no escuro do Colab.
 
 ## Selecionar um ano ou meses especificos
 
@@ -81,10 +121,13 @@ GEE ImageCollection
        │                                    .../{product_vectors}/
        │
        ▼  [4] Upload GEE (vectorize.py)
-       │         projects/mapbiomas-{country}/assets/FIRE/MONITOR/{product_vectors}
+       │         projects/mapbiomas-public/assets/{country}/fire/monitor/{product_vectors}
        │
-       ▼  [5] Publish (publish.py) → espelha COGs+ZIPs no bucket publico
-              e apaga tiles temp/ dos meses consolidados
+       ▼  [5] Publish mosaic (publish.py) → COG no publico .../{product}/
+       │
+       ▼  [6] Publish vector (publish.py) → ZIP no publico .../{product_vectors}/
+       │
+       ▼  [7] Clean temp (publish.py) → apaga tiles temp/ dos meses consolidados
 ```
 
 ## Padrao de caminhos
@@ -96,9 +139,15 @@ GEE ImageCollection
 | ImageCollection (origem) | `projects/mapbiomas-public/assets/{country}/fire/monitor/mapbiomas_fire_monthly_burned_v1` |
 | Tiles GCS | `gs://mapbiomas-fire/initiatives/{country}/fire/monitor/mapbiomas_fire_monthly_burned_v1/temp/` |
 | Mosaicos GCS | `gs://mapbiomas-fire/initiatives/{country}/fire/monitor/mapbiomas_fire_monthly_burned_v1/` |
-| Vetores GCS (ZIP) | `gs://mapbiomas-fire/initiatives/{country}/fire/monitor/mapbiomas_fire_monthly_burned_vectors_v1/` |
-| Vetores GEE | `projects/mapbiomas-{country}/assets/FIRE/MONITOR/mapbiomas_fire_monthly_burned_vectors_v1/` |
+| Vetores GCS (ZIP) | `gs://mapbiomas-fire/initiatives/{country}/fire/monitor/mapbiomas_fire_monthly_burned_vectors_v01/` |
+| Vetores GEE | `projects/mapbiomas-public/assets/{country}/fire/monitor/mapbiomas_fire_monthly_burned_vectors_v01/` |
 | Publico (espelho) | `gs://mapbiomas-public/initiatives/{country}/fire/monitor/...` |
+
+Os vetores sao publicados numa **pasta irma da ImageCollection de entrada** (Etapa 1),
+no mesmo projeto `mapbiomas-public`, sob `{country}/fire/monitor`. A Etapa 4 cria a
+pasta se nao existir e deixa **tudo publico** (`all_users_can_read`): a ACL e aplicada
+na pasta (assets novos herdam) e, opcionalmente, por asset via `make_vectors_public`
+(rodar apos as tasks do GEE concluirem).
 
 Paises suportados: `brazil`, `indonesia`. Novos paises entram no dict `COUNTRIES`
 em `config.py`.
@@ -109,25 +158,35 @@ em `config.py`.
 - Mosaico: `monthly_burned-{country}_{YYYY}_{MM}.tif`
 - Vetor (zip): `monthly_burned-{country}_{YYYY}_{MM}.zip`
 
-## Export leve (Byte 0/1)
+## Export leve (Byte 0/1 + nodata no mosaico)
 
-A exportacao grava tiles **Byte 0/1 puro** (sem `selfMask`, sem banda de mascara,
-sem nodata): 0 = sem fogo, 1 = fogo. Uma unica banda maximiza a compressao LZW e
-mantem os arquivos na casa dos ~10-20 MB para o pais inteiro (mesmo comportamento
-da v1 original). O mosaico mantem o mesmo formato; a vetorizacao usa
-`gdal_polygonize -mask` para ignorar os pixels 0.
+A exportacao grava tiles **Byte 0/1 puro** (sem `selfMask`, sem banda de mascara):
+0 = sem fogo, 1 = fogo. Uma unica banda mantem os tiles leves.
 
-## Publicacao (celula 5)
+O **mosaico** e gerado como **Byte 0/1 com `0 = nodata`** (`-a_nodata 0`) e
+`COMPRESS=DEFLATE (ZLEVEL=9) + PREDICTOR=2`: tiles 100% oceano ficam quase de
+graca via mascara interna do COG, e o DEFLATE comprime melhor que o LZW em dados
+0/1 — resultado bem menor (ex.: Indonesia ~16-25 MB por mes, antes ~75 MB).
 
-`publish_all` faz um sync incremental para o bucket publico (espelho do
-`mapbiomas-public`):
+A vetorizacao usa `gdal_polygonize -mask` e ignora o pixel 0 (nodata) normalmente.
 
-1. Copia COGs (`.../{product}/*.tif`) e vetores ZIP (`.../{product_vectors}/*.zip`)
-   que ainda nao estao no publico (valida tamanho apos a copia).
-2. Para meses com **COG + ZIP validados no publico**, apaga os tiles de `temp/`
-   (libera espaco; tiles eram o maior volume intermediario).
+Para comparar codecs num mes real, rode a celula **Benchmark de compressao** do
+notebook (LZW vs DEFLATE vs ZSTD).
 
-Idempotente — pode rodar uma vez por mes para pegar os meses que faltaram.
+## Publicacao (etapas 5-7)
+
+`publish.py` expoe tres funcoes incrementais e idempotentes:
+
+1. **`publish_mosaic_all()`** — copia COGs (`.../{product}/*.tif`) para o bucket
+   publico (valida tamanho apos a copia).
+2. **`publish_vector_all()`** — copia vetores ZIP (`.../{product_vectors}/*.zip`)
+   para o bucket publico.
+3. **`cleanup_temp_all()`** — para meses com **COG + ZIP validados no publico**
+   (consolidados), apaga os tiles de `temp/` (libera espaco; tiles eram o maior
+   volume intermediario).
+
+`publish_all()` encadeia as tres. Pode rodar uma vez por mes para pegar os meses
+que faltaram.
 
 ## Dependencias
 
@@ -138,7 +197,8 @@ Idempotente — pode rodar uma vez por mes para pegar os meses que faltaram.
 
 ## Dados ja processados
 
-Meses ja completos (export + mosaico + vetor GCS + vetor GEE) aparecem como **OK**
-na interface e sao ignorados durante o processamento. Apenas meses novos ou
-incompletos sao processados. Como o COG so existe apos export+mosaico, meses com
-`temp/` ja limpos continuam marcados como OK.
+Meses ja completos (as 7 etapas: export + mosaico + vetor GCS + vetor GEE +
+publico mosaico + publico vetor + clean temp) aparecem como **OK** na interface
+e sao ignorados durante o processamento. Apenas meses novos ou incompletos sao
+processados. Como o COG so existe apos export+mosaico, meses com `temp/` ja
+limpos continuam marcados como export OK.

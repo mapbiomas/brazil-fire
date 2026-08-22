@@ -22,7 +22,7 @@ COUNTRIES = {
         "theme": "fire",
         "collection": "monitor",
         "product": "mapbiomas_fire_monthly_burned_v1",
-        "product_vectors": "mapbiomas_fire_monthly_burned_vectors_v1",
+        "product_vectors": "mapbiomas_fire_monthly_burned_vectors_v01",
         "scale": 30,
     },
     "indonesia": {
@@ -30,7 +30,7 @@ COUNTRIES = {
         "theme": "fire",
         "collection": "monitor",
         "product": "mapbiomas_fire_monthly_burned_v1",
-        "product_vectors": "mapbiomas_fire_monthly_burned_vectors_v1",
+        "product_vectors": "mapbiomas_fire_monthly_burned_vectors_v01",
         "scale": 30,
     },
 }
@@ -113,7 +113,8 @@ def vector_prefix():
 
 
 def vector_asset_prefix():
-    return f"projects/mapbiomas-{COUNTRY}/assets/FIRE/MONITOR/{product_vectors()}"
+    # Pasta irma da ImageCollection de entrada (Etapa 1): mapbiomas-public/{country}/fire/monitor
+    return f"projects/mapbiomas-public/assets/{COUNTRY}/fire/monitor/{product_vectors()}"
 
 
 def tile_pattern(year, month):

@@ -45,7 +45,8 @@ def _new_entry():
         "mosaiced": False,
         "vectorized_gcs": False,
         "vectorized_gee": False,
-        "published": False,
+        "published_mosaic": False,
+        "published_vector": False,
         "temp_cleaned": False,
     }
 
@@ -106,16 +107,27 @@ def scan_gcs(logger=None):
     except Exception as e:
         _log(f"Error scanning vectors: {e}")
 
-    # Publico (espelho no bucket publico) — raster COG
+    # Publico (espelho no bucket publico) — COG (mosaico)
     _log(f"Scanning public GCS: gs://{config.PUBLIC_BUCKET}/{mosaic_prefix()}/ ...")
     try:
         pub_mosaic_files = fs.glob(f"{config.PUBLIC_BUCKET}/{mosaic_prefix()}/monthly_burned-{config.COUNTRY}_*.tif")
         for f in pub_mosaic_files:
             key = _month_from_basename(f.split('/')[-1], f'monthly_burned-{config.COUNTRY}_', '.tif')
             if key:
-                state.setdefault(key, _new_entry())["published"] = True
+                state.setdefault(key, _new_entry())["published_mosaic"] = True
     except Exception as e:
         _log(f"Error scanning public mosaics: {e}")
+
+    # Publico (espelho no bucket publico) — ZIP (vetor)
+    _log(f"Scanning public GCS: gs://{config.PUBLIC_BUCKET}/{vector_prefix()}/ ...")
+    try:
+        pub_vector_files = fs.glob(f"{config.PUBLIC_BUCKET}/{vector_prefix()}/monthly_burned-{config.COUNTRY}_*.zip")
+        for f in pub_vector_files:
+            key = _month_from_basename(f.split('/')[-1], f'monthly_burned-{config.COUNTRY}_', '.zip')
+            if key:
+                state.setdefault(key, _new_entry())["published_vector"] = True
+    except Exception as e:
+        _log(f"Error scanning public vectors: {e}")
 
     # Temp limpo = COG existe e nao ha tiles de temp para o mes
     for key in cog_present:
@@ -170,7 +182,8 @@ def merge_states(gcs_state, gee_state, months_from_collection):
             "mosaiced": gcs_state.get(key, {}).get("mosaiced", False),
             "vectorized_gcs": gcs_state.get(key, {}).get("vectorized_gcs", False),
             "vectorized_gee": gee_state.get(key, {}).get("vectorized_gee", False),
-            "published": gcs_state.get(key, {}).get("published", False),
+            "published_mosaic": gcs_state.get(key, {}).get("published_mosaic", False),
+            "published_vector": gcs_state.get(key, {}).get("published_vector", False),
             "temp_cleaned": gcs_state.get(key, {}).get("temp_cleaned", False),
         }
     return result

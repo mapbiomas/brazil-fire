@@ -31,11 +31,20 @@ def check_vector_gee_exists(year, month):
         return False
 
 
-def vectorize_month(year, month, logger=None):
+def vectorize_month(year, month, force=False, logger=None):
     if check_vector_gcs_exists(year, month):
-        if logger:
-            logger(f"[SKIP] Vector for {year}_{month:02d} already exists in GCS.")
-        return True
+        if force:
+            if logger:
+                logger(f"[VECTORIZE] {year}_{month:02d}: force=True — excluindo ZIP e revetorizando.")
+            try:
+                _get_fs().rm(f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name(year, month)}.zip")
+            except Exception as e:
+                if logger:
+                    logger(f"[ERROR] Falha ao apagar ZIP de {year}_{month:02d}: {e}")
+        else:
+            if logger:
+                logger(f"[SKIP] Vector for {year}_{month:02d} already exists in GCS.")
+            return True
 
     mosaic_path = f"{config.mosaic_prefix()}/{config.mosaic_name(year, month)}.tif"
     fs = _get_fs()
@@ -122,6 +131,64 @@ def _has_active_upload(asset_id):
     return False
 
 
+def _ensure_folder(folder, logger=None):
+    """Cria a pasta no GEE se nao existir e deixa a ACL publica (all_users_can_read)."""
+    import ee
+    try:
+        ee.data.getAsset(folder)
+    except Exception:
+        if logger:
+            logger(f"[GEE FOLDER] Criando pasta: {folder}")
+        try:
+            ee.data.createAsset({'type': 'Folder', 'name': folder}, folder)
+        except Exception as e:
+            if logger:
+                logger(f"[WARN] Nao foi possivel criar a pasta {folder}: {e}")
+    try:
+        ee.data.setAssetAcl(folder, {'all_users_can_read': True})
+        if logger:
+            logger(f"[GEE FOLDER] ACL publica garantida em: {folder}")
+    except Exception as e:
+        if logger:
+            logger(f"[WARN] Nao foi possivel setar ACL publica em {folder}: {e}")
+
+
+def make_vectors_public(logger=None):
+    """Seta all_users_can_read=True em todos os assets da pasta de vetores (idempotente).
+
+    Rode apos as tasks de upload concluirem para garantir a visibilidade por asset
+    (a pasta ja herda publica para os novos).
+    """
+    import ee
+    folder = config.vector_asset_prefix()
+    _ensure_folder(folder, logger=logger)
+    _log = logger or (lambda *_: None)
+    changed = 0
+    try:
+        assets = ee.data.listAssets({"parent": folder})
+        page_token = assets.get("nextPageToken")
+        to_scan = list(assets.get("assets", []))
+        while page_token:
+            assets = ee.data.listAssets({"parent": folder, "pageToken": page_token})
+            to_scan.extend(assets.get("assets", []))
+            page_token = assets.get("nextPageToken")
+    except Exception as e:
+        _log(f"[WARN] Listando assets de {folder}: {e}")
+        return 0
+
+    for a in to_scan:
+        asset_id = a.get("name")
+        try:
+            ee.data.setAssetAcl(asset_id, {'all_users_can_read': True})
+            changed += 1
+            _log(f"[PUBLIC] {asset_id.split('/')[-1]}")
+        except Exception as e:
+            _log(f"[WARN] ACL falhou em {asset_id}: {e}")
+
+    _log(f"[PUBLIC] {changed} assets publicados (all_users_can_read).", "success")
+    return changed
+
+
 def _run_upload(asset_id, source, logger=None):
     cmd = [
         "earthengine",
@@ -168,11 +235,22 @@ def _fallback_upload(asset_id, zip_remote, logger=None):
         shutil.rmtree(work_dir, ignore_errors=True)
 
 
-def upload_to_gee(year, month, logger=None):
+def upload_to_gee(year, month, force=False, logger=None):
+    import ee
     if check_vector_gee_exists(year, month):
-        if logger:
-            logger(f"[SKIP] Asset already in GEE for {year}_{month:02d}.")
-        return True
+        if force:
+            if logger:
+                logger(f"[UPLOAD GEE] {year}_{month:02d}: force=True — excluindo asset e re-uploadando.")
+            try:
+                asset_id_existing = f"{config.vector_asset_prefix()}/{config.vector_name(year, month)}"
+                ee.data.deleteAsset(asset_id_existing)
+            except Exception as e:
+                if logger:
+                    logger(f"[WARN] Falha ao apagar asset existente: {e}")
+        else:
+            if logger:
+                logger(f"[SKIP] Asset already in GEE for {year}_{month:02d}.")
+            return True
 
     if not check_vector_gcs_exists(year, month):
         if logger:
@@ -185,6 +263,8 @@ def upload_to_gee(year, month, logger=None):
         if logger:
             logger(f"[WARN] Upload ja em andamento para {asset_id}. Aguarde concluir.")
         return False
+
+    _ensure_folder(config.vector_asset_prefix(), logger=logger)
 
     zip_remote = f"gs://{config.BUCKET}/{config.vector_prefix()}/{config.vector_name(year, month)}.zip"
 
@@ -204,7 +284,7 @@ def _check_mosaic_gcs(year, month):
         return False
 
 
-def vectorize_selected(ui, logger=None):
+def vectorize_selected(ui, logger=None, force=False):
     selected = ui.get_selected_months()
     if not selected:
         if logger:
@@ -218,7 +298,7 @@ def vectorize_selected(ui, logger=None):
         y, m = ym
         if not _check_mosaic_gcs(y, m):
             return f"[SKIP] {y}_{m:02d} — mosaico nao encontrado no GCS"
-        ok = vectorize_month(y, m, logger=None)
+        ok = vectorize_month(y, m, force=force, logger=None)
         return f"[{'OK' if ok else 'FAIL'}] {y}_{m:02d}"
 
     if logger:
@@ -236,7 +316,7 @@ def vectorize_selected(ui, logger=None):
     ui.sync()
 
 
-def gee_upload_selected(ui, logger=None):
+def gee_upload_selected(ui, logger=None, force=False):
     selected = ui.get_selected_months()
     if not selected:
         if logger:
@@ -247,9 +327,16 @@ def gee_upload_selected(ui, logger=None):
         logger(f"[GEE UPLOAD] Iniciando upload de {len(selected)} meses para o GEE...", "info")
 
     for year, month in selected:
-        upload_to_gee(year, month, logger=logger)
+        upload_to_gee(year, month, force=force, logger=logger)
+
+    # Visibilidade publica: pasta ja e publica; garante tambem por asset.
+    try:
+        make_vectors_public(logger=logger)
+    except Exception as e:
+        if logger:
+            logger(f"[WARN] make_vectors_public falhou: {e}")
 
     if logger:
-        logger("[GEE UPLOAD] Concluido. Clique em Sincronizar para atualizar a grid.", "success")
+        logger("[GEE UPLOAD] Concluido. Apos as tasks do GEE finalizarem, rode make_vectors_public para garantir ACL por asset. Clique em Sincronizar.", "success")
 
     ui.sync()

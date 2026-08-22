@@ -13,18 +13,96 @@ _STATUS_CSS = widgets.HTML("""<style>
 </style>""")
 
 
-def _badge(ok, label_ok="OK", label_miss="MISS"):
+def _palette(theme):
+    if theme == "dark":
+        return {
+            "panel_bg": "#1e1e1e",
+            "panel_border": "#444444",
+            "header_bg": "#2d2d2d",
+            "header_border": "#555555",
+            "title": "#e8e8e8",
+            "subtitle": "#b0b0b0",
+            "grid_header_bg": "#3a3a3a",
+            "grid_header_fg": "#ffffff",
+            "row_a": "#262626",
+            "row_b": "#202020",
+            "date_bg": "#333333",
+            "date_fg": "#e0e0e0",
+            "legend_bg": "#2a2a2a",
+            "legend_fg": "#b8b8b8",
+            "hint_bg": "#3a3320",
+            "hint_border": "#665c3a",
+            "hint_fg": "#d0c9b0",
+            "inst_bg": "#12354a",
+            "inst_border": "#1d4e6b",
+            "inst_fg": "#a8d4ea",
+            "border": "#444444",
+        }
+    return {
+        "panel_bg": "#ffffff",
+        "panel_border": "#cccccc",
+        "header_bg": "#ffffff",
+        "header_border": "#333333",
+        "title": "#333333",
+        "subtitle": "#6c757d",
+        "grid_header_bg": "#343a40",
+        "grid_header_fg": "#ffffff",
+        "row_a": "#fcfcfc",
+        "row_b": "#ffffff",
+        "date_bg": "#e9ecef",
+        "date_fg": "#212529",
+        "legend_bg": "#f8f9fa",
+        "legend_fg": "#6c757d",
+        "hint_bg": "#fffbe6",
+        "hint_border": "#ffe58f",
+        "hint_fg": "#495057",
+        "inst_bg": "#e8f4fd",
+        "inst_border": "#bee5eb",
+        "inst_fg": "#0c5460",
+        "border": "#cccccc",
+    }
+
+
+def _badge(ok):
     if ok:
         return (
             '<span style="background:#28a745;color:#fff;padding:2px 7px;'
-            'border-radius:3px;font-size:11px;font-weight:700;">'
-            f'{label_ok}</span>'
+            'border-radius:3px;font-size:11px;font-weight:700;">OK</span>'
         )
     return (
         '<span style="background:#e9ecef;color:#6c757d;padding:2px 7px;'
-        'border-radius:3px;font-size:11px;">'
-        f'{label_miss}</span>'
+        'border-radius:3px;font-size:11px;">MISS</span>'
     )
+
+
+def _badge_link(url):
+    return (
+        f'<a href="{url}" target="_blank" rel="noopener" title="Baixar" '
+        f'style="background:#28a745;color:#fff;padding:2px 7px;border-radius:3px;'
+        f'font-size:11px;font-weight:700;text-decoration:none;cursor:pointer;display:inline-block;">OK</a>'
+    )
+
+
+def _badge_copy(asset_id):
+    js = asset_id.replace("'", "\\'")
+    return (
+        f'<a href="#" title="Copiar asset ID" '
+        f'onclick="navigator.clipboard.writeText(\'{js}\');return false;" '
+        f'style="background:#28a745;color:#fff;padding:2px 7px;border-radius:3px;'
+        f'font-size:11px;font-weight:700;text-decoration:none;cursor:pointer;display:inline-block;">OK</a>'
+    )
+
+
+# (chave do estado, titulo da coluna, numero da etapa, tipo de badge)
+_COLS = [
+    ("exported",         "Export",          1, "badge"),
+    ("mosaiced",         "Mosaico",         2, "link_mosaic"),
+    ("vectorized_gcs",   "Vetor GCS",       3, "link_vector"),
+    ("vectorized_gee",   "Vetor GEE",       4, "copy_asset"),
+    ("published_mosaic", "Publico mosaico", 5, "link_pub_mosaic"),
+    ("published_vector", "Publico vetor",   6, "link_pub_vector"),
+    ("temp_cleaned",     "Clean temp",      7, "badge"),
+]
 
 
 def _empty():
@@ -33,7 +111,8 @@ def _empty():
         "mosaiced": False,
         "vectorized_gcs": False,
         "vectorized_gee": False,
-        "published": False,
+        "published_mosaic": False,
+        "published_vector": False,
         "temp_cleaned": False,
     }
 
@@ -41,33 +120,21 @@ def _empty():
 def _is_complete(v):
     return bool(
         v.get("exported") and v.get("mosaiced") and v.get("vectorized_gcs")
-        and v.get("vectorized_gee") and v.get("published") and v.get("temp_cleaned")
+        and v.get("vectorized_gee") and v.get("published_mosaic")
+        and v.get("published_vector") and v.get("temp_cleaned")
     )
 
 
-_HINT = (
-    '<div style="font-size:11px;color:#495057;margin:4px 0 0 10px;padding:6px 10px;'
-    'background:#fffbe6;border:1px solid #ffe58f;border-radius:4px;">'
-    '<strong>MISS &rarr; OK:</strong> '
-    '<b>Export</b>=célula Export &nbsp;|&nbsp; '
-    '<b>Mosaico</b>=célula Mosaico &nbsp;|&nbsp; '
-    '<b>Vetor GCS</b>=célula Vetorização &nbsp;|&nbsp; '
-    '<b>Vetor GEE</b>=célula Upload GEE &nbsp;|&nbsp; '
-    '<b>Publico</b>=célula Publicar &nbsp;|&nbsp; '
-    '<b>Clean temp</b>=célula Publicar (após consolidação)'
-    '</div>'
-)
-
-
 class MonitorUI:
-    _DATE_W = "110px"
-    _CELL_W = "80px"
+    _DATE_W = "100px"
+    _CELL_W = "76px"
     _SEL_W  = "56px"
 
     def __init__(self):
         self.state = {"updated_at": None}
         self.chk_dict = {}
         self.is_refreshing = False
+        self.theme = "light"
         self.log_area = widgets.Output()
 
         self.grid_container = widgets.VBox([
@@ -101,6 +168,16 @@ class MonitorUI:
         )
         self.btn_select_all.on_click(self._on_select_all)
 
+        self.theme_btn = widgets.Button(
+            description="🌙", layout=L(width="48px", height="34px")
+        )
+        self.theme_btn.on_click(self._on_theme_toggle)
+
+        self.force_chk = widgets.Checkbox(
+            description="Forçar reprocessamento", indent=False,
+            layout=L(width="200px")
+        )
+
         self.year_filter = None
         self.year_dropdown = widgets.Dropdown(
             options=["Todos os anos"], value="Todos os anos",
@@ -112,47 +189,68 @@ class MonitorUI:
             value='<span id="mon-loader" style="display:none;margin-left:10px;color:#3498db;font-size:13px;">Sincronizando...</span>'
         )
 
-        header = widgets.HTML(f"""
-        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;background:#fff;border-bottom:2px solid #333;margin-bottom:10px;">
-            <div>
-                <span style="font-weight:bold;font-size:17px;color:#333;">Export &amp; Vectorization</span>
-                <span style="color:#6c757d;font-size:12px;margin-left:14px;">Monitor do Fogo &mdash; {config.flag(config.COUNTRY)} {config.COUNTRY.title()}</span>
-            </div>
-            <div style="padding:4px 14px;background:#fff1f0;border:1px solid #ffa39e;border-radius:4px;">
-                <span style="color:#cf1322;font-size:11px;font-weight:bold;">MapBiomas Fire Monitor</span>
-            </div>
-        </div>
-        """)
-
-        instructions = widgets.HTML("""
-        <div style="padding:6px 10px;margin-bottom:8px;background:#e8f4fd;border:1px solid #bee5eb;border-radius:4px;font-size:12px;color:#0c5460;line-height:1.6;">
-            <strong>Como usar:</strong>
-            a) Escolha o pais na aba acima (cada aba tem sua propria grid).
-            b) Clique em <strong>Sincronizar</strong> para verificar o status de cada mes no GCS e GEE.
-            c) Marque os meses que deseja processar e execute as celulas em ordem:
-               <em>Export</em> &rarr; <em>Mosaico</em> &rarr; <em>Vetorizacao</em> &rarr; <em>Upload GEE</em> &rarr; <em>Publicar</em>.
-            <br>
-            <span style="color:#28a745;font-weight:700;">OK</span> = etapa concluida &nbsp;|&nbsp;
-            <span style="color:#6c757d;">MISS</span> = etapa pendente
-        </div>
-        """)
+        self.header = widgets.HTML()
+        self.instructions = widgets.HTML()
 
         footer = widgets.HBox([
-            self.btn_select_pending, self.btn_select_all, self.btn_clear, self.btn_sync, self.loader,
+            self.btn_select_pending, self.btn_select_all, self.btn_clear,
+            self.btn_sync, self.loader, self.theme_btn, self.force_chk,
         ], layout=L(margin="10px 0 6px 0", gap="10px", align_items="center"))
 
         self.container = widgets.VBox([
             _STATUS_CSS,
-            header,
-            instructions,
+            self.header,
+            self.instructions,
             widgets.HBox([self.year_dropdown], layout=L(margin="0 0 8px 10px")),
             self.grid_container,
             footer,
             self.log_area,
-        ], layout=L(
-            border="1px solid #ccc", padding="10px",
-            border_radius="5px", margin="10px 0"
-        ))
+        ])
+
+        self._apply_theme()
+
+    # ---- tema ----
+    def _on_theme_toggle(self, _):
+        self.theme = "dark" if self.theme == "light" else "light"
+        self._apply_theme()
+
+    def _apply_theme(self):
+        p = _palette(self.theme)
+        self.header.value = (
+            f'<div style="display:flex;align-items:center;justify-content:space-between;width:100%;'
+            f'padding:10px 14px;background:{p["header_bg"]};border-bottom:2px solid {p["header_border"]};margin-bottom:10px;">'
+            f'<div>'
+            f'<span style="font-weight:bold;font-size:17px;color:{p["title"]};">Export &amp; Vectorization</span>'
+            f'<span style="color:{p["subtitle"]};font-size:12px;margin-left:14px;">Monitor do Fogo &mdash; '
+            f'{config.flag(config.COUNTRY)} {config.COUNTRY.title()}</span>'
+            f'</div>'
+            f'<div style="padding:4px 14px;background:#fff1f0;border:1px solid #ffa39e;border-radius:4px;">'
+            f'<span style="color:#cf1322;font-size:11px;font-weight:bold;">MapBiomas Fire Monitor</span>'
+            f'</div>'
+            f'</div>'
+        )
+        self.instructions.value = (
+            f'<div style="padding:6px 10px;margin-bottom:8px;background:{p["inst_bg"]};'
+            f'border:1px solid {p["inst_border"]};border-radius:4px;font-size:12px;'
+            f'color:{p["inst_fg"]};line-height:1.6;">'
+            f'<strong>Como usar:</strong> '
+            f'a) Escolha o pais na aba acima (cada aba tem sua propria grid). '
+            f'b) Clique em <strong>Sincronizar</strong> para ver o status. '
+            f'c) Marque os meses e execute as celulas em ordem (Etapa 1..7): '
+            f'<em>Export</em> &rarr; <em>Mosaico</em> &rarr; <em>Vetorizacao</em> &rarr; '
+            f'<em>Upload GEE</em> &rarr; <em>Publicar mosaico</em> &rarr; <em>Publicar vetor</em> &rarr; <em>Limpar temp</em>.'
+            f'<br>'
+            f'<span style="color:#28a745;font-weight:700;">OK</span> = concluida &nbsp;|&nbsp; '
+            f'<span style="color:#6c757d;">MISS</span> = pendente &nbsp;|&nbsp; '
+            f'<span style="text-decoration:underline;">OK com link</span> = baixa o dado'
+            f'</div>'
+        )
+        self.theme_btn.description = "☀️" if self.theme == "dark" else "🌙"
+        self.container.layout = L(
+            border=f"1px solid {p['panel_border']}", padding="10px",
+            border_radius="5px", margin="10px 0", background=p["panel_bg"]
+        )
+        self._render_grid()
 
     def display(self):
         display(self.container)
@@ -226,22 +324,47 @@ class MonitorUI:
         self._render_grid()
         self._restore_selected(selected)
 
+    def _col_content(self, kind, ok, y, m):
+        if not ok:
+            return _badge(False)
+        if kind == "link_mosaic":
+            url = f"https://storage.googleapis.com/{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name(y, m)}.tif"
+            return _badge_link(url)
+        if kind == "link_vector":
+            url = f"https://storage.googleapis.com/{config.BUCKET}/{config.vector_prefix()}/{config.vector_name(y, m)}.zip"
+            return _badge_link(url)
+        if kind == "link_pub_mosaic":
+            url = f"https://storage.googleapis.com/{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name(y, m)}.tif"
+            return _badge_link(url)
+        if kind == "link_pub_vector":
+            url = f"https://storage.googleapis.com/{config.PUBLIC_BUCKET}/{config.vector_prefix()}/{config.vector_name(y, m)}.zip"
+            return _badge_link(url)
+        if kind == "copy_asset":
+            asset_id = f"{config.vector_asset_prefix()}/{config.vector_name(y, m)}"
+            return _badge_copy(asset_id)
+        return _badge(True)
+
     def _render_grid(self):
         self.chk_dict = {}
+        p = _palette(self.theme)
 
-        header_row = widgets.HBox([
-            widgets.HTML(f'<div style="width:{self._DATE_W};font-weight:700;font-size:12px;color:#fff;">Data</div>'),
-            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Export</div>'),
-            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Mosaico</div>'),
-            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Vetor GCS</div>'),
-            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Vetor GEE</div>'),
-            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Publico</div>'),
-            widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Clean temp</div>'),
-            widgets.HTML(f'<div style="width:{self._SEL_W};text-align:center;font-weight:700;font-size:12px;color:#fff;">Sel</div>'),
-        ], layout=L(
-            background="#343a40", padding="6px 10px", min_height="34px",
-            align_items="center", overflow="visible"
-        ))
+        def _header_cell(width, title, etapa):
+            return widgets.HTML(
+                f'<div style="width:{width};text-align:center;font-weight:700;font-size:10px;'
+                f'color:{p["grid_header_fg"]};line-height:1.25;">'
+                f'{title}<br><span style="font-size:9px;font-weight:400;opacity:.85;">Etapa {etapa}</span>'
+                f'</div>'
+            )
+
+        header_row = widgets.HBox(
+            [widgets.HTML(f'<div style="width:{self._DATE_W};font-weight:700;font-size:12px;color:{p["grid_header_fg"]};">Data</div>')]
+            + [_header_cell(self._CELL_W, t, e) for _, t, e, _ in _COLS]
+            + [widgets.HTML(f'<div style="width:{self._SEL_W};text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};">Sel</div>')],
+            layout=L(
+                background=p["grid_header_bg"], padding="6px 10px", min_height="44px",
+                align_items="center", overflow="visible"
+            )
+        )
 
         rows = [header_row]
 
@@ -250,53 +373,38 @@ class MonitorUI:
 
         row_layout = L(
             align_items="center", min_height="38px",
-            border_bottom="1px solid #dee2e6", padding="3px 10px",
+            border_bottom=f"1px solid {p['border']}", padding="3px 10px",
             overflow="visible", width="100%"
         )
 
         for i, m in enumerate(months):
             info = self.state.get(m, {})
-            exp_ok = info.get("exported", False)
-            mos_ok = info.get("mosaiced", False)
-            vgc_ok = info.get("vectorized_gcs", False)
-            vge_ok = info.get("vectorized_gee", False)
-            pub_ok = info.get("published", False)
-            tmp_ok = info.get("temp_cleaned", False)
-
-            all_ok = _is_complete(info)
-
-            bg = "#fcfcfc" if i % 2 == 0 else "#fff"
+            y, mm = int(m.split("_")[0]), int(m.split("_")[1])
+            bg = p["row_a"] if i % 2 == 0 else p["row_b"]
 
             date_cell = widgets.HTML(
-                f'<div style="width:{self._DATE_W};font-family:monospace;font-size:13px;color:#212529;font-weight:600;'
-                f'background:#e9ecef;padding:2px 6px;border-radius:3px;">{m}</div>'
+                f'<div style="width:{self._DATE_W};font-family:monospace;font-size:13px;color:{p["date_fg"]};font-weight:600;'
+                f'background:{p["date_bg"]};padding:2px 6px;border-radius:3px;">{m}</div>'
             )
 
-            def _cell(ok):
-                return widgets.HTML(f'<div style="width:{self._CELL_W};text-align:center;">{_badge(ok)}</div>')
-
-            exp_cell = _cell(exp_ok)
-            mos_cell = _cell(mos_ok)
-            vgc_cell = _cell(vgc_ok)
-            vge_cell = _cell(vge_ok)
-            pub_cell = _cell(pub_ok)
-            tmp_cell = _cell(tmp_ok)
+            cells = [date_cell]
+            for key, _t, _e, kind in _COLS:
+                ok = info.get(key, False)
+                cells.append(widgets.HTML(
+                    f'<div style="width:{self._CELL_W};text-align:center;">{self._col_content(kind, ok, y, mm)}</div>'
+                ))
 
             chk = widgets.Checkbox(value=False, indent=False, layout=L(width="20px", height="20px"))
-            if all_ok:
+            if _is_complete(info) and not self.force_chk.value:
                 chk.disabled = True
 
             chk_wrapper = widgets.HBox([chk], layout=L(
                 width=self._SEL_W, justify_content="center",
                 align_items="center", overflow="hidden"
             ))
-
             self.chk_dict[m] = chk
 
-            row = widgets.HBox(
-                [date_cell, exp_cell, mos_cell, vgc_cell, vge_cell, pub_cell, tmp_cell, chk_wrapper],
-                layout=row_layout
-            )
+            row = widgets.HBox(cells + [chk_wrapper], layout=row_layout)
             row.layout.background = bg
             rows.append(row)
 
@@ -319,20 +427,32 @@ class MonitorUI:
             )
 
         legend = widgets.HTML(
-            f'<div style="font-size:11px;color:#6c757d;margin:6px 0 0 10px;padding:6px 10px;'
-            f'background:#f8f9fa;border-radius:4px;">'
+            f'<div style="font-size:11px;color:{p["legend_fg"]};margin:6px 0 0 10px;padding:6px 10px;'
+            f'background:{p["legend_bg"]};border-radius:4px;">'
             f'{label}'
             f'</div>'
         )
 
-        hint = widgets.HTML(_HINT)
+        hint = widgets.HTML(
+            f'<div style="font-size:11px;color:{p["hint_fg"]};margin:4px 0 0 10px;padding:6px 10px;'
+            f'background:{p["hint_bg"]};border:1px solid {p["hint_border"]};border-radius:4px;line-height:1.5;">'
+            f'<strong>MISS &rarr; OK:</strong> '
+            f'<b>Export</b>=célula Etapa 1 &nbsp;|&nbsp; '
+            f'<b>Mosaico</b>=célula Etapa 2 &nbsp;|&nbsp; '
+            f'<b>Vetor GCS</b>=célula Etapa 3 &nbsp;|&nbsp; '
+            f'<b>Vetor GEE</b>=célula Etapa 4 &nbsp;|&nbsp; '
+            f'<b>Publico mosaico</b>=célula Etapa 5 &nbsp;|&nbsp; '
+            f'<b>Publico vetor</b>=célula Etapa 6 &nbsp;|&nbsp; '
+            f'<b>Clean temp</b>=célula Etapa 7 (após os dois publicados)'
+            f'</div>'
+        )
 
         self.grid_container.children = [
             widgets.VBox(rows, layout=L(
                 max_height="460px", width="100%",
-                overflow_y="auto", overflow_x="hidden",
-                padding="0", border="1px solid #ced4da",
-                background_color="#fff"
+                overflow_y="auto", overflow_x="auto",
+                padding="0", border=f"1px solid {p['border']}",
+                background_color=p["row_b"]
             )),
             legend,
             hint,

@@ -32,11 +32,29 @@ def check_tiles_exist(year, month):
     return count_tiles(year, month) > 0
 
 
+def delete_tiles(year, month, logger=None):
+    fs = _get_fs()
+    pattern = f"{config.BUCKET}/{config.tiles_prefix()}/{config.tile_pattern(year, month)}*.tif"
+    deleted = 0
+    try:
+        for t in fs.glob(pattern):
+            fs.rm(t)
+            deleted += 1
+    except Exception as e:
+        if logger:
+            logger(f"[ERROR] Falha ao apagar tiles de {year}_{month:02d}: {e}")
+        return 0
+    if logger:
+        logger(f"[EXPORT] {deleted} tile(s) excluidos de temp/ para {year}_{month:02d}.")
+    return deleted
+
+
 def start_export(year, month, force=False, logger=None):
     if check_tiles_exist(year, month):
         if force:
             if logger:
-                logger(f"[EXPORT] {year}_{month:02d}: tiles ja existem, mas force=True — reexportando.")
+                logger(f"[EXPORT] {year}_{month:02d}: force=True — excluindo tiles e reexportando.")
+            delete_tiles(year, month, logger=logger)
         else:
             if logger:
                 n = count_tiles(year, month)
