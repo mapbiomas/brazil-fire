@@ -398,3 +398,21 @@ def add_collection(country, theme, collection, products):
     if country not in COUNTRIES_AVAILABLE:
         COUNTRIES_AVAILABLE.append(country)
         COUNTRIES[country] = {}
+
+
+def set_product_visible(country, theme, collection, product, visible):
+    """Oculta/mostra um produto no OBJ (sem apagar)."""
+    for p in OBJ.get(country, {}).get(theme, {}).get(collection, []):
+        if p["product"] == product:
+            p["visible"] = bool(visible)
+            return True
+    return False
+
+
+def remove_collection(country, theme, collection):
+    """Remove uma colecao inteira do OBJ."""
+    themes = OBJ.get(country, {})
+    if theme in themes and collection in themes[theme]:
+        del themes[theme][collection]
+        return True
+    return False
