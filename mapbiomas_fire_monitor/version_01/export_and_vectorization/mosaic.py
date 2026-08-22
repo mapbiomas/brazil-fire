@@ -112,7 +112,7 @@ def assemble_mosaic(year, month, force=False, logger=None):
         gc.collect()
 
 
-def mosaic_selected(ui, logger=None):
+def mosaic_selected(ui, logger=None, force=False):
     selected = ui.get_selected_months()
     if not selected:
         if logger:
@@ -126,7 +126,7 @@ def mosaic_selected(ui, logger=None):
         y, m = ym
         if not list_tiles(y, m):
             return f"[SKIP] {y}_{m:02d} — no tiles in GCS"
-        ok = assemble_mosaic(y, m, logger=None)
+        ok = assemble_mosaic(y, m, force=force, logger=None)
         return f"[{'OK' if ok else 'FAIL'}] {y}_{m:02d}"
 
     if logger:
