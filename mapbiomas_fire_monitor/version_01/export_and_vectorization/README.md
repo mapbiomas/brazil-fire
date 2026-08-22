@@ -24,30 +24,40 @@ export_and_vectorization/
 1. Abra o notebook `mapbiomas_fire_monitor_brazil.ipynb` no Google Colab.
 2. Execute a celula 1 para instalar dependencias.
 3. Execute a celula 2 para autenticar no GCP e Google Earth Engine.
-4. Na celula de config, defina `COUNTRIES` (lista de abas) e demais configs.
-5. Opcional: células "Zerar estado local" e "Diagnostico" antes de comecar.
-6. Execute a celula da UI para abrir a interface.
-7. Troque de pais pela **aba** (cada aba tem sua propria grid).
-8. Use o **dropdown de Ano** para filtrar e trabalhar um ano por vez.
+4. Na celula de config, defina `COUNTRIES` (códigos do OBJ, ex.: `["brasil", "indonesia"]`).
+5. Opcional: células "Adicionar coleção", "Zerar estado local" e "Diagnostico".
+6. Execute a celula da UI para abrir a navegação.
+7. **Navegue**: país → tema (ex.: `fire`) → coleção (ex.: `monitor`, `collection4`) → **produto**.
+8. No produto, a grid mostra as **unidades** (bandas p/ imagem multibanda; imagens p/ ImageCollection). Marque as desejadas.
 9. Clique em **Sincronizar** e processe as etapas pendentes.
 
 > **Células recolhíveis:** todas as células de código comecam com `#@title`
 > (ex.: `#@title Etapa 1: Export`). No Colab, o título vira um cabeçalho
 > clicável que recolhe/expande o codigo — o texto de introducao permanece visivel.
 
-## Trocar de pais (abas)
+## Navegação (pais → tema → colecao → produto)
 
-A UI abre uma **aba por pais** (com bandeira). Trocar de aba reconfigura o pais
-ativo e re-sincroniza a grid daquele pais — sem editar codigo e sem reiniciar o
-kernel. As celulas de processamento (Export/Mosaico/Vetorizacao/Upload/Publicar)
-sempre atuam sobre o pais da aba ativa.
+A Interface abre a árvore `pais → tema → colecao → produto` (guias até coleção +
+dropdown de produto). Cada produto tem sua **grid de unidades**: para imagem
+**multibanda**, uma linha por banda (ex.: `fire_frequency_1985_2025`); para
+**ImageCollection**, uma linha por imagem (ex.: `2024_07`).
+
+As celulas de processamento (Export/Mosaico/Vetorizacao/Upload/Publicar) sempre
+atuam no **produto ativo + unidades selecionadas**.
 
 ```python
-COUNTRIES = ["brazil", "indonesia"]   # abas disponiveis na UI
+COUNTRIES = ["brasil", "indonesia"]   # codigos do OBJ (abas de pais na UI)
 ```
 
-Toda a config (coleção, GCS, assets GEE) é derivada do pais ativo em tempo de
-chamada, entao trocar de aba sempre propaga para os modulos.
+## Configuracao (OBJ)
+
+A fonte de verdade e o `config.OBJ`: `OBJ[pais][tema][colecao] = [produtos]`, onde
+cada produto tem `product` (nome curto), `assetid` (asset GEE de origem), `type`
+(`byte`/`int16`/`float32` — dtype do mosaico), `vectorize` (vetorizacao/upload GEE,
+apenas `annual_burned` das colecoes + `monthly_burned` do monitor) e `visible`.
+Adicionar/ocultar/remover colecoes e feito pela celula **"Adicionar coleção"**
+(form) ou pelos helpers `config.add_collection` / `set_product_visible` /
+`remove_collection`.
 
 ## Colunas da grid (etapas)
 
@@ -79,12 +89,12 @@ Os buckets `mapbiomas-fire` e `mapbiomas-public` sao leitura publica (links dire
 
 ## Forcar reprocessamento (FORCE por etapa)
 
-Por padrao, cada etapa **pula** (SKIP) os meses que ja estao OK. Para refazer
+Por padrao, cada etapa **pula** (SKIP) as unidades que ja estao OK. Para refazer
 uma etapa, ative a variavel `FORCE_<ETAPA>` na propria celula (default `False`):
 
 | Etapa | Variavel | Com `True` |
 |-------|----------|-----------|
-| 1. Export | `FORCE_EXPORT` | exclui todos os tiles de `temp/` do mes **antes** de exportar |
+| 1. Export | `FORCE_EXPORT` | exclui os tiles de `temp/` da unidade **antes** de exportar |
 | 2. Mosaico | `FORCE_MOSAIC` | exclui o COG existente e remonta |
 | 3. Vetorizacao | `FORCE_VECTOR` | exclui o ZIP existente e revetoriza |
 | 4. Upload GEE | `FORCE_UPLOAD` | exclui o asset GEE existente e re-uploada |
@@ -92,8 +102,8 @@ uma etapa, ative a variavel `FORCE_<ETAPA>` na propria celula (default `False`):
 | 6. Publicar vetor | `FORCE_PUBLISH_VECTOR` | sobrescreve o ZIP no publico |
 | 7. Limpar temp | — | idempotente |
 
-Para reprocessar um mes ja completo, selecione o mes na grid (todos os checkboxes
-ficam habilitados) e rode a etapa com a `FORCE_<ETAPA> = True`.
+Para reprocessar uma unidade ja completa, selecione-a na grid e rode a etapa com a
+`FORCE_<ETAPA> = True`.
 
 ## Visual
 
@@ -101,12 +111,12 @@ O UI é autossuficiente: todos os componentes tem **fundo e cores explicitos** d
 alto contraste, entao fica legivel independente do tema do Colab. Badges **OK** de
 download aparecem como **`🔗 OK`** (sublinhado com outline sutil).
 
-## Selecionar um ano ou meses especificos
+## Selecionar um ano ou unidades especificas
 
-- **Filtro por ano**: o dropdown de ano na UI restringe a grid aos meses do ano
+- **Filtro por ano**: o dropdown de ano na UI restringe a grid as unidades do ano
   escolhido. Os botoes **Selecionar Pendentes** e **Selecionar Todos** valem
-  apenas para os meses visiveis no filtro.
-- **Mes por mes**: marque/desmarque os checkboxes da grid normalmente.
+  apenas para as unidades visiveis no filtro.
+- **Unidade por unidade**: marque/desmarque os checkboxes da grid normalmente.
 - **Recomecar um periodo ("do zero")**: use a celula de LIMPEZA (descomentando os
   blocos) para apagar tiles / mosaicos / vetores ZIP de um intervalo de anos e
   depois Sincronize — os meses voltam a aparecer como pendentes.
@@ -189,7 +199,7 @@ Para comparar codecs num mes real, rode o script
    (consolidados), apaga os tiles de `temp/` (libera espaco; tiles eram o maior
    volume intermediario).
 
-`publish_all()` encadeia as tres. Pode rodar uma vez por mes para pegar os meses
+`publish_all()` encadeia as tres. Pode rodar periodicamente para pegar as unidades
 que faltaram.
 
 ## Dependencias
@@ -201,8 +211,8 @@ que faltaram.
 
 ## Dados ja processados
 
-Meses ja completos (as 7 etapas: export + mosaico + vetor GCS + vetor GEE +
+Unidades ja completas (as 7 etapas: export + mosaico + vetor GCS + vetor GEE +
 publico mosaico + publico vetor + clean temp) aparecem como **OK** na interface
 e sao ignorados durante o processamento. Apenas meses novos ou incompletos sao
 processados. Como o COG so existe apos export+mosaico, meses com `temp/` ja
-limpos continuam marcados como export OK.
+limpo continuam marcadas como export OK.
