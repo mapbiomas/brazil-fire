@@ -95,11 +95,11 @@ uma etapa, ative a variavel `FORCE_<ETAPA>` na propria celula (default `False`):
 Para reprocessar um mes ja completo, selecione o mes na grid (todos os checkboxes
 ficam habilitados) e rode a etapa com a `FORCE_<ETAPA> = True`.
 
-## Tema claro / escuro
+## Visual
 
-O botao **🌙/☀️** no rodape alterna o tema do painel. O UI é autossuficiente
-(fundo e cores explicitos de alto contraste), entao fica legivel tanto no tema
-claro quanto no escuro do Colab.
+O UI é autossuficiente: todos os componentes tem **fundo e cores explicitos** de
+alto contraste, entao fica legivel independente do tema do Colab. Badges **OK** de
+download aparecem como **`🔗 OK`** (sublinhado com outline sutil).
 
 ## Selecionar um ano ou meses especificos
 

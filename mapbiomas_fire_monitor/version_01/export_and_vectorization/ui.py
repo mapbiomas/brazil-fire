@@ -12,37 +12,7 @@ _STATUS_CSS = widgets.HTML("""<style>
 .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
 </style>""")
 
-_THEME = {"value": "light"}
-
-
-def _palette(theme):
-    if theme == "dark":
-        return {
-            "panel_bg": "#1e1e1e",
-            "panel_border": "#444444",
-            "header_bg": "#2d2d2d",
-            "header_border": "#555555",
-            "title": "#e8e8e8",
-            "subtitle": "#b0b0b0",
-            "grid_header_bg": "#3a3a3a",
-            "grid_header_fg": "#ffffff",
-            "row_a": "#262626",
-            "row_b": "#202020",
-            "date_bg": "#333333",
-            "date_fg": "#e0e0e0",
-            "legend_bg": "#2a2a2a",
-            "legend_fg": "#b8b8b8",
-            "hint_bg": "#3a3320",
-            "hint_border": "#665c3a",
-            "hint_fg": "#d0c9b0",
-            "inst_bg": "#12354a",
-            "inst_border": "#1d4e6b",
-            "inst_fg": "#a8d4ea",
-            "guide_bg": "#1a1a1a",
-            "guide_border": "#444444",
-            "guide_fg": "#d8d8d8",
-            "border": "#444444",
-        }
+def _palette():
     return {
         "panel_bg": "#ffffff",
         "panel_border": "#cccccc",
@@ -68,6 +38,7 @@ def _palette(theme):
         "guide_border": "#dddddd",
         "guide_fg": "#333333",
         "border": "#cccccc",
+        "sep": "#dee2e6",
     }
 
 
@@ -75,11 +46,13 @@ def _badge(ok):
     if ok:
         return (
             '<span style="background:#28a745;color:#fff;padding:2px 7px;'
-            'border-radius:3px;font-size:11px;font-weight:700;">OK</span>'
+            'border-radius:3px;font-size:11px;font-weight:700;line-height:16px;'
+            'display:inline-block;box-sizing:border-box;">OK</span>'
         )
     return (
         '<span style="background:#e9ecef;color:#6c757d;padding:2px 7px;'
-        'border-radius:3px;font-size:11px;">MISS</span>'
+        'border-radius:3px;font-size:11px;line-height:16px;'
+        'display:inline-block;box-sizing:border-box;">MISS</span>'
     )
 
 
@@ -87,7 +60,9 @@ def _badge_link(url):
     return (
         f'<a href="{url}" target="_blank" rel="noopener" title="Download" '
         f'style="background:#28a745;color:#fff;padding:2px 7px;border-radius:3px;'
-        f'font-size:11px;font-weight:700;text-decoration:none;cursor:pointer;display:inline-block;">OK</a>'
+        f'font-size:11px;font-weight:700;line-height:16px;display:inline-block;box-sizing:border-box;'
+        f'text-decoration:underline;text-underline-offset:2px;cursor:pointer;'
+        f'box-shadow:0 0 0 1px rgba(40,167,69,.35);">🔗 OK</a>'
     )
 
 
@@ -97,7 +72,8 @@ def _badge_copy(asset_id):
         f'<a href="#" title="Copy asset ID" '
         f'onclick="navigator.clipboard.writeText(\'{js}\');return false;" '
         f'style="background:#28a745;color:#fff;padding:2px 7px;border-radius:3px;'
-        f'font-size:11px;font-weight:700;text-decoration:none;cursor:pointer;display:inline-block;">OK</a>'
+        f'font-size:11px;font-weight:700;line-height:16px;display:inline-block;box-sizing:border-box;'
+        f'text-decoration:none;cursor:pointer;">OK</a>'
     )
 
 
@@ -359,7 +335,7 @@ GUIDES = {
 
 def _guide_html(lang):
     g = GUIDES[lang]
-    p = _palette(_THEME["value"])
+    p = _palette()
     cols_rows = "".join(
         f'<tr><td style="padding:3px 8px;border:1px solid {p["guide_border"]};white-space:nowrap;">'
         f'<b>{c}</b></td>'
@@ -379,7 +355,6 @@ def _guide_html(lang):
         f'<h4 style="margin:10px 0 4px 0;">{g["cols_title"]}</h4>'
         f'<table style="border-collapse:collapse;">{cols_rows}</table>'
         f'<p>{g["links"]}</p>'
-        f'<p>{g["theme"]}</p>'
         f'</div>'
     )
 
@@ -387,7 +362,7 @@ def _guide_html(lang):
 class MonitorUI:
     _DATE_W = "100px"
     _CELL_W = "76px"
-    _SEL_W  = "56px"
+    _SEL_W  = "64px"
 
     def __init__(self):
         self.state = {"updated_at": None}
@@ -449,10 +424,10 @@ class MonitorUI:
             self.log_area,
         ])
 
-        self._apply_theme()
+        self._render_panel()
 
-    def _apply_theme(self):
-        p = _palette(_THEME["value"])
+    def _render_panel(self):
+        p = _palette()
         self.container.layout = L(
             border=f"1px solid {p['panel_border']}", padding="10px",
             border_radius="5px", margin="10px 0", background=p["panel_bg"]
@@ -554,20 +529,22 @@ class MonitorUI:
 
     def _render_grid(self):
         self.chk_dict = {}
-        p = _palette(_THEME["value"])
+        p = _palette()
 
         def _header_cell(width, title, etapa):
             return widgets.HTML(
                 f'<div style="width:{width};text-align:center;font-weight:700;font-size:10px;'
-                f'color:{p["grid_header_fg"]};line-height:1.25;">'
+                f'color:{p["grid_header_fg"]};line-height:1.25;box-sizing:border-box;'
+                f'border-right:1px solid {p["sep"]};">'
                 f'{title}<br><span style="font-size:9px;font-weight:400;opacity:.85;">Step {etapa}</span>'
                 f'</div>'
             )
 
         header_row = widgets.HBox(
-            [widgets.HTML(f'<div style="width:{self._DATE_W};font-weight:700;font-size:12px;color:{p["grid_header_fg"]};">Date</div>')]
+            [widgets.HTML(f'<div style="width:{self._DATE_W};font-weight:700;font-size:12px;color:{p["grid_header_fg"]};'
+                          f'box-sizing:border-box;border-right:1px solid {p["sep"]};">Date</div>')]
             + [_header_cell(self._CELL_W, t, e) for _, t, e, _ in _COLS]
-            + [widgets.HTML(f'<div style="width:{self._SEL_W};text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};">Sel</div>')],
+            + [widgets.HTML(f'<div style="width:{self._SEL_W};text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};">Select</div>')],
             layout=L(
                 background=p["grid_header_bg"], padding="6px 10px", min_height="44px",
                 align_items="center", overflow="visible"
@@ -592,14 +569,16 @@ class MonitorUI:
 
             date_cell = widgets.HTML(
                 f'<div style="width:{self._DATE_W};font-family:monospace;font-size:13px;color:{p["date_fg"]};font-weight:600;'
-                f'background:{p["date_bg"]};padding:2px 6px;border-radius:3px;">{m}</div>'
+                f'background:{p["date_bg"]};padding:2px 6px;border-radius:3px;box-sizing:border-box;'
+                f'border-right:1px solid {p["sep"]};">{m}</div>'
             )
 
             cells = [date_cell]
             for key, _t, _e, kind in _COLS:
                 ok = info.get(key, False)
                 cells.append(widgets.HTML(
-                    f'<div style="width:{self._CELL_W};text-align:center;">{self._col_content(kind, ok, y, mm)}</div>'
+                    f'<div style="width:{self._CELL_W};text-align:center;box-sizing:border-box;'
+                    f'border-right:1px solid {p["sep"]};">{self._col_content(kind, ok, y, mm)}</div>'
                 ))
 
             chk = widgets.Checkbox(value=False, indent=False, layout=L(width="20px", height="20px"))
@@ -742,10 +721,6 @@ class CountryTabs:
             panel.sync()
         self._active_panel = panel
 
-    def apply_theme_all(self):
-        for panel in self._panels.values():
-            panel._apply_theme()
-
     def __getattr__(self, name):
         panel = self.__dict__.get("_active_panel")
         if panel is None:
@@ -762,9 +737,6 @@ class FireMonitorApp:
     def __init__(self, countries):
         self.interface = CountryTabs(countries)
 
-        self.theme_btn = widgets.Button(description="🌙", layout=L(width="48px", height="34px"))
-        self.theme_btn.on_click(self._on_theme_toggle)
-
         self.header = widgets.HTML()
         self.guide_widgets = [widgets.HTML() for _ in LANG_ORDER]
 
@@ -777,8 +749,7 @@ class FireMonitorApp:
         self._render()
 
     def _render(self):
-        p = _palette(_THEME["value"])
-        self.theme_btn.description = "☀️" if _THEME["value"] == "dark" else "🌙"
+        p = _palette()
         self.header.value = (
             f'<div style="display:flex;align-items:center;justify-content:space-between;width:100%;'
             f'padding:10px 14px;background:{p["header_bg"]};border:1px solid {p["header_border"]};'
@@ -790,20 +761,12 @@ class FireMonitorApp:
             f'<div style="color:{p["subtitle"]};font-size:12px;">{config.flag(config.COUNTRY)} {config.COUNTRY.title()}</div>'
             f'</div>'
         )
-        self.container.children = [
-            widgets.HBox([self.header, self.theme_btn], layout=L(align_items="center", gap="8px")),
-            self.tab,
-        ]
+        self.container.children = [self.header, self.tab]
         for i, lang in enumerate(LANG_ORDER):
             self.guide_widgets[i].value = (
                 f'<div style="padding:12px;background:{p["guide_bg"]};border:1px solid {p["guide_border"]};'
                 f'border-radius:5px;">{_guide_html(lang)}</div>'
             )
-
-    def _on_theme_toggle(self, _):
-        _THEME["value"] = "dark" if _THEME["value"] == "light" else "light"
-        self._render()
-        self.interface.apply_theme_all()
 
     def __getattr__(self, name):
         return getattr(self.interface, name)
