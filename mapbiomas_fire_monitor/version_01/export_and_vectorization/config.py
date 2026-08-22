@@ -422,6 +422,11 @@ def vector_name_unit(unit):
     return f"{PRODUCT}-{storage_country()}_{_sanitize(unit)}"
 
 
+def gcs_object_url(bucket, path):
+    """Retorna o direct link publico para um objeto GCS."""
+    return f"https://storage.googleapis.com/{bucket}/{path}"
+
+
 def add_collection(country, theme, collection, products):
     """Insere/atualiza uma colecao no OBJ (qualquer tema). products = lista de
     dicts com product/assetid/type/vectorize/visible."""

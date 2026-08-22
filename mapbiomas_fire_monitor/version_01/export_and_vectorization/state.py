@@ -2,6 +2,7 @@ import os
 import json
 import time
 import gcsfs
+import urllib.request
 from . import config
 from .config import (
     tiles_prefix,
@@ -67,6 +68,33 @@ def _unit_from_name(basename, prefix_strip, suffix):
     return name or None
 
 
+def _object_exists(fs, bucket, path):
+    """Verifica um objeto por listagem e, se necessario, por direct link."""
+    try:
+        if fs.exists(f"{bucket}/{path}"):
+            return True
+    except Exception:
+        pass
+    try:
+        with urllib.request.urlopen(config.gcs_object_url(bucket, path), timeout=8) as response:
+            return response.status == 200
+    except Exception:
+        return False
+
+
+def _merge_unit(state, unit, **flags):
+    entry = state.setdefault(unit, _new_entry())
+    entry.update(flags)
+    return entry
+
+
+def _fallback_months():
+    """Gera meses candidatos sem transformar o fallback em uma varredura enorme."""
+    current_year = time.gmtime().tm_year
+    return [f"{year}_{month:02d}" for year in range(current_year - 2, current_year + 1)
+            for month in range(1, 13)]
+
+
 def scan_gcs(logger=None):
     fs = _get_fs()
     state = {}
@@ -91,6 +119,14 @@ def scan_gcs(logger=None):
     except Exception as e:
         _log(f"Error scanning tiles: {e}")
 
+    # Fallback para exports conhecidos quando a listagem GCS falha ou esta vazia.
+    if config.COLLECTION == "monitor" and config.product_kind() == "monthly":
+        for unit in _fallback_months():
+            tile_path = f"{tiles_prefix()}/{config.tile_pattern_unit(unit)}_0000000000-0000000000.tif"
+            if _object_exists(fs, config.BUCKET, tile_path):
+                tiles_present.add(unit)
+                _merge_unit(state, unit, exported=True)
+
     _log(f"Scanning GCS: gs://{config.BUCKET}/{mosaic_prefix()}/ ...")
     try:
         mosaic_files = fs.glob(f"{config.BUCKET}/{mosaic_prefix()}/{art_prefix}*.tif")
@@ -103,6 +139,13 @@ def scan_gcs(logger=None):
                 entry["mosaiced"] = True
     except Exception as e:
         _log(f"Error scanning mosaics: {e}")
+
+    if config.COLLECTION == "monitor" and config.product_kind() == "monthly":
+        for unit in _fallback_months():
+            mosaic_path = f"{mosaic_prefix()}/{config.mosaic_name_unit(unit)}.tif"
+            if _object_exists(fs, config.BUCKET, mosaic_path):
+                cog_present.add(unit)
+                _merge_unit(state, unit, exported=True, mosaiced=True)
 
     _log(f"Scanning GCS: gs://{config.BUCKET}/{vector_prefix()}/ ...")
     try:
