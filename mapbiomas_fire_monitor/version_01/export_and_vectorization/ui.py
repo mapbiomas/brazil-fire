@@ -341,7 +341,7 @@ def _catalog_units(country, theme, collection, product):
 
 
 class UnitGridPanel:
-    _DATE_W = "150px"
+    _DATE_W = "230px"
     _CELL_W = "88px"
     _SEL_W  = "72px"
 
@@ -418,7 +418,7 @@ class UnitGridPanel:
         config.set_product(product)
         self.product = product
         self.units = _catalog_units(self.country, self.theme, self.collection, product)
-        if not self.units:
+        if not self.units and config.product_kind() == "monthly":
             self.units = list_months_in_collection()
         self.state = {"updated_at": None}
         self._on_sync(None)
@@ -507,10 +507,12 @@ class UnitGridPanel:
         for i, unit in enumerate(units):
             info = self.state.get(unit, {})
             bg = p["row_a"] if i % 2 == 0 else p["row_b"]
+            unit_text = str(unit)
+            unit_short = unit_text if len(unit_text) <= 34 else unit_text[:31] + "..."
             date_cell = widgets.HTML(
-                f'<div style="width:{self._DATE_W};font-family:monospace;font-size:12px;color:{p["date_fg"]};font-weight:600;'
+                f'<div title="{unit_text}" style="width:{self._DATE_W};font-family:monospace;font-size:12px;color:{p["date_fg"]};font-weight:600;'
                 f'background:{p["date_bg"]};padding:2px 6px;border-radius:3px;box-sizing:border-box;'
-                f'border-left:1px solid {p["sep"]};border-right:1px solid {p["sep"]};">{unit}</div>'
+                f'border-left:1px solid {p["sep"]};border-right:1px solid {p["sep"]};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{unit_short}</div>'
             )
             cells = [date_cell]
             for key, _t, _e, kind in _COLS:
@@ -552,11 +554,22 @@ class UnitGridPanel:
             f'Public vector=Step 6 &nbsp;|&nbsp; Clean temp=Step 7 (after both published)'
             f'</div>'
         )
+        meta = config.product_context()
+        example = self.units[0] if self.units else "-"
+        metadata = widgets.HTML(
+            f'<div style="font-size:11px;color:{p["guide_fg"]};margin:6px 0 0 10px;padding:8px 10px;'
+            f'background:{p["guide_bg"]};border:1px solid {p["guide_border"]};border-radius:4px;line-height:1.5;">'
+            f'<b>Product:</b> {meta["product"]} &nbsp;|&nbsp; '
+            f'<b>Example unit/band:</b> <code title="{example}">{example}</code><br>'
+            f'<b>Asset:</b> <code>{meta["assetid"]}</code> &nbsp;|&nbsp; '
+            f'<b>Type:</b> {meta["type"]} &nbsp;|&nbsp; <b>Scale:</b> {meta["scale"]} m &nbsp;|&nbsp; '
+            f'<b>Vectorize:</b> {"yes" if meta["vectorize"] else "no"}</div>'
+        )
         self.grid_container.children = [
             widgets.VBox(rows, layout=L(max_height="460px", width="100%",
                                         overflow_y="auto", overflow_x="auto", padding="0",
                                         border=f"1px solid {p['border']}", background_color=p["row_b"])),
-            legend, hint,
+            legend, metadata, hint,
         ]
 
     def _on_sync(self, _):

@@ -260,10 +260,6 @@ def set_country(name, verbose=True):
     PRODUCT = prods[0]["product"] if prods else None
     if verbose:
         print("Country:", COUNTRY, "| Theme:", THEME, "| Collection:", COLLECTION, "| Product:", PRODUCT)
-    if PRODUCT:
-        p = find_product(COUNTRY, THEME, COLLECTION, PRODUCT)
-        if p:
-            print("Collection:", p["assetid"])
 
 
 def set_theme(name):
@@ -303,6 +299,18 @@ def active_product():
 def product_meta():
     return active_product() or {"product": PRODUCT, "assetid": "", "type": "byte",
                                 "vectorize": False, "visible": True}
+
+
+def product_context():
+    """Metadados seguros para apresentar na interface."""
+    p = product_meta()
+    return {
+        "product": p.get("product", PRODUCT),
+        "assetid": p.get("assetid", ""),
+        "type": p.get("type", "byte"),
+        "scale": p.get("scale", SCALE),
+        "vectorize": bool(p.get("vectorize", False)),
+    }
 
 
 def image_collection():

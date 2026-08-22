@@ -116,19 +116,19 @@ def inspect_asset(asset_id):
             info["max"] = _observed_max(col.first())
         except Exception:
             info["max"] = None
-        # units = imagens (system:index + label data)
+        # A unit publica e temporal; system:index fica somente para resolver a imagem.
         try:
             idx = col.aggregate_array("system:index").getInfo() or []
             ts = col.aggregate_array("system:time_start").getInfo() or []
             units = []
             for i, ix in enumerate(idx):
-                lab = ix
+                key = ix
                 if i < len(ts) and ts[i]:
                     try:
-                        lab = datetime.datetime.utcfromtimestamp(ts[i] / 1000).strftime("%Y-%m-%d")
+                        key = datetime.datetime.utcfromtimestamp(ts[i] / 1000).strftime("%Y_%m")
                     except Exception:
                         pass
-                units.append({"key": ix, "label": lab})
+                units.append({"key": key, "label": key, "image_id": ix})
             info["units"] = units
         except Exception:
             info["units"] = []
