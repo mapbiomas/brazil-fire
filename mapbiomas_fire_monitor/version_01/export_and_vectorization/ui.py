@@ -71,6 +71,46 @@ class StoryLoader:
             self._render(message)
 
 
+class LogDrawer:
+    """Gaveta global: fechada mostra o ultimo log; aberta mostra o historico."""
+
+    def __init__(self):
+        self.output = widgets.Output()
+        self.button = widgets.Button(description="Show logs", icon="chevron-down",
+                                     layout=L(width="120px", height="28px"))
+        self.button.on_click(self._toggle)
+        self.history = []
+        self.open = False
+        self.container = widgets.VBox()
+        self._render()
+
+    def _render(self):
+        if self.open:
+            self.button.description = "Hide logs"
+            self.button.icon = "chevron-up"
+            self.output.layout = L(max_height="240px", overflow="auto", padding="4px",
+                                   border="1px solid #cccccc", background="#ffffff")
+            self.container.children = [self.button, self.output]
+        else:
+            self.button.description = "Show logs"
+            self.button.icon = "chevron-down"
+            latest = self.history[-1] if self.history else "No messages yet."
+            self.container.children = [self.button, widgets.HTML(
+                f'<div style="padding:5px 8px;color:#495057;font-size:12px;">{latest}</div>'
+            )]
+
+    def _toggle(self, _):
+        self.open = not self.open
+        self._render()
+
+    def append(self, html):
+        self.history.append(html)
+        with self.output:
+            display(widgets.HTML(html))
+        if not self.open:
+            self._render()
+
+
 def _palette():
     return {
         "panel_bg": "#ffffff",
@@ -432,7 +472,7 @@ class UnitGridPanel:
     _CELL_W = "88px"
     _SEL_W  = "72px"
 
-    def __init__(self, country, theme, collection):
+    def __init__(self, country, theme, collection, log_area=None):
         self.country = country
         self.theme = theme
         self.collection = collection
@@ -442,7 +482,7 @@ class UnitGridPanel:
         self.chk_dict = {}
         self.is_refreshing = False
         self.year_filter = None
-        self.log_area = widgets.Output()
+        self.log_area = log_area
 
         self.grid_container = widgets.VBox([
             _loading_html("Loading units...")
@@ -468,30 +508,25 @@ class UnitGridPanel:
         self.story_loader = StoryLoader("Checking GCS and Earth Engine...")
         self.toolbar = widgets.HBox([
             self.year_dropdown, self.btn_select_pending, self.btn_select_all,
-            self.btn_clear, self.btn_sync, self.loader,
+            self.btn_clear, self.btn_sync, self.story_loader.widget,
         ], layout=L(margin="0 0 8px 0", gap="8px", align_items="center"))
 
-        self.container = widgets.VBox([
-            _STATUS_CSS, self.toolbar, self.grid_container, self.log_area,
-        ])
+        self.container = widgets.VBox([_STATUS_CSS, self.toolbar, self.grid_container])
         self._render_panel()
 
     def _render_panel(self):
         p = _palette()
         self.container.layout = L(border=f"1px solid {p['panel_border']}", padding="10px",
                                   border_radius="5px", margin="6px 0", background=p["panel_bg"])
-        self.log_area.layout = L(background=p["panel_bg"], border=f"1px solid {p['border']}",
-                                 border_radius="3px", padding="4px", max_height="240px", overflow="auto")
         self._render_grid()
 
     def _log(self, message, type="info"):
         ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         colors = {"info": "#3498db", "success": "#27ae60", "error": "#d32f2f", "warning": "#e67e22"}
         color = colors.get(type, "#333")
-        with self.log_area:
-            display(widgets.HTML(
-                f'<span style="color:{color};font-size:12px;">[{ts}] [{type.upper()}] {message}</span>'
-            ))
+        html = f'<span style="color:{color};font-size:12px;">[{ts}] [{type.upper()}] {message}</span>'
+        if self.log_area:
+            self.log_area.append(html)
 
     def _activate_product(self, product):
         if not product:
@@ -732,10 +767,11 @@ class UnitGridPanel:
 class ProductTabs:
     """Abas de produtos visiveis + um grid independente por produto."""
 
-    def __init__(self, country, theme, collection):
+    def __init__(self, country, theme, collection, log_area=None):
         self.country = country
         self.theme = theme
         self.collection = collection
+        self.log_area = log_area
         products = config.list_products(country, theme, collection)
         self.products = [p["product"] for p in products if p.get("visible", True)]
         self._panels = {}
@@ -759,7 +795,7 @@ class ProductTabs:
             return
         product = self.products[index]
         if product not in self._panels:
-            panel = UnitGridPanel(self.country, self.theme, self.collection)
+            panel = UnitGridPanel(self.country, self.theme, self.collection, self.log_area)
             panel._activate_product(product)
             self._panels[product] = panel
             self._placeholders[index].children = [panel.container]
@@ -777,9 +813,10 @@ class ProductTabs:
 class CollectionTabs:
     """Abas de colecao dentro de um tema."""
 
-    def __init__(self, country, theme):
+    def __init__(self, country, theme, log_area=None):
         self.country = country
         self.theme = theme
+        self.log_area = log_area
         colls = [c for c, prods in config.OBJ.get(country, {}).get(theme, {}).items()
                  if [p for p in prods if p.get("visible", True)]]
         self.collections = colls
@@ -803,7 +840,7 @@ class CollectionTabs:
         coll = self.collections[idx]
         if coll not in self._panels:
             self._placeholders[idx].children = [_loading_html("Loading products...")]
-            pp = ProductTabs(self.country, self.theme, coll)
+            pp = ProductTabs(self.country, self.theme, coll, self.log_area)
             self._panels[coll] = pp
             self._placeholders[idx].children = [pp.container]
         else:
@@ -817,8 +854,9 @@ class CollectionTabs:
 class ThemeTabs:
     """Abas de tema dentro de um pais."""
 
-    def __init__(self, country):
+    def __init__(self, country, log_area=None):
         self.country = country
+        self.log_area = log_area
         themes = [t for t, colls in config.OBJ.get(country, {}).items()
                   if any([p for p in prods if p.get("visible", True)] for prods in colls.values())]
         self.themes = themes
@@ -842,7 +880,7 @@ class ThemeTabs:
         theme = self.themes[idx]
         if theme not in self._panels:
             self._placeholders[idx].children = [_loading_html("Loading collections...")]
-            ct = CollectionTabs(self.country, theme)
+            ct = CollectionTabs(self.country, theme, self.log_area)
             self._panels[theme] = ct
             self._placeholders[idx].children = [ct.tab]
         else:
@@ -856,8 +894,9 @@ class ThemeTabs:
 class CountryTabs:
     """Abas de pais -> tema -> colecao -> produto -> unidades."""
 
-    def __init__(self, countries):
+    def __init__(self, countries, log_area=None):
         self.countries = list(countries)
+        self.log_area = log_area
         if not self.countries:
             raise ValueError("No countries configured for the tabs.")
         for c in self.countries:
@@ -884,7 +923,7 @@ class CountryTabs:
         self._active_code = code
         if code not in self._panels:
             self._placeholders[idx].children = [_loading_html("Loading themes...")]
-            tt = ThemeTabs(code)
+            tt = ThemeTabs(code, self.log_area)
             self._panels[code] = tt
             self._placeholders[idx].children = [tt.tab]
         else:
@@ -899,9 +938,9 @@ class FireMonitorApp:
     """App em guias: Interface (navegacao) + guias em 7 idiomas."""
 
     def __init__(self, countries):
-        self.interface = CountryTabs(countries)
-
         self.header = widgets.HTML()
+        self.log_area = LogDrawer()
+        self.interface = CountryTabs(countries, self.log_area)
         self.guide_widgets = [widgets.HTML() for _ in LANG_ORDER]
 
         self.tab = widgets.Tab(children=[self.interface.tab] + self.guide_widgets)
@@ -909,7 +948,7 @@ class FireMonitorApp:
         for i, lang in enumerate(LANG_ORDER, start=1):
             self.tab.set_title(i, GUIDES[lang]["tab_title"])
 
-        self.container = widgets.VBox([self.header, self.tab])
+        self.container = widgets.VBox([self.header, self.tab, self.log_area.container])
         self._render()
 
     def _render(self):
@@ -925,7 +964,7 @@ class FireMonitorApp:
             f'<div style="color:{p["subtitle"]};font-size:12px;">{config.flag(config.COUNTRY)} {config.COUNTRY.title()}</div>'
             f'</div>'
         )
-        self.container.children = [self.header, self.tab]
+        self.container.children = [self.header, self.tab, self.log_area.container]
         for i, lang in enumerate(LANG_ORDER):
             self.guide_widgets[i].value = (
                 f'<div style="padding:12px;background:{p["guide_bg"]};border:1px solid {p["guide_border"]};'
