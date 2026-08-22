@@ -1,5 +1,3 @@
-[LEMBRETE - REVISAR E TRADUZIR PARA O INGLES]
-
 # 03. Pós-Classificação
 
 Esta etapa consolida os resultados da classificação bruta, aplicando filtros de qualidade e integrando com mapas de uso e cobertura da terra (MapBiomas).

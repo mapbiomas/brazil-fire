@@ -174,7 +174,9 @@ def build_inventory(countries=None, refresh=False):
                 for p in prods:
                     if not p.get("visible", True):
                         continue
-                    meta = inspect_asset(p["assetid"])
+                    meta = ({"assetid": p["assetid"], "kind": "GCS_PREFIX"}
+                            if p["assetid"].startswith("gcs://")
+                            else inspect_asset(p["assetid"]))
                     rec = {
                         "name": p["product"],
                         "assetid": p["assetid"],

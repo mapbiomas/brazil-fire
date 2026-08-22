@@ -47,6 +47,47 @@ def _p(country, theme, collection, product, assetid, ptype, vectorize=False, vis
 
 OBJ = {
     "brasil": {
+        "lulc_10m": {
+            "collection_04": [
+                _p("brasil", "lulc_10m", "collection4", "coverage",
+                   "projects/mapbiomas-public/assets/brazil/lulc_10m/collection4/mapbiomas_10m_collection4_coverage_v1",
+                   "byte", scale=10),
+            ],
+        },
+        "lulc": {
+            "collection_11": [
+                _p("brasil", "lulc", "collection11", "agriculture_irrigation_systems", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_agriculture_irrigation_systems_v1", "byte"),
+                _p("brasil", "lulc", "collection11", "agriculture_number_cycles_mean", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_agriculture_number_cycles_mean_v1", "byte"),
+                _p("brasil", "lulc", "collection11", "agriculture_number_cycles", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_agriculture_number_cycles_v1", "byte"),
+                _p("brasil", "lulc", "collection11", "agriculture_second_crop", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_agriculture_second_crop_v1", "byte"),
+                _p("brasil", "lulc", "collection11", "coverage", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_coverage_v3", "byte"),
+                _p("brasil", "lulc", "collection11", "deforestation_secondary_vegetation", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_deforestation_secondary_vegetation_v5", "byte"),
+                _p("brasil", "lulc", "collection11", "mining_substances", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_mining_substances_v1", "byte"),
+                _p("brasil", "lulc", "collection11", "pasture_age", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_pasture_age_v1", "byte"),
+                _p("brasil", "lulc", "collection11", "pasture_vigor", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_pasture_vigor_v1", "byte"),
+            ],
+        },
+        "soil": {
+            "collection_03": [
+                _p("brasil", "soil", "collection3", "soil_carbon", "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_carbon_v1", "float32"),
+                _p("brasil", "soil", "collection3", "soil_clay_fraction", "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_clay_fraction_v1", "float32"),
+                _p("brasil", "soil", "collection3", "soil_sand_fraction", "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_sand_fraction_v1", "float32"),
+                _p("brasil", "soil", "collection3", "soil_silt_fraction", "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_silt_fraction_v1", "float32"),
+                _p("brasil", "soil", "collection3", "soil_stoniness", "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_stoniness_v2", "float32"),
+                _p("brasil", "soil", "collection3", "soil_textural_class", "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_textural_class_v1", "byte"),
+                _p("brasil", "soil", "collection3", "soil_textural_group", "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_textural_group_v1", "byte"),
+                _p("brasil", "soil", "collection3", "soil_textural_subgroup", "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_textural_subgroup_v1", "byte"),
+            ],
+        },
+        "water": {
+            "collection_05": [
+                _p("brasil", "water", "collection5", "water_annual", "projects/mapbiomas-public/assets/brazil/water/collection5/mapbiomas_brazil_collection5_water_annual_v4", "byte"),
+                _p("brasil", "water", "collection5", "water_bodies", "projects/mapbiomas-public/assets/brazil/water/collection5/mapbiomas_brazil_collection5_water_bodies_v4", "byte"),
+                _p("brasil", "water", "collection5", "water_monthly", "projects/mapbiomas-public/assets/brazil/water/collection5/mapbiomas_brazil_collection5_water_monthly_v4", "byte"),
+                _p("brasil", "water", "collection5", "water_transition", "projects/mapbiomas-public/assets/brazil/water/collection5/mapbiomas_brazil_collection5_water_transition_v4", "byte"),
+                _p("brasil", "water", "collection5", "water_trend", "projects/mapbiomas-public/assets/brazil/water/collection5/mapbiomas_brazil_collection5_water_trend_v4", "byte"),
+            ],
+        },
         "fire": {
             "monitor": [
                 _p("brasil", "fire", "monitor", "monthly_burned",
@@ -120,6 +161,13 @@ OBJ = {
         },
     },
     "indonesia": {
+        "lulc": {
+            "collection_04_1": [
+                _p("indonesia", "lulc", "collection4_1", "coverage",
+                   "projects/mapbiomas-public/assets/indonesia/lulc/collection4_1/mapbiomas_indonesia_collection41_coverage_v1",
+                   "byte"),
+            ],
+        },
         "fire": {
             "monitor": [
                 _p("indonesia", "fire", "monitor", "monthly_burned",
@@ -139,6 +187,17 @@ OBJ = {
                    "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_accumulated_burned_coverage_v1", "byte"),
                 _p("indonesia", "fire", "collection1", "fire_frequency",
                    "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_fire_frequency_v1", "int16"),
+            ],
+            # Collection 02 is publicly distributed as GeoTIFFs in GCS.  Keep
+            # the public prefix as the source so the catalog can discover the
+            # already-published products without using private GEE assets.
+            "collection_02": [
+                _p("indonesia", "fire", "collection2", "annual_burned", "gcs://mapbiomas-public/initiatives/indonesia/collection_2/fire-col1/fire-simplifed/FIRE_ANNUAL_TOTAL", "byte"),
+                _p("indonesia", "fire", "collection2", "annual_burned_coverage", "gcs://mapbiomas-public/initiatives/indonesia/collection_2/fire-col1/fire-simplifed/FIRE_ANNUAL_COVERAGE", "byte"),
+                _p("indonesia", "fire", "collection2", "monthly_burned", "gcs://mapbiomas-public/initiatives/indonesia/collection_2/fire-col1/fire-simplifed/FIRE_MONTHLY_TOTAL", "byte"),
+                _p("indonesia", "fire", "collection2", "accumulated_burned", "gcs://mapbiomas-public/initiatives/indonesia/collection_2/fire-col1/fire-simplifed/FIRE_ACCUMULATED_TOTAL", "byte"),
+                _p("indonesia", "fire", "collection2", "accumulated_burned_coverage", "gcs://mapbiomas-public/initiatives/indonesia/collection_2/fire-col1/fire-simplifed/FIRE_ACCUMULATED_COVERAGE", "byte"),
+                _p("indonesia", "fire", "collection2", "fire_frequency", "gcs://mapbiomas-public/initiatives/indonesia/collection_2/fire-col1/fire-simplifed/FIRE_FREQUENCY_TOTAL", "int16"),
             ],
         },
     },

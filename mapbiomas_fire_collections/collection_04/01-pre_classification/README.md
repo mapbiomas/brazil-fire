@@ -1,18 +1,16 @@
-[LEMBRETE - REVISAR E TRADUZIR PARA O INGLES]
+# 01. Pre-Classification
 
-# 01. Pré-Classificação
+This directory is responsible for preparing the datasets and essential tools required to initiate the mapping of burned area scars.
 
-Responsável pela preparação dos conjuntos de dados e ferramentas necessárias para o início do mapeamento de cicatrizes de fogo.
+## 🛠️ Main Scripts
+- **01-toolkit_for_collection_samples_and_export_mosaics_to_google_cloud.js**: The primary interface for data exploration, inspection of Landsat/Sentinel mosaics, and exporting training samples.
 
-## 🛠️ Scripts Principais
-- **01-toolkit_for_collection_samples_and_export_mosaics_to_google_cloud.js**: Interface principal para navegação, inspeção de mosaicos Landsat/Sentinel e exportação de amostras de treinamento.
+## 📁 Auxiliary Folder (`./auxiliar/`)
+Contains supporting modules called by the Toolkit or used independently:
+- **module-blockList.js**: A list of scenes/images to be excluded from the processing pipeline due to quality issues or artifacts.
+- **toolkit-investigate-scenes.js**: A tool for detailed inspection of individual satellite scenes and their metadata.
 
-## 📁 Pasta Auxiliar (`./auxiliar/`)
-Contém módulos de suporte que são chamados pelo Toolkit ou usados de forma independente:
-- **module-blockList.js**: Lista de cenas/imagens que devem ser ignoradas no processo por problemas de qualidade ou ruído.
-- **toolkit-investigate-scenes.js**: Ferramenta para inspeção detalhada de cenas individuais e metadados.
-
-## 📖 Como Usar
-1. Configure os parâmetros de bioma e ano no `Toolkit`.
-2. Utilize as camadas de visualização para identificar áreas de queima.
-3. Exporte os mosaicos ou amostras para o Google Cloud Storage ou Assets do GEE para a etapa de classificação.
+## 📖 Usage
+1. Configure the biome and year parameters within the `Toolkit` script.
+2. Utilize the visualization layers to identify burned areas.
+3. Export the mosaics or training samples to Google Cloud Storage or GEE Assets to proceed to the classification stage.

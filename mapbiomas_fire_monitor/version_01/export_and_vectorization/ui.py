@@ -104,6 +104,8 @@ def _palette():
         "subtitle": "#6c757d",
         "grid_header_bg": "#263238",
         "grid_header_fg": "#ffffff",
+        "grid_header_muted_bg": "#3a3a3a",
+        "grid_header_muted_fg": "#888888",
         "row_a": "#f7f9fb",
         "row_b": "#ffffff",
         "date_bg": "#e8eef3",
@@ -579,22 +581,26 @@ class UnitGridPanel:
         self.chk_dict = {}
         p = _palette()
 
-        def _header_cell(width, title, etapa):
+        def _header_cell(width, title, etapa, is_vector=False):
+            vec_muted = is_vector and not config.is_vectorizable()
+            bg = p["grid_header_bg"] if not vec_muted else p.get("grid_header_muted_bg", "#4a4a4a")
+            fg = p["grid_header_fg"] if not vec_muted else p.get("grid_header_muted_fg", "#999999")
             return widgets.HTML(
-                f'<div style="width:{width};height:42px;background:{p["grid_header_bg"]};'
+                f'<div style="width:{width};height:42px;background:{bg};'
                 f'text-align:center;font-weight:700;font-size:11px;padding:5px 3px;'
-                f'color:{p["grid_header_fg"]};line-height:1.25;box-sizing:border-box;'
+                f'color:{fg};line-height:1.25;box-sizing:border-box;'
                 f'border-right:1px solid {p["sep"]};">'
-                f'{title}<br><span style="font-size:9px;font-weight:400;opacity:.85;">Step {etapa}</span>'
+                f'{title}<br><span style="font-size:9px;font-weight:400;opacity:.6;">Step {etapa}</span>'
                 f'</div>'
             )
 
+        vectorizable = config.is_vectorizable()
         header_row = widgets.HBox(
             [widgets.HTML(f'<div style="width:{self._DATE_W};height:42px;background:{p["grid_header_bg"]};'
                           f'font-weight:700;font-size:12px;color:{p["grid_header_fg"]};padding:12px 6px;'
                           f'box-sizing:border-box;border-left:1px solid {p["sep"]};'
                           f'border-right:1px solid {p["sep"]};">Unit</div>')]
-            + [_header_cell(self._CELL_W, t, e) for _, t, e, _ in _COLS]
+            + [_header_cell(self._CELL_W, t, e, kind in _VECTOR_KINDS) for _, t, e, kind in _COLS]
             + [widgets.HTML(f'<div style="width:{self._SEL_W};height:42px;background:{p["grid_header_bg"]};'
                             f'text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};padding:12px 3px;'
                             f'box-sizing:border-box;border-right:1px solid {p["sep"]};">Select</div>')],
