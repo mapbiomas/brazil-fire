@@ -612,7 +612,13 @@ class UnitGridPanel:
         self._log("Checking files in GCS and assets in GEE...", "info")
         try:
             selected = self._get_selected_keys()
-            self.state = build_state(logger=self._log)
+            self.state = build_state(
+                country=self.country,
+                theme=self.theme,
+                collection=self.collection,
+                product=self.product,
+                logger=self._log,
+            )
             self._render_grid()
             self._restore_selected(selected)
             n_ok = sum(1 for u in self._all_units() if _is_complete(self.state.get(u, {})))

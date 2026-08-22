@@ -237,7 +237,15 @@ def merge_states(gcs_state, gee_state, units_from_collection):
     return result
 
 
-def build_state(logger=None):
+def build_state(country=None, theme=None, collection=None, product=None, logger=None):
+    if country:
+        config.set_country(country, verbose=False)
+    if theme:
+        config.set_theme(theme)
+    if collection:
+        config.set_collection(collection)
+    if product:
+        config.set_product(product)
     gcs_state = scan_gcs(logger=logger)
     gee_state = scan_gee(logger=logger)
     months = list_months_in_collection()
@@ -248,21 +256,23 @@ def build_state(logger=None):
         sorted_state[key] = full[key]
 
     sorted_state["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    save_state(sorted_state)
+    save_state(sorted_state, country=country, theme=theme, collection=collection, product=product)
     return sorted_state
 
 
-def load_state():
+def load_state(country=None, theme=None, collection=None, product=None):
+    path = config.state_file(country, theme, collection, product)
     try:
-        with open(config.STATE_FILE, "r") as f:
+        with open(path, "r") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
 
-def save_state(state):
+def save_state(state, country=None, theme=None, collection=None, product=None):
+    path = config.state_file(country, theme, collection, product)
     try:
-        with open(config.STATE_FILE, "w") as f:
+        with open(path, "w") as f:
             json.dump(state, f, indent=2)
     except Exception as e:
         print(f"Warning: Could not save state: {e}")

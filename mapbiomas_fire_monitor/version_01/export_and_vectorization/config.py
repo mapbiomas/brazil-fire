@@ -410,6 +410,12 @@ def _sanitize(unit):
     return "".join(c if c.isalnum() or c in "-_." else "_" for c in str(unit))
 
 
+def state_file(country=None, theme=None, collection=None, product=None):
+    """Arquivo de estado isolado por contexto de processamento."""
+    parts = [country or COUNTRY, theme or THEME, collection or COLLECTION, product or PRODUCT]
+    return "monitor_state_" + "_".join(_sanitize(p) for p in parts if p) + ".json"
+
+
 def tile_pattern_unit(unit):
     return f"fire_monitor_v1_{PRODUCT}_{storage_country()}_{_sanitize(unit)}"
 
