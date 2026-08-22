@@ -1,110 +1,53 @@
 """Descoberta e metadados dos produtos de fogo do MapBiomas (multipais).
 
-Etapa de metadados: inventaria os produtos sob
-projects/mapbiomas-public/assets/{country}/fire/** (todas as colecoes),
-inspeciona tipo, bandas, dtype, max observado e temporal, classifica por
-`kind` (monthly/annual/period) e sugere como salvar no mosaico
-(-ot/nodata/predictor). A flag `vectorize` indica se o produto gera
-vetorizacao (apenas annual_burned).
+Baseado em `config.OBJ` (pais -> tema -> colecao -> produtos). Para cada produto
+com `assetid`, inspeciona no GEE: tipo (IMAGE/IMAGE_COLLECTION), bandas, dtype,
+max observado, temporal e **units** (bandas p/ imagem multibanda; imagens p/
+IMAGE_COLLECTION). O `type` declarado no OBJ e mantido (nao sobrescrito).
 
-Uso (onde houver GEE/GCS, ex.: Colab):
-    from export_and_vectorization.catalog import build_inventory, load_cache
-    inv = build_inventory(["brazil", "indonesia"], refresh=True)
+Uso (onde houver GEE, ex.: Colab):
+    from export_and_vectorization.catalog import build_inventory
+    inv = build_inventory(["brasil", "indonesia"], refresh=True)
 """
 
+import datetime
 import json
-import os
 import re
-import time
 
 from . import config
 
 CACHE_FILE = "catalog_cache.json"
 
-# Seed: kind/unit/vectorize por produto conhecido. dtype/max/bandas/temporal
-# sao obtidos do GEE pelo discovery.
-PRODUCT_SEED = {
-    "brazil": {
-        "monitor": {
-            "mapbiomas_fire_monthly_burned_v1": {"kind": "monthly", "unit": "burned (0/1)", "vectorize": False},
-        },
-        "collection4": {
-            "mapbiomas_fire_collection4_annual_burned_v1": {"kind": "annual", "unit": "burned (0/1)", "vectorize": True},
-            "mapbiomas_fire_collection4_annual_burned_coverage_v1": {"kind": "annual", "unit": "coverage (%)", "vectorize": False},
-            "mapbiomas_fire_collection4_annual_burned_scar_size_range_v1": {"kind": "annual", "unit": "scar size class", "vectorize": False},
-            "mapbiomas_fire_collection4_monthly_burned_v1": {"kind": "monthly", "unit": "burned (0/1)", "vectorize": False},
-            "mapbiomas_fire_collection4_accumulated_burned_v1": {"kind": "period", "unit": "burned (0/1)", "vectorize": False},
-            "mapbiomas_fire_collection4_fire_frequency_v1": {"kind": "period", "unit": "frequency (count)", "vectorize": False},
-            "mapbiomas_fire_collection4_time_after_fire_v1": {"kind": "period", "unit": "years since fire", "vectorize": False},
-            "mapbiomas_fire_collection4_year_last_fire_v1": {"kind": "period", "unit": "last fire year", "vectorize": False},
-        },
-        "collection4_1": {
-            "mapbiomas_fire_collection41_annual_burned_v1": {"kind": "annual", "unit": "burned (0/1)", "vectorize": True},
-            "mapbiomas_fire_collection41_annual_burned_coverage_v1": {"kind": "annual", "unit": "coverage (%)", "vectorize": False},
-            "mapbiomas_fire_collection41_annual_burned_scar_size_range_v1": {"kind": "annual", "unit": "scar size class", "vectorize": False},
-            "mapbiomas_fire_collection41_monthly_burned_v1": {"kind": "monthly", "unit": "burned (0/1)", "vectorize": False},
-            "mapbiomas_fire_collection41_accumulated_burned_v1": {"kind": "period", "unit": "burned (0/1)", "vectorize": False},
-            "mapbiomas_fire_collection41_fire_frequency_v1": {"kind": "period", "unit": "frequency (count)", "vectorize": False},
-            "mapbiomas_fire_collection41_time_after_fire_v1": {"kind": "period", "unit": "years since fire", "vectorize": False},
-            "mapbiomas_fire_collection41_year_last_fire_v1": {"kind": "period", "unit": "last fire year", "vectorize": False},
-        },
-        "collection5": {
-            "mapbiomas_fire_collection5_annual_burned_v1": {"kind": "annual", "unit": "burned (0/1)", "vectorize": True},
-            "mapbiomas_fire_collection5_annual_burned_coverage_v1": {"kind": "annual", "unit": "coverage (%)", "vectorize": False},
-            "mapbiomas_fire_collection5_annual_burned_scar_size_range_v1": {"kind": "annual", "unit": "scar size class", "vectorize": False},
-            "mapbiomas_fire_collection5_monthly_burned_v1": {"kind": "monthly", "unit": "burned (0/1)", "vectorize": False},
-            "mapbiomas_fire_collection5_accumulated_burned_v1": {"kind": "period", "unit": "burned (0/1)", "vectorize": False},
-            "mapbiomas_fire_collection5_accumulated_burned_coverage_v1": {"kind": "period", "unit": "coverage (%)", "vectorize": False},
-            "mapbiomas_fire_collection5_fire_frequency_v1": {"kind": "period", "unit": "frequency (count)", "vectorize": False},
-        },
-    },
-    "indonesia": {
-        "monitor": {
-            "mapbiomas_fire_monthly_burned_v1": {"kind": "monthly", "unit": "burned (0/1)", "vectorize": False},
-        },
-        "collection1": {
-            "mapbiomas_fire_collection1_annual_burned_v1": {"kind": "annual", "unit": "burned (0/1)", "vectorize": True},
-            "mapbiomas_fire_collection1_annual_burned_coverage_v1": {"kind": "annual", "unit": "coverage (%)", "vectorize": False},
-            "mapbiomas_fire_collection1_monthly_burned_v1": {"kind": "monthly", "unit": "burned (0/1)", "vectorize": False},
-            "mapbiomas_fire_collection1_accumulated_burned_v1": {"kind": "period", "unit": "burned (0/1)", "vectorize": False},
-            "mapbiomas_fire_collection1_accumulated_burned_coverage_v1": {"kind": "period", "unit": "coverage (%)", "vectorize": False},
-            "mapbiomas_fire_collection1_fire_frequency_v1": {"kind": "period", "unit": "frequency (count)", "vectorize": False},
-        },
-    },
-}
-
 
 def short_name(name):
-    n = re.sub(r"^mapbiomas_fire_", "", name or "")
+    n = re.sub(r"^mapbiomas_(?:\w+_)?fire_", "", name or "")
     n = re.sub(r"^collection\d+_?", "", n)
     n = re.sub(r"_v\d+$", "", n)
     return n
 
 
-def detect_kind(name):
-    n = (name or "").lower()
+def detect_kind(product):
+    n = (product or "").lower()
     if "monthly" in n:
         return "monthly"
     if "annual" in n:
         return "annual"
-    if any(k in n for k in ("frequency", "accumulated", "recurrence", "time_after", "year_last")):
+    if any(k in n for k in ("frequency", "accumulated", "recurrence", "time_after", "year_last", "interval")):
         return "period"
     return "other"
 
 
-def is_vectorizable(name):
-    """Vetorizacao apenas para o produto anual de cicatriz 0/1 (annual_burned)."""
-    return detect_kind(name) == "annual" and short_name(name) == "annual_burned"
+def is_vectorizable(product):
+    return detect_kind(product) == "annual" and short_name(product) == "annual_burned"
 
 
-def suggest_save(dtype, max_value):
-    """Sugere como salvar o mosaico a partir do dtype e do max observado."""
-    dtype = (dtype or "").lower()
-    if "float" in dtype or "double" in dtype:
+def save_for_type(ptype):
+    t = (ptype or "byte").lower()
+    if t in ("float32", "float64", "float"):
         return {"ot": "Float32", "nodata": 0, "predictor": 3, "compression": "DEFLATE"}
-    if max_value is None or max_value <= 255:
-        return {"ot": "Byte", "nodata": 0, "predictor": 2, "compression": "DEFLATE"}
-    return {"ot": "Int16", "nodata": 0, "predictor": 2, "compression": "DEFLATE"}
+    if t in ("int16", "uint16", "int32"):
+        return {"ot": "Int16", "nodata": 0, "predictor": 2, "compression": "DEFLATE"}
+    return {"ot": "Byte", "nodata": 0, "predictor": 2, "compression": "DEFLATE"}
 
 
 def _dtype_from_data_type(dt):
@@ -117,42 +60,6 @@ def _dtype_from_data_type(dt):
     return f"Int{bits}"
 
 
-def _list_all(parent):
-    import ee
-    items = []
-    res = ee.data.listAssets({"parent": parent})
-    items.extend(res.get("assets", []))
-    token = res.get("nextPageToken")
-    while token:
-        res = ee.data.listAssets({"parent": parent, "pageToken": token})
-        items.extend(res.get("assets", []))
-        token = res.get("nextPageToken")
-    return items
-
-
-def list_products(country, theme="fire"):
-    """Retorna {colecao: [{'name','type'}, ...]} sob .../{country}/{theme}."""
-    import ee
-    root = f"projects/mapbiomas-public/assets/{country}/{theme}"
-    out = {}
-    try:
-        top = _list_all(root)
-    except Exception:
-        return {}
-    for a in top:
-        if a.get("type") == "FOLDER":
-            coll = a["name"].split("/")[-1]
-            try:
-                children = _list_all(a["name"])
-            except Exception:
-                continue
-            prods = [{"name": c["name"].split("/")[-1], "type": c["type"]}
-                     for c in children if c.get("type") in ("IMAGE", "IMAGE_COLLECTION")]
-            if prods:
-                out[coll] = prods
-    return out
-
-
 def _observed_max(image):
     import ee
     try:
@@ -163,47 +70,75 @@ def _observed_max(image):
         return None
 
 
-def inspect_asset(asset_id, asset_type="IMAGE_COLLECTION"):
-    """Retorna bandas, dtype, max observado e temporal de um produto."""
+def _bands_from_image(image):
+    bands = []
+    try:
+        g = image.getInfo()
+        for b in g.get("bands", []):
+            dt = b.get("data_type", {})
+            bands.append({"name": b.get("id"), "dtype": _dtype_from_data_type(dt)})
+    except Exception:
+        pass
+    return bands
+
+
+def inspect_asset(asset_id):
+    """Retorna tipo, bandas, dtype, max, temporal e units de um produto."""
     import ee
-    info = {}
-    if asset_type == "IMAGE":
+    info = {"assetid": asset_id}
+    try:
+        ameta = ee.data.getAsset(asset_id)
+        atype = ameta.get("type")
+    except Exception as e:
+        info["error"] = str(e)
+        return info
+    info["type"] = atype
+
+    if atype == "IMAGE":
         img = ee.Image(asset_id)
-        try:
-            meta = img.getInfo()
-            bands = []
-            for b in meta.get("bands", []):
-                dt = b.get("data_type", {})
-                bands.append({"name": b.get("id"), "dtype": _dtype_from_data_type(dt)})
-            info["bands"] = [b["name"] for b in bands]
-            info["dtype"] = bands[0]["dtype"] if bands else None
-        except Exception as e:
-            info["error"] = str(e)
+        bands = _bands_from_image(img)
+        info["bands"] = [b["name"] for b in bands]
+        info["dtype"] = bands[0]["dtype"] if bands else None
+        info["units"] = [{"key": b["name"], "label": b["name"]} for b in bands]
         info["max"] = _observed_max(img)
         return info
 
-    col = ee.ImageCollection(asset_id)
-    try:
-        info["n_images"] = col.size().getInfo()
-    except Exception:
-        info["n_images"] = None
-    try:
-        first = col.first()
-        meta = first.getInfo()
-        bands = []
-        for b in meta.get("bands", []):
-            dt = b.get("data_type", {})
-            bands.append({"name": b.get("id"), "dtype": _dtype_from_data_type(dt)})
+    if atype == "IMAGE_COLLECTION":
+        col = ee.ImageCollection(asset_id)
+        try:
+            info["n_images"] = col.size().getInfo()
+        except Exception:
+            info["n_images"] = None
+        bands = _bands_from_image(col.first())
         info["bands"] = [b["name"] for b in bands]
         info["dtype"] = bands[0]["dtype"] if bands else None
-        info["max"] = _observed_max(first)
-    except Exception as e:
-        info["error"] = str(e)
-    try:
-        info["t_start"] = col.aggregate_min("system:time_start").getInfo()
-        info["t_end"] = col.aggregate_max("system:time_start").getInfo()
-    except Exception:
-        pass
+        try:
+            info["max"] = _observed_max(col.first())
+        except Exception:
+            info["max"] = None
+        # units = imagens (system:index + label data)
+        try:
+            idx = col.aggregate_array("system:index").getInfo() or []
+            ts = col.aggregate_array("system:time_start").getInfo() or []
+            units = []
+            for i, ix in enumerate(idx):
+                lab = ix
+                if i < len(ts) and ts[i]:
+                    try:
+                        lab = datetime.datetime.utcfromtimestamp(ts[i] / 1000).strftime("%Y-%m-%d")
+                    except Exception:
+                        pass
+                units.append({"key": ix, "label": lab})
+            info["units"] = units
+        except Exception:
+            info["units"] = []
+        try:
+            info["t_start"] = col.aggregate_min("system:time_start").getInfo()
+            info["t_end"] = col.aggregate_max("system:time_start").getInfo()
+        except Exception:
+            pass
+        return info
+
     return info
 
 
@@ -224,34 +159,35 @@ def save_cache(inv):
 
 
 def build_inventory(countries=None, refresh=False):
-    """Descobre os produtos de cada pais e monta o inventario (cacheado)."""
-    countries = countries or list(config.COUNTRIES)
+    """Inventario dos produtos do OBJ, enriquecido pelo discovery GEE (cacheado)."""
+    countries = countries or list(config.OBJ)
     cache = {} if refresh else load_cache()
     inv = {}
     for country in countries:
         if country in cache and cache[country] and not refresh:
             inv[country] = cache[country]
             continue
-        products = list_products(country)
         country_inv = {}
-        for coll, prods in products.items():
-            country_inv[coll] = []
-            for p in prods:
-                asset_id = f"projects/mapbiomas-public/assets/{country}/fire/{coll}/{p['name']}"
-                meta = inspect_asset(asset_id, p["type"])
-                seed = PRODUCT_SEED.get(country, {}).get(coll, {}).get(p["name"], {})
-                kind = seed.get("kind") or detect_kind(p["name"])
-                rec = {
-                    "name": p["name"],
-                    "type": p["type"],
-                    "kind": kind,
-                    "unit": seed.get("unit", ""),
-                    "vectorize": seed.get("vectorize", is_vectorizable(p["name"])),
-                }
-                rec.update(meta)
-                rec["save"] = suggest_save(rec.get("dtype"), rec.get("max"))
-                rec["short"] = short_name(p["name"])
-                country_inv[coll].append(rec)
+        for theme, collections in config.OBJ.get(country, {}).items():
+            for coll, prods in collections.items():
+                entries = []
+                for p in prods:
+                    if not p.get("visible", True):
+                        continue
+                    meta = inspect_asset(p["assetid"])
+                    rec = {
+                        "name": p["product"],
+                        "assetid": p["assetid"],
+                        "declared_type": p.get("type", "byte"),
+                        "kind": detect_kind(p["product"]),
+                        "vectorize": p.get("vectorize", is_vectorizable(p["product"])),
+                        "unit": p.get("unit", ""),
+                    }
+                    rec.update(meta)
+                    rec["save"] = save_for_type(p.get("type", "byte"))
+                    entries.append(rec)
+                if entries:
+                    country_inv.setdefault(theme, {})[coll] = entries
         inv[country] = country_inv
     save_cache(inv)
     return inv

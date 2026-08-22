@@ -1,11 +1,31 @@
-"""Configuracao multi-pais do pipeline Export & Vectorization.
+"""Configuracao multipais/colecoes/produtos do pipeline Export & Vectorization.
 
-Todos os paths sao derivados por funcao (lidos em tempo de chamada), entao
-redefinir COUNTRY/BUCKET/etc. no notebook sempre propaga para os modulos
-(state, export, mosaic, vectorize, publish) sem precisar re-importar nada.
+Fonte de verdade: `OBJ` — arvore  pais -> tema -> colecao -> [produtos].
 
-Novo padrao de bucket (GCS):  {bucket}/initiatives/{country}/{theme}/{collection}/{product}
-Novo padrao de assets (GEE):  projects/mapbiomas-{country}/assets/FIRE/MONITOR/{product}
+    OBJ = {
+        "brasil": {
+            "fire": {
+                "monitor": [
+                    {"product": "monthly_burned",
+                     "assetid": "projects/mapbiomas-public/assets/brazil/fire/monitor/mapbiomas_fire_monthly_burned_v1",
+                     "type": "byte", "vectorize": True, "visible": True},
+                ],
+            },
+        },
+        ...
+    }
+
+- `product`: nome curto (vira a pasta GCS).
+- `assetid`: asset GEE de origem (projetos podem variar por pais).
+- `type`: dtype de salvamento no mosaico (byte | int16 | float32).
+- `vectorize`: se o produto gera vetorizacao/upload GEE.
+- `visible`: ocultar sem apagar.
+
+Seletores ativos: COUNTRY / THEME / COLLECTION / PRODUCT (lidos em tempo de
+chamada -> trocar sempre propaga para os modulos).
+
+Padrao GCS:  {bucket}/initiatives/{country}/{theme}/{collection}/{product}
+Assets GEE:  {assetid} (origem); vetores em projetos/mapbiomas-public/assets/{country}/{theme}/{collection}/{product}_vectors_v01
 """
 
 BUCKET = "mapbiomas-fire"
@@ -16,114 +36,365 @@ GEE_PROJECT = "mapbiomas-fire-485203"
 
 STATE_FILE = "monitor_state.json"
 
-COUNTRIES = {
-    "brazil": {
-        "image_collection": "projects/mapbiomas-public/assets/brazil/fire/monitor/mapbiomas_fire_monthly_burned_v1",
-        "theme": "fire",
-        "collection": "monitor",
-        "product": "mapbiomas_fire_monthly_burned_v1",
-        "product_vectors": "mapbiomas_fire_monthly_burned_vectors_v01",
-        "scale": 30,
+SCALE = 30
+
+
+def _p(country, theme, collection, product, assetid, ptype, vectorize=False, visible=True):
+    return {"product": product, "assetid": assetid, "type": ptype,
+            "vectorize": vectorize, "visible": visible}
+
+
+OBJ = {
+    "brasil": {
+        "fire": {
+            "monitor": [
+                _p("brasil", "fire", "monitor", "monthly_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/monitor/mapbiomas_fire_monthly_burned_v1",
+                   "byte", vectorize=True),
+            ],
+            "collection3": [
+                _p("brasil", "fire", "collection3", "annual_burned_coverage",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection31_annual_burned_coverage_v1", "byte"),
+                _p("brasil", "fire", "collection3", "monthly_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection31_monthly_burned_v1", "byte"),
+            ],
+            "collection4": [
+                _p("brasil", "fire", "collection4", "annual_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_annual_burned_v1", "byte", vectorize=True),
+                _p("brasil", "fire", "collection4", "annual_burned_coverage",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_annual_burned_coverage_v1", "byte"),
+                _p("brasil", "fire", "collection4", "annual_burned_scar_size_range",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_annual_burned_scar_size_range_v1", "byte"),
+                _p("brasil", "fire", "collection4", "monthly_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_monthly_burned_v1", "byte"),
+                _p("brasil", "fire", "collection4", "accumulated_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_accumulated_burned_v1", "byte"),
+                _p("brasil", "fire", "collection4", "fire_frequency",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_fire_frequency_v1", "int16"),
+                _p("brasil", "fire", "collection4", "time_after_fire",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_time_after_fire_v1", "int16"),
+                _p("brasil", "fire", "collection4", "year_last_fire",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_year_last_fire_v1", "int16"),
+            ],
+            "collection4_1": [
+                _p("brasil", "fire", "collection4_1", "annual_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_annual_burned_v1", "byte", vectorize=True),
+                _p("brasil", "fire", "collection4_1", "annual_burned_scar_size_range",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_annual_burned_scar_size_range_v1", "byte"),
+                _p("brasil", "fire", "collection4_1", "monthly_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_monthly_burned_v1", "byte"),
+                _p("brasil", "fire", "collection4_1", "accumulated_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_accumulated_burned_v1", "byte"),
+                _p("brasil", "fire", "collection4_1", "fire_frequency",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_fire_frequency_v1", "int16"),
+                _p("brasil", "fire", "collection4_1", "time_after_fire",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_time_after_fire_v1", "int16"),
+                _p("brasil", "fire", "collection4_1", "year_last_fire",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_year_last_fire_v1", "int16"),
+            ],
+            "collection5": [
+                _p("brasil", "fire", "collection5", "annual_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_v1", "byte", vectorize=True),
+                _p("brasil", "fire", "collection5", "annual_burned_coverage",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_coverage_v1", "byte"),
+                _p("brasil", "fire", "collection5", "annual_burned_scar_size_range",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_scar_size_range_v1", "byte"),
+                _p("brasil", "fire", "collection5", "monthly_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_monthly_burned_v1", "byte"),
+                _p("brasil", "fire", "collection5", "accumulated_burned",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_v1", "byte"),
+                _p("brasil", "fire", "collection5", "accumulated_burned_coverage",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_coverage_v1", "byte"),
+                _p("brasil", "fire", "collection5", "fire_frequency",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_fire_frequency_v1", "int16"),
+                _p("brasil", "fire", "collection5", "time_after_fire",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_time_after_fire_v1", "int16"),
+                _p("brasil", "fire", "collection5", "year_last_fire",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_year_last_fire_v1", "int16"),
+                _p("brasil", "fire", "collection5", "severity_class",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_severity_class_v1", "byte"),
+                _p("brasil", "fire", "collection5", "interval_since_fire",
+                   "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_interval_since_fire_v1", "int16"),
+            ],
+        },
     },
     "indonesia": {
-        "image_collection": "projects/mapbiomas-public/assets/indonesia/fire/monitor/mapbiomas_fire_monthly_burned_v1",
-        "theme": "fire",
-        "collection": "monitor",
-        "product": "mapbiomas_fire_monthly_burned_v1",
-        "product_vectors": "mapbiomas_fire_monthly_burned_vectors_v01",
-        "scale": 30,
+        "fire": {
+            "monitor": [
+                _p("indonesia", "fire", "monitor", "monthly_burned",
+                   "projects/mapbiomas-public/assets/indonesia/fire/monitor/mapbiomas_fire_monthly_burned_v1",
+                   "byte", vectorize=True),
+            ],
+            "collection1": [
+                _p("indonesia", "fire", "collection1", "annual_burned",
+                   "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_annual_burned_v1", "byte", vectorize=True),
+                _p("indonesia", "fire", "collection1", "annual_burned_coverage",
+                   "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_annual_burned_coverage_v1", "byte"),
+                _p("indonesia", "fire", "collection1", "monthly_burned",
+                   "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_monthly_burned_v1", "byte"),
+                _p("indonesia", "fire", "collection1", "accumulated_burned",
+                   "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_accumulated_burned_v1", "byte"),
+                _p("indonesia", "fire", "collection1", "accumulated_burned_coverage",
+                   "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_accumulated_burned_coverage_v1", "byte"),
+                _p("indonesia", "fire", "collection1", "fire_frequency",
+                   "projects/mapbiomas-public/assets/indonesia/fire/collection1/mapbiomas_fire_collection1_fire_frequency_v1", "int16"),
+            ],
+        },
+    },
+    "bolivia": {
+        "fire": {
+            "collection1": [
+                _p("bolivia", "fire", "collection1", "annual_burned",
+                   "projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_annual_burned_v1", "byte", vectorize=True),
+                _p("bolivia", "fire", "collection1", "annual_burned_scar_size_range",
+                   "projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_annual_burned_scar_size_range_v1", "byte"),
+                _p("bolivia", "fire", "collection1", "monthly_burned",
+                   "projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_monthly_burned_v1", "byte"),
+                _p("bolivia", "fire", "collection1", "accumulated_burned",
+                   "projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_accumulated_burned_v1", "byte"),
+                _p("bolivia", "fire", "collection1", "frequency_burned",
+                   "projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_frequency_burned_v1", "int16"),
+                _p("bolivia", "fire", "collection1", "year_last_fire",
+                   "projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_year_last_fire_v1", "int16"),
+            ],
+        },
+    },
+    "peru": {
+        "fire": {
+            "collection1": [
+                _p("peru", "fire", "collection1", "annual_burned_coverage",
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_annual_burned_coverage_v1", "byte"),
+                _p("peru", "fire", "collection1", "monthly_burned_coverage",
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_monthly_burned_coverage_v1", "byte"),
+                _p("peru", "fire", "collection1", "frequency_burned_coverage",
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_frequency_burned_coverage_v1", "int16"),
+                _p("peru", "fire", "collection1", "accumulated_burned_coverage",
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_accumulated_burned_coverage_v1", "byte"),
+                _p("peru", "fire", "collection1", "annual_burned_scar_size_range",
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_annual_burned_scar_size_range_v1", "byte"),
+                _p("peru", "fire", "collection1", "year_last_fire",
+                   "projects/mapbiomas-peru/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_peru_fire_collection1_year_last_fire_v1", "int16"),
+            ],
+        },
+    },
+    "paraguay": {
+        "fire": {
+            "collection1": [
+                _p("paraguay", "fire", "collection1", "annual_burned_coverage",
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_annual_burned_coverage_v1", "byte"),
+                _p("paraguay", "fire", "collection1", "monthly_burned_coverage",
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_monthly_burned_coverage-v1", "byte"),
+                _p("paraguay", "fire", "collection1", "frequency_burned_coverage",
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_frequency_burned_coverage_v1", "int16"),
+                _p("paraguay", "fire", "collection1", "accumulated_burned_coverage",
+                   "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_accumulated_burned_coverage_v1", "byte"),
+            ],
+        },
+    },
+    "chile": {
+        "fire": {},
     },
 }
 
-COUNTRY = "brazil"
+# --- seletores ativos ---
+COUNTRY = "brasil"
+THEME = "fire"
+COLLECTION = "monitor"
+PRODUCT = "monthly_burned"
 
-# Paises expostos como abas na UI (ordem de exibicao).
-COUNTRIES_AVAILABLE = ["brazil", "indonesia"]
-
+COUNTRIES_AVAILABLE = list(OBJ)
 COUNTRIES_FLAGS = {
-    "brazil": "🇧🇷",
+    "brasil": "🇧🇷",
     "indonesia": "🇮🇩",
+    "bolivia": "🇧🇴",
+    "peru": "🇵🇪",
+    "paraguay": "🇵🇾",
+    "chile": "🇨🇱",
 }
+
+# Compat com ui (valida chaves por pais)
+COUNTRIES = {code: {} for code in OBJ}
 
 
 def flag(code):
     return COUNTRIES_FLAGS.get(code, "🌍")
 
 
-def _country():
-    return COUNTRIES.get(COUNTRY, COUNTRIES["brazil"])
+def list_countries():
+    return [c for c, themes in OBJ.items() if any(
+        any(prods for prods in collections.values()) for collections in themes.values())]
+
+
+def list_collections(country, theme=None):
+    theme = theme or THEME
+    return {coll: [p["product"] for p in prods if p.get("visible", True)]
+            for coll, prods in OBJ.get(country, {}).get(theme, {}).items()
+            if [p for p in prods if p.get("visible", True)]}
+
+
+def list_products(country, theme=None, collection=None):
+    theme = theme or THEME
+    collection = collection or COLLECTION
+    return [p for p in OBJ.get(country, {}).get(theme, {}).get(collection, [])
+            if p.get("visible", True)]
+
+
+def find_product(country, theme, collection, product):
+    for p in OBJ.get(country, {}).get(theme, {}).get(collection, []):
+        if p["product"] == product:
+            return p
+    return None
 
 
 def set_country(name, verbose=True):
-    """Seleciona o pais ativo. Valida e (se verbose) imprime os caminhos."""
-    global COUNTRY
-    if name not in COUNTRIES:
-        raise ValueError(
-            f"Country '{name}' not configured. Available: {sorted(COUNTRIES)}"
-        )
+    global COUNTRY, THEME, COLLECTION, PRODUCT
+    if name not in OBJ:
+        raise ValueError(f"Country '{name}' not configured. Available: {sorted(OBJ)}")
     COUNTRY = name
-    if not verbose:
-        return
-    print("Country:", COUNTRY)
-    print("Collection:", image_collection())
-    print("GCS tiles:", f"gs://{BUCKET}/{tiles_prefix()}")
-    print("GCS COG:", f"gs://{BUCKET}/{mosaic_prefix()}")
-    print("GCS vectors:", f"gs://{BUCKET}/{vector_prefix()}")
-    print("GEE assets:", vector_asset_prefix())
+    themes = OBJ[name]
+    THEME = next(iter(themes), "fire")
+    colls = themes.get(THEME, {})
+    COLLECTION = next(iter(colls), None)
+    prods = colls.get(COLLECTION, [])
+    PRODUCT = prods[0]["product"] if prods else None
+    if verbose:
+        print("Country:", COUNTRY, "| Theme:", THEME, "| Collection:", COLLECTION, "| Product:", PRODUCT)
+    if PRODUCT:
+        p = find_product(COUNTRY, THEME, COLLECTION, PRODUCT)
+        if p:
+            print("Collection:", p["assetid"])
+
+
+def set_theme(name):
+    global THEME, COLLECTION, PRODUCT
+    if name not in OBJ.get(COUNTRY, {}):
+        raise ValueError(f"Theme '{name}' not configured for {COUNTRY}.")
+    THEME = name
+    colls = OBJ[COUNTRY][THEME]
+    COLLECTION = next(iter(colls), None)
+    prods = colls.get(COLLECTION, [])
+    PRODUCT = prods[0]["product"] if prods else None
+
+
+def set_collection(name):
+    global COLLECTION, PRODUCT
+    colls = OBJ.get(COUNTRY, {}).get(THEME, {})
+    if name not in colls:
+        raise ValueError(f"Collection '{name}' not configured for {COUNTRY}/{THEME}.")
+    COLLECTION = name
+    prods = colls.get(COLLECTION, [])
+    PRODUCT = prods[0]["product"] if prods else None
+
+
+def set_product(name):
+    global PRODUCT
+    if find_product(COUNTRY, THEME, COLLECTION, name) is None:
+        raise ValueError(f"Product '{name}' not configured for {COUNTRY}/{THEME}/{COLLECTION}.")
+    PRODUCT = name
+
+
+def active_product():
+    return find_product(COUNTRY, THEME, COLLECTION, PRODUCT)
+
+
+def product_meta():
+    return active_product() or {"product": PRODUCT, "assetid": "", "type": "byte",
+                                "vectorize": False, "visible": True}
 
 
 def image_collection():
-    return _country()["image_collection"]
+    return active_product()["assetid"]
 
 
 def scale():
-    return _country()["scale"]
+    return SCALE
 
 
 def theme():
-    return _country()["theme"]
+    return THEME
 
 
 def collection():
-    return _country()["collection"]
+    return COLLECTION
 
 
 def product():
-    return _country()["product"]
+    return PRODUCT
 
 
-def product_vectors():
-    return _country()["product_vectors"]
+def is_vectorizable():
+    return bool(product_meta().get("vectorize"))
 
 
-def _rel(product_name):
-    return f"{BUCKET_PATH}/{COUNTRY}/{theme()}/{collection()}/{product_name}"
+def save_options():
+    """Mapeia o type declarado do produto para o salvamento do mosaico."""
+    t = (product_meta().get("type") or "byte").lower()
+    if t in ("float32", "float64", "float"):
+        return {"ot": "Float32", "nodata": 0, "predictor": 3, "compression": "DEFLATE"}
+    if t in ("int16", "uint16", "int32"):
+        return {"ot": "Int16", "nodata": 0, "predictor": 2, "compression": "DEFLATE"}
+    return {"ot": "Byte", "nodata": 0, "predictor": 2, "compression": "DEFLATE"}
+
+
+def _rel(prod):
+    return f"{BUCKET_PATH}/{COUNTRY}/{THEME}/{COLLECTION}/{prod}"
 
 
 def tiles_prefix():
-    return f"{_rel(product())}/temp"
+    return f"{_rel(PRODUCT)}/temp"
 
 
 def mosaic_prefix():
-    return _rel(product())
+    return _rel(PRODUCT)
 
 
 def vector_prefix():
-    return _rel(product_vectors())
+    return f"{_rel(PRODUCT)}_vectors"
 
 
 def vector_asset_prefix():
-    # Pasta irma da ImageCollection de entrada (Etapa 1): mapbiomas-public/{country}/fire/monitor
-    return f"projects/mapbiomas-public/assets/{COUNTRY}/fire/monitor/{product_vectors()}"
+    return (f"projects/mapbiomas-public/assets/{COUNTRY}/{THEME}/{COLLECTION}/"
+            f"{PRODUCT}_vectors_v01")
 
 
 def tile_pattern(year, month):
-    return f"fire_monitor_v1_monthly_burned_{COUNTRY}_{year}_{month:02d}"
+    return f"fire_monitor_v1_{PRODUCT}_{COUNTRY}_{year}_{month:02d}"
 
 
 def mosaic_name(year, month):
-    return f"monthly_burned-{COUNTRY}_{year}_{month:02d}"
+    return f"{PRODUCT}-{COUNTRY}_{year}_{month:02d}"
 
 
 def vector_name(year, month):
-    return f"monthly_burned-{COUNTRY}_{year}_{month:02d}"
+    return f"{PRODUCT}-{COUNTRY}_{year}_{month:02d}"
+
+
+# --- nomes por unidade (multibanda/IC) ---
+def _sanitize(unit):
+    return "".join(c if c.isalnum() or c in "-_." else "_" for c in str(unit))
+
+
+def tile_pattern_unit(unit):
+    return f"fire_monitor_v1_{PRODUCT}_{COUNTRY}_{_sanitize(unit)}"
+
+
+def mosaic_name_unit(unit):
+    return f"{PRODUCT}-{COUNTRY}_{_sanitize(unit)}"
+
+
+def vector_name_unit(unit):
+    return f"{PRODUCT}-{COUNTRY}_{_sanitize(unit)}"
+
+
+def add_collection(country, theme, collection, products):
+    """Insere/atualiza uma colecao no OBJ (qualquer tema). products = lista de
+    dicts com product/assetid/type/vectorize/visible."""
+    OBJ.setdefault(country, {}).setdefault(theme, {})[collection] = [
+        _p(country, theme, collection, p.get("product"), p.get("assetid"),
+           p.get("type", "byte"), vectorize=p.get("vectorize", False),
+           visible=p.get("visible", True))
+        for p in products
+    ]
+    if country not in COUNTRIES_AVAILABLE:
+        COUNTRIES_AVAILABLE.append(country)
+        COUNTRIES[country] = {}
