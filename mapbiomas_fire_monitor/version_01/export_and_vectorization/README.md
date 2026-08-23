@@ -4,12 +4,26 @@ Pipeline de 7 etapas para processar os mapas mensais de area queimada do Monitor
 do Fogo (multipais): exportacao do GEE, mosaico, vetorizacao, publicacao no GEE,
 publicacao no bucket publico e limpeza do temp.
 
+## Abrir no Google Colab
+
+Os notebooks rodam direto no Colab a partir desta `main` (sem clone manual):
+
+[![Open In Colab — All Initiatives](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/mapbiomas_fire_monitor/version_01/export_and_vectorization/mapbiomas_directlink_all_initiatives.ipynb)
+**`mapbiomas_directlink_all_initiatives.ipynb`** — todas as iniciativas/temas (`THEMES = []`)
+
+[![Open In Colab — Fire Monitor Brazil](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/mapbiomas_fire_monitor/version_01/export_and_vectorization/mapbiomas_fire_monitor_brazil.ipynb)
+**`mapbiomas_fire_monitor_brazil.ipynb`** — somente fogo (`THEMES = ["fire"]`)
+
+> O link segue o padrao
+> `https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/<caminho>/notebook.ipynb`.
+
 ## Estrutura
 
 ```
 export_and_vectorization/
 ├── README.md
-├── mapbiomas_fire_monitor_brazil.ipynb   ← notebook (Colab)
+├── mapbiomas_directlink_all_initiatives.ipynb   ← notebook multi-iniciativa (Colab)
+├── mapbiomas_fire_monitor_brazil.ipynb          ← notebook focado em fogo (Colab)
 ├── config.py                             ← configuracao multipais (paths derivados)
 ├── state.py                              ← cache e scan GCS/GEE
 ├── export.py                             ← GEE → GCS tiles (Byte 0/1)
@@ -21,7 +35,7 @@ export_and_vectorization/
 
 ## Como usar
 
-1. Abra o notebook `mapbiomas_fire_monitor_brazil.ipynb` no Google Colab.
+1. Abra um dos notebooks no Google Colab pelos badges da secao acima.
 2. Execute a celula 1 para instalar dependencias.
 3. Execute a celula 2 para autenticar no GCP e Google Earth Engine.
 4. Na celula de config, defina `COUNTRIES` (códigos do OBJ, ex.: `["brasil", "indonesia"]`).
