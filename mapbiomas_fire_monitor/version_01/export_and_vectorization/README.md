@@ -156,6 +156,23 @@ O UI é autossuficiente: todos os componentes tem **fundo e cores explicitos** d
 alto contraste, entao fica legivel independente do tema do Colab. Badges **OK** de
 download aparecem como **`🔗 OK`** (sublinhado com outline sutil).
 
+## Log drawer
+
+O painel de log foi otimizado para **nao custar processamento**:
+
+- A aba **Log history** mantem em tela apenas as ultimas **500 linhas**
+  (ring buffer) renderizadas em um unico widget, com atualizacao throttled —
+  o DOM nao cresce com o volume de mensagens.
+- O historico **completo da sessao** pode ser baixado a qualquer momento pelo
+  botao **`⬇ Export log (.txt)`** (download direto no Colab; fora dele, salva
+  o arquivo localmente e imprime o caminho).
+- Por padrao, linhas por-unidade (`[DEBUG]`, `[FOUND]`, `[SKIP]`) ficam
+  ocultas e cada etapa mostra um **sumario** final, ex.:
+  `[MOSAIC] Done: 12 ok, 30 skipped, 0 failed (42 units)`.
+- Para ver o detalhe unidade a unidade, ative no `config.py`:
+  `LOG_VERBOSE = True`.
+- Mensagens `[ERROR]`/`[WARN]` sempre aparecem imediatamente.
+
 ## Selecionar um ano ou unidades especificas
 
 - **Filtro por ano**: o dropdown de ano na UI restringe a grid as unidades do ano

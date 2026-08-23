@@ -40,6 +40,10 @@ STATE_FILE = "monitor_state.json"
 
 SCALE = 30
 
+# Verbose logging: quando True, o log drawer mostra linhas por-unidade
+# ([FOUND], [SKIP], [DEBUG]). Default False: apenas sumarios por lote.
+LOG_VERBOSE = False
+
 
 def _p(country, theme, collection, product, assetid, ptype, vectorize=False, visible=True,
        scale=30, decode=None):

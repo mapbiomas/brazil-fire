@@ -1,6 +1,11 @@
 import datetime
+import os
 import random
+import re
 import threading
+import time
+from collections import deque
+
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 
@@ -81,25 +86,118 @@ class StoryLoader:
 
 
 class LogDrawer:
-    """Guia global com uma visao do ultimo log e outra do historico."""
+    """Guia global de logs: cauda limitada em tela + historico completo exportavel.
+
+    Custo por mensagem e O(1) em memoria de widget: um unico HTML e
+    re-renderizado (throttled) com a cauda do ring buffer, em vez de
+    empilhar widgets no DOM. O historico completo da sessao fica em uma
+    lista Python pura e pode ser baixado como .txt.
+    """
+
+    MAX_RENDERED = 500      # linhas mantidas na aba "Log history"
+    FLUSH_INTERVAL = 0.4    # segundos entre renders (throttle)
 
     def __init__(self):
-        self.output = widgets.Output()
-        self.history = []
-        self.last = widgets.HTML(value="<div style='padding:5px 8px;color:#6c757d;'>No messages yet.</div>")
-        self.output = widgets.Output()
+        self._lock = threading.Lock()
+        self._buffer = deque(maxlen=self.MAX_RENDERED)
+        self._full_history = []
+        self._last_flush = 0.0
+        self._flush_timer = None
+        self._flush_gen = 0
+
+        self.last = widgets.HTML(
+            value="<div style='padding:5px 8px;color:#6c757d;'>No messages yet.</div>")
+        self.log_view = widgets.HTML()
+        btn_export = widgets.Button(
+            description="\u2913 Export log (.txt)", icon="download",
+            layout=L(height="28px"),
+            tooltip="Download the complete session log as a .txt file")
+        btn_export.on_click(self._export_log)
+        toolbar = widgets.HBox(
+            [btn_export],
+            layout=L(display="flex", justify_content="flex-end"))
+        self.output = widgets.VBox(
+            [toolbar, self.log_view],
+            layout=L(max_height="260px", overflow="auto", padding="4px",
+                     border="1px solid #cccccc", background="#ffffff"))
         self.tab = widgets.Tab(children=[self.last, self.output])
         self.tab.set_title(0, "Last log")
         self.tab.set_title(1, "Log history")
         self.container = widgets.VBox([self.tab])
-        self.output.layout = L(max_height="240px", overflow="auto", padding="4px",
-                               border="1px solid #cccccc", background="#ffffff")
 
-    def append(self, html):
-        self.history.append(html)
-        self.last.value = f'<div style="padding:5px 8px;color:#495057;font-size:12px;">{html}</div>'
-        with self.output:
-            display(widgets.HTML(html))
+    @property
+    def history(self):
+        """Historico completo da sessao (todas as mensagens, sem poda)."""
+        return self._full_history
+
+    # ------------------------------------------------------------------ API
+    def append(self, message, level=None):
+        verbose = bool(getattr(config, "LOG_VERBOSE", False))
+        if not verbose and "[DEBUG]" in str(message):
+            return
+        message = str(message)
+        urgent = (level in ("warning", "error")
+                  or "[ERROR]" in message or "[WARN]" in message)
+        now = time.monotonic()
+        with self._lock:
+            self._buffer.append(message)
+            self._full_history.append(message)
+            self.last.value = (
+                f'<div style="padding:5px 8px;color:#495057;font-size:12px;">'
+                f'{message}</div>')
+            if urgent or (now - self._last_flush) >= self.FLUSH_INTERVAL:
+                self._render_locked()
+            elif self._flush_timer is None:
+                delay = max(0.05, self.FLUSH_INTERVAL - (now - self._last_flush))
+                self._schedule_flush(delay)
+
+    # ------------------------------------------------------------ internals
+    def _schedule_flush(self, delay):
+        gen = self._flush_gen
+        timer = threading.Timer(delay, self._deferred_flush, args=(gen,))
+        timer.daemon = True
+        self._flush_timer = timer
+        timer.start()
+
+    def _deferred_flush(self, gen):
+        with self._lock:
+            self._flush_timer = None
+            if gen != self._flush_gen:
+                return  # um render mais recente ja aconteceu
+            self._render_locked()
+
+    def _render_locked(self):
+        self._flush_gen += 1
+        self._last_flush = time.monotonic()
+        self.log_view.value = "".join(
+            f'<div style="padding:1px 8px;color:#495057;font-size:12px;'
+            f'border-bottom:1px solid #f1f3f5;">{m}</div>'
+            for m in self._buffer)
+
+    def _export_log(self, _=None):
+        tag_re = re.compile(r"<[^>]+>")
+        with self._lock:
+            lines = [tag_re.sub("", m)
+                     .replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+                     for m in self._full_history]
+        stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        fname = f"mapbiomas_fire_log_{stamp}.txt"
+        try:
+            from google.colab import files as colab_files  # noqa: F401
+            path = fname
+        except Exception:
+            path = os.path.join(os.getcwd(), fname)
+        try:
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write("\n".join(lines) + "\n")
+        except Exception as exc:
+            print("Log export failed:", exc)
+            return
+        try:
+            from google.colab import files as colab_files
+            colab_files.download(path)
+        except Exception:
+            print(f"Log saved to: {path}")
 
 
 def _palette():

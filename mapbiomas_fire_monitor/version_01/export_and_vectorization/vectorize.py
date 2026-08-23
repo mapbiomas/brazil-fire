@@ -352,14 +352,24 @@ def vectorize_selected(ui, logger=None, force=False):
         logger(f"[VECTORIZE] Starting vectorization of {len(jobs)} unit(s) "
                f"in {len(seen_ctx) - len(skipped)} product(s) ({workers} workers)...", "info")
 
+    verbose = bool(getattr(config, "LOG_VERBOSE", False))
+    counts = {"OK": 0, "SKIP": 0, "FAIL": 0}
+
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futures = {ex.submit(_process, j): j[0] for j in jobs}
         for f in as_completed(futures):
-            if logger:
-                logger(f.result())
+            res = f.result()
+            if res.startswith("[") and "]" in res:
+                tag = res[1:res.index("]")]
+                if tag in counts:
+                    counts[tag] += 1
+            if logger and (verbose or not res.startswith("[SKIP]")):
+                logger(res)
 
     if logger:
-        logger("[VECTORIZE] Done. Click Sync to update the grid.", "success")
+        logger(f"[VECTORIZE] Done: {counts['OK']} ok, {counts['SKIP']} skipped, "
+               f"{counts['FAIL']} failed ({len(jobs)} units). "
+               "Click Sync to update the grid.", "success")
 
     processed = [key for key in seen_ctx if key not in skipped]
     selection.sync_affected(ui, processed)

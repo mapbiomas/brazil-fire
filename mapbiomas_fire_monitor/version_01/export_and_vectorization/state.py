@@ -96,6 +96,13 @@ def scan_gcs(context=None, logger=None):
         if logger:
             logger(msg)
 
+    verbose = bool(getattr(config, "LOG_VERBOSE", False))
+
+    def _detail(msg):
+        # Por-unidade/DEBUG: so com LOG_VERBOSE=True (evita inundar o drawer).
+        if verbose and logger:
+            logger(msg)
+
     product = context["product"]
     storage_country = context["storage_country"]
     root = context["root"]
@@ -105,43 +112,46 @@ def scan_gcs(context=None, logger=None):
     tile_prefix = f"fire_monitor_v1_{product}_{storage_country}_"
     art_prefix = f"{product}-{storage_country}_"
 
-    _log(f"[DEBUG] context={context}")
-
     _log(f"Scanning GCS: gs://{config.BUCKET}/{tiles_path}/{tile_prefix}*.tif ...")
     try:
         tile_files = fs.glob(f"{config.BUCKET}/{tiles_path}/{tile_prefix}*.tif")
-        _log(f"[DEBUG] tile matches={len(tile_files)}")
         for f in tile_files:
             unit = _tile_unit(f.split('/')[-1], context)
             if unit:
-                _log(f"[FOUND] Export unit={unit} path={f}")
+                _detail(f"[FOUND] Export unit={unit} path={f}")
                 tiles_present.add(unit)
                 state.setdefault(unit, _new_entry())["exported"] = True
+        _log(f"[GCS] temp/: {len(tile_files)} tile(s), "
+             f"{len(tiles_present)} unit(s) exported")
     except Exception as e:
         _log(f"Error scanning tiles: {e}")
 
     # Fallback para exports conhecidos quando a listagem GCS falha ou esta vazia.
     if context["collection"] == "monitor" and "monthly" in product:
+        n_fb_tiles = 0
         for unit in _fallback_months():
             tile_glob = f"{tiles_path}/{tile_prefix}{unit}_*.tif"
             matches = fs.glob(f"{config.BUCKET}/{tile_glob}")
             if matches:
-                _log(f"[FOUND] Export unit={unit} path={matches[0]}")
+                _detail(f"[FOUND] Export unit={unit} path={matches[0]}")
                 tiles_present.add(unit)
                 _merge_unit(state, unit, exported=True)
+                n_fb_tiles += 1
+        if n_fb_tiles:
+            _detail(f"[GCS] temp/: +{n_fb_tiles} unit(s) via month-fallback")
 
     _log(f"Scanning GCS: gs://{config.BUCKET}/{mosaic_path}/{art_prefix}*.tif ...")
     try:
         mosaic_files = fs.glob(f"{config.BUCKET}/{mosaic_path}/{art_prefix}*.tif")
-        _log(f"[DEBUG] mosaic matches={len(mosaic_files)}")
         for f in mosaic_files:
             unit = _unit_from_name(f.split('/')[-1], art_prefix, ".tif")
             if unit:
-                _log(f"[FOUND] Mosaic unit={unit} path={f}")
+                _detail(f"[FOUND] Mosaic unit={unit} path={f}")
                 cog_present.add(unit)
                 entry = state.setdefault(unit, _new_entry())
                 entry["exported"] = True
                 entry["mosaiced"] = True
+        _log(f"[GCS] mosaics: {len(mosaic_files)} cog(s), {len(cog_present)} unit(s)")
     except Exception as e:
         _log(f"Error scanning mosaics: {e}")
 
@@ -149,7 +159,7 @@ def scan_gcs(context=None, logger=None):
         for unit in _fallback_months():
             object_path = f"{mosaic_path}/{art_prefix}{unit}.tif"
             if _object_exists(fs, config.BUCKET, object_path):
-                _log(f"[FOUND] Mosaic unit={unit} path={config.BUCKET}/{object_path}")
+                _detail(f"[FOUND] Mosaic unit={unit} path={config.BUCKET}/{object_path}")
                 cog_present.add(unit)
                 _merge_unit(state, unit, exported=True, mosaiced=True)
 
@@ -160,6 +170,7 @@ def scan_gcs(context=None, logger=None):
             unit = _unit_from_name(f.split('/')[-1], art_prefix, ".zip")
             if unit:
                 state.setdefault(unit, _new_entry())["vectorized_gcs"] = True
+        _log(f"[GCS] vectors: {len(vector_files)} zip(s)")
     except Exception as e:
         _log(f"Error scanning vectors: {e}")
 
@@ -170,6 +181,7 @@ def scan_gcs(context=None, logger=None):
             unit = _unit_from_name(f.split('/')[-1], art_prefix, ".tif")
             if unit:
                 state.setdefault(unit, _new_entry())["published_mosaic"] = True
+        _log(f"[PUBLIC] mosaics: {len(pub_mosaic_files)} cog(s)")
     except Exception as e:
         _log(f"Error scanning public mosaics: {e}")
 
@@ -180,6 +192,7 @@ def scan_gcs(context=None, logger=None):
             unit = _unit_from_name(f.split('/')[-1], art_prefix, ".zip")
             if unit:
                 state.setdefault(unit, _new_entry())["published_vector"] = True
+        _log(f"[PUBLIC] vectors: {len(pub_vector_files)} zip(s)")
     except Exception as e:
         _log(f"Error scanning public vectors: {e}")
 
@@ -187,7 +200,8 @@ def scan_gcs(context=None, logger=None):
         entry = state.setdefault(unit, _new_entry())
         entry["temp_cleaned"] = unit not in tiles_present
 
-    _log(f"[DEBUG] state units={sorted(state)}")
+    _detail(f"[DEBUG] state units={sorted(state)}")
+    _log(f"[STATE] {len(state)} unit(s) tracked")
 
     return state
 
