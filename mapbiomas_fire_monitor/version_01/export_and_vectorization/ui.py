@@ -11,18 +11,16 @@ L = widgets.Layout
 
 _STATUS_CSS = widgets.HTML("""<style>
 @keyframes mfm-spin { to { transform: rotate(360deg); } }
-@keyframes mfm-pulse-red {
-    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-    50% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+@keyframes mfm-pulse-outline {
+    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.8); }
+    50% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
 }
 .mfm-ok   { background:#d4edda !important; border:1px solid #c3e6cb !important; }
 .mfm-run  { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
 .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
-.mfm-unloaded {
-    animation: mfm-pulse-red 1.5s infinite;
-    border: 3px solid #dc3545 !important;
-    border-radius: 4px;
+.mfm-btn-unloaded {
+    animation: mfm-pulse-outline 1.5s infinite;
 }
 </style>""")
 
@@ -575,10 +573,16 @@ class UnitGridPanel:
             self.btn_load_data.button_style = "success"
             self.btn_load_data.description = "Data Loaded"
             self.btn_load_data.icon = "check"
+            # Remove pulsing outline
+            if hasattr(self.btn_load_data, 'remove_class'):
+                self.btn_load_data.remove_class('mfm-btn-unloaded')
         else:
             self.btn_load_data.button_style = "danger"
             self.btn_load_data.description = "Load Data"
             self.btn_load_data.icon = "download"
+            # Add pulsing outline
+            if hasattr(self.btn_load_data, 'add_class'):
+                self.btn_load_data.add_class('mfm-btn-unloaded')
 
     def _notify_tab_style(self):
         """Notify parent ProductTabs to update tab style for this product."""
@@ -870,26 +874,8 @@ class ProductTabs:
 
     def _update_tab_style(self, product):
         """Update tab style based on whether data is loaded for this product."""
-        try:
-            index = self.products.index(product)
-            panel = self._panels.get(product)
-            if panel and getattr(panel, '_data_loaded', False):
-                self._loaded_products.add(product)
-                # Remove unloaded style
-                tab_children = list(self.tab.children)
-                if index < len(tab_children):
-                    child = tab_children[index]
-                    if hasattr(child, 'remove_class'):
-                        child.remove_class('mfm-unloaded')
-            elif product not in self._loaded_products:
-                # Add unloaded style (red pulsing outline)
-                tab_children = list(self.tab.children)
-                if index < len(tab_children):
-                    child = tab_children[index]
-                    if hasattr(child, 'add_class'):
-                        child.add_class('mfm-unloaded')
-        except (ValueError, IndexError):
-            pass
+        # Button now handles its own pulsing; tabs don't need special styling
+        pass
 
     def __getattr__(self, name):
         if name == "_active_panel":
