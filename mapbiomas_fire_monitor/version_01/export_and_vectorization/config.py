@@ -303,6 +303,10 @@ THEME = "fire"
 COLLECTION = "monitor"
 PRODUCT = "monthly_burned"
 
+# Temas exibidos como abas na UI. None ou [] = todos os temas disponiveis.
+# Ex.: THEMES = ["fire"] restringe a interface ao tema de fogo.
+THEMES = None
+
 COUNTRIES_AVAILABLE = list(OBJ)
 COUNTRIES_FLAGS = {
     "brasil": "🇧🇷",

@@ -997,8 +997,10 @@ class ThemeTabs:
         self._build_tabs()
 
     def _build_tabs(self):
-        themes = [t for t, colls in config.OBJ.get(self.country, {}).items()
-                  if any([p for p in prods if p.get("visible", True)] for prods in colls.values())]
+        available = [t for t, colls in config.OBJ.get(self.country, {}).items()
+                     if any([p for p in prods if p.get("visible", True)] for prods in colls.values())]
+        allowed = getattr(config, "THEMES", None)
+        themes = [t for t in allowed if t in available] if allowed else available
         self.themes = themes
         self._panels = {}
         self._placeholders = [widgets.VBox([]) for _ in themes]
