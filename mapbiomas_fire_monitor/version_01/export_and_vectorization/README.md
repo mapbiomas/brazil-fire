@@ -4,6 +4,10 @@ Pipeline de 7 etapas para processar os mapas mensais de area queimada do Monitor
 do Fogo (multipais): exportacao do GEE, mosaico, vetorizacao, publicacao no GEE,
 publicacao no bucket publico e limpeza do temp.
 
+> ⚠️ **Fluxo beta/experimental**: o catalogo (`config.OBJ`) NAO inclui todos os
+> dados do MapBiomas — e um subconjunto validado. Valide os resultados em escopo
+> reduzido antes de escalar o processamento.
+
 ## Abrir no Google Colab
 
 Os notebooks rodam direto no Colab a partir desta `main` (sem clone manual):
@@ -72,6 +76,20 @@ apenas `annual_burned` das colecoes + `monthly_burned` do monitor) e `visible`.
 Adicionar/ocultar/remover colecoes e feito pela celula **"Adicionar coleção"**
 (form) ou pelos helpers `config.add_collection` / `set_product_visible` /
 `remove_collection`.
+
+## Adicionando novos dados (edite e versione o `config.py`)
+
+Como o catalogo e um subconjunto validado (fluxo **beta/experimental**), novos
+dados devem entrar com cuidado:
+
+1. **Prefira editar o `config.py` localmente e versionar a mudanca** (commit/PR
+   neste repo) — assim a nova colecao/produto fica permanente para toda a equipe.
+2. O form **"Adicionar coleção"** da UI altera apenas o `OBJ` **em memoria**
+   (sessao atual); serve para experimentar, mas nao persiste.
+3. Siga o schema de produto: `product`, `assetid`, `type` (`byte`/`int16`/`float32`),
+   `vectorize`, `visible`.
+4. **Valide antes de escalar**: rode primeiro 1 pais/1 mes, confira COG, vetor e
+   link publico — so depois amplie o escopo.
 
 ## Colunas da grid (etapas)
 
