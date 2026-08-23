@@ -1046,209 +1046,210 @@ class FireMonitorApp:
             layout=L(width="200px", height="120px"),
             tooltip="Select one or more themes to display"
         )
-        self.theme_select.observe(self._on_theme_change, names="value")
+        # self.theme_select.observe(self._on_theme_change, names="value")
 
         # Filter panel (next to log drawer)
-        self.filter_panel = self._build_filter_panel()
+        # self.filter_panel = self._build_filter_panel()
 
         # Bottom row: log + filters side by side
-        self.bottom_row = widgets.HBox([
-            self.log_area.container,
-            self.filter_panel,
-        ], layout=L(gap="12px", align_items="flex-start"))
+        # self.bottom_row = widgets.HBox([
+        #     self.log_area.container,
+        #     self.filter_panel,
+        # ], layout=L(gap="12px", align_items="flex-start"))
+        self.bottom_row = widgets.HBox([self.log_area.container])
 
         self.container = widgets.VBox([self.header, self.tab, self.bottom_row])
         self._render()
 
-    def _build_filter_panel(self):
-        """Build the filter configuration panel."""
-        p = _palette()
+    # def _build_filter_panel(self):
+    #     """Build the filter configuration panel."""
+    #     p = _palette()
+    #
+    #     # Preset selector
+    #     self.preset_dropdown = widgets.Dropdown(
+    #         options=["fire_monitor", "all", "lulc_only", "custom"],
+    #         value="fire_monitor",
+    #         description="Preset:",
+    #         layout=L(width="200px")
+    #     )
+    #     self.preset_dropdown.observe(self._on_preset_change, names="value")
+    #
+    #     # Theme multi-select (for quick access)
+    #     self.filter_theme_select = widgets.SelectMultiple(
+    #         options=[],
+    #         value=[],
+    #         description="Themes:",
+    #         layout=L(width="200px", height="100px"),
+    #         tooltip="Filter themes (applies to all countries)"
+    #     )
+    #     self.filter_theme_select.observe(self._on_filter_theme_change, names="value")
+    #
+    #     # Country multi-select
+    #     self.filter_country_select = widgets.SelectMultiple(
+    #         options=self.interface.countries,
+    #         value=self.interface.countries,
+    #         description="Countries:",
+    #         layout=L(width="200px", height="100px"),
+    #         tooltip="Filter countries"
+    #     )
+    #     self.filter_country_select.observe(self._on_filter_country_change, names="value")
+    #
+    #     # Save/Load buttons
+    #     self.btn_save_filters = widgets.Button(
+    #         description="Save Filters", button_style="success", icon="save",
+    #         layout=L(width="130px", height="34px"),
+    #         tooltip="Save current filters to monitor_filters.json"
+    #     )
+    #     self.btn_save_filters.on_click(self._on_save_filters)
+    #
+    #     self.btn_load_filters = widgets.Button(
+    #         description="Load Filters", button_style="info", icon="folder-open",
+    #         layout=L(width="130px", height="34px"),
+    #         tooltip="Load filters from monitor_filters.json"
+    #     )
+    #     self.btn_load_filters.on_click(self._on_load_filters)
+    #
+    #     self.btn_sync_github = widgets.Button(
+    #         description="Sync to GitHub", button_style="success", icon="cloud-upload",
+    #         layout=L(width="130px", height="34px"),
+    #         tooltip="Commit and push monitor_filters.json (load data cache) to GitHub"
+    #     )
+    #     self.btn_sync_github.on_click(self._on_sync_github)
+    #
+    #     # Load data cache status
+    #     self.cache_status = widgets.HTML(
+    #         value='<div style="padding:8px;color:#6c757d;font-size:11px;">Load data cache: empty</div>'
+    #     )
+    #
+    #     panel = widgets.VBox([
+    #         widgets.HTML(f'<div style="font-weight:bold;color:{p["title"]};margin-bottom:8px;">Filters & Cache</div>'),
+    #         widgets.HTML('<div style="font-size:11px;color:#6c757d;margin-bottom:4px;">Preset</div>'),
+    #         self.preset_dropdown,
+    #         widgets.HTML('<div style="font-size:11px;color:#6c757d;margin:8px 0 4px;">Countries</div>'),
+    #         self.filter_country_select,
+    #         widgets.HTML('<div style="font-size:11px;color:#6c757d;margin:8px 0 4px;">Themes</div>'),
+    #         self.filter_theme_select,
+    #         widgets.HTML('<div style="margin-top:12px;"></div>'),
+    #         widgets.HBox([self.btn_save_filters, self.btn_load_filters, self.btn_sync_github], layout=L(gap="8px")),
+    #         widgets.HTML('<div style="margin-top:12px;"></div>'),
+    #         widgets.HTML('<div style="font-size:11px;color:#6c757d;">Load Data Cache</div>'),
+    #         self.cache_status,
+    #     ], layout=L(
+    #         width="280px",
+    #         padding="12px",
+    #         border=f"1px solid {p['panel_border']}",
+    #         border_radius="5px",
+    #         background=p["panel_bg"]
+    #     ))
+    #     return panel
 
-        # Preset selector
-        self.preset_dropdown = widgets.Dropdown(
-            options=["fire_monitor", "all", "lulc_only", "custom"],
-            value="fire_monitor",
-            description="Preset:",
-            layout=L(width="200px")
-        )
-        self.preset_dropdown.observe(self._on_preset_change, names="value")
+    # def _on_preset_change(self, change):
+    #     preset = change.get("new")
+    #     if preset == "fire_monitor":
+    #         self.filter_theme_select.value = ("fire",)
+    #         self.filter_country_select.value = tuple(self.interface.countries)
+    #     elif preset == "all":
+    #         self.filter_theme_select.value = ()
+    #         self.filter_country_select.value = tuple(self.interface.countries)
+    #     elif preset == "lulc_only":
+    #         self.filter_theme_select.value = ("lulc", "lulc_10m")
+    #         self.filter_country_select.value = tuple(self.interface.countries)
+    #     # For "custom", don't auto-change
+    #     self._apply_filters()
+    #
+    # def _on_filter_theme_change(self, change):
+    #     if self.preset_dropdown.value != "custom":
+    #         self.preset_dropdown.value = "custom"
+    #     self._apply_filters()
+    #
+    # def _on_filter_country_change(self, change):
+    #     if self.preset_dropdown.value != "custom":
+    #         self.preset_dropdown.value = "custom"
+    #     self._apply_filters()
 
-        # Theme multi-select (for quick access)
-        self.filter_theme_select = widgets.SelectMultiple(
-            options=[],
-            value=[],
-            description="Themes:",
-            layout=L(width="200px", height="100px"),
-            tooltip="Filter themes (applies to all countries)"
-        )
-        self.filter_theme_select.observe(self._on_filter_theme_change, names="value")
+    # def _apply_filters(self):
+    #     """Apply filters to the interface."""
+    #     themes = list(self.filter_theme_select.value) if self.filter_theme_select.value else []
+    #     countries = list(self.filter_country_select.value) if self.filter_country_select.value else self.interface.countries
+    #
+    #     # Update the interface's theme tabs for each country
+    #     for country in self.interface.countries:
+    #         if country in self.interface._panels:
+    #             tt = self.interface._panels[country]
+    #             # Rebuild theme tabs with filtered themes
+    #             filtered_themes = [t for t in tt.themes if not themes or t in themes]
+    #             if countries and country not in countries:
+    #                 # Country filtered out - hide all themes
+    #                 tt.themes = []
+    #             else:
+    #                 tt.themes = filtered_themes
+    #             # Rebuild tabs
+    #             tt._rebuild_tabs()
+    #
+    #     # Update theme options in filter panel
+    #     active_country = self.interface._active_code
+    #     if active_country in self.interface._panels:
+    #         tt = self.interface._panels[active_country]
+    #         self.theme_select.options = tt.themes
+    #         self.theme_select.value = tuple(tt.themes)
+    #         self.filter_theme_select.options = tt.themes
+    #         self.filter_theme_select.value = tuple([t for t in tt.themes if not themes or t in themes])
+    #
+    # def _on_theme_change(self, change):
+    #     """Handle theme selection from header toolbar."""
+    #     selected = list(change.get("new", []))
+    #     if selected:
+    #         self.filter_theme_select.value = tuple(selected)
+    #         self._apply_filters()
 
-        # Country multi-select
-        self.filter_country_select = widgets.SelectMultiple(
-            options=self.interface.countries,
-            value=self.interface.countries,
-            description="Countries:",
-            layout=L(width="200px", height="100px"),
-            tooltip="Filter countries"
-        )
-        self.filter_country_select.observe(self._on_filter_country_change, names="value")
-
-        # Save/Load buttons
-        self.btn_save_filters = widgets.Button(
-            description="Save Filters", button_style="success", icon="save",
-            layout=L(width="130px", height="34px"),
-            tooltip="Save current filters to monitor_filters.json"
-        )
-        self.btn_save_filters.on_click(self._on_save_filters)
-
-        self.btn_load_filters = widgets.Button(
-            description="Load Filters", button_style="info", icon="folder-open",
-            layout=L(width="130px", height="34px"),
-            tooltip="Load filters from monitor_filters.json"
-        )
-        self.btn_load_filters.on_click(self._on_load_filters)
-
-        self.btn_sync_github = widgets.Button(
-            description="Sync to GitHub", button_style="success", icon="cloud-upload",
-            layout=L(width="130px", height="34px"),
-            tooltip="Commit and push monitor_filters.json (load data cache) to GitHub"
-        )
-        self.btn_sync_github.on_click(self._on_sync_github)
-
-        # Load data cache status
-        self.cache_status = widgets.HTML(
-            value='<div style="padding:8px;color:#6c757d;font-size:11px;">Load data cache: empty</div>'
-        )
-
-        panel = widgets.VBox([
-            widgets.HTML(f'<div style="font-weight:bold;color:{p["title"]};margin-bottom:8px;">Filters & Cache</div>'),
-            widgets.HTML('<div style="font-size:11px;color:#6c757d;margin-bottom:4px;">Preset</div>'),
-            self.preset_dropdown,
-            widgets.HTML('<div style="font-size:11px;color:#6c757d;margin:8px 0 4px;">Countries</div>'),
-            self.filter_country_select,
-            widgets.HTML('<div style="font-size:11px;color:#6c757d;margin:8px 0 4px;">Themes</div>'),
-            self.filter_theme_select,
-            widgets.HTML('<div style="margin-top:12px;"></div>'),
-            widgets.HBox([self.btn_save_filters, self.btn_load_filters, self.btn_sync_github], layout=L(gap="8px")),
-            widgets.HTML('<div style="margin-top:12px;"></div>'),
-            widgets.HTML('<div style="font-size:11px;color:#6c757d;">Load Data Cache</div>'),
-            self.cache_status,
-        ], layout=L(
-            width="280px",
-            padding="12px",
-            border=f"1px solid {p['panel_border']}",
-            border_radius="5px",
-            background=p["panel_bg"]
-        ))
-        return panel
-
-    def _on_preset_change(self, change):
-        preset = change.get("new")
-        if preset == "fire_monitor":
-            self.filter_theme_select.value = ("fire",)
-            self.filter_country_select.value = tuple(self.interface.countries)
-        elif preset == "all":
-            self.filter_theme_select.value = ()
-            self.filter_country_select.value = tuple(self.interface.countries)
-        elif preset == "lulc_only":
-            self.filter_theme_select.value = ("lulc", "lulc_10m")
-            self.filter_country_select.value = tuple(self.interface.countries)
-        # For "custom", don't auto-change
-        self._apply_filters()
-
-    def _on_filter_theme_change(self, change):
-        if self.preset_dropdown.value != "custom":
-            self.preset_dropdown.value = "custom"
-        self._apply_filters()
-
-    def _on_filter_country_change(self, change):
-        if self.preset_dropdown.value != "custom":
-            self.preset_dropdown.value = "custom"
-        self._apply_filters()
-
-    def _apply_filters(self):
-        """Apply filters to the interface."""
-        themes = list(self.filter_theme_select.value) if self.filter_theme_select.value else []
-        countries = list(self.filter_country_select.value) if self.filter_country_select.value else self.interface.countries
-        
-        # Update the interface's theme tabs for each country
-        for country in self.interface.countries:
-            if country in self.interface._panels:
-                tt = self.interface._panels[country]
-                # Rebuild theme tabs with filtered themes
-                filtered_themes = [t for t in tt.themes if not themes or t in themes]
-                if countries and country not in countries:
-                    # Country filtered out - hide all themes
-                    tt.themes = []
-                else:
-                    tt.themes = filtered_themes
-                # Rebuild tabs
-                tt._rebuild_tabs()
-
-        # Update theme options in filter panel
-        active_country = self.interface._active_code
-        if active_country in self.interface._panels:
-            tt = self.interface._panels[active_country]
-            self.theme_select.options = tt.themes
-            self.theme_select.value = tuple(tt.themes)
-            self.filter_theme_select.options = tt.themes
-            self.filter_theme_select.value = tuple([t for t in tt.themes if not themes or t in themes])
-
-    def _on_theme_change(self, change):
-        """Handle theme selection from header toolbar."""
-        selected = list(change.get("new", []))
-        if selected:
-            self.filter_theme_select.value = tuple(selected)
-            self._apply_filters()
-
-    def _on_save_filters(self, _):
-        """Save current filters to monitor_filters.json."""
-        filters = config.load_filters()
-        filters["preset"] = self.preset_dropdown.value
-        filters["include_countries"] = list(self.filter_country_select.value)
-        filters["include_themes"] = list(self.filter_theme_select.value)
-        # Keep exclude lists empty for now
-        filters["exclude_countries"] = []
-        filters["exclude_themes"] = []
-        config.save_filters(filters)
-        self._log("Filters saved to monitor_filters.json", "success")
-
-    def _on_load_filters(self, _):
-        """Load filters from monitor_filters.json."""
-        filters = config.load_filters()
-        self.preset_dropdown.value = filters.get("preset", "fire_monitor")
-        self.filter_country_select.value = tuple(filters.get("include_countries", self.interface.countries))
-        self.filter_theme_select.value = tuple(filters.get("include_themes", []))
-        self._apply_filters()
-        self._update_cache_status()
-        self._log("Filters loaded from monitor_filters.json", "success")
-
-    def _on_sync_github(self, _):
-        """Commit and push monitor_filters.json to GitHub."""
-        self.btn_sync_github.disabled = True
-        self.btn_sync_github.description = "Syncing..."
-        self.btn_sync_github.icon = "spinner"
-        try:
-            ok = config.sync_filters_to_github(repo_path=".", logger=self._log)
-            if ok:
-                self._log("Cache synced to GitHub", "success")
-            else:
-                self._log("GitHub sync failed", "error")
-        except Exception as e:
-            self._log(f"GitHub sync error: {e}", "error")
-        finally:
-            self.btn_sync_github.disabled = False
-            self.btn_sync_github.description = "Sync to GitHub"
-            self.btn_sync_github.icon = "cloud-upload"
-
-    def _update_cache_status(self):
-        """Update the load data cache status display."""
-        cache = config.get_load_data_cache()
-        if cache:
-            total = sum(len(v.get("units", [])) for v in cache.values())
-            self.cache_status.value = f'<div style="padding:8px;color:#28a745;font-size:11px;">Load data cache: {len(cache)} products, {total} units</div>'
-        else:
-            self.cache_status.value = '<div style="padding:8px;color:#6c757d;font-size:11px;">Load data cache: empty</div>'
+    # def _on_save_filters(self, _):
+    #     """Save current filters to monitor_filters.json."""
+    #     filters = config.load_filters()
+    #     filters["preset"] = self.preset_dropdown.value
+    #     filters["include_countries"] = list(self.filter_country_select.value)
+    #     filters["include_themes"] = list(self.filter_theme_select.value)
+    #     # Keep exclude lists empty for now
+    #     filters["exclude_countries"] = []
+    #     filters["exclude_themes"] = []
+    #     config.save_filters(filters)
+    #     self._log("Filters saved to monitor_filters.json", "success")
+    #
+    # def _on_load_filters(self, _):
+    #     """Load filters from monitor_filters.json."""
+    #     filters = config.load_filters()
+    #     self.preset_dropdown.value = filters.get("preset", "fire_monitor")
+    #     self.filter_country_select.value = tuple(filters.get("include_countries", self.interface.countries))
+    #     self.filter_theme_select.value = tuple(filters.get("include_themes", []))
+    #     self._apply_filters()
+    #     self._update_cache_status()
+    #     self._log("Filters loaded from monitor_filters.json", "success")
+    #
+    # def _on_sync_github(self, _):
+    #     """Commit and push monitor_filters.json to GitHub."""
+    #     self.btn_sync_github.disabled = True
+    #     self.btn_sync_github.description = "Syncing..."
+    #     self.btn_sync_github.icon = "spinner"
+    #     try:
+    #         ok = config.sync_filters_to_github(repo_path=".", logger=self._log)
+    #         if ok:
+    #             self._log("Cache synced to GitHub", "success")
+    #         else:
+    #             self._log("GitHub sync failed", "error")
+    #     except Exception as e:
+    #         self._log(f"GitHub sync error: {e}", "error")
+    #     finally:
+    #         self.btn_sync_github.disabled = False
+    #         self.btn_sync_github.description = "Sync to GitHub"
+    #         self.btn_sync_github.icon = "cloud-upload"
+    #
+    # def _update_cache_status(self):
+    #     """Update the load data cache status display."""
+    #     cache = config.get_load_data_cache()
+    #     if cache:
+    #         total = sum(len(v.get("units", [])) for v in cache.values())
+    #         self.cache_status.value = f'<div style="padding:8px;color:#28a745;font-size:11px;">Load data cache: {len(cache)} products, {total} units</div>'
+    #     else:
+    #         self.cache_status.value = '<div style="padding:8px;color:#6c757d;font-size:11px;">Load data cache: empty</div>'
 
     def _log(self, message, type="info"):
         if self.log_area:
@@ -1281,9 +1282,9 @@ class FireMonitorApp:
             tt = self.interface._panels[active_country]
             self.theme_select.options = tt.themes
             self.theme_select.value = tuple(tt.themes)
-            self.filter_theme_select.options = tt.themes
-            self.filter_theme_select.value = tuple(tt.themes)
-        self._update_cache_status()
+            # self.filter_theme_select.options = tt.themes
+            # self.filter_theme_select.value = tuple(tt.themes)
+        # self._update_cache_status()
 
     def __getattr__(self, name):
         return getattr(self.interface, name)
