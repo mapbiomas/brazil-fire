@@ -37,13 +37,18 @@ export_and_vectorization/
 └── ui.py                                 ← UI interativa (grid + pipeline)
 ```
 
+> **Onde fica o catalogo (`config.py`)** — no Colab, apos o clone, o pacote esta em
+> `/content/brazil-fire/mapbiomas_fire_monitor/version_01/export_and_vectorization/`.
+> Para versionar somente esse arquivo, edite-o direto no GitHub:
+> https://github.com/mapbiomas/brazil-fire/blob/main/mapbiomas_fire_monitor/version_01/export_and_vectorization/config.py
+
 ## Como usar
 
 1. Abra um dos notebooks no Google Colab pelos badges da secao acima.
 2. Execute a celula 1 para instalar dependencias.
 3. Execute a celula 2 para autenticar no GCP e Google Earth Engine.
 4. Na celula de config, defina `COUNTRIES` (códigos do OBJ, ex.: `["brasil", "indonesia"]`).
-5. Opcional: células "Adicionar coleção", "Zerar estado local" e "Diagnostico".
+5. Opcional: célula "Zerar estado local" antes de comecar.
 6. Execute a celula da UI para abrir a navegação.
 7. **Navegue**: país → tema (ex.: `fire`) → coleção (ex.: `monitor`, `collection4`) → **produto**.
 8. No produto, a grid mostra as **unidades** (bandas p/ imagem multibanda; imagens p/ ImageCollection). Marque as desejadas.
@@ -73,9 +78,10 @@ A fonte de verdade e o `config.OBJ`: `OBJ[pais][tema][colecao] = [produtos]`, on
 cada produto tem `product` (nome curto), `assetid` (asset GEE de origem), `type`
 (`byte`/`int16`/`float32` — dtype do mosaico), `vectorize` (vetorizacao/upload GEE,
 apenas `annual_burned` das colecoes + `monthly_burned` do monitor) e `visible`.
-Adicionar/ocultar/remover colecoes e feito pela celula **"Adicionar coleção"**
-(form) ou pelos helpers `config.add_collection` / `set_product_visible` /
-`remove_collection`.
+Novas colecoes entram **editando o arquivo catalogo `config.py`** (veja secao
+abaixo — o form "Adicionar coleção" foi descontinuado); os helpers
+`config.add_collection` / `set_product_visible` / `remove_collection` seguem
+disponiveis para uso programatico.
 
 ## Adicionando novos dados (edite e versione o `config.py`)
 
@@ -84,12 +90,19 @@ dados devem entrar com cuidado:
 
 1. **Prefira editar o `config.py` localmente e versionar a mudanca** (commit/PR
    neste repo) — assim a nova colecao/produto fica permanente para toda a equipe.
-2. O form **"Adicionar coleção"** da UI altera apenas o `OBJ` **em memoria**
-   (sessao atual); serve para experimentar, mas nao persiste.
+2. O form **"Adicionar coleção"** da UI foi **descontinuado** — a via oficial de
+   entrada de dados e editar o `config.py` e versionar a mudanca.
 3. Siga o schema de produto: `product`, `assetid`, `type` (`byte`/`int16`/`float32`),
    `vectorize`, `visible`.
 4. **Valide antes de escalar**: rode primeiro 1 pais/1 mes, confira COG, vetor e
    link publico — so depois amplie o escopo.
+
+### Celulas descontinuadas nos notebooks
+
+- **Add Collection**: substituida pela celula informativa *Input Data Catalog*,
+  que aponta para o arquivo catalogo `config.py`.
+- **Diagnostics**: pausada. O plano e migrar o que for util dela (bandas, nodata,
+  tamanho) para um painel dentro da interface — sem prazo definido.
 
 ## Colunas da grid (etapas)
 
