@@ -176,14 +176,14 @@ GEE ImageCollection
        ▼  [2] Mosaic (mosaic.py)  → COG 0/1 no GCS         .../{product}/
        │
        ▼  [3] Vectorize (vectorize.py) → shapefile+unique_id → .zip
-       │                                    .../{product_vectors}/
+       │                                    .../{raster}_vectors/
        │
        ▼  [4] Upload GEE (vectorize.py)
-       │         projects/mapbiomas-public/assets/{country}/fire/monitor/{product_vectors}
+       │         projects/mapbiomas-public/assets/{country}/fire/monitor/{raster}_vectors
        │
        ▼  [5] Publish mosaic (publish.py) → COG no publico .../{product}/
        │
-       ▼  [6] Publish vector (publish.py) → ZIP no publico .../{product_vectors}/
+       ▼  [6] Publish vector (publish.py) → ZIP no publico .../{raster}_vectors/
        │
        ▼  [7] Clean temp (publish.py) → apaga tiles temp/ dos meses consolidados
 ```
@@ -197,15 +197,21 @@ GEE ImageCollection
 | ImageCollection (origem) | `projects/mapbiomas-public/assets/{country}/fire/monitor/mapbiomas_fire_monthly_burned_v1` |
 | Tiles GCS | `gs://mapbiomas-fire/initiatives/{country}/fire/monitor/mapbiomas_fire_monthly_burned_v1/temp/` |
 | Mosaicos GCS | `gs://mapbiomas-fire/initiatives/{country}/fire/monitor/mapbiomas_fire_monthly_burned_v1/` |
-| Vetores GCS (ZIP) | `gs://mapbiomas-fire/initiatives/{country}/fire/monitor/mapbiomas_fire_monthly_burned_vectors_v01/` |
-| Vetores GEE | `projects/mapbiomas-public/assets/{country}/fire/monitor/mapbiomas_fire_monthly_burned_vectors_v01/` |
+| Vetores GCS (ZIP) | `gs://mapbiomas-fire/initiatives/{country}/fire/monitor/mapbiomas_fire_monthly_burned_v1_vectors/` |
+| Vetores GEE | `projects/mapbiomas-public/assets/{country}/fire/monitor/mapbiomas_fire_monthly_burned_v1_vectors/` |
 | Publico (espelho) | `gs://mapbiomas-public/initiatives/{country}/fire/monitor/...` |
 
-Os vetores sao publicados numa **pasta irma da ImageCollection de entrada** (Etapa 1),
-no mesmo projeto `mapbiomas-public`, sob `{country}/fire/monitor`. A Etapa 4 cria a
-pasta se nao existir e deixa **tudo publico** (`all_users_can_read`): a ACL e aplicada
-na pasta (assets novos herdam) e, opcionalmente, por asset via `make_vectors_public`
-(rodar apos as tasks do GEE concluirem).
+Os vetores ficam numa **pasta irma do raster vetorizado**, com sufixo `_vectors`
+— a MESMA regra no GCS e no GEE. O nome da pasta e o nome fisico do raster de
+origem (ex.: `mapbiomas_fire_monthly_burned_v1` → `mapbiomas_fire_monthly_burned_v1_vectors`;
+`mapbiomas_indonesia_fire_collection2_annual_burned_v1` → `..._annual_burned_v1_vectors`).
+A Etapa 4 (Upload GEE) cria a pasta se nao existir e deixa **tudo publico**
+(`all_users_can_read`): a ACL e aplicada na pasta (assets novos herdam) e,
+opcionalmente, por asset via `make_vectors_public` (rodar apos as tasks do GEE
+concluirem).
+
+> **Migracao**: pastas antigas (`{product}_vectors_v01` no GEE; nome curto do
+> produto nas colecoes do GCS) viraram legado — o Sync nao as enxerga.
 
 Paises suportados: `brazil`, `indonesia`. Novos paises entram no dict `COUNTRIES`
 em `config.py`.
@@ -239,7 +245,7 @@ todas iteram sobre os contextos afetados pela selecao multi-painel:
 
 1. **`publish_mosaic_all(ui=...)`** — copia COGs (`.../{product}/*.tif`) para o bucket
    publico (valida tamanho apos a copia).
-2. **`publish_vector_all(ui=...)`** — copia vetores ZIP (`.../{product_vectors}/*.zip`)
+2. **`publish_vector_all(ui=...)`** — copia vetores ZIP (`.../{raster}_vectors/*.zip`)
    para o bucket publico (so produtos vetorizaveis).
 3. **`cleanup_temp_selected(ui)`** — apaga os tiles de `temp/` das unidades
    **selecionadas na grid** (libera espaco; tiles eram o maior volume

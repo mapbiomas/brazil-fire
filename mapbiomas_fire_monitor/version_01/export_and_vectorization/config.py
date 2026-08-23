@@ -25,7 +25,9 @@ Seletores ativos: COUNTRY / THEME / COLLECTION / PRODUCT (lidos em tempo de
 chamada -> trocar sempre propaga para os modulos).
 
 Padrao GCS:  {bucket}/initiatives/{country}/{theme}/{collection}/{product}
-Assets GEE:  {assetid} (origem); vetores em projetos/mapbiomas-public/assets/{country}/{theme}/{collection}/{product}_vectors_v01
+Vetores:     pasta irma do raster vetorizado, com sufixo _vectors (GCS e GEE);
+             ex.: .../monitor/mapbiomas_fire_monthly_burned_v1_vectors/
+Assets GEE:  {assetid} (origem)
 """
 
 BUCKET = "mapbiomas-fire"
@@ -497,14 +499,35 @@ def mosaic_prefix(context=None):
     return (context or processing_context())["root"]
 
 
+def _raster_base(ctx):
+    """Nome fisico do raster vetorizado (basename do assetid de origem)."""
+    assetid = (ctx.get("assetid") or "").rstrip("/")
+    base = assetid.split("/")[-1] if assetid else ""
+    return base or ctx["storage_product"]
+
+
+def vector_folder_name(context=None):
+    """Nome da pasta de vetores: irma do raster, com sufixo _vectors."""
+    ctx = context or processing_context()
+    return f"{_raster_base(ctx)}_vectors"
+
+
 def vector_prefix(context=None):
-    return f"{(context or processing_context())['root']}_vectors"
+    """Pasta GCS de vetores — mesma regra do GEE (irma do raster)."""
+    ctx = context or processing_context()
+    head = ctx["root"].rsplit("/", 1)[0]
+    return f"{head}/{vector_folder_name(ctx)}"
 
 
 def vector_asset_prefix(context=None):
+    """Pasta GEE de vetores — irma do raster vetorizado em mapbiomas-public."""
     ctx = context or processing_context()
-    return (f"projects/mapbiomas-public/assets/{ctx['storage_country']}/{ctx['theme']}/{ctx['gee_collection']}/"
-            f"{ctx['product']}_vectors_v01")
+    assetid = (ctx.get("assetid") or "").rstrip("/")
+    folder = vector_folder_name(ctx)
+    if assetid.startswith("projects/"):
+        return f"{assetid.rsplit('/', 1)[0]}/{folder}"
+    return (f"projects/mapbiomas-public/assets/{ctx['storage_country']}/{ctx['theme']}/"
+            f"{ctx['gee_collection']}/{folder}")
 
 
 def art_prefix(context=None):

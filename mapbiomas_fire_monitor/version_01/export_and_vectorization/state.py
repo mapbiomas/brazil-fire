@@ -101,7 +101,7 @@ def scan_gcs(context=None, logger=None):
     root = context["root"]
     tiles_path = f"{root}/temp"
     mosaic_path = root
-    vector_path = f"{root}_vectors"
+    vector_path = config.vector_prefix(context)
     tile_prefix = f"fire_monitor_v1_{product}_{storage_country}_"
     art_prefix = f"{product}-{storage_country}_"
 
@@ -201,9 +201,7 @@ def scan_gee(context=None, logger=None):
         if logger:
             logger(msg)
 
-    gee_coll = context.get('gee_collection', context['collection'])
-    prefix = (f"projects/mapbiomas-public/assets/{context['storage_country']}/"
-              f"{context['theme']}/{gee_coll}/{context['product']}_vectors_v01")
+    prefix = config.vector_asset_prefix(context)
     art_prefix = f"{context['product']}-{context['storage_country']}_"
     _log(f"Scanning GEE assets: {prefix} ...")
     try:
