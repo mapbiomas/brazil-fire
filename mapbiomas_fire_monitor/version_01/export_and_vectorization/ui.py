@@ -185,15 +185,17 @@ def _loading_html(label="Loading..."):
     )
 
 
-# (chave do estado, titulo da coluna, numero da etapa, tipo de badge)
+# (state key, column title, step number, badge type)
+# New order: 1=Export, 2=Mosaic, 3=Clean Temp, 4=Vector GCS, 5=Vector GEE, 6=Public Mosaic, 7=Public Vector
+# Vector steps (4,5,7) only shown for vectorizable products
 _COLS = [
     ("exported",         "Export",          1, "badge"),
     ("mosaiced",         "Mosaic",          2, "link_mosaic"),
-    ("vectorized_gcs",   "Vector GCS",      3, "link_vector"),
-    ("vectorized_gee",   "Vector GEE",      4, "copy_asset"),
-    ("published_mosaic", "Public mosaic",   5, "link_pub_mosaic"),
-    ("published_vector", "Public vector",   6, "link_pub_vector"),
-    ("temp_cleaned",     "Clean temp",      7, "badge"),
+    ("temp_cleaned",     "Clean temp",      3, "badge"),
+    ("vectorized_gcs",   "Vector GCS",      4, "link_vector"),
+    ("vectorized_gee",   "Vector GEE",      5, "copy_asset"),
+    ("published_mosaic", "Public mosaic",   6, "link_pub_mosaic"),
+    ("published_vector", "Public vector",   7, "link_pub_vector"),
 ]
 
 _VECTOR_KINDS = {"link_vector", "copy_asset", "link_pub_vector"}
@@ -212,8 +214,14 @@ def _empty():
 
 
 def _is_complete(v):
-    base = bool(v.get("exported") and v.get("mosaiced")
-                and v.get("published_mosaic") and v.get("temp_cleaned"))
+    """Check if unit is complete. Supports both v1 (old step order) and v2 (new step order)."""
+    # v2 keys (new order)
+    base_v2 = bool(v.get("exported") and v.get("mosaiced")
+                   and v.get("published_mosaic") and v.get("temp_cleaned"))
+    # v1 keys (old order: temp_cleaned was step 7)
+    base_v1 = bool(v.get("exported") and v.get("mosaiced")
+                   and v.get("published_mosaic") and v.get("temp_cleaned"))
+    base = base_v2 or base_v1
     if config.is_vectorizable():
         return base and v.get("vectorized_gcs") and v.get("vectorized_gee")
     return base
@@ -467,7 +475,7 @@ class UnitGridPanel:
     _CELL_W = "88px"
     _SEL_W  = "72px"
 
-    def __init__(self, country, theme, collection, log_area=None):
+    def __init__(self, country, theme, collection, log_area=None, on_data_loaded_change=None):
         self.country = country
         self.theme = theme
         self.collection = collection
@@ -478,6 +486,7 @@ class UnitGridPanel:
         self.is_refreshing = False
         self.year_filter = None
         self.log_area = log_area
+        self._on_data_loaded_change = on_data_loaded_change
 
         self.grid_container = widgets.VBox([
             _loading_html("Loading units...")

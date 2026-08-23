@@ -587,3 +587,178 @@ def remove_collection(country, theme, collection):
         del themes[theme][collection]
         return True
     return False
+
+
+# ============================================================
+# FILTER SYSTEM — include/exclude lists + presets + load_data cache
+# ============================================================
+FILTERS_FILE = "monitor_filters.json"
+
+DEFAULT_FILTERS = {
+    "preset": "fire_monitor",
+    "include_countries": [],
+    "exclude_countries": [],
+    "include_themes": [],
+    "exclude_themes": [],
+    "include_collections": {},
+    "exclude_collections": {},
+    "include_products": {},
+    "exclude_products": {},
+    "load_data_cache": {},
+    "schema_version": 2,
+}
+
+
+def _load_json_file(path, default):
+    import json, os
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return default
+
+
+def _save_json_file(path, data):
+    import json
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"[WARN] Could not save {path}: {e}")
+        return False
+
+
+def load_filters(path=None):
+    """Carrega filtros do arquivo (default: monitor_filters.json)."""
+    path = path or FILTERS_FILE
+    return _load_json_file(path, DEFAULT_FILTERS.copy())
+
+
+def save_filters(filters, path=None):
+    """Salva filtros no arquivo."""
+    path = path or FILTERS_FILE
+    return _save_json_file(path, filters)
+
+
+def get_filters(path=None):
+    """Retorna filtros atuais (carrega do disco se necessario)."""
+    return load_filters(path)
+
+
+def apply_filters(obj, filters=None):
+    """Aplica filtros de inclusao/exclusao ao OBJ e retorna OBJ filtrado.
+    
+    Estrutura dos filtros:
+        include_countries: []  # vazio = todos
+        exclude_countries: []
+        include_themes: []     # vazio = todos
+        exclude_themes: []
+        include_collections: {"brasil": {"fire": ["collection_04"]}}  # por pais/tema
+        exclude_collections: {}
+        include_products: {"brasil": {"fire": {"collection_04": ["annual_burned"]}}}
+        exclude_products: {}
+        preset: "fire_monitor" | "all" | "lulc_only" | "custom"
+    """
+    if filters is None:
+        filters = load_filters()
+    
+    # Presets
+    preset = filters.get("preset", "custom")
+    if preset == "fire_monitor":
+        filters = dict(filters)
+        filters.setdefault("include_themes", []).append("fire")
+        # ensure fire collections are included
+        filters.setdefault("include_collections", {}).setdefault("brasil", {}).setdefault("fire", []).extend([
+            "monitor", "collection_01", "collection_02", "collection_03",
+            "collection_04", "collection_04_1", "collection_05"
+        ])
+        for c in ["indonesia", "bolivia", "peru", "paraguay"]:
+            filters.setdefault("include_collections", {}).setdefault(c, {}).setdefault("fire", []).extend([
+                "monitor", "collection_01"
+            ])
+    elif preset == "lulc_only":
+        filters = dict(filters)
+        filters.setdefault("include_themes", []).extend(["lulc", "lulc_10m"])
+    elif preset == "all":
+        pass  # no filtering
+    
+    # Deep copy
+    import copy
+    result = copy.deepcopy(obj)
+    
+    inc_c = set(filters.get("include_countries", []))
+    exc_c = set(filters.get("exclude_countries", []))
+    inc_t = set(filters.get("include_themes", []))
+    exc_t = set(filters.get("exclude_themes", []))
+    
+    # Filter countries
+    if inc_c:
+        result = {k: v for k, v in result.items() if k in inc_c}
+    if exc_c:
+        result = {k: v for k, v in result.items() if k not in exc_c}
+    
+    # Filter themes per country
+    for country, themes in result.items():
+        if inc_t:
+            themes = {k: v for k, v in themes.items() if k in inc_t}
+        if exc_t:
+            themes = {k: v for k, v in themes.items() if k not in exc_t}
+        
+        # Filter collections per theme
+        for theme, collections in themes.items():
+            inc_colls = filters.get("include_collections", {}).get(country, {}).get(theme, [])
+            exc_colls = filters.get("exclude_collections", {}).get(country, {}).get(theme, [])
+            if inc_colls:
+                collections = {k: v for k, v in collections.items() if k in inc_colls}
+            if exc_colls:
+                collections = {k: v for k, v in collections.items() if k not in exc_colls}
+            
+            # Filter products per collection
+            for coll, prods in collections.items():
+                inc_prods = filters.get("include_products", {}).get(country, {}).get(theme, {}).get(coll, [])
+                exc_prods = filters.get("exclude_products", {}).get(country, {}).get(theme, {}).get(coll, [])
+                if inc_prods:
+                    prods = [p for p in prods if p["product"] in inc_prods]
+                if exc_prods:
+                    prods = [p for p in prods if p["product"] not in exc_prods]
+                collections[coll] = prods
+            
+            themes[theme] = {k: v for k, v in collections.items() if v}
+        
+        result[country] = {k: v for k, v in themes.items() if v}
+    
+    result = {k: v for k, v in result.items() if v}
+    return result
+
+
+def get_load_data_cache(filters=None):
+    """Retorna o cache de load_data (bandas/unidades por produto)."""
+    if filters is None:
+        filters = load_filters()
+    return filters.get("load_data_cache", {})
+
+
+def set_load_data_cache(country, theme, collection, product, units, filters=None):
+    """Atualiza cache de load_data para um produto."""
+    if filters is None:
+        filters = load_filters()
+    cache = filters.setdefault("load_data_cache", {})
+    key = f"{country}/{theme}/{collection}/{product}"
+    cache[key] = {
+        "units": units,
+        "timestamp": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+    }
+    save_filters(filters)
+    return True
+
+
+def clear_load_data_cache(filters=None):
+    """Limpa todo o cache de load_data."""
+    if filters is None:
+        filters = load_filters()
+    filters["load_data_cache"] = {}
+    save_filters(filters)
+    return True

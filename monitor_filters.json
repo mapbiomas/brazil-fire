@@ -1,0 +1,21 @@
+{
+  "preset": "fire_monitor",
+  "include_countries": [],
+  "exclude_countries": [],
+  "include_themes": [],
+  "exclude_themes": [],
+  "include_collections": {},
+  "exclude_collections": {},
+  "include_products": {},
+  "exclude_products": {},
+  "load_data_cache": {
+    "brasil/fire/monitor/monthly_burned": {
+      "units": [
+        "2024_01",
+        "2024_02"
+      ],
+      "timestamp": "2026-08-22T13:17:01.144315Z"
+    }
+  },
+  "schema_version": 2
+}

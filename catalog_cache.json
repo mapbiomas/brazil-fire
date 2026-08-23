@@ -1,0 +1,812 @@
+{
+  "brasil": {
+    "lulc_10m": {
+      "collection_04": [
+        {
+          "name": "coverage",
+          "assetid": "projects/mapbiomas-public/assets/brazil/lulc_10m/collection4/mapbiomas_10m_collection4_coverage_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        }
+      ]
+    },
+    "lulc": {
+      "collection_11": [
+        {
+          "name": "agriculture_irrigation_systems",
+          "assetid": "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_agriculture_irrigation_systems_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "agriculture_number_cycles_mean",
+          "assetid": "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_agriculture_number_cycles_mean_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "agriculture_number_cycles",
+          "assetid": "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_agriculture_number_cycles_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "agriculture_second_crop",
+          "assetid": "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_agriculture_second_crop_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "coverage",
+          "assetid": "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_coverage_v3",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "deforestation_secondary_vegetation",
+          "assetid": "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_deforestation_secondary_vegetation_v5",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "mining_substances",
+          "assetid": "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_mining_substances_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "pasture_age",
+          "assetid": "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_pasture_age_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "pasture_vigor",
+          "assetid": "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_pasture_vigor_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        }
+      ]
+    },
+    "soil": {
+      "collection_03": [
+        {
+          "name": "soil_carbon",
+          "assetid": "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_carbon_v1",
+          "declared_type": "float32",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Float32",
+            "nodata": 0,
+            "predictor": 3,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "soil_clay_fraction",
+          "assetid": "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_clay_fraction_v1",
+          "declared_type": "float32",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Float32",
+            "nodata": 0,
+            "predictor": 3,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "soil_sand_fraction",
+          "assetid": "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_sand_fraction_v1",
+          "declared_type": "float32",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Float32",
+            "nodata": 0,
+            "predictor": 3,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "soil_silt_fraction",
+          "assetid": "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_silt_fraction_v1",
+          "declared_type": "float32",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Float32",
+            "nodata": 0,
+            "predictor": 3,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "soil_stoniness",
+          "assetid": "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_stoniness_v2",
+          "declared_type": "float32",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Float32",
+            "nodata": 0,
+            "predictor": 3,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "soil_textural_class",
+          "assetid": "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_textural_class_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "soil_textural_group",
+          "assetid": "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_textural_group_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "soil_textural_subgroup",
+          "assetid": "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_textural_subgroup_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        }
+      ]
+    },
+    "water": {
+      "collection_05": [
+        {
+          "name": "water_annual",
+          "assetid": "projects/mapbiomas-public/assets/brazil/water/collection5/mapbiomas_brazil_collection5_water_annual_v4",
+          "declared_type": "byte",
+          "kind": "annual",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "water_bodies",
+          "assetid": "projects/mapbiomas-public/assets/brazil/water/collection5/mapbiomas_brazil_collection5_water_bodies_v4",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "water_monthly",
+          "assetid": "projects/mapbiomas-public/assets/brazil/water/collection5/mapbiomas_brazil_collection5_water_monthly_v4",
+          "declared_type": "byte",
+          "kind": "monthly",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "water_transition",
+          "assetid": "projects/mapbiomas-public/assets/brazil/water/collection5/mapbiomas_brazil_collection5_water_transition_v4",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "water_trend",
+          "assetid": "projects/mapbiomas-public/assets/brazil/water/collection5/mapbiomas_brazil_collection5_water_trend_v4",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        }
+      ]
+    },
+    "fire": {
+      "monitor": [
+        {
+          "name": "monthly_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/monitor/mapbiomas_fire_monthly_burned_v1",
+          "declared_type": "byte",
+          "kind": "monthly",
+          "vectorize": true,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        }
+      ],
+      "collection_03": [
+        {
+          "name": "annual_burned_coverage",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection31_annual_burned_coverage_v1",
+          "declared_type": "byte",
+          "kind": "annual",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "monthly_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection31_monthly_burned_v1",
+          "declared_type": "byte",
+          "kind": "monthly",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        }
+      ],
+      "collection_04": [
+        {
+          "name": "annual_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_annual_burned_v1",
+          "declared_type": "byte",
+          "kind": "annual",
+          "vectorize": true,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "annual_burned_coverage",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_annual_burned_coverage_v1",
+          "declared_type": "byte",
+          "kind": "annual",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "annual_burned_scar_size_range",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_annual_burned_scar_size_range_v1",
+          "declared_type": "byte",
+          "kind": "annual",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "monthly_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_monthly_burned_v1",
+          "declared_type": "byte",
+          "kind": "monthly",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "accumulated_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_accumulated_burned_v1",
+          "declared_type": "byte",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "fire_frequency",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_fire_frequency_v1",
+          "declared_type": "int16",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Int16",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "time_after_fire",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_time_after_fire_v1",
+          "declared_type": "int16",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Int16",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "year_last_fire",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_year_last_fire_v1",
+          "declared_type": "int16",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Int16",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        }
+      ],
+      "collection_04_1": [
+        {
+          "name": "annual_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_annual_burned_v1",
+          "declared_type": "byte",
+          "kind": "annual",
+          "vectorize": true,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "annual_burned_scar_size_range",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_annual_burned_scar_size_range_v1",
+          "declared_type": "byte",
+          "kind": "annual",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "monthly_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_monthly_burned_v1",
+          "declared_type": "byte",
+          "kind": "monthly",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "accumulated_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_accumulated_burned_v1",
+          "declared_type": "byte",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "fire_frequency",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_fire_frequency_v1",
+          "declared_type": "byte",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "time_after_fire",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_time_after_fire_v1",
+          "declared_type": "byte",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "year_last_fire",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_year_last_fire_v1",
+          "declared_type": "int16",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Int16",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        }
+      ],
+      "collection_05": [
+        {
+          "name": "annual_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_v1",
+          "declared_type": "byte",
+          "kind": "annual",
+          "vectorize": true,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "annual_burned_coverage",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_coverage_v1",
+          "declared_type": "byte",
+          "kind": "annual",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "annual_burned_scar_size_range",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_scar_size_range_v1",
+          "declared_type": "byte",
+          "kind": "annual",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "monthly_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_monthly_burned_v1",
+          "declared_type": "byte",
+          "kind": "monthly",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "accumulated_burned",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_v1",
+          "declared_type": "byte",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "accumulated_burned_coverage",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_coverage_v1",
+          "declared_type": "byte",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "fire_frequency",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_fire_frequency_v1",
+          "declared_type": "int16",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Int16",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "time_after_fire",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_time_after_fire_v1",
+          "declared_type": "int16",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Int16",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "year_last_fire",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_year_last_fire_v1",
+          "declared_type": "int16",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Int16",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "severity_class",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_severity_class_v1",
+          "declared_type": "byte",
+          "kind": "other",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Byte",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        },
+        {
+          "name": "interval_since_fire",
+          "assetid": "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_interval_since_fire_v1",
+          "declared_type": "int16",
+          "kind": "period",
+          "vectorize": false,
+          "unit": "",
+          "error": "Earth Engine client library not initialized. See http://goo.gle/ee-auth.",
+          "save": {
+            "ot": "Int16",
+            "nodata": 0,
+            "predictor": 2,
+            "compression": "DEFLATE"
+          }
+        }
+      ]
+    }
+  }
+}
