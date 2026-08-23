@@ -1108,6 +1108,13 @@ class FireMonitorApp:
         )
         self.btn_load_filters.on_click(self._on_load_filters)
 
+        self.btn_sync_github = widgets.Button(
+            description="Sync to GitHub", button_style="success", icon="cloud-upload",
+            layout=L(width="130px", height="34px"),
+            tooltip="Commit and push monitor_filters.json (load data cache) to GitHub"
+        )
+        self.btn_sync_github.on_click(self._on_sync_github)
+
         # Load data cache status
         self.cache_status = widgets.HTML(
             value='<div style="padding:8px;color:#6c757d;font-size:11px;">Load data cache: empty</div>'
@@ -1122,7 +1129,7 @@ class FireMonitorApp:
             widgets.HTML('<div style="font-size:11px;color:#6c757d;margin:8px 0 4px;">Themes</div>'),
             self.filter_theme_select,
             widgets.HTML('<div style="margin-top:12px;"></div>'),
-            widgets.HBox([self.btn_save_filters, self.btn_load_filters], layout=L(gap="8px")),
+            widgets.HBox([self.btn_save_filters, self.btn_load_filters, self.btn_sync_github], layout=L(gap="8px")),
             widgets.HTML('<div style="margin-top:12px;"></div>'),
             widgets.HTML('<div style="font-size:11px;color:#6c757d;">Load Data Cache</div>'),
             self.cache_status,
@@ -1215,6 +1222,24 @@ class FireMonitorApp:
         self._apply_filters()
         self._update_cache_status()
         self._log("Filters loaded from monitor_filters.json", "success")
+
+    def _on_sync_github(self, _):
+        """Commit and push monitor_filters.json to GitHub."""
+        self.btn_sync_github.disabled = True
+        self.btn_sync_github.description = "Syncing..."
+        self.btn_sync_github.icon = "spinner"
+        try:
+            ok = config.sync_filters_to_github(repo_path=".", logger=self._log)
+            if ok:
+                self._log("Cache synced to GitHub", "success")
+            else:
+                self._log("GitHub sync failed", "error")
+        except Exception as e:
+            self._log(f"GitHub sync error: {e}", "error")
+        finally:
+            self.btn_sync_github.disabled = False
+            self.btn_sync_github.description = "Sync to GitHub"
+            self.btn_sync_github.icon = "cloud-upload"
 
     def _update_cache_status(self):
         """Update the load data cache status display."""

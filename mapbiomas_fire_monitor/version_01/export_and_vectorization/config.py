@@ -762,3 +762,62 @@ def clear_load_data_cache(filters=None):
     filters["load_data_cache"] = {}
     save_filters(filters)
     return True
+
+
+def sync_filters_to_github(repo_path=".", commit_message="Update monitor_filters.json (load data cache)", logger=print):
+    """Commit and push monitor_filters.json to GitHub.
+    
+    Args:
+        repo_path: Path to the git repository (default: current directory)
+        commit_message: Commit message
+        logger: Function to log messages
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    import subprocess
+    filters_file = "monitor_filters.json"
+    try:
+        # Check if file exists
+        import os
+        if not os.path.exists(filters_file):
+            logger(f"[WARN] {filters_file} not found in {repo_path}")
+            return False
+        
+        # Git add
+        result = subprocess.run(
+            ["git", "add", filters_file],
+            cwd=repo_path, capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            logger(f"[ERROR] git add failed: {result.stderr}")
+            return False
+        
+        # Git commit
+        result = subprocess.run(
+            ["git", "commit", "-m", commit_message],
+            cwd=repo_path, capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            # Check if nothing to commit
+            if "nothing to commit" in result.stdout.lower():
+                logger("[INFO] No changes to commit")
+                return True
+            logger(f"[ERROR] git commit failed: {result.stderr}")
+            return False
+        
+        # Git push
+        result = subprocess.run(
+            ["git", "push"],
+            cwd=repo_path, capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            logger(f"[ERROR] git push failed: {result.stderr}")
+            return False
+        
+        logger("[SUCCESS] Filters synced to GitHub")
+        return True
+        
+    except Exception as e:
+        logger(f"[ERROR] Git sync failed: {e}")
+        return False
