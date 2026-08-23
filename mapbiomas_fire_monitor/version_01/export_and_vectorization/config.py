@@ -206,7 +206,7 @@ OBJ = {
             # already-published products without using private GEE assets.
             "collection_02": [
                 _p("indonesia", "fire", "collection2", "annual_burned",
-                   "projects/mapbiomas-public/assets/indonesia/fire/collection2/mapbiomas_indonesia_fire_collection2_annual_burned_v1", "byte", vectorize=True)),
+                   "projects/mapbiomas-public/assets/indonesia/fire/collection2/mapbiomas_indonesia_fire_collection2_annual_burned_v1", "byte", vectorize=True),
                 _p("indonesia", "fire", "collection2", "annual_burned_coverage", "projects/mapbiomas-public/assets/indonesia/fire/collection2/mapbiomas_indonesia_fire_collection2_annual_burned_coverage_v1", "byte"),
                 _p("indonesia", "fire", "collection2", "monthly_burned", "projects/mapbiomas-public/assets/indonesia/fire/collection2/mapbiomas_indonesia_fire_collection2_monthly_burned_v1", "byte"),
                 _p("indonesia", "fire", "collection2", "accumulated_burned", "projects/mapbiomas-public/assets/indonesia/fire/collection2/mapbiomas_indonesia_fire_collection2_accumulated_burned_v1", "byte"),
