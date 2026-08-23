@@ -187,20 +187,23 @@ Para comparar codecs num mes real, rode o script
 `python -m export_and_vectorization.benchmark_compression --country indonesia --year 2024 --month 7`
 (LZW vs DEFLATE vs ZSTD; opcional `--blocksize`).
 
-## Publicacao (etapas 5-7)
+## Publicacao (etapas 3, 4 e 7)
 
-`publish.py` expoe tres funcoes incrementais e idempotentes:
+`publish.py` expoe funcoes incrementais e idempotentes; com `ui=` informado,
+todas iteram sobre os contextos afetados pela selecao multi-painel:
 
-1. **`publish_mosaic_all()`** — copia COGs (`.../{product}/*.tif`) para o bucket
+1. **`publish_mosaic_all(ui=...)`** — copia COGs (`.../{product}/*.tif`) para o bucket
    publico (valida tamanho apos a copia).
-2. **`publish_vector_all()`** — copia vetores ZIP (`.../{product_vectors}/*.zip`)
-   para o bucket publico.
-3. **`cleanup_temp_all()`** — para meses com **COG + ZIP validados no publico**
-   (consolidados), apaga os tiles de `temp/` (libera espaco; tiles eram o maior
-   volume intermediario).
+2. **`publish_vector_all(ui=...)`** — copia vetores ZIP (`.../{product_vectors}/*.zip`)
+   para o bucket publico (so produtos vetorizaveis).
+3. **`cleanup_temp_selected(ui)`** — apaga os tiles de `temp/` das unidades
+   **selecionadas na grid** (libera espaco; tiles eram o maior volume
+   intermediario). Nao ha condicionais com as demais etapas: a ordem de
+   execucao e apenas uma sugestao de fluxo. A delecao e restrita ao padrao de
+   tiles em `temp/` — nunca alcanca COGs, ZIPs, bucket publico ou GEE.
 
-`publish_all()` encadeia as tres. Pode rodar periodicamente para pegar as unidades
-que faltaram.
+`publish_all()` encadeia as duas publicacoes. Pode rodar periodicamente para pegar
+as unidades que faltaram.
 
 ## Dependencias
 
