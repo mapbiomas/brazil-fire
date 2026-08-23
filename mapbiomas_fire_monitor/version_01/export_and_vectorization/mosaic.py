@@ -5,12 +5,14 @@ import gc
 import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from . import config
+from . import selection
 from .state import _get_fs
 
 
-def list_tiles(unit_key):
+def list_tiles(unit_key, context=None):
     fs = _get_fs()
-    pattern = f"{config.BUCKET}/{config.tiles_prefix()}/{config.tile_pattern_unit(unit_key)}*.tif"
+    pattern = (f"{config.BUCKET}/{config.tiles_prefix(context)}/"
+               f"{config.tile_pattern_unit(unit_key, context)}*.tif")
     try:
         files = fs.glob(pattern)
         return sorted(files)
@@ -18,20 +20,22 @@ def list_tiles(unit_key):
         return []
 
 
-def check_mosaic_exists(unit_key):
+def check_mosaic_exists(unit_key, context=None):
     fs = _get_fs()
-    path = f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name_unit(unit_key)}.tif"
+    path = (f"{config.BUCKET}/{config.mosaic_prefix(context)}/"
+            f"{config.mosaic_name_unit(unit_key, context)}.tif")
     try:
         return fs.exists(path)
     except Exception:
         return False
 
 
-def assemble_mosaic(unit_key, force=False, logger=None):
+def assemble_mosaic(unit_key, force=False, logger=None, context=None):
+    ctx = context or config.processing_context()
     # Nunca apaga o COG se nao houver como reconstruir.
-    tiles = list_tiles(unit_key)
+    tiles = list_tiles(unit_key, ctx)
     if not tiles:
-        if check_mosaic_exists(unit_key) and not force:
+        if check_mosaic_exists(unit_key, ctx) and not force:
             if logger:
                 logger(f"[SKIP] Mosaic for {unit_key} already exists.")
             return True
@@ -39,14 +43,15 @@ def assemble_mosaic(unit_key, force=False, logger=None):
             logger(f"[WARN] No tiles found for {unit_key}. Cannot rebuild mosaic.")
         return False
 
-    if check_mosaic_exists(unit_key):
+    if check_mosaic_exists(unit_key, ctx):
         if force:
             if logger:
                 logger(f"[MOSAIC] {unit_key}: force=True — removing COG and rebuilding.")
                 logger("[MOSAIC] Note: if the COG was already published to the public bucket, "
-                       "run Step 5 with FORCE_PUBLISH_MOSAIC=True to update it.")
+                       "re-run Step 3 (Public Mosaic) with FORCE_PUBLISH_MOSAIC=True to update it.")
             try:
-                _get_fs().rm(f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name_unit(unit_key)}.tif")
+                _get_fs().rm(f"{config.BUCKET}/{config.mosaic_prefix(ctx)}/"
+                             f"{config.mosaic_name_unit(unit_key, ctx)}.tif")
             except Exception as e:
                 if logger:
                     logger(f"[ERROR] Failed to delete COG of {unit_key}: {e}")
@@ -65,7 +70,7 @@ def assemble_mosaic(unit_key, force=False, logger=None):
 
     input_list = os.path.join(work_dir, "input_files.txt")
     vrt_file = os.path.join(work_dir, "mosaic.vrt")
-    output_file = os.path.join(work_dir, config.mosaic_name_unit(unit_key) + ".tif")
+    output_file = os.path.join(work_dir, config.mosaic_name_unit(unit_key, ctx) + ".tif")
 
     try:
         with open(input_list, "w") as f:
@@ -79,7 +84,7 @@ def assemble_mosaic(unit_key, force=False, logger=None):
                 logger(f"[ERROR] gdalbuildvrt failed: {result.stderr}")
             return False
 
-        save = config.save_options()
+        save = config.save_options(ctx)
         translate_cmd = [
             "gdal_translate",
             "-of", "GTiff",
@@ -100,7 +105,8 @@ def assemble_mosaic(unit_key, force=False, logger=None):
             return False
 
         fs = _get_fs()
-        dest = f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name_unit(unit_key)}.tif"
+        dest = (f"{config.BUCKET}/{config.mosaic_prefix(ctx)}/"
+                f"{config.mosaic_name_unit(unit_key, ctx)}.tif")
         fs.put(output_file, dest)
         if logger:
             logger(f"[OK] Mosaic ({len(tiles)} tiles) uploaded to gs://{dest}")
@@ -117,25 +123,30 @@ def assemble_mosaic(unit_key, force=False, logger=None):
 
 
 def mosaic_selected(ui, logger=None, force=False):
-    units = ui.get_selected_units()
-    if not units:
+    items = selection.collect_items(ui)
+    if not items:
         if logger:
             logger("[MOSAIC] No unit selected.", "warning")
         return
 
     workers = min(os.cpu_count() or 4, 4)
 
-    def _process(unit):
-        if not list_tiles(unit):
+    jobs, seen_ctx = selection.build_jobs(items)
+
+    def _process(args):
+        unit, ctx = args
+        if not list_tiles(unit, ctx):
             return f"[SKIP] {unit} — no tiles in GCS"
-        ok = assemble_mosaic(unit, force=force, logger=None)
+        ok = assemble_mosaic(unit, force=force, logger=None, context=ctx)
         return f"[{'OK' if ok else 'FAIL'}] {unit}"
 
     if logger:
-        logger(f"[MOSAIC] Starting mosaic of {len(units)} units ({workers} workers)...", "info")
+        n_products = len(seen_ctx)
+        logger(f"[MOSAIC] Starting mosaic of {len(jobs)} unit(s) "
+               f"in {n_products} product(s) ({workers} workers)...", "info")
 
     with ThreadPoolExecutor(max_workers=workers) as ex:
-        futures = {ex.submit(_process, u): u for u in units}
+        futures = {ex.submit(_process, j): j[0] for j in jobs}
         for f in as_completed(futures):
             if logger:
                 logger(f.result())
@@ -143,4 +154,4 @@ def mosaic_selected(ui, logger=None, force=False):
     if logger:
         logger("[MOSAIC] Done. Click Sync to update the grid.", "success")
 
-    ui.sync()
+    selection.sync_affected(ui, seen_ctx.keys())

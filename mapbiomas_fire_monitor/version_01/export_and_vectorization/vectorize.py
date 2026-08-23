@@ -9,21 +9,24 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import geopandas as gpd
 from . import config
+from . import selection
 from .state import _get_fs
 
 
-def check_vector_gcs_exists(unit_key):
+def check_vector_gcs_exists(unit_key, context=None):
     fs = _get_fs()
-    path = f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name_unit(unit_key)}.zip"
+    path = (f"{config.BUCKET}/{config.vector_prefix(context)}/"
+            f"{config.vector_name_unit(unit_key, context)}.zip")
     try:
         return fs.exists(path)
     except Exception:
         return False
 
 
-def check_vector_gee_exists(unit_key):
+def check_vector_gee_exists(unit_key, context=None):
     import ee
-    asset_id = f"{config.vector_asset_prefix()}/{config.vector_name_unit(unit_key)}"
+    asset_id = (f"{config.vector_asset_prefix(context)}/"
+                f"{config.vector_name_unit(unit_key, context)}")
     try:
         ee.data.getAsset(asset_id)
         return True
@@ -31,13 +34,15 @@ def check_vector_gee_exists(unit_key):
         return False
 
 
-def vectorize_unit(unit_key, force=False, logger=None):
-    if check_vector_gcs_exists(unit_key):
+def vectorize_unit(unit_key, force=False, logger=None, context=None):
+    ctx = context or config.processing_context()
+    if check_vector_gcs_exists(unit_key, ctx):
         if force:
             if logger:
                 logger(f"[VECTORIZE] {unit_key}: force=True — removing ZIP and re-vectorizing.")
             try:
-                _get_fs().rm(f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name_unit(unit_key)}.zip")
+                _get_fs().rm(f"{config.BUCKET}/{config.vector_prefix(ctx)}/"
+                             f"{config.vector_name_unit(unit_key, ctx)}.zip")
             except Exception as e:
                 if logger:
                     logger(f"[ERROR] Failed to delete ZIP of {unit_key}: {e}")
@@ -46,7 +51,8 @@ def vectorize_unit(unit_key, force=False, logger=None):
                 logger(f"[SKIP] Vector for {unit_key} already exists in GCS.")
             return True
 
-    mosaic_path = f"{config.mosaic_prefix()}/{config.mosaic_name_unit(unit_key)}.tif"
+    mosaic_path = (f"{config.mosaic_prefix(ctx)}/"
+                   f"{config.mosaic_name_unit(unit_key, ctx)}.tif")
     fs = _get_fs()
     if not fs.exists(f"{config.BUCKET}/{mosaic_path}"):
         if logger:
@@ -56,8 +62,8 @@ def vectorize_unit(unit_key, force=False, logger=None):
     work_dir = f"/content/temp/vectorize_{unit_key.replace('/', '_')}_{int(time.time())}"
     os.makedirs(work_dir, exist_ok=True)
 
-    local_raster = os.path.join(work_dir, config.mosaic_name_unit(unit_key) + ".tif")
-    local_vector = os.path.join(work_dir, config.vector_name_unit(unit_key))
+    local_raster = os.path.join(work_dir, config.mosaic_name_unit(unit_key, ctx) + ".tif")
+    local_vector = os.path.join(work_dir, config.vector_name_unit(unit_key, ctx))
 
     try:
         if logger:
@@ -103,7 +109,8 @@ def vectorize_unit(unit_key, force=False, logger=None):
         if logger:
             logger("[UPLOAD] Uploading zip to GCS...")
 
-        dest = f"{config.BUCKET}/{config.vector_prefix()}/{config.vector_name_unit(unit_key)}.zip"
+        dest = (f"{config.BUCKET}/{config.vector_prefix(ctx)}/"
+                f"{config.vector_name_unit(unit_key, ctx)}.zip")
         fs.put(zip_path, dest)
         if logger:
             logger(f"[OK] gs://{dest}")
@@ -153,10 +160,9 @@ def _ensure_folder(folder, logger=None):
             logger(f"[WARN] Could not set public ACL on {folder}: {e}")
 
 
-def make_vectors_public(logger=None):
-    """Seta all_users_can_read=True em todos os assets da pasta de vetores (idempotente)."""
+def _make_folder_public(folder, logger=None):
+    """Seta all_users_can_read=True em todos os assets de uma pasta de vetores."""
     import ee
-    folder = config.vector_asset_prefix()
     _ensure_folder(folder, logger=logger)
     _log = logger or (lambda *_: None)
     changed = 0
@@ -181,6 +187,35 @@ def make_vectors_public(logger=None):
         except Exception as e:
             _log(f"[WARN] ACL failed on {asset_id}: {e}")
 
+    return changed
+
+
+def make_vectors_public(logger=None, context=None, ui=None):
+    """Seta all_users_can_read=True nos assets das pastas de vetores (idempotente).
+
+    Com ui informado e selecao nao vazia, itera sobre as pastas de TODOS os
+    contextos afetados; caso contrario, aplica no contexto unico recebido
+    (ou no global).
+    """
+    _log = logger or (lambda *_: None)
+    if ui is not None:
+        items = selection.collect_items(ui)
+        if items:
+            _, seen_ctx = selection.build_jobs(items)
+            folders_done = set()
+            total = 0
+            for key, ctx in sorted(seen_ctx.items()):
+                folder = config.vector_asset_prefix(ctx)
+                if folder in folders_done:
+                    continue
+                folders_done.add(folder)
+                _log(f"[PUBLIC] {key[0]}/{key[1]}/{key[2]}/{key[3]} ...")
+                total += _make_folder_public(folder, logger=logger)
+            _log(f"[PUBLIC] {total} assets made public (all_users_can_read).", "success")
+            return total
+
+    folder = config.vector_asset_prefix(context)
+    changed = _make_folder_public(folder, logger=logger)
     _log(f"[PUBLIC] {changed} assets made public (all_users_can_read).", "success")
     return changed
 
@@ -231,14 +266,16 @@ def _fallback_upload(asset_id, zip_remote, logger=None):
         shutil.rmtree(work_dir, ignore_errors=True)
 
 
-def upload_to_gee(unit_key, force=False, logger=None):
+def upload_to_gee(unit_key, force=False, logger=None, context=None):
     import ee
-    if check_vector_gee_exists(unit_key):
+    ctx = context or config.processing_context()
+    if check_vector_gee_exists(unit_key, ctx):
         if force:
             if logger:
                 logger(f"[UPLOAD GEE] {unit_key}: force=True — removing asset and re-uploading.")
             try:
-                asset_id_existing = f"{config.vector_asset_prefix()}/{config.vector_name_unit(unit_key)}"
+                asset_id_existing = (f"{config.vector_asset_prefix(ctx)}/"
+                                     f"{config.vector_name_unit(unit_key, ctx)}")
                 ee.data.deleteAsset(asset_id_existing)
             except Exception as e:
                 if logger:
@@ -248,21 +285,22 @@ def upload_to_gee(unit_key, force=False, logger=None):
                 logger(f"[SKIP] Asset already in GEE for {unit_key}.")
             return True
 
-    if not check_vector_gcs_exists(unit_key):
+    if not check_vector_gcs_exists(unit_key, ctx):
         if logger:
             logger(f"[WARN] Vector not in GCS for {unit_key}. Vectorize first.")
         return False
 
-    asset_id = f"{config.vector_asset_prefix()}/{config.vector_name_unit(unit_key)}"
+    asset_id = f"{config.vector_asset_prefix(ctx)}/{config.vector_name_unit(unit_key, ctx)}"
 
     if _has_active_upload(asset_id):
         if logger:
             logger(f"[WARN] Upload already in progress for {asset_id}. Wait for it to finish.")
         return False
 
-    _ensure_folder(config.vector_asset_prefix(), logger=logger)
+    _ensure_folder(config.vector_asset_prefix(ctx), logger=logger)
 
-    zip_remote = f"gs://{config.BUCKET}/{config.vector_prefix()}/{config.vector_name_unit(unit_key)}.zip"
+    zip_remote = (f"gs://{config.BUCKET}/{config.vector_prefix(ctx)}/"
+                  f"{config.vector_name_unit(unit_key, ctx)}.zip")
 
     if _run_upload(asset_id, zip_remote, logger):
         return True
@@ -272,39 +310,50 @@ def upload_to_gee(unit_key, force=False, logger=None):
     return _fallback_upload(asset_id, zip_remote, logger)
 
 
-def _check_mosaic_gcs(unit_key):
-    path = f"{config.BUCKET}/{config.mosaic_prefix()}/{config.mosaic_name_unit(unit_key)}.tif"
+def _check_mosaic_gcs(unit_key, context=None):
+    path = (f"{config.BUCKET}/{config.mosaic_prefix(context)}/"
+            f"{config.mosaic_name_unit(unit_key, context)}.tif")
     try:
         return _get_fs().exists(path)
     except Exception:
         return False
 
 
+# --- selecao multi-painel ---------------------------------------------------
 def vectorize_selected(ui, logger=None, force=False):
-    if not config.is_vectorizable():
-        if logger:
-            logger("[VECTORIZE] SKIP: this product is not vectorizable (only annual_burned / monitor monthly_burned).", "warning")
-        return
-
-    units = ui.get_selected_units()
-    if not units:
+    items = selection.collect_items(ui)
+    if not items:
         if logger:
             logger("[VECTORIZE] No unit selected.", "warning")
         return
 
+    jobs, seen_ctx = selection.build_jobs(items)
+
+    skipped = [key for key in seen_ctx if not config.is_vectorizable(seen_ctx[key])]
+    if skipped and logger:
+        for key in skipped:
+            logger(f"[VECTORIZE] SKIP {key[0]}/{key[1]}/{key[2]}/{key[3]}: "
+                   "product is not vectorizable.", "warning")
+    jobs = [(u, c) for (u, c) in jobs
+            if config.is_vectorizable(c)]
+    if not jobs:
+        return
+
     workers = min(os.cpu_count() or 4, 4)
 
-    def _process(unit):
-        if not _check_mosaic_gcs(unit):
+    def _process(args):
+        unit, ctx = args
+        if not _check_mosaic_gcs(unit, ctx):
             return f"[SKIP] {unit} — mosaic not found in GCS"
-        ok = vectorize_unit(unit, force=force, logger=None)
+        ok = vectorize_unit(unit, force=force, logger=None, context=ctx)
         return f"[{'OK' if ok else 'FAIL'}] {unit}"
 
     if logger:
-        logger(f"[VECTORIZE] Starting vectorization of {len(units)} units ({workers} workers)...", "info")
+        logger(f"[VECTORIZE] Starting vectorization of {len(jobs)} unit(s) "
+               f"in {len(seen_ctx) - len(skipped)} product(s) ({workers} workers)...", "info")
 
     with ThreadPoolExecutor(max_workers=workers) as ex:
-        futures = {ex.submit(_process, u): u for u in units}
+        futures = {ex.submit(_process, j): j[0] for j in jobs}
         for f in as_completed(futures):
             if logger:
                 logger(f.result())
@@ -312,32 +361,49 @@ def vectorize_selected(ui, logger=None, force=False):
     if logger:
         logger("[VECTORIZE] Done. Click Sync to update the grid.", "success")
 
-    ui.sync()
+    processed = [key for key in seen_ctx if key not in skipped]
+    selection.sync_affected(ui, processed)
 
 
 def gee_upload_selected(ui, logger=None, force=False):
-    if not config.is_vectorizable():
-        if logger:
-            logger("[GEE UPLOAD] SKIP: this product is not vectorizable.", "warning")
-        return
-
-    units = ui.get_selected_units()
-    if not units:
+    items = selection.collect_items(ui)
+    if not items:
         if logger:
             logger("[GEE UPLOAD] No unit selected.", "warning")
         return
 
-    if logger:
-        logger(f"[GEE UPLOAD] Starting upload of {len(units)} units to GEE...", "info")
+    jobs, seen_ctx = selection.build_jobs(items)
 
-    for unit in units:
-        upload_to_gee(unit, force=force, logger=logger)
-
-    try:
-        make_vectors_public(logger=logger)
-    except Exception as e:
+    skipped = [key for key in seen_ctx if not config.is_vectorizable(seen_ctx[key])]
+    jobs = [(u, c) for (u, c) in jobs if config.is_vectorizable(c)]
+    if not jobs:
         if logger:
-            logger(f"[WARN] make_vectors_public failed: {e}")
+            for key in skipped:
+                logger(f"[GEE UPLOAD] SKIP {key[0]}/{key[1]}/{key[2]}/{key[3]}: "
+                       "product is not vectorizable.", "warning")
+        return
+
+    if logger:
+        logger(f"[GEE UPLOAD] Starting upload of {len(jobs)} unit(s) "
+               f"in {len(seen_ctx) - len(skipped)} product(s)...", "info")
+
+    for unit, ctx in jobs:
+        upload_to_gee(unit, force=force, logger=logger, context=ctx)
+
+    folders_done = set()
+    for key in seen_ctx:
+        if key in skipped:
+            continue
+        ctx = seen_ctx[key]
+        folder = config.vector_asset_prefix(ctx)
+        if folder in folders_done:
+            continue
+        folders_done.add(folder)
+        try:
+            make_vectors_public(logger=logger, context=ctx)
+        except Exception as e:
+            if logger:
+                logger(f"[WARN] make_vectors_public failed: {e}")
 
     if logger:
         logger("[GEE UPLOAD] Done. After GEE tasks finish, run make_vectors_public to ensure per-asset ACL. Click Sync.", "success")

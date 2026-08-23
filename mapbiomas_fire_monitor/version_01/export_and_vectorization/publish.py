@@ -1,12 +1,17 @@
-"""Publicacao incremental em 3 etapas (por produto/unidade ativo).
+"""Publicacao por produto/unidade selecionado.
 
-1. publish_mosaic_all  — copia COGs do bucket de processamento para o publico.
-2. publish_vector_all  — copia vetores ZIP para o publico.
-3. cleanup_temp_all    — apaga tiles de temp/ das unidades consolidadas
-                         (COG + ZIP validados no publico).
+1. publish_mosaic_all       — copia COGs do bucket de processamento para o publico.
+2. publish_vector_all       — copia vetores ZIP para o publico.
+   Com ui informado e selecao nao vazia, ambas iteram sobre TODOS os contextos
+   afetados pela selecao multi-painel.
+3. cleanup_temp_selected    — apaga os tiles temp/ das unidades selecionadas,
+   sem condicionais com as demais etapas (a ordem e apenas sugestao de fluxo).
+   A delecao e restrita ao padrao de tiles dentro de temp/: nunca alcanca
+   COG, ZIP, bucket publico ou assets GEE.
 """
 
 from . import config
+from . import selection
 from .state import _get_fs
 
 _OK = {"exists", "copied"}
@@ -17,8 +22,8 @@ def _unit_from_name(name, suffix, prefix_strip):
     return body or None
 
 
-def _art_prefix():
-    return f"{config.PRODUCT}-{config.COUNTRY}_"
+def _art_prefix(context=None):
+    return config.art_prefix(context)
 
 
 def _copy_file(fs, src, dst, logger=None, force=False):
@@ -57,123 +62,141 @@ def _copy_file(fs, src, dst, logger=None, force=False):
         return "error"
 
 
-def publish_mosaic_all(logger=None, force=False):
+def _iter_contexts(ui, context):
+    """Contextos a processar: os afetados pela selecao multi-painel quando
+    houver itens selecionados; caso contrario, o contexto unico recebido
+    (ou o global). Devolve dict ordenado {chave: ctx}, onde a chave e a
+    tupla do contexto em modo multi-painel ou None em modo simples.
+    """
+    if ui is not None:
+        items = selection.collect_items(ui)
+        if items:
+            _, seen_ctx = selection.build_jobs(items)
+            return {key: seen_ctx[key] for key in sorted(seen_ctx)}
+    ctx = context or config.processing_context()
+    return {None: ctx}
+
+
+def publish_mosaic_all(logger=None, force=False, context=None, ui=None):
     fs = _get_fs()
-    prefix = _art_prefix()
-    src = f"{config.BUCKET}/{config.mosaic_prefix()}"
-    dst = f"{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}"
     _log = logger or (lambda *_: None)
-
-    _log(f"[PUBLISH MOSAIC] Syncing COGs to gs://{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}/ ...")
-    try:
-        cogs = sorted(fs.glob(f"{src}/{prefix}*.tif"))
-    except Exception as e:
-        cogs = []
-        _log(f"[ERROR] Listing COGs: {e}")
-
     status = {}
-    for c in cogs:
-        name = c.split("/")[-1]
-        unit = _unit_from_name(name, ".tif", prefix)
-        if unit is None:
-            continue
-        s = _copy_file(fs, c, f"{dst}/{name}", logger, force=force)
-        status[unit] = s
-        if s == "copied":
-            _log(f"[OK] Published COG: {name}")
-        elif s == "exists":
-            _log(f"[SKIP] COG already in public: {name}")
+
+    for key, ctx in _iter_contexts(ui, context).items():
+        if key is not None:
+            _log(f"[PUBLISH MOSAIC] {key[0]}/{key[1]}/{key[2]}/{key[3]}: "
+                 f"syncing COGs to gs://{config.PUBLIC_BUCKET}/ ...")
+        prefix = _art_prefix(ctx)
+        src = f"{config.BUCKET}/{config.mosaic_prefix(ctx)}"
+        dst = f"{config.PUBLIC_BUCKET}/{config.mosaic_prefix(ctx)}"
+
+        try:
+            cogs = sorted(fs.glob(f"{src}/{prefix}*.tif"))
+        except Exception as e:
+            cogs = []
+            _log(f"[ERROR] Listing COGs: {e}")
+
+        for c in cogs:
+            name = c.split("/")[-1]
+            unit = _unit_from_name(name, ".tif", prefix)
+            if unit is None:
+                continue
+            s = _copy_file(fs, c, f"{dst}/{name}", logger, force=force)
+            status[unit] = s
+            if s == "copied":
+                _log(f"[OK] Published COG: {name}")
+            elif s == "exists":
+                _log(f"[SKIP] COG already in public: {name}")
 
     _log(f"[PUBLISH MOSAIC] Summary: {len(status)} COGs verified.", "success")
     return status
 
 
-def publish_vector_all(logger=None, force=False):
+def publish_vector_all(logger=None, force=False, context=None, ui=None):
     fs = _get_fs()
-    prefix = _art_prefix()
-    src = f"{config.BUCKET}/{config.vector_prefix()}"
-    dst = f"{config.PUBLIC_BUCKET}/{config.vector_prefix()}"
     _log = logger or (lambda *_: None)
-
-    if not config.is_vectorizable():
-        _log("[PUBLISH VECTOR] SKIP: product not vectorizable.", "warning")
-        return {}
-
-    _log(f"[PUBLISH VECTOR] Syncing vector ZIPs to gs://{config.PUBLIC_BUCKET}/{config.vector_prefix()}/ ...")
-    try:
-        zips = sorted(fs.glob(f"{src}/{prefix}*.zip"))
-    except Exception as e:
-        zips = []
-        _log(f"[ERROR] Listing ZIPs: {e}")
-
     status = {}
-    for z in zips:
-        name = z.split("/")[-1]
-        unit = _unit_from_name(name, ".zip", prefix)
-        if unit is None:
+
+    for key, ctx in _iter_contexts(ui, context).items():
+        if not config.is_vectorizable(ctx):
+            target = (f"{key[0]}/{key[1]}/{key[2]}/{key[3]}"
+                      if key is not None else "product")
+            _log(f"[PUBLISH VECTOR] SKIP {target}: product not vectorizable.", "warning")
             continue
-        s = _copy_file(fs, z, f"{dst}/{name}", logger, force=force)
-        status[unit] = s
-        if s == "copied":
-            _log(f"[OK] Published ZIP: {name}")
-        elif s == "exists":
-            _log(f"[SKIP] ZIP already in public: {name}")
+        if key is not None:
+            _log(f"[PUBLISH VECTOR] {key[0]}/{key[1]}/{key[2]}/{key[3]}: "
+                 f"syncing vector ZIPs to gs://{config.PUBLIC_BUCKET}/ ...")
+        prefix = _art_prefix(ctx)
+        src = f"{config.BUCKET}/{config.vector_prefix(ctx)}"
+        dst = f"{config.PUBLIC_BUCKET}/{config.vector_prefix(ctx)}"
+
+        try:
+            zips = sorted(fs.glob(f"{src}/{prefix}*.zip"))
+        except Exception as e:
+            zips = []
+            _log(f"[ERROR] Listing ZIPs: {e}")
+
+        for z in zips:
+            name = z.split("/")[-1]
+            unit = _unit_from_name(name, ".zip", prefix)
+            if unit is None:
+                continue
+            s = _copy_file(fs, z, f"{dst}/{name}", logger, force=force)
+            status[unit] = s
+            if s == "copied":
+                _log(f"[OK] Published ZIP: {name}")
+            elif s == "exists":
+                _log(f"[SKIP] ZIP already in public: {name}")
 
     _log(f"[PUBLISH VECTOR] Summary: {len(status)} ZIPs verified.", "success")
     return status
 
 
-def cleanup_temp_all(logger=None):
+def cleanup_temp_selected(ui, logger=None):
+    """Apaga os tiles temp/ das unidades selecionadas em todos os paineis.
+
+    Sem condicionais com as demais etapas: deleta o que casar no padrao de
+    tiles da unidade, exista COG/ZIP/publicacao ou nao. A operacao e
+    idempotente e restrita ao cenario temp/ — nunca alcanca COGs, ZIPs,
+    bucket publico ou assets GEE.
+    """
     fs = _get_fs()
-    prefix = _art_prefix()
     _log = logger or (lambda *_: None)
 
-    try:
-        pub_cogs = set(
-            u for u in (
-                _unit_from_name(f.split('/')[-1], ".tif", prefix)
-                for f in fs.glob(f"{config.PUBLIC_BUCKET}/{config.mosaic_prefix()}/{prefix}*.tif")
-            ) if u
-        )
-    except Exception as e:
-        pub_cogs = set()
-        _log(f"[ERROR] Listing public COGs: {e}")
+    items = selection.collect_items(ui)
+    if not items:
+        _log("[CLEAN TEMP] No unit selected.", "warning")
+        return {"deleted_tiles": 0}
 
-    try:
-        pub_zips = set(
-            u for u in (
-                _unit_from_name(f.split('/')[-1], ".zip", prefix)
-                for f in fs.glob(f"{config.PUBLIC_BUCKET}/{config.vector_prefix()}/{prefix}*.zip")
-            ) if u
-        )
-    except Exception as e:
-        pub_zips = set()
-        _log(f"[ERROR] Listing public ZIPs: {e}")
-
-    consolidated = sorted(pub_cogs & pub_zips)
-    _log(f"[CLEAN TEMP] {len(consolidated)} units consolidated in public (COG+ZIP).")
+    jobs, _ = selection.build_jobs(items)
 
     deleted = 0
-    for unit in consolidated:
-        pattern = f"{config.BUCKET}/{config.tiles_prefix()}/{config.tile_pattern_unit(unit)}*.tif"
+    for unit, ctx in jobs:
+        pattern = (f"{config.BUCKET}/{config.tiles_prefix(ctx)}/"
+                   f"{config.tile_pattern_unit(unit, ctx)}*.tif")
         try:
             tiles = fs.glob(pattern)
-        except Exception:
-            tiles = []
+        except Exception as e:
+            _log(f"[ERROR] Listing tiles of {unit}: {e}")
+            continue
+        removed = 0
         for t in tiles:
             try:
                 fs.rm(t)
+                removed += 1
                 deleted += 1
-                _log(f"[DEL] temp: {t.split('/')[-1]}")
             except Exception as e:
                 _log(f"[ERROR] Could not delete {t}: {e}")
+        if removed:
+            _log(f"[OK] {unit}: {removed} tile(s) removed.")
+        else:
+            _log(f"[SKIP] {unit}: no temp tiles.")
 
     _log(f"[CLEAN TEMP] Summary: {deleted} tiles removed.", "success")
-    return {"consolidated": consolidated, "deleted_tiles": deleted}
+    return {"deleted_tiles": deleted}
 
 
-def publish_all(logger=None, force=False):
-    """Executa as 3 etapas de publicacao em sequencia."""
-    publish_mosaic_all(logger=logger, force=force)
-    publish_vector_all(logger=logger, force=force)
-    cleanup_temp_all(logger=logger)
+def publish_all(logger=None, force=False, ui=None):
+    """Executa as duas etapas de publicacao em sequencia."""
+    publish_mosaic_all(logger=logger, force=force, ui=ui)
+    publish_vector_all(logger=logger, force=force, ui=ui)

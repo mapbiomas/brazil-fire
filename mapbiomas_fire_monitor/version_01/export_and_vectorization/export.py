@@ -1,6 +1,7 @@
 import datetime
 import ee
 from . import config
+from . import selection
 from .state import _get_fs
 
 EXPORT_FLAG = ""
@@ -24,34 +25,38 @@ def _resolve_ic_image(assetid, unit_key, kind):
     return col.filter(ee.Filter.eq("system:index", target)).first()
 
 
-def get_image_for_unit(unit_key):
+def get_image_for_unit(unit_key, context=None):
     """Retorna o ee.Image da unidade: banda (multibanda) ou imagem (IC)."""
-    assetid = config.image_collection()
+    ctx = context or config.processing_context()
+    assetid = ctx["assetid"]
     try:
         atype = ee.data.getAsset(assetid).get("type")
     except Exception:
         atype = None
     if atype == "IMAGE":
         return ee.Image(assetid).select(unit_key).rename(unit_key)
-    return _resolve_ic_image(assetid, unit_key, config.product_kind())
+    return _resolve_ic_image(assetid, unit_key,
+                             ctx.get("kind") or config.product_kind(ctx["product"]))
 
 
-def count_tiles(unit_key):
+def count_tiles(unit_key, context=None):
     fs = _get_fs()
-    pattern = f"{config.BUCKET}/{config.tiles_prefix()}/{config.tile_pattern_unit(unit_key)}*.tif"
+    pattern = (f"{config.BUCKET}/{config.tiles_prefix(context)}/"
+               f"{config.tile_pattern_unit(unit_key, context)}*.tif")
     try:
         return len(fs.glob(pattern))
     except Exception:
         return 0
 
 
-def check_tiles_exist(unit_key):
-    return count_tiles(unit_key) > 0
+def check_tiles_exist(unit_key, context=None):
+    return count_tiles(unit_key, context)
 
 
-def delete_tiles(unit_key, logger=None):
+def delete_tiles(unit_key, logger=None, context=None):
     fs = _get_fs()
-    pattern = f"{config.BUCKET}/{config.tiles_prefix()}/{config.tile_pattern_unit(unit_key)}*.tif"
+    pattern = (f"{config.BUCKET}/{config.tiles_prefix(context)}/"
+               f"{config.tile_pattern_unit(unit_key, context)}*.tif")
     deleted = 0
     try:
         for t in fs.glob(pattern):
@@ -66,15 +71,17 @@ def delete_tiles(unit_key, logger=None):
     return deleted
 
 
-def start_export(unit_key, force=False, logger=None):
-    if check_tiles_exist(unit_key):
+def start_export(unit_key, force=False, logger=None, context=None):
+    ctx = context or config.processing_context()
+
+    if check_tiles_exist(unit_key, ctx):
         if force:
             if logger:
                 logger(f"[EXPORT] {unit_key}: force=True — removing tiles and re-exporting.")
-            delete_tiles(unit_key, logger=logger)
+            delete_tiles(unit_key, logger=logger, context=ctx)
         else:
             if logger:
-                n = count_tiles(unit_key)
+                n = count_tiles(unit_key, ctx)
                 if n == 0:
                     logger(f"[SKIP] Tiles for {unit_key} already exist in GCS.")
                 else:
@@ -82,7 +89,7 @@ def start_export(unit_key, force=False, logger=None):
                            "Export may be incomplete. Use force=True to redo.")
             return True
 
-    image = get_image_for_unit(unit_key)
+    image = get_image_for_unit(unit_key, ctx)
     if image is None:
         if logger:
             logger(f"[WARN] No image found for unit '{unit_key}'.")
@@ -101,18 +108,19 @@ def start_export(unit_key, force=False, logger=None):
         except Exception:
             pass
 
-    prefix = config.tile_pattern_unit(unit_key)
-    task_desc = f"{EXPORT_FLAG}MONITOR_EXPORT_{unit_key}"
+    prefix = config.tile_pattern_unit(unit_key, ctx)
+    tag = config._sanitize(f"{ctx['product']}_{ctx['storage_country']}_{unit_key}")
+    task_desc = f"{EXPORT_FLAG}MONITOR_EXPORT_{tag}"
 
     if logger:
-        logger(f"[EXPORT] Starting export: {task_desc} -> gs://{config.BUCKET}/{config.tiles_prefix()}/{prefix}_*.tif")
+        logger(f"[EXPORT] Starting export: {task_desc} -> gs://{config.BUCKET}/{config.tiles_prefix(ctx)}/{prefix}_*.tif")
 
     task = ee.batch.Export.image.toCloudStorage(
         image=image,
         description=task_desc,
         bucket=config.BUCKET,
-        fileNamePrefix=f"{config.tiles_prefix()}/{prefix}_",
-        scale=config.scale(),
+        fileNamePrefix=f"{config.tiles_prefix(ctx)}/{prefix}_",
+        scale=config.scale(ctx),
         region=bounds,
         maxPixels=1e13,
         fileFormat="GeoTIFF",
@@ -127,19 +135,27 @@ def start_export(unit_key, force=False, logger=None):
 
 
 def export_selected(ui, logger=None, force=False):
-    units = ui.get_selected_units()
-    if not units:
+    items = selection.collect_items(ui)
+    if not items:
         if logger:
             logger("[EXPORT] No unit selected.", "warning")
         return
 
-    if logger:
-        logger(f"[EXPORT] Starting export of {len(units)} units...", "info")
+    groups = selection.group_items(items)
 
-    for unit in units:
-        start_export(unit, force=force, logger=logger)
+    if logger:
+        logger(f"[EXPORT] Starting export of {len(items)} unit(s) "
+               f"in {len(groups)} product(s)...", "info")
+
+    for key, units in sorted(groups.items()):
+        country, theme, collection, product = key
+        ctx = config.processing_context(country, theme, collection, product)
+        if logger and len(groups) > 1:
+            logger(f"[EXPORT] {country}/{theme}/{collection}/{product}: {len(units)} unit(s)")
+        for unit in units:
+            start_export(unit, force=force, logger=logger, context=ctx)
 
     if logger:
         logger("[EXPORT] All exports submitted. Wait for the GEE tasks to finish, then click Sync.", "success")
 
-    ui.sync()
+    selection.sync_affected(ui, groups.keys())

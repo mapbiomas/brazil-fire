@@ -805,6 +805,39 @@ class UnitGridPanel:
     def get_selected_units(self):
         return [k for k, chk in self.chk_dict.items() if chk.value]
 
+    def get_selected_items(self):
+        """Selecao com contexto completo para pipelines multi-painel."""
+        return [
+            {
+                "country": self.country,
+                "theme": self.theme,
+                "collection": self.collection,
+                "product": self.product,
+                "unit": k,
+            }
+            for k, chk in self.chk_dict.items() if chk.value
+        ]
+
+    def context_key(self):
+        return (self.country, self.theme, self.collection, self.product)
+
+    def matches_context(self, item=None, country=None, theme=None, collection=None, product=None):
+        if item is not None:
+            country = item.get("country")
+            theme = item.get("theme")
+            collection = item.get("collection")
+            product = item.get("product")
+        return (country, theme, collection, product) == self.context_key()
+
+    def sync_context(self):
+        """Sincroniza os seletores globais do config com o contexto deste painel."""
+        if not self.product:
+            return
+        config.set_country(self.country, verbose=False)
+        config.set_theme(self.theme)
+        config.set_collection(self.collection)
+        config.set_product(self.product)
+
     def _get_selected_keys(self):
         return [k for k, chk in self.chk_dict.items() if chk.value]
 
@@ -815,6 +848,18 @@ class UnitGridPanel:
 
     def sync(self):
         self._on_sync(None)
+
+
+def _iter_unit_panels(obj):
+    """Percorre a arvore de abas (pais -> tema -> colecao -> produto) e
+    rende todos os UnitGridPanel criados, de todos os paises/produtos."""
+    panels = getattr(obj, "__dict__", {}).get("_panels")
+    if isinstance(panels, dict) and panels:
+        for child in panels.values():
+            yield from _iter_unit_panels(child)
+        return
+    if isinstance(obj, UnitGridPanel):
+        yield obj
 
 
 # ---------------------------------------------------------------------------
@@ -861,10 +906,19 @@ class ProductTabs:
             self._panels[product] = panel
             self._placeholders[index].children = [panel.container]
         else:
+            # Painel em cache: ressincroniza os seletores globais do config
+            # para este produto (evita export com asset/banda de outro painel).
             panel = self._panels[product]
+            panel.sync_context()
         self._active_panel = panel
         # Update tab style for this product
         self._update_tab_style(product)
+
+    def sync_context(self):
+        """Propaga a sincronizacao de contexto ate o painel ativo."""
+        panel = self.__dict__.get("_active_panel")
+        if panel is not None:
+            panel.sync_context()
 
     def _on_panel_data_loaded(self, product, loaded):
         """Callback when a panel's data loaded state changes."""
@@ -922,6 +976,13 @@ class CollectionTabs:
         else:
             pp = self._panels[coll]
         self._active_panel = pp
+        pp.sync_context()
+
+    def sync_context(self):
+        """Propaga a sincronizacao de contexto ate o painel ativo."""
+        pp = self.__dict__.get("_active_panel")
+        if pp is not None:
+            pp.sync_context()
 
     def __getattr__(self, name):
         return getattr(self._active_panel, name)
@@ -976,6 +1037,13 @@ class ThemeTabs:
         else:
             ct = self._panels[theme]
         self._active_panel = ct
+        ct.sync_context()
+
+    def sync_context(self):
+        """Propaga a sincronizacao de contexto ate o painel ativo."""
+        ct = self.__dict__.get("_active_panel")
+        if ct is not None:
+            ct.sync_context()
 
     def __getattr__(self, name):
         return getattr(self._active_panel, name)
@@ -1019,6 +1087,13 @@ class CountryTabs:
         else:
             tt = self._panels[code]
         self._active_panel = tt
+        tt.sync_context()
+
+    def sync_context(self):
+        """Propaga a sincronizacao de contexto ate o painel ativo."""
+        tt = self.__dict__.get("_active_panel")
+        if tt is not None:
+            tt.sync_context()
 
     def __getattr__(self, name):
         return getattr(self._active_panel, name)
@@ -1285,6 +1360,36 @@ class FireMonitorApp:
             # self.filter_theme_select.options = tt.themes
             # self.filter_theme_select.value = tuple(tt.themes)
         # self._update_cache_status()
+
+    def get_selected_items(self):
+        """Agrega a selecao de TODOS os paineis (todos os paises/produtos),
+        cada unidade com seu contexto completo."""
+        items = []
+        seen = set()
+        for panel in _iter_unit_panels(self.interface):
+            for item in panel.get_selected_items():
+                key = (item["country"], item["theme"], item["collection"],
+                       item["product"], item["unit"])
+                if key in seen:
+                    continue
+                seen.add(key)
+                items.append(item)
+        return items
+
+    def sync_contexts(self, items):
+        """Sincroniza apenas os paineis afetados pelos contextos processados."""
+        targets = {(i.get("country"), i.get("theme"),
+                    i.get("collection"), i.get("product")) for i in items}
+        synced = False
+        for panel in _iter_unit_panels(self.interface):
+            if panel.context_key() in targets:
+                try:
+                    panel.sync()
+                    synced = True
+                except Exception as e:
+                    self._log(f"Sync failed for {panel.context_key()}: {e}", "error")
+        if not synced:
+            self.sync()
 
     def __getattr__(self, name):
         return getattr(self.interface, name)

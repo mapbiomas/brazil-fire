@@ -421,12 +421,14 @@ def product_context():
     }
 
 
-def image_collection():
+def image_collection(context=None):
+    if context is not None:
+        return context["assetid"]
     return active_product()["assetid"]
 
 
-def scale():
-    return product_meta().get("scale", SCALE)
+def scale(context=None):
+    return (context or processing_context()).get("scale", SCALE)
 
 
 def theme():
@@ -441,8 +443,8 @@ def product():
     return PRODUCT
 
 
-def product_kind():
-    n = PRODUCT.lower()
+def product_kind(product=None):
+    n = (product or PRODUCT).lower()
     if "monthly" in n:
         return "monthly"
     if "annual" in n:
@@ -458,13 +460,16 @@ def unit_key_for_image(kind, time_start_ms):
     return f"{dt.year}"
 
 
-def is_vectorizable():
+def is_vectorizable(context=None):
+    if context is not None:
+        return bool(context.get("vectorize"))
     return bool(product_meta().get("vectorize"))
 
 
-def save_options():
+def save_options(context=None):
     """Mapeia o type declarado do produto para o salvamento do mosaico."""
-    t = (product_meta().get("type") or "byte").lower()
+    declared = context.get("type") if context is not None else product_meta().get("type")
+    t = (declared or "byte").lower()
     if t in ("float32", "float64", "float"):
         return {"ot": "Float32", "nodata": 0, "predictor": 3, "compression": "DEFLATE"}
     if t in ("int16", "uint16", "int32"):
@@ -479,22 +484,29 @@ def _rel(prod):
     return f"{BUCKET_PATH}/{storage_country()}/{THEME}/{COLLECTION}/{physical}"
 
 
-def tiles_prefix():
-    return f"{_rel(PRODUCT)}/temp"
+def tiles_prefix(context=None):
+    ctx = context or processing_context()
+    return f"{ctx['root']}/temp"
 
 
-def mosaic_prefix():
-    return _rel(PRODUCT)
+def mosaic_prefix(context=None):
+    return (context or processing_context())["root"]
 
 
-def vector_prefix():
-    return f"{_rel(PRODUCT)}_vectors"
+def vector_prefix(context=None):
+    return f"{(context or processing_context())['root']}_vectors"
 
 
-def vector_asset_prefix():
-    gee_coll = _gee_collection_name(COLLECTION)
-    return (f"projects/mapbiomas-public/assets/{storage_country()}/{THEME}/{gee_coll}/"
-            f"{PRODUCT}_vectors_v01")
+def vector_asset_prefix(context=None):
+    ctx = context or processing_context()
+    return (f"projects/mapbiomas-public/assets/{ctx['storage_country']}/{ctx['theme']}/{ctx['gee_collection']}/"
+            f"{ctx['product']}_vectors_v01")
+
+
+def art_prefix(context=None):
+    """Prefixo de artefatos por unidade: {product}-{storage_country}_."""
+    ctx = context or processing_context()
+    return f"{ctx['product']}-{ctx['storage_country']}_"
 
 
 def tile_pattern(year, month):
@@ -531,6 +543,7 @@ def processing_context(country=None, theme=None, collection=None, product=None):
     if collection == "monitor" and product == "monthly_burned":
         storage_product = "mapbiomas_fire_monthly_burned_v1"
     gee_collection = _gee_collection_name(collection)
+    meta = find_product(country, theme, collection, product) or {}
     return {
         "country": country,
         "storage_country": storage_country(country),
@@ -540,19 +553,27 @@ def processing_context(country=None, theme=None, collection=None, product=None):
         "product": product,
         "storage_product": storage_product,
         "root": f"{BUCKET_PATH}/{storage_country(country)}/{theme}/{collection}/{storage_product}",
+        "assetid": meta.get("assetid", ""),
+        "type": (meta.get("type") or "byte").lower(),
+        "scale": meta.get("scale", SCALE),
+        "vectorize": bool(meta.get("vectorize", False)),
+        "kind": product_kind(product),
     }
 
 
-def tile_pattern_unit(unit):
-    return f"fire_monitor_v1_{PRODUCT}_{storage_country()}_{_sanitize(unit)}"
+def tile_pattern_unit(unit, context=None):
+    ctx = context or processing_context()
+    return f"fire_monitor_v1_{ctx['product']}_{ctx['storage_country']}_{_sanitize(unit)}"
 
 
-def mosaic_name_unit(unit):
-    return f"{PRODUCT}-{storage_country()}_{_sanitize(unit)}"
+def mosaic_name_unit(unit, context=None):
+    ctx = context or processing_context()
+    return f"{ctx['product']}-{ctx['storage_country']}_{_sanitize(unit)}"
 
 
-def vector_name_unit(unit):
-    return f"{PRODUCT}-{storage_country()}_{_sanitize(unit)}"
+def vector_name_unit(unit, context=None):
+    ctx = context or processing_context()
+    return f"{ctx['product']}-{ctx['storage_country']}_{_sanitize(unit)}"
 
 
 def gcs_object_url(bucket, path):

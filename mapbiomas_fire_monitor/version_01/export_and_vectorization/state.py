@@ -14,11 +14,11 @@ def _get_fs():
     return _fs
 
 
-def list_months_in_collection():
+def list_months_in_collection(assetid=None):
     import ee
     import datetime
     try:
-        col = ee.ImageCollection(image_collection())
+        col = ee.ImageCollection(assetid or image_collection())
         times = col.aggregate_array('system:time_start').getInfo()
         months = set()
         for t in times:
@@ -252,7 +252,7 @@ def build_state(country=None, theme=None, collection=None, product=None, logger=
     context = config.processing_context(country, theme, collection, product)
     gcs_state = scan_gcs(context=context, logger=logger)
     gee_state = scan_gee(context=context, logger=logger)
-    months = list_months_in_collection()
+    months = list_months_in_collection(context["assetid"])
     full = merge_states(gcs_state, gee_state, months)
 
     sorted_state = {}

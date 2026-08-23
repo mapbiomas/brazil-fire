@@ -82,7 +82,7 @@ def _bands_from_image(image):
     return bands
 
 
-def inspect_asset(asset_id):
+def inspect_asset(asset_id, kind=None):
     """Retorna tipo, bandas, dtype, max, temporal e units de um produto."""
     import ee
     info = {"assetid": asset_id}
@@ -117,6 +117,9 @@ def inspect_asset(asset_id):
         except Exception:
             info["max"] = None
         # A unit publica e temporal; system:index fica somente para resolver a imagem.
+        # Formato da chave acompanha o kind (annual -> %Y; demais -> %Y_%m),
+        # em linha com config.unit_key_for_image usado no export.
+        fmt = "%Y" if kind == "annual" else "%Y_%m"
         try:
             idx = col.aggregate_array("system:index").getInfo() or []
             ts = col.aggregate_array("system:time_start").getInfo() or []
@@ -125,7 +128,7 @@ def inspect_asset(asset_id):
                 key = ix
                 if i < len(ts) and ts[i]:
                     try:
-                        key = datetime.datetime.utcfromtimestamp(ts[i] / 1000).strftime("%Y_%m")
+                        key = datetime.datetime.utcfromtimestamp(ts[i] / 1000).strftime(fmt)
                     except Exception:
                         pass
                 units.append({"key": key, "label": key, "image_id": ix})
@@ -176,7 +179,7 @@ def build_inventory(countries=None, refresh=False):
                         continue
                     meta = ({"assetid": p["assetid"], "kind": "GCS_PREFIX"}
                             if p["assetid"].startswith("gcs://")
-                            else inspect_asset(p["assetid"]))
+                            else inspect_asset(p["assetid"], kind=detect_kind(p["product"])))
                     rec = {
                         "name": p["product"],
                         "assetid": p["assetid"],
