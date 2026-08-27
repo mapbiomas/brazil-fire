@@ -17,7 +17,7 @@ This directory contains the original scripts and methods utilized for the first 
 
 ### [version_02/](./version_02/) (Active)
 This represents the current and active standard for the network (Collection 2 onwards). This version brings enhanced models, automated parameterizations, expanded scopes, and multi-country operational flows.
-- **Quick Start via Colab**: The `mapbiomas_fire_classification_v1.ipynb` notebook located inside `version_02/` serves as the primary entry point to easily test and adapt the most recent classification scripts without local setup.
+- **Quick Start via Colab**: The [`mapbiomas_fire_classification_for_collab.ipynb`](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/version_02/classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb) notebook located inside `version_02/classification_algorithms/` serves as the primary entry point to easily test and adapt the most recent classification scripts without local setup.
 
 ---
 ## Contact

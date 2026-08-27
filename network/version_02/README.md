@@ -9,7 +9,7 @@ The methodology utilizes an improved Deep Neural Network (DNN) structure, with b
 ## Quick Start: Google Colab
 The most efficient way to utilize these scripts without complex local environment setup is via our official notebook:
 
-1. Open the [MapBiomas Fire Landsat Classification Notebook (v1)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/fire_landsat_30m/version_02/mapbiomas_fire_classification_v1.ipynb) on Google Colab.
+1. Open the [MapBiomas Fire Landsat Classification Notebook (for Colab)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/version_02/classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb) on Google Colab.
 2. In the notebook, clone the repository exactly as indicated:
     ```bash
     !git clone https://github.com/mapbiomas/brazil-fire.git
