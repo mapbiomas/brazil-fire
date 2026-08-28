@@ -633,8 +633,9 @@ class UnitGridPanel:
         )
         self.btn_load_data.on_click(self._on_load_data)
         self.toolbar = widgets.HBox([
-            self.btn_load_data, self.btn_sync, self.year_dropdown, self.btn_select_pending,
+            self.btn_load_data, self.btn_sync, self.btn_select_pending,
             self.btn_select_all, self.btn_clear, self.btn_clear_all, self.story_loader.widget,
+            self.year_dropdown,
         ], layout=L(margin="0 0 8px 0", gap="8px", align_items="center"))
 
         self._data_loaded = False
