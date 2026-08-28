@@ -1056,11 +1056,8 @@ def flag(code):
 
 
 def list_countries():
-    countries = [c for c, themes in OBJ.items() if any(
+    return [c for c, themes in OBJ.items() if any(
         any(prods for prods in collections.values()) for collections in themes.values())]
-    brasil = [c for c in countries if c == "brasil"]
-    others = sorted(c for c in countries if c != "brasil")
-    return brasil + others
 
 
 def list_collections(country, theme=None):
