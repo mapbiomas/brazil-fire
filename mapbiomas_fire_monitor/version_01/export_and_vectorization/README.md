@@ -77,7 +77,7 @@ COUNTRIES = ["brasil", "indonesia"]   # codigos do OBJ (abas de pais na UI)
 A fonte de verdade e o `config.OBJ`: `OBJ[pais][tema][colecao] = [produtos]`, onde
 cada produto tem `product` (nome curto), `assetid` (asset GEE de origem), `type`
 (`byte`/`int16`/`float32` — dtype do mosaico), `vectorize` (vetorizacao/upload GEE,
-apenas `annual_burned` das colecoes + `monthly_burned` do monitor) e `visible`.
+apenas `annual_burned`) e `visible`.
 Novas colecoes entram **editando o arquivo catalogo `config.py`** (veja secao
 abaixo — o form "Adicionar coleção" foi descontinuado); os helpers
 `config.add_collection` / `set_product_visible` / `remove_collection` seguem
@@ -106,15 +106,23 @@ dados devem entrar com cuidado:
 
 ## Colunas da grid (etapas)
 
+As colunas seguem a ordem das etapas de cada produto. Produtos **vetorizáveis**
+(apenas `annual_burned`) mostram as colunas de vetor; nos demais produtos essas
+colunas ficam **ocultas**:
+
 | Etapa | Coluna | Quando vira **OK** | Celula |
 |-------|--------|--------------------|--------|
 | 1 | Export | tiles no GCS (`temp/`) | Export |
 | 2 | Mosaico | COG montado | Mosaico |
-| 3 | Vetor GCS | ZIP vetorial no GCS | Vetorizacao |
-| 4 | Vetor GEE | FeatureCollection no GEE | Upload GEE |
-| 5 | Publico mosaico | COG espelhado no `mapbiomas-public` | Publicar mosaico |
-| 6 | Publico vetor | ZIP espelhado no `mapbiomas-public` | Publicar vetor |
+| 3 | Publico mosaico | COG espelhado no `mapbiomas-public` | Publicar mosaico |
+| 4 | Vetor GCS *(só `annual_burned`)* | ZIP vetorial no GCS | Vetorizacao |
+| 5 | Vetor GEE *(só `annual_burned`)* | FeatureCollection no GEE | Upload GEE |
+| 6 | Publico vetor *(só `annual_burned`)* | ZIP espelhado no `mapbiomas-public` | Publicar vetor |
 | 7 | Clean temp | tiles de `temp/` removidos apos consolidacao | Limpar temp |
+
+Ordem sugerida — **Export → Mosaico → Publicar mosaico → Vetor GCS → Vetor GEE →
+Publicar vetor → Clean temp** (para produtos nao-vetorizaveis: **Export → Mosaico →
+Publicar mosaico → Clean temp**; o Clean temp e sempre a ultima etapa).
 
 A legenda da grid traz a dica **MISS → OK** com a celula que resolve cada coluna.
 O cabeçalho de cada coluna mostra o numero da **Etapa**.
@@ -141,10 +149,10 @@ uma etapa, ative a variavel `FORCE_<ETAPA>` na propria celula (default `False`):
 |-------|----------|-----------|
 | 1. Export | `FORCE_EXPORT` | exclui os tiles de `temp/` da unidade **antes** de exportar |
 | 2. Mosaico | `FORCE_MOSAIC` | exclui o COG existente e remonta |
-| 3. Vetorizacao | `FORCE_VECTOR` | exclui o ZIP existente e revetoriza |
-| 4. Upload GEE | `FORCE_UPLOAD` | exclui o asset GEE existente e re-uploada |
-| 5. Publicar mosaico | `FORCE_PUBLISH_MOSAIC` | sobrescreve o COG no publico |
-| 6. Publicar vetor | `FORCE_PUBLISH_VECTOR` | sobrescreve o ZIP no publico |
+| 3. Publicar mosaico | `FORCE_PUBLISH_MOSAIC` | sobrescreve o COG no publico |
+| 4. Vetorizacao *(só `annual_burned`)* | `FORCE_VECTOR` | exclui o ZIP existente e revetoriza |
+| 5. Upload GEE *(só `annual_burned`)* | `FORCE_UPLOAD` | exclui o asset GEE existente e re-uploada |
+| 6. Publicar vetor *(só `annual_burned`)* | `FORCE_PUBLISH_VECTOR` | sobrescreve o ZIP no publico |
 | 7. Limpar temp | — | idempotente |
 
 Para reprocessar uma unidade ja completa, selecione-a na grid e rode a etapa com a
@@ -179,6 +187,8 @@ O painel de log foi otimizado para **nao custar processamento**:
   escolhido. Os botoes **Selecionar Pendentes** e **Selecionar Todos** valem
   apenas para as unidades visiveis no filtro.
 - **Unidade por unidade**: marque/desmarque os checkboxes da grid normalmente.
+- **Clear**: desmarca as selecoes do produto atualmente exibido.
+- **Clear All**: desmarca as selecoes de **todos** os produtos/paises de uma vez.
 - **Recomecar um periodo ("do zero")**: use a celula de LIMPEZA (descomentando os
   blocos) para apagar tiles / mosaicos / vetores ZIP de um intervalo de anos e
   depois Sincronize — os meses voltam a aparecer como pendentes.
@@ -192,15 +202,15 @@ GEE ImageCollection
        │
        ▼  [2] Mosaic (mosaic.py)  → COG 0/1 no GCS         .../{product}/
        │
-       ▼  [3] Vectorize (vectorize.py) → shapefile+unique_id → .zip
+       ▼  [3] Publish mosaic (publish.py) → COG no publico .../{product}/
+       │
+       ▼  [4] Vectorize (vectorize.py) → shapefile+unique_id → .zip   (só annual_burned)
        │                                    .../{raster}_vectors/
        │
-       ▼  [4] Upload GEE (vectorize.py)
+       ▼  [5] Upload GEE (vectorize.py)                                  (só annual_burned)
        │         projects/mapbiomas-public/assets/{country}/fire/monitor/{raster}_vectors
        │
-       ▼  [5] Publish mosaic (publish.py) → COG no publico .../{product}/
-       │
-       ▼  [6] Publish vector (publish.py) → ZIP no publico .../{raster}_vectors/
+       ▼  [6] Publish vector (publish.py) → ZIP no publico .../{raster}_vectors/  (só annual_burned)
        │
        ▼  [7] Clean temp (publish.py) → apaga tiles temp/ dos meses consolidados
 ```

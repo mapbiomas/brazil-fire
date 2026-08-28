@@ -282,17 +282,31 @@ def _loading_html(label="Loading..."):
 
 
 # (state key, column title, step number, badge type)
-# New order: 1=Export, 2=Mosaic, 3=Clean Temp, 4=Vector GCS, 5=Vector GEE, 6=Public Mosaic, 7=Public Vector
-# Vector steps (4,5,7) only shown for vectorizable products
-_COLS = [
+# Step order:
+#   annual_burned (vectorizable): 1=Export, 2=Mosaic, 3=Public Mosaic, 4=Vector GCS,
+#                                 5=Vector GEE, 6=Public Vector, 7=Clean Temp
+#   other products (default)     : 1=Export, 2=Mosaic, 3=Public Mosaic, 4=Clean Temp
+# Vector steps (4,5,6) are only shown for vectorizable products (annual_burned).
+_COLS_VECTORIZABLE = [
     ("exported",         "Export",          1, "badge"),
     ("mosaiced",         "Mosaic",          2, "link_mosaic"),
-    ("temp_cleaned",     "Clean temp",      3, "badge"),
+    ("published_mosaic", "Public mosaic",   3, "link_pub_mosaic"),
     ("vectorized_gcs",   "Vector GCS",      4, "link_vector"),
     ("vectorized_gee",   "Vector GEE",      5, "copy_asset"),
-    ("published_mosaic", "Public mosaic",   6, "link_pub_mosaic"),
-    ("published_vector", "Public vector",   7, "link_pub_vector"),
+    ("published_vector", "Public vector",   6, "link_pub_vector"),
+    ("temp_cleaned",     "Clean temp",      7, "badge"),
 ]
+
+_COLS_DEFAULT = [
+    ("exported",         "Export",          1, "badge"),
+    ("mosaiced",         "Mosaic",          2, "link_mosaic"),
+    ("published_mosaic", "Public mosaic",   3, "link_pub_mosaic"),
+    ("temp_cleaned",     "Clean temp",      4, "badge"),
+]
+
+
+def _product_cols():
+    return _COLS_VECTORIZABLE if config.is_vectorizable() else _COLS_DEFAULT
 
 _VECTOR_KINDS = {"link_vector", "copy_asset", "link_pub_vector"}
 
@@ -571,7 +585,8 @@ class UnitGridPanel:
     _CELL_W = "88px"
     _SEL_W  = "72px"
 
-    def __init__(self, country, theme, collection, log_area=None, on_data_loaded_change=None):
+    def __init__(self, country, theme, collection, log_area=None, on_data_loaded_change=None,
+                 on_clear_all=None):
         self.country = country
         self.theme = theme
         self.collection = collection
@@ -583,6 +598,7 @@ class UnitGridPanel:
         self.year_filter = None
         self.log_area = log_area
         self._on_data_loaded_change = on_data_loaded_change
+        self._on_clear_all_cb = on_clear_all
 
         self.grid_container = widgets.VBox([
             _loading_html("Loading units...")
@@ -600,6 +616,10 @@ class UnitGridPanel:
         self.btn_clear = widgets.Button(description="Clear", button_style="warning",
                                         layout=L(width="90px", height="34px"))
         self.btn_clear.on_click(self._on_clear)
+        self.btn_clear_all = widgets.Button(description="Clear All", button_style="warning",
+                                            icon="trash", layout=L(width="100px", height="34px"),
+                                            tooltip="Clear selections in ALL products")
+        self.btn_clear_all.on_click(self._on_clear_all)
 
         self.year_dropdown = widgets.Dropdown(options=["All units"], value="All units",
                                               description="Year:", layout=L(width="200px"))
@@ -613,8 +633,8 @@ class UnitGridPanel:
         )
         self.btn_load_data.on_click(self._on_load_data)
         self.toolbar = widgets.HBox([
-            self.year_dropdown, self.btn_select_pending, self.btn_select_all,
-            self.btn_clear, self.btn_sync, self.btn_load_data, self.story_loader.widget,
+            self.btn_load_data, self.btn_sync, self.year_dropdown, self.btn_select_pending,
+            self.btn_select_all, self.btn_clear, self.btn_clear_all, self.story_loader.widget,
         ], layout=L(margin="0 0 8px 0", gap="8px", align_items="center"))
 
         self._data_loaded = False
@@ -755,12 +775,13 @@ class UnitGridPanel:
             )
 
         vectorizable = config.is_vectorizable()
+        cols = _product_cols()
         header_row = widgets.HBox(
             [widgets.HTML(f'<div style="width:{self._DATE_W};height:42px;background:{p["grid_header_bg"]};'
                           f'font-weight:700;font-size:12px;color:{p["grid_header_fg"]};padding:12px 6px;'
                           f'box-sizing:border-box;border-left:1px solid {p["sep"]};'
                           f'border-right:1px solid {p["sep"]};">Unit</div>')]
-            + [_header_cell(self._CELL_W, t, e, kind in _VECTOR_KINDS) for _, t, e, kind in _COLS]
+            + [_header_cell(self._CELL_W, t, e, kind in _VECTOR_KINDS) for _, t, e, kind in cols]
             + [widgets.HTML(f'<div style="width:{self._SEL_W};height:42px;background:{p["grid_header_bg"]};'
                             f'text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};padding:12px 3px;'
                             f'box-sizing:border-box;border-right:1px solid {p["sep"]};">Select</div>')],
@@ -786,7 +807,7 @@ class UnitGridPanel:
                 f'border-left:1px solid {p["sep"]};border-right:1px solid {p["sep"]};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{unit_short}</div>'
             )
             cells = [date_cell]
-            for key, _t, _e, kind in _COLS:
+            for key, _t, _e, kind in cols:
                 ok = info.get(key, False)
                 cells.append(widgets.HTML(
                     f'<div style="width:{self._CELL_W};text-align:center;box-sizing:border-box;'
@@ -817,12 +838,18 @@ class UnitGridPanel:
             f'<div style="font-size:11px;color:{p["legend_fg"]};margin:6px 0 0 10px;padding:6px 10px;'
             f'background:{p["legend_bg"]};border-radius:4px;">{label}</div>'
         )
+        if vectorizable:
+            step_hint = ('Export=Step 1 &nbsp;|&nbsp; Mosaic=Step 2 &nbsp;|&nbsp; '
+                         'Public mosaic=Step 3 &nbsp;|&nbsp; Vector GCS=Step 4 &nbsp;|&nbsp; '
+                         'Vector GEE=Step 5 &nbsp;|&nbsp; Public vector=Step 6 &nbsp;|&nbsp; '
+                         'Clean temp=Step 7 (last)')
+        else:
+            step_hint = ('Export=Step 1 &nbsp;|&nbsp; Mosaic=Step 2 &nbsp;|&nbsp; '
+                         'Public mosaic=Step 3 &nbsp;|&nbsp; Clean temp=Step 4 (last)')
         hint = widgets.HTML(
             f'<div style="font-size:11px;color:{p["hint_fg"]};margin:4px 0 0 10px;padding:6px 10px;'
             f'background:{p["hint_bg"]};border:1px solid {p["hint_border"]};border-radius:4px;line-height:1.5;">'
-            f'<strong>MISS &rarr; OK:</strong> Export=Step 1 &nbsp;|&nbsp; Mosaic=Step 2 &nbsp;|&nbsp; '
-            f'Vector GCS=Step 3 &nbsp;|&nbsp; Vector GEE=Step 4 &nbsp;|&nbsp; Public mosaic=Step 5 &nbsp;|&nbsp; '
-            f'Public vector=Step 6 &nbsp;|&nbsp; Clean temp=Step 7 (after both published)'
+            f'<strong>MISS &rarr; OK:</strong> {step_hint}'
             f'</div>'
         )
         meta = config.product_context()
@@ -900,6 +927,13 @@ class UnitGridPanel:
         for chk in self.chk_dict.values():
             chk.value = False
 
+    def _on_clear_all(self, _):
+        """Limpa as selecoes deste painel e de TODOS os outros paineis de produto."""
+        if self._on_clear_all_cb:
+            self._on_clear_all_cb()
+        else:
+            self._on_clear(None)
+
     def get_selected_units(self):
         return [k for k, chk in self.chk_dict.items() if chk.value]
 
@@ -966,12 +1000,14 @@ def _iter_unit_panels(obj):
 class ProductTabs:
     """Abas de produtos visiveis + um grid independente por produto."""
 
-    def __init__(self, country, theme, collection, log_area=None, on_data_loaded_change=None):
+    def __init__(self, country, theme, collection, log_area=None, on_data_loaded_change=None,
+                 on_clear_all=None):
         self.country = country
         self.theme = theme
         self.collection = collection
         self.log_area = log_area
         self._on_data_loaded_change = on_data_loaded_change
+        self._on_clear_all_cb = on_clear_all
         products = config.list_products(country, theme, collection)
         self.products = [p["product"] for p in products if p.get("visible", True)]
         self._panels = {}
@@ -998,7 +1034,8 @@ class ProductTabs:
         if product not in self._panels:
             panel = UnitGridPanel(
                 self.country, self.theme, self.collection, self.log_area,
-                on_data_loaded_change=self._on_panel_data_loaded
+                on_data_loaded_change=self._on_panel_data_loaded,
+                on_clear_all=self._on_clear_all_cb
             )
             panel._activate_product(product)
             self._panels[product] = panel
@@ -1041,10 +1078,11 @@ class ProductTabs:
 class CollectionTabs:
     """Abas de colecao dentro de um tema."""
 
-    def __init__(self, country, theme, log_area=None):
+    def __init__(self, country, theme, log_area=None, on_clear_all=None):
         self.country = country
         self.theme = theme
         self.log_area = log_area
+        self._on_clear_all_cb = on_clear_all
         colls = [c for c, prods in config.OBJ.get(country, {}).get(theme, {}).items()
                  if [p for p in prods if p.get("visible", True)]]
         self.collections = colls
@@ -1068,7 +1106,8 @@ class CollectionTabs:
         coll = self.collections[idx]
         if coll not in self._panels:
             self._placeholders[idx].children = [_loading_html("Loading products...")]
-            pp = ProductTabs(self.country, self.theme, coll, self.log_area)
+            pp = ProductTabs(self.country, self.theme, coll, self.log_area,
+                             on_clear_all=self._on_clear_all_cb)
             self._panels[coll] = pp
             self._placeholders[idx].children = [pp.container]
         else:
@@ -1089,9 +1128,10 @@ class CollectionTabs:
 class ThemeTabs:
     """Abas de tema dentro de um pais."""
 
-    def __init__(self, country, log_area=None):
+    def __init__(self, country, log_area=None, on_clear_all=None):
         self.country = country
         self.log_area = log_area
+        self._on_clear_all_cb = on_clear_all
         self._build_tabs()
 
     def _build_tabs(self):
@@ -1131,7 +1171,7 @@ class ThemeTabs:
         theme = self.themes[idx]
         if theme not in self._panels:
             self._placeholders[idx].children = [_loading_html("Loading collections...")]
-            ct = CollectionTabs(self.country, theme, self.log_area)
+            ct = CollectionTabs(self.country, theme, self.log_area, on_clear_all=self._on_clear_all_cb)
             self._panels[theme] = ct
             self._placeholders[idx].children = [ct.tab]
         else:
@@ -1152,9 +1192,10 @@ class ThemeTabs:
 class CountryTabs:
     """Abas de pais -> tema -> colecao -> produto -> unidades."""
 
-    def __init__(self, countries, log_area=None):
+    def __init__(self, countries, log_area=None, on_clear_all=None):
         self.countries = list(countries)
         self.log_area = log_area
+        self._on_clear_all_cb = on_clear_all
         if not self.countries:
             raise ValueError("No countries configured for the tabs.")
         for c in self.countries:
@@ -1181,7 +1222,7 @@ class CountryTabs:
         self._active_code = code
         if code not in self._panels:
             self._placeholders[idx].children = [_loading_html("Loading themes...")]
-            tt = ThemeTabs(code, self.log_area)
+            tt = ThemeTabs(code, self.log_area, on_clear_all=self._on_clear_all_cb)
             self._panels[code] = tt
             self._placeholders[idx].children = [tt.tab]
         else:
@@ -1205,7 +1246,8 @@ class FireMonitorApp:
     def __init__(self, countries):
         self.header = widgets.HTML()
         self.log_area = LogDrawer()
-        self.interface = CountryTabs(countries, self.log_area)
+        self.interface = CountryTabs(countries, self.log_area,
+                                     on_clear_all=self.clear_all_selections)
         self.guide_widgets = [widgets.HTML() for _ in LANG_ORDER]
 
         self.tab = widgets.Tab(children=[self.interface.tab] + self.guide_widgets)
@@ -1475,6 +1517,14 @@ class FireMonitorApp:
                 seen.add(key)
                 items.append(item)
         return items
+
+    def clear_all_selections(self):
+        """Limpa as selecoes de TODOS os paineis (todos os paises/produtos)."""
+        count = 0
+        for panel in _iter_unit_panels(self.interface):
+            panel._on_clear(None)
+            count += 1
+        self._log(f"Cleared selections in {count} product(s).", "info")
 
     def sync_contexts(self, items):
         """Sincroniza apenas os paineis afetados pelos contextos processados."""
