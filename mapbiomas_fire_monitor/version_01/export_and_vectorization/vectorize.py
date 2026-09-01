@@ -226,6 +226,7 @@ def _run_upload(asset_id, source, logger=None):
         f"--project={config.GEE_PROJECT}",
         "upload", "table",
         f"--asset_id={asset_id}",
+        f"--max_vertices=1000000",
         source,
     ]
     if logger:

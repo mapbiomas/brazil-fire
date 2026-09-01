@@ -198,7 +198,8 @@ Load Data / Sync o botao fica `icon=spinner` + `disabled` e o indicador de
 progresso mostra a **etapa atual** do scan ("Scanning GCS tiles...", "Scanning
 GEE assets...", "Listing collection months..."). O scan roda em uma thread de
 fundo e a thread principal espera no maximo `SCAN_TIMEOUT` — nao trava para
-sempre. Os placeholders das abas usam o mesmo spinner.
+sempre. O spinner **so gira enquanto algo esta rodando**: ocioso, o indicador
+fica parado com texto estatico. Os placeholders das abas usam o mesmo spinner.
 
 O botao **`Load Data / Sync`** (único) carrega as unidades da memoria, descobre
 dados novos e faz o scan completo (GCS/GEE) com limite de `SCAN_TIMEOUT` (180s,
@@ -276,6 +277,34 @@ A Etapa 6 (Upload GEE) cria a pasta se nao existir e deixa **tudo publico**
 (`all_users_can_read`): a ACL e aplicada na pasta (assets novos herdam) e,
 opcionalmente, por asset via `make_vectors_public` (rodar apos as tasks do GEE
 concluirem).
+
+### Saida alternativa dos vetores (`VECTOR_OUTPUT_GEE` / `VECTOR_OUTPUT_GCS`)
+
+Por padrao os vetores saem na pasta irma do raster com sufixo `_vectors`. Para
+publicar em outro endereco, defina um **template** com placeholders no `config.py`
+(ou na celula Configuration do notebook):
+
+| Placeholder | Valor | Exemplo |
+|-------------|-------|---------|
+| `{country}` | codigo OBJ | `brasil` |
+| `{COUNTRY}` | storage GCS/GEE | `brazil` |
+| `{theme}` | tema | `fire` |
+| `{collection}` | chave da colecao no OBJ | `collection_09` |
+| `{COLLECTION}` | nome GEE normalizado | `collection9` |
+| `{product}` | produto | `annual_burned` |
+| `{raster}` | basename do asset de origem | `mapbiomas_fire_collection9_annual_burned_v1` |
+| `{vectors_folder}` | pasta padrao `raster_vectors` | `..._v1_vectors` |
+
+```python
+# GEE asset folder (None = padrao _vectors)
+VECTOR_OUTPUT_GEE = "projects/mapbiomas-{COUNTRY}/assets/FIRE/COLLECTION2/FINAL_PRODUCTS"
+# GCS folder (None = padrao _vectors)
+VECTOR_OUTPUT_GCS = "initiatives/{COUNTRY}/{theme}/{collection}/FINAL_PRODUCTS"
+```
+
+A ACL publica (`all_users_can_read`) continua sendo aplicada no endereco
+alternativo. **Caveat**: `projects/mapbiomas-{COUNTRY}/...` exige permissao de
+escrita naquele projeto para a credencial do Colab.
 
 > **Migracao**: pastas antigas (`{product}_vectors_v01` no GEE; nome curto do
 > produto nas colecoes do GCS) viraram legado — o Sync nao as enxerga.

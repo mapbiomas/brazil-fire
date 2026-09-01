@@ -44,6 +44,21 @@ SCALE = 30
 # prazo, a UI mostra o status parcial e destrava os botoes (watchdog).
 SCAN_TIMEOUT = 180
 
+# Endereco alternativo de saida dos vetores (GEE asset folder / GCS folder).
+# None = padrao (pasta irma do raster com sufixo _vectors). Se definido, o
+# template e renderizado substituindo placeholders:
+#   {country} (codigo OBJ, ex.: brasil) | {COUNTRY} (storage GCS/GEE, ex.: brazil)
+#   {theme} | {collection} (chave OBJ, ex.: collection_09)
+#   {COLLECTION} (nome GEE normalizado, ex.: collection9)
+#   {product} | {raster} (basename do assetid) | {vectors_folder}
+# Exemplos (GEE asset folder):
+#   VECTOR_OUTPUT_GEE = "projects/mapbiomas-{COUNTRY}/assets/FIRE/COLLECTION2/FINAL_PRODUCTS"
+#   VECTOR_OUTPUT_GEE = "projects/mapbiomas-{COUNTRY}/assets/FIRE/CATALOG_01/{COLLECTION}/FINAL_PRODUCTS"
+# Exemplo (GCS folder):
+#   VECTOR_OUTPUT_GCS = "initiatives/{COUNTRY}/{theme}/{collection}/FINAL_PRODUCTS"
+VECTOR_OUTPUT_GEE = None
+VECTOR_OUTPUT_GCS = None
+
 # Verbose logging: quando True, o log drawer mostra linhas por-unidade
 # ([FOUND], [SKIP], [DEBUG]). Default False: apenas sumarios por lote.
 LOG_VERBOSE = False
@@ -80,7 +95,7 @@ OBJ = {
             "monitor": [
                 _p("brasil", "fire", "monitor", "monthly_burned",
                    "projects/mapbiomas-public/assets/brazil/fire/monitor/mapbiomas_fire_monthly_burned_v1",
-                   "byte"),
+                   "byte",vectorize=True),
             ],
             "collection_05_1": [
                 _p("brasil", "fire", "collection5_1", "annual_burned",
@@ -1236,16 +1251,40 @@ def vector_folder_name(context=None):
     return f"{_raster_base(ctx)}_vectors"
 
 
+def _render_template(template, ctx):
+    """Renderiza um template de caminho substituindo os placeholders de vetor."""
+    repl = {
+        "{country}": ctx.get("country", ""),
+        "{COUNTRY}": ctx.get("storage_country", ""),
+        "{theme}": ctx.get("theme", ""),
+        "{collection}": ctx.get("collection", ""),
+        "{COLLECTION}": ctx.get("gee_collection", ""),
+        "{product}": ctx.get("product", ""),
+        "{raster}": _raster_base(ctx),
+        "{vectors_folder}": vector_folder_name(ctx),
+    }
+    out = template
+    for k, v in repl.items():
+        out = out.replace(k, v)
+    return out.rstrip("/")
+
+
 def vector_prefix(context=None):
-    """Pasta GCS de vetores — mesma regra do GEE (irma do raster)."""
+    """Pasta GCS de vetores — por padrao irma do raster; usa VECTOR_OUTPUT_GCS
+    quando configurado."""
     ctx = context or processing_context()
+    if VECTOR_OUTPUT_GCS:
+        return _render_template(VECTOR_OUTPUT_GCS, ctx)
     head = ctx["root"].rsplit("/", 1)[0]
     return f"{head}/{vector_folder_name(ctx)}"
 
 
 def vector_asset_prefix(context=None):
-    """Pasta GEE de vetores — irma do raster vetorizado em mapbiomas-public."""
+    """Pasta GEE de vetores — por padrao irma do raster em mapbiomas-public;
+    usa VECTOR_OUTPUT_GEE quando configurado."""
     ctx = context or processing_context()
+    if VECTOR_OUTPUT_GEE:
+        return _render_template(VECTOR_OUTPUT_GEE, ctx)
     assetid = (ctx.get("assetid") or "").rstrip("/")
     folder = vector_folder_name(ctx)
     if assetid.startswith("projects/"):

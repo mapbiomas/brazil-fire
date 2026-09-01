@@ -40,33 +40,43 @@ class ProgressLoader:
     def __init__(self, label="Ready."):
         self.label = label
         self._status = ""
+        self._active = False
         self.widget = widgets.HTML()
         self._render()
 
-    def _render(self, message=None):
+    def _render(self, message=None, color="#6c757d"):
         status = message if message is not None else (self._status or self.label)
-        self.widget.value = (
-            '<div style="padding:8px 14px;color:#3498db;font-size:13px;'
-            'display:flex;align-items:center;gap:8px;line-height:1.5;">'
-            '<span style="display:inline-block;width:14px;height:14px;flex:0 0 auto;'
-            'border:2px solid #b9d7f0;border-top-color:#3498db;border-radius:50%;'
-            'animation:mfm-spin 0.8s linear infinite;"></span>'
-            f'<span>{status}</span></div>'
-        )
+        if self._active:
+            html = (
+                '<div style="padding:8px 14px;color:#3498db;font-size:13px;'
+                'display:flex;align-items:center;gap:8px;line-height:1.5;">'
+                '<span style="display:inline-block;width:14px;height:14px;flex:0 0 auto;'
+                'border:2px solid #b9d7f0;border-top-color:#3498db;border-radius:50%;'
+                'animation:mfm-spin 0.8s linear infinite;"></span>'
+                f'<span>{status}</span></div>'
+            )
+        else:
+            # Ocioso: texto estatico sem spinner (nao fica girando a toa).
+            html = (f'<div style="padding:8px 14px;color:{color};font-size:12px;">'
+                    f'{status}</div>')
+        self.widget.value = html
 
     def start(self, status=None):
         if status:
             self._status = status
+        self._active = True
         self._render()
         return self.widget
 
     def set_status(self, status):
         self._status = status
-        self._render()
+        if self._active:
+            self._render()
 
     def stop(self, message=None):
+        self._active = False
         if message:
-            self._render(message)
+            self._render(message, color="#28a745")
         else:
             self.widget.value = ""
 
