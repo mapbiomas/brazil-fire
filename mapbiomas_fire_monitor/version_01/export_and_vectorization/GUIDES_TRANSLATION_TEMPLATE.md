@@ -27,7 +27,7 @@ saída") para uma IA especialista em idiomas.
 | `welcome_note` | str | boas-vindas (1 parágrafo) |
 | `what` | str | o que o app faz |
 | `howto_title` | str | "Como usar" traduzido |
-| `steps` | list[str] | 7 passos, com `<b>`/`<code>` |
+| `steps` | list[str] | 6 passos, com `<b>`/`<code>` |
 | `cols_title` | str | "Colunas da grade" traduzido |
 | `cols` | list[[col, desc]] | 7 pares (mesma ordem) |
 | `links` | str | dica dos badges |
@@ -51,20 +51,21 @@ what: "O aplicativo exporta os mapas de área queimada/incêndio do MapBiomas Fi
 howto_title: "Como usar"
 steps:
   1. "<b>Navegue</b> pelas abas: país → tema → coleção → produto."
-  2. "Clique em <b>Load Data</b> (botão vermelho pulsando) para descobrir as
-     <b>unidades</b>: bandas (imagem multibanda) ou imagens (ImageCollection).
-     A descoberta é sob demanda — o cache não é preenchido com dados não carregados."
-  3. "Na grade, marque as unidades desejadas. O filtro <code>Unit:</code>
-     (padrão “All units”) restringe por prefixo de unidade."
-  4. "Clique em <b>Sync</b> para verificar o status das etapas. O scan roda em
-     segundo plano, com indicador de progresso (o kernel não bloqueia)."
-  5. "Execute as etapas na ordem: <b>Export → Mosaico → Publicar mosaico → Vetor GCS
+  2. "Clique no botão <b>Load Data / Sync</b> para carregar as <b>unidades</b> da
+     memória (bandas de imagem multibanda ou imagens de ImageCollection), descobrir
+     dados novos e verificar o status das etapas. O scan tem limite de
+     <code>SCAN_TIMEOUT</code> (180s, ajustável em <code>config.py</code>) — nunca
+     fica carregando para sempre (a primeira vez pode demorar)."
+  3. "Na grade, marque as unidades desejadas. O filtro <code>Unit:</code> (padrão
+     “All units”) restringe por prefixo de unidade; acima de 60 unidades ele inicia
+     no prefixo recente."
+  4. "Execute as etapas na ordem: <b>Export → Mosaico → Publicar mosaico → Vetor GCS
      → Vetor GEE → Publicar vetor → Limpar temp</b>. Etapas 4–6 só para produtos
      vetorizáveis (ex.: annual_burned); nos demais: <b>Export → Mosaico → Publicar
      mosaico → Limpar temp</b>."
-  6. "Para refazer uma etapa, ative <code>FORCE_&lt;ETAPA&gt; = True</code> na célula
+  5. "Para refazer uma etapa, ative <code>FORCE_&lt;ETAPA&gt; = True</code> na célula
      da etapa e selecione as unidades na grade."
-  7. "Para versionar a memória do catálogo (quando houver dados novos no
+  6. "Para versionar a memória do catálogo (quando houver dados novos no
      <code>config.py</code>), use o botão <b>⤓ Catalog cache (.json)</b> na barra
      inferior e suba o arquivo no GitHub."
 cols_title: "Colunas da grade"
@@ -93,13 +94,13 @@ graphs:
      ↓
     3 Publicar mosaico → bucket público
      ↓
-    4 Vetor GCS → ZIP
+    4 Limpar temp
      ↓
-    5 Vetor GEE → FeatureCollection
+    5 Vetor GCS → ZIP
      ↓
-    6 Publicar vetor → ZIP público
+    6 Vetor GEE → FeatureCollection
      ↓
-    7 Limpar temp
+    7 Publicar vetor → ZIP público
   G3 Etapas (demais produtos):
     1 Export
      ↓

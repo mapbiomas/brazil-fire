@@ -50,11 +50,11 @@ export_and_vectorization/
 4. Na celula de config, defina `COUNTRIES` (códigos do OBJ, ex.: `["brasil", "indonesia"]`).
 5. Execute a celula da UI para abrir a navegação.
 6. **Navegue**: país → tema (ex.: `fire`) → coleção (ex.: `monitor`, `collection4`) → **produto**.
-7. No produto, clique em **Load Data** para carregar as **unidades** ja
-   conhecidas (bandas p/ imagem multibanda; imagens p/ ImageCollection) — sem
-   rede, instantaneo. Para descobrir dados novos, clique em **Sync**.
-8. Clique em **Sincronizar** (descobre unidades + varre GCS/GEE, com limite de
-   `SCAN_TIMEOUT`) e processe as etapas pendentes.
+7. No produto, clique em **Load Data / Sync** (botão único) para carregar as
+   **unidades** da memoria (bandas p/ imagem multibanda; imagens p/
+   ImageCollection), descobrir dados novos e verificar o status — com limite de
+   `SCAN_TIMEOUT`.
+8. Marque as unidades desejadas e processe as etapas pendentes.
 9. Para versionar a memoria do catalogo (quando novos dados forem adicionados ao
    `config.py`), use o botao **`⤓ Catalog cache (.json)`** na barra inferior.
 
@@ -114,7 +114,7 @@ unidades/bandas descobertas no GEE, para a UI abrir sem discovery a cada sessao.
   log) baixa o JSON com tudo que foi carregado na sessao. No Colab ele dispara o
   download; fora dele, salva localmente e imprime o caminho.
 - **Versionamento**: quando novos dados forem adicionados ao `config.py`, rode o
-  **Load Data** no produto, baixe o JSON pelo botao e suba-o no GitHub
+  **Load Data / Sync** no produto, baixe o JSON pelo botao e suba-o no GitHub
   (`export_and_vectorization/catalog_cache.json`) — as proximas sessoes abrem sem
   discovery. O arquivo e versionado (nao esta mais no `.gitignore`).
 - **CLI (regeneracao completa, opcional)**: `python -m
@@ -142,14 +142,16 @@ colunas ficam **ocultas**:
 | 1 | Export | tiles no GCS (`temp/`) | Export |
 | 2 | Mosaico | COG montado | Mosaico |
 | 3 | Publico mosaico | COG espelhado no `mapbiomas-public` | Publicar mosaico |
-| 4 | Vetor GCS *(só `annual_burned`)* | ZIP vetorial no GCS | Vetorizacao |
-| 5 | Vetor GEE *(só `annual_burned`)* | FeatureCollection no GEE | Upload GEE |
-| 6 | Publico vetor *(só `annual_burned`)* | ZIP espelhado no `mapbiomas-public` | Publicar vetor |
-| 7 | Clean temp | tiles de `temp/` removidos apos consolidacao | Limpar temp |
+| 4 | Clean temp | tiles de `temp/` removidos apos consolidacao | Limpar temp |
+| 5 | Vetor GCS *(opcional, só `annual_burned`)* | ZIP vetorial no GCS | Vetorizacao |
+| 6 | Vetor GEE *(opcional, só `annual_burned`)* | FeatureCollection no GEE | Upload GEE |
+| 7 | Publico vetor *(opcional, só `annual_burned`)* | ZIP espelhado no `mapbiomas-public` | Publicar vetor |
 
-Ordem sugerida — **Export → Mosaico → Publicar mosaico → Vetor GCS → Vetor GEE →
-Publicar vetor → Clean temp** (para produtos nao-vetorizaveis: **Export → Mosaico →
-Publicar mosaico → Clean temp**; o Clean temp e sempre a ultima etapa).
+Ordem sugerida — **Export → Mosaico → Publicar mosaico → Clean temp** (Steps 1–4).
+Para produtos vetorizaveis (`annual_burned`), as etapas de vetor sao **opcionais**
+(Steps 5–7) e rodam apos o Clean temp: **Vetor GCS → Vetor GEE → Publicar vetor**.
+A vetorizacao usa o COG (nao os tiles de `temp/`), entao rodar o Clean temp antes
+e seguro.
 
 A legenda da grid traz a dica **MISS → OK** com a celula que resolve cada coluna.
 O cabeçalho de cada coluna mostra o numero da **Etapa**.
@@ -177,10 +179,10 @@ uma etapa, ative a variavel `FORCE_<ETAPA>` na propria celula (default `False`):
 | 1. Export | `FORCE_EXPORT` | exclui os tiles de `temp/` da unidade **antes** de exportar |
 | 2. Mosaico | `FORCE_MOSAIC` | exclui o COG existente e remonta |
 | 3. Publicar mosaico | `FORCE_PUBLISH_MOSAIC` | sobrescreve o COG no publico |
-| 4. Vetorizacao *(só `annual_burned`)* | `FORCE_VECTOR` | exclui o ZIP existente e revetoriza |
-| 5. Upload GEE *(só `annual_burned`)* | `FORCE_UPLOAD` | exclui o asset GEE existente e re-uploada |
-| 6. Publicar vetor *(só `annual_burned`)* | `FORCE_PUBLISH_VECTOR` | sobrescreve o ZIP no publico |
-| 7. Limpar temp | — | idempotente |
+| 4. Limpar temp | — | idempotente |
+| 5. Vetorizacao *(opcional, só `annual_burned`)* | `FORCE_VECTOR` | exclui o ZIP existente e revetoriza |
+| 6. Upload GEE *(opcional, só `annual_burned`)* | `FORCE_UPLOAD` | exclui o asset GEE existente e re-uploada |
+| 7. Publicar vetor *(opcional, só `annual_burned`)* | `FORCE_PUBLISH_VECTOR` | sobrescreve o ZIP no publico |
 
 Para reprocessar uma unidade ja completa, selecione-a na grid e rode a etapa com a
 `FORCE_<ETAPA> = True`.
@@ -192,18 +194,17 @@ alto contraste, entao fica legivel independente do tema do Colab. Badges **OK** 
 download aparecem como **`🔗 OK`** (sublinhado com outline sutil).
 
 O carregamento usa um **spinner padronizado** (CSS `mfm-spin`): durante o
-Sync/Load Data o botao fica `icon=spinner` + `disabled` e o indicador de
+Load Data / Sync o botao fica `icon=spinner` + `disabled` e o indicador de
 progresso mostra a **etapa atual** do scan ("Scanning GCS tiles...", "Scanning
-GEE assets...", "Listing collection months...") — o scan roda em segundo plano e
-o kernel nao bloqueia. Os placeholders das abas usam o mesmo spinner.
+GEE assets...", "Listing collection months..."). O scan roda em uma thread de
+fundo e a thread principal espera no maximo `SCAN_TIMEOUT` — nao trava para
+sempre. Os placeholders das abas usam o mesmo spinner.
 
-**Load Data** e o caminho rapido e **instantaneo**: le as unidades ja conhecidas
-da memoria (memo/disco) e renderiza a grid, **sem chamada de rede** — nunca
-trava. **Sync** descobre unidades novas + faz o scan completo (GCS/GEE) com
-limite de `SCAN_TIMEOUT` (180s, ajustavel em `config.py`) — se exceder, mostra o
-status parcial em vez de ficar "carregando". Com mais de 60 unidades, o filtro
-`Unit:` inicia no prefixo mais recente para o render ser leve ("All units"
-continua disponivel no dropdown).
+O botao **`Load Data / Sync`** (único) carrega as unidades da memoria, descobre
+dados novos e faz o scan completo (GCS/GEE) com limite de `SCAN_TIMEOUT` (180s,
+ajustavel em `config.py`) — se exceder, mostra o status parcial em vez de ficar
+"carregando". Com mais de 60 unidades, o filtro `Unit:` inicia no prefixo mais
+recente para o render ser leve ("All units" continua disponivel no dropdown).
 
 ## Log drawer
 
@@ -246,15 +247,12 @@ GEE ImageCollection
        │
        ▼  [3] Publish mosaic (publish.py) → COG no publico .../{product}/
        │
-       ▼  [4] Vectorize (vectorize.py) → shapefile+unique_id → .zip   (só annual_burned)
-       │                                    .../{raster}_vectors/
+       ▼  [4] Clean temp (publish.py) → apaga tiles temp/ dos meses consolidados
        │
-       ▼  [5] Upload GEE (vectorize.py)                                  (só annual_burned)
-       │         projects/mapbiomas-public/assets/{country}/fire/monitor/{raster}_vectors
-       │
-       ▼  [6] Publish vector (publish.py) → ZIP no publico .../{raster}_vectors/  (só annual_burned)
-       │
-       ▼  [7] Clean temp (publish.py) → apaga tiles temp/ dos meses consolidados
+       ▼  (opcional, só annual_burned)
+       ▼  [5] Vectorize (vectorize.py) → shapefile+unique_id → .zip   .../{raster}_vectors/
+       ▼  [6] Upload GEE (vectorize.py) → projects/mapbiomas-public/assets/{country}/fire/monitor/{raster}_vectors
+       ▼  [7] Publish vector (publish.py) → ZIP no publico .../{raster}_vectors/
 ```
 
 ## Padrao de caminhos
@@ -274,7 +272,7 @@ Os vetores ficam numa **pasta irma do raster vetorizado**, com sufixo `_vectors`
 — a MESMA regra no GCS e no GEE. O nome da pasta e o nome fisico do raster de
 origem (ex.: `mapbiomas_fire_monthly_burned_v1` → `mapbiomas_fire_monthly_burned_v1_vectors`;
 `mapbiomas_indonesia_fire_collection2_annual_burned_v1` → `..._annual_burned_v1_vectors`).
-A Etapa 4 (Upload GEE) cria a pasta se nao existir e deixa **tudo publico**
+A Etapa 6 (Upload GEE) cria a pasta se nao existir e deixa **tudo publico**
 (`all_users_can_read`): a ACL e aplicada na pasta (assets novos herdam) e,
 opcionalmente, por asset via `make_vectors_public` (rodar apos as tasks do GEE
 concluirem).

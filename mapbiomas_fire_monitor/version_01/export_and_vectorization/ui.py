@@ -299,18 +299,18 @@ def set_button_busy(button, busy, busy_text=None):
 
 # (state key, column title, step number, badge type)
 # Step order:
-#   annual_burned (vectorizable): 1=Export, 2=Mosaic, 3=Public Mosaic, 4=Vector GCS,
-#                                 5=Vector GEE, 6=Public Vector, 7=Clean Temp
+#   annual_burned (vectorizable): 1=Export, 2=Mosaic, 3=Public Mosaic, 4=Clean Temp,
+#                                 5=Vector GCS, 6=Vector GEE, 7=Public Vector
 #   other products (default)     : 1=Export, 2=Mosaic, 3=Public Mosaic, 4=Clean Temp
-# Vector steps (4,5,6) are only shown for vectorizable products (annual_burned).
+# Vector steps (5,6,7) are optional and only shown for vectorizable products.
 _COLS_VECTORIZABLE = [
     ("exported",         "Export",          1, "badge"),
     ("mosaiced",         "Mosaic",          2, "link_mosaic"),
     ("published_mosaic", "Public mosaic",   3, "link_pub_mosaic"),
-    ("vectorized_gcs",   "Vector GCS",      4, "link_vector"),
-    ("vectorized_gee",   "Vector GEE",      5, "copy_asset"),
-    ("published_vector", "Public vector",   6, "link_pub_vector"),
-    ("temp_cleaned",     "Clean temp",      7, "badge"),
+    ("temp_cleaned",     "Clean temp",      4, "badge"),
+    ("vectorized_gcs",   "Vector GCS",      5, "link_vector"),
+    ("vectorized_gee",   "Vector GEE",      6, "copy_asset"),
+    ("published_vector", "Public vector",   7, "link_pub_vector"),
 ]
 
 _COLS_DEFAULT = [
@@ -369,16 +369,13 @@ GUIDES = {'PT': {'name': 'Português',
                 'aplicável, publica no Earth Engine e no bucket público e remove os arquivos temporários.',
         'howto_title': 'Como usar',
         'steps': ['<b>Navegue</b> pelas abas: país → tema → coleção → produto.',
-                  'Clique em <b>Load Data</b> para carregar as <b>unidades</b> já conhecidas da memória '
-                  '(bandas de imagem multibanda ou imagens de ImageCollection) e renderizar a grade na '
-                  'hora — sem chamada de rede, nunca trava.',
-                  'Para <b>descobrir</b> unidades de dados novos, clique em <b>Sync</b> (a primeira vez '
-                  'pode demorar).',
+                  'Clique no botão <b>Load Data / Sync</b> para carregar as <b>unidades</b> da memória '
+                  '(bandas de imagem multibanda ou imagens de ImageCollection), descobrir dados novos e '
+                  'verificar o status das etapas. O scan tem limite de <code>SCAN_TIMEOUT</code> (180s, '
+                  'ajustável em <code>config.py</code>) — nunca fica carregando para sempre (a primeira '
+                  'vez pode demorar).',
                   'Na grade, marque as unidades desejadas. O filtro <code>Unit:</code> (padrão “All units”) '
                   'restringe por prefixo de unidade; acima de 60 unidades ele inicia no prefixo recente.',
-                  'Clique em <b>Sync</b> para descobrir unidades novas e verificar o status das etapas. '
-                  'O scan tem limite de <code>SCAN_TIMEOUT</code> (180s, ajustável em <code>config.py</code>) '
-                  '— nunca fica carregando para sempre.',
                   'Execute as etapas na ordem: <b>Export → Mosaico → Publicar mosaico → Vetor GCS → Vetor '
                   'GEE → Publicar vetor → Limpar temp</b>. Etapas 4–6 só para produtos vetorizáveis (ex.: '
                   'annual_burned); nos demais: <b>Export → Mosaico → Publicar mosaico → Limpar temp</b>.',
@@ -411,13 +408,13 @@ GUIDES = {'PT': {'name': 'Português',
                               ' ↓',
                               '3 Publicar mosaico → bucket público',
                               ' ↓',
-                              '4 Vetor GCS → ZIP',
+                              '4 Limpar temp',
                               ' ↓',
-                              '5 Vetor GEE → FeatureCollection',
+                              '5 Vetor GCS → ZIP',
                               ' ↓',
-                              '6 Publicar vetor → ZIP público',
+                              '6 Vetor GEE → FeatureCollection',
                               ' ↓',
-                              '7 Limpar temp']},
+                              '7 Publicar vetor → ZIP público']},
                    {'title': 'Etapas (demais produtos)',
                     'lines': ['1 Export',
                               ' ↓',
@@ -1057,9 +1054,10 @@ class UnitGridPanel:
             _loading_html("Loading units...")
         ])
 
-        self.btn_sync = widgets.Button(description="Sync", button_style="success", icon="refresh",
-                                       layout=L(width="120px", height="34px"))
-        self.btn_sync.on_click(self._on_sync)
+        self.btn_load = widgets.Button(description="Load Data / Sync", button_style="danger",
+                                       icon="download", layout=L(width="150px", height="34px"),
+                                       tooltip="Load cached units, discover new bands/units and scan the status (bounded by SCAN_TIMEOUT)")
+        self.btn_load.on_click(self._on_sync)
         self.btn_select_pending = widgets.Button(description="Select Pending", button_style="info",
                                                  layout=L(width="150px", height="34px"))
         self.btn_select_pending.on_click(self._on_select_pending)
@@ -1080,15 +1078,9 @@ class UnitGridPanel:
 
         self._filter_explicit = False   # usuario escolheu o filtro manualmente
         self._rendering = False         # guarda de reentrancia no render
-        self.progress_loader = ProgressLoader("Click Load Data to discover units.")
-        self.btn_load_data = widgets.Button(
-            description="Load Data", button_style="danger", icon="download",
-            layout=L(width="130px", height="34px"),
-            tooltip="Discover bands/units from GEE and GCS for this product"
-        )
-        self.btn_load_data.on_click(self._on_load_data)
+        self.progress_loader = ProgressLoader("Click Load Data / Sync to load units.")
         self.toolbar = widgets.HBox([
-            self.btn_load_data, self.btn_sync, self.btn_select_pending,
+            self.btn_load, self.btn_select_pending,
             self.btn_select_all, self.btn_clear, self.btn_clear_all, self.progress_loader.widget,
             self.year_dropdown,
         ], layout=L(margin="0 0 8px 0", gap="8px", align_items="center"))
@@ -1119,7 +1111,7 @@ class UnitGridPanel:
         config.set_collection(self.collection)
         config.set_product(product)
         self.product = product
-        # Units (bandas/imagens) sao descobertas apenas no Load Data/Sync —
+        # Units (bandas/imagens) sao descobertas apenas no Load Data / Sync —
         # nenhuma chamada GEE/GCS aqui na abertura da UI.
         self.units = []
         # Keep existing state if available, don't auto-sync
@@ -1127,59 +1119,26 @@ class UnitGridPanel:
             self.state = {"updated_at": None}
         self._data_loaded = False
         self._filter_explicit = False
-        self._update_load_data_button_style()
+        self._update_load_button_style()
         # Notify parent ProductTabs to update tab style
         self._notify_tab_style()
 
-    def _on_load_data(self, _):
-        """Load Data: caminho rapido e sincrono (thread principal) — le units
-        SOMENTE da memoria (memo/disco), sem rede, e renderiza a grid. Nunca
-        trava. A descoberta de dados novos acontece no Sync."""
-        if self.is_refreshing:
-            return
-        if not self.product:
-            return
-        config.set_country(self.country, verbose=False)
-        config.set_theme(self.theme)
-        config.set_collection(self.collection)
-        config.set_product(self.product)
-        self.is_refreshing = True
-        set_button_busy(self.btn_load_data, True, "Loading...")
-        self.progress_loader.start("Loading units...")
-        self.units = _cached_units(self.country, self.theme, self.collection, self.product)
-        if not self.units:
-            self._log("No cached units for this product — press Sync to discover "
-                      "(first time can take a while).", "warning")
-        try:
-            persisted = load_state(self.country, self.theme, self.collection, self.product)
-            if persisted and len(persisted) > 1:
-                self.state = persisted
-            self._render_grid()
-            self._restore_selected(self._get_selected_keys())
-        except Exception as e:
-            self._log(f"Render failed: {e}", "warning")
-        self._data_loaded = bool(self.units)
-        self.progress_loader.stop("Data loaded." if self.units else "No cached units.")
-        self._update_load_data_button_style()
-        self._notify_tab_style()
-        self._finish_sync()
-
-    def _update_load_data_button_style(self):
-        """Update Load Data button style based on loaded state."""
+    def _update_load_button_style(self):
+        """Estado do botao unico Load Data / Sync conforme o carregamento."""
         if self._data_loaded:
-            self.btn_load_data.button_style = "success"
-            self.btn_load_data.description = "Data Loaded"
-            self.btn_load_data.icon = "check"
+            self.btn_load.button_style = "success"
+            self.btn_load.description = "Load Data / Sync"
+            self.btn_load.icon = "check"
             # Remove pulsing outline
-            if hasattr(self.btn_load_data, 'remove_class'):
-                self.btn_load_data.remove_class('mfm-btn-unloaded')
+            if hasattr(self.btn_load, 'remove_class'):
+                self.btn_load.remove_class('mfm-btn-unloaded')
         else:
-            self.btn_load_data.button_style = "danger"
-            self.btn_load_data.description = "Load Data"
-            self.btn_load_data.icon = "download"
+            self.btn_load.button_style = "danger"
+            self.btn_load.description = "Load Data / Sync"
+            self.btn_load.icon = "download"
             # Add pulsing outline
-            if hasattr(self.btn_load_data, 'add_class'):
-                self.btn_load_data.add_class('mfm-btn-unloaded')
+            if hasattr(self.btn_load, 'add_class'):
+                self.btn_load.add_class('mfm-btn-unloaded')
 
     def _notify_tab_style(self):
         """Notify parent ProductTabs to update tab style for this product."""
@@ -1340,9 +1299,9 @@ class UnitGridPanel:
         )
         if vectorizable:
             step_hint = ('Export=Step 1 &nbsp;|&nbsp; Mosaic=Step 2 &nbsp;|&nbsp; '
-                         'Public mosaic=Step 3 &nbsp;|&nbsp; Vector GCS=Step 4 &nbsp;|&nbsp; '
-                         'Vector GEE=Step 5 &nbsp;|&nbsp; Public vector=Step 6 &nbsp;|&nbsp; '
-                         'Clean temp=Step 7 (last)')
+                         'Public mosaic=Step 3 &nbsp;|&nbsp; Clean temp=Step 4 &nbsp;|&nbsp; '
+                         'Vector GCS=Step 5 (optional) &nbsp;|&nbsp; Vector GEE=Step 6 (optional) '
+                         '&nbsp;|&nbsp; Public vector=Step 7 (optional)')
         else:
             step_hint = ('Export=Step 1 &nbsp;|&nbsp; Mosaic=Step 2 &nbsp;|&nbsp; '
                          'Public mosaic=Step 3 &nbsp;|&nbsp; Clean temp=Step 4 (last)')
@@ -1383,8 +1342,7 @@ class UnitGridPanel:
         config.set_collection(self.collection)
         config.set_product(self.product)
         self.is_refreshing = True
-        set_button_busy(self.btn_sync, True, "Syncing...")
-        self.btn_load_data.disabled = True
+        set_button_busy(self.btn_load, True, "Loading...")
         self.progress_loader.start("Loading data...")
         self._log("Checking files in GCS and assets in GEE...", "info")
 
@@ -1400,16 +1358,25 @@ class UnitGridPanel:
         except Exception as e:
             self._log(f"Pre-render failed: {e}", "warning")
 
-        # Scan completo em thread de fundo, com timeout (nao trava para sempre).
+        # Scan completo (discovery de bandas se faltar + varredura GCS/GEE) em
+        # thread de fundo, com timeout — nao trava para sempre.
+        def _sync_work():
+            units = self.units
+            if not units:
+                units = _discover_units(self.country, self.theme, self.collection,
+                                        self.product, logger=self._log)
+            fresh = build_state(country=self.country, theme=self.theme,
+                                collection=self.collection, product=self.product,
+                                logger=self._log, on_stage=self._on_stage)
+            return units, fresh
+
         timeout = getattr(config, "SCAN_TIMEOUT", 180)
+        units = None
         fresh = None
         ex = ThreadPoolExecutor(max_workers=1)
         try:
-            fut = ex.submit(build_state,
-                            country=self.country, theme=self.theme,
-                            collection=self.collection, product=self.product,
-                            logger=self._log, on_stage=self._on_stage)
-            fresh = fut.result(timeout=timeout)
+            fut = ex.submit(_sync_work)
+            units, fresh = fut.result(timeout=timeout)
         except TimeoutError:
             self._log(f"[WARN] Sync timed out after {timeout}s — showing current "
                       "status. The scan may still finish and update the grid.", "warning")
@@ -1418,6 +1385,8 @@ class UnitGridPanel:
         finally:
             ex.shutdown(wait=False)
 
+        if units is not None:
+            self.units = units
         if fresh is not None:
             self.state = fresh
             if not self.units:
@@ -1434,7 +1403,7 @@ class UnitGridPanel:
             self.progress_loader.stop("Timed out — showing current status.")
             self._log(msg, "warning")
         self._data_loaded = True
-        self._update_load_data_button_style()
+        self._update_load_button_style()
         self._notify_tab_style()
         self._finish_sync()
 
@@ -1443,9 +1412,8 @@ class UnitGridPanel:
 
     def _finish_sync(self):
         self.is_refreshing = False
-        set_button_busy(self.btn_sync, False, "Sync")
-        self.btn_load_data.disabled = False
-        self._update_load_data_button_style()
+        set_button_busy(self.btn_load, False)
+        self._update_load_button_style()
 
     def _on_select_pending(self, _):
         for key, chk in self.chk_dict.items():
