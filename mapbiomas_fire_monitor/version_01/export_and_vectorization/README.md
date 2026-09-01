@@ -48,11 +48,14 @@ export_and_vectorization/
 2. Execute a celula 1 para instalar dependencias.
 3. Execute a celula 2 para autenticar no GCP e Google Earth Engine.
 4. Na celula de config, defina `COUNTRIES` (códigos do OBJ, ex.: `["brasil", "indonesia"]`).
-5. Opcional: célula "Zerar estado local" antes de comecar.
-6. Execute a celula da UI para abrir a navegação.
-7. **Navegue**: país → tema (ex.: `fire`) → coleção (ex.: `monitor`, `collection4`) → **produto**.
-8. No produto, a grid mostra as **unidades** (bandas p/ imagem multibanda; imagens p/ ImageCollection). Marque as desejadas.
-9. Clique em **Sincronizar** e processe as etapas pendentes.
+5. Execute a celula da UI para abrir a navegação.
+6. **Navegue**: país → tema (ex.: `fire`) → coleção (ex.: `monitor`, `collection4`) → **produto**.
+7. No produto, clique em **Load Data** para descobrir as **unidades** (bandas p/
+   imagem multibanda; imagens p/ ImageCollection) e depois marque as desejadas.
+8. Clique em **Sincronizar** e processe as etapas pendentes (o sync roda em
+   segundo plano com indicador de progresso; o kernel nao bloqueia).
+9. Para versionar a memoria do catalogo (quando novos dados forem adicionados ao
+   `config.py`), use o botao **`⤓ Catalog cache (.json)`** na barra inferior.
 
 > **Células recolhíveis:** todas as células de código comecam com `#@title`
 > (ex.: `#@title Etapa 1: Export`). No Colab, o título vira um cabeçalho
@@ -97,10 +100,33 @@ dados devem entrar com cuidado:
 4. **Valide antes de escalar**: rode primeiro 1 pais/1 mes, confira COG, vetor e
    link publico — so depois amplie o escopo.
 
+## Memoria do catalogo (catalog_cache.json)
+
+`config.py` e o **dado cru** (paises/temas/colecoes/produtos). O
+`catalog_cache.json` e a **memoria persistente entre sessoes**: guarda as
+unidades/bandas descobertas no GEE, para a UI abrir sem discovery a cada sessao.
+
+- **Preenchimento sob demanda**: bandas/imagens sao descobertas apenas no
+  **Load Data/Sync**, produto a produto — o cache nao e "enchido" com dados que
+  voce nao carregou.
+- **Download**: o botao **`⤓ Catalog cache (.json)`** (barra inferior, ao lado do
+  log) baixa o JSON com tudo que foi carregado na sessao. No Colab ele dispara o
+  download; fora dele, salva localmente e imprime o caminho.
+- **Versionamento**: quando novos dados forem adicionados ao `config.py`, rode o
+  **Load Data** no produto, baixe o JSON pelo botao e suba-o no GitHub
+  (`export_and_vectorization/catalog_cache.json`) — as proximas sessoes abrem sem
+  discovery. O arquivo e versionado (nao esta mais no `.gitignore`).
+- **CLI (regeneracao completa, opcional)**: `python -m
+  export_and_vectorization.catalog --all --refresh` re-descobre todos os paises e
+  salva o cache.
+
 ### Celulas descontinuadas nos notebooks
 
-- **Add Collection**: substituida pela celula informativa *Input Data Catalog*,
-  que aponta para o arquivo catalogo `config.py`.
+- **Add Collection**: descontinuada. Novos dados entram editando e versionando o
+  catalogo `config.py` (veja "Adicionando novos dados").
+- **Input Data Catalog** e **Reset Local State**: removidas dos notebooks. O
+  catalogo e o proprio `config.py`; o estado local e reconstruido no primeiro
+  Load Data/Sync.
 - **Diagnostics**: pausada. O plano e migrar o que for util dela (bandas, nodata,
   tamanho) para um painel dentro da interface — sem prazo definido.
 
@@ -164,6 +190,12 @@ O UI é autossuficiente: todos os componentes tem **fundo e cores explicitos** d
 alto contraste, entao fica legivel independente do tema do Colab. Badges **OK** de
 download aparecem como **`🔗 OK`** (sublinhado com outline sutil).
 
+O carregamento usa um **spinner padronizado** (CSS `mfm-spin`): durante o
+Sync/Load Data o botao fica `icon=spinner` + `disabled` e o indicador de
+progresso mostra a **etapa atual** do scan ("Scanning GCS tiles...", "Scanning
+GEE assets...", "Listing collection months...") — o scan roda em segundo plano e
+o kernel nao bloqueia. Os placeholders das abas usam o mesmo spinner.
+
 ## Log drawer
 
 O painel de log foi otimizado para **nao custar processamento**:
@@ -181,16 +213,17 @@ O painel de log foi otimizado para **nao custar processamento**:
   `LOG_VERBOSE = True`.
 - Mensagens `[ERROR]`/`[WARN]` sempre aparecem imediatamente.
 
-## Selecionar um ano ou unidades especificas
+## Selecionar unidades especificas
 
-- **Filtro por ano**: o dropdown de ano na UI restringe a grid as unidades do ano
-  escolhido. Os botoes **Selecionar Pendentes** e **Selecionar Todos** valem
-  apenas para as unidades visiveis no filtro.
+- **Filtro por unidade**: o dropdown de unidade na UI restringe a grid as unidades
+  do prefixo escolhido (ano para produtos anuais, `YYYY_MM` para mensais). Os
+  botoes **Selecionar Pendentes** e **Selecionar Todos** valem apenas para as
+  unidades visiveis no filtro.
 - **Unidade por unidade**: marque/desmarque os checkboxes da grid normalmente.
 - **Clear**: desmarca as selecoes do produto atualmente exibido.
 - **Clear All**: desmarca as selecoes de **todos** os produtos/paises de uma vez.
 - **Recomecar um periodo ("do zero")**: use a celula de LIMPEZA (descomentando os
-  blocos) para apagar tiles / mosaicos / vetores ZIP de um intervalo de anos e
+  blocos) para apagar tiles / mosaicos / vetores ZIP de um intervalo de unidades e
   depois Sincronize — os meses voltam a aparecer como pendentes.
 
 ## Fluxo de processamento
@@ -297,3 +330,41 @@ publico mosaico + publico vetor + clean temp) aparecem como **OK** na interface
 e sao ignorados durante o processamento. Apenas meses novos ou incompletos sao
 processados. Como o COG so existe apos export+mosaico, meses com `temp/` ja
 limpo continuam marcadas como export OK.
+
+## Grafo de atualizacao
+
+### Fluxo de dados / memoria do catalogo
+
+```mermaid
+flowchart LR
+    A["config.py<br/>(dado cru: paises/temas/colecoes/produtos)"] -->|"editar + versionar"| L["Load Data / Sync"]
+    L --> C{"produto ja no<br/>catalog_cache.json?"}
+    C -- "nao" --> D["inventory_units<br/>discovery GEE so deste produto"]
+    D --> E["catalog_cache.json<br/>(memoria entre sessoes)"]
+    C -- "sim" --> E
+    E --> B["botao Catalog cache (.json)"]
+    B --> G["commit no GitHub<br/>(fora do fluxo Colab)"]
+    G --> H["proximo clone Colab<br/>UI abre sem discovery"]
+    H --> E
+    I["CLI: python -m ...catalog --all --refresh<br/>(regeneracao completa, opcional)"] --> E
+```
+
+### Carregamento da UI + spinners padronizados
+
+```mermaid
+flowchart TD
+    S["run_ui"] -->|"_activate sem GEE/GCS<br/>(so contexto)"| P["abas: pais -&gt; tema -&gt; colecao -&gt; produto<br/>(_loading_html)"]
+    P --> L["Load Data / Sync"]
+    L -->|"set_button_busy<br/>(icon=spinner + disabled)"| LB["ProgressLoader<br/>(spinner mfm-spin + etapa atual)"]
+    LB --> T["build_state em thread"]
+    T -->|"on_stage"| G1["scan_gcs (paralelo)<br/>Scanning GCS tiles..."]
+    T -->|"on_stage"| G2["scan_gee<br/>Scanning GEE assets..."]
+    T -->|"on_stage"| G3["list_months<br/>Listing collection months..."]
+    T -->|"render provisorio<br/>(units + estado persistido)"| R0["grid aparece antes do scan"]
+    G1 --> R0
+    G2 --> R0
+    G3 --> R0
+    T -->|"fim do scan"| R1["render final<br/>badges OK/MISS + links"]
+    R0 --> R1
+    R1 --> B["botao Catalog cache (.json)"]
+```

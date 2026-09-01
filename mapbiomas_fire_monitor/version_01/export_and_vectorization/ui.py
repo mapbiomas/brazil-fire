@@ -1,16 +1,17 @@
 import datetime
 import os
-import random
 import re
 import threading
 import time
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 
+from . import catalog
 from . import config
-from .state import list_months_in_collection, build_state
+from .state import build_state, load_state
 
 L = widgets.Layout
 
@@ -29,60 +30,45 @@ _STATUS_CSS = widgets.HTML("""<style>
 }
 </style>""")
 
-STORY_SEQUENCES = [
-    ["[ 🌲 🌲 🌲 🌲 🌲 ]", "[ 🌲 🌲 🦅 🌲 🌲 ]", "[ 🌲 🌲 🔥 🌲 🌲 ]",
-     "[ 🛰️ 🔥 🔥 🔥 🌲 ]", "[ 💻 🧠 ⚙️ ☁️ ☁️ ]", "[ 🗺️ 📍 ✅ ✨ ✨ ]"],
-    ["🕛", "🕒", "🕕", "🕘"],
-    ["🌍", "🛰️", "🔥", "🤖", "🗺️"],
-    ["🛰️", "📡", "🔥", "💻", "🗺️"],
-    ["🌲", "🔎", "🔥", "🚨", "🧠", "🗺️"],
-    ["🛰️ 🌍", "🛰️ 🔎", "🛰️ 🔥", "📡 💻", "🤖 🧠", "📊 🗺️"],
-]
+class ProgressLoader:
+    """Spinner padrao (CSS mfm-spin) + status de progresso real.
 
+    A rotacao e feita por CSS (sem thread); o texto muda via `set_status`
+    conforme as etapas do scan avancam. Nao bloqueia o kernel.
+    """
 
-class StoryLoader:
-    """Animacao de carregamento que nao bloqueia o kernel do notebook."""
-
-    def __init__(self, label="Loading...", interval=0.7):
+    def __init__(self, label="Ready."):
         self.label = label
-        self.interval = interval
+        self._status = ""
         self.widget = widgets.HTML()
-        self._running = False
-        self._thread = None
+        self._render()
 
-    def _render(self, frame):
+    def _render(self, message=None):
+        status = message if message is not None else (self._status or self.label)
         self.widget.value = (
-            '<div style="padding:14px 18px;color:#3498db;font-size:18px;line-height:1.5;">'
-            f'<code>{frame}</code> <span style="font-size:12px;">{self.label}</span></div>'
+            '<div style="padding:8px 14px;color:#3498db;font-size:13px;'
+            'display:flex;align-items:center;gap:8px;line-height:1.5;">'
+            '<span style="display:inline-block;width:14px;height:14px;flex:0 0 auto;'
+            'border:2px solid #b9d7f0;border-top-color:#3498db;border-radius:50%;'
+            'animation:mfm-spin 0.8s linear infinite;"></span>'
+            f'<span>{status}</span></div>'
         )
 
-    def _run(self):
-        sequence = random.choice(STORY_SEQUENCES)
-        index = 0
-        repeats = 0
-        while self._running:
-            self._render(sequence[index])
-            index = (index + 1) % len(sequence)
-            if index == 0:
-                repeats += 1
-                if repeats >= 2:
-                    sequence = random.choice(STORY_SEQUENCES)
-                    repeats = 0
-            threading.Event().wait(self.interval)
-
-    def start(self):
-        if self._running:
-            return self.widget
-        self._running = True
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
+    def start(self, status=None):
+        if status:
+            self._status = status
+        self._render()
         return self.widget
 
+    def set_status(self, status):
+        self._status = status
+        self._render()
+
     def stop(self, message=None):
-        self._running = False
-        self._thread = None
         if message:
             self._render(message)
+        else:
+            self.widget.value = ""
 
 
 class LogDrawer:
@@ -113,9 +99,14 @@ class LogDrawer:
             layout=L(height="28px"),
             tooltip="Download the complete session log as a .txt file")
         btn_export.on_click(self._export_log)
+        self.btn_catalog = widgets.Button(
+            description="\u2913 Catalog cache (.json)", icon="download",
+            layout=L(height="28px"),
+            tooltip="Download catalog_cache.json (units/bands loaded this session) to version in GitHub")
+        self.btn_catalog.on_click(self._download_catalog)
         toolbar = widgets.HBox(
-            [btn_export],
-            layout=L(display="flex", justify_content="flex-end"))
+            [btn_export, self.btn_catalog],
+            layout=L(display="flex", justify_content="flex-end", gap="8px"))
         self.output = widgets.VBox(
             [toolbar, self.log_view],
             layout=L(max_height="260px", overflow="auto", padding="4px",
@@ -199,6 +190,15 @@ class LogDrawer:
         except Exception:
             print(f"Log saved to: {path}")
 
+    def _download_catalog(self, _=None):
+        set_button_busy(self.btn_catalog, True, "Preparing...")
+        try:
+            catalog.download_cache(countries=config.COUNTRIES_AVAILABLE, logger=self.append)
+        except Exception as exc:
+            self.append(f"[ERROR] Catalog download failed: {exc}", "error")
+        finally:
+            set_button_busy(self.btn_catalog, False, "\u2913 Catalog cache (.json)")
+
 
 def _palette():
     return {
@@ -281,6 +281,22 @@ def _loading_html(label="Loading..."):
     )
 
 
+def set_button_busy(button, busy, busy_text=None):
+    """Estado padronizado de botao durante operacao longa: desabilita e mostra
+    o icone de spinner; ao concluir, restaura icone/descricao originais."""
+    if busy:
+        button._busy_icon = getattr(button, "icon", "")
+        button._busy_text = getattr(button, "description", "")
+        button.disabled = True
+        button.icon = "spinner"
+        if busy_text:
+            button.description = busy_text
+    else:
+        button.disabled = False
+        button.icon = getattr(button, "_busy_icon", "")
+        button.description = getattr(button, "_busy_text", getattr(button, "description", ""))
+
+
 # (state key, column title, step number, badge type)
 # Step order:
 #   annual_burned (vectorizable): 1=Export, 2=Mosaic, 3=Public Mosaic, 4=Vector GCS,
@@ -342,191 +358,609 @@ def _is_complete(v):
 # ---------------------------------------------------------------------------
 LANG_ORDER = ["PT", "ES", "EN", "ID", "FR", "NL", "ZH"]
 
-GUIDES = {
-    "PT": {
-        "name": "Português",
-        "tab_title": "Guia: Português",
-        "welcome_note": "Bem-vindo! A interface do aplicativo está em inglês por padrão, mas preparamos esta documentação completa em Português para orientar você em cada etapa — desde a escolha do país e produto até a publicação final. Sinta-se à vontade para explorar as abas acima e consultar este guia sempre que precisar.",
-        "what": "Este aplicativo exporta os mapas de área queimada/incêndio do MapBiomas Fire: "
-                "do Earth Engine para o GCS, monta mosaicos por unidade (banda/imagem), vetoriza "
-                "(quando aplicável), publica no Earth Engine e no bucket público e remove os "
-                "arquivos temporários.",
-        "howto_title": "Como usar",
-        "steps": [
-            "Escolha o país, o tema (ex.: fire), a coleção e o produto.",
-            "No produto, marque as unidades (bandas ou imagens) desejadas.",
-            "Execute as etapas em ordem: Export, Mosaico, Vetorização (se houver), Upload GEE (se houver), Publicar mosaico, Publicar vetor, Limpar temp.",
-        ],
-        "cols_title": "Colunas da grade",
-        "cols": [
-            ("Export", "unidade exportada do GEE (temp/)"),
-            ("Mosaic", "COG montado"),
-            ("Vector GCS", "vetor zipado (só produtos vetorizáveis)"),
-            ("Vector GEE", "FeatureCollection no Earth Engine"),
-            ("Public mosaic", "COG espelhado no bucket público"),
-            ("Public vector", "ZIP espelhado no bucket público"),
-            ("Clean temp", "tiles temporários removidos após consolidação"),
-        ],
-        "links": "Badges 🔗 OK abrem o link de download.",
-        "legend": "OK = etapa concluída  |  MISS = etapa pendente  |  N/A = não se aplica",
-    },
-    "EN": {
-        "name": "English",
-        "tab_title": "Guide: English",
-        "welcome_note": "Welcome! The application interface defaults to English, and this documentation is provided in English to walk you through every step — from choosing the country and product to final publication. Feel free to explore the tabs above and refer to this guide whenever you need.",
-        "what": "This app exports the MapBiomas Fire burned/fire maps: from Earth Engine to cloud "
-                "storage, builds per-unit mosaics (band/image), vectorizes (when applicable), "
-                "publishes to Earth Engine and the public bucket, and removes temporary files.",
-        "howto_title": "How to use",
-        "steps": [
-            "Pick the country, theme (e.g., fire), collection and product.",
-            "In the product, check the units (bands or images) you want.",
-            "Run the steps in order: Export, Mosaic, Vectorize (if any), Upload GEE (if any), Publish mosaic, Publish vector, Clean temp.",
-        ],
-        "cols_title": "Grid columns",
-        "cols": [
-            ("Export", "unit exported from GEE (temp/)"),
-            ("Mosaic", "built COG"),
-            ("Vector GCS", "zipped vector (vectorizable products only)"),
-            ("Vector GEE", "FeatureCollection in Earth Engine"),
-            ("Public mosaic", "COG mirrored to public bucket"),
-            ("Public vector", "ZIP mirrored to public bucket"),
-            ("Clean temp", "temp tiles removed after consolidation"),
-        ],
-        "links": "🔗 OK badges open the download link.",
-        "legend": "OK = stage done  |  MISS = stage pending  |  N/A = not applicable",
-    },
-    "FR": {
-        "name": "Français",
-        "tab_title": "Guide: Français",
-        "welcome_note": "Bienvenue ! L'interface de l'application est en anglais par défaut, mais nous avons préparé cette documentation complète en Français pour vous accompagner à chaque étape — du choix du pays et du produit jusqu'à la publication finale. N'hésitez pas à explorer les onglets ci-dessus et à consulter ce guide quand vous en avez besoin.",
-        "what": "Cette application exporte les cartes de brûlage MapBiomas Fire : d'Earth Engine "
-                "vers le stockage cloud, construit des mosaïques par unité (bande/image), vectorise "
-                "(si applicable), publie dans Earth Engine et le bucket public et supprime les "
-                "fichiers temporaires.",
-        "howto_title": "Comment utiliser",
-        "steps": [
-            "Choisissez le pays, le thème, la collection et le produit.",
-            "Dans le produit, cochez les unités (bandes ou images) souhaitées.",
-            "Exécutez les étapes en ordre : Export, Mosaic, Vectorize (si applicable), Upload GEE, Public mosaic, Public vector, Clean temp.",
-        ],
-        "cols_title": "Colonnes de la grille",
-        "cols": [
-            ("Export", "unité exportée (temp/)"),
-            ("Mosaic", "COG construit"),
-            ("Vector GCS", "vecteur zippé (produits vectorisables)"),
-            ("Vector GEE", "FeatureCollection dans Earth Engine"),
-            ("Public mosaic", "COG reflété dans le bucket public"),
-            ("Public vector", "ZIP reflété dans le bucket public"),
-            ("Clean temp", "tuiles temporaires supprimées"),
-        ],
-        "links": "Les badges 🔗 OK ouvrent le lien de téléchargement.",
-        "legend": "OK = étape terminée  |  MISS = en attente  |  N/A = non applicable",
-    },
-    "ID": {
-        "name": "Bahasa Indonesia",
-        "tab_title": "Panduan: Bahasa Indonesia",
-        "welcome_note": "Selamat datang! Antarmuka aplikasi ini menggunakan bahasa Inggris secara default, namun kami menyediakan dokumentasi lengkap dalam Bahasa Indonesia untuk memandu Anda di setiap langkah — dari memilih negara dan produk hingga publikasi akhir. Silakan jelajahi tab di atas dan rujuk panduan ini kapan saja diperlukan.",
-        "what": "Aplikasi ini mengekspor peta kebakaran MapBiomas Fire: dari Earth Engine ke cloud "
-                "storage, membangun mozaik per unit (band/citra), vektorisasi (jika berlaku), "
-                "mempublikasikan ke Earth Engine dan bucket publik, lalu menghapus file sementara.",
-        "howto_title": "Cara penggunaan",
-        "steps": [
-            "Pilih negara, tema, koleksi, dan produk.",
-            "Di produk, centang unit (band atau citra) yang diinginkan.",
-            "Jalankan langkah: Export, Mosaic, Vectorize (jika ada), Upload GEE, Public mosaic, Public vector, Clean temp.",
-        ],
-        "cols_title": "Kolom grid",
-        "cols": [
-            ("Export", "unit diekspor (temp/)"),
-            ("Mosaic", "COG dibangun"),
-            ("Vector GCS", "vektor zip (produk yang dapat divektor)"),
-            ("Vector GEE", "FeatureCollection di Earth Engine"),
-            ("Public mosaic", "COG disalin ke bucket publik"),
-            ("Public vector", "ZIP disalin ke bucket publik"),
-            ("Clean temp", "tile sementara dihapus"),
-        ],
-        "links": "Lencana 🔗 OK membuka tautan unduhan.",
-        "legend": "OK = tahap selesai  |  MISS = tertunda  |  N/A = tidak berlaku",
-    },
-    "ES": {
-        "name": "Español",
-        "tab_title": "Guía: Español",
-        "welcome_note": "¡Bienvenido! La interfaz de la aplicación está en inglés por defecto, pero hemos preparado esta documentación completa en Español para guiarle en cada paso — desde la selección del país y producto hasta la publicación final. No dude en explorar las pestañas superiores y consultar esta guía cuando lo necesite.",
-        "what": "Esta aplicación exporta los mapas de fuego MapBiomas Fire: desde Earth Engine a "
-                "cloud storage, construye mosaicos por unidad (banda/imagen), vectoriza (si "
-                "aplica), publica en Earth Engine y el bucket público y elimina archivos temporales.",
-        "howto_title": "Cómo usar",
-        "steps": [
-            "Elija país, tema, colección y producto.",
-            "En el producto, marque las unidades (bandas o imágenes) deseadas.",
-            "Ejecute las etapas: Export, Mosaic, Vectorize (si aplica), Upload GEE, Public mosaic, Public vector, Clean temp.",
-        ],
-        "cols_title": "Columnas de la cuadrícula",
-        "cols": [
-            ("Export", "unidad exportada (temp/)"),
-            ("Mosaic", "COG construido"),
-            ("Vector GCS", "vector comprimido (productos vectorizables)"),
-            ("Vector GEE", "FeatureCollection en Earth Engine"),
-            ("Public mosaic", "COG reflejado en el bucket público"),
-            ("Public vector", "ZIP reflejado en el bucket público"),
-            ("Clean temp", "tiles temporales eliminados"),
-        ],
-        "links": "Las insignias 🔗 OK abren el enlace de descarga.",
-        "legend": "OK = etapa completada  |  MISS = pendiente  |  N/A = no aplica",
-    },
-    "NL": {
-        "name": "Nederlands",
-        "tab_title": "Handleiding: Nederlands",
-        "welcome_note": "Welkom! De interface van de applicatie is standaard in het Engels, maar we hebben deze complete documentatie in het Nederlands voorbereid om u te begeleiden bij elke stap — van het kiezen van het land en product tot de uiteindelijke publicatie. Verken gerust de tabbladen bovenaan en raadpleeg deze handleiding wanneer u dat wilt.",
-        "what": "Deze app exporteert de MapBiomas Fire-brandkaarten: van Earth Engine naar cloud "
-                "storage, bouwt mozaïeken per eenheid (band/beeld), vectoriseert (indien van "
-                "toepassing), publiceert naar Earth Engine en de publieke bucket en verwijdert "
-                "tijdelijke bestanden.",
-        "howto_title": "Hoe te gebruiken",
-        "steps": [
-            "Kies land, thema, collectie en product.",
-            "Vink in het product de eenheden (banden of beelden) aan.",
-            "Voer de stappen uit: Export, Mosaic, Vectorize (indien van toepassing), Upload GEE, Public mosaic, Public vector, Clean temp.",
-        ],
-        "cols_title": "Grid-kolommen",
-        "cols": [
-            ("Export", "eenheid geëxporteerd (temp/)"),
-            ("Mosaic", "gebouwde COG"),
-            ("Vector GCS", "gezipte vector (vectoriseerbare producten)"),
-            ("Vector GEE", "FeatureCollection in Earth Engine"),
-            ("Public mosaic", "COG gespiegeld naar publieke bucket"),
-            ("Public vector", "ZIP gespiegeld naar publieke bucket"),
-            ("Clean temp", "tijdelijke tiles verwijderd"),
-        ],
-        "links": "🔗 OK-badges openen de downloadlink.",
-        "legend": "OK = fase klaar  |  MISS = in afwachting  |  N/A = niet van toepassing",
-    },
-    "ZH": {
-        "name": "中文",
-        "tab_title": "指南: 中文",
-        "welcome_note": "欢迎使用！应用界面默认为英语，但我们准备了完整的中文文档，引导您完成每一个步骤——从选择国家和产品到最终发布。请随意探索上方的标签页，并在需要时随时查阅本指南。",
-        "what": "此应用导出 MapBiomas Fire 火灾地图：从 Earth Engine 到云存储，按单元（波段/影像）构建镶嵌图，在适用时进行矢量化，发布到 Earth Engine 和公共存储桶，并删除临时文件。",
-        "howto_title": "使用方法",
-        "steps": [
-            "选择国家、主题、集合和产品。",
-            "在产品中勾选所需的单元（波段或影像）。",
-            "按顺序执行：导出、镶嵌、矢量化（如适用）、上传 GEE、公开镶嵌、公开矢量、清理临时文件。",
-        ],
-        "cols_title": "网格列",
-        "cols": [
-            ("Export", "导出的单元 (temp/)"),
-            ("Mosaic", "构建的 COG"),
-            ("Vector GCS", "压缩矢量（可矢量化产品）"),
-            ("Vector GEE", "Earth Engine 中的 FeatureCollection"),
-            ("Public mosaic", "镜像到公共存储桶的 COG"),
-            ("Public vector", "镜像到公共存储桶的 ZIP"),
-            ("Clean temp", "合并后删除的临时瓦片"),
-        ],
-        "links": "🔗 OK 徽章打开下载链接。",
-        "legend": "OK = 阶段完成 | MISS = 待处理 | N/A = 不适用",
-    },
-}
+GUIDES = {'PT': {'name': 'Português',
+        'tab_title': 'Guia: Português',
+        'welcome_note': 'Bem-vindo! Esta guia em português explica o aplicativo Export & Vectorization do '
+                        'Monitor do Fogo MapBiomas: como navegar (país → tema → coleção → produto), '
+                        'descobrir as unidades, processar cada etapa e publicar os mapas. As abas acima '
+                        'mostram a interface; use esta guia sempre que precisar.',
+        'what': 'O aplicativo exporta os mapas de área queimada/incêndio do MapBiomas Fire: do Earth Engine '
+                '(GEE) para o GCS, monta mosaicos (COG) por unidade (banda ou imagem), vetoriza quando '
+                'aplicável, publica no Earth Engine e no bucket público e remove os arquivos temporários.',
+        'howto_title': 'Como usar',
+        'steps': ['<b>Navegue</b> pelas abas: país → tema → coleção → produto.',
+                  'Clique em <b>Load Data</b> (botão vermelho pulsando) para descobrir as <b>unidades</b>: '
+                  'bandas (imagem multibanda) ou imagens (ImageCollection). A descoberta é sob demanda — o '
+                  'cache não é preenchido com dados não carregados.',
+                  'Na grade, marque as unidades desejadas. O filtro <code>Unit:</code> (padrão “All units”) '
+                  'restringe por prefixo de unidade.',
+                  'Clique em <b>Sync</b> para verificar o status das etapas. O scan roda em segundo plano, '
+                  'com indicador de progresso (o kernel não bloqueia).',
+                  'Execute as etapas na ordem: <b>Export → Mosaico → Publicar mosaico → Vetor GCS → Vetor '
+                  'GEE → Publicar vetor → Limpar temp</b>. Etapas 4–6 só para produtos vetorizáveis (ex.: '
+                  'annual_burned); nos demais: <b>Export → Mosaico → Publicar mosaico → Limpar temp</b>.',
+                  'Para refazer uma etapa, ative <code>FORCE_&lt;ETAPA&gt; = True</code> na célula da etapa '
+                  'e selecione as unidades na grade.',
+                  'Para versionar a memória do catálogo (quando houver dados novos no '
+                  '<code>config.py</code>), use o botão <b>⤓ Catalog cache (.json)</b> na barra inferior e '
+                  'suba o arquivo no GitHub.'],
+        'cols_title': 'Colunas da grade',
+        'cols': [['Export', 'unidade exportada do GEE (temp/)'],
+                 ['Mosaic', 'COG montado'],
+                 ['Public mosaic', 'COG espelhado no bucket público'],
+                 ['Vector GCS', 'vetor zipado (só produtos vetorizáveis)'],
+                 ['Vector GEE', 'FeatureCollection no Earth Engine'],
+                 ['Public vector', 'ZIP espelhado no bucket público'],
+                 ['Clean temp', 'tiles temporários removidos após consolidação']],
+        'links': 'Badges <b>🔗 OK</b> abrem o link de download; <b>Vector GEE</b> copia o asset ID.',
+        'legend': 'OK = etapa concluída | MISS = etapa pendente | N/A = não se aplica',
+        'graphs_title': 'Gráficos',
+        'graphs': [{'title': 'Navegação',
+                    'lines': ['País',
+                              '└─ Tema',
+                              '   └─ Coleção',
+                              '      └─ Produto',
+                              '         └─ Unidades (bandas ou imagens)']},
+                   {'title': 'Etapas (produto vetorizável)',
+                    'lines': ['1 Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              '2 Mosaico → COG',
+                              ' ↓',
+                              '3 Publicar mosaico → bucket público',
+                              ' ↓',
+                              '4 Vetor GCS → ZIP',
+                              ' ↓',
+                              '5 Vetor GEE → FeatureCollection',
+                              ' ↓',
+                              '6 Publicar vetor → ZIP público',
+                              ' ↓',
+                              '7 Limpar temp']},
+                   {'title': 'Etapas (demais produtos)',
+                    'lines': ['1 Export',
+                              ' ↓',
+                              '2 Mosaico',
+                              ' ↓',
+                              '3 Publicar mosaico',
+                              ' ↓',
+                              '4 Limpar temp']},
+                   {'title': 'Memória do catálogo',
+                    'lines': ['config.py (dado cru)',
+                              ' ↓',
+                              'Load Data (descobre unidades sob demanda)',
+                              ' ↓',
+                              'catalog_cache.json (memória entre sessões)',
+                              ' ↓',
+                              'Botão ⤓ Catalog cache (.json)',
+                              ' ↓',
+                              'GitHub (versionar)']},
+                   {'title': 'Fluxo de dados',
+                    'lines': ['GEE ImageCollection',
+                              ' ↓',
+                              'Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              'Mosaico → COG',
+                              ' ↓',
+                              'Publicar → bucket público',
+                              ' ↓',
+                              '(se vetorizável) Vetorização → ZIP + upload GEE']}]},
+ 'ES': {'name': 'Español',
+        'tab_title': 'Guía: Español',
+        'welcome_note': '¡Bienvenido! Esta guía en español explica la aplicación Export & Vectorization del '
+                        'Monitor del Fuego de MapBiomas: cómo navegar (país → tema → colección → producto), '
+                        'descubrir las unidades, procesar cada Etapa y publicar los mapas. Las pestañas de '
+                        'arriba muestran la interfaz; use esta guía siempre que la necesite.',
+        'what': 'La aplicación exporta los mapas de área quemada/incendio de MapBiomas Fire: de Earth Engine '
+                '(GEE) a GCS, monta mosaicos (COG) por unidad (banda o imagen), vectoriza cuando '
+                'corresponde, publica en Earth Engine y en el bucket público y elimina los archivos '
+                'temporales.',
+        'howto_title': 'Cómo usar',
+        'steps': ['<b>Navegue</b> por las pestañas: país → tema → colección → producto.',
+                  'Haga clic en <b>Load Data</b> (botón rojo parpadeante) para descubrir las '
+                  '<b>unidades</b>: bandas (imagen multibanda) o imágenes (ImageCollection). El '
+                  'descubrimiento es bajo demanda; el caché no se llena con datos no cargados.',
+                  'En la cuadrícula, marque las unidades deseadas. El filtro <code>Unit:</code> '
+                  '(predeterminado “All units”) restringe por prefijo de unidad.',
+                  'Haga clic en <b>Sync</b> para verificar el estado de las etapas. El escaneo se ejecuta en '
+                  'segundo plano, con indicador de progreso (el kernel no se bloquea).',
+                  'Ejecute las etapas en orden: <b>Export → Mosaico → Publicar mosaico → Vector GCS → Vector '
+                  'GEE → Publicar vector → Limpiar temp</b>. Etapas 4–6 solo para productos vectorizables '
+                  '(ej.: annual_burned); en los demás: <b>Export → Mosaico → Publicar mosaico → Limpiar '
+                  'temp</b>.',
+                  'Para rehacer una Etapa, active <code>FORCE_&lt;ETAPA&gt; = True</code> en la celda de la '
+                  'Etapa y seleccione las unidades en la cuadrícula.',
+                  'Para versionar la memoria del Catálogo (cuando haya datos nuevos en '
+                  '<code>config.py</code>), use el botón <b>⤓ Catalog cache (.json)</b> en la barra inferior '
+                  'y suba el archivo a GitHub.'],
+        'cols_title': 'Columnas de la cuadrícula',
+        'cols': [['Export', 'unidad exportada de GEE (temp/)'],
+                 ['Mosaic', 'COG ensamblado'],
+                 ['Public mosaic', 'COG replicado en el bucket público'],
+                 ['Vector GCS', 'vector comprimido (solo productos vectorizables)'],
+                 ['Vector GEE', 'FeatureCollection en Earth Engine'],
+                 ['Public vector', 'ZIP replicado en el bucket público'],
+                 ['Clean temp', 'tiles temporales eliminados tras consolidación']],
+        'links': 'Insignias <b>🔗 OK</b> abren el enlace de descarga; <b>Vector GEE</b> copia el asset ID.',
+        'legend': 'OK = Etapa completada | MISS = Etapa pendiente | N/A = no aplica',
+        'graphs_title': 'Gráficos',
+        'graphs': [{'title': 'Navegación',
+                    'lines': ['País',
+                              '└─ Tema',
+                              '   └─ Colección',
+                              '      └─ Producto',
+                              '         └─ Unidades (bandas o imágenes)']},
+                   {'title': 'Etapas (producto vectorizable)',
+                    'lines': ['1 Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              '2 Mosaico → COG',
+                              ' ↓',
+                              '3 Publicar mosaico → bucket público',
+                              ' ↓',
+                              '4 Vector GCS → ZIP',
+                              ' ↓',
+                              '5 Vector GEE → FeatureCollection',
+                              ' ↓',
+                              '6 Publicar vector → ZIP público',
+                              ' ↓',
+                              '7 Limpiar temp']},
+                   {'title': 'Etapas (demás productos)',
+                    'lines': ['1 Export',
+                              ' ↓',
+                              '2 Mosaico',
+                              ' ↓',
+                              '3 Publicar mosaico',
+                              ' ↓',
+                              '4 Limpiar temp']},
+                   {'title': 'Memoria del Catálogo',
+                    'lines': ['config.py (dato crudo)',
+                              ' ↓',
+                              'Load Data (descubre unidades bajo demanda)',
+                              ' ↓',
+                              'catalog_cache.json (memoria entre sesiones)',
+                              ' ↓',
+                              'Botón ⤓ Catalog cache (.json)',
+                              ' ↓',
+                              'GitHub (versionar)']},
+                   {'title': 'Flujo de datos',
+                    'lines': ['GEE ImageCollection',
+                              ' ↓',
+                              'Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              'Mosaico → COG',
+                              ' ↓',
+                              'Publicar → bucket público',
+                              ' ↓',
+                              '(si vectorizable) Vectorización → ZIP + upload GEE']}]},
+ 'EN': {'name': 'English',
+        'tab_title': 'Guide: English',
+        'welcome_note': 'Welcome! This English guide explains the MapBiomas Fire Export & Vectorization app: '
+                        'how to navigate (country → theme → collection → product), discover the units, '
+                        'process each step, and publish the maps. The tabs above show the interface; use '
+                        'this guide whenever you need it.',
+        'what': 'The app exports burned area/fire maps from MapBiomas Fire: from Earth Engine (GEE) to GCS, '
+                'builds mosaics (COG) per unit (band or image), vectorizes when applicable, publishes to '
+                'Earth Engine and the public bucket, and removes temporary files.',
+        'howto_title': 'How to use',
+        'steps': ['<b>Navigate</b> through the tabs: country → theme → collection → product.',
+                  'Click <b>Load Data</b> (pulsing red button) to discover the <b>units</b>: bands '
+                  '(multiband image) or images (ImageCollection). Discovery is on-demand — the cache is not '
+                  'filled with unloaded data.',
+                  'In the grid, check the desired units. The <code>Unit:</code> filter (default “All units”) '
+                  'restricts by unit prefix.',
+                  'Click <b>Sync</b> to check the status of the steps. The scan runs in the background, with '
+                  'a progress indicator (the kernel does not block).',
+                  'Execute the steps in order: <b>Export → Mosaic → Publish mosaic → Vector GCS → Vector GEE '
+                  '→ Publish vector → Clean temp</b>. Steps 4–6 are only for vectorizable products (e.g., '
+                  'annual_burned); for others: <b>Export → Mosaic → Publish mosaic → Clean temp</b>.',
+                  'To redo an step, activate <code>FORCE_&lt;STEP&gt; = True</code> in the step cell and '
+                  'select the units in the grid.',
+                  'To version the Catalog memory (when there is new data in <code>config.py</code>), use the '
+                  '<b>⤓ Catalog cache (.json)</b> button in the bottom bar and upload the file to GitHub.'],
+        'cols_title': 'Grid columns',
+        'cols': [['Export', 'unit exported from GEE (temp/)'],
+                 ['Mosaic', 'assembled COG'],
+                 ['Public mosaic', 'COG mirrored in the public bucket'],
+                 ['Vector GCS', 'zipped vector (vectorizable products only)'],
+                 ['Vector GEE', 'FeatureCollection in Earth Engine'],
+                 ['Public vector', 'ZIP mirrored in the public bucket'],
+                 ['Clean temp', 'temporary tiles removed after consolidation']],
+        'links': '<b>🔗 OK</b> badges open the download link; <b>Vector GEE</b> copies the asset ID.',
+        'legend': 'OK = step completed | MISS = step pending | N/A = not applicable',
+        'graphs_title': 'Graphs',
+        'graphs': [{'title': 'Navigation',
+                    'lines': ['Country',
+                              '└─ Theme',
+                              '   └─ Collection',
+                              '      └─ Product',
+                              '         └─ Units (bands or images)']},
+                   {'title': 'Steps (vectorizable product)',
+                    'lines': ['1 Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              '2 Mosaic → COG',
+                              ' ↓',
+                              '3 Publish mosaic → public bucket',
+                              ' ↓',
+                              '4 Vector GCS → ZIP',
+                              ' ↓',
+                              '5 Vector GEE → FeatureCollection',
+                              ' ↓',
+                              '6 Publish vector → public ZIP',
+                              ' ↓',
+                              '7 Clean temp']},
+                   {'title': 'Steps (other products)',
+                    'lines': ['1 Export', ' ↓', '2 Mosaic', ' ↓', '3 Publish mosaic', ' ↓', '4 Clean temp']},
+                   {'title': 'Catalog memory',
+                    'lines': ['config.py (raw data)',
+                              ' ↓',
+                              'Load Data (discovers units on demand)',
+                              ' ↓',
+                              'catalog_cache.json (memory between sessions)',
+                              ' ↓',
+                              'Button ⤓ Catalog cache (.json)',
+                              ' ↓',
+                              'GitHub (versioning)']},
+                   {'title': 'Data flow',
+                    'lines': ['GEE ImageCollection',
+                              ' ↓',
+                              'Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              'Mosaic → COG',
+                              ' ↓',
+                              'Publish → public bucket',
+                              ' ↓',
+                              '(if vectorizable) Vectorization → ZIP + upload GEE']}]},
+ 'ID': {'name': 'Bahasa Indonesia',
+        'tab_title': 'Panduan: Bahasa Indonesia',
+        'welcome_note': 'Selamat datang! Panduan dalam bahasa Indonesia ini menjelaskan aplikasi Export & '
+                        'Vectorization dari MapBiomas Fire: cara navigasi (negara → tema → koleksi → '
+                        'produk), menemukan unit, memproses setiap langkah, dan memublikasikan peta. Tab di '
+                        'atas menampilkan antarmuka; gunakan panduan ini kapan pun Anda butuhkan.',
+        'what': 'Aplikasi ini mengekspor peta area terbakar/kebakaran dari MapBiomas Fire: dari Earth Engine '
+                '(GEE) ke GCS, membuat mosaik (COG) per unit (band atau citra), melakukan vektorisasi jika '
+                'berlaku, memublikasikan ke Earth Engine dan bucket publik, serta menghapus file sementara.',
+        'howto_title': 'Cara penggunaan',
+        'steps': ['<b>Navigasi</b> melalui tab: negara → tema → koleksi → produk.',
+                  'Klik <b>Load Data</b> (tombol merah berdenyut) untuk menemukan <b>unit</b>: band (citra '
+                  'multiband) atau citra (ImageCollection). Penemuan dilakukan berdasarkan permintaan — '
+                  'cache tidak diisi dengan data yang tidak dimuat.',
+                  'Pada kisi, centang unit yang diinginkan. Filter <code>Unit:</code> (default “All units”) '
+                  'membatasi berdasarkan awalan unit.',
+                  'Klik <b>Sync</b> untuk memeriksa status langkah-langkah. Pemindaian berjalan di latar '
+                  'belakang, dengan indikator kemajuan (kernel tidak terblokir).',
+                  'Jalankan langkah-langkah secara berurutan: <b>Export → Mosaik → Publikasikan mosaik → '
+                  'Vektor GCS → Vektor GEE → Publikasikan vektor → Bersihkan temp</b>. langkah-langkah 4–6 '
+                  'hanya untuk produk yang dapat divektorisasi (misalnya, annual_burned); untuk yang lain: '
+                  '<b>Export → Mosaik → Publikasikan mosaik → Bersihkan temp</b>.',
+                  'Untuk mengulang langkah, aktifkan <code>FORCE_&lt;LANGKAH&gt; = True</code> di sel '
+                  'langkah dan pilih unit di kisi.',
+                  'Untuk membuat versi memori Katalog (saat ada data baru di <code>config.py</code>), '
+                  'gunakan tombol <b>⤓ Catalog cache (.json)</b> di bilah bawah dan unggah file ke GitHub.'],
+        'cols_title': 'Kolom kisi',
+        'cols': [['Export', 'unit diekspor dari GEE (temp/)'],
+                 ['Mosaic', 'COG yang digabungkan'],
+                 ['Public mosaic', 'COG dicerminkan di bucket publik'],
+                 ['Vector GCS', 'vektor dalam format ZIP (hanya produk yang dapat divektorisasi)'],
+                 ['Vector GEE', 'FeatureCollection di Earth Engine'],
+                 ['Public vector', 'ZIP dicerminkan di bucket publik'],
+                 ['Clean temp', 'tile sementara dihapus setelah konsolidasi']],
+        'links': 'Lencana <b>🔗 OK</b> membuka tautan unduhan; <b>Vector GEE</b> menyalin asset ID.',
+        'legend': 'OK = langkah selesai | MISS = langkah tertunda | N/A = tidak berlaku',
+        'graphs_title': 'Grafik',
+        'graphs': [{'title': 'Navigasi',
+                    'lines': ['Negara',
+                              '└─ Tema',
+                              '   └─ Koleksi',
+                              '      └─ Produk',
+                              '         └─ Unit (band atau citra)']},
+                   {'title': 'langkah-langkah (produk dapat divektorisasi)',
+                    'lines': ['1 Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              '2 Mosaik → COG',
+                              ' ↓',
+                              '3 Publikasikan mosaik → bucket publik',
+                              ' ↓',
+                              '4 Vektor GCS → ZIP',
+                              ' ↓',
+                              '5 Vektor GEE → FeatureCollection',
+                              ' ↓',
+                              '6 Publikasikan vektor → ZIP publik',
+                              ' ↓',
+                              '7 Bersihkan temp']},
+                   {'title': 'langkah-langkah (produk lainnya)',
+                    'lines': ['1 Export',
+                              ' ↓',
+                              '2 Mosaik',
+                              ' ↓',
+                              '3 Publikasikan mosaik',
+                              ' ↓',
+                              '4 Bersihkan temp']},
+                   {'title': 'Memori Katalog',
+                    'lines': ['config.py (data mentah)',
+                              ' ↓',
+                              'Load Data (menemukan unit berdasarkan permintaan)',
+                              ' ↓',
+                              'catalog_cache.json (memori antar sesi)',
+                              ' ↓',
+                              'Tombol ⤓ Catalog cache (.json)',
+                              ' ↓',
+                              'GitHub (pembuatan versi)']},
+                   {'title': 'Alur data',
+                    'lines': ['GEE ImageCollection',
+                              ' ↓',
+                              'Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              'Mosaik → COG',
+                              ' ↓',
+                              'Publikasikan → bucket publik',
+                              ' ↓',
+                              '(jika dapat divektorisasi) Vektorisasi → ZIP + upload GEE']}]},
+ 'FR': {'name': 'Français',
+        'tab_title': 'Guide : Français',
+        'welcome_note': "Bienvenue ! Ce guide en français explique l'application Export & Vectorization de "
+                        'MapBiomas Fire : comment naviguer (pays → thème → collection → produit), découvrir '
+                        'les unités, traiter chaque étape et publier les cartes. Les onglets ci-dessus '
+                        "affichent l'interface ; utilisez ce guide chaque fois que nécessaire.",
+        'what': "L'application exporte les cartes des zones brûlées/incendies de MapBiomas Fire : de Earth "
+                'Engine (GEE) vers GCS, assemble des mosaïques (COG) par unité (bande ou image), vectorise '
+                'le cas échéant, publie sur Earth Engine et le bucket public, et supprime les fichiers '
+                'temporaires.',
+        'howto_title': 'Comment utiliser',
+        'steps': ['<b>Naviguez</b> à travers les onglets : pays → thème → collection → produit.',
+                  'Cliquez sur <b>Load Data</b> (bouton rouge clignotant) pour découvrir les <b>unités</b> : '
+                  'bandes (image multibande) ou images (ImageCollection). La découverte est à la demande — '
+                  "le cache n'est pas rempli de données non chargées.",
+                  'Dans la grille, cochez les unités souhaitées. Le filtre <code>Unit:</code> (par défaut « '
+                  "All units ») restreint par préfixe d'unité.",
+                  "Cliquez sur <b>Sync</b> pour vérifier le statut des étapes. L'analyse s'exécute en "
+                  'arrière-plan avec un indicateur de progression (le noyau ne se bloque pas).',
+                  "Exécutez les étapes dans l'ordre : <b>Export → Mosaïque → Publier mosaïque → Vecteur GCS "
+                  '→ Vecteur GEE → Publier vecteur → Nettoyer temp</b>. étapes 4–6 uniquement pour les '
+                  'produits vectorisables (ex. : annual_burned) ; pour les autres : <b>Export → Mosaïque → '
+                  'Publier mosaïque → Nettoyer temp</b>.',
+                  'Pour refaire une étape, activez <code>FORCE_&lt;ÉTAPE&gt; = True</code> dans la cellule '
+                  "de l'étape et sélectionnez les unités dans la grille.",
+                  "Pour versionner la mémoire du catalogue (lorsqu'il y a de nouvelles données dans "
+                  '<code>config.py</code>), utilisez le bouton <b>⤓ Catalog cache (.json)</b> dans la barre '
+                  'inférieure et téléchargez le fichier sur GitHub.'],
+        'cols_title': 'Colonnes de la grille',
+        'cols': [['Export', 'unité exportée depuis GEE (temp/)'],
+                 ['Mosaic', 'COG assemblé'],
+                 ['Public mosaic', 'COG mis en miroir dans le bucket public'],
+                 ['Vector GCS', 'vecteur zippé (uniquement produits vectorisables)'],
+                 ['Vector GEE', 'FeatureCollection dans Earth Engine'],
+                 ['Public vector', 'ZIP mis en miroir dans le bucket public'],
+                 ['Clean temp', 'tuiles temporaires supprimées après consolidation']],
+        'links': "Les badges <b>🔗 OK</b> ouvrent le lien de téléchargement ; <b>Vector GEE</b> copie l'asset "
+                 'ID.',
+        'legend': 'OK = étape terminée | MISS = étape en attente | N/A = non applicable',
+        'graphs_title': 'Graphiques',
+        'graphs': [{'title': 'Navigation',
+                    'lines': ['Pays',
+                              '└─ Thème',
+                              '   └─ Collection',
+                              '      └─ Produit',
+                              '         └─ Unités (bandes ou images)']},
+                   {'title': 'étapes (produit vectorisable)',
+                    'lines': ['1 Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              '2 Mosaïque → COG',
+                              ' ↓',
+                              '3 Publier mosaïque → bucket public',
+                              ' ↓',
+                              '4 Vecteur GCS → ZIP',
+                              ' ↓',
+                              '5 Vecteur GEE → FeatureCollection',
+                              ' ↓',
+                              '6 Publier vecteur → ZIP public',
+                              ' ↓',
+                              '7 Nettoyer temp']},
+                   {'title': 'étapes (autres produits)',
+                    'lines': ['1 Export',
+                              ' ↓',
+                              '2 Mosaïque',
+                              ' ↓',
+                              '3 Publier mosaïque',
+                              ' ↓',
+                              '4 Nettoyer temp']},
+                   {'title': 'Mémoire du catalogue',
+                    'lines': ['config.py (données brutes)',
+                              ' ↓',
+                              'Load Data (découvre les unités à la demande)',
+                              ' ↓',
+                              'catalog_cache.json (mémoire entre sessions)',
+                              ' ↓',
+                              'Bouton ⤓ Catalog cache (.json)',
+                              ' ↓',
+                              'GitHub (versionnage)']},
+                   {'title': 'Flux de données',
+                    'lines': ['GEE ImageCollection',
+                              ' ↓',
+                              'Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              'Mosaïque → COG',
+                              ' ↓',
+                              'Publier → bucket public',
+                              ' ↓',
+                              '(si vectorisable) Vectorisation → ZIP + upload GEE']}]},
+ 'NL': {'name': 'Nederlands',
+        'tab_title': 'Gids: Nederlands',
+        'welcome_note': 'Welkom! Deze Nederlandstalige gids legt de Export & Vectorization app van MapBiomas '
+                        'Fire uit: hoe te navigeren (land → thema → collectie → product), de eenheden te '
+                        'ontdekken, elke stap te verwerken en de kaarten te publiceren. De tabbladen '
+                        'hierboven tonen de interface; gebruik deze gids wanneer je hem nodig hebt.',
+        'what': 'De app exporteert kaarten van verbrande gebieden/branden van MapBiomas Fire: van Earth '
+                'Engine (GEE) naar GCS, bouwt mozaïeken (COG) per eenheid (band of afbeelding), vectoriseert '
+                'indien van toepassing, publiceert naar Earth Engine en de openbare bucket, en verwijdert '
+                'tijdelijke bestanden.',
+        'howto_title': 'Hoe te gebruiken',
+        'steps': ['<b>Navigeer</b> door de tabbladen: land → thema → collectie → product.',
+                  'Klik op <b>Load Data</b> (kloppende rode knop) om de <b>eenheden</b> te ontdekken: banden '
+                  '(multiband afbeelding) of afbeeldingen (ImageCollection). Ontdekking is on-demand — de '
+                  'cache wordt niet gevuld met ongeladen gegevens.',
+                  'Vink in het raster de gewenste eenheden aan. Het filter <code>Unit:</code> (standaard '
+                  '“All units”) beperkt op voorvoegsel van de eenheid.',
+                  'Klik op <b>Sync</b> om de status van de stappen te controleren. De scan draait op de '
+                  'achtergrond, met een voortgangsindicator (de kernel blokkeert niet).',
+                  'Voer de stappen op volgorde uit: <b>Export → Mozaïek → Publiceer mozaïek → Vector GCS → '
+                  'Vector GEE → Publiceer vector → Wis temp</b>. stappen 4–6 alleen voor vectoriseerbare '
+                  'producten (bijv. annual_burned); voor de rest: <b>Export → Mozaïek → Publiceer mozaïek → '
+                  'Wis temp</b>.',
+                  'Om een stap opnieuw te doen, activeer je <code>FORCE_&lt;STAP&gt; = True</code> in de cel '
+                  'van de stap en selecteer je de eenheden in het raster.',
+                  'Om de geheugen van de catalogus te versioneren (wanneer er nieuwe gegevens in '
+                  '<code>config.py</code> zijn), gebruik je de knop <b>⤓ Catalog cache (.json)</b> in de '
+                  'onderste balk en upload je het bestand naar GitHub.'],
+        'cols_title': 'Rasterkolommen',
+        'cols': [['Export', 'eenheid geëxporteerd van GEE (temp/)'],
+                 ['Mosaic', 'geassembleerde COG'],
+                 ['Public mosaic', 'COG gespiegeld in de openbare bucket'],
+                 ['Vector GCS', 'gezipte vector (alleen vectoriseerbare producten)'],
+                 ['Vector GEE', 'FeatureCollection in Earth Engine'],
+                 ['Public vector', 'ZIP gespiegeld in de openbare bucket'],
+                 ['Clean temp', 'tijdelijke tegels verwijderd na consolidatie']],
+        'links': 'Badges <b>🔗 OK</b> openen de downloadlink; <b>Vector GEE</b> kopieert de asset ID.',
+        'legend': 'OK = stap voltooid | MISS = stap in afwachting | N/A = niet van toepassing',
+        'graphs_title': 'Grafieken',
+        'graphs': [{'title': 'Navigatie',
+                    'lines': ['Land',
+                              '└─ Thema',
+                              '   └─ Collectie',
+                              '      └─ Product',
+                              '         └─ Eenheden (banden of afbeeldingen)']},
+                   {'title': 'stappen (vectoriseerbaar product)',
+                    'lines': ['1 Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              '2 Mozaïek → COG',
+                              ' ↓',
+                              '3 Publiceer mozaïek → openbare bucket',
+                              ' ↓',
+                              '4 Vector GCS → ZIP',
+                              ' ↓',
+                              '5 Vector GEE → FeatureCollection',
+                              ' ↓',
+                              '6 Publiceer vector → openbare ZIP',
+                              ' ↓',
+                              '7 Wis temp']},
+                   {'title': 'stappen (overige producten)',
+                    'lines': ['1 Export',
+                              ' ↓',
+                              '2 Mozaïek',
+                              ' ↓',
+                              '3 Publiceer mozaïek',
+                              ' ↓',
+                              '4 Wis temp']},
+                   {'title': 'Geheugen van de catalogus',
+                    'lines': ['config.py (ruwe data)',
+                              ' ↓',
+                              'Load Data (ontdekt eenheden on-demand)',
+                              ' ↓',
+                              'catalog_cache.json (geheugen tussen sessies)',
+                              ' ↓',
+                              'Knop ⤓ Catalog cache (.json)',
+                              ' ↓',
+                              'GitHub (versioneren)']},
+                   {'title': 'Dataflow',
+                    'lines': ['GEE ImageCollection',
+                              ' ↓',
+                              'Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              'Mozaïek → COG',
+                              ' ↓',
+                              'Publiceer → openbare bucket',
+                              ' ↓',
+                              '(indien vectoriseerbaar) Vectorisatie → ZIP + upload GEE']}]},
+ 'ZH': {'name': '中文',
+        'tab_title': '指南：中文',
+        'welcome_note': '欢迎！本中文指南说明了 MapBiomas Fire 的 Export & Vectorization 应用程序：如何导航（国家 → 主题 → 集合 → 产品），发现 '
+                        '单位，处理每个 步骤，并发布地图。上面的选项卡显示了界面；随时使用此指南。',
+        'what': '该应用程序从 MapBiomas Fire 导出烧毁面积/火灾地图：从 Earth Engine (GEE) 到 GCS，按 单位（波段或图像）构建镶嵌图 '
+                '(COG)，在适用时进行矢量化，发布到 Earth Engine 和公共存储桶，并删除临时文件。',
+        'howto_title': '如何使用',
+        'steps': ['通过选项卡<b>导航</b>：国家 → 主题 → 集合 → 产品。',
+                  '单击 <b>Load Data</b>（闪烁的红色按钮）以发现 <b>单位</b>：波段（多波段图像）或图像（ImageCollection）。发现是按需进行的 — '
+                  '缓存不会被未加载的数据填满。',
+                  '在网格中，勾选所需的 单位。<code>Unit:</code> 过滤器（默认为“All units”）按 单位 前缀进行限制。',
+                  '单击 <b>Sync</b> 检查 步骤 的状态。扫描在后台运行，带有进度指示器（内核不会阻塞）。',
+                  '按顺序执行 步骤：<b>Export → 镶嵌 → 发布镶嵌图 → 矢量 GCS → 矢量 GEE → 发布矢量 → 清理临时文件</b>。步骤 4–6 '
+                  '仅适用于可矢量化的产品（例如 annual_burned）；对于其他产品：<b>Export → 镶嵌 → 发布镶嵌图 → 清理临时文件</b>。',
+                  '要重做 步骤，请在 步骤 单元格中激活 <code>FORCE_&lt;步骤&gt; = True</code> 并在网格中选择 单位。',
+                  '要对 目录 内存进行版本控制（当 <code>config.py</code> 中有新数据时），请使用底部栏中的 <b>⤓ Catalog cache (.json)</b> '
+                  '按钮并将文件上传到 GitHub。'],
+        'cols_title': '网格列',
+        'cols': [['Export', '从 GEE 导出的 单位 (temp/)'],
+                 ['Mosaic', '组装的 COG'],
+                 ['Public mosaic', '镜像在公共存储桶中的 COG'],
+                 ['Vector GCS', '压缩的矢量（仅限可矢量化产品）'],
+                 ['Vector GEE', 'Earth Engine 中的 FeatureCollection'],
+                 ['Public vector', '镜像在公共存储桶中的 ZIP'],
+                 ['Clean temp', '合并后删除的临时切片']],
+        'links': '带有 <b>🔗 OK</b> 的徽章可打开下载链接；<b>Vector GEE</b> 复制 asset ID。',
+        'legend': 'OK = 步骤 已完成 | MISS = 步骤 待处理 | N/A = 不适用',
+        'graphs_title': '图表',
+        'graphs': [{'title': '导航：',
+                    'lines': ['国家', '└─ 主题', '   └─ 集合', '      └─ 产品', '         └─ 单位（波段或图像）']},
+                   {'title': '步骤（可矢量化产品）：',
+                    'lines': ['1 Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              '2 镶嵌 → COG',
+                              ' ↓',
+                              '3 发布镶嵌图 → 公共存储桶',
+                              ' ↓',
+                              '4 矢量 GCS → ZIP',
+                              ' ↓',
+                              '5 矢量 GEE → FeatureCollection',
+                              ' ↓',
+                              '6 发布矢量 → 公共 ZIP',
+                              ' ↓',
+                              '7 清理临时文件']},
+                   {'title': '步骤（其他产品）：',
+                    'lines': ['1 Export', ' ↓', '2 镶嵌', ' ↓', '3 发布镶嵌图', ' ↓', '4 清理临时文件']},
+                   {'title': '目录 内存：',
+                    'lines': ['config.py（原始数据）',
+                              ' ↓',
+                              'Load Data（按需发现 单位）',
+                              ' ↓',
+                              'catalog_cache.json（会话之间的内存）',
+                              ' ↓',
+                              '按钮 ⤓ Catalog cache (.json)',
+                              ' ↓',
+                              'GitHub（版本控制）']},
+                   {'title': '数据流：',
+                    'lines': ['GEE ImageCollection',
+                              ' ↓',
+                              'Export → tiles 0/1 (temp/)',
+                              ' ↓',
+                              '镶嵌 → COG',
+                              ' ↓',
+                              '发布 → 公共存储桶',
+                              ' ↓',
+                              '（如果可矢量化）矢量化 → ZIP + upload GEE']}]}}
+
+
+def _guide_graphs(g, p):
+    """Grafos simples da guia: diagramas de texto em <pre>, fundo claro e letra
+    escura. Cada idioma pode ter sua propria lista `graphs` (opcional)."""
+    graphs = g.get("graphs", [])
+    if not graphs:
+        return ""
+    heading = ""
+    gtitle = g.get("graphs_title", "")
+    if gtitle:
+        heading = f'<h4 style="margin:12px 0 4px 0;">{gtitle}</h4>'
+    blocks = []
+    for graph in graphs:
+        title = graph.get("title", "")
+        lines = graph.get("lines", [])
+        text = "\n".join(lines)
+        blocks.append(
+            f'<div style="margin:8px 0 6px 0;">'
+            f'<div style="font-weight:700;color:{p["guide_fg"]};font-size:12px;'
+            f'margin-bottom:3px;">{title}</div>'
+            f'<pre style="margin:0;padding:8px 10px;background:#ffffff;'
+            f'border:1px solid #dddddd;border-radius:4px;font-size:12px;'
+            f'color:#212529;line-height:1.5;overflow-x:auto;">{text}</pre>'
+            f'</div>'
+        )
+    return heading + "".join(blocks)
 
 
 def _guide_html(lang):
@@ -546,12 +980,14 @@ def _guide_html(lang):
         f'border-radius:4px;padding:10px;margin-bottom:12px;font-size:12px;color:{p["hint_fg"]};line-height:1.5;">'
         f'{welcome}</div>'
     ) if welcome else ""
+    graphs_html = _guide_graphs(g, p)
     return (
         f'<div style="font-size:12px;color:{p["guide_fg"]};line-height:1.6;">'
         f'{welcome_html}'
         f'<p><b>{g["name"]}</b> — {g["what"]}</p>'
         f'<h4 style="margin:10px 0 4px 0;">{g["howto_title"]}</h4>'
         f'<ol style="margin:0 0 8px 0;padding-left:20px;">{steps}</ol>'
+        f'{graphs_html}'
         f'<p><span style="background:#28a745;color:#fff;padding:1px 6px;border-radius:3px;'
         f'font-size:10px;">OK</span> / '
         f'<span style="background:#e9ecef;color:#6c757d;padding:1px 6px;border-radius:3px;'
@@ -568,16 +1004,16 @@ def _guide_html(lang):
 # ---------------------------------------------------------------------------
 # Grid de unidades de um produto
 # ---------------------------------------------------------------------------
-def _catalog_units(country, theme, collection, product):
+def _discover_units(country, theme, collection, product, logger=None):
+    """Descobre bandas/imagens de um produto (Load Data).
+
+    So consulta o GEE quando o produto ainda nao esta no catalogo (memo/disco)
+    — discovery sob demanda para nao encher o cache sem necessidade.
+    """
     try:
-        from .catalog import build_inventory
-        inv = build_inventory([country])
-        for p in inv.get(country, {}).get(theme, {}).get(collection, []):
-            if p.get("name") == product:
-                return [u.get("key") for u in (p.get("units") or [])]
+        return catalog.inventory_units(country, theme, collection, product, logger=logger)
     except Exception:
-        pass
-    return []
+        return []
 
 
 class UnitGridPanel:
@@ -622,10 +1058,11 @@ class UnitGridPanel:
         self.btn_clear_all.on_click(self._on_clear_all)
 
         self.year_dropdown = widgets.Dropdown(options=["All units"], value="All units",
-                                              description="Year:", layout=L(width="200px"))
+                                              description="Unit:", layout=L(width="200px"))
         self.year_dropdown.observe(self._on_year_change, names="value")
 
-        self.story_loader = StoryLoader("Checking GCS and Earth Engine...")
+        self._executor = ThreadPoolExecutor(max_workers=1)
+        self.progress_loader = ProgressLoader("Click Load Data to discover units.")
         self.btn_load_data = widgets.Button(
             description="Load Data", button_style="danger", icon="download",
             layout=L(width="130px", height="34px"),
@@ -634,7 +1071,7 @@ class UnitGridPanel:
         self.btn_load_data.on_click(self._on_load_data)
         self.toolbar = widgets.HBox([
             self.btn_load_data, self.btn_sync, self.btn_select_pending,
-            self.btn_select_all, self.btn_clear, self.btn_clear_all, self.story_loader.widget,
+            self.btn_select_all, self.btn_clear, self.btn_clear_all, self.progress_loader.widget,
             self.year_dropdown,
         ], layout=L(margin="0 0 8px 0", gap="8px", align_items="center"))
 
@@ -664,9 +1101,9 @@ class UnitGridPanel:
         config.set_collection(self.collection)
         config.set_product(product)
         self.product = product
-        self.units = _catalog_units(self.country, self.theme, self.collection, product)
-        if not self.units and config.product_kind() == "monthly":
-            self.units = list_months_in_collection()
+        # Units (bandas/imagens) sao descobertas apenas no Load Data/Sync —
+        # nenhuma chamada GEE/GCS aqui na abertura da UI.
+        self.units = []
         # Keep existing state if available, don't auto-sync
         if not hasattr(self, 'state') or not self.state:
             self.state = {"updated_at": None}
@@ -829,7 +1266,7 @@ class UnitGridPanel:
         n_complete = sum(1 for u in self._all_units() if _is_complete(self.state.get(u, {})))
 
         if self.year_filter is not None:
-            label = (f'{n_visible} units of {self.year_filter} in filter &nbsp;|&nbsp; '
+            label = (f'{n_visible} units with prefix {self.year_filter} in filter &nbsp;|&nbsp; '
                      f'<span style="color:#28a745;font-weight:700;">{n_complete}</span> complete')
         else:
             label = (f'{n_all} units &nbsp;|&nbsp; '
@@ -881,39 +1318,75 @@ class UnitGridPanel:
         config.set_collection(self.collection)
         config.set_product(self.product)
         self.is_refreshing = True
-        self.btn_sync.disabled = True
-        self.btn_sync.description = "Syncing..."
-        self.story_loader.label = "Checking GCS and Earth Engine..."
-        self.story_loader.start()
+        set_button_busy(self.btn_sync, True, "Syncing...")
+        self.btn_load_data.disabled = True
+        self.progress_loader.start("Loading data...")
         self._log("Checking files in GCS and assets in GEE...", "info")
+        selected = self._get_selected_keys()
+
+        self._executor.submit(self._phase_discover, selected)
+
+    def _on_stage(self, stage):
+        self.progress_loader.set_status(stage)
+
+    def _phase_discover(self, selected):
+        # Fase 1: descobre bandas/imagens (sob demanda) e renderiza a grid
+        # provisoria com units + estado persistido, sem bloquear o kernel.
+        units = self.units
+        if not units:
+            units = _discover_units(self.country, self.theme, self.collection,
+                                    self.product, logger=self._log)
+        self.units = units
         try:
-            selected = self._get_selected_keys()
-            self.state = build_state(
-                country=self.country,
-                theme=self.theme,
-                collection=self.collection,
-                product=self.product,
-                logger=self._log,
-            )
-            self._log(f"[DEBUG] UI units={self.units}", "info")
-            self._log(f"[DEBUG] state units={[u for u in self.state if u != 'updated_at']}", "info")
+            persisted = load_state(self.country, self.theme, self.collection, self.product)
+            if persisted and len(persisted) > 1:
+                self.state = persisted
+            self._render_grid()
+            self._restore_selected(selected)
+        except Exception as e:
+            self._log(f"Pre-render failed: {e}", "warning")
+        # Fase 2: scan completo em segundo plano.
+        self._executor.submit(self._phase_scan, selected)
+
+    def _phase_scan(self, selected):
+        try:
+            fresh = build_state(
+                country=self.country, theme=self.theme, collection=self.collection,
+                product=self.product, logger=self._log, on_stage=self._on_stage)
+        except Exception as e:
+            self._fail_sync(e)
+            return
+        self._complete_sync(fresh, selected)
+
+    def _complete_sync(self, fresh, selected):
+        try:
+            self.state = fresh
+            if not self.units:
+                self.units = [u for u in fresh if u != "updated_at"]
             self._render_grid()
             self._restore_selected(selected)
             n_ok = sum(1 for u in self._all_units() if _is_complete(self.state.get(u, {})))
-            result = f"Sync complete: {n_ok}/{len(self._all_units())} units complete."
-            self.story_loader.stop(result)
-            self._log(result, "success")
-            # Mark data as loaded and update UI
+            msg = f"Sync complete: {n_ok}/{len(self._all_units())} units complete."
+            self.progress_loader.stop(msg)
+            self._log(msg, "success")
             self._data_loaded = True
             self._update_load_data_button_style()
             self._notify_tab_style()
         except Exception as e:
-            self.story_loader.stop("Sync failed")
-            self._log(f"Sync error: {e}", "error")
-        finally:
-            self.is_refreshing = False
-            self.btn_sync.disabled = False
-            self.btn_sync.description = "Sync"
+            self._fail_sync(e)
+            return
+        self._finish_sync()
+
+    def _fail_sync(self, error):
+        self._log(f"Sync error: {error}", "error")
+        self.progress_loader.stop("Sync failed")
+        self._finish_sync()
+
+    def _finish_sync(self):
+        self.is_refreshing = False
+        set_button_busy(self.btn_sync, False, "Sync")
+        self.btn_load_data.disabled = False
+        self._update_load_data_button_style()
 
     def _on_select_pending(self, _):
         for key, chk in self.chk_dict.items():
