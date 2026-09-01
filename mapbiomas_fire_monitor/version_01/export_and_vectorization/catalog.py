@@ -235,13 +235,14 @@ def build_inventory(countries=None, refresh=False):
     return inv
 
 
-def inventory_units(country, theme, collection, product, logger=None):
-    """Units (bandas/imagens) de UM produto, descobrindo so quando necessario.
+def inventory_units(country, theme, collection, product, logger=None, discover=True):
+    """Units (bandas/imagens) de UM produto.
 
-    Chamado no Load Data. Se o produto ja esta no catalogo (memo/disco) COM
-    units, devolve direto; caso contrario, inspeciona APENAS esse produto no
-    GEE e atualiza/substitui a entrada no cache — evita encher o cache com
-    produtos nao carregados.
+    - `discover=True`: se o produto ja esta no catalogo (memo/disco) COM units,
+      devolve direto; caso contrario inspeciona APENAS esse produto no GEE e
+      atualiza a entrada no cache (Load Data/Sync).
+    - `discover=False`: devolve apenas o que ja esta na memoria (sem rede) —
+      usado pelo caminho rapido do Load Data, que nunca trava.
     """
     current = _load_inventory(country)
     if current is None:
@@ -255,7 +256,9 @@ def inventory_units(country, theme, collection, product, logger=None):
             units = p.get("units") or []
             if units:
                 return [u.get("key") for u in units]
-            break  # entrada existe mas sem units -> redescobre
+            break  # entrada existe mas sem units
+    if not discover:
+        return []
 
     meta = config.find_product(country, theme, collection, product)
     if not meta:

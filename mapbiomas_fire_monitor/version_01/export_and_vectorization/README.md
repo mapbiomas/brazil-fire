@@ -50,10 +50,11 @@ export_and_vectorization/
 4. Na celula de config, defina `COUNTRIES` (códigos do OBJ, ex.: `["brasil", "indonesia"]`).
 5. Execute a celula da UI para abrir a navegação.
 6. **Navegue**: país → tema (ex.: `fire`) → coleção (ex.: `monitor`, `collection4`) → **produto**.
-7. No produto, clique em **Load Data** para descobrir as **unidades** (bandas p/
-   imagem multibanda; imagens p/ ImageCollection) e depois marque as desejadas.
-8. Clique em **Sincronizar** e processe as etapas pendentes (o sync roda em
-   segundo plano com indicador de progresso; o kernel nao bloqueia).
+7. No produto, clique em **Load Data** para carregar as **unidades** ja
+   conhecidas (bandas p/ imagem multibanda; imagens p/ ImageCollection) — sem
+   rede, instantaneo. Para descobrir dados novos, clique em **Sync**.
+8. Clique em **Sincronizar** (descobre unidades + varre GCS/GEE, com limite de
+   `SCAN_TIMEOUT`) e processe as etapas pendentes.
 9. Para versionar a memoria do catalogo (quando novos dados forem adicionados ao
    `config.py`), use o botao **`⤓ Catalog cache (.json)`** na barra inferior.
 
@@ -196,10 +197,13 @@ progresso mostra a **etapa atual** do scan ("Scanning GCS tiles...", "Scanning
 GEE assets...", "Listing collection months...") — o scan roda em segundo plano e
 o kernel nao bloqueia. Os placeholders das abas usam o mesmo spinner.
 
-**Load Data** e o caminho rapido: descobre apenas bandas/imagens do produto e
-renderiza a grid (units + estado persistido), sem scan de status. **Sync** faz o
-scan completo. Se o scan exceder `SCAN_TIMEOUT` (180s, ajustavel em `config.py`),
-a UI mostra o status parcial e destrava os botoes em vez de ficar "carregando".
+**Load Data** e o caminho rapido e **instantaneo**: le as unidades ja conhecidas
+da memoria (memo/disco) e renderiza a grid, **sem chamada de rede** — nunca
+trava. **Sync** descobre unidades novas + faz o scan completo (GCS/GEE) com
+limite de `SCAN_TIMEOUT` (180s, ajustavel em `config.py`) — se exceder, mostra o
+status parcial em vez de ficar "carregando". Com mais de 60 unidades, o filtro
+`Unit:` inicia no prefixo mais recente para o render ser leve ("All units"
+continua disponivel no dropdown).
 
 ## Log drawer
 

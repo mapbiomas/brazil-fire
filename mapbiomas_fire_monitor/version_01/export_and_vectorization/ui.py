@@ -369,13 +369,16 @@ GUIDES = {'PT': {'name': 'Português',
                 'aplicável, publica no Earth Engine e no bucket público e remove os arquivos temporários.',
         'howto_title': 'Como usar',
         'steps': ['<b>Navegue</b> pelas abas: país → tema → coleção → produto.',
-                  'Clique em <b>Load Data</b> (botão vermelho pulsando) para descobrir as <b>unidades</b>: '
-                  'bandas (imagem multibanda) ou imagens (ImageCollection). A descoberta é sob demanda — o '
-                  'cache não é preenchido com dados não carregados.',
+                  'Clique em <b>Load Data</b> para carregar as <b>unidades</b> já conhecidas da memória '
+                  '(bandas de imagem multibanda ou imagens de ImageCollection) e renderizar a grade na '
+                  'hora — sem chamada de rede, nunca trava.',
+                  'Para <b>descobrir</b> unidades de dados novos, clique em <b>Sync</b> (a primeira vez '
+                  'pode demorar).',
                   'Na grade, marque as unidades desejadas. O filtro <code>Unit:</code> (padrão “All units”) '
-                  'restringe por prefixo de unidade.',
-                  'Clique em <b>Sync</b> para verificar o status das etapas. O scan roda em segundo plano, '
-                  'com indicador de progresso (o kernel não bloqueia).',
+                  'restringe por prefixo de unidade; acima de 60 unidades ele inicia no prefixo recente.',
+                  'Clique em <b>Sync</b> para descobrir unidades novas e verificar o status das etapas. '
+                  'O scan tem limite de <code>SCAN_TIMEOUT</code> (180s, ajustável em <code>config.py</code>) '
+                  '— nunca fica carregando para sempre.',
                   'Execute as etapas na ordem: <b>Export → Mosaico → Publicar mosaico → Vetor GCS → Vetor '
                   'GEE → Publicar vetor → Limpar temp</b>. Etapas 4–6 só para produtos vetorizáveis (ex.: '
                   'annual_burned); nos demais: <b>Export → Mosaico → Publicar mosaico → Limpar temp</b>.',
@@ -1005,13 +1008,26 @@ def _guide_html(lang):
 # Grid de unidades de um produto
 # ---------------------------------------------------------------------------
 def _discover_units(country, theme, collection, product, logger=None):
-    """Descobre bandas/imagens de um produto (Load Data).
+    """Descobre bandas/imagens de um produto (Sync).
 
     So consulta o GEE quando o produto ainda nao esta no catalogo (memo/disco)
     — discovery sob demanda para nao encher o cache sem necessidade.
     """
     try:
-        return catalog.inventory_units(country, theme, collection, product, logger=logger)
+        return catalog.inventory_units(country, theme, collection, product,
+                                       logger=logger, discover=True)
+    except Exception:
+        return []
+
+
+def _cached_units(country, theme, collection, product):
+    """Units ja conhecidas na memoria (memo/disco) — sem nenhuma chamada de rede.
+
+    Usado pelo caminho rapido do Load Data, que nunca trava.
+    """
+    try:
+        return catalog.inventory_units(country, theme, collection, product,
+                                       logger=None, discover=False)
     except Exception:
         return []
 
@@ -1020,6 +1036,7 @@ class UnitGridPanel:
     _DATE_W = "230px"
     _CELL_W = "88px"
     _SEL_W  = "72px"
+    _GRID_RENDER_CAP = 60   # acima disso, o filtro Unit: inicia no prefixo recente
 
     def __init__(self, country, theme, collection, log_area=None, on_data_loaded_change=None,
                  on_clear_all=None):
@@ -1061,8 +1078,8 @@ class UnitGridPanel:
                                               description="Unit:", layout=L(width="200px"))
         self.year_dropdown.observe(self._on_year_change, names="value")
 
-        self._executor = ThreadPoolExecutor(max_workers=1)
-        self._watchdog = None
+        self._filter_explicit = False   # usuario escolheu o filtro manualmente
+        self._rendering = False         # guarda de reentrancia no render
         self.progress_loader = ProgressLoader("Click Load Data to discover units.")
         self.btn_load_data = widgets.Button(
             description="Load Data", button_style="danger", icon="download",
@@ -1109,13 +1126,15 @@ class UnitGridPanel:
         if not hasattr(self, 'state') or not self.state:
             self.state = {"updated_at": None}
         self._data_loaded = False
+        self._filter_explicit = False
         self._update_load_data_button_style()
         # Notify parent ProductTabs to update tab style
         self._notify_tab_style()
 
     def _on_load_data(self, _):
-        """Load Data: caminho rapido — descobre apenas bandas/imagens do produto
-        e renderiza a grid (units + estado persistido). Sem scan de status."""
+        """Load Data: caminho rapido e sincrono (thread principal) — le units
+        SOMENTE da memoria (memo/disco), sem rede, e renderiza a grid. Nunca
+        trava. A descoberta de dados novos acontece no Sync."""
         if self.is_refreshing:
             return
         if not self.product:
@@ -1126,27 +1145,21 @@ class UnitGridPanel:
         config.set_product(self.product)
         self.is_refreshing = True
         set_button_busy(self.btn_load_data, True, "Loading...")
-        self.progress_loader.start("Discovering units...")
-        self._start_watchdog()
-        self._executor.submit(self._phase_load_data)
-
-    def _phase_load_data(self):
-        try:
-            self.units = _discover_units(self.country, self.theme, self.collection,
-                                         self.product, logger=self._log)
-        except Exception as e:
-            self._log(f"Load Data error: {e}", "error")
-        selected = self._get_selected_keys()
+        self.progress_loader.start("Loading units...")
+        self.units = _cached_units(self.country, self.theme, self.collection, self.product)
+        if not self.units:
+            self._log("No cached units for this product — press Sync to discover "
+                      "(first time can take a while).", "warning")
         try:
             persisted = load_state(self.country, self.theme, self.collection, self.product)
             if persisted and len(persisted) > 1:
                 self.state = persisted
             self._render_grid()
-            self._restore_selected(selected)
+            self._restore_selected(self._get_selected_keys())
         except Exception as e:
             self._log(f"Render failed: {e}", "warning")
-        self._data_loaded = True
-        self.progress_loader.stop("Data loaded.")
+        self._data_loaded = bool(self.units)
+        self.progress_loader.stop("Data loaded." if self.units else "No cached units.")
         self._update_load_data_button_style()
         self._notify_tab_style()
         self._finish_sync()
@@ -1190,13 +1203,23 @@ class UnitGridPanel:
             if s[:4].isdigit():
                 years.add(s[:4])
         options = ["All units"] + sorted(years, reverse=True)
-        if self.year_dropdown.value not in options:
-            self.year_dropdown.value = "All units"
         self.year_dropdown.options = options
+        # Acima do cap, inicia o filtro no prefixo mais recente para o render
+        # ficar leve (mantendo "All units" disponivel no dropdown).
+        if len(self._all_units()) > self._GRID_RENDER_CAP and not self._filter_explicit:
+            recent = options[1] if len(options) > 1 else "All units"
+            self.year_dropdown.value = recent
+            self.year_filter = int(recent) if recent != "All units" else None
+        elif self.year_dropdown.value not in options:
+            self.year_dropdown.value = "All units"
+            self.year_filter = None
 
     def _on_year_change(self, change):
         value = change.get("new")
         self.year_filter = int(value) if value != "All units" else None
+        if getattr(self, "_rendering", False):
+            return   # mudanca programatica (auto-cap durante render)
+        self._filter_explicit = True   # usuario escolheu; nao sobrescrever depois
         selected = self._get_selected_keys()
         self._render_grid()
         self._restore_selected(selected)
@@ -1224,6 +1247,15 @@ class UnitGridPanel:
         return _badge(True)
 
     def _render_grid(self):
+        if self._rendering:
+            return
+        self._rendering = True
+        try:
+            self._do_render_grid()
+        finally:
+            self._rendering = False
+
+    def _do_render_grid(self):
         self.chk_dict = {}
         p = _palette()
 
@@ -1294,7 +1326,9 @@ class UnitGridPanel:
         n_complete = sum(1 for u in self._all_units() if _is_complete(self.state.get(u, {})))
 
         if self.year_filter is not None:
-            label = (f'{n_visible} units with prefix {self.year_filter} in filter &nbsp;|&nbsp; '
+            cap_note = ('' if self._filter_explicit else
+                        ' <span style="color:#e67e22;">(default — &gt;60 units; use Unit: filter for all)</span>')
+            label = (f'{n_visible} units with prefix {self.year_filter} in filter{cap_note} &nbsp;|&nbsp; '
                      f'<span style="color:#28a745;font-weight:700;">{n_complete}</span> complete')
         else:
             label = (f'{n_all} units &nbsp;|&nbsp; '
@@ -1337,6 +1371,9 @@ class UnitGridPanel:
         ]
 
     def _on_sync(self, _):
+        """Sync: descobre units + varre GCS/GEE em uma thread de fundo e espera
+        na thread principal com timeout (SCAN_TIMEOUT). Render sempre na main
+        thread — nunca fica 'carregando' para sempre."""
         if self.is_refreshing:
             return
         if not self.product:
@@ -1350,105 +1387,65 @@ class UnitGridPanel:
         self.btn_load_data.disabled = True
         self.progress_loader.start("Loading data...")
         self._log("Checking files in GCS and assets in GEE...", "info")
-        selected = self._get_selected_keys()
-        self._start_watchdog()
 
-        self._executor.submit(self._phase_discover, selected)
-
-    def _on_stage(self, stage):
-        self.progress_loader.set_status(stage)
-
-    def _phase_discover(self, selected):
-        # Fase 1: descobre bandas/imagens (sob demanda) e renderiza a grid
-        # provisoria com units + estado persistido, sem bloquear o kernel.
-        units = self.units
-        if not units:
-            units = _discover_units(self.country, self.theme, self.collection,
-                                    self.product, logger=self._log)
-        self.units = units
+        # Render provisorio (main thread) com units da memoria + estado persistido.
+        if not self.units:
+            self.units = _cached_units(self.country, self.theme, self.collection, self.product)
         try:
             persisted = load_state(self.country, self.theme, self.collection, self.product)
             if persisted and len(persisted) > 1:
                 self.state = persisted
             self._render_grid()
-            self._restore_selected(selected)
+            self._restore_selected(self._get_selected_keys())
         except Exception as e:
             self._log(f"Pre-render failed: {e}", "warning")
-        # Fase 2: scan completo em segundo plano.
-        self._executor.submit(self._phase_scan, selected)
 
-    def _phase_scan(self, selected):
+        # Scan completo em thread de fundo, com timeout (nao trava para sempre).
+        timeout = getattr(config, "SCAN_TIMEOUT", 180)
+        fresh = None
+        ex = ThreadPoolExecutor(max_workers=1)
         try:
-            fresh = build_state(
-                country=self.country, theme=self.theme, collection=self.collection,
-                product=self.product, logger=self._log, on_stage=self._on_stage)
+            fut = ex.submit(build_state,
+                            country=self.country, theme=self.theme,
+                            collection=self.collection, product=self.product,
+                            logger=self._log, on_stage=self._on_stage)
+            fresh = fut.result(timeout=timeout)
+        except TimeoutError:
+            self._log(f"[WARN] Sync timed out after {timeout}s — showing current "
+                      "status. The scan may still finish and update the grid.", "warning")
         except Exception as e:
-            self._fail_sync(e)
-            return
-        self._complete_sync(fresh, selected)
+            self._log(f"Sync error: {e}", "error")
+        finally:
+            ex.shutdown(wait=False)
 
-    def _complete_sync(self, fresh, selected):
-        try:
+        if fresh is not None:
             self.state = fresh
             if not self.units:
                 self.units = [u for u in fresh if u != "updated_at"]
-            self._render_grid()
-            self._restore_selected(selected)
-            n_ok = sum(1 for u in self._all_units() if _is_complete(self.state.get(u, {})))
+        self._render_grid()
+        self._restore_selected(self._get_selected_keys())
+        n_ok = sum(1 for u in self._all_units() if _is_complete(self.state.get(u, {})))
+        if fresh is not None:
             msg = f"Sync complete: {n_ok}/{len(self._all_units())} units complete."
             self.progress_loader.stop(msg)
             self._log(msg, "success")
-            self._data_loaded = True
-            self._update_load_data_button_style()
-            self._notify_tab_style()
-        except Exception as e:
-            self._fail_sync(e)
-            return
+        else:
+            msg = "Sync incomplete — showing current status."
+            self.progress_loader.stop("Timed out — showing current status.")
+            self._log(msg, "warning")
+        self._data_loaded = True
+        self._update_load_data_button_style()
+        self._notify_tab_style()
         self._finish_sync()
 
-    def _fail_sync(self, error):
-        self._log(f"Sync error: {error}", "error")
-        self.progress_loader.stop("Sync failed")
-        self._finish_sync()
+    def _on_stage(self, stage):
+        self.progress_loader.set_status(stage)
 
     def _finish_sync(self):
-        self._cancel_watchdog()
         self.is_refreshing = False
         set_button_busy(self.btn_sync, False, "Sync")
         self.btn_load_data.disabled = False
         self._update_load_data_button_style()
-
-    # ------------------------------------------------------------ watchdog
-    def _start_watchdog(self):
-        """Timer de seguranca: se o scan nao terminar no prazo, destrava a UI
-        e mostra o status parcial em vez de ficar 'carregando' para sempre."""
-        self._cancel_watchdog()
-        timeout = getattr(config, "SCAN_TIMEOUT", 180)
-        self._watchdog = threading.Timer(timeout, self._on_watchdog)
-        self._watchdog.daemon = True
-        self._watchdog.start()
-
-    def _cancel_watchdog(self):
-        if self._watchdog is not None:
-            try:
-                self._watchdog.cancel()
-            except Exception:
-                pass
-            self._watchdog = None
-
-    def _on_watchdog(self):
-        self._watchdog = None
-        if not self.is_refreshing:
-            return
-        self._log("[WARN] Sync/Load Data timed out — showing current status. "
-                  "The scan may still finish and update the grid.", "warning")
-        try:
-            self._render_grid()
-            self._restore_selected(self._get_selected_keys())
-        except Exception:
-            pass
-        self.progress_loader.stop("Timed out — showing current status.")
-        self._finish_sync()
 
     def _on_select_pending(self, _):
         for key, chk in self.chk_dict.items():
