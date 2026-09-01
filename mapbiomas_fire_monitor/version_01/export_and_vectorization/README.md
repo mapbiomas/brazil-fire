@@ -50,13 +50,17 @@ export_and_vectorization/
 4. Na celula de config, defina `COUNTRIES` (códigos do OBJ, ex.: `["brasil", "indonesia"]`).
 5. Execute a celula da UI para abrir a navegação.
 6. **Navegue**: país → tema (ex.: `fire`) → coleção (ex.: `monitor`, `collection4`) → **produto**.
-7. No produto, clique em **Load Data / Sync** (botão único) para carregar as
-   **unidades** da memoria (bandas p/ imagem multibanda; imagens p/
-   ImageCollection), descobrir dados novos e verificar o status — com limite de
-   `SCAN_TIMEOUT`.
-8. Marque as unidades desejadas e processe as etapas pendentes.
-9. Para versionar a memoria do catalogo (quando novos dados forem adicionados ao
-   `config.py`), use o botao **`⤓ Catalog cache (.json)`** na barra inferior.
+   Com muitos produtos, as guias quebram em varias linhas (verde = carregado,
+   cinza = nao carregado, borda = ativo).
+7. No produto, clique em **Load Data** para carregar o produto atual (unidades
+   da memoria + descobrir + status, com limite de `SCAN_TIMEOUT`) — ou em
+   **Load Collection** para carregar todos os produtos da coleção em fila.
+8. Na grade (checkbox na **primeira coluna**), marque as unidades. Use
+   **Select Pending** para selecionar por estagio (o titulo mostra o estagio-alvo
+   e cada clique avança no ciclo), **Select All** ou **Select All Collection**.
+9. Processe as etapas pendentes.
+10. Para versionar a memoria do catalogo (quando novos dados forem adicionados ao
+    `config.py`), use o botao **`⤓ Catalog cache (.json)`** na barra inferior.
 
 > **Células recolhíveis:** todas as células de código comecam com `#@title`
 > (ex.: `#@title Etapa 1: Export`). No Colab, o título vira um cabeçalho
@@ -64,10 +68,12 @@ export_and_vectorization/
 
 ## Navegação (pais → tema → colecao → produto)
 
-A Interface abre a árvore `pais → tema → colecao → produto` (guias até coleção +
-dropdown de produto). Cada produto tem sua **grid de unidades**: para imagem
-**multibanda**, uma linha por banda (ex.: `fire_frequency_1985_2025`); para
-**ImageCollection**, uma linha por imagem (ex.: `2024_07`).
+A Interface abre a árvore `pais → tema → colecao → produto`. As guias de
+**produto** sao uma barra de botoes que **quebra em varias linhas** quando ha
+muitos produtos (ex.: colecao de uso/cobertura). Cada produto tem sua **grid de
+unidades**: para imagem **multibanda**, uma linha por banda (ex.:
+`fire_frequency_1985_2025`); para **ImageCollection**, uma linha por imagem
+(ex.: `2024_07`). A **primeira coluna** da grid e o checkbox de selecao.
 
 As celulas de processamento (Export/Mosaico/Vetorizacao/Upload/Publicar) sempre
 atuam no **produto ativo + unidades selecionadas**.
@@ -108,13 +114,14 @@ dados devem entrar com cuidado:
 unidades/bandas descobertas no GEE, para a UI abrir sem discovery a cada sessao.
 
 - **Preenchimento sob demanda**: bandas/imagens sao descobertas apenas no
-  **Load Data/Sync**, produto a produto — o cache nao e "enchido" com dados que
-  voce nao carregou.
+  **Load Data / Load Collection**, produto a produto — o cache nao e "enchido"
+  com dados que voce nao carregou.
 - **Download**: o botao **`⤓ Catalog cache (.json)`** (barra inferior, ao lado do
   log) baixa o JSON com tudo que foi carregado na sessao. No Colab ele dispara o
   download; fora dele, salva localmente e imprime o caminho.
 - **Versionamento**: quando novos dados forem adicionados ao `config.py`, rode o
-  **Load Data / Sync** no produto, baixe o JSON pelo botao e suba-o no GitHub
+  **Load Data** no produto (ou **Load Collection**), baixe o JSON pelo botao e
+  suba-o no GitHub
   (`export_and_vectorization/catalog_cache.json`) — as proximas sessoes abrem sem
   discovery. O arquivo e versionado (nao esta mais no `.gitignore`).
 - **CLI (regeneracao completa, opcional)**: `python -m
@@ -194,18 +201,30 @@ alto contraste, entao fica legivel independente do tema do Colab. Badges **OK** 
 download aparecem como **`🔗 OK`** (sublinhado com outline sutil).
 
 O carregamento usa um **spinner padronizado** (CSS `mfm-spin`): durante o
-Load Data / Sync o botao fica `icon=spinner` + `disabled` e o indicador de
-progresso mostra a **etapa atual** do scan ("Scanning GCS tiles...", "Scanning
-GEE assets...", "Listing collection months..."). O scan roda em uma thread de
-fundo e a thread principal espera no maximo `SCAN_TIMEOUT` — nao trava para
-sempre. O spinner **so gira enquanto algo esta rodando**: ocioso, o indicador
-fica parado com texto estatico. Os placeholders das abas usam o mesmo spinner.
+Load Data / Load Collection o botao fica `icon=spinner` + `disabled` e o
+indicador de progresso mostra a **etapa atual** do scan ("Scanning GCS tiles...",
+"Scanning GEE assets...", "Listing collection months..." ou "Collection i/n:
+produto"). O scan roda em uma thread de fundo e a thread principal espera no
+maximo `SCAN_TIMEOUT` — nao trava para sempre. O spinner **so gira enquanto algo
+esta rodando** e fica num **espaco proprio no fim da toolbar**. Os placeholders
+das abas usam o mesmo spinner.
 
-O botao **`Load Data / Sync`** (único) carrega as unidades da memoria, descobre
-dados novos e faz o scan completo (GCS/GEE) com limite de `SCAN_TIMEOUT` (180s,
-ajustavel em `config.py`) — se exceder, mostra o status parcial em vez de ficar
-"carregando". Com mais de 60 unidades, o filtro `Unit:` inicia no prefixo mais
-recente para o render ser leve ("All units" continua disponivel no dropdown).
+Os botoes da toolbar:
+- **Load Data** — carrega o produto atual (unidades da memoria + descobrir +
+  scan, limite de `SCAN_TIMEOUT`).
+- **Load Collection** — carrega todos os produtos da coleção em fila simples
+  (progresso "Collection i/n").
+- **Select Pending** — seleciona por estagio; o titulo mostra o estagio-alvo
+  (ex.: `Select Pending · Mosaic`) e cada clique avança no ciclo, do mais
+  avancado ao menos. A seleção individual por checkbox continua livre.
+- **Select All** / **Select All Collection** — units do produto / de todos os
+  produtos da coleção.
+- **Clear** / **Clear All** — desmarcam o produto / todos os produtos.
+
+As **guias de produto** usam a cor de fundo para indicar o estado: **verde** =
+carregado, **cinza** = nao carregado, **borda escura** = ativa. Com mais de 60
+unidades, o filtro `Unit:` inicia no prefixo mais recente para o render ser leve
+("All units" continua disponivel no dropdown).
 
 ## Log drawer
 
@@ -373,7 +392,7 @@ limpo continuam marcadas como export OK.
 
 ```mermaid
 flowchart LR
-    A["config.py<br/>(dado cru: paises/temas/colecoes/produtos)"] -->|"editar + versionar"| L["Load Data / Sync"]
+    A["config.py<br/>(dado cru: paises/temas/colecoes/produtos)"] -->|"editar + versionar"| L["Load Data / Load Collection"]
     L --> C{"produto ja no<br/>catalog_cache.json?"}
     C -- "nao" --> D["inventory_units<br/>discovery GEE so deste produto"]
     D --> E["catalog_cache.json<br/>(memoria entre sessoes)"]
@@ -390,7 +409,7 @@ flowchart LR
 ```mermaid
 flowchart TD
     S["run_ui"] -->|"_activate sem GEE/GCS<br/>(so contexto)"| P["abas: pais -&gt; tema -&gt; colecao -&gt; produto<br/>(_loading_html)"]
-    P --> L["Load Data / Sync"]
+    P --> L["Load Data / Load Collection"]
     L -->|"set_button_busy<br/>(icon=spinner + disabled)"| LB["ProgressLoader<br/>(spinner mfm-spin + etapa atual)"]
     LB --> T["build_state em thread"]
     T -->|"on_stage"| G1["scan_gcs (paralelo)<br/>Scanning GCS tiles..."]

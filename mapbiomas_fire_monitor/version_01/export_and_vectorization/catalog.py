@@ -240,7 +240,7 @@ def inventory_units(country, theme, collection, product, logger=None, discover=T
 
     - `discover=True`: se o produto ja esta no catalogo (memo/disco) COM units,
       devolve direto; caso contrario inspeciona APENAS esse produto no GEE e
-      atualiza a entrada no cache (Load Data/Sync).
+      atualiza a entrada no cache (Load Data / Load Collection).
     - `discover=False`: devolve apenas o que ja esta na memoria (sem rede) —
       usado pelo caminho rapido do Load Data, que nunca trava.
     """

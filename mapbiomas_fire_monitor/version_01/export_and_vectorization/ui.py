@@ -28,6 +28,8 @@ _STATUS_CSS = widgets.HTML("""<style>
 .mfm-btn-unloaded {
     animation: mfm-pulse-outline 1.5s infinite;
 }
+.mfm-tab-btn { border:1px solid #ced4da !important; }
+.mfm-tab-active { box-shadow: inset 0 0 0 2px #263238 !important; }
 </style>""")
 
 class ProgressLoader:
@@ -337,6 +339,40 @@ def _product_cols():
 _VECTOR_KINDS = {"link_vector", "copy_asset", "link_pub_vector"}
 
 
+def _unit_pending_key(entry):
+    """Primeira etapa (chave de estado) pendente de uma unidade, na ordem das
+    colunas do produto. `None` = unidade completa. Por definicao, uma etapa so
+    e 'pendente' quando todas as anteriores ja foram processadas."""
+    for key, _t, _n, _b in _product_cols():
+        if not (entry or {}).get(key, False):
+            return key
+    return None
+
+
+def _step_title(key):
+    for k, t, _n, _b in _product_cols():
+        if k == key:
+            return t
+    return key
+
+
+def _wrap_tab_bar(titles, on_activate):
+    """Barra de abas em botoes com quebra de linha (flex-wrap)."""
+    btns = []
+    for i, title in enumerate(titles):
+        b = widgets.Button(description=title,
+                           layout=L(height="32px", margin="0 2px 2px 0"))
+        b.style.button_color = "#f8f9fa"      # nao carregado
+        b.style.font_color = "#212529"         # texto escuro (contraste)
+        if hasattr(b, "add_class"):
+            b.add_class("mfm-tab-btn")
+        b.on_click(lambda _b, idx=i: on_activate(idx))
+        btns.append(b)
+    bar = widgets.HBox(btns, layout=L(flex_wrap="wrap", gap="4px", margin="0 0 6px 0",
+                                      align_items="center"))
+    return bar, btns
+
+
 def _empty():
     return {
         "exported": False,
@@ -378,17 +414,20 @@ GUIDES = {'PT': {'name': 'Português',
                 '(GEE) para o GCS, monta mosaicos (COG) por unidade (banda ou imagem), vetoriza quando '
                 'aplicável, publica no Earth Engine e no bucket público e remove os arquivos temporários.',
         'howto_title': 'Como usar',
-        'steps': ['<b>Navegue</b> pelas abas: país → tema → coleção → produto.',
-                  'Clique no botão <b>Load Data / Sync</b> para carregar as <b>unidades</b> da memória '
-                  '(bandas de imagem multibanda ou imagens de ImageCollection), descobrir dados novos e '
-                  'verificar o status das etapas. O scan tem limite de <code>SCAN_TIMEOUT</code> (180s, '
-                  'ajustável em <code>config.py</code>) — nunca fica carregando para sempre (a primeira '
-                  'vez pode demorar).',
-                  'Na grade, marque as unidades desejadas. O filtro <code>Unit:</code> (padrão “All units”) '
-                  'restringe por prefixo de unidade; acima de 60 unidades ele inicia no prefixo recente.',
-                  'Execute as etapas na ordem: <b>Export → Mosaico → Publicar mosaico → Vetor GCS → Vetor '
-                  'GEE → Publicar vetor → Limpar temp</b>. Etapas 4–6 só para produtos vetorizáveis (ex.: '
-                  'annual_burned); nos demais: <b>Export → Mosaico → Publicar mosaico → Limpar temp</b>.',
+        'steps': ['<b>Navegue</b> pelas abas: país → tema → coleção → produto. Com muitos '
+                  'produtos, as guias quebram em várias linhas — verde = carregado, '
+                  'cinza = não carregado.',
+                  'Clique em <b>Load Data</b> para carregar o produto atual (unidades da memória, '
+                  'descobrir dados novos e verificar o status, com limite de '
+                  '<code>SCAN_TIMEOUT</code>) — ou em <b>Load Collection</b> para carregar todos os '
+                  'produtos da coleção em fila.',
+                  'Na grade (checkbox na primeira coluna), marque as unidades desejadas. Use '
+                  '<b>Select Pending</b> para selecionar por estágio — o título mostra o estágio-alvo '
+                  'e cada clique avança no ciclo (mais avançado primeiro). Também há <b>Select All</b> '
+                  'e <b>Select All Collection</b> (todos os produtos da coleção).',
+                  'Execute as etapas na ordem: <b>Export → Mosaico → Publicar mosaico → Limpar temp</b>. '
+                  'A vetorização é opcional (Steps 5–7, só produtos vetorizáveis, ex.: annual_burned): '
+                  '<b>Vetor GCS → Vetor GEE → Publicar vetor</b>.',
                   'Para refazer uma etapa, ative <code>FORCE_&lt;ETAPA&gt; = True</code> na célula da etapa '
                   'e selecione as unidades na grade.',
                   'Para versionar a memória do catálogo (quando houver dados novos no '
@@ -1046,7 +1085,7 @@ class UnitGridPanel:
     _GRID_RENDER_CAP = 60   # acima disso, o filtro Unit: inicia no prefixo recente
 
     def __init__(self, country, theme, collection, log_area=None, on_data_loaded_change=None,
-                 on_clear_all=None):
+                 on_clear_all=None, on_load_collection=None, on_select_all_collection=None):
         self.country = country
         self.theme = theme
         self.collection = collection
@@ -1059,21 +1098,32 @@ class UnitGridPanel:
         self.log_area = log_area
         self._on_data_loaded_change = on_data_loaded_change
         self._on_clear_all_cb = on_clear_all
+        self._on_load_collection_cb = on_load_collection
+        self._on_select_all_collection_cb = on_select_all_collection
 
         self.grid_container = widgets.VBox([
             _loading_html("Loading units...")
         ])
 
-        self.btn_load = widgets.Button(description="Load Data / Sync", button_style="danger",
-                                       icon="download", layout=L(width="150px", height="34px"),
-                                       tooltip="Load cached units, discover new bands/units and scan the status (bounded by SCAN_TIMEOUT)")
+        self.btn_load = widgets.Button(description="Load Data", button_style="danger",
+                                       icon="download", layout=L(width="120px", height="34px"),
+                                       tooltip="Load this product: cached units, discover new bands/units and scan status (bounded by SCAN_TIMEOUT)")
         self.btn_load.on_click(self._on_sync)
+        self.btn_load_collection = widgets.Button(description="Load Collection", button_style="info",
+                                                  icon="layers", layout=L(width="150px", height="34px"),
+                                                  tooltip="Load all products of this collection (sequential queue)")
+        self.btn_load_collection.on_click(self._on_load_collection)
         self.btn_select_pending = widgets.Button(description="Select Pending", button_style="info",
-                                                 layout=L(width="150px", height="34px"))
+                                                 layout=L(width="150px", height="34px"),
+                                                 tooltip="Each click selects the units pending at the next stage (cycle)")
         self.btn_select_pending.on_click(self._on_select_pending)
         self.btn_select_all = widgets.Button(description="Select All", button_style="info",
                                              layout=L(width="120px", height="34px"))
         self.btn_select_all.on_click(self._on_select_all)
+        self.btn_select_all_collection = widgets.Button(description="Select All Collection", button_style="info",
+                                                        icon="list-check", layout=L(width="170px", height="34px"),
+                                                        tooltip="Select all rendered units in every product of this collection")
+        self.btn_select_all_collection.on_click(self._on_select_all_collection)
         self.btn_clear = widgets.Button(description="Clear", button_style="warning",
                                         layout=L(width="90px", height="34px"))
         self.btn_clear.on_click(self._on_clear)
@@ -1088,12 +1138,16 @@ class UnitGridPanel:
 
         self._filter_explicit = False   # usuario escolheu o filtro manualmente
         self._rendering = False         # guarda de reentrancia no render
-        self.progress_loader = ProgressLoader("Click Load Data / Sync to load units.")
+        self._pending_cycle = []        # ciclo de estagios do Select Pending
+        self._pending_cycle_idx = 0
+        self.progress_loader = ProgressLoader("Click Load Data / Load Collection to load.")
+        spacer = widgets.HBox([], layout=L(flex="1 1 20px", min_width="0px"))
         self.toolbar = widgets.HBox([
-            self.btn_load, self.btn_select_pending,
-            self.btn_select_all, self.btn_clear, self.btn_clear_all, self.progress_loader.widget,
-            self.year_dropdown,
-        ], layout=L(margin="0 0 8px 0", gap="8px", align_items="center"))
+            self.btn_load, self.btn_load_collection, self.btn_select_pending,
+            self.btn_select_all, self.btn_select_all_collection,
+            self.btn_clear, self.btn_clear_all, self.year_dropdown,
+            spacer, self.progress_loader.widget,
+        ], layout=L(margin="0 0 8px 0", gap="8px", align_items="center", flex_wrap="wrap"))
 
         self._data_loaded = False
         self.container = widgets.VBox([_STATUS_CSS, self.toolbar, self.grid_container])
@@ -1121,7 +1175,7 @@ class UnitGridPanel:
         config.set_collection(self.collection)
         config.set_product(product)
         self.product = product
-        # Units (bandas/imagens) sao descobertas apenas no Load Data / Sync —
+        # Units (bandas/imagens) sao descobertas apenas no Load Data / Load Collection —
         # nenhuma chamada GEE/GCS aqui na abertura da UI.
         self.units = []
         # Keep existing state if available, don't auto-sync
@@ -1129,22 +1183,25 @@ class UnitGridPanel:
             self.state = {"updated_at": None}
         self._data_loaded = False
         self._filter_explicit = False
+        self._pending_cycle = []
+        self._pending_cycle_idx = 0
+        self.btn_select_pending.description = "Select Pending"
         self._update_load_button_style()
         # Notify parent ProductTabs to update tab style
         self._notify_tab_style()
 
     def _update_load_button_style(self):
-        """Estado do botao unico Load Data / Sync conforme o carregamento."""
+        """Estado do botao Load Data conforme o carregamento do produto."""
         if self._data_loaded:
             self.btn_load.button_style = "success"
-            self.btn_load.description = "Load Data / Sync"
+            self.btn_load.description = "Load Data"
             self.btn_load.icon = "check"
             # Remove pulsing outline
             if hasattr(self.btn_load, 'remove_class'):
                 self.btn_load.remove_class('mfm-btn-unloaded')
         else:
             self.btn_load.button_style = "danger"
-            self.btn_load.description = "Load Data / Sync"
+            self.btn_load.description = "Load Data"
             self.btn_load.icon = "download"
             # Add pulsing outline
             if hasattr(self.btn_load, 'add_class'):
@@ -1243,15 +1300,18 @@ class UnitGridPanel:
 
         vectorizable = config.is_vectorizable()
         cols = _product_cols()
+        sel_header = widgets.HTML(
+            f'<div style="width:{self._SEL_W};height:42px;background:{p["grid_header_bg"]};'
+            f'text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};padding:12px 3px;'
+            f'box-sizing:border-box;border-left:1px solid {p["sep"]};'
+            f'border-right:1px solid {p["sep"]};">Select</div>')
+        unit_header = widgets.HTML(
+            f'<div style="width:{self._DATE_W};height:42px;background:{p["grid_header_bg"]};'
+            f'font-weight:700;font-size:12px;color:{p["grid_header_fg"]};padding:12px 6px;'
+            f'box-sizing:border-box;border-right:1px solid {p["sep"]};">Unit</div>')
         header_row = widgets.HBox(
-            [widgets.HTML(f'<div style="width:{self._DATE_W};height:42px;background:{p["grid_header_bg"]};'
-                          f'font-weight:700;font-size:12px;color:{p["grid_header_fg"]};padding:12px 6px;'
-                          f'box-sizing:border-box;border-left:1px solid {p["sep"]};'
-                          f'border-right:1px solid {p["sep"]};">Unit</div>')]
-            + [_header_cell(self._CELL_W, t, e, kind in _VECTOR_KINDS) for _, t, e, kind in cols]
-            + [widgets.HTML(f'<div style="width:{self._SEL_W};height:42px;background:{p["grid_header_bg"]};'
-                            f'text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};padding:12px 3px;'
-                            f'box-sizing:border-box;border-right:1px solid {p["sep"]};">Select</div>')],
+            [sel_header, unit_header]
+            + [_header_cell(self._CELL_W, t, e, kind in _VECTOR_KINDS) for _, t, e, kind in cols],
             layout=L(background=p["grid_header_bg"], padding="6px 10px", min_height="44px",
                      align_items="center", overflow="visible")
         )
@@ -1286,7 +1346,7 @@ class UnitGridPanel:
                 align_items="center", overflow="hidden", border=f"1px solid {p['sep']}"
             ))
             self.chk_dict[unit] = chk
-            row = widgets.HBox(cells + [chk_wrapper], layout=row_layout)
+            row = widgets.HBox([chk_wrapper] + cells, layout=row_layout)
             row.layout.background = bg
             rows.append(row)
 
@@ -1339,7 +1399,7 @@ class UnitGridPanel:
             legend, metadata, hint,
         ]
 
-    def _on_sync(self, _):
+    def _on_sync(self, _, label=None):
         """Sync: descobre units + varre GCS/GEE em uma thread de fundo e espera
         na thread principal com timeout (SCAN_TIMEOUT). Render sempre na main
         thread — nunca fica 'carregando' para sempre."""
@@ -1353,7 +1413,7 @@ class UnitGridPanel:
         config.set_product(self.product)
         self.is_refreshing = True
         set_button_busy(self.btn_load, True, "Loading...")
-        self.progress_loader.start("Loading data...")
+        self.progress_loader.start(label or "Loading data...")
         self._log("Checking files in GCS and assets in GEE...", "info")
 
         # Render provisorio (main thread) com units da memoria + estado persistido.
@@ -1415,6 +1475,10 @@ class UnitGridPanel:
         self._data_loaded = True
         self._update_load_button_style()
         self._notify_tab_style()
+        # estado mudou: reinicia o ciclo do Select Pending
+        self._pending_cycle = []
+        self._pending_cycle_idx = 0
+        self.btn_select_pending.description = "Select Pending"
         self._finish_sync()
 
     def _on_stage(self, stage):
@@ -1426,9 +1490,46 @@ class UnitGridPanel:
         self._update_load_button_style()
 
     def _on_select_pending(self, _):
-        for key, chk in self.chk_dict.items():
-            if not _is_complete(self.state.get(key, {})):
-                chk.value = True
+        """Select Pending dinamico: a cada clique seleciona (e substitui) apenas
+        as unidades pendentes no proximo estagio do ciclo (decrescente — mais
+        avancado primeiro). So sugere estagios cujas etapas anteriores ja foram
+        processadas (primeira etapa incompleta)."""
+        present = []
+        for key, _t, _n, _b in _product_cols():
+            if any(_unit_pending_key(self.state.get(u, {})) == key
+                   for u in self._all_units()):
+                present.append(key)
+        if not present:
+            self._log("Select Pending: no pending units (all complete or empty).", "info")
+            self._pending_cycle = []
+            self.btn_select_pending.description = "Select Pending"
+            return
+        present_desc = list(reversed(present))
+        if set(self._pending_cycle) != set(present_desc):
+            self._pending_cycle = present_desc
+            self._pending_cycle_idx = 0
+        target = self._pending_cycle[self._pending_cycle_idx % len(self._pending_cycle)]
+        self._pending_cycle_idx = (self._pending_cycle_idx + 1) % len(self._pending_cycle)
+        # Substitui a selecao: so as unidades pendentes no estagio-alvo.
+        for u, chk in self.chk_dict.items():
+            chk.value = _unit_pending_key(self.state.get(u, {})) == target
+        self.btn_select_pending.description = f"Select Pending \u00b7 {_step_title(target)}"
+        self._log(f"Select Pending \u00b7 {_step_title(target)}: selected pending units "
+                  "at this stage (individual checks still editable).", "info")
+
+    def _on_load_collection(self, _=None):
+        """Load Collection: delega ao ProductTabs (fila simples dos produtos)."""
+        if self._on_load_collection_cb:
+            self._on_load_collection_cb()
+        else:
+            self._log("Load Collection not available in this context.", "warning")
+
+    def _on_select_all_collection(self, _=None):
+        """Select All Collection: delega ao ProductTabs (todos os produtos)."""
+        if self._on_select_all_collection_cb:
+            self._on_select_all_collection_cb()
+        else:
+            self._on_select_all(None)
 
     def _on_select_all(self, _):
         for chk in self.chk_dict.values():
@@ -1509,7 +1610,9 @@ def _iter_unit_panels(obj):
 # Navegacao: pais -> tema -> colecao -> produto (abas) -> grid de unidades
 # ---------------------------------------------------------------------------
 class ProductTabs:
-    """Abas de produtos visiveis + um grid independente por produto."""
+    """Abas de produtos visiveis (barra com quebra de linha) + um grid
+    independente por produto. A cor de fundo da guia indica o estado de
+    carregado (verde) / nao carregado (cinza) do produto."""
 
     def __init__(self, country, theme, collection, log_area=None, on_data_loaded_change=None,
                  on_clear_all=None):
@@ -1522,43 +1625,41 @@ class ProductTabs:
         products = config.list_products(country, theme, collection)
         self.products = [p["product"] for p in products if p.get("visible", True)]
         self._panels = {}
-        self._placeholders = [widgets.VBox([]) for _ in self.products]
-        self.tab = widgets.Tab(children=self._placeholders)
-        for index, product in enumerate(self.products):
-            self.tab.set_title(index, product)
-        self.tab.observe(self._on_product_tab, names="selected_index")
         self._active_panel = None
+        self._active_product_name = None
         self._loaded_products = set()
+        self._loading_collection = False
+        self._bar, self._tab_btns = _wrap_tab_bar(self.products, self._activate_product)
+        self._panels_box = widgets.VBox([])
+        self.container = widgets.VBox([_STATUS_CSS, self._bar, self._panels_box])
         if self.products:
             self._activate_product(0)
-        self.container = self.tab
-
-    def _on_product_tab(self, change):
-        index = change.get("new")
-        if index is not None:
-            self._activate_product(index)
 
     def _activate_product(self, index):
         if index < 0 or index >= len(self.products):
             return
         product = self.products[index]
+        self._active_product_name = product
         if product not in self._panels:
             panel = UnitGridPanel(
                 self.country, self.theme, self.collection, self.log_area,
                 on_data_loaded_change=self._on_panel_data_loaded,
-                on_clear_all=self._on_clear_all_cb
+                on_clear_all=self._on_clear_all_cb,
+                on_load_collection=self._on_load_collection,
+                on_select_all_collection=self._on_select_all_collection,
             )
             panel._activate_product(product)
             self._panels[product] = panel
-            self._placeholders[index].children = [panel.container]
         else:
             # Painel em cache: ressincroniza os seletores globais do config
             # para este produto (evita export com asset/banda de outro painel).
             panel = self._panels[product]
             panel.sync_context()
         self._active_panel = panel
-        # Update tab style for this product
-        self._update_tab_style(product)
+        self._panels_box.children = [panel.container]
+        # Repinta todas as guias (ativo + carregado).
+        for p in self.products:
+            self._update_tab_style(p)
 
     def sync_context(self):
         """Propaga a sincronizacao de contexto ate o painel ativo."""
@@ -1573,9 +1674,51 @@ class ProductTabs:
         self._update_tab_style(product)
 
     def _update_tab_style(self, product):
-        """Update tab style based on whether data is loaded for this product."""
-        # Button now handles its own pulsing; tabs don't need special styling
-        pass
+        """Cor de fundo da guia = estado de carregado; borda = ativo."""
+        if product not in self.products:
+            return
+        idx = self.products.index(product)
+        if idx < 0 or idx >= len(self._tab_btns):
+            return
+        btn = self._tab_btns[idx]
+        loaded = product in self._loaded_products
+        btn.style.button_color = "#d4edda" if loaded else "#f8f9fa"   # verde/cinza
+        active = (product == self._active_product_name)
+        if hasattr(btn, "add_class") and hasattr(btn, "remove_class"):
+            if active:
+                btn.add_class("mfm-tab-active")
+            else:
+                btn.remove_class("mfm-tab-active")
+
+    def _on_load_collection(self):
+        """Load Collection: fila simples — load+scan de todos os produtos."""
+        n = len(self.products)
+        if n == 0 or self._loading_collection:
+            return
+        self._loading_collection = True
+        try:
+            for i, product in enumerate(self.products, start=1):
+                self._activate_product(self.products.index(product))
+                panel = self._panels[product]
+                try:
+                    panel._on_sync(None, label=f"Collection {i}/{n}: {product}")
+                except Exception as e:
+                    panel._log(f"Load collection error ({product}): {e}", "error")
+        finally:
+            self._loading_collection = False
+            if self._active_panel is not None:
+                self._active_panel.progress_loader.stop("Collection loaded.")
+
+    def _on_select_all_collection(self):
+        """Seleciona as units renderizadas de TODOS os produtos da colecao."""
+        total = 0
+        for panel in self._panels.values():
+            for chk in panel.chk_dict.values():
+                chk.value = True
+                total += 1
+        if self._active_panel is not None:
+            self._active_panel._log(
+                f"Select All Collection: {total} unit(s) selected across the collection.", "info")
 
     def __getattr__(self, name):
         if name == "_active_panel":

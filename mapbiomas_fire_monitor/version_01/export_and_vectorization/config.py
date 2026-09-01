@@ -40,8 +40,8 @@ STATE_FILE = "monitor_state.json"
 
 SCALE = 30
 
-# Timeout (s) do scan de status (Load Data/Sync). Se o scan nao terminar no
-# prazo, a UI mostra o status parcial e destrava os botoes (watchdog).
+# Timeout (s) do scan de status (Load Data / Load Collection). Se o scan nao
+# terminar no prazo, a UI mostra o status parcial e destrava os botoes.
 SCAN_TIMEOUT = 180
 
 # Endereco alternativo de saida dos vetores (GEE asset folder / GCS folder).

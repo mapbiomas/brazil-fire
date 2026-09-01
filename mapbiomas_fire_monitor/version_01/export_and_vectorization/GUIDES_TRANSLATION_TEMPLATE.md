@@ -50,19 +50,22 @@ what: "O aplicativo exporta os mapas de área queimada/incêndio do MapBiomas Fi
   arquivos temporários."
 howto_title: "Como usar"
 steps:
-  1. "<b>Navegue</b> pelas abas: país → tema → coleção → produto."
-  2. "Clique no botão <b>Load Data / Sync</b> para carregar as <b>unidades</b> da
-     memória (bandas de imagem multibanda ou imagens de ImageCollection), descobrir
-     dados novos e verificar o status das etapas. O scan tem limite de
-     <code>SCAN_TIMEOUT</code> (180s, ajustável em <code>config.py</code>) — nunca
-     fica carregando para sempre (a primeira vez pode demorar)."
-  3. "Na grade, marque as unidades desejadas. O filtro <code>Unit:</code> (padrão
-     “All units”) restringe por prefixo de unidade; acima de 60 unidades ele inicia
-     no prefixo recente."
-  4. "Execute as etapas na ordem: <b>Export → Mosaico → Publicar mosaico → Vetor GCS
-     → Vetor GEE → Publicar vetor → Limpar temp</b>. Etapas 4–6 só para produtos
-     vetorizáveis (ex.: annual_burned); nos demais: <b>Export → Mosaico → Publicar
-     mosaico → Limpar temp</b>."
+  1. "<b>Navegue</b> pelas abas: país → tema → coleção → produto. Com muitos
+     produtos, as guias quebram em várias linhas — verde = carregado, cinza =
+     não carregado."
+  2. "Clique em <b>Load Data</b> para carregar o produto atual (unidades da
+     memória, descobrir dados novos e verificar o status, com limite de
+     <code>SCAN_TIMEOUT</code>) — ou em <b>Load Collection</b> para carregar
+     todos os produtos da coleção em fila."
+  3. "Na grade (checkbox na primeira coluna), marque as unidades desejadas. Use
+     <b>Select Pending</b> para selecionar por estágio (o título mostra o
+     estágio-alvo e cada clique avança no ciclo), <b>Select All</b> ou
+     <b>Select All Collection</b>. O filtro <code>Unit:</code> (padrão
+     “All units”) restringe por prefixo; acima de 60 unidades inicia no
+     prefixo recente."
+  4. "Execute as etapas na ordem: <b>Export → Mosaico → Publicar mosaico → Limpar
+     temp</b>. A vetorização é opcional (Steps 5–7, só produtos vetorizáveis,
+     ex.: annual_burned): <b>Vetor GCS → Vetor GEE → Publicar vetor</b>."
   5. "Para refazer uma etapa, ative <code>FORCE_&lt;ETAPA&gt; = True</code> na célula
      da etapa e selecione as unidades na grade."
   6. "Para versionar a memória do catálogo (quando houver dados novos no
