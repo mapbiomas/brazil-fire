@@ -196,6 +196,11 @@ progresso mostra a **etapa atual** do scan ("Scanning GCS tiles...", "Scanning
 GEE assets...", "Listing collection months...") — o scan roda em segundo plano e
 o kernel nao bloqueia. Os placeholders das abas usam o mesmo spinner.
 
+**Load Data** e o caminho rapido: descobre apenas bandas/imagens do produto e
+renderiza a grid (units + estado persistido), sem scan de status. **Sync** faz o
+scan completo. Se o scan exceder `SCAN_TIMEOUT` (180s, ajustavel em `config.py`),
+a UI mostra o status parcial e destrava os botoes em vez de ficar "carregando".
+
 ## Log drawer
 
 O painel de log foi otimizado para **nao custar processamento**:

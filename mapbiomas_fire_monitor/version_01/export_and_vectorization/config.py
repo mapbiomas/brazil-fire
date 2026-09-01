@@ -40,6 +40,10 @@ STATE_FILE = "monitor_state.json"
 
 SCALE = 30
 
+# Timeout (s) do scan de status (Load Data/Sync). Se o scan nao terminar no
+# prazo, a UI mostra o status parcial e destrava os botoes (watchdog).
+SCAN_TIMEOUT = 180
+
 # Verbose logging: quando True, o log drawer mostra linhas por-unidade
 # ([FOUND], [SKIP], [DEBUG]). Default False: apenas sumarios por lote.
 LOG_VERBOSE = False

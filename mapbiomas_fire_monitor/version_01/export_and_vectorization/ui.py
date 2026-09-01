@@ -651,7 +651,7 @@ GUIDES = {'PT': {'name': 'Português',
                               '   └─ Koleksi',
                               '      └─ Produk',
                               '         └─ Unit (band atau citra)']},
-                   {'title': 'langkah-langkah (produk dapat divektorisasi)',
+                   {'title': 'Langkah-langkah (produk dapat divektorisasi)',
                     'lines': ['1 Export → tiles 0/1 (temp/)',
                               ' ↓',
                               '2 Mosaik → COG',
@@ -665,7 +665,7 @@ GUIDES = {'PT': {'name': 'Português',
                               '6 Publikasikan vektor → ZIP publik',
                               ' ↓',
                               '7 Bersihkan temp']},
-                   {'title': 'langkah-langkah (produk lainnya)',
+                   {'title': 'Langkah-langkah (produk lainnya)',
                     'lines': ['1 Export',
                               ' ↓',
                               '2 Mosaik',
@@ -739,7 +739,7 @@ GUIDES = {'PT': {'name': 'Português',
                               '   └─ Collection',
                               '      └─ Produit',
                               '         └─ Unités (bandes ou images)']},
-                   {'title': 'étapes (produit vectorisable)',
+                   {'title': 'Étapes (produit vectorisable)',
                     'lines': ['1 Export → tiles 0/1 (temp/)',
                               ' ↓',
                               '2 Mosaïque → COG',
@@ -753,7 +753,7 @@ GUIDES = {'PT': {'name': 'Português',
                               '6 Publier vecteur → ZIP public',
                               ' ↓',
                               '7 Nettoyer temp']},
-                   {'title': 'étapes (autres produits)',
+                   {'title': 'Étapes (autres produits)',
                     'lines': ['1 Export',
                               ' ↓',
                               '2 Mosaïque',
@@ -826,7 +826,7 @@ GUIDES = {'PT': {'name': 'Português',
                               '   └─ Collectie',
                               '      └─ Product',
                               '         └─ Eenheden (banden of afbeeldingen)']},
-                   {'title': 'stappen (vectoriseerbaar product)',
+                   {'title': 'Stappen (vectoriseerbaar product)',
                     'lines': ['1 Export → tiles 0/1 (temp/)',
                               ' ↓',
                               '2 Mozaïek → COG',
@@ -840,7 +840,7 @@ GUIDES = {'PT': {'name': 'Português',
                               '6 Publiceer vector → openbare ZIP',
                               ' ↓',
                               '7 Wis temp']},
-                   {'title': 'stappen (overige producten)',
+                   {'title': 'Stappen (overige producten)',
                     'lines': ['1 Export',
                               ' ↓',
                               '2 Mozaïek',
@@ -1062,6 +1062,7 @@ class UnitGridPanel:
         self.year_dropdown.observe(self._on_year_change, names="value")
 
         self._executor = ThreadPoolExecutor(max_workers=1)
+        self._watchdog = None
         self.progress_loader = ProgressLoader("Click Load Data to discover units.")
         self.btn_load_data = widgets.Button(
             description="Load Data", button_style="danger", icon="download",
@@ -1113,15 +1114,42 @@ class UnitGridPanel:
         self._notify_tab_style()
 
     def _on_load_data(self, _):
-        """Explicitly load data (discover bands/units from GEE/GCS)."""
+        """Load Data: caminho rapido — descobre apenas bandas/imagens do produto
+        e renderiza a grid (units + estado persistido). Sem scan de status."""
         if self.is_refreshing:
             return
         if not self.product:
             return
+        config.set_country(self.country, verbose=False)
+        config.set_theme(self.theme)
+        config.set_collection(self.collection)
+        config.set_product(self.product)
+        self.is_refreshing = True
+        set_button_busy(self.btn_load_data, True, "Loading...")
+        self.progress_loader.start("Discovering units...")
+        self._start_watchdog()
+        self._executor.submit(self._phase_load_data)
+
+    def _phase_load_data(self):
+        try:
+            self.units = _discover_units(self.country, self.theme, self.collection,
+                                         self.product, logger=self._log)
+        except Exception as e:
+            self._log(f"Load Data error: {e}", "error")
+        selected = self._get_selected_keys()
+        try:
+            persisted = load_state(self.country, self.theme, self.collection, self.product)
+            if persisted and len(persisted) > 1:
+                self.state = persisted
+            self._render_grid()
+            self._restore_selected(selected)
+        except Exception as e:
+            self._log(f"Render failed: {e}", "warning")
         self._data_loaded = True
+        self.progress_loader.stop("Data loaded.")
         self._update_load_data_button_style()
         self._notify_tab_style()
-        self._on_sync(None)
+        self._finish_sync()
 
     def _update_load_data_button_style(self):
         """Update Load Data button style based on loaded state."""
@@ -1323,6 +1351,7 @@ class UnitGridPanel:
         self.progress_loader.start("Loading data...")
         self._log("Checking files in GCS and assets in GEE...", "info")
         selected = self._get_selected_keys()
+        self._start_watchdog()
 
         self._executor.submit(self._phase_discover, selected)
 
@@ -1383,10 +1412,43 @@ class UnitGridPanel:
         self._finish_sync()
 
     def _finish_sync(self):
+        self._cancel_watchdog()
         self.is_refreshing = False
         set_button_busy(self.btn_sync, False, "Sync")
         self.btn_load_data.disabled = False
         self._update_load_data_button_style()
+
+    # ------------------------------------------------------------ watchdog
+    def _start_watchdog(self):
+        """Timer de seguranca: se o scan nao terminar no prazo, destrava a UI
+        e mostra o status parcial em vez de ficar 'carregando' para sempre."""
+        self._cancel_watchdog()
+        timeout = getattr(config, "SCAN_TIMEOUT", 180)
+        self._watchdog = threading.Timer(timeout, self._on_watchdog)
+        self._watchdog.daemon = True
+        self._watchdog.start()
+
+    def _cancel_watchdog(self):
+        if self._watchdog is not None:
+            try:
+                self._watchdog.cancel()
+            except Exception:
+                pass
+            self._watchdog = None
+
+    def _on_watchdog(self):
+        self._watchdog = None
+        if not self.is_refreshing:
+            return
+        self._log("[WARN] Sync/Load Data timed out — showing current status. "
+                  "The scan may still finish and update the grid.", "warning")
+        try:
+            self._render_grid()
+            self._restore_selected(self._get_selected_keys())
+        except Exception:
+            pass
+        self.progress_loader.stop("Timed out — showing current status.")
+        self._finish_sync()
 
     def _on_select_pending(self, _):
         for key, chk in self.chk_dict.items():

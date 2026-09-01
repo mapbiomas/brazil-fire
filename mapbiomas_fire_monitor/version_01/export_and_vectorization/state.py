@@ -1,7 +1,6 @@
 import os
 import json
 import time
-from concurrent.futures import ThreadPoolExecutor
 
 import gcsfs
 import urllib.request
@@ -130,21 +129,18 @@ def scan_gcs(context=None, logger=None):
 
     # Fallback para exports conhecidos quando a listagem GCS falha ou esta vazia.
     if context["collection"] == "monitor" and "monthly" in product:
-        def _probe_tiles(unit):
+        n_fb_tiles = 0
+        for unit in _fallback_months():
+            tile_glob = f"{tiles_path}/{tile_prefix}{unit}_*.tif"
             try:
-                matches = fs.glob(f"{config.BUCKET}/{tiles_path}/{tile_prefix}{unit}_*.tif")
+                matches = fs.glob(f"{config.BUCKET}/{tile_glob}")
             except Exception:
                 matches = []
-            return unit, matches
-
-        n_fb_tiles = 0
-        with ThreadPoolExecutor(max_workers=8) as ex:
-            for unit, matches in ex.map(_probe_tiles, _fallback_months()):
-                if matches:
-                    _detail(f"[FOUND] Export unit={unit} path={matches[0]}")
-                    tiles_present.add(unit)
-                    _merge_unit(state, unit, exported=True)
-                    n_fb_tiles += 1
+            if matches:
+                _detail(f"[FOUND] Export unit={unit} path={matches[0]}")
+                tiles_present.add(unit)
+                _merge_unit(state, unit, exported=True)
+                n_fb_tiles += 1
         if n_fb_tiles:
             _detail(f"[GCS] temp/: +{n_fb_tiles} unit(s) via month-fallback")
 
@@ -164,21 +160,17 @@ def scan_gcs(context=None, logger=None):
         _log(f"Error scanning mosaics: {e}")
 
     if context["collection"] == "monitor" and "monthly" in product:
-        def _probe_mosaic(unit):
+        for unit in _fallback_months():
             object_path = f"{mosaic_path}/{art_prefix}{unit}.tif"
             try:
                 ok = _object_exists(fs, config.BUCKET, object_path)
             except Exception:
                 ok = False
-            return unit, ok
-
-        with ThreadPoolExecutor(max_workers=8) as ex:
-            for unit, ok in ex.map(_probe_mosaic, _fallback_months()):
-                if ok:
-                    _detail(f"[FOUND] Mosaic unit={unit} "
-                            f"path={config.BUCKET}/{mosaic_path}/{art_prefix}{unit}.tif")
-                    cog_present.add(unit)
-                    _merge_unit(state, unit, exported=True, mosaiced=True)
+            if ok:
+                _detail(f"[FOUND] Mosaic unit={unit} "
+                        f"path={config.BUCKET}/{mosaic_path}/{art_prefix}{unit}.tif")
+                cog_present.add(unit)
+                _merge_unit(state, unit, exported=True, mosaiced=True)
 
     _log(f"Scanning GCS: gs://{config.BUCKET}/{vector_path}/{art_prefix}*.zip ...")
     try:
@@ -285,30 +277,14 @@ def build_state(country=None, theme=None, collection=None, product=None, logger=
         if on_stage:
             on_stage(msg)
 
-    # Pre-warm o filesystem antes de paralelizar (evita corrida no lazy init).
-    try:
-        _get_fs()
-    except Exception:
-        pass
-
-    _stage("Scanning GCS and GEE...")
-    try:
-        with ThreadPoolExecutor(max_workers=3) as ex:
-            f_gcs = ex.submit(scan_gcs, context=context, logger=logger)
-            f_gee = ex.submit(scan_gee, context=context, logger=logger)
-            f_months = ex.submit(list_months_in_collection, context["assetid"])
-            _stage("Scanning GCS tiles/mosaics...")
-            gcs_state = f_gcs.result()
-            _stage("Scanning GEE assets...")
-            gee_state = f_gee.result()
-            _stage("Listing collection months...")
-            months = f_months.result()
-    except Exception:
-        # Fallback sequencial se o paralelismo falhar em algum runtime.
-        _stage("Fallback: scanning sequentially...")
-        gcs_state = scan_gcs(context=context, logger=logger)
-        gee_state = scan_gee(context=context, logger=logger)
-        months = list_months_in_collection(context["assetid"])
+    # Scan sequencial (uma chamada fs/GEE por vez): evita deadlock de
+    # concorrencia do gcsfs ao compartilhar o filesystem entre threads.
+    _stage("Scanning GCS tiles/mosaics...")
+    gcs_state = scan_gcs(context=context, logger=logger)
+    _stage("Scanning GEE assets...")
+    gee_state = scan_gee(context=context, logger=logger)
+    _stage("Listing collection months...")
+    months = list_months_in_collection(context["assetid"])
     full = merge_states(gcs_state, gee_state, months)
 
     sorted_state = {}
