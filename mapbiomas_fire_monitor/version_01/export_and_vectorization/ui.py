@@ -356,20 +356,35 @@ def _step_title(key):
     return key
 
 
-def _wrap_tab_bar(titles, on_activate):
-    """Barra de abas em botoes com quebra de linha (flex-wrap)."""
+def _wrap_tab_bar(titles, on_activate, per_line=None):
+    """Barra de abas em botoes com quebra deterministica por linha.
+
+    Divide os titulos em linhas de ate `per_line` (default
+    config.PRODUCT_TABS_PER_LINE). Cada botao mantem o tamanho exato do titulo
+    (flex 0 0 auto) — nada de comprimir/elidir; se os `per_line` nao couberem
+    na largura da tela, a linha ainda quebra antes via flex_wrap. Retorna o
+    container (VBox de linhas) e a lista plana de botoes (indice paralelo aos
+    titulos, para estilizar por indice)."""
+    per_line = per_line or getattr(config, "PRODUCT_TABS_PER_LINE", 10)
     btns = []
     for i, title in enumerate(titles):
         b = widgets.Button(description=title,
-                           layout=L(height="32px", margin="0 2px 2px 0"))
+                           layout=L(height="32px", margin="0 2px 2px 0",
+                                    flex="0 0 auto"))
         b.style.button_color = "#f8f9fa"      # nao carregado
         b.style.font_color = "#212529"         # texto escuro (contraste)
         if hasattr(b, "add_class"):
             b.add_class("mfm-tab-btn")
         b.on_click(lambda _b, idx=i: on_activate(idx))
         btns.append(b)
-    bar = widgets.HBox(btns, layout=L(flex_wrap="wrap", gap="4px", margin="0 0 6px 0",
-                                      align_items="center"))
+
+    rows = []
+    for start in range(0, len(btns), per_line):
+        row = widgets.HBox(btns[start:start + per_line],
+                           layout=L(flex_wrap="wrap", gap="4px",
+                                    margin="0 0 2px 0", align_items="center"))
+        rows.append(row)
+    bar = widgets.VBox(rows, layout=L(margin="0 0 6px 0"))
     return bar, btns
 
 
@@ -1109,9 +1124,9 @@ class UnitGridPanel:
                                        icon="download", layout=L(width="120px", height="34px"),
                                        tooltip="Load this product: cached units, discover new bands/units and scan status (bounded by SCAN_TIMEOUT)")
         self.btn_load.on_click(self._on_sync)
-        self.btn_load_collection = widgets.Button(description="Load Collection", button_style="info",
+        self.btn_load_collection = widgets.Button(description="Load Collection", button_style="danger",
                                                   icon="layers", layout=L(width="150px", height="34px"),
-                                                  tooltip="Load all products of this collection (sequential queue)")
+                                                  tooltip="Load all products of this collection (sequential queue); green when all are loaded")
         self.btn_load_collection.on_click(self._on_load_collection)
         self.btn_select_pending = widgets.Button(description="Select Pending", button_style="info",
                                                  layout=L(width="150px", height="34px"),
@@ -1206,6 +1221,16 @@ class UnitGridPanel:
             # Add pulsing outline
             if hasattr(self.btn_load, 'add_class'):
                 self.btn_load.add_class('mfm-btn-unloaded')
+
+    def _update_load_collection_style(self, all_loaded):
+        """Load Collection segue o padrao do Load Data: vermelho (base) ate
+        todos os produtos da colecao estarem carregados, verde quando sim."""
+        if all_loaded:
+            self.btn_load_collection.button_style = "success"
+            self.btn_load_collection.icon = "check"
+        else:
+            self.btn_load_collection.button_style = "danger"
+            self.btn_load_collection.icon = "layers"
 
     def _notify_tab_style(self):
         """Notify parent ProductTabs to update tab style for this product."""
@@ -1657,9 +1682,19 @@ class ProductTabs:
             panel.sync_context()
         self._active_panel = panel
         self._panels_box.children = [panel.container]
-        # Repinta todas as guias (ativo + carregado).
+        # Repinta todas as guias (ativo + carregado) e o Load Collection.
         for p in self.products:
             self._update_tab_style(p)
+        self._sync_load_collection_styles()
+
+    def _all_loaded(self):
+        return bool(self.products) and all(p in self._loaded_products for p in self.products)
+
+    def _sync_load_collection_styles(self):
+        """Load Collection verde quando TODOS os produtos da colecao carregaram."""
+        all_loaded = self._all_loaded()
+        for panel in self._panels.values():
+            panel._update_load_collection_style(all_loaded)
 
     def sync_context(self):
         """Propaga a sincronizacao de contexto ate o painel ativo."""
@@ -1672,6 +1707,7 @@ class ProductTabs:
         if loaded:
             self._loaded_products.add(product)
         self._update_tab_style(product)
+        self._sync_load_collection_styles()
 
     def _update_tab_style(self, product):
         """Cor de fundo da guia = estado de carregado; borda = ativo."""
@@ -1696,6 +1732,8 @@ class ProductTabs:
         if n == 0 or self._loading_collection:
             return
         self._loading_collection = True
+        for panel in self._panels.values():
+            panel.btn_load_collection.disabled = True
         try:
             for i, product in enumerate(self.products, start=1):
                 self._activate_product(self.products.index(product))
@@ -1706,6 +1744,9 @@ class ProductTabs:
                     panel._log(f"Load collection error ({product}): {e}", "error")
         finally:
             self._loading_collection = False
+            for panel in self._panels.values():
+                panel.btn_load_collection.disabled = False
+            self._sync_load_collection_styles()
             if self._active_panel is not None:
                 self._active_panel.progress_loader.stop("Collection loaded.")
 

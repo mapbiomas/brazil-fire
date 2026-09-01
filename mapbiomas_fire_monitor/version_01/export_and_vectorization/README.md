@@ -222,9 +222,18 @@ Os botoes da toolbar:
 - **Clear** / **Clear All** — desmarcam o produto / todos os produtos.
 
 As **guias de produto** usam a cor de fundo para indicar o estado: **verde** =
-carregado, **cinza** = nao carregado, **borda escura** = ativa. Com mais de 60
-unidades, o filtro `Unit:` inicia no prefixo mais recente para o render ser leve
-("All units" continua disponivel no dropdown).
+carregado, **cinza** = nao carregado, **borda escura** = ativa. Elas sao
+limitadas a `PRODUCT_TABS_PER_LINE` (default **10**) por linha, quebrando em 2–4+
+linhas conforme a colecao; cada guia mostra o **titulo completo** (nada de
+comprimir) e, se 10 nao couberem na largura da tela, a linha ainda quebra antes.
+Com mais de 60 unidades, o filtro `Unit:` inicia no prefixo mais recente para o
+render ser leve ("All units" continua disponivel no dropdown).
+
+Os botoes seguem **tres padroes de cor**:
+- **Load** (vermelho → verde): `Load Data` fica verde quando o produto carregou;
+  `Load Collection` fica verde quando **todos** os produtos da colecao carregaram.
+- **Select** (azul): `Select Pending`, `Select All`, `Select All Collection`.
+- **Clear** (laranja): `Clear`, `Clear All`.
 
 ## Log drawer
 

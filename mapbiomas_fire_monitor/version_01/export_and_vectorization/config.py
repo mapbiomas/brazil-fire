@@ -59,6 +59,9 @@ SCAN_TIMEOUT = 180
 VECTOR_OUTPUT_GEE = None
 VECTOR_OUTPUT_GCS = None
 
+# Quantas guias de produto por linha (barra de abas com quebra deterministica).
+PRODUCT_TABS_PER_LINE = 10
+
 # Verbose logging: quando True, o log drawer mostra linhas por-unidade
 # ([FOUND], [SKIP], [DEBUG]). Default False: apenas sumarios por lote.
 LOG_VERBOSE = False
