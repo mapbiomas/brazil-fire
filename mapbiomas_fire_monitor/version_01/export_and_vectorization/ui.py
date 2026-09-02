@@ -30,6 +30,7 @@ _STATUS_CSS = widgets.HTML("""<style>
 }
 .mfm-tab-btn { border:1px solid #ced4da !important; }
 .mfm-tab-active { box-shadow: inset 0 0 0 2px #263238 !important; }
+.mfm-tab-btn { white-space: normal !important; height: auto !important; max-width: 220px; }
 </style>""")
 
 class ProgressLoader:
@@ -369,6 +370,7 @@ def _wrap_tab_bar(titles, on_activate, per_line=None):
     btns = []
     for i, title in enumerate(titles):
         b = widgets.Button(description=title,
+                           tooltip=title,
                            layout=L(height="32px", margin="0 2px 2px 0",
                                     flex="0 0 auto"))
         b.style.button_color = "#f8f9fa"      # nao carregado
@@ -1241,6 +1243,14 @@ class UnitGridPanel:
         keys = set(self.units) | {k for k in self.state.keys() if k != "updated_at"}
         return sorted(keys, reverse=True)
 
+    def all_units_complete(self):
+        """True quando o produto esta carregado e TODAS as unidades tem todas
+        as etapas concluidas (com pelo menos uma unidade)."""
+        units = self._all_units()
+        if not units:
+            return False
+        return all(_is_complete(self.state.get(u, {})) for u in units)
+
     def _filtered_units(self):
         units = self._all_units()
         if self.year_filter is not None:
@@ -1710,15 +1720,27 @@ class ProductTabs:
         self._sync_load_collection_styles()
 
     def _update_tab_style(self, product):
-        """Cor de fundo da guia = estado de carregado; borda = ativo."""
+        """Cor da guia: cinza = nao carregado; verde claro = carregado com
+        pendencias; verde escuro + ' ✓' = todos os estagios completos."""
         if product not in self.products:
             return
         idx = self.products.index(product)
         if idx < 0 or idx >= len(self._tab_btns):
             return
         btn = self._tab_btns[idx]
+        panel = self._panels.get(product)
         loaded = product in self._loaded_products
-        btn.style.button_color = "#d4edda" if loaded else "#f8f9fa"   # verde/cinza
+        complete = bool(panel) and loaded and panel.all_units_complete()
+        if complete:
+            btn.style.button_color = "#28a745"   # verde escuro
+            btn.style.font_color = "#ffffff"     # texto branco
+            if not btn.description.endswith(" \u2713"):
+                btn.description = f"{product} \u2713"
+        else:
+            btn.style.button_color = "#d4edda" if loaded else "#f8f9fa"
+            btn.style.font_color = "#212529"
+            if btn.description.endswith(" \u2713"):
+                btn.description = product
         active = (product == self._active_product_name)
         if hasattr(btn, "add_class") and hasattr(btn, "remove_class"):
             if active:
