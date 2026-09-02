@@ -1316,6 +1316,13 @@ class UnitGridPanel:
         finally:
             self._rendering = False
 
+    def _adaptive_date_w(self, units):
+        """Largura da coluna Unit adaptavel ao maior texto visivel (min 140px,
+        cap 560px; ~8px/char monospace + padding/borda)."""
+        max_len = max([len("Unit")] + [len(str(u)) for u in units])
+        w = max_len * 8 + 24
+        return f"{max(140, min(w, 560))}px"
+
     def _do_render_grid(self):
         self.chk_dict = {}
         p = _palette()
@@ -1335,15 +1342,21 @@ class UnitGridPanel:
 
         vectorizable = config.is_vectorizable()
         cols = _product_cols()
+        self._refresh_year_dropdown()
+        units = self._filtered_units()
+        date_w = self._adaptive_date_w(units)
+
         sel_header = widgets.HTML(
             f'<div style="width:{self._SEL_W};height:42px;background:{p["grid_header_bg"]};'
-            f'text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};padding:12px 3px;'
+            f'text-align:center;font-weight:700;font-size:11px;color:{p["grid_header_fg"]};padding:5px 3px;'
             f'box-sizing:border-box;border-left:1px solid {p["sep"]};'
-            f'border-right:1px solid {p["sep"]};">Select</div>')
+            f'border-right:1px solid {p["sep"]};line-height:1.25;">'
+            f'Select<br><span style="font-size:9px;font-weight:400;opacity:.6;">seleção</span></div>')
         unit_header = widgets.HTML(
-            f'<div style="width:{self._DATE_W};height:42px;background:{p["grid_header_bg"]};'
-            f'font-weight:700;font-size:12px;color:{p["grid_header_fg"]};padding:12px 6px;'
-            f'box-sizing:border-box;border-right:1px solid {p["sep"]};">Unit</div>')
+            f'<div style="width:{date_w};height:42px;background:{p["grid_header_bg"]};'
+            f'font-weight:700;font-size:12px;color:{p["grid_header_fg"]};padding:5px 6px;'
+            f'box-sizing:border-box;border-right:1px solid {p["sep"]};line-height:1.25;">'
+            f'Unit<br><span style="font-size:9px;font-weight:400;opacity:.6;">unidade</span></div>')
         header_row = widgets.HBox(
             [sel_header, unit_header]
             + [_header_cell(self._CELL_W, t, e, kind in _VECTOR_KINDS) for _, t, e, kind in cols],
@@ -1352,8 +1365,6 @@ class UnitGridPanel:
         )
 
         rows = [header_row]
-        self._refresh_year_dropdown()
-        units = self._filtered_units()
         row_layout = L(align_items="center", min_height="38px",
                        border_bottom=f"1px solid {p['border']}", padding="3px 10px",
                        overflow="visible", width="100%")
@@ -1362,9 +1373,9 @@ class UnitGridPanel:
             info = self.state.get(unit, {})
             bg = p["row_a"] if i % 2 == 0 else p["row_b"]
             unit_text = str(unit)
-            unit_short = unit_text if len(unit_text) <= 34 else unit_text[:31] + "..."
+            unit_short = unit_text if len(unit_text) <= 90 else unit_text[:87] + "..."
             date_cell = widgets.HTML(
-                f'<div title="{unit_text}" style="width:{self._DATE_W};font-family:monospace;font-size:12px;color:{p["date_fg"]};font-weight:600;'
+                f'<div title="{unit_text}" style="width:{date_w};font-family:monospace;font-size:12px;color:{p["date_fg"]};font-weight:600;'
                 f'background:{p["date_bg"]};padding:2px 6px;border-radius:3px;box-sizing:border-box;'
                 f'border-left:1px solid {p["sep"]};border-right:1px solid {p["sep"]};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{unit_short}</div>'
             )

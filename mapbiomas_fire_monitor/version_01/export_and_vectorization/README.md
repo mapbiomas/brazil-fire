@@ -161,7 +161,10 @@ A vetorizacao usa o COG (nao os tiles de `temp/`), entao rodar o Clean temp ante
 e seguro.
 
 A legenda da grid traz a dica **MISS → OK** com a celula que resolve cada coluna.
-O cabeçalho de cada coluna mostra o numero da **Etapa**.
+O cabeçalho de cada coluna mostra o numero da **Etapa** (e subtitulos em
+**Unit**/"unidade" e **Select**/"seleção"). A coluna **Unit** tem **largura
+adaptavel** ao maior texto visivel (min 140px, cap 560px), entao bandas/imagens
+longas aparecem por inteiro.
 
 ## Links de download nos badges OK
 
