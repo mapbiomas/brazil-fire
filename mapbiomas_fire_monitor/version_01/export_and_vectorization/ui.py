@@ -356,6 +356,24 @@ def _step_title(key):
     return key
 
 
+# Numeracao fixa de estagio (1-7) para exibir nos botoes de Select Pending.
+_STAGE_DISPLAY = {
+    "exported": (1, "Export"),
+    "mosaiced": (2, "Mosaic"),
+    "published_mosaic": (3, "Public mosaic"),
+    "temp_cleaned": (4, "Clean temp"),
+    "vectorized_gcs": (5, "Vector GCS"),
+    "vectorized_gee": (6, "Vector GEE"),
+    "published_vector": (7, "Public vector"),
+}
+
+
+def _stage_label(key):
+    """'numero · nome' do estagio (ex.: '5 · Vector GCS')."""
+    n, name = _STAGE_DISPLAY.get(key, (0, key))
+    return f"{n} \u00b7 {name}"
+
+
 def _wrap_tab_bar(titles, on_activate, line_width=None):
     """Barra de guias em botoes com numero por linha AUTOMATICO.
 
@@ -462,9 +480,10 @@ GUIDES = {'PT': {'name': 'Português',
                   '<code>SCAN_TIMEOUT</code>) — ou em <b>Load Collection</b> para carregar todos os '
                   'produtos da coleção em fila.',
                   'Na grade (checkbox na primeira coluna), marque as unidades desejadas. Use '
-                  '<b>Select Pending</b> para selecionar por estágio — o título mostra o estágio-alvo '
-                  'e cada clique avança no ciclo (mais avançado primeiro). Também há <b>Select All</b> '
-                  'e <b>Select All Collection</b> (todos os produtos da coleção).',
+                  '<b>Select Pending</b> (número · nome do estágio no título) para selecionar por '
+                  'estágio — cada clique avança no ciclo. Use <b>Select Pending Collection</b> para o '
+                  'mesmo em todos os produtos da coleção. Também há <b>Select All</b> e '
+                  '<b>Select All Collection</b> (todos os produtos da coleção).',
                   'Execute as etapas na ordem: <b>Export → Mosaico → Publicar mosaico → Limpar temp</b>. '
                   'A vetorização é opcional (Steps 5–7, só produtos vetorizáveis, ex.: annual_burned): '
                   '<b>Vetor GCS → Vetor GEE → Publicar vetor</b>.',
@@ -1125,7 +1144,8 @@ class UnitGridPanel:
     _GRID_RENDER_CAP = 60   # acima disso, o filtro Unit: inicia no prefixo recente
 
     def __init__(self, country, theme, collection, log_area=None, on_data_loaded_change=None,
-                 on_clear_all=None, on_load_collection=None, on_select_all_collection=None):
+                 on_clear_all=None, on_load_collection=None, on_select_all_collection=None,
+                 on_select_pending_collection=None):
         self.country = country
         self.theme = theme
         self.collection = collection
@@ -1140,6 +1160,7 @@ class UnitGridPanel:
         self._on_clear_all_cb = on_clear_all
         self._on_load_collection_cb = on_load_collection
         self._on_select_all_collection_cb = on_select_all_collection
+        self._on_select_pending_collection_cb = on_select_pending_collection
 
         self.grid_container = widgets.VBox([
             _loading_html("Loading units...")
@@ -1153,10 +1174,15 @@ class UnitGridPanel:
                                                   icon="layers", layout=L(width="150px", height="34px"),
                                                   tooltip="Load all products of this collection (sequential queue); green when all are loaded")
         self.btn_load_collection.on_click(self._on_load_collection)
-        self.btn_select_pending = widgets.Button(description="Select Pending", button_style="info",
+        self.btn_select_pending = widgets.Button(description="Select Pending", button_style="primary",
                                                  layout=L(width="150px", height="34px"),
                                                  tooltip="Each click selects the units pending at the next stage (cycle)")
         self.btn_select_pending.on_click(self._on_select_pending)
+        self.btn_select_pending_collection = widgets.Button(description="Select Pending Collection",
+                                                            button_style="primary",
+                                                            layout=L(width="200px", height="34px"),
+                                                            tooltip="Each click selects, across ALL products of this collection, the units pending at the next stage (cycle)")
+        self.btn_select_pending_collection.on_click(self._on_select_pending_collection)
         self.btn_select_all = widgets.Button(description="Select All", button_style="info",
                                              layout=L(width="120px", height="34px"))
         self.btn_select_all.on_click(self._on_select_all)
@@ -1184,7 +1210,7 @@ class UnitGridPanel:
         spacer = widgets.HBox([], layout=L(flex="1 1 20px", min_width="0px"))
         self.toolbar = widgets.HBox([
             self.btn_load, self.btn_load_collection, self.btn_select_pending,
-            self.btn_select_all, self.btn_select_all_collection,
+            self.btn_select_pending_collection, self.btn_select_all, self.btn_select_all_collection,
             self.btn_clear, self.btn_clear_all, self.year_dropdown,
             spacer, self.progress_loader.widget,
         ], layout=L(margin="0 0 8px 0", gap="8px", align_items="center", flex_wrap="wrap"))
@@ -1226,6 +1252,7 @@ class UnitGridPanel:
         self._pending_cycle = []
         self._pending_cycle_idx = 0
         self.btn_select_pending.description = "Select Pending"
+        self.btn_select_pending_collection.description = "Select Pending Collection"
         self._update_load_button_style()
         # Notify parent ProductTabs to update tab style
         self._notify_tab_style()
@@ -1582,9 +1609,24 @@ class UnitGridPanel:
         # Substitui a selecao: so as unidades pendentes no estagio-alvo.
         for u, chk in self.chk_dict.items():
             chk.value = _unit_pending_key(self.state.get(u, {})) == target
-        self.btn_select_pending.description = f"Select Pending \u00b7 {_step_title(target)}"
-        self._log(f"Select Pending \u00b7 {_step_title(target)}: selected pending units "
+        self.btn_select_pending.description = f"Select Pending \u00b7 {_stage_label(target)}"
+        self._log(f"Select Pending \u00b7 {_stage_label(target)}: selected pending units "
                   "at this stage (individual checks still editable).", "info")
+
+    def _pending_stages(self):
+        """Mapeia unidade -> etapa pendente usando as colunas do proprio produto."""
+        config.set_country(self.country, verbose=False)
+        config.set_theme(self.theme)
+        config.set_collection(self.collection)
+        config.set_product(self.product)
+        return {u: _unit_pending_key(self.state.get(u, {})) for u in self._all_units()}
+
+    def _on_select_pending_collection(self, _=None):
+        """Select Pending Collection: delega ao ProductTabs (todos os produtos)."""
+        if self._on_select_pending_collection_cb:
+            self._on_select_pending_collection_cb()
+        else:
+            self._log("Select Pending Collection not available in this context.", "warning")
 
     def _on_load_collection(self, _=None):
         """Load Collection: delega ao ProductTabs (fila simples dos produtos)."""
@@ -1698,6 +1740,8 @@ class ProductTabs:
         self._active_product_name = None
         self._loaded_products = set()
         self._loading_collection = False
+        self._pending_collection_cycle = []      # ciclo do Select Pending Collection
+        self._pending_collection_cycle_idx = 0
         self._bar, self._tab_btns = _wrap_tab_bar(self.products, self._activate_product)
         self._panels_box = widgets.VBox([])
         self.container = widgets.VBox([_STATUS_CSS, self._bar, self._panels_box])
@@ -1716,6 +1760,7 @@ class ProductTabs:
                 on_clear_all=self._on_clear_all_cb,
                 on_load_collection=self._on_load_collection,
                 on_select_all_collection=self._on_select_all_collection,
+                on_select_pending_collection=self._on_select_pending_collection,
             )
             panel._activate_product(product)
             self._panels[product] = panel
@@ -1803,8 +1848,62 @@ class ProductTabs:
             for panel in self._panels.values():
                 panel.btn_load_collection.disabled = False
             self._sync_load_collection_styles()
+            # estado mudou: reinicia o ciclo do Select Pending Collection
+            self._pending_collection_cycle = []
+            self._pending_collection_cycle_idx = 0
+            for panel in self._panels.values():
+                panel.btn_select_pending_collection.description = "Select Pending Collection"
             if self._active_panel is not None:
                 self._active_panel.progress_loader.stop("Collection loaded.")
+
+    def _on_select_pending_collection(self):
+        """Select Pending Collection: a cada clique seleciona (e substitui), em
+        TODOS os produtos da colecao, as unidades pendentes no estagio-alvo do
+        ciclo (decrescente — mais avancado primeiro). Titulo mostra
+        'numero · nome' do estagio."""
+        panels = list(self._panels.values())
+        if not panels or self._active_panel is None:
+            return
+        # Estagios pendentes presentes entre todos os paineis da colecao.
+        stages_by_panel = {}
+        present = []
+        seen = set()
+        for panel in panels:
+            stages = panel._pending_stages()
+            stages_by_panel[id(panel)] = stages
+            for key in stages.values():
+                if key and key not in seen:
+                    seen.add(key)
+                    present.append(key)
+        if not present:
+            for panel in panels:
+                panel.btn_select_pending_collection.description = "Select Pending Collection"
+            self._active_panel._log("Select Pending Collection: no pending units "
+                                    "(all complete or empty).", "info")
+            self._pending_collection_cycle = []
+            return
+        present_desc = sorted(present, key=lambda k: -_STAGE_DISPLAY.get(k, (0, ""))[0])
+        if set(self._pending_collection_cycle) != set(present_desc):
+            self._pending_collection_cycle = present_desc
+            self._pending_collection_cycle_idx = 0
+        target = self._pending_collection_cycle[
+            self._pending_collection_cycle_idx % len(self._pending_collection_cycle)]
+        self._pending_collection_cycle_idx = (self._pending_collection_cycle_idx + 1) % len(
+            self._pending_collection_cycle)
+        # Substitui a selecao nas unidades do estagio-alvo, em todos os produtos.
+        for panel in panels:
+            stages = stages_by_panel.get(id(panel)) or panel._pending_stages()
+            for unit, chk in panel.chk_dict.items():
+                chk.value = stages.get(unit) == target
+        label = _stage_label(target)
+        for panel in panels:
+            panel.btn_select_pending_collection.description = \
+                f"Select Pending Collection \u00b7 {label}"
+        self._active_panel._log(
+            f"Select Pending Collection \u00b7 {label}: selected pending units "
+            "across all products of the collection.", "info")
+        # Restaura o contexto do painel ativo.
+        self._active_panel.sync_context()
 
     def _on_select_all_collection(self):
         """Seleciona as units renderizadas de TODOS os produtos da colecao."""
