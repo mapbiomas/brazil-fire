@@ -356,12 +356,17 @@ def _step_title(key):
     return key
 
 
-def _wrap_tab_bar(titles, on_activate, per_line=None):
-    """Barra de abas em botoes, ate `per_line` por linha, com quebra por
-    largura. Cada botao tem largura atrelada ao tamanho do texto (nao colapsa)
-    e estica (flex 1 0 auto) para preencher a largura da linha."""
-    per_line = per_line or getattr(config, "PRODUCT_TABS_PER_LINE", 6)
+def _wrap_tab_bar(titles, on_activate, line_width=None):
+    """Barra de guias em botoes com numero por linha AUTOMATICO.
+
+    Quebra quando a soma das larguras passa de `line_width` (default
+    config.TAB_LINE_WIDTH). Linhas cheias esticam (flex 1 0 auto) para
+    preencher a largura; a ultima linha fica alinhada a esquerda (sem esticar).
+    Cada botao tem largura atrelada ao tamanho do texto (nao colapsa)."""
+    line_width = line_width or getattr(config, "TAB_LINE_WIDTH", 1080)
+    gap = 4
     btns = []
+    widths = []
     for i, title in enumerate(titles):
         w = max(90, len(title) * 8 + 34)   # largura minima = tamanho do texto
         b = widgets.Button(description=title,
@@ -375,14 +380,35 @@ def _wrap_tab_bar(titles, on_activate, per_line=None):
             b.add_class("mfm-tab-btn")
         b.on_click(lambda _b, idx=i: on_activate(idx))
         btns.append(b)
+        widths.append(w)
 
+    # Chunk por largura (numero por linha automatico).
     rows = []
-    for start in range(0, len(btns), per_line):
-        row = widgets.HBox(btns[start:start + per_line],
-                           layout=L(flex_wrap="wrap", gap="4px",
-                                    margin="0 0 2px 0", align_items="center"))
-        rows.append(row)
-    bar = widgets.VBox(rows, layout=L(margin="0 0 6px 0"))
+    current = []
+    used = 0
+    for w, b in zip(widths, btns):
+        if current and used + gap + w > line_width:
+            rows.append(current)
+            current = []
+            used = 0
+        if current:
+            used += gap
+        used += w
+        current.append(b)
+    if current:
+        rows.append(current)
+
+    # Ultima linha: alinhada a esquerda (nao estica).
+    if rows:
+        for b in rows[-1]:
+            b.layout.flex = "0 0 auto"
+
+    row_widgets = []
+    for row in rows:
+        row_widgets.append(widgets.HBox(
+            row, layout=L(flex_wrap="wrap", gap="4px", margin="0 0 2px 0",
+                          align_items="center")))
+    bar = widgets.VBox(row_widgets, layout=L(margin="0 0 6px 0"))
     return bar, btns
 
 

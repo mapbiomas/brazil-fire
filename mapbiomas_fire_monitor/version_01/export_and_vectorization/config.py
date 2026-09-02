@@ -61,8 +61,10 @@ SCAN_TIMEOUT = 180
 VECTOR_OUTPUT_GEE = None
 VECTOR_OUTPUT_GCS = None
 
-# Quantas guias de produto por linha (barra de abas com quebra deterministica).
-PRODUCT_TABS_PER_LINE = 6
+# Largura-alvo (px) de uma linha da barra de guias de produto. O numero de
+# guias por linha e AUTOMATICO: quebram quando a soma das larguras passa dessa
+# largura; linhas cheias esticam e a ultima fica alinhada a esquerda.
+TAB_LINE_WIDTH = 1080
 
 # Verbose logging: quando True, o log drawer mostra linhas por-unidade
 # ([FOUND], [SKIP], [DEBUG]). Default False: apenas sumarios por lote.

@@ -227,10 +227,11 @@ Os botoes da toolbar:
 As **guias de produto** usam a cor de fundo para indicar o estado: **cinza** =
 nao carregado, **verde claro** = carregado com pendencias, **verde escuro + ` ✓`**
 (texto branco) = **todos os estagios completos**; **borda escura** = ativa. Elas
-sao limitadas a `PRODUCT_TABS_PER_LINE` (default **6**) por linha, quebrando em
-2–4+ linhas conforme a colecao; cada guia mostra o **titulo completo** (nomes
-longos quebram em 2 linhas; o `tooltip` mostra o nome inteiro) e, se 6 nao
-couberem na largura da tela, a linha ainda quebra antes. Com mais de 60 unidades,
+sao limitadas a `TAB_LINE_WIDTH` (default 1080px) por linha — o numero de guias
+por linha e **automatico**: quebram quando a soma das larguras passa dessa
+largura; linhas cheias esticam para preencher e a ultima fica alinhada a
+esquerda. Cada guia mostra o **titulo completo** (largura atrelada ao texto,
+nada de colapsar) e o `tooltip` mostra o nome inteiro. Com mais de 60 unidades,
 o filtro `Unit:` inicia no prefixo mais recente para o render ser leve ("All
 units" continua disponivel no dropdown).
 
