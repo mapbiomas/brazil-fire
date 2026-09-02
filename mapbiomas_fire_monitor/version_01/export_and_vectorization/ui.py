@@ -357,21 +357,18 @@ def _step_title(key):
 
 
 def _wrap_tab_bar(titles, on_activate, per_line=None):
-    """Barra de abas em botoes com quebra deterministica por linha.
-
-    Divide os titulos em linhas de ate `per_line` (default
-    config.PRODUCT_TABS_PER_LINE). Cada botao mantem o tamanho exato do titulo
-    (flex 0 0 auto) — nada de comprimir/elidir; se os `per_line` nao couberem
-    na largura da tela, a linha ainda quebra antes via flex_wrap. Retorna o
-    container (VBox de linhas) e a lista plana de botoes (indice paralelo aos
-    titulos, para estilizar por indice)."""
-    per_line = per_line or getattr(config, "PRODUCT_TABS_PER_LINE", 10)
+    """Barra de abas em botoes, ate `per_line` por linha, com quebra por
+    largura. Cada botao tem largura atrelada ao tamanho do texto (nao colapsa)
+    e estica (flex 1 0 auto) para preencher a largura da linha."""
+    per_line = per_line or getattr(config, "PRODUCT_TABS_PER_LINE", 6)
     btns = []
     for i, title in enumerate(titles):
+        w = max(90, len(title) * 8 + 34)   # largura minima = tamanho do texto
         b = widgets.Button(description=title,
                            tooltip=title,
-                           layout=L(height="32px", margin="0 2px 2px 0",
-                                    flex="0 0 auto"))
+                           layout=L(width=f"{w}px", height="32px",
+                                    margin="0 2px 2px 0",
+                                    flex="1 0 auto"))
         b.style.button_color = "#f8f9fa"      # nao carregado
         b.style.font_color = "#212529"         # texto escuro (contraste)
         if hasattr(b, "add_class"):
