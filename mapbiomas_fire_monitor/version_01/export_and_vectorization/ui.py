@@ -445,13 +445,14 @@ LANG_ORDER = ["PT", "ES", "EN", "ID", "FR", "NL", "ZH"]
 
 GUIDES = {'PT': {'name': 'Português',
         'tab_title': 'Guia: Português',
-        'welcome_note': 'Bem-vindo! Esta guia em português explica o aplicativo Export & Vectorization do '
-                        'Monitor do Fogo MapBiomas: como navegar (país → tema → coleção → produto), '
-                        'descobrir as unidades, processar cada etapa e publicar os mapas. As abas acima '
-                        'mostram a interface; use esta guia sempre que precisar.',
-        'what': 'O aplicativo exporta os mapas de área queimada/incêndio do MapBiomas Fire: do Earth Engine '
-                '(GEE) para o GCS, monta mosaicos (COG) por unidade (banda ou imagem), vetoriza quando '
-                'aplicável, publica no Earth Engine e no bucket público e remove os arquivos temporários.',
+        'welcome_note': 'Bem-vindo! Esta guia em português explica o aplicativo MapBiomas Export & Publish '
+                        '(catálogo de dados multipaís e multitemático): como navegar (país → tema → '
+                        'coleção → produto), descobrir as unidades, processar cada etapa e publicar os '
+                        'mapas. As abas acima mostram a interface; use esta guia sempre que precisar.',
+        'what': 'O aplicativo exporta dados do catálogo MapBiomas (fogo, uso e cobertura, etc.): do Earth '
+                'Engine (GEE) para o GCS, monta mosaicos (COG) por unidade (banda ou imagem), publica no '
+                'bucket público e remove os arquivos temporários. A vetorização é uma análise opcional '
+                'para produtos vetorizáveis (ex.: annual_burned).',
         'howto_title': 'Como usar',
         'steps': ['<b>Navegue</b> pelas abas: país → tema → coleção → produto. Com muitos '
                   'produtos, as guias quebram em várias linhas — verde = carregado, '
@@ -2231,8 +2232,8 @@ class FireMonitorApp:
             f'padding:10px 14px;background:{p["header_bg"]};border:1px solid {p["header_border"]};'
             f'border-radius:5px;margin-bottom:8px;">'
             f'<div style="display:flex;align-items:center;gap:12px;">'
-            f'<span style="font-weight:bold;font-size:17px;color:{p["title"]};">Export & Vectorization</span>'
-            f'<span style="color:{p["subtitle"]};font-size:12px;">MapBiomas Fire Monitor</span>'
+            f'<span style="font-weight:bold;font-size:17px;color:{p["title"]};">MapBiomas Export &amp; Publish</span>'
+            f'<span style="color:{p["subtitle"]};font-size:12px;">MapBiomas Data Catalog</span>'
             f'</div>'
             f'<div style="display:flex;align-items:center;gap:12px;">'
             f'<div style="color:{p["subtitle"]};font-size:12px;">{config.flag(config.COUNTRY)} {config.COUNTRY.title()}</div>'

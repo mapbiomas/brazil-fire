@@ -1,4 +1,4 @@
-"""Configuracao multipais/colecoes/produtos do pipeline Export & Vectorization.
+"""Configuracao multipais/colecoes/produtos do pipeline MapBiomas Export & Publish.
 
 Fonte de verdade: `OBJ` — arvore  pais -> tema -> colecao -> [produtos].
 

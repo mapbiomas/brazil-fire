@@ -1,8 +1,10 @@
-# Export & Vectorization — Monitor do Fogo
+# MapBiomas Export & Publish
 
-Pipeline de 7 etapas para processar os mapas mensais de area queimada do Monitor
-do Fogo (multipais): exportacao do GEE, mosaico, vetorizacao, publicacao no GEE,
-publicacao no bucket publico e limpeza do temp.
+Pipeline multipais/multitematico para exportar dados do catalogo MapBiomas
+(originalmente o monitor de fogo, hoje expandido para muitos paises, temas e
+produtos): exportacao do GEE, mosaico, publicacao no bucket publico e limpeza
+do temp. A **vetorizacao** e uma etapa **opcional** (analise adicional) para
+produtos vetorizaveis.
 
 > ⚠️ **Fluxo beta/experimental**: o catalogo (`config.OBJ`) NAO inclui todos os
 > dados do MapBiomas — e um subconjunto validado. Valide os resultados em escopo

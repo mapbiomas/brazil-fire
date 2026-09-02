@@ -1,4 +1,4 @@
-# Guias do app Export & Vectorization — Tradução PT → 6 idiomas
+# Guias do app MapBiomas Export & Publish — Tradução PT → 6 idiomas
 
 Este documento é um **template de tradução**: o conteúdo em Português (abaixo) é a
 fonte e o objetivo é gerar as guias em **ES, EN, ID, FR, NL, ZH** no formato de
@@ -40,14 +40,16 @@ saída") para uma IA especialista em idiomas.
 ```
 name: "Português"
 tab_title: "Guia: Português"
-welcome_note: "Bem-vindo! Esta guia em português explica o aplicativo Export &
-  Vectorization do Monitor do Fogo MapBiomas: como navegar (país → tema → coleção →
-  produto), descobrir as unidades, processar cada etapa e publicar os mapas. As abas
-  acima mostram a interface; use esta guia sempre que precisar."
-what: "O aplicativo exporta os mapas de área queimada/incêndio do MapBiomas Fire:
-  do Earth Engine (GEE) para o GCS, monta mosaicos (COG) por unidade (banda ou imagem),
-  vetoriza quando aplicável, publica no Earth Engine e no bucket público e remove os
-  arquivos temporários."
+welcome_note: "Bem-vindo! Esta guia em português explica o aplicativo MapBiomas
+  Export & Publish (catálogo de dados multipaís e multitemático): como navegar
+  (país → tema → coleção → produto), descobrir as unidades, processar cada etapa
+  e publicar os mapas. As abas acima mostram a interface; use esta guia sempre
+  que precisar."
+what: "O aplicativo exporta dados do catálogo MapBiomas (fogo, uso e cobertura,
+  etc.): do Earth Engine (GEE) para o GCS, monta mosaicos (COG) por unidade
+  (banda ou imagem), publica no bucket público e remove os arquivos temporários.
+  A vetorização é uma análise opcional para produtos vetorizáveis (ex.:
+  annual_burned)."
 howto_title: "Como usar"
 steps:
   1. "<b>Navegue</b> pelas abas: país → tema → coleção → produto. Com muitos
