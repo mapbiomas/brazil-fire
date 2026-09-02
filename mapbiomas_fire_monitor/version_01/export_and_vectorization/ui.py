@@ -28,9 +28,8 @@ _STATUS_CSS = widgets.HTML("""<style>
 .mfm-btn-unloaded {
     animation: mfm-pulse-outline 1.5s infinite;
 }
-.mfm-tab-btn { border:1px solid #ced4da !important; }
+.mfm-tab-btn { border:1px solid #ced4da !important; white-space: nowrap !important; height: auto !important; }
 .mfm-tab-active { box-shadow: inset 0 0 0 2px #263238 !important; }
-.mfm-tab-btn { white-space: normal !important; height: auto !important; max-width: 220px; }
 </style>""")
 
 class ProgressLoader:
@@ -1811,8 +1810,9 @@ class CollectionTabs:
         self.theme = theme
         self.log_area = log_area
         self._on_clear_all_cb = on_clear_all
-        colls = [c for c, prods in config.OBJ.get(country, {}).get(theme, {}).items()
-                 if [p for p in prods if p.get("visible", True)]]
+        colls = [c for c in config.sorted_collections(country, theme)
+                 if [p for p in config.OBJ.get(country, {}).get(theme, {}).get(c, [])
+                     if p.get("visible", True)]]
         self.collections = colls
         self._panels = {}
         self._placeholders = [widgets.VBox([]) for _ in colls]
@@ -1921,7 +1921,8 @@ class CountryTabs:
     """Abas de pais -> tema -> colecao -> produto -> unidades."""
 
     def __init__(self, countries, log_area=None, on_clear_all=None):
-        self.countries = list(countries)
+        # brasil primeiro, depois alfabetico (independente da ordem recebida).
+        self.countries = sorted(countries, key=lambda c: (c != "brasil", c))
         self.log_area = log_area
         self._on_clear_all_cb = on_clear_all
         if not self.countries:
@@ -2277,7 +2278,7 @@ class FireMonitorApp:
 
 
 def run_ui(countries=None):
-    countries = countries or config.COUNTRIES_AVAILABLE
+    countries = countries or config.sorted_countries()
     app = FireMonitorApp(countries)
     app.display()
     app.interface._activate(0)

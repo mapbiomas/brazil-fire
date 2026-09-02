@@ -30,6 +30,8 @@ Vetores:     pasta irma do raster vetorizado, com sufixo _vectors (GCS e GEE);
 Assets GEE:  {assetid} (origem)
 """
 
+import re
+
 BUCKET = "mapbiomas-fire"
 PUBLIC_BUCKET = "mapbiomas-public"
 BUCKET_PATH = "initiatives"
@@ -1080,6 +1082,33 @@ def flag(code):
 def list_countries():
     return [c for c, themes in OBJ.items() if any(
         any(prods for prods in collections.values()) for collections in themes.values())]
+
+
+def sorted_countries():
+    """Paises na ordem das abas: `brasil` primeiro, depois alfabetico."""
+    return sorted(OBJ, key=lambda c: (c != "brasil", c))
+
+
+def _collection_sort_key(coll):
+    """Chave de ordenacao de colecoes (ascendente): grupo monitor (0) -> grupo
+    colecoes (1) descrescente por versao -> grupo beta (2)."""
+    if coll == "monitor":
+        return (0, 0, 0)
+    if coll == "beta":
+        return (2, 0, 0)
+    m = re.match(r"^collection_(\d+)(?:_(\d+))?$", coll or "")
+    if m:
+        major = int(m.group(1))
+        minor = int(m.group(2) or 0)
+        return (1, -major, -minor)
+    return (1, 0, 0)
+
+
+def sorted_collections(country, theme=None):
+    """Colecoes de um tema ordenadas: monitor -> descrescente -> beta."""
+    theme = theme or THEME
+    colls = OBJ.get(country, {}).get(theme, {})
+    return sorted(colls, key=_collection_sort_key)
 
 
 def list_collections(country, theme=None):
