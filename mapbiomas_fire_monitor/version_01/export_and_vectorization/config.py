@@ -310,6 +310,7 @@ OBJ = {
                 _p("brasil", "lulc", "collection11", "deforestation_secondary_vegetation", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_deforestation_secondary_vegetation_v5", "byte"),
                 _p("brasil", "lulc", "collection11", "mining_substances", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_mining_substances_v1", "byte"),
                 _p("brasil", "lulc", "collection11", "pasture_age", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_pasture_age_v1", "byte"),
+                _p("brasil", "lulc", "collection11", "pasture_biomass", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_pasture_biomass_v1", "byte"),
                 _p("brasil", "lulc", "collection11", "pasture_vigor", "projects/mapbiomas-public/assets/brazil/lulc/collection11/mapbiomas_brazil_collection11_pasture_vigor_v1", "byte"),
             ],
             "collection_10": [
