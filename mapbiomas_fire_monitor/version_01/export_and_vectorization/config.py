@@ -971,14 +971,11 @@ OBJ = {
                 _p("argentina", "lulc", "collection2", "integration",
                    "projects/mapbiomas-public/assets/argentina/lulc/collection2/mapbiomas_argentina_collection2_integration_v3", "byte"),
             ],
-        },
-        "lulc": {
             "collection_03": [
                 _p("argentina", "lulc", "collection3", "integration",
                    "projects/mapbiomas-argentina/assets/LAND-COVER/COLLECTION-3/INTEGRATION/mapbiomas_argentina_collection3_pb", "byte"),
             ],
         },
-
     },
     "colombia": {
         "fire": {
