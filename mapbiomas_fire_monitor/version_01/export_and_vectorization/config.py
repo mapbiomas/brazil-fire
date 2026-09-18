@@ -1023,17 +1023,6 @@ OBJ = {
             ],
         },
     },
-    "ecuador": {
-        "lulc": {
-            "collection_03": [
-                _p("ecuador", "lulc", "collection3", "coverage",
-                   "projects/mapbiomas-public/assets/ecuador/lulc/collection3/mapbiomas_ecuador_collection3_coverage_v3", "byte"),
-                _p("ecuador", "lulc", "collection3", "deforestation_secondary_vegetation",
-                   "projects/mapbiomas-public/assets/ecuador/lulc/collection3/mapbiomas_ecuador_collection3_deforestation_secondary_vegetation_v4", "byte"),
-            ],
-        },
-    },
-
     "venezuela": {
         "lulc": {
             "collection_03": [
@@ -1112,7 +1101,6 @@ COUNTRIES_FLAGS = {
     "chile": "🇨🇱",
     "argentina": "🇦🇷",
     "colombia": "🇨🇴",
-    "ecuador": "ec",
     "venezuela": "🇻🇪",
     "ecuador": "🇪🇨",
 }
