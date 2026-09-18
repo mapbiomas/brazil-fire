@@ -1056,6 +1056,40 @@ OBJ = {
             ],
         },
     },
+    "ecuador": {
+        "lulc": {
+            "collection_01": [
+                _p("ecuador", "lulc", "collection1", "integration",
+                   "projects/mapbiomas-public/assets/ecuador/collection1/mapbiomas_ecuador_collection1_integration_v1", "byte"),
+                _p("ecuador", "lulc", "collection1", "transitions",
+                   "projects/mapbiomas-public/assets/ecuador/collection1/mapbiomas_ecuador_collection1_transitions_v1", "byte"),
+                _p("ecuador", "lulc", "collection1", "quality",
+                   "projects/mapbiomas-public/assets/ecuador/collection1/mapbiomas_ecuador_collection1_quality_v1", "byte"),
+            ],
+            "collection_02": [
+                _p("ecuador", "lulc", "collection2", "integration",
+                   "projects/mapbiomas-public/assets/ecuador/collection2/mapbiomas_ecuador_collection2_integration_v1", "byte"),
+                _p("ecuador", "lulc", "collection2", "transitions",
+                   "projects/mapbiomas-public/assets/ecuador/collection2/mapbiomas_ecuador_collection2_transitions_v1", "byte"),
+                _p("ecuador", "lulc", "collection2", "quality",
+                   "projects/mapbiomas-public/assets/ecuador/collection2/mapbiomas_ecuador_collection2_quality_v1", "byte"),
+            ],
+            "collection_03": [
+                _p("ecuador", "lulc", "collection3", "coverage",
+                   "projects/mapbiomas-public/assets/ecuador/lulc/collection3/mapbiomas_ecuador_collection3_coverage_v3", "byte"),
+                _p("ecuador", "lulc", "collection3", "deforestation_secondary_vegetation",
+                   "projects/mapbiomas-public/assets/ecuador/lulc/collection3/mapbiomas_ecuador_collection3_deforestation_secondary_vegetation_v4", "byte"),
+            ],
+        },
+        "water": {
+            "collection_01": [
+                _p("ecuador", "water", "collection1", "annual_water_coverage",
+                   "projects/mapbiomas-public/assets/ecuador/collection1/mapbiomas_ecuador_collection1_water_v1", "byte"),
+                _p("ecuador", "water", "collection1", "frequency",
+                   "projects/mapbiomas-public/assets/ecuador/collection1/mapbiomas_ecuador_collection1_water_frequency_v1", "byte"),
+            ],
+        },
+    },
 }
 
 # --- seletores ativos ---
@@ -1080,6 +1114,7 @@ COUNTRIES_FLAGS = {
     "colombia": "🇨🇴",
     "ecuador": "ec",
     "venezuela": "🇻🇪",
+    "ecuador": "🇪🇨",
 }
 
 # Compat com ui (valida chaves por pais)
@@ -1106,6 +1141,38 @@ def list_countries():
 def sorted_countries():
     """Paises na ordem das abas: `brasil` primeiro, depois alfabetico."""
     return sorted(OBJ, key=lambda c: (c != "brasil", c))
+
+
+def resolve_countries(countries=None, themes=None):
+    """Paises das abas, descobertos do OBJ (fonte de verdade).
+
+    - `countries` None/[]: todos os paises do OBJ (ordem das abas, brasil 1o).
+    - `themes` None/[]: nao filtra; senao so paises com >=1 desses temas visiveis.
+    - Um codigo explicito que nao exista no OBJ levanta ValueError com a
+      recomendacao de registra-lo no config.OBJ.
+    """
+    base = list(countries) if countries else list(OBJ)
+    unknown = [c for c in base if c not in OBJ]
+    if unknown:
+        raise ValueError(
+            f"Pais(es) nao configurado(s) no config.OBJ: {unknown}. "
+            f"Disponiveis: {sorted(OBJ)}. "
+            "Adicione o pais ao OBJ em config.py (fonte de verdade) antes de usa-lo nas abas."
+        )
+    allowed = [t for t in (themes or [])]
+
+    def _has_theme(code):
+        if not allowed:
+            return True
+        return any(
+            t in OBJ[code] and any(
+                any(p.get("visible", True) for p in prods)
+                for prods in OBJ[code][t].values()
+            ) for t in allowed
+        )
+
+    result = [c for c in base if _has_theme(c)]
+    return sorted(result, key=lambda c: (c != "brasil", c))
 
 
 def _collection_sort_key(coll):
@@ -1154,7 +1221,9 @@ def find_product(country, theme, collection, product):
 def set_country(name, verbose=True):
     global COUNTRY, THEME, COLLECTION, PRODUCT
     if name not in OBJ:
-        raise ValueError(f"Country '{name}' not configured. Available: {sorted(OBJ)}")
+        raise ValueError(
+            f"Country '{name}' not configured. Available: {sorted(OBJ)}. "
+            "Adicione o pais ao config.OBJ (config.py) — fonte de verdade.")
     COUNTRY = name
     themes = OBJ[name]
     THEME = next(iter(themes), "fire")

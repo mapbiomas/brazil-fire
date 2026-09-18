@@ -2052,7 +2052,10 @@ class CountryTabs:
             raise ValueError("No countries configured for the tabs.")
         for c in self.countries:
             if c not in config.OBJ:
-                raise ValueError(f"Country '{c}' not in config.OBJ.")
+                raise ValueError(
+                    f"Country '{c}' not in config.OBJ. "
+                    "Adicione-o ao OBJ em config.py (fonte de verdade) ou ajuste "
+                    "COUNTRIES no notebook (config.resolve_countries).")
 
         self._panels = {}
         self._active_code = self.countries[0]

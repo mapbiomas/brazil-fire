@@ -49,7 +49,8 @@ export_and_vectorization/
 1. Abra um dos notebooks no Google Colab pelos badges da secao acima.
 2. Execute a celula 1 para instalar dependencias.
 3. Execute a celula 2 para autenticar no GCP e Google Earth Engine.
-4. Na celula de config, defina `COUNTRIES` (códigos do OBJ, ex.: `["brasil", "indonesia"]`).
+4. Na célula de config, defina `COUNTRIES` e `THEMES`: lista **vazia** = descoberta
+   automática (todos os países/temas do `config.OBJ`); lista preenchida = só os itens listados.
 5. Execute a celula da UI para abrir a navegação.
 6. **Navegue**: país → tema (ex.: `fire`) → coleção (ex.: `monitor`, `collection4`) → **produto**.
    Com muitos produtos, as guias quebram em varias linhas (verde = carregado,
@@ -81,7 +82,9 @@ As celulas de processamento (Export/Mosaico/Vetorizacao/Upload/Publicar) sempre
 atuam no **produto ativo + unidades selecionadas**.
 
 ```python
-COUNTRIES = ["brasil", "indonesia"]   # codigos do OBJ (abas de pais na UI)
+COUNTRIES = []   # [] = descobre todos do OBJ; ou ["brasil", "ecuador"]
+THEMES    = []   # [] = todos os temas; ou ["fire"]
+COUNTRIES = config.resolve_countries(COUNTRIES, themes=THEMES)
 ```
 
 ## Configuracao (OBJ)
@@ -345,8 +348,9 @@ escrita naquele projeto para a credencial do Colab.
 > **Migracao**: pastas antigas (`{product}_vectors_v01` no GEE; nome curto do
 > produto nas colecoes do GCS) viraram legado — o Sync nao as enxerga.
 
-Paises suportados: `brazil`, `indonesia`. Novos paises entram no dict `COUNTRIES`
-em `config.py`.
+Os paises sao descobertos do `config.OBJ` em `config.py` (fonte de verdade).
+Novos paises entram adicionando um bloco `"pais": { ... }` no `OBJ`; as abas da UI
+passam a mostra-los automaticamente (`config.resolve_countries`).
 
 ## Convencoes de nomes
 
