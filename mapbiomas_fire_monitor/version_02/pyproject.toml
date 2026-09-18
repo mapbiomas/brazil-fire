@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mapbiomas-cog"
+version = "0.1.0"
+description = "Engine de export/resume de COGs multi-iniciativa MapBiomas (version_02)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "MapBiomas Fire" }]
+dependencies = [
+  "earthengine-api>=0.1.390",
+  "gcsfs>=2023.1.0",
+]
+
+[project.optional-dependencies]
+cog = ["rasterio>=1.3", "numpy>=1.24"]
+dev = ["pytest>=7", "ruff>=0.5"]
+
+[project.scripts]
+mapbiomas-cog = "mapbiomas_cog.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,28 @@
+name: mapbiomas-cog CI
+
+on:
+  push:
+    paths:
+      - "mapbiomas_fire_monitor/version_02/**"
+      - ".github/workflows/mapbiomas-cog-ci.yml"
+  pull_request:
+    paths:
+      - "mapbiomas_fire_monitor/version_02/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mapbiomas_fire_monitor/version_02
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pytest
+        run: python -m pip install --upgrade pip pytest
+      - name: Run offline tests
+        run: pytest -q
+        env:
+          PYTHONPATH: src
