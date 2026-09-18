@@ -1078,6 +1078,7 @@ COUNTRIES_FLAGS = {
     "chile": "🇨🇱",
     "argentina": "🇦🇷",
     "colombia": "🇨🇴",
+    "ecuador": "ec"
     "venezuela": "🇻🇪",
 }
 
