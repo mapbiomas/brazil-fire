@@ -7,6 +7,14 @@ um engine tiled/resumivel com estado manifest-first, mantendo a mesma
 experiencia no Colab (mesma autenticacao) e o notebook `all_initiatives` como
 alvo unico desta v02.
 
+## Abrir no Google Colab
+
+[![Open In Colab — All Initiatives](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/mapbiomas_fire_monitor/version_02/notebooks/mapbiomas_directlink_all_initiatives.ipynb)
+
+Rode as células em ordem: **1** clone+install → **2** auth → **3** config → **4** UI.
+A célula 1 é idempotente e usa `sys.path` como fallback, então `import mapbiomas_cog`
+funciona mesmo se o `pip install -e` falhar.
+
 ## Status: M1–M7
 
 | # | Entregue |
