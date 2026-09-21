@@ -1045,7 +1045,7 @@ OBJ = {
             ],
         },
     },
-    "ecuador": {
+"ecuador": {
         "lulc": {
             "collection_01": [
                 _p("ecuador", "lulc", "collection1", "integration",
