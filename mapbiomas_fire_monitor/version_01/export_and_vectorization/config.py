@@ -1071,12 +1071,6 @@ OBJ = {
             ],
         },
         "water": {
-            "collection_01": [
-                _p("ecuador", "water", "collection1", "annual_water_coverage",
-                   "projects/mapbiomas-public/assets/ecuador/collection1/mapbiomas_ecuador_collection1_water_v1", "byte"),
-                _p("ecuador", "water", "collection1", "frequency",
-                   "projects/mapbiomas-public/assets/ecuador/collection1/mapbiomas_ecuador_collection1_water_frequency_v1", "byte"),
-            ],
             "collection_04": [
                 _p("ecuador", "water", "collection4", "annual_water_coverage",
                    "projects/mapbiomas-public/assets/ecuador/water/collection4/mapbiomas_ecuador_collection4_water_surface_v1", "byte"),
