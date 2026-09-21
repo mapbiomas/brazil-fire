@@ -1078,6 +1078,18 @@ OBJ = {
                    "projects/mapbiomas-public/assets/ecuador/collection1/mapbiomas_ecuador_collection1_water_frequency_v1", "byte"),
             ],
         },
+        "water": {
+            "collection_04": [
+                _p("ecuador", "water", "collection1", "annual_water_coverage",
+                   "projects/mapbiomas-public/assets/ecuador/water/collection4/mapbiomas_ecuador_collection4_water_surface_v1", "byte"),
+                _p("ecuador", "water", "collection1", "water_bodies",
+                   "projects/mapbiomas-public/assets/ecuador/water/collection4/mapbiomas_ecuador_collection4_water_bodies_v1", "byte"),
+                _p("ecuador", "water", "collection1", "nieve",
+                   "projects/mapbiomas-public/assets/ecuador/water/collection4/mapbiomas_ecuador_collection4_nieve_v1", "byte"),
+                _p("ecuador", "water", "collection1", "glaciar",
+                   "projects/mapbiomas-public/assets/ecuador/water/collection4/mapbiomas_ecuador_collection4_glaciar_v1", "byte"),
+            ],
+        },
     },
 }
 
