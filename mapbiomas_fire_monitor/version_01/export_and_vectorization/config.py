@@ -856,6 +856,13 @@ OBJ = {
                    "projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_year_last_fire_v1", "int16"),
             ],
         },
+        "lulc": {
+            "collection_04": [
+                _p("bolivia", "lulc", "collection4", "coverage",
+                   "projects/mapbiomas-public/assets/bolivia/lulc/collection4/mapbiomas_boliva_collection4_coverage_v1",
+                   "byte"),
+            ],
+        },
     },
     "peru": {
         "fire": {
