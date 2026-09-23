@@ -864,7 +864,7 @@ OBJ = {
         "fire": {
             "collection_01": [
                 _p("peru", "fire", "collection1", "annual_burned",
-                   "projects/mapbiomas-public/assets/peru/fire/collection1/mapbiomas_peru_fire_collection1_annual_burned_v1", "byte"),
+                   "projects/mapbiomas-public/assets/peru/fire/collection1/mapbiomas_peru_fire_collection1_annual_burned_v1", "byte", vectorize=True),
                 _p("peru", "fire", "collection1", "annual_burned_coverage",
                    "projects/mapbiomas-public/assets/peru/fire/collection1/mapbiomas_peru_fire_collection1_annual_burned_coverage_v1", "byte"),
                 _p("peru", "fire", "collection1", "annual_burned_scar_size_range",
@@ -886,7 +886,7 @@ OBJ = {
             ],
             "collection_2": [
                 _p("peru", "fire", "collection2", "annual_burned",
-                   "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_v1", "byte"),
+                   "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_v1", "byte", vectorize=True),
                 _p("peru", "fire", "collection2", "annual_burned_coverage",
                    "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_coverage_v1", "byte"),
                _p("peru", "fire", "collection2", "annual_burned_scar_size_range",
@@ -912,7 +912,7 @@ OBJ = {
         "fire": {
             "collection_01": [
                 _p("paraguay", "fire", "collection1", "annual_burned",
-                   "projects/mapbiomas-public/assets/paraguay/fire/collection1/mapbiomas_paraguay_fire_collection1_annual_burned_v1", "byte"),
+                   "projects/mapbiomas-public/assets/paraguay/fire/collection1/mapbiomas_paraguay_fire_collection1_annual_burned_v1", "byte", vectorize=True),
                 _p("paraguay", "fire", "collection1", "annual_burned_coverage",
                    "projects/mapbiomas-public/assets/paraguay/fire/collection1/mapbiomas_paraguay_fire_collection1_annual_burned_coverage_v1", "byte"),
                 _p("paraguay", "fire", "collection1", "monthly_burned",
