@@ -945,6 +945,14 @@ OBJ = {
                    "projects/mapbiomas-public/assets/paraguay/fire/collection1/mapbiomas_paraguay_fire_collection1_frequency_burned_coverage_v1", "int16"),
             ],
         },
+        "water": {
+            "collection_01": [
+                _p("paraguay", "water", "collection1", "water",
+                   "projects/mapbiomas-public/assets/paraguay/water/collection1/mapbiomas_paraguay_collection1_water-annual-v1", "byte"),
+                _p("paraguay", "water", "collection1", "water_monthly",
+                   "projects/mapbiomas-public/assets/paraguay/water/collection1/mapbiomas_paraguay_collection1_water-monthly-v1", "byte"),
+            ],
+        },
     },
     "chile": {
         "fire": {
