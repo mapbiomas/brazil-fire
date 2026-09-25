@@ -859,6 +859,22 @@ OBJ = {
                    "byte"),
             ],
         },
+        "water": {
+            "collection_04": [
+                _p("bolivia", "water", "collection4", "water",
+                   "projects/mapbiomas-bolivia/assets/WATER/COLLECTION-4/INTEGRATION/bolivia-col4-water-annual-v1", "byte"),
+                _p("bolivia", "water", "collection4", "water_bodies",
+                   "projects/mapbiomas-bolivia/assets/WATER/COLLECTION-4/INTEGRATION/bolivia-col4-water-bodies-v1", "byte"),
+                _p("bolivia", "water", "collection4", "water_monthly",
+                   "projects/mapbiomas-bolivia/assets/WATER/COLLECTION-4/INTEGRATION/bolivia-col4-water-monthly-v1", "byte"),
+                _p("bolivia", "water", "collection4", "glacier",
+                   "projects/mapbiomas-bolivia/assets/WATER/COLLECTION-4/INTEGRATION/bolivia-col4-glacier-v1", "byte"),
+                _p("bolivia", "water", "collection4", "snow",
+                   "projects/mapbiomas-bolivia/assets/WATER/COLLECTION-4/INTEGRATION/bolivia-col4-snow-v1", "byte"),
+                _p("bolivia", "water", "collection4", "glaciar_snow",
+                   "projects/mapbiomas-bolivia/assets/WATER/COLLECTION-4/INTEGRATION/bolivia-col4-glacier-and-snow-v1", "byte"),
+            ],
+        },
     },
     "peru": {
         "fire": {
