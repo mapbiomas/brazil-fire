@@ -1017,6 +1017,8 @@ OBJ = {
             "collection_03": [
                 _p("argentina", "lulc", "collection3", "integration",
                    "projects/mapbiomas-argentina/assets/LAND-COVER/COLLECTION-3/INTEGRATION/mapbiomas_argentina_collection3_pb", "byte"),
+                _p("argentina", "lulc", "collection3", "deforestation_secondary_vegetation",
+                   "projects/mapbiomas-argentina/assets/SECONDARY-VEGETATION-DEFORESTATION/COLLECTION-3/loss-natural-vegetation-secondary-vegetation-ft-1", "byte"),
             ],
         },
     },
