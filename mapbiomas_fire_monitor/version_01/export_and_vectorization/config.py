@@ -884,7 +884,7 @@ OBJ = {
     },
     "peru": {
         "fire": {
-            "collection_01": [
+            "collection_1": [
                 _p("peru", "fire", "collection1", "annual_burned",
                    "projects/mapbiomas-public/assets/peru/fire/collection1/mapbiomas_peru_fire_collection1_annual_burned_v1", "byte", vectorize=True),
                 _p("peru", "fire", "collection1", "annual_burned_coverage",
@@ -932,7 +932,7 @@ OBJ = {
     },
     "paraguay": {
         "fire": {
-            "collection_01": [
+            "collection_1": [
                 _p("paraguay", "fire", "collection1", "annual_burned",
                    "projects/mapbiomas-public/assets/paraguay/fire/collection1/mapbiomas_paraguay_fire_collection1_annual_burned_v1", "byte", vectorize=True),
                 _p("paraguay", "fire", "collection1", "annual_burned_coverage",
