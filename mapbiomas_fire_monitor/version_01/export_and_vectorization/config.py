@@ -884,6 +884,11 @@ OBJ = {
     },
     "peru": {
         "fire": {
+            "monitor": [
+                _p("peru", "fire", "monitor", "monthly_burned",
+                   "projects/mapbiomas-public/assets/peru/fire/monitor/mapbiomas_fire_monthly_burned_v1",
+                   "byte", scale=10),
+            ],
             "collection_1": [
                 _p("peru", "fire", "collection1", "annual_burned",
                    "projects/mapbiomas-public/assets/peru/fire/collection1/mapbiomas_peru_fire_collection1_annual_burned_v1", "byte", vectorize=True),
