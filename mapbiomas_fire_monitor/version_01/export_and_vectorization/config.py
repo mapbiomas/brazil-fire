@@ -796,7 +796,7 @@ OBJ = {
             "monitor": [
                 _p("indonesia", "fire", "monitor", "monthly_burned",
                    "projects/mapbiomas-public/assets/indonesia/fire/monitor/mapbiomas_fire_monthly_burned_v1",
-                   "byte", scale=10),
+                   "byte", scale=10,vectorize=True),
             ],
             "collection_01": [
                 _p("indonesia", "fire", "collection1", "annual_burned",
@@ -887,7 +887,7 @@ OBJ = {
             "monitor": [
                 _p("peru", "fire", "monitor", "monthly_burned",
                    "projects/mapbiomas-public/assets/peru/fire/monitor/mapbiomas_fire_monthly_burned_v1",
-                   "byte", scale=10),
+                   "byte", scale=10,vectorize=True),
             ],
             "collection_1": [
                 _p("peru", "fire", "collection1", "annual_burned",
