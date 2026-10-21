@@ -20,56 +20,82 @@
 
 Full URLs are also available in [`COLAB_LINKS.csv`](./COLAB_LINKS.csv).
 
+## Overview
 
-Esta es la implementación técnica completa del ecosistema MapBiomas Fuego para la gestión automatizada y el procesamiento de imágenes en Perú.
+This folder contains the classification engine of the MapBiomas Fire Catalog.
+It started as the Peru monitor (Sentinel-2 monthly) and now runs any campaign
+declared in `campaigns/`, with the prediction target declared in `targets/`.
 
-A diferencia del planteamiento teórico, **todos los módulos (del M1 al M7) ya han sido implementados en el código base**, contando con su propia arquitectura distribuida, soporte para Deep Learning (TensorFlow) y herramientas nativas de geoprocesamiento (GDAL, Rasterio).
+The monitor flow (`MONITOR_01`) is validated. The annual collection flow
+(`COLLECTION_02`, Landsat) is in final validation. Post-processing, statistics
+and promotion are handled by the GEE scripts (M7-M9).
 
-## Flujo de Trabajo y Etapas del Pipeline (M1 a M7)
+## Pipeline (M0-M9)
 
-El modelo asume un procesamiento híbrido: la nube (Google Earth Engine y Google Cloud Storage) se encarga del cómputo masivo inicial y el almacenamiento, y el procesamiento local se encarga del entrenamiento neuronal, inferencia y consolidación geográfica pesada.
+| Module | Responsibility | Code |
+|---|---|---|
+| **M0** | Campaign/target resolution, authentication, paths | `M0_auth_config.py`, `M_campaigns.py`, `M_targets.py` |
+| **M1** | Export quality mosaics from GEE to GCS chunks | `M1_export_logic.py`, `M1_export_ui.py` |
+| **M2** | Assemble chunks into COGs and sync the cache | `M2_mosaic_logic.py`, `M2_mosaic_ui.py` |
+| **M3** | Collect training samples in GEE | `M3_toolkit.js`, `M3_sample_ui.py` |
+| **M4** | Train the DNN, evaluate and save weights/metrics | `M4_algorithms_dnn.py`, `M4_data_extractor.py`, `M4_ui.py` |
+| **M5** | Tile inference (probability + auxiliary band) | `M5_inference.py`, `M5_classifier.py`, `M5_classifier_ui.py` |
+| **M6** | Regional mosaic, consolidated stats, GEE upload | `M6_publisher.py`, `M6_ui.py` |
+| **M7** | GEE curation: ft00 selection/merge, ft01 LULC + isolated pixels, ft02 temporal memory | `src/gee/M7_*.js` |
+| **M8** | GEE statistics per stage and LULC | `src/gee/M8_statistics.js` |
+| **M9** | GEE promotion UI (pre-official) | `src/gee/M9_00_promote_ui.js` |
 
-1. **[M1] Exportación de Mosaicos** [✅ FINALIZADO]
-   Generación de los mosaicos crudos (Landsat/Sentinel/MODIS/HLS/Planet) en Earth Engine y exportación masiva hacia GCS.
-   *Rutas:* GEE -> `projects/mapbiomas-peru/assets/FIRE/MONITOR/VERSION_01/MOSAICS_RAW` | GCS -> `mapbiomas-fire/sudamerica/peru/monitor/mosaics/raw`
+> **M6 vs M7:** M6 publishes the regional product (mosaic + statistics + GEE
+> upload). LULC masking, isolated-pixel removal and the temporal filter live in
+> M7 (`ft01`/`ft02`). The old "curator" role is now the M9 promotion UI.
 
-2. **[M2] Descarga y Mosaico Local** [✅ FINALIZADO]
-   Sincronización desde GCS, unión de bandas (`gdalbuildvrt` / `gdal_translate`) para generar Cloud Optimized GeoTIFFs (COGs) y re-carga a Earth Engine.
-   *Rutas:* GEE -> `projects/mapbiomas-peru/assets/FIRE/MONITOR/VERSION_01/MOSAICS_COG`
+## Classification output
 
-3. **[M3] Gestor de Muestras (`M3_toolkit.js`)** [✅ FINALIZADO]
-   Dashboard integrado en GEE Code Editor para la recolección de firmas espectrales interactivas (Fuego / No Fuego). Incluye controles de dibujo y resumen en tiempo real.
-   *Rutas:* GEE -> `projects/mapbiomas-peru/assets/FIRE/MONITOR/VERSION_01/LIBRARY_SAMPLES` | GCS -> `mapbiomas-fire/sudamerica/peru/monitor/library_samples`
+- Each tile stores **probability (int16, 0-1000)** and an auxiliary band
+  (`dayOfYear` for `burned_area`).
+- Product convention: any positive probability counts as burned
+  (`probability > 0`), matching the GEE filters. Model evaluation in M4 still
+  uses 0.5, because that is a model-quality metric, not the product threshold.
+- Only `burned_area` is enabled today. Other targets require a profile in
+  `targets/` and are rejected until implemented.
 
-4. **[M4] Entrenador del Modelo** [🚧 EN DESARROLLO]
-   Despliegue de Red Neuronal Profunda (DNN) mediante TensorFlow. Toma las muestras del M3, gestiona el hold-out, entrena localmente y exporta los pesos (weights) a GCS.
+## Storage layout
 
-5. **[M5] Clasificador** [🚧 EN DESARROLLO]
-   Módulo de Inferencia. Recupera los pesos desde GCS, fragmenta la imagen (tiles/grids) para evitar saturación de RAM, corre las matrices sobre la DNN y escribe el resultado *dayOfYear* (día juliano).
+```
+GCS images:      {gcs_root}/LIBRARY_IMAGES/{SENSOR}/{PERIODICITY}/{MOSAIC}/{period}/COG/
+GCS campaign:    {gcs_root}/{CAMPAIGN}/LIBRARY_MODELS
+                 {gcs_root}/{CAMPAIGN}/LIBRARY_SAMPLES
+                 {gcs_root}/{CAMPAIGN}/LIBRARY_CLASSIFICATIONS
+GEE:             {gee_root}/{CAMPAIGN}/...
+```
 
-6. **[M6] Publicador y Filtros LULC** [⏳ PENDIENTE]
-   Aplica filtros morfológicos y cruza clasificaciones contra máscaras MapBiomas LULC para excluir agua, áreas urbanas, etc. Inyecta metadatos en GEE como *ImageCollection*.
+Annual assets use `ANNUALLY` in GCS and the legacy `YEARLY` folder in GEE.
+The old `.../FIRE/MONITOR/VERSION_01/...` paths are no longer used.
 
-7. **[M7] Curador de Colecciones** [⏳ PENDIENTE]
-   Tablero de revisión para comparar versiones de modelos y filtros, determinando la versión "ganadora" que formará la colección oficial.
+## Campaigns and targets
 
-## Requisitos de Entorno
+```python
+from M_campaigns import set_campaign
+set_campaign("brazil.monitor_01", target_id="burned_area")
+```
 
-Debido a la magnitud del pipeline de IA:
+Campaigns are declared in `campaigns/*.json` and targets in `targets/*.json`.
+The catalog covers seven countries; every annual campaign uses **Collection 02**.
+
+## Environment
+
 ```bash
 conda env create -f environment.yml
 conda activate fire_monitor
 ```
-Es altamente estricto asegurar:
-- Tener **TensorFlow 1.x / `tensorflow.compat.v1`** disponible.
-- **`rasterio` y `scipy`** deben estar funcionales (para filtros espaciales como `sieve` y morfológicos).
-- Presencia nativa de **GDAL** instalado.
 
-## Demandas y Tareas Pendientes (Issues / TODO)
+- M4 uses TensorFlow `compat.v1`; M5 inference runs in NumPy (no TensorFlow).
+- M2 needs GDAL/rasterio; M1/M3 need `earthengine-api`; all stages use `gcsfs`.
 
-Al haber verificado el despliegue del software y sus clases (Python Scripts), listamos las optimizaciones o deudas técnicas a subsanar:
+## Status and next steps
 
-- [x] **Consolidación M1 a M3**: Interfaz de exportación (M1), montador de COGs (M2) y toolkit de muestras (M3) operativos y con rutas estandarizadas bajo `VERSION_01`.
-- [ ] **Desarrollo de Notebooks y UIs (M4-M7)**: Integrar las clases lógicas de M4 y M5 en Jupyter Notebooks limpios y estructurados.
-- [ ] **Validación TensorFlow (M4)**: Certificar el Entrenador DNN desarrollado usando las cuencas y ecorregiones peruanas. Si existen disonancias en RAM por TF1, evaluar upgrade a TF2/Keras.
-- [ ] **Prueba End-to-End (M4-M5)**: Entrenar un modelo basado en las muestras (`LIBRARY_SAMPLES`) y aplicar la inferencia para validar el mapeo de *dayOfYear*.
+- `MONITOR_01` (Sentinel-2 monthly): validated.
+- `COLLECTION_02` (Landsat annual): final end-to-end validation.
+- M7-M9: current GEE curation/statistics/promotion flow.
+- Next: finish the collection validation, add future target profiles, and
+  deprecate `version_00`/`version_01` after a public notice.
