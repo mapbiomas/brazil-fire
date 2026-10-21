@@ -1,8 +1,11 @@
-# MapBiomas Fire Monitor - Version 01 (Perú)
+# MapBiomas Fire Monitor - Version 04 (development)
 
 > **Catalog working copy (version_04).** This pipeline is the engine behind the
 > campaign/target catalog. See [`../README.md`](../README.md) for the 7-country
-> registry. `../version_03/` is the frozen snapshot; do not edit it.
+> registry. `../version_03/` is the stable baseline; do not edit it.
+>
+> Colab links: [`COLAB_LINKS.csv`](./COLAB_LINKS.csv) /
+> [`COLAB_LINKS.txt`](./COLAB_LINKS.txt).
 
 Esta es la implementación técnica completa del ecosistema MapBiomas Fuego para la gestión automatizada y el procesamiento de imágenes en Perú.
 

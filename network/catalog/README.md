@@ -18,8 +18,8 @@ by the export/vectorization pipeline stay exactly the same.
 | `version_00` | Collection 1 legacy (moved from `network/version_01`) | Kept for compatibility; removal planned |
 | `version_01` | Collection 2 active (moved from `network/version_02`) | Kept for compatibility; removal planned |
 | `version_02` | reserved | — |
-| `version_03` | frozen snapshot of the Peru monitor (`peru-fire@58897ca`) | Reference only |
-| `version_04` | campaign/target catalog | Active development |
+| `version_03` | frozen snapshot of the Peru monitor (`peru-fire@58897ca`) | Stable baseline (do not edit) |
+| `version_04` | campaign/target catalog | Development (current) |
 
 ## Layout
 
@@ -29,16 +29,17 @@ network/catalog/
 ├── version_00/     # Collection 1 (legacy, compatibility)
 ├── version_01/     # Collection 2 (active, compatibility)
 ├── version_02/     # reserved
-├── version_03/     # Peru monitor baseline (frozen)
-└── version_04/     # product shipped in this repository
+├── version_03/     # stable baseline (frozen)
+└── version_04/     # development (catalog product)
     ├── campaigns/  # one JSON per campaign + index.json
     ├── targets/    # one JSON per target (only burned_area enabled)
     ├── src/core/   # M_campaigns.py, M_targets.py, M_catalog.py + pipeline
-    └── notebooks/  # one thin notebook per country/campaign
+    ├── notebooks/  # one thin notebook per country/campaign
+    └── COLAB_LINKS.csv|txt  # Colab links for the 14 notebooks
 ```
 
-`.agents/` is our development workspace and is not shipped. `version_03` is a
-frozen baseline; `version_04` is the editable product.
+`.agents/` is our development workspace and is not shipped. `version_03` is the
+**stable baseline**; `version_04` is the **active development copy**.
 
 ## Campaigns (7 countries)
 
@@ -65,6 +66,12 @@ set_campaign("brazil.monitor_01", target_id="burned_area")
 The notebooks under `version_04/notebooks/` are thin entry points: they clone
 this repository, call `set_campaign(...)`, authenticate, and run the existing
 M1-M6 interfaces.
+
+## Colab links
+
+The 14 campaign notebooks are listed in
+[`version_04/COLAB_LINKS.csv`](./version_04/COLAB_LINKS.csv) and
+[`version_04/COLAB_LINKS.txt`](./version_04/COLAB_LINKS.txt).
 
 ## Adding a campaign or target
 

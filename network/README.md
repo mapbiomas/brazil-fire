@@ -26,13 +26,14 @@ notice.** New work should target `catalog/version_04/`.
 
 - **Quick Start via Colab**: The [`mapbiomas_fire_classification_for_collab.ipynb`](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/version_01/classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb) notebook inside `catalog/version_01/classification_algorithms/` is the entry point for the Collection 2 scripts.
 
-### [catalog/version_03/](./catalog/version_03/) (Baseline)
-Frozen snapshot of the Peru monitor pipeline (`peru-fire@58897ca`). Reference
-only; do not edit.
+### [catalog/version_03/](./catalog/version_03/) (Baseline, stable)
+Stable baseline: frozen snapshot of the Peru monitor pipeline
+(`peru-fire@58897ca`). Do not edit; development happens in `version_04`.
 
-### [catalog/version_04/](./catalog/version_04/) (Catalog)
+### [catalog/version_04/](./catalog/version_04/) (Catalog, development)
 Campaign/target catalog under active development: 7 countries, `MONITOR_01`
-(monthly) and annual collections. See [`catalog/README.md`](./catalog/README.md).
+(monthly) and annual collections. See [`catalog/README.md`](./catalog/README.md)
+and [`version_04/COLAB_LINKS.csv`](./catalog/version_04/COLAB_LINKS.csv).
 
 > `version_02` is reserved.
 

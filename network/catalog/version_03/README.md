@@ -1,4 +1,4 @@
-# MapBiomas Fire Monitor - Version 01 (Perú)
+# MapBiomas Fire Monitor - Version 03 (stable baseline)
 
 Esta es la implementación técnica completa del ecosistema MapBiomas Fuego para la gestión automatizada y el procesamiento de imágenes en Perú.
 
