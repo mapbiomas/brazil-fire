@@ -26,6 +26,12 @@ mapbiomas_fire_monitor/version_01/scratch/
 # Catalog: internal worktree, never shipped
 network/catalog/.agents/
 
+# Catalog runtime caches (local, regenerated)
+network/catalog/**/src/core/library.json
+network/catalog/**/src/core/campaign.json
+network/catalog/**/src/core/state.json
+network/catalog/**/src/core/m4_ranking_cache.json
+
 # Catalog cache — "memoria" versionada das units descobertas (catalog.py).
 # Atualize manualmente: baixe pelo botao na UI e suba no GitHub quando novos
 # dados forem adicionados ao config.py. O arquivo e versionado (nao ignorado).

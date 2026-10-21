@@ -164,7 +164,8 @@ def campaign_paths(campaign):
         'models': f"{base}/LIBRARY_MODELS",
         'samples': f"{base}/LIBRARY_SAMPLES",
         'classifications': f"{base}/LIBRARY_CLASSIFICATIONS",
-        'cache': f"{campaign.gcs_root}/.CACHE",
+        'library_cache': f"{campaign.gcs_root}/LIBRARY_IMAGES/.CACHE",
+        'cache': f"{campaign.gcs_root}/{campaign.campaign}/.CACHE",
     }
 
 

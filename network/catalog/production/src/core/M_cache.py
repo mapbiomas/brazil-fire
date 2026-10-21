@@ -14,124 +14,213 @@ from M0_auth_config import CONFIG, _get_fs
 from M_periods import ENABLED_PERIODICITIES, FOLDER_TO_PERIODICITY, PERIODS, parse_period, period_state_key
 
 class CacheManager:
-    CACHE_FILE = "state.json"
+    LIBRARY_CACHE_FILE = "library.json"
+    CAMPAIGN_CACHE_FILE = "campaign.json"
+    LEGACY_CACHE_FILE = "state.json"
+    CACHE_FILE = LEGACY_CACHE_FILE  # backward-compatible alias
     _state = None
     _lock = threading.RLock() # Lock reentrante para evitar race conditions no mesmo kernel
 
     @staticmethod
-    def _scope():
-        """Configuracao a que este cache pertence; evita reutilizar estado de outro pais/campanha."""
+    def _library_scope():
+        """Scope of the shared image library cache (no campaign)."""
         from M0_auth_config import CONFIG
         if not CONFIG:
             return None
         return {
-            '_cache_format_version': 3,
+            '_cache_format_version': 4,
             'country': CONFIG.get('country'),
             'bucket': CONFIG.get('bucket'),
             'gcs_library_images_prefix': CONFIG.get('gcs_library_images_prefix'),
             'gcs_campaigns_prefix': CONFIG.get('gcs_campaigns_prefix'),
             'gee_library_images_prefix': CONFIG.get('gee_library_images_prefix'),
             'gee_campaigns_prefix': CONFIG.get('gee_campaigns_prefix'),
-            'campaign': CONFIG.get('campaign'),
         }
 
     @staticmethod
+    def _campaign_scope():
+        """Scope of the campaign cache (models/samples/classifications)."""
+        from M0_auth_config import CONFIG
+        if not CONFIG:
+            return None
+        return {
+            '_cache_format_version': 4,
+            'country': CONFIG.get('country'),
+            'bucket': CONFIG.get('bucket'),
+            'campaign': CONFIG.get('campaign'),
+            'gcs_campaigns_prefix': CONFIG.get('gcs_campaigns_prefix'),
+        }
+
+    @staticmethod
+    def _scope():
+        """Backward-compatible alias for the library scope."""
+        return CacheManager._library_scope()
+
+    @staticmethod
+    def _local_candidates(filename):
+        return [filename, os.path.join("..", filename), os.path.join("..", "..", filename)]
+
+    @staticmethod
+    def _read_local_cache(filename, scope):
+        for path in CacheManager._local_candidates(filename):
+            if not os.path.exists(path):
+                continue
+            try:
+                with open(path, 'r') as f:
+                    data = json.load(f)
+            except Exception:
+                continue
+            if scope is None or data.get('_cache_scope') == scope:
+                return data
+        return None
+
+    @staticmethod
+    def _read_gcs_cache(gcs_path, scope):
+        try:
+            fs = _get_fs()
+            if not fs.exists(gcs_path):
+                return None
+            with fs.open(gcs_path, 'r') as f:
+                data = json.load(f)
+            if scope is None or data.get('_cache_scope') == scope:
+                return data
+        except Exception:
+            pass
+        return None
+
+    @staticmethod
+    def _write_local_cache(filename, data):
+        try:
+            with open(filename, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            print(f"Warning: Local cache write failed ({filename}): {e}")
+
+    @staticmethod
+    def _apply_library(state, data):
+        for key in ('assets_monthly', 'assets_annually', 'gcs_chunks',
+                    'cogs_monthly', 'cogs_annually'):
+            if key in data:
+                state[key] = data[key]
+        if 'updated_at' in data:
+            state['updated_at'] = data['updated_at']
+
+    @staticmethod
+    def _apply_campaign(state, data):
+        for key in ('trained_models', 'sample_collections', 'classified_groups'):
+            if key in data:
+                state[key] = data[key]
+        if 'updated_at' in data:
+            state['campaign_updated_at'] = data['updated_at']
+
+    @staticmethod
+    def _get_library_gcs_path():
+        cache = (CONFIG.get('gcs_library_cache')
+                 or f"{CONFIG.get('gcs_library_images_prefix')}/LIBRARY_IMAGES/.CACHE")
+        return f"gs://{CONFIG['bucket']}/{cache}/{CacheManager.LIBRARY_CACHE_FILE}"
+
+    @staticmethod
+    def _get_campaign_gcs_path():
+        cache = (CONFIG.get('gcs_campaign_cache')
+                 or f"{CONFIG.get('gcs_campaigns_prefix')}/{CONFIG.get('campaign', '')}/.CACHE")
+        return f"gs://{CONFIG['bucket']}/{cache}/{CacheManager.CAMPAIGN_CACHE_FILE}"
+
+    @staticmethod
+    def _get_legacy_gcs_path():
+        cache = (CONFIG.get('gcs_cache')
+                 or f"{CONFIG.get('gcs_campaigns_prefix')}/.CACHE")
+        return f"gs://{CONFIG['bucket']}/{cache}/{CacheManager.LEGACY_CACHE_FILE}"
+
+    @staticmethod
+    def _get_gcs_path():
+        """Backward-compatible alias for the library cache path."""
+        return CacheManager._get_library_gcs_path()
+
+    @staticmethod
     def clear():
-        """Deleta cache local + GCS e reseta o estado em memória."""
+        """Delete both local and GCS caches and reset memory."""
         with CacheManager._lock:
             CacheManager._state = {}
-            # Local
-            if os.path.exists(CacheManager.CACHE_FILE):
-                try:
-                    os.remove(CacheManager.CACHE_FILE)
-                except Exception as e:
-                    print(f"Error removing local cache: {e}")
-            # GCS
+            for filename in (CacheManager.LIBRARY_CACHE_FILE,
+                             CacheManager.CAMPAIGN_CACHE_FILE,
+                             CacheManager.LEGACY_CACHE_FILE):
+                if os.path.exists(filename):
+                    try:
+                        os.remove(filename)
+                    except Exception as e:
+                        print(f"Error removing local cache {filename}: {e}")
             try:
-                gcs_path = CacheManager._get_gcs_path()
                 from M_gcs import exists, rm
-                if exists(gcs_path):
-                    rm(gcs_path)
+                for path in (CacheManager._get_library_gcs_path(),
+                             CacheManager._get_campaign_gcs_path(),
+                             CacheManager._get_legacy_gcs_path()):
+                    if exists(path):
+                        rm(path)
             except Exception as e:
                 print(f"Error clearing GCS cache: {e}")
 
     @staticmethod
-    def _get_gcs_path():
-        """Retorna path do cache no GCS."""
-        return f"gs://{CONFIG['bucket']}/{CONFIG['gcs_cache']}/{CacheManager.CACHE_FILE}"
-
-    @staticmethod
     def load(force=False):
-        """
-        Carrega cache priorizando o arquivo local para velocidade offline.
-        """
-        scope = CacheManager._scope()
+        """Load library + campaign caches (local first, then GCS)."""
+        library_scope = CacheManager._library_scope()
+        campaign_scope = CacheManager._campaign_scope()
         if CacheManager._state is not None and not force:
-            if CacheManager._state.get('_cache_scope') == scope:
+            if (CacheManager._state.get('_cache_scope') == library_scope
+                    and CacheManager._state.get('_campaign_scope') == campaign_scope):
                 return CacheManager._state
             CacheManager._state = None
-        
+
         with CacheManager._lock:
             CacheManager._state = {
                 "updated_at": None,
-                "country": CONFIG['country'],
-                "_cache_scope": scope,
+                "campaign_updated_at": None,
+                "country": (CONFIG or {}).get('country'),
+                "_cache_scope": library_scope,
+                "_campaign_scope": campaign_scope,
                 "assets_monthly": [],
                 "assets_annually": [],
                 "gcs_chunks": {},
                 "cogs_monthly": [],
                 "cogs_annually": [],
                 "trained_models": [],
-                "sample_collections": []
+                "sample_collections": [],
+                "classified_groups": [],
             }
-            
-            # 1. Tenta carregar do arquivo local PRIMEIRO (Offline instantâneo)
-            # Procura na pasta atual e na pasta pai (caso esteja num subdiretório de notebooks)
-            candidate_paths = [
-                CacheManager.CACHE_FILE,
-                os.path.join("..", CacheManager.CACHE_FILE),
-                os.path.join("..", "..", CacheManager.CACHE_FILE)
-            ]
-            
-            local_found = False
-            for local_path in candidate_paths:
-                if os.path.exists(local_path):
-                    try:
-                        with open(local_path, 'r') as f:
-                            data = json.load(f)
-                            if data.get('_cache_scope') != scope:
-                                continue
-                            CacheManager._state.update(data)
-                            local_found = True
-                            break
-                    except Exception:
-                        continue
-            
-            if local_found:
-                return CacheManager._state
 
-            # 2. Se não houver local, tenta GCS (com timeout agressivo de 1s)
-            try:
-                gcs_path = CacheManager._get_gcs_path()
-                fs = _get_fs()
-                # Tenta um check rápido. Se demorar mais de 1s, vai dar timeout.
-                if fs.exists(gcs_path):
-                    with fs.open(gcs_path, 'r') as f:
-                        data = json.load(f)
-                        if data.get('_cache_scope') == scope:
-                            CacheManager._state.update(data)
-                            # Salva uma cópia local para a próxima vez
-                            try:
-                                with open(CacheManager.CACHE_FILE, 'w') as lf:
-                                    json.dump(data, lf, indent=2)
-                            except Exception:
-                                pass
-                else:
-                    print(f"Cache not found at {gcs_path}.")
-            except Exception as e:
-                # Silencioso no local para evitar poluir a UI
-                pass
-        
+            library_local = CacheManager._read_local_cache(
+                CacheManager.LIBRARY_CACHE_FILE, library_scope)
+            campaign_local = CacheManager._read_local_cache(
+                CacheManager.CAMPAIGN_CACHE_FILE, campaign_scope)
+            if library_local:
+                CacheManager._apply_library(CacheManager._state, library_local)
+            if campaign_local:
+                CacheManager._apply_campaign(CacheManager._state, campaign_local)
+
+            if library_local is None:
+                data = CacheManager._read_gcs_cache(
+                    CacheManager._get_library_gcs_path(), library_scope)
+                if data:
+                    CacheManager._apply_library(CacheManager._state, data)
+                    CacheManager._write_local_cache(
+                        CacheManager.LIBRARY_CACHE_FILE, data)
+            if campaign_local is None:
+                data = CacheManager._read_gcs_cache(
+                    CacheManager._get_campaign_gcs_path(), campaign_scope)
+                if data:
+                    CacheManager._apply_campaign(CacheManager._state, data)
+                    CacheManager._write_local_cache(
+                        CacheManager.CAMPAIGN_CACHE_FILE, data)
+
+            # One-time migration from the old single state.json.
+            if library_local is None and campaign_local is None:
+                legacy = (CacheManager._read_local_cache(
+                              CacheManager.LEGACY_CACHE_FILE, None)
+                          or CacheManager._read_gcs_cache(
+                              CacheManager._get_legacy_gcs_path(), None))
+                if legacy:
+                    CacheManager._apply_library(CacheManager._state, legacy)
+                    CacheManager._apply_campaign(CacheManager._state, legacy)
+                    CacheManager.save(CacheManager._state)
         return CacheManager._state
 
     @staticmethod
@@ -447,39 +536,65 @@ class CacheManager:
 
 
     @staticmethod
-    def save(state=None):
-        """Salva cache no GCS."""
+    def save(state=None, touch=True):
+        """Persist the merged state into the library and campaign caches."""
         from M_gcs import write_json
         with CacheManager._lock:
             try:
-                gcs_path = CacheManager._get_gcs_path()
-                
                 if state is None:
                     state = CacheManager._state
-                
-                state['updated_at'] = datetime.datetime.utcnow().isoformat() + 'Z'
+                now = datetime.datetime.utcnow().isoformat() + 'Z'
+                if touch:
+                    state['updated_at'] = now
+                    state['campaign_updated_at'] = now
+                else:
+                    state.setdefault('updated_at', None)
+                    state.setdefault('campaign_updated_at', now)
                 state['country'] = CONFIG['country']
-                state['_cache_scope'] = CacheManager._scope()
-                
-                # Salva local primeiro para garantir consistência imediata
-                try:
-                    with open(CacheManager.CACHE_FILE, 'w') as lf:
-                        json.dump(state, lf, indent=2)
-                except Exception as e:
-                    print(f"Warning: Local cache write failed: {e}")
-                
-                write_json(gcs_path, state)
-                
+                library_scope = CacheManager._library_scope()
+                campaign_scope = CacheManager._campaign_scope()
+                state['_cache_scope'] = library_scope
+                state['_campaign_scope'] = campaign_scope
+
+                library = {
+                    'updated_at': state.get('updated_at'),
+                    'country': state['country'],
+                    '_cache_scope': library_scope,
+                    '_cache_format_version': 4,
+                    'assets_monthly': state.get('assets_monthly', []),
+                    'assets_annually': state.get('assets_annually', []),
+                    'gcs_chunks': state.get('gcs_chunks', {}),
+                    'cogs_monthly': state.get('cogs_monthly', []),
+                    'cogs_annually': state.get('cogs_annually', []),
+                }
+                campaign = {
+                    'updated_at': state.get('campaign_updated_at'),
+                    'country': state['country'],
+                    '_cache_scope': campaign_scope,
+                    '_cache_format_version': 4,
+                    'trained_models': state.get('trained_models', []),
+                    'sample_collections': state.get('sample_collections', []),
+                    'classified_groups': state.get('classified_groups', []),
+                }
+
                 CacheManager._state = state
+                CacheManager._write_local_cache(
+                    CacheManager.LIBRARY_CACHE_FILE, library)
+                CacheManager._write_local_cache(
+                    CacheManager.CAMPAIGN_CACHE_FILE, campaign)
+                write_json(CacheManager._get_library_gcs_path(), library)
+                write_json(CacheManager._get_campaign_gcs_path(), campaign)
             except Exception as e:
                 # Aviso limpo sem traceback assustador
                 print(f"Warning: Local cache OK (GCS sync pending) - Error: {e}")
 
     @staticmethod
     def get_state():
-        """Retorna estado atual."""
+        """Retorna estado atual (livraria + campanha mesclados)."""
         with CacheManager._lock:
-            if CacheManager._state is None or CacheManager._state.get('_cache_scope') != CacheManager._scope():
+            if (CacheManager._state is None
+                    or CacheManager._state.get('_cache_scope') != CacheManager._library_scope()
+                    or CacheManager._state.get('_campaign_scope') != CacheManager._campaign_scope()):
                 return CacheManager.load(force=True)
             return CacheManager._state
 
@@ -534,15 +649,16 @@ class CacheManager:
 
     @staticmethod
     def mark_stale():
-        """Invalida o carimbo do cache em memoria.
+        """Invalidate the library cache stamp and persist it.
 
-        Usado depois de disparar novos exports: os arquivos so existirao no GCS
-        daqui a pouco, mas o proximo modulo que abrir o cache deve reescanear
-        em vez de confiar no estado antigo.
+        Exports create data asynchronously, so the next module/session must
+        rescan instead of trusting the old state. Only the library is affected;
+        the campaign cache keeps its own timestamp.
         """
         with CacheManager._lock:
             if CacheManager._state:
                 CacheManager._state['updated_at'] = None
+                CacheManager.save(CacheManager._state, touch=False)
 
     @staticmethod
     def build_cache_from_classifications(fs=None, logger=None):

@@ -1,7 +1,9 @@
 """Offline tests for the catalog registry (campaigns x targets)."""
 
+import json
 import os
 import sys
+import tempfile
 import types
 import unittest
 from unittest.mock import patch
@@ -9,8 +11,11 @@ from unittest.mock import patch
 CORE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'core'))
 sys.path.insert(0, CORE)
 
+import M0_auth_config
+import M_cache
 import M_campaigns
 import M_catalog
+import M_gcs
 import M_targets
 
 
@@ -54,6 +59,18 @@ class CampaignRegistryTests(unittest.TestCase):
         self.assertEqual(
             paths['classifications'],
             'sudamerica/brazil/CATALOG_01/MONITOR_01/LIBRARY_CLASSIFICATIONS',
+        )
+
+    def test_cache_paths_are_split(self):
+        campaign = M_campaigns.get_campaign('brazil.monitor_01')
+        paths = M_campaigns.campaign_paths(campaign)
+        self.assertEqual(
+            paths['library_cache'],
+            'sudamerica/brazil/CATALOG_01/LIBRARY_IMAGES/.CACHE',
+        )
+        self.assertEqual(
+            paths['cache'],
+            'sudamerica/brazil/CATALOG_01/MONITOR_01/.CACHE',
         )
 
     def test_unknown_campaign_raises(self):
@@ -125,6 +142,61 @@ class SetCampaignTests(unittest.TestCase):
 
         self.assertEqual(config['campaign_id'], 'brazil.collection_06')
         self.assertEqual(config['target_id'], 'burned_area')
+
+
+class CacheSplitTests(unittest.TestCase):
+    def test_library_and_campaign_caches_are_separate(self):
+        fake_config = {
+            'country': 'brazil',
+            'bucket': 'bucket',
+            'campaign': 'MONITOR_01',
+            'gcs_library_images_prefix': 'sudamerica/brazil/CATALOG_01',
+            'gcs_campaigns_prefix': 'sudamerica/brazil/CATALOG_01',
+            'gee_library_images_prefix': 'projects/mapbiomas-brazil/assets/FIRE/CATALOG_01',
+            'gee_campaigns_prefix': 'projects/mapbiomas-brazil/assets/FIRE/CATALOG_01',
+        }
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmp:
+            os.chdir(tmp)
+            try:
+                with patch.object(M_cache, 'CONFIG', fake_config), \
+                     patch.object(M0_auth_config, 'CONFIG', fake_config), \
+                     patch.object(M_gcs, 'write_json', lambda *a, **k: None):
+                    M_cache.CacheManager.reset()
+                    state = {
+                        'assets_monthly': ['asset_m'],
+                        'assets_annually': ['asset_a'],
+                        'gcs_chunks': {'chunk': ['red']},
+                        'cogs_monthly': ['cog_m'],
+                        'cogs_annually': ['cog_a'],
+                        'trained_models': ['training_001'],
+                        'sample_collections': ['samples_001'],
+                        'classified_groups': [],
+                    }
+                    M_cache.CacheManager.save(state)
+
+                    with open('library.json', encoding='utf-8') as handle:
+                        library = json.load(handle)
+                    with open('campaign.json', encoding='utf-8') as handle:
+                        campaign = json.load(handle)
+
+                    self.assertEqual(library['assets_annually'], ['asset_a'])
+                    self.assertNotIn('trained_models', library)
+                    self.assertEqual(campaign['trained_models'], ['training_001'])
+                    self.assertNotIn('assets_annually', campaign)
+
+                    M_cache.CacheManager.reset()
+                    merged = M_cache.CacheManager.load(force=True)
+                    self.assertEqual(merged['assets_annually'], ['asset_a'])
+                    self.assertEqual(merged['trained_models'], ['training_001'])
+
+                    M_cache.CacheManager.mark_stale()
+                    with open('library.json', encoding='utf-8') as handle:
+                        library = json.load(handle)
+                    self.assertIsNone(library['updated_at'])
+            finally:
+                os.chdir(old_cwd)
+                M_cache.CacheManager.reset()
 
 
 if __name__ == '__main__':

@@ -62,7 +62,9 @@ def _make_config(
 
         # --- GCS paths derivados ---
         'gcs_library_images': f"{gcs_library_images_prefix}/LIBRARY_IMAGES",
-        'gcs_cache':          f"{gcs_campaigns_prefix}/.CACHE",
+        'gcs_library_cache': f"{gcs_library_images_prefix}/LIBRARY_IMAGES/.CACHE",
+        'gcs_campaign_cache': f"{gcs_campaigns_prefix}/{campaign}/.CACHE",
+        'gcs_cache':          f"{gcs_campaigns_prefix}/.CACHE",  # legacy single cache
 
         # --- GEE prefixos ---
         'gee_library_images_prefix': gee_library_images_prefix,
@@ -302,15 +304,7 @@ def set_global_opts(
         try:
             from M_cache import CacheManager
             CacheManager.clear()
-            
-            from M_gcs import exists, rm as gcs_rm
-            cache_file = "state.json"
-            gcs_path = f"gs://{CONFIG['bucket']}/{CONFIG['gcs_cache']}/{cache_file}"
-            if exists(gcs_path):
-                gcs_rm(gcs_path)
-                print(f"GCS cache cleared: {gcs_path}")
-            else:
-                print("GCS cache not found (nothing to clear).")
+            print("Cache cleared (library + campaign).")
         except Exception as e:
             print(f"Warning while clearing cache: {e}")
     
