@@ -1,0 +1,28 @@
+{
+  "id": "ecuador.collection_02",
+  "label": "Ecuador - COLLECTION_02",
+  "country": "ecuador",
+  "source": "collection",
+  "campaign": "COLLECTION_02",
+  "collection": "COLLECTION_02",
+  "sensors": [
+    "landsat"
+  ],
+  "periodicity": "yearly",
+  "mosaic_methods": [
+    "minnbr"
+  ],
+  "catalog": "CATALOG_01",
+  "gcs_root": "sudamerica/ecuador/CATALOG_01",
+  "gee_project": "mapbiomas-ecuador",
+  "gee_root": "projects/mapbiomas-ecuador/assets/FIRE/CATALOG_01",
+  "asset_regions": "projects/mapbiomas-ecuador/assets/FIRE/CATALOG_01/COLLECTION_02/AUXILIARY/regiones_fuego_ecuador_v1",
+  "region_property": "region_nam",
+  "year_start": 2018,
+  "year_end": 2025,
+  "engine": "monitor",
+  "targets": [
+    "burned_area"
+  ],
+  "status": "active"
+}

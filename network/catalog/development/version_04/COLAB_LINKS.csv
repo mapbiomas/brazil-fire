@@ -1,0 +1,15 @@
+﻿pais,campanha,tipo,notebook,colab_url
+Brasil,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_brazil.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/monitor_01_brazil.ipynb
+Brasil,COLLECTION_02,anual (Landsat),collection_02_brazil.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/collection_02_brazil.ipynb
+Bolivia,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_bolivia.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/monitor_01_bolivia.ipynb
+Bolivia,COLLECTION_02,anual (Landsat),collection_02_bolivia.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/collection_02_bolivia.ipynb
+Colombia,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_colombia.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/monitor_01_colombia.ipynb
+Colombia,COLLECTION_02,anual (Landsat),collection_02_colombia.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/collection_02_colombia.ipynb
+Chile,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_chile.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/monitor_01_chile.ipynb
+Chile,COLLECTION_01,anual (Landsat),collection_01_chile.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/collection_01_chile.ipynb
+Ecuador,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_ecuador.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/monitor_01_ecuador.ipynb
+Ecuador,COLLECTION_02,anual (Landsat),collection_02_ecuador.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/collection_02_ecuador.ipynb
+Paraguay,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_paraguay.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/monitor_01_paraguay.ipynb
+Paraguay,COLLECTION_01,anual (Landsat),collection_01_paraguay.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/collection_01_paraguay.ipynb
+Venezuela,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_venezuela.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/monitor_01_venezuela.ipynb
+Venezuela,COLLECTION_02,anual (Landsat),collection_02_venezuela.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/collection_02_venezuela.ipynb

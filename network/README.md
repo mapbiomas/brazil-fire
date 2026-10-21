@@ -10,30 +10,34 @@ The methodology is designed to be replicable across different regions of the con
 
 ## Versions and Directory Structure
 
-The network algorithms now live under [`catalog/`](./catalog/), the single umbrella
-for the classification algorithm versions and the product catalog:
+The network algorithms now live under [`catalog/`](./catalog/), split into
+development versions and a production release:
 
-### [catalog/version_00/](./catalog/version_00/) (Legacy)
+### [catalog/development/version_00/](./catalog/development/version_00/) (Legacy)
 Original scripts and methods used for the first collection (Collection 1). Moved
 from `network/version_01`; kept for historical reference and compatibility.
 **Removal is planned after a public notice.**
 
-### [catalog/version_01/](./catalog/version_01/) (Active)
+### [catalog/development/version_01/](./catalog/development/version_01/) (Active)
 Current standard for the network (Collection 2 onwards): enhanced models,
 automated parameterization, expanded scopes, and multi-country flows. Moved from
 `network/version_02`; kept for compatibility. **Removal is planned after a public
-notice.** New work should target `catalog/version_04/`.
+notice.** New work should target `catalog/development/version_04/`.
 
-- **Quick Start via Colab**: The [`mapbiomas_fire_classification_for_collab.ipynb`](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/version_01/classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb) notebook inside `catalog/version_01/classification_algorithms/` is the entry point for the Collection 2 scripts.
+- **Quick Start via Colab**: The [`mapbiomas_fire_classification_for_collab.ipynb`](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_01/classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb) notebook inside `catalog/development/version_01/classification_algorithms/` is the entry point for the Collection 2 scripts.
 
-### [catalog/version_03/](./catalog/version_03/) (Baseline, stable)
-Stable baseline: frozen snapshot of the Peru monitor pipeline
-(`peru-fire@58897ca`). Do not edit; development happens in `version_04`.
+### [catalog/development/version_03/](./catalog/development/version_03/) (Stable reference)
+Stable reference for production; mirrors `version_04` at release time. Do not
+edit directly.
 
-### [catalog/version_04/](./catalog/version_04/) (Catalog, development)
+### [catalog/development/version_04/](./catalog/development/version_04/) (Development)
 Campaign/target catalog under active development: 7 countries, `MONITOR_01`
 (monthly) and annual collections. See [`catalog/README.md`](./catalog/README.md)
-and [`version_04/COLAB_LINKS.csv`](./catalog/version_04/COLAB_LINKS.csv).
+and [`version_04/COLAB_LINKS.csv`](./catalog/development/version_04/COLAB_LINKS.csv).
+
+### [catalog/production/](./catalog/production/) (Production)
+Shipped release, copied from `catalog/development/version_03`. Public Colab
+links are in [`production/COLAB_LINKS.csv`](./catalog/production/COLAB_LINKS.csv).
 
 > `version_02` is reserved.
 
