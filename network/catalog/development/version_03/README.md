@@ -6,6 +6,21 @@
 > Colab links: [`COLAB_LINKS.csv`](./COLAB_LINKS.csv) /
 > [`COLAB_LINKS.txt`](./COLAB_LINKS.txt).
 
+## Colab links
+
+| Country | MONITOR_01 (S2 monthly) | Annual (Landsat, Collection 02) |
+|---|---|---|
+| Brazil | [monitor_01_brazil.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_brazil.ipynb) | [collection_02_brazil.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_brazil.ipynb) |
+| Bolivia | [monitor_01_bolivia.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_bolivia.ipynb) | [collection_02_bolivia.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_bolivia.ipynb) |
+| Colombia | [monitor_01_colombia.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_colombia.ipynb) | [collection_02_colombia.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_colombia.ipynb) |
+| Chile | [monitor_01_chile.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_chile.ipynb) | [collection_02_chile.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_chile.ipynb) |
+| Ecuador | [monitor_01_ecuador.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_ecuador.ipynb) | [collection_02_ecuador.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_ecuador.ipynb) |
+| Paraguay | [monitor_01_paraguay.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_paraguay.ipynb) | [collection_02_paraguay.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_paraguay.ipynb) |
+| Venezuela | [monitor_01_venezuela.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_venezuela.ipynb) | [collection_02_venezuela.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_venezuela.ipynb) |
+
+Full URLs are also available in [`COLAB_LINKS.csv`](./COLAB_LINKS.csv).
+
+
 Esta es la implementación técnica completa del ecosistema MapBiomas Fuego para la gestión automatizada y el procesamiento de imágenes en Perú.
 
 A diferencia del planteamiento teórico, **todos los módulos (del M1 al M7) ya han sido implementados en el código base**, contando con su propia arquitectura distribuida, soporte para Deep Learning (TensorFlow) y herramientas nativas de geoprocesamiento (GDAL, Rasterio).
