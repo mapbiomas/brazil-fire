@@ -964,6 +964,12 @@ OBJ = {
                    "projects/mapbiomas-public/assets/paraguay/water/collection1/mapbiomas_paraguay_collection1_water-monthly-v1", "byte"),
             ],
         },
+        "lulc": {
+            "collection_03": [
+                _p("paraguay", "lulc", "collection3", "lulc",
+                   "projects/mapbiomas-public/assets/paraguay/lulc/collection3/mapbiomas_paraguay_collection3_coverage_v1", "byte"),
+            ],
+        },
     },
     "chile": {
         "fire": {
