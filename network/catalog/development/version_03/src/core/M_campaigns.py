@@ -40,6 +40,7 @@ class Campaign:
     year_start: int
     year_end: int
     engine: str
+    personal_task_flag: str = 'FUEGO'
     targets: tuple = field(default_factory=tuple)
     status: str = 'active'
 
@@ -77,6 +78,7 @@ class Campaign:
             year_start=int(data.get('year_start', 2025)),
             year_end=int(data.get('year_end', 2025)),
             engine=data.get('engine', 'monitor'),
+            personal_task_flag=data.get('personal_task_flag', 'FUEGO'),
             targets=tuple(data.get('targets') or ('burned_area',)),
             status=data.get('status', 'active'),
         )
@@ -101,6 +103,7 @@ class Campaign:
             'year_start': self.year_start,
             'year_end': self.year_end,
             'engine': self.engine,
+            'personal_task_flag': self.personal_task_flag,
             'targets': list(self.targets),
             'status': self.status,
         }
@@ -177,7 +180,7 @@ def campaign_gee_paths(campaign):
 
 
 def set_campaign(campaign_id, target_id='burned_area', language='en',
-                 personal_task_flag='MONITOR', clean_cache=False):
+                 personal_task_flag=None, clean_cache=False):
     """Resolve a campaign + target and configure the pipeline globals.
 
     Keeps ``set_global_opts`` untouched, so the rest of the M0-M6 code keeps
@@ -185,7 +188,7 @@ def set_campaign(campaign_id, target_id='burned_area', language='en',
     target-aware modules and for the catalog.
     """
     from M_targets import get_target, require_supported
-    from M0_auth_config import CONFIG, set_global_opts
+    import M0_auth_config
 
     campaign = get_campaign(campaign_id)
     target = get_target(target_id)
@@ -196,7 +199,10 @@ def set_campaign(campaign_id, target_id='burned_area', language='en',
             f"Declared: {', '.join(campaign.targets)}"
         )
 
-    set_global_opts(
+    if personal_task_flag is None:
+        personal_task_flag = campaign.personal_task_flag
+
+    M0_auth_config.set_global_opts(
         country=campaign.country,
         campaign=campaign.campaign,
         sensor=list(campaign.sensors),
@@ -214,6 +220,9 @@ def set_campaign(campaign_id, target_id='burned_area', language='en',
         clean_cache=clean_cache,
     )
 
+    # set_global_opts rebinds the module global when CONFIG was None, so read
+    # it back from the module instead of the stale imported name.
+    CONFIG = M0_auth_config.CONFIG
     CONFIG['campaign_id'] = campaign.id
     CONFIG['campaign_source'] = campaign.source
     CONFIG['campaign_collection'] = campaign.collection

@@ -2,7 +2,9 @@
 
 import os
 import sys
+import types
 import unittest
+from unittest.mock import patch
 
 CORE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'core'))
 sys.path.insert(0, CORE)
@@ -104,6 +106,25 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(len(plan), 1)
         self.assertEqual(plan[0]['campaign'], 'bolivia.collection_02')
         self.assertEqual(plan[0]['period'], '2025')
+
+
+class SetCampaignTests(unittest.TestCase):
+    def test_reads_config_after_set_global_opts_rebinds_it(self):
+        fake = types.ModuleType('M0_auth_config')
+        fake.CONFIG = None
+
+        def fake_set_global_opts(**kwargs):
+            fake.CONFIG = {
+                'country': kwargs['country'],
+                'campaign': kwargs['campaign'],
+            }
+
+        fake.set_global_opts = fake_set_global_opts
+        with patch.dict(sys.modules, {'M0_auth_config': fake}):
+            config = M_campaigns.set_campaign('brazil.collection_06')
+
+        self.assertEqual(config['campaign_id'], 'brazil.collection_06')
+        self.assertEqual(config['target_id'], 'burned_area')
 
 
 if __name__ == '__main__':

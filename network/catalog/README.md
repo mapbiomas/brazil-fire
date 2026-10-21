@@ -66,10 +66,40 @@ Annual campaigns use **Collection 02**, except Brazil (**Collection 06**).
 
 ## Usage
 
+The notebooks configure the pipeline explicitly:
+
 ```python
-from M_campaigns import set_campaign
-set_campaign("brazil.monitor_01", target_id="burned_area")
+from M0_auth_config import set_global_opts, authenticate
+
+COUNTRY_SELECTED = "brazil"
+CAMPAIGN_SELECTED = "MONITOR_01"
+
+set_global_opts(
+    country=COUNTRY_SELECTED,
+    campaign=CAMPAIGN_SELECTED,
+    sensor="sentinel2",
+    periodicity="monthly",
+    mosaic_methods=["minnbr", "minnbr_buffer"],
+    personal_task_flag="MONITOR",
+    language="en",
+    gcs_bucket="mapbiomas-fire",
+    gcs_library_images_prefix=f"sudamerica/{COUNTRY_SELECTED}/CATALOG_01",
+    gcs_campaigns_prefix=f"sudamerica/{COUNTRY_SELECTED}/CATALOG_01",
+    gee_project=f"mapbiomas-{COUNTRY_SELECTED}",
+    gee_library_images_prefix=f"projects/mapbiomas-{COUNTRY_SELECTED}/assets/FIRE/CATALOG_01",
+    gee_campaigns_prefix=f"projects/mapbiomas-{COUNTRY_SELECTED}/assets/FIRE/CATALOG_01",
+    asset_regions=f"projects/mapbiomas-{COUNTRY_SELECTED}/assets/FIRE/CATALOG_01/{CAMPAIGN_SELECTED}/AUXILIARY/regiones_fuego_{COUNTRY_SELECTED}_v1",
+)
+authenticate()
 ```
+
+`set_campaign("brazil.monitor_01", target_id="burned_area")` remains available as
+an optional helper for scripts and catalog tooling.
+
+Campaigns are declared in `campaigns/*.json` and targets in `targets/*.json`.
+The catalog covers seven countries; annual campaigns use **Collection 02**,
+except Brazil (**Collection 06**).
+
 
 Development notebooks are under `development/version_04/notebooks/`. The public
 entry points are under `production/notebooks/`.

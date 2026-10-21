@@ -25,5 +25,6 @@
   "targets": [
     "burned_area"
   ],
-  "status": "active"
+  "status": "active",
+  "personal_task_flag": "MONITOR"
 }
