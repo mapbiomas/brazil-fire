@@ -23,6 +23,9 @@ gee_source/
 # Monitor scratch (notebooks de desenvolvimento local)
 mapbiomas_fire_monitor/version_01/scratch/
 
+# Catalog: internal worktree, never shipped
+network/catalog/.agents/
+
 # Catalog cache — "memoria" versionada das units descobertas (catalog.py).
 # Atualize manualmente: baixe pelo botao na UI e suba no GitHub quando novos
 # dados forem adicionados ao config.py. O arquivo e versionado (nao ignorado).

@@ -1,0 +1,130 @@
+{
+  "campaigns": [
+    {
+      "id": "brazil.monitor_01",
+      "label": "Brazil - MONITOR_01",
+      "country": "brazil",
+      "source": "monitor",
+      "campaign": "MONITOR_01",
+      "periodicity": "monthly",
+      "status": "active"
+    },
+    {
+      "id": "brazil.collection_02",
+      "label": "Brazil - COLLECTION_02",
+      "country": "brazil",
+      "source": "collection",
+      "campaign": "COLLECTION_02",
+      "periodicity": "yearly",
+      "status": "active"
+    },
+    {
+      "id": "bolivia.monitor_01",
+      "label": "Bolivia - MONITOR_01",
+      "country": "bolivia",
+      "source": "monitor",
+      "campaign": "MONITOR_01",
+      "periodicity": "monthly",
+      "status": "active"
+    },
+    {
+      "id": "bolivia.collection_02",
+      "label": "Bolivia - COLLECTION_02",
+      "country": "bolivia",
+      "source": "collection",
+      "campaign": "COLLECTION_02",
+      "periodicity": "yearly",
+      "status": "active"
+    },
+    {
+      "id": "colombia.monitor_01",
+      "label": "Colombia - MONITOR_01",
+      "country": "colombia",
+      "source": "monitor",
+      "campaign": "MONITOR_01",
+      "periodicity": "monthly",
+      "status": "active"
+    },
+    {
+      "id": "colombia.collection_02",
+      "label": "Colombia - COLLECTION_02",
+      "country": "colombia",
+      "source": "collection",
+      "campaign": "COLLECTION_02",
+      "periodicity": "yearly",
+      "status": "active"
+    },
+    {
+      "id": "chile.monitor_01",
+      "label": "Chile - MONITOR_01",
+      "country": "chile",
+      "source": "monitor",
+      "campaign": "MONITOR_01",
+      "periodicity": "monthly",
+      "status": "active"
+    },
+    {
+      "id": "chile.collection_01",
+      "label": "Chile - COLLECTION_01",
+      "country": "chile",
+      "source": "collection",
+      "campaign": "COLLECTION_01",
+      "periodicity": "yearly",
+      "status": "active"
+    },
+    {
+      "id": "ecuador.monitor_01",
+      "label": "Ecuador - MONITOR_01",
+      "country": "ecuador",
+      "source": "monitor",
+      "campaign": "MONITOR_01",
+      "periodicity": "monthly",
+      "status": "active"
+    },
+    {
+      "id": "ecuador.collection_02",
+      "label": "Ecuador - COLLECTION_02",
+      "country": "ecuador",
+      "source": "collection",
+      "campaign": "COLLECTION_02",
+      "periodicity": "yearly",
+      "status": "active"
+    },
+    {
+      "id": "paraguay.monitor_01",
+      "label": "Paraguay - MONITOR_01",
+      "country": "paraguay",
+      "source": "monitor",
+      "campaign": "MONITOR_01",
+      "periodicity": "monthly",
+      "status": "active"
+    },
+    {
+      "id": "paraguay.collection_01",
+      "label": "Paraguay - COLLECTION_01",
+      "country": "paraguay",
+      "source": "collection",
+      "campaign": "COLLECTION_01",
+      "periodicity": "yearly",
+      "status": "active"
+    },
+    {
+      "id": "venezuela.monitor_01",
+      "label": "Venezuela - MONITOR_01",
+      "country": "venezuela",
+      "source": "monitor",
+      "campaign": "MONITOR_01",
+      "periodicity": "monthly",
+      "status": "active"
+    },
+    {
+      "id": "venezuela.collection_02",
+      "label": "Venezuela - COLLECTION_02",
+      "country": "venezuela",
+      "source": "collection",
+      "campaign": "COLLECTION_02",
+      "periodicity": "yearly",
+      "status": "active"
+    }
+  ]
+}
