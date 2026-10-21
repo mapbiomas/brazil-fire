@@ -31,4 +31,4 @@ def authenticates(ee_project,bucketName):
 authenticates(ee_project, bucket_name)
 
 # Define the path to the classification algorithms scripts
-algorithms = f'/content/brazil-fire/network/version_02/classification_algorithms'
+algorithms = f'/content/brazil-fire/network/catalog/version_01/classification_algorithms'

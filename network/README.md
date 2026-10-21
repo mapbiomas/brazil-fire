@@ -10,14 +10,31 @@ The methodology is designed to be replicable across different regions of the con
 
 ## Versions and Directory Structure
 
-To maintain the evolution of the project while ensuring backward compatibility with legacy operations, the network algorithms are organized into versions:
+The network algorithms now live under [`catalog/`](./catalog/), the single umbrella
+for the classification algorithm versions and the product catalog:
 
-### [version_01/](./version_01/) (Legacy)
-This directory contains the original scripts and methods utilized for the first collection of data across the network (Collection 1). It is maintained for historical reference and compatibility purposes.
+### [catalog/version_00/](./catalog/version_00/) (Legacy)
+Original scripts and methods used for the first collection (Collection 1). Moved
+from `network/version_01`; kept for historical reference and compatibility.
+**Removal is planned after a public notice.**
 
-### [version_02/](./version_02/) (Active)
-This represents the current and active standard for the network (Collection 2 onwards). This version brings enhanced models, automated parameterizations, expanded scopes, and multi-country operational flows.
-- **Quick Start via Colab**: The [`mapbiomas_fire_classification_for_collab.ipynb`](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/version_02/classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb) notebook located inside `version_02/classification_algorithms/` serves as the primary entry point to easily test and adapt the most recent classification scripts without local setup.
+### [catalog/version_01/](./catalog/version_01/) (Active)
+Current standard for the network (Collection 2 onwards): enhanced models,
+automated parameterization, expanded scopes, and multi-country flows. Moved from
+`network/version_02`; kept for compatibility. **Removal is planned after a public
+notice.** New work should target `catalog/version_04/`.
+
+- **Quick Start via Colab**: The [`mapbiomas_fire_classification_for_collab.ipynb`](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/version_01/classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb) notebook inside `catalog/version_01/classification_algorithms/` is the entry point for the Collection 2 scripts.
+
+### [catalog/version_03/](./catalog/version_03/) (Baseline)
+Frozen snapshot of the Peru monitor pipeline (`peru-fire@58897ca`). Reference
+only; do not edit.
+
+### [catalog/version_04/](./catalog/version_04/) (Catalog)
+Campaign/target catalog under active development: 7 countries, `MONITOR_01`
+(monthly) and annual collections. See [`catalog/README.md`](./catalog/README.md).
+
+> `version_02` is reserved.
 
 ---
 ## Contact

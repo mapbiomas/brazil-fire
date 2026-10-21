@@ -10,8 +10,8 @@ This directory is a frozen copy of the Peru Fire Monitor pipeline.
 
 ## Policy
 
-`version_00` is a **baseline**: it is not edited. The working copy is
-`../version_01/`, which evolves toward the campaign/target catalog. Fixes made
+`version_03` is a **baseline**: it is not edited. The working copy is
+`../version_04/`, which evolves toward the campaign/target catalog. Fixes made
 in `peru-fire` after this commit are **not** synced automatically; backport
 them manually when they matter.
 
