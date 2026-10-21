@@ -1,10 +1,10 @@
 {
-  "id": "paraguay.collection_01",
-  "label": "Paraguay - COLLECTION_01",
+  "id": "paraguay.collection_02",
+  "label": "Paraguay - COLLECTION_02",
   "country": "paraguay",
   "source": "collection",
-  "campaign": "COLLECTION_01",
-  "collection": "COLLECTION_01",
+  "campaign": "COLLECTION_02",
+  "collection": "COLLECTION_02",
   "sensors": [
     "landsat"
   ],
@@ -16,7 +16,7 @@
   "gcs_root": "sudamerica/paraguay/CATALOG_01",
   "gee_project": "mapbiomas-paraguay",
   "gee_root": "projects/mapbiomas-paraguay/assets/FIRE/CATALOG_01",
-  "asset_regions": "projects/mapbiomas-paraguay/assets/FIRE/CATALOG_01/COLLECTION_01/AUXILIARY/regiones_fuego_paraguay_v1",
+  "asset_regions": "projects/mapbiomas-paraguay/assets/FIRE/CATALOG_01/COLLECTION_02/AUXILIARY/regiones_fuego_paraguay_v1",
   "region_property": "region_nam",
   "year_start": 2018,
   "year_end": 2025,

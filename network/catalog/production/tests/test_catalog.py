@@ -92,8 +92,8 @@ class CatalogTests(unittest.TestCase):
         self.assertTrue(all(row['target'] == 'burned_area' for row in rows))
 
     def test_describe_without_gcs(self):
-        info = M_catalog.describe('chile.collection_01')
-        self.assertEqual(info['campaign']['id'], 'chile.collection_01')
+        info = M_catalog.describe('chile.collection_02')
+        self.assertEqual(info['campaign']['id'], 'chile.collection_02')
         self.assertEqual(info['targets'][0]['id'], 'burned_area')
         self.assertIsNone(info['data'])
 

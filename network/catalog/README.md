@@ -57,13 +57,12 @@ network/catalog/
 | Brazil | `brazil.monitor_01` | `brazil.collection_02` |
 | Bolivia | `bolivia.monitor_01` | `bolivia.collection_02` |
 | Colombia | `colombia.monitor_01` | `colombia.collection_02` |
-| Chile | `chile.monitor_01` | `chile.collection_01` |
+| Chile | `chile.monitor_01` | `chile.collection_02` |
 | Ecuador | `ecuador.monitor_01` | `ecuador.collection_02` |
-| Paraguay | `paraguay.monitor_01` | `paraguay.collection_01` |
+| Paraguay | `paraguay.monitor_01` | `paraguay.collection_02` |
 | Venezuela | `venezuela.monitor_01` | `venezuela.collection_02` |
 
-Annual collection differs per country (Collection 01 vs 02). It is a one-line
-change in the campaign JSON; no code changes.
+All annual campaigns use **Collection 02**.
 
 ## Usage
 

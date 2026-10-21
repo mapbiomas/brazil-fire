@@ -1,10 +1,10 @@
 {
-  "id": "chile.collection_01",
-  "label": "Chile - COLLECTION_01",
+  "id": "chile.collection_02",
+  "label": "Chile - COLLECTION_02",
   "country": "chile",
   "source": "collection",
-  "campaign": "COLLECTION_01",
-  "collection": "COLLECTION_01",
+  "campaign": "COLLECTION_02",
+  "collection": "COLLECTION_02",
   "sensors": [
     "landsat"
   ],
@@ -16,7 +16,7 @@
   "gcs_root": "sudamerica/chile/CATALOG_01",
   "gee_project": "mapbiomas-chile",
   "gee_root": "projects/mapbiomas-chile/assets/FIRE/CATALOG_01",
-  "asset_regions": "projects/mapbiomas-chile/assets/FIRE/CATALOG_01/COLLECTION_01/AUXILIARY/regiones_fuego_chile_v1",
+  "asset_regions": "projects/mapbiomas-chile/assets/FIRE/CATALOG_01/COLLECTION_02/AUXILIARY/regiones_fuego_chile_v1",
   "region_property": "region_nam",
   "year_start": 2018,
   "year_end": 2025,

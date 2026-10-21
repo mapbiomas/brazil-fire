@@ -15,7 +15,7 @@ ANNUAL (Landsat, Collection 01/02)
 Brazil     https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_brazil.ipynb
 Bolivia    https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_bolivia.ipynb
 Colombia   https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_colombia.ipynb
-Chile      https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_01_chile.ipynb
+Chile      https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_chile.ipynb
 Ecuador    https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_ecuador.ipynb
-Paraguay   https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_01_paraguay.ipynb
+Paraguay   https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_paraguay.ipynb
 Venezuela  https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_venezuela.ipynb

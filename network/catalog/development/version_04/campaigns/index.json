@@ -64,11 +64,11 @@
       "status": "active"
     },
     {
-      "id": "chile.collection_01",
-      "label": "Chile - COLLECTION_01",
+      "id": "chile.collection_02",
+      "label": "Chile - COLLECTION_02",
       "country": "chile",
       "source": "collection",
-      "campaign": "COLLECTION_01",
+      "campaign": "COLLECTION_02",
       "periodicity": "yearly",
       "status": "active"
     },
@@ -100,11 +100,11 @@
       "status": "active"
     },
     {
-      "id": "paraguay.collection_01",
-      "label": "Paraguay - COLLECTION_01",
+      "id": "paraguay.collection_02",
+      "label": "Paraguay - COLLECTION_02",
       "country": "paraguay",
       "source": "collection",
-      "campaign": "COLLECTION_01",
+      "campaign": "COLLECTION_02",
       "periodicity": "yearly",
       "status": "active"
     },
