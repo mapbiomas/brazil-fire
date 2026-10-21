@@ -10,11 +10,11 @@
       "status": "active"
     },
     {
-      "id": "brazil.collection_02",
-      "label": "Brazil - COLLECTION_02",
+      "id": "brazil.collection_06",
+      "label": "Brazil - COLLECTION_06",
       "country": "brazil",
       "source": "collection",
-      "campaign": "COLLECTION_02",
+      "campaign": "COLLECTION_06",
       "periodicity": "yearly",
       "status": "active"
     },

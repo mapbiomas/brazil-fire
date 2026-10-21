@@ -1,6 +1,6 @@
 ﻿pais,campanha,tipo,notebook,colab_url
 Brasil,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_brazil.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_brazil.ipynb
-Brasil,COLLECTION_02,anual (Landsat),collection_02_brazil.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_brazil.ipynb
+Brasil,COLLECTION_06,anual (Landsat),collection_06_brazil.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_06_brazil.ipynb
 Bolivia,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_bolivia.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_bolivia.ipynb
 Bolivia,COLLECTION_02,anual (Landsat),collection_02_bolivia.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_bolivia.ipynb
 Colombia,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_colombia.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_colombia.ipynb

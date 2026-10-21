@@ -8,9 +8,9 @@
 
 ## Colab links
 
-| Country | MONITOR_01 (S2 monthly) | Annual (Landsat, Collection 02) |
+| Country | MONITOR_01 (S2 monthly) | Annual (Landsat) |
 |---|---|---|
-| Brazil | [monitor_01_brazil.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_brazil.ipynb) | [collection_02_brazil.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_brazil.ipynb) |
+| Brazil | [monitor_01_brazil.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_brazil.ipynb) | [collection_06_brazil.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_06_brazil.ipynb) |
 | Bolivia | [monitor_01_bolivia.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_bolivia.ipynb) | [collection_02_bolivia.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_bolivia.ipynb) |
 | Colombia | [monitor_01_colombia.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_colombia.ipynb) | [collection_02_colombia.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_colombia.ipynb) |
 | Chile | [monitor_01_chile.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/monitor_01_chile.ipynb) | [collection_02_chile.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_03/notebooks/collection_02_chile.ipynb) |

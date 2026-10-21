@@ -54,7 +54,7 @@ network/catalog/
 
 | Country | Monitor (S2 monthly) | Annual (Landsat) |
 |---|---|---|
-| Brazil | `brazil.monitor_01` | `brazil.collection_02` |
+| Brazil | `brazil.monitor_01` | `brazil.collection_06` |
 | Bolivia | `bolivia.monitor_01` | `bolivia.collection_02` |
 | Colombia | `colombia.monitor_01` | `colombia.collection_02` |
 | Chile | `chile.monitor_01` | `chile.collection_02` |
@@ -62,7 +62,7 @@ network/catalog/
 | Paraguay | `paraguay.monitor_01` | `paraguay.collection_02` |
 | Venezuela | `venezuela.monitor_01` | `venezuela.collection_02` |
 
-All annual campaigns use **Collection 02**.
+Annual campaigns use **Collection 02**, except Brazil (**Collection 06**).
 
 ## Usage
 

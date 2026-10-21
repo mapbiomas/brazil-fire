@@ -1,10 +1,10 @@
 {
-  "id": "brazil.collection_02",
-  "label": "Brazil - COLLECTION_02",
+  "id": "brazil.collection_06",
+  "label": "Brazil - COLLECTION_06",
   "country": "brazil",
   "source": "collection",
-  "campaign": "COLLECTION_02",
-  "collection": "COLLECTION_02",
+  "campaign": "COLLECTION_06",
+  "collection": "COLLECTION_06",
   "sensors": [
     "landsat"
   ],
@@ -16,7 +16,7 @@
   "gcs_root": "sudamerica/brazil/CATALOG_01",
   "gee_project": "mapbiomas-brazil",
   "gee_root": "projects/mapbiomas-brazil/assets/FIRE/CATALOG_01",
-  "asset_regions": "projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/COLLECTION_02/AUXILIARY/regiones_fuego_brazil_v1",
+  "asset_regions": "projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/COLLECTION_06/AUXILIARY/regiones_fuego_brazil_v1",
   "region_property": "region_nam",
   "year_start": 2018,
   "year_end": 2025,
