@@ -5,8 +5,8 @@ runtime code tests run per version with `python -m unittest discover -s tests`.
 
 | Version | Entry point | Validation |
 |---|---|---|
-| `network/version_01/` (legacy root mirror) | `classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb` | Notebook points to `network/version_01/...`; `A_0_1` keeps its historical `network/classification_algorithms` path. **Deprecated:** remove after public notice; use `catalog/development/version_00` |
-| `network/version_02/` (legacy root mirror) | `classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb` | `A_0_1` and notebook point to `network/version_02/...`; unchanged from the pre-move commit `45b7a17`. **Deprecated:** remove after public notice; use `catalog/development/version_01` |
+| `network/version_01/` (legacy root mirror) | `classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb` | Notebook points to `network/version_01/...`; `A_0_1` keeps its historical `network/classification_algorithms` path. **Reference version:** `catalog/development/version_00`. **Deprecated:** remove after public notice |
+| `network/version_02/` (legacy root mirror) | `classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb` | `A_0_1` and notebook point to `network/version_02/...`; unchanged from the pre-move commit `45b7a17`. **Reference version:** `catalog/development/version_01`. **Deprecated:** remove after public notice |
 | `catalog/development/version_00/` | `classification_algorithms/A_0_1...` and notebook | Both point to `network/catalog/development/version_00/classification_algorithms` (Collection 1) |
 | `catalog/development/version_01/` | `classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb` | `A_0_1` and notebook point to `network/catalog/development/version_01/classification_algorithms` (Collection 2) |
 | `catalog/development/version_03/` | `notebooks/monitor_01_*.ipynb` and `collection_*.ipynb` | 14 notebooks; `repo_path = network/catalog/development/version_03/src/core`; 77 tests OK |

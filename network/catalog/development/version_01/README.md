@@ -1,6 +1,10 @@
 # MapBiomas Fire Network - Version 01 [ACTIVE]
 Developed by [Amazon Environmental Research Institute - IPAM](https://ipam.org.br/pt/)
 
+> **Reference for the legacy root mirror:** `network/version_02/`.
+>
+> **Location:** moved from `network/version_02` to `network/catalog/development/version_01`.
+
 ## About
 **This is the active directory for the MapBiomas Fire Network** scripts. This directory contains the latest algorithms (associated with Collection 2 onwards) for mapping burned areas across partner countries in South America.
 
