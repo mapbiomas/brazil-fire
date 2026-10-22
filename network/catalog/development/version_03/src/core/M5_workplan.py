@@ -127,8 +127,48 @@ def gcs_full(relative_path):
 # --- TAREAS COMPARTIDAS (GCS) ---
 
 def tareas_dir():
-    """Directorio GCS donde se almacenan las tareas compartidas."""
-    return f"{CONFIG['gcs_cache']}/tareas"
+    """Directorio GCS de tareas compartidas, dentro del cache de la campana."""
+    cache = CONFIG.get('gcs_campaign_cache') or CONFIG.get('gcs_cache')
+    return f"{cache}/tareas"
+
+def legacy_tareas_dir():
+    """Ubicacion antigua (pais), usada solo para migrar."""
+    return f"{CONFIG.get('gcs_cache') or CONFIG.get('gcs_campaign_cache')}/tareas"
+
+def _migrate_legacy_tareas(fs=None):
+    """Move tareas from the old country-level cache to the campaign cache."""
+    import json
+    from M0_auth_config import _get_fs
+    from M_gcs import write_json, rm as gcs_rm
+
+    if fs is None:
+        fs = _get_fs()
+    legacy = legacy_tareas_dir()
+    target = tareas_dir()
+    if legacy == target:
+        return 0
+    try:
+        files = fs.glob(f"{gcs_full(legacy)}/*.json")
+    except Exception:
+        return 0
+    moved = 0
+    for fp in files:
+        name = fp.split('/')[-1]
+        dest = gcs_full(f"{target}/{name}")
+        if fs.exists(dest):
+            continue
+        try:
+            with fs.open(fp, 'r') as f:
+                data = json.load(f)
+            write_json(dest, data)
+            try:
+                gcs_rm(fp)
+            except Exception:
+                pass
+            moved += 1
+        except Exception:
+            continue
+    return moved
 
 def tarea_path(model_id):
     """Path GCS relativo para la tarea de un modelo."""
@@ -139,6 +179,7 @@ def save_tarea(model_id, regions, periods, fs=None):
     import json
     import datetime
     from M_gcs import write_json, mkdir, exists
+    _migrate_legacy_tareas(fs)
     tarea = {
         'model': model_id,
         'regions': sorted(set(regions)),
@@ -168,6 +209,7 @@ def list_tareas(fs=None):
     from M0_auth_config import _get_fs
     if fs is None:
         fs = _get_fs()
+    _migrate_legacy_tareas(fs)
     dir_path = gcs_full(tareas_dir())
     results = []
     try:

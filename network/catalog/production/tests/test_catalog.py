@@ -13,6 +13,7 @@ sys.path.insert(0, CORE)
 
 import M0_auth_config
 import M_cache
+import M5_workplan
 import M_campaigns
 import M_catalog
 import M_gcs
@@ -142,6 +143,24 @@ class SetCampaignTests(unittest.TestCase):
 
         self.assertEqual(config['campaign_id'], 'brazil.collection_06')
         self.assertEqual(config['target_id'], 'burned_area')
+
+
+class TareasPathTests(unittest.TestCase):
+    def test_tareas_use_campaign_cache(self):
+        fake_config = {
+            'gcs_cache': 'sudamerica/brazil/CATALOG_01/.CACHE',
+            'gcs_campaign_cache': 'sudamerica/brazil/CATALOG_01/MONITOR_01/.CACHE',
+            'campaign': 'MONITOR_01',
+        }
+        with patch.object(M5_workplan, 'CONFIG', fake_config):
+            self.assertEqual(
+                M5_workplan.tareas_dir(),
+                'sudamerica/brazil/CATALOG_01/MONITOR_01/.CACHE/tareas',
+            )
+            self.assertEqual(
+                M5_workplan.legacy_tareas_dir(),
+                'sudamerica/brazil/CATALOG_01/.CACHE/tareas',
+            )
 
 
 class CacheSplitTests(unittest.TestCase):
