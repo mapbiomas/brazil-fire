@@ -138,3 +138,12 @@ must go to `version_04`. `version_02` is reserved.
 `development/version_03/REFERENCE.md` records the source version/commit. The
 original Peru baseline is `peru-fire/mapbiomas_fire_monitor/version_01` at
 `58897ca`, preserved in the peru-fire repository and in git history.
+
+## Validation
+
+See [`VALIDATION.md`](./VALIDATION.md) for the validated entry points and the
+offline check command:
+
+```bash
+python -m unittest discover -s network/catalog/tests -v
+```

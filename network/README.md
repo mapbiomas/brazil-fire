@@ -39,7 +39,18 @@ and [`version_04/COLAB_LINKS.csv`](./catalog/development/version_04/COLAB_LINKS.
 Shipped release, copied from `catalog/development/version_03`. Public Colab
 links are in [`production/COLAB_LINKS.csv`](./catalog/production/COLAB_LINKS.csv).
 
-> `version_02` is reserved.
+## Legacy root locations
+
+### [version_02/](./version_02/) (Legacy mirror, deprecated)
+The previous root copy of the Collection 2 scripts is kept temporarily so
+existing notebooks and links keep working **unchanged**. It is **deprecated**
+and will be removed after a public notice. New access must use
+[`catalog/development/version_01/`](./catalog/development/version_01/).
+
+> Catalog `version_02` is reserved (separate from this legacy mirror).
+
+See [`catalog/VALIDATION.md`](./catalog/VALIDATION.md) for the validated entry
+points of every version.
 
 ---
 ## Contact
