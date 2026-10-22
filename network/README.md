@@ -41,6 +41,12 @@ links are in [`production/COLAB_LINKS.csv`](./catalog/production/COLAB_LINKS.csv
 
 ## Legacy root locations
 
+### [version_01/](./version_01/) (Legacy mirror, deprecated)
+The previous root copy of the Collection 1 scripts is kept temporarily so
+existing notebooks and links keep working **unchanged**. It is **deprecated**
+and will be removed after a public notice. New access must use
+[`catalog/development/version_00/`](./catalog/development/version_00/).
+
 ### [version_02/](./version_02/) (Legacy mirror, deprecated)
 The previous root copy of the Collection 2 scripts is kept temporarily so
 existing notebooks and links keep working **unchanged**. It is **deprecated**

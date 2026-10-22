@@ -30,6 +30,16 @@ def _campaigns(base):
 
 
 class RootLegacyMirrorTests(unittest.TestCase):
+    def test_version_01_is_an_unchanged_mirror(self):
+        base = os.path.join(NETWORK, 'version_01', 'classification_algorithms')
+        a01 = os.path.join(base, 'A_0_1_basic_authentication_and_parameterization.py')
+        notebook = os.path.join(base, 'mapbiomas_fire_classification_for_collab.ipynb')
+        self.assertTrue(os.path.exists(a01))
+        self.assertTrue(os.path.exists(notebook))
+        # The notebook is the entry point; the legacy A_0_1 kept its historical
+        # network/classification_algorithms path in the original mirror.
+        self.assertIn('network/version_01/classification_algorithms', _read(notebook))
+
     def test_version_02_is_an_unchanged_mirror(self):
         base = os.path.join(NETWORK, 'version_02', 'classification_algorithms')
         a01 = os.path.join(base, 'A_0_1_basic_authentication_and_parameterization.py')
