@@ -7,7 +7,7 @@ import os
 from M_lang import L as Lang
 
 
-# Canonical GEE reference toolkit (the production mirror).
+# Canonical GEE reference toolkit (current production; catalog snapshots ship v06).
 GEE_TOOLKIT_URL = (
     "https://code.earthengine.google.com/?scriptPath="
     "users%2Fmapbiomasworkspace1%2Fmapbiomas-fire%3A5-Monitor-Fuego%2FM3%2FM3_Toolkit_Monitor_Fuego"
@@ -69,7 +69,7 @@ def show_toolkit_links():
     print(f"  {Lang.M3_INTRO_LINE2}\n")
     print(f"   1.1. {Lang.M3_SOURCE} [{version} snapshot]:")
     print(f"     {github_link}\n")
-    print(f"   1.2. {Lang.M3_EDITOR} [GEE reference, mirrors production]:")
+    print(f"   1.2. {Lang.M3_EDITOR} [GEE reference, current production]:")
     print(f"     {gee_link}\n")
     print(f"   2. {Lang.M3_SLIDES}:")
     print(f"     {slides_link}")

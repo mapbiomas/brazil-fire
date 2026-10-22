@@ -133,7 +133,7 @@ class MonitorVersionPathsTests(unittest.TestCase):
         v04_toolkit = os.path.join(
             CATALOG, 'development', 'version_04', 'src', 'core', 'M3_toolkit.js'
         )
-        self.assertIn('M3 Sample Toolkit | v07', _read(v04_toolkit))
+        self.assertIn('M3 Sample Toolkit | v06', _read(v04_toolkit))
 
     def test_m3_links_are_version_aware(self):
         gee_urls = set()

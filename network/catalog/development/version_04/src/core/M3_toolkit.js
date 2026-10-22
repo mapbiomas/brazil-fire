@@ -1,11 +1,11 @@
-// MapBiomas Fire | M3 Sample Toolkit | v07
+// MapBiomas Fire | M3 Sample Toolkit | v06
 // Multi-country sample collection, rescue and export
 /*
- * Purpose: territory campaign selector with layer presets + consolidated result drawers.
+ * Purpose: reconcile the v05 UI/async baseline with the main campaign catalog.
  * Runtime: Google Earth Engine Code Editor.
  * Scope: Peru, Brazil, Bolivia and Colombia; historical sample rescue; Asset + GCS export.
- * Status: production version; promoted to main.
- * Based on: M3_Toolkit_Monitor_Fuego_v06.
+ * Status: development version; promoted to main after approval.
+ * Based on: M3_Toolkit_Monitor_Fuego_v05 + main @ 7244450 (preserved as v05b).
  */
 
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
@@ -84,8 +84,6 @@ var L = (function () {
             err_no_sat: 'Seleccione al menos un satelite como metadato.',
             err_no_date: 'Seleccione la fecha representada.',
             lbl_stats: 'Resumen de Muestras:',
-            lbl_refresh_stats: 'Actualizar',
-            status_no_samples: 'Sin muestras dibujadas',
             lbl_fire: 'Fuego',
             lbl_not_fire: 'No Fuego',
             lbl_total: 'Total',
@@ -105,16 +103,7 @@ var L = (function () {
             opt_rgb_swir_alt: '[SWIR2/SWIR1/NIR]',
             cab_satellites: 'Satelite',
             cab_reference: 'Referencia',
-            cab_classifications: 'Clasificaciones',
-            cab_class_regional: 'Regionales',
-            cab_class_filtered: 'FILTERED',
-            cab_class_candidates: 'CANDIDATES',
-            cab_class_prepublic: 'PRE_PUBLIC',
-            lbl_proposal: 'Propuesta',
-            lbl_stage: 'Etapa',
-            lbl_show: 'Mostrar',
-            lbl_images: 'imagenes',
-            status_no_results: 'Sin resultados',
+            cab_classifications: 'Clasificaciones Regionales',
             short_guide: 'Guia',
             short_import: 'Importar',
             short_export: 'Exportar',
@@ -200,8 +189,6 @@ var L = (function () {
             err_no_sat: 'Selecione ao menos um satelite como metadato.',
             err_no_date: 'Selecione a data representada.',
             lbl_stats: 'Resumo das Amostras:',
-            lbl_refresh_stats: 'Atualizar',
-            status_no_samples: 'Sem amostras desenhadas',
             lbl_fire: 'Fogo',
             lbl_not_fire: 'Nao Fogo',
             lbl_total: 'Total',
@@ -221,16 +208,7 @@ var L = (function () {
             opt_rgb_swir_alt: '[SWIR2/SWIR1/NIR]',
             cab_satellites: 'Satelite',
             cab_reference: 'Referencia',
-            cab_classifications: 'Classificacoes',
-            cab_class_regional: 'Regionais',
-            cab_class_filtered: 'FILTERED',
-            cab_class_candidates: 'CANDIDATES',
-            cab_class_prepublic: 'PRE_PUBLIC',
-            lbl_proposal: 'Proposta',
-            lbl_stage: 'Etapa',
-            lbl_show: 'Mostrar',
-            lbl_images: 'imagens',
-            status_no_results: 'Sem resultados',
+            cab_classifications: 'Classificacoes Regionais',
             short_guide: 'Guia',
             short_import: 'Importar',
             short_export: 'Exportar',
@@ -316,8 +294,6 @@ var L = (function () {
             err_no_sat: 'Select at least one satellite as metadata.',
             err_no_date: 'Select the represented date.',
             lbl_stats: 'Sample Summary:',
-            lbl_refresh_stats: 'Refresh',
-            status_no_samples: 'No drawn samples',
             lbl_fire: 'Fire',
             lbl_not_fire: 'Not Fire',
             lbl_total: 'Total',
@@ -337,16 +313,7 @@ var L = (function () {
             opt_rgb_swir_alt: '[SWIR2/SWIR1/NIR]',
             cab_satellites: 'Satellite',
             cab_reference: 'Reference',
-            cab_classifications: 'Classifications',
-            cab_class_regional: 'Regional',
-            cab_class_filtered: 'FILTERED',
-            cab_class_candidates: 'CANDIDATES',
-            cab_class_prepublic: 'PRE_PUBLIC',
-            lbl_proposal: 'Proposal',
-            lbl_stage: 'Stage',
-            lbl_show: 'Show',
-            lbl_images: 'images',
-            status_no_results: 'No results',
+            cab_classifications: 'Regional Classifications',
             short_guide: 'Guide',
             short_import: 'Import',
             short_export: 'Export',
@@ -512,40 +479,6 @@ Object.keys(countryConfigs).forEach(function(c) {
     countryConfigs[c].mosaicLayers = buildMosaicLayers(countryConfigs[c]);
 });
 
-// Suggested layer/periodicity presets applied when the territory campaign changes.
-var CAMPAIGN_PRESETS = {
-    Peru: {
-        MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] },
-        MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
-    },
-    Brazil: {
-        COLLECTION_06: { periodicity: 'yearly', assets: ['landsat'] },
-        COLLECTION_06_DEV: { periodicity: 'yearly', assets: ['landsat'] }
-    },
-    Bolivia: {
-        COLLECTION_02: { periodicity: 'yearly', assets: ['landsat'] },
-        MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] },
-        MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
-    },
-    Colombia: {
-        MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] },
-        COLLECTION_02: { periodicity: 'yearly', assets: ['landsat'] }
-    }
-};
-
-// Returns a safe preset for a country/campaign pair.
-function getCampaignPreset(countryName, campaign) {
-    var conf = countryConfigs[countryName];
-    var byCountry = CAMPAIGN_PRESETS[countryName] || {};
-    var preset = byCountry[campaign] || {};
-    var mode = preset.periodicity
-        || (conf.periodicityByCampaign && conf.periodicityByCampaign[campaign])
-        || conf.defaultPeriodicity
-        || 'monthly';
-    var assets = (preset.assets && preset.assets.length) ? preset.assets : ['sentinel2'];
-    return { periodicity: mode === 'yearly' ? 'yearly' : 'monthly', assets: assets };
-}
-
 // =============================================================================
 // 05. ASSET HELPERS AND RUNTIME STATE
 // =============================================================================
@@ -558,7 +491,6 @@ var current_regiones = ee.FeatureCollection(
 var regionNamesCache = {};
 var regionNamesPending = {};
 var assetLayersCache = {};
-var assetPresetPending = null;
 var pendingOps = 0;
 var lab_activity = null;
 
@@ -599,7 +531,6 @@ function trackEvaluate(fn) {
 var ASYNC_STATE = {
     regions: { token: 0 },
     classifications: { token: 0 },
-    results: { token: 0 },
     samples: { token: 0 },
     import: { token: 0 },
     stats: { token: 0 }
@@ -628,23 +559,6 @@ function ensureAssetFolder(path) {
         } catch (e) {
             ee.data.createAsset({ type: 'FOLDER' }, current);
         }
-    }
-}
-
-// Lists every asset below a folder, following pagination tokens.
-function listAssetsAsync(parent, callback, pageToken, accumulated) {
-    var params = pageToken ? { pageToken: pageToken } : {};
-    var acc = accumulated || [];
-    try {
-        ee.data.listAssets(parent, params, function(result, error) {
-            if (error) { callback(null, error); return; }
-            if (!result) { callback(acc, null); return; }
-            var assets = acc.concat(result.assets || []);
-            if (result.nextPageToken) listAssetsAsync(parent, callback, result.nextPageToken, assets);
-            else callback(assets, null);
-        });
-    } catch (e) {
-        callback(null, e);
     }
 }
 
@@ -836,15 +750,6 @@ var START_YEAR = APP_CONFIG.startYear;
 
 var classCheckboxes = {};
 var classBandCheckboxes = {};
-var resultSourceCheckboxes = {};
-var resultSelectors = { filtered: { proposal: null, stage: null }, candidates: { proposal: null } };
-var resultStatusLabels = {};
-var resultState = {
-    filtered: { proposal: null, stage: null, periods: [] },
-    candidates: { proposal: null, periods: [] },
-    prepublic: { periods: [] }
-};
-var RESULT_COLORS = { filtered: '#f58231', candidates: '#ffe119', prepublic: '#e6194b' };
 
 var regionCheckboxes = {};
 var layerAllRegions = ui.Map.Layer(ee.Image(), {}, L.lbl_all_regions);
@@ -953,17 +858,6 @@ function user_interface() {
 
     function getSelectedCountry() {
         return (typeof selectedCountry !== 'undefined' && selectedCountry) ? selectedCountry : 'Peru';
-    }
-
-    function getSelectedCampaign() {
-        if (typeof select_campaign_cfg !== 'undefined' && select_campaign_cfg && select_campaign_cfg.getValue()) {
-            return select_campaign_cfg.getValue();
-        }
-        if (typeof select_campaign_exp !== 'undefined' && select_campaign_exp && select_campaign_exp.getValue()) {
-            return select_campaign_exp.getValue();
-        }
-        var conf = countryConfigs[getSelectedCountry()];
-        return conf.defaultCampaign || conf.campaigns[0];
     }
 
     function getSelectedPeriodicity() {
@@ -1202,51 +1096,6 @@ function user_interface() {
                     }
                 });
             }
-
-            // --- CONSOLIDATED RESULTS (FILTERED / CANDIDATES / PRE_PUBLIC) ---
-            ['filtered', 'candidates', 'prepublic'].forEach(function (source) {
-                var sourceChk = resultSourceCheckboxes[source];
-                if (!sourceChk || !sourceChk.getValue()) return;
-                var availablePeriods = resultState[source].periods || [];
-                if (availablePeriods.indexOf(dateStr) === -1) return;
-                var basePath = getResultPath(source);
-                if (!basePath) return;
-
-                var resultImg = ee.Image(basePath + dateStr);
-                var resultColor = RESULT_COLORS[source] || '#e6194b';
-                var prbImg = resultImg.select([0], ['probability']).divide(10).toByte().selfMask().updateMask(spatialMask);
-                var clsImg = resultImg.select([0], ['probability']).gte(1).selfMask().updateMask(spatialMask);
-                var doyImg = resultImg.select([1], ['dayOfYear']).selfMask().updateMask(spatialMask);
-                var key = source + '_' + (resultState[source].proposal || '') + '_' + (resultState[source].stage || '');
-                var label = source + ' ' + dateStr;
-
-                // Same three visualizations used by the regional classifications:
-                // day of year (base) -> probability -> binary classification (top).
-                if (classBandDoy) {
-                    var lId = 'result_' + key + '_' + dateStr + '_doy';
-                    desiredLayerIds.push(lId);
-                    updateManagedLayer(lId,
-                        doyImg,
-                        { min: 1, max: 366, palette: ['313695', '4575b4', '74add1', 'abd9e9', 'e0f3f8', 'fee090', 'fdae61', 'f46d43', 'd73027'] },
-                        label + ' doy');
-                }
-                if (classBandPrb) {
-                    var lId = 'result_' + key + '_' + dateStr + '_prb';
-                    desiredLayerIds.push(lId);
-                    updateManagedLayer(lId,
-                        prbImg,
-                        { min: 0, max: 100, palette: PROB_PALETTE },
-                        label + ' prob');
-                }
-                if (classBandCls) {
-                    var lId = 'result_' + key + '_' + dateStr + '_cls';
-                    desiredLayerIds.push(lId);
-                    updateManagedLayer(lId,
-                        clsImg,
-                        { min: 0, max: 1, palette: ['00000000', resultColor] },
-                        label);
-                }
-            });
         });
 
         // Remover camadas que não estão mais marcadas
@@ -1399,9 +1248,7 @@ function updateClassificationsDrawer() {
     });
 
     // Recalculates counts and area for the current drawn samples.
-    var statsTimer = null;
-
-    function updateStats() {
+function updateStats() {
         var statsToken = beginAsync(ASYNC_STATE.stats);
         panel_stats.clear();
         panel_stats.add(ui.Label(L.lbl_stats, { fontSize: '11px', fontWeight: 'bold', margin: '2px 0px' }));
@@ -1415,10 +1262,7 @@ function updateClassificationsDrawer() {
             if (ly.getName() === 'notFire') notFireLayer = ly;
         }
 
-        if (!fireLayer || !notFireLayer) {
-            panel_stats.add(ui.Label(L.status_no_samples, { fontSize: '10px', color: '#888', margin: '2px 0px' }));
-            return;
-        }
+        if (!fireLayer || !notFireLayer) return;
 
         var fireGeoms = fireLayer.getEeObject().geometries();
         var notFireGeoms = notFireLayer.getEeObject().geometries();
@@ -1445,7 +1289,7 @@ function updateClassificationsDrawer() {
 
             var totalCount = s.fire_count + s.notFire_count;
             if (totalCount === 0) {
-                panel_stats.add(ui.Label(L.status_no_samples, { fontSize: '10px', color: '#888', margin: '2px 0px' }));
+                panel_stats.add(ui.Label('Sin muestras dibujadas', { fontSize: '10px', color: '#888', margin: '2px 0px' }));
                 return;
             }
             var totalArea = s.fire_area + s.notFire_area;
@@ -1477,18 +1321,9 @@ function updateClassificationsDrawer() {
         }));
     }
 
-    // Debounces stats recalculation while the user is drawing or editing.
-    function scheduleStatsUpdate() {
-        if (statsTimer) ui.util.clearTimeout(statsTimer);
-        statsTimer = ui.util.setTimeout(function () {
-            statsTimer = null;
-            updateStats();
-        }, 350);
-    }
-
-    Map.drawingTools().onEdit(scheduleStatsUpdate);
-    Map.drawingTools().onLayerAdd(scheduleStatsUpdate);
-    Map.drawingTools().onLayerRemove(scheduleStatsUpdate);
+    Map.drawingTools().onEdit(updateStats);
+    Map.drawingTools().onLayerAdd(updateStats);
+    Map.drawingTools().onLayerRemove(updateStats);
 
     // Styles a checkbox and keeps its border in sync with its state.
     function styleCheck(chk, initial) {
@@ -1631,25 +1466,17 @@ function updateClassificationsDrawer() {
     // ==========================================
     // LÓGICA DE TROCA DE PAÍS / CAMPANHA
     // ==========================================
-    // Applies the campaign's suggested periodicity (monthly/yearly).
-    function applyCampaignPeriodicity(conf, campaign, mode) {
-        var selectedMode = mode || (conf.periodicityByCampaign && conf.periodicityByCampaign[campaign]) || conf.defaultPeriodicity || 'monthly';
-        periodicityActive['anual'] = (selectedMode === 'yearly');
-        periodicityActive['mensal'] = (selectedMode === 'monthly');
+    // Applies the campaign's configured periodicity (monthly/yearly).
+    function applyCampaignPeriodicity(conf, campaign) {
+        var mode = (conf.periodicityByCampaign && conf.periodicityByCampaign[campaign]) || conf.defaultPeriodicity || 'monthly';
+        periodicityActive['anual'] = (mode === 'yearly');
+        periodicityActive['mensal'] = (mode === 'monthly');
         if (periodicityButtons) {
             styleToggleButton(periodicityButtons['anual'], periodicityActive['anual']);
             styleToggleButton(periodicityButtons['mensal'], periodicityActive['mensal']);
         }
         updatePeriodDrawer();
-    }
-
-    // Selects the most recent period of the active periodicity.
-    function selectLatestPeriod() {
-        var keys = Object.keys(periodCheckboxes);
-        if (!keys.length) return;
-        keys.forEach(function (k, i) { setCheckValue(periodCheckboxes[k], i === 0); });
-        updateExportLabel();
-        debouncedUpdateMosaic();
+        updateAssetDrawer();
     }
 
     // Loads a country/campaign territory and rebuilds every dependent drawer.
@@ -1771,20 +1598,11 @@ function updateClassificationsDrawer() {
         select_campaign_exp.items().reset(campaigns);
         select_campaign_imp.setValue(selectedCampaign, false);
         select_campaign_exp.setValue(selectedCampaign, false);
-        if (select_campaign_cfg) {
-            select_campaign_cfg.items().reset(campaigns);
-            select_campaign_cfg.setValue(selectedCampaign, false);
-        }
         updateImportList(conf, selectedCampaign);
 
-        var preset = getCampaignPreset(countryName, selectedCampaign);
-        var periodKey = preset.periodicity === 'yearly' ? 'YEARLY' : 'MONTHLY';
-        assetPresetPending = preset.assets.map(function (id) { return id + '__' + periodKey; });
-        applyCampaignPeriodicity(conf, selectedCampaign, preset.periodicity);
-        selectLatestPeriod();
+        applyCampaignPeriodicity(conf, selectedCampaign);
         updateClassificationsDrawer();
         updateAssetDrawer();
-        refreshResultSources();
     }
 
     // Keeps the country-level entry point used by the country buttons.
@@ -1932,21 +1750,6 @@ function loadSampleAssets(folderPath) {
     var countryButtons = drawerCountry.buttons;
     cabConfig.content.add(drawerCountry.panel);
 
-    // Territory campaign selector: drives periodicity, official mosaics and result drawers.
-    var rowCampaignCfg = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: styles.row });
-    rowCampaignCfg.add(ui.Label(L.lbl_campaign, { fontSize: '10px', margin: '5px 2px' }));
-    var select_campaign_cfg = ui.Select({
-        items: [],
-        placeholder: L.placeholder_campaign,
-        style: styles.input
-    });
-    rowCampaignCfg.add(select_campaign_cfg);
-    cabConfig.content.add(rowCampaignCfg);
-    select_campaign_cfg.onChange(function (campaign) {
-        if (!campaign) return;
-        setRegionCampaign(countryConfigs[getSelectedCountry()], campaign);
-    });
-
     var drawerRegions = { panel: ui.Panel({ style: { margin: '2px 0px', padding: '2px', border: '1px solid #e0e0e0', backgroundColor: '#f9f9f9' } }), flowPanel: null };
     cabConfig.content.add(drawerRegions.panel);
 
@@ -2089,7 +1892,6 @@ function loadSampleAssets(folderPath) {
         var layers = conf.mosaicLayers || {};
         var layerIds = Object.keys(layers);
         var periods = ['MONTHLY', 'YEARLY'];
-        var preset = assetPresetPending;
 
         var previous = {};
         Object.keys(drawerAsset.checkboxes).forEach(function (k) {
@@ -2124,9 +1926,7 @@ function loadSampleAssets(folderPath) {
 
                 var chkId = id + '__' + period;
                 var periodLabel = period === 'MONTHLY' ? L.opt_monthly : L.opt_annual;
-                var defaultValue = preset !== null
-                    ? preset.indexOf(chkId) !== -1
-                    : (chkId in previous ? previous[chkId] : (chkId === 'sentinel2_buffer__MONTHLY'));
+                var defaultValue = chkId in previous ? previous[chkId] : (chkId === 'sentinel2_buffer__MONTHLY');
                 var chk = ui.Checkbox({
                     label: layer.label + ' (' + periodLabel + ')',
                     value: defaultValue,
@@ -2144,7 +1944,6 @@ function loadSampleAssets(folderPath) {
             });
         });
         drawerAsset.panel.style().set('shown', anyVisible);
-        assetPresetPending = null;
         if (appReady) debouncedUpdateMosaic();
     }
 
@@ -2163,7 +1962,7 @@ function loadSampleAssets(folderPath) {
     Object.keys(drawerAQ.checkboxes).forEach(function (k) { extraCheckboxes[k] = drawerAQ.checkboxes[k]; });
     Object.keys(drawerFocos.checkboxes).forEach(function (k) { extraCheckboxes[k] = drawerFocos.checkboxes[k]; });
 
-    // --- SUB-CABINET: CLASSIFICAÇÕES (REGIONAL + CONSOLIDATED RESULTS) ---
+    // --- SUB-CABINET: CLASSIFICAÇÕES REGIONAIS ---
     var subCabClass = createCabinet(L.cab_classifications, false, '2px 2px 2px 10px');
     cabLayers.content.add(subCabClass.panel);
 
@@ -2175,206 +1974,8 @@ function loadSampleAssets(folderPath) {
     classBandCheckboxes = drawerClassToggle.checkboxes;
     subCabClass.content.add(drawerClassToggle.panel);
 
-    // A. Regional classification models (M6).
-    var subCabRegional = createCabinet(L.cab_class_regional, true, '2px 2px 2px 10px');
-    subCabClass.content.add(subCabRegional.panel);
     var drawerClassModels = { panel: ui.Panel({ style: { margin: '2px 0px', padding: '1px', backgroundColor: '#f9f9f9' } }) };
-    subCabRegional.content.add(drawerClassModels.panel);
-
-    // B. Consolidated results (M7 FILTERED, M8 CANDIDATES, M9 PRE_PUBLIC).
-    function classificationResultsRoot() {
-        var conf = countryConfigs[getSelectedCountry()];
-        return conf.getRegionalFolder(getSelectedCampaign()).replace(/\/REGIONAL\/?$/, '/');
-    }
-
-    function currentResultContext() {
-        return getSelectedCountry() + '::' + getSelectedCampaign();
-    }
-
-    function setResultStatus(source, text) {
-        if (resultStatusLabels[source]) resultStatusLabels[source].setValue(text);
-    }
-
-    function resultEntries(assets, allowedTypes, validateName) {
-        return (assets || []).filter(function (a) {
-            return allowedTypes.indexOf(a.type) !== -1;
-        }).map(function (a) {
-            return a.id.split('/').pop();
-        }).filter(function (name) {
-            return !validateName || validateName(name);
-        });
-    }
-
-    function getResultPath(source) {
-        var root = classificationResultsRoot();
-        if (source === 'filtered') {
-            var filtered = resultState.filtered;
-            if (!filtered.proposal || !filtered.stage) return null;
-            return root + 'FILTERED/' + filtered.proposal + '/' + filtered.stage + '/';
-        }
-        if (source === 'candidates') {
-            if (!resultState.candidates.proposal) return null;
-            return root + 'CANDIDATES/' + resultState.candidates.proposal + '/';
-        }
-        if (source === 'prepublic') {
-            return root + 'PRE_PUBLIC/' + getSelectedCampaign().toLowerCase() + '/';
-        }
-        return null;
-    }
-
-    function loadResultPeriods(source) {
-        var path = getResultPath(source);
-        resultState[source].periods = [];
-        if (!path) {
-            setResultStatus(source, L.status_no_results);
-            return;
-        }
-        var ctx = currentResultContext();
-        listAssetsAsync(path, function (assets, err) {
-            if (ctx !== currentResultContext()) return;
-            if (err) {
-                setResultStatus(source, L.status_no_results);
-                return;
-            }
-            var periods = resultEntries(assets, ['IMAGE']);
-            resultState[source].periods = periods;
-            setResultStatus(source, periods.length ? (periods.length + ' ' + L.lbl_images) : L.status_no_results);
-            var chk = resultSourceCheckboxes[source];
-            if (chk && chk.getValue()) debouncedUpdateMosaic();
-        });
-    }
-
-    function loadResultStages(proposal) {
-        if (!resultSelectors.filtered.stage) return;
-        var ctx = currentResultContext();
-        listAssetsAsync(classificationResultsRoot() + 'FILTERED/' + proposal + '/', function (assets, err) {
-            if (ctx !== currentResultContext()) return;
-            var stages = resultEntries(assets, ['FOLDER', 'IMAGE_COLLECTION'], function (name) {
-                return /^ft\d\d$/.test(name);
-            }).sort();
-            resultSelectors.filtered.stage.items().reset(stages);
-            resultState.filtered.stage = null;
-            if (stages.length) {
-                var lastStage = stages[stages.length - 1];
-                resultSelectors.filtered.stage.setValue(lastStage, false);
-                resultState.filtered.stage = lastStage;
-                loadResultPeriods('filtered');
-            } else {
-                setResultStatus('filtered', L.status_no_results);
-            }
-        });
-    }
-
-    function refreshResultSources() {
-        var campaign = getSelectedCampaign();
-        var root = classificationResultsRoot();
-        var ctx = currentResultContext();
-
-        ['filtered', 'candidates', 'prepublic'].forEach(function (source) {
-            resultState[source].proposal = null;
-            resultState[source].stage = null;
-            resultState[source].periods = [];
-            setResultStatus(source, L.loading);
-        });
-        if (resultSelectors.filtered.proposal) resultSelectors.filtered.proposal.items().reset([]);
-        if (resultSelectors.filtered.stage) resultSelectors.filtered.stage.items().reset([]);
-        if (resultSelectors.candidates.proposal) resultSelectors.candidates.proposal.items().reset([]);
-
-        // Official promoted result (M9).
-        listAssetsAsync(root + 'PRE_PUBLIC/' + campaign.toLowerCase() + '/', function (assets, err) {
-            if (ctx !== currentResultContext()) return;
-            if (err) {
-                setResultStatus('prepublic', L.status_no_results);
-                return;
-            }
-            var periods = resultEntries(assets, ['IMAGE']);
-            resultState.prepublic.periods = periods;
-            setResultStatus('prepublic', periods.length ? (periods.length + ' ' + L.lbl_images) : L.status_no_results);
-        });
-
-        // Promoted candidates (M8).
-        listAssetsAsync(root + 'CANDIDATES/', function (assets, err) {
-            if (ctx !== currentResultContext()) return;
-            if (err || !resultSelectors.candidates.proposal) {
-                setResultStatus('candidates', L.status_no_results);
-                return;
-            }
-            var proposals = resultEntries(assets, ['FOLDER', 'IMAGE_COLLECTION']).sort();
-            resultSelectors.candidates.proposal.items().reset(proposals);
-            if (proposals.length) {
-                resultSelectors.candidates.proposal.setValue(proposals[0], false);
-                resultState.candidates.proposal = proposals[0];
-                loadResultPeriods('candidates');
-            } else {
-                setResultStatus('candidates', L.status_no_results);
-            }
-        });
-
-        // Filtered proposals (M7). Stages are loaded after the proposal is chosen.
-        listAssetsAsync(root + 'FILTERED/', function (assets, err) {
-            if (ctx !== currentResultContext()) return;
-            if (err || !resultSelectors.filtered.proposal) {
-                setResultStatus('filtered', L.status_no_results);
-                return;
-            }
-            var proposals = resultEntries(assets, ['FOLDER', 'IMAGE_COLLECTION']).sort();
-            resultSelectors.filtered.proposal.items().reset(proposals);
-            if (proposals.length) {
-                resultSelectors.filtered.proposal.setValue(proposals[0], false);
-                resultState.filtered.proposal = proposals[0];
-                loadResultStages(proposals[0]);
-            } else {
-                setResultStatus('filtered', L.status_no_results);
-            }
-        });
-    }
-
-    function makeResultSubDrawer(source, title, withProposal, withStage) {
-        var cab = createCabinet(title, false, '2px 2px 2px 10px');
-        subCabClass.content.add(cab.panel);
-
-        var row = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: { margin: '0px', padding: '0px' } });
-        var chk = ui.Checkbox({
-            label: L.lbl_show,
-            value: false,
-            onChange: function () { syncCheckBorder(chk); debouncedUpdateMosaic(); },
-            style: { margin: '1px 3px', padding: '0px', fontSize: '10px', backgroundColor: '#f9f9f9' }
-        });
-        styleCheck(chk, false);
-        row.add(chk);
-
-        if (withProposal) {
-            var selProposal = ui.Select({ items: [], placeholder: L.lbl_proposal, style: styles.input });
-            selProposal.onChange(function (proposal) {
-                if (!proposal) return;
-                resultState[source].proposal = proposal;
-                if (source === 'filtered') loadResultStages(proposal);
-                else loadResultPeriods(source);
-            });
-            resultSelectors[source].proposal = selProposal;
-            row.add(selProposal);
-        }
-
-        if (withStage) {
-            var selStage = ui.Select({ items: [], placeholder: L.lbl_stage, style: styles.input });
-            selStage.onChange(function (stage) {
-                if (!stage) return;
-                resultState[source].stage = stage;
-                loadResultPeriods(source);
-            });
-            resultSelectors[source].stage = selStage;
-            row.add(selStage);
-        }
-
-        var status = ui.Label('', { fontSize: '9px', color: '#777', margin: '1px' });
-        resultStatusLabels[source] = status;
-        cab.content.add(row).add(status);
-        resultSourceCheckboxes[source] = chk;
-    }
-
-    makeResultSubDrawer('filtered', L.cab_class_filtered, true, true);
-    makeResultSubDrawer('candidates', L.cab_class_candidates, true, false);
-    makeResultSubDrawer('prepublic', L.cab_class_prepublic, false, false);
+    subCabClass.content.add(drawerClassModels.panel);
 
     // --- CABINET 4: SAMPLES ---
     var cabSamples = createCabinet(L.cab_samples, true);
@@ -2444,14 +2045,6 @@ function loadSampleAssets(folderPath) {
     rowDraw.add(btnFire).add(btnNotFire).add(btnHand).add(btnClear).add(btnCenter);
 
     drawerAmo.panel.add(rowDraw);
-    var rowStatsTools = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: { margin: '0px', padding: '0px' } });
-    var btt_refresh_stats = ui.Button({
-        label: L.lbl_refresh_stats,
-        style: { margin: '1px 1px 1px 0px', padding: '0px 4px', fontSize: '10px' },
-        onClick: function () { updateStats(); }
-    });
-    rowStatsTools.add(btt_refresh_stats);
-    drawerAmo.panel.add(rowStatsTools);
     drawerAmo.panel.add(panel_stats);
     // Export and Import will be populated below...
 
@@ -2527,7 +2120,6 @@ function loadSampleAssets(folderPath) {
                 }
                 Map.drawingTools().addLayer({ geometries: results.fire, name: 'fire', color: 'ff0000', shown: true });
                 Map.drawingTools().addLayer({ geometries: results.notFire, name: 'notFire', color: '0000ff', shown: true });
-                updateStats();
             }
 
             ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 1)).geometry().coordinates().map(function (list) { return ee.Geometry.Polygon(list); })

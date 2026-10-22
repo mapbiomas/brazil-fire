@@ -126,10 +126,12 @@ entry points are under `production/notebooks/`.
 2. When ready, refresh `development/version_03` with the `version_04` contents.
 3. Copy the `version_03` contents to `production/`.
 4. Regenerate the production `COLAB_LINKS.csv`/`.txt`.
-5. M3 toolkit: the GEE script
-   `5-Monitor-Fuego/M3/M3_Toolkit_Monitor_Fuego` is the reference. Copy it to
+5. M3 toolkit: the catalog ships the v06 snapshot
+   (`5-Monitor-Fuego/M3/dev/M3_Toolkit_Monitor_Fuego_v06`). Copy it to
    `development/version_04/src/core/M3_toolkit.js` and promote it with the rest;
-   `version_03` and `production` keep identical copies.
+   `version_03` and `production` keep identical copies. The GEE link points to
+   `5-Monitor-Fuego/M3/M3_Toolkit_Monitor_Fuego` (current production) as the
+   live reference.
 
 ## Deprecation plan
 
