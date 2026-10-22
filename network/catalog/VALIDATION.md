@@ -32,5 +32,13 @@ python -m unittest discover -s network/catalog/production/tests
 - The root `network/version_02` is a **temporary mirror** for compatibility.
   It is not the canonical copy; `catalog/development/version_01` is.
 - The legacy root mirror will be removed after a public notice.
+- M3 toolkit: the GEE script `5-Monitor-Fuego/M3/M3_Toolkit_Monitor_Fuego`
+  is the reference; `version_03`, `version_04` and `production` ship identical
+  v07 copies. The notebooks link to the copy of the version being run; the M3
+  gateway links to the GEE reference.
+- Known M3 v07 limitations: only Peru, Brazil, Bolivia and Colombia; Brazil
+  only `COLLECTION_06`; the Brazil/Colombia regional folder paths omit
+  `CATALOG_01`.
 - The catalog versions are path-validated; GEE/GCS operations still require
   authentication and are not part of the offline test suite.
+- Offline layout suite: 11 tests OK (`network/catalog/tests`).

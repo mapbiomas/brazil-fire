@@ -1,7 +1,11 @@
 """Offline validation of every catalog version layout and entry-point path."""
 
+import csv
 import glob
+import hashlib
+import importlib.util
 import os
+import sys
 import unittest
 
 CATALOG = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -27,6 +31,26 @@ def _campaigns(base):
         if name != 'index.json':
             names.append(name)
     return set(names)
+
+
+def _sha256(path):
+    with open(path, 'rb') as handle:
+        return hashlib.sha256(handle.read()).hexdigest()
+
+
+def _load_m3_sample_ui(rel):
+    """Import a version's M3_sample_ui without polluting other versions."""
+    core = os.path.join(CATALOG, rel, 'src', 'core')
+    module_path = os.path.join(core, 'M3_sample_ui.py')
+    module_name = 'm3_sample_ui_' + rel.replace('/', '_')
+    sys.path.insert(0, core)
+    try:
+        spec = importlib.util.spec_from_file_location(module_name, module_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    finally:
+        sys.path.remove(core)
+    return module
 
 
 class RootLegacyMirrorTests(unittest.TestCase):
@@ -88,6 +112,44 @@ class MonitorVersionPathsTests(unittest.TestCase):
             base = os.path.join(CATALOG, rel)
             self.assertTrue(os.path.exists(os.path.join(base, 'COLAB_LINKS.csv')), rel)
             self.assertTrue(os.path.exists(os.path.join(base, 'COLAB_LINKS.txt')), rel)
+
+    def test_colab_links_point_to_their_version(self):
+        for rel in self.EXPECTED:
+            path = os.path.join(CATALOG, rel, 'COLAB_LINKS.csv')
+            with open(path, newline='', encoding='utf-8') as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(len(rows), 14, rel)
+            for row in rows:
+                url = row['colab_url']
+                self.assertIn(f'/network/catalog/{rel}/notebooks/', url, url)
+                self.assertTrue(url.endswith('/' + row['notebook']), url)
+
+    def test_m3_toolkit_is_identical_across_versions(self):
+        hashes = {
+            rel: _sha256(os.path.join(CATALOG, rel, 'src', 'core', 'M3_toolkit.js'))
+            for rel in self.EXPECTED
+        }
+        self.assertEqual(len(set(hashes.values())), 1, hashes)
+        v04_toolkit = os.path.join(
+            CATALOG, 'development', 'version_04', 'src', 'core', 'M3_toolkit.js'
+        )
+        self.assertIn('M3 Sample Toolkit | v07', _read(v04_toolkit))
+
+    def test_m3_links_are_version_aware(self):
+        gee_urls = set()
+        for rel in self.EXPECTED:
+            module = _load_m3_sample_ui(rel)
+            github, gee = module._toolkit_links()
+            self.assertIn(
+                f'network/catalog/{rel}/src/core/M3_toolkit.js', github, rel
+            )
+            self.assertIn(
+                '5-Monitor-Fuego%2FM3%2FM3_Toolkit_Monitor_Fuego', gee, rel
+            )
+            self.assertNotIn('peru-fire', github)
+            self.assertNotIn('peru-fire', gee)
+            gee_urls.add(gee)
+        self.assertEqual(len(gee_urls), 1)
 
     def test_version_03_and_04_campaigns_match(self):
         v03 = _campaigns(os.path.join(CATALOG, 'development', 'version_03'))
