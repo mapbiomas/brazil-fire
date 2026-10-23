@@ -1032,7 +1032,28 @@ var resultState = {
     filtered: {},
     prepublic: { periods: [] }
 };
-var RESULT_COLORS = { filtered: '#f58231', prepublic: '#e6194b' };
+// One distinct color per classification layer. Colors are assigned in display
+// order and kept for the whole session so the map layer always matches its
+// swatch. Text stays black; the ■ label carries the color.
+var classificationColorOrder = [];
+var classificationColors = {};
+function classificationColor(key) {
+    if (!classificationColors[key]) {
+        classificationColors[key] = CLASS_PALETTE[classificationColorOrder.length % CLASS_PALETTE.length];
+        classificationColorOrder.push(key);
+    }
+    return classificationColors[key];
+}
+
+// Small colored square used as the layer legend next to the label.
+function colorSwatch(color) {
+    return ui.Label('\u25A0', {
+        color: color,
+        fontSize: '11px',
+        margin: '0px 3px 0px 0px',
+        padding: '0px'
+    });
+}
 
 var regionCheckboxes = {};
 var layerAllRegions = ui.Map.Layer(ee.Image(), {}, L.lbl_all_regions);
@@ -1348,11 +1369,9 @@ function user_interface() {
             var classBandDoy = classBandCheckboxes['doy'] && classBandCheckboxes['doy'].getValue();
             if (classBandCls || classBandPrb || classBandDoy) {
                 var selectedRegions = getSelectedRegionNames();
-                var modelList = Object.keys(classCheckboxes).sort();
                 Object.keys(classCheckboxes).forEach(function (modelId) {
                     if (!classCheckboxes[modelId].getValue()) return;
-                    var modelIdx = modelList.indexOf(modelId);
-                    var color = CLASS_PALETTE[modelIdx % 50] || '#e6194b';
+                    var color = classificationColor('regional:' + modelId);
                     var col = ee.ImageCollection(REGIONAL_FOLDER + '/' + modelId);
 
                     // Mosaic todas as regioes selecionadas em uma unica imagem
@@ -1436,12 +1455,12 @@ function user_interface() {
                     filteredPath(selection.proposal, selection.stage),
                     'filtered_' + selection.proposal + '_' + selection.stage,
                     'filtered ' + selection.proposal + ' ' + selection.stage + ' ' + dateStr,
-                    RESULT_COLORS.filtered);
+                    classificationColor('filtered:' + selection.proposal + ':' + selection.stage));
             });
 
             if (resultSourceCheckboxes.prepublic && resultSourceCheckboxes.prepublic.getValue()
                 && resultState.prepublic.periods.indexOf(dateStr) !== -1) {
-                drawResult(getResultPath('prepublic'), 'prepublic', 'prepublic ' + dateStr, RESULT_COLORS.prepublic);
+                drawResult(getResultPath('prepublic'), 'prepublic', 'prepublic ' + dateStr, classificationColor('prepublic'));
             }
         });
 
@@ -1475,7 +1494,7 @@ function updateClassificationsDrawer() {
             var pending = modelAssets.length;
             var totalAdded = 0;
 
-            modelAssets.forEach(function (c, idx) {
+            modelAssets.forEach(function (c) {
                 var modelId = c.id.split('/').pop();
                 var colPath = REGIONAL_FOLDER + '/' + modelId;
                 listAssetsAsync(colPath, function (assets, imageErr) {
@@ -1490,15 +1509,20 @@ function updateClassificationsDrawer() {
                         if (hasData) {
                             totalAdded++;
                             if (totalAdded === 1) drawerClassModels.panel.remove(labelLoading);
+                            var classRow = ui.Panel({
+                                layout: ui.Panel.Layout.flow('horizontal'),
+                                style: { margin: '1px 0px', padding: '0px', stretch: 'horizontal' }
+                            });
                             var chk = ui.Checkbox({
                                 label: modelId,
                                 value: false,
                                 onChange: function () { syncCheckBorder(chk); debouncedUpdateMosaic(); },
-                                style: { margin: '1px 3px', padding: '0px', fontSize: '10px', color: CLASS_PALETTE[idx % 50] }
+                                style: { margin: '0px', padding: '0px', fontSize: '10px', color: '#000' }
                             });
                             styleCheck(chk, false);
+                            classRow.add(colorSwatch(classificationColor('regional:' + modelId))).add(chk);
                             classCheckboxes[modelId] = chk;
-                            drawerClassModels.panel.add(chk);
+                            drawerClassModels.panel.add(classRow);
                         }
                     }
                     if (pending === 0 && totalAdded === 0) {
@@ -2584,11 +2608,16 @@ function loadSampleAssets(folderPath) {
                     syncCheckBorder(chk);
                     toggleFilteredSelection(proposal, stage, chk.getValue());
                 },
-                style: { margin: '0px 6px 0px 0px', padding: '0px', fontSize: '9px' }
+                style: { margin: '0px', padding: '0px', fontSize: '9px', color: '#000' }
             });
             styleCheck(chk, selected);
+            var stageCell = ui.Panel({
+                layout: ui.Panel.Layout.flow('horizontal'),
+                style: { margin: '0px 4px 0px 0px', padding: '0px' }
+            });
+            stageCell.add(colorSwatch(classificationColor('filtered:' + proposal + ':' + stage))).add(chk);
             row.checkboxes[stage] = chk;
-            row.stagesPanel.add(chk);
+            row.stagesPanel.add(stageCell);
         });
     }
 
@@ -2713,7 +2742,7 @@ function loadSampleAssets(folderPath) {
             style: { margin: '1px 3px', padding: '0px', fontSize: '10px', backgroundColor: '#f9f9f9' }
         });
         styleCheck(chk, false);
-        row.add(chk);
+        row.add(colorSwatch(classificationColor('prepublic'))).add(chk);
         var status = ui.Label('', { fontSize: '9px', color: '#777', margin: '1px' });
         resultStatusLabels.prepublic = status;
         resultSourceCheckboxes.prepublic = chk;
