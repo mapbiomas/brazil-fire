@@ -421,9 +421,19 @@ var countryConfigs = {
         getImagesRoot: function() { return CATALOG_ROOT + '/LIBRARY_IMAGES'; },
         bucket: 'mapbiomas-fire',
         property: 'region_nam',
-        campaigns: ['MONITOR_01', 'MONITOR_DEV', 'COLLECTION_03'],
+        campaigns: [
+            'MONITOR_01',
+            'COLLECTION_03'
+            // , 'COLLECTION_DEV'
+            // , 'MONITOR_DEV'
+        ],
         defaultCampaign: 'MONITOR_01',
-        periodicityByCampaign: { MONITOR_01: 'monthly', MONITOR_DEV: 'monthly', COLLECTION_03: 'yearly' },
+        periodicityByCampaign: {
+            MONITOR_01: 'monthly',
+            COLLECTION_03: 'yearly'
+            // , COLLECTION_DEV: 'yearly'
+            // , MONITOR_DEV: 'monthly'
+        },
         getAssetSamples: function(campaign) { return CATALOG_ROOT + '/' + campaign + '/LIBRARY_SAMPLES'; },
         getGcsSamples: function(campaign) { return 'sudamerica/peru/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return CATALOG_ROOT + '/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
@@ -448,9 +458,19 @@ var countryConfigs = {
         getImagesRoot: function() { return 'projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/LIBRARY_IMAGES'; },
         bucket: 'mapbiomas-fire',
         property: 'region_name',
-        campaigns: ['COLLECTION_06', 'COLLECTION_06_DEV', 'MONITOR_01'],
+        campaigns: [
+            'COLLECTION_06',
+            'MONITOR_01'
+            // , 'COLLECTION_DEV'
+            // , 'MONITOR_DEV'
+        ],
         defaultCampaign: 'COLLECTION_06',
-        periodicityByCampaign: { COLLECTION_06: 'yearly', COLLECTION_06_DEV: 'yearly', MONITOR_01: 'monthly' },
+        periodicityByCampaign: {
+            COLLECTION_06: 'yearly',
+            MONITOR_01: 'monthly'
+            // , COLLECTION_DEV: 'yearly'
+            // , MONITOR_DEV: 'monthly'
+        },
         getAssetSamples: function(campaign) { return 'projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getGcsSamples: function(campaign) { return 'sudamerica/brazil/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-brazil/assets/FIRE/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
@@ -477,9 +497,19 @@ var countryConfigs = {
         getImagesRoot: function() { return 'projects/mapbiomas-bolivia/assets/FIRE/CATALOG_01/LIBRARY_IMAGES'; },
         bucket: 'mapbiomas-fire',
         property: 'region_nam',
-        campaigns: ['COLLECTION_02', 'MONITOR_01', 'MONITOR_DEV'],
+        campaigns: [
+            'COLLECTION_02',
+            'MONITOR_01'
+            // , 'COLLECTION_DEV'
+            // , 'MONITOR_DEV'
+        ],
         defaultCampaign: 'COLLECTION_02',
-        periodicityByCampaign: { COLLECTION_02: 'yearly', MONITOR_01: 'monthly', MONITOR_DEV: 'monthly' },
+        periodicityByCampaign: {
+            COLLECTION_02: 'yearly',
+            MONITOR_01: 'monthly'
+            // , COLLECTION_DEV: 'yearly'
+            // , MONITOR_DEV: 'monthly'
+        },
         getAssetSamples: function(campaign) { return 'projects/mapbiomas-bolivia/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getGcsSamples: function(campaign) { return 'sudamerica/bolivia/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-bolivia/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
@@ -498,9 +528,19 @@ var countryConfigs = {
         getImagesRoot: function() { return 'projects/mapbiomas-colombia/assets/FIRE/CATALOG_01/LIBRARY_IMAGES'; },
         bucket: 'mapbiomas-fire',
         property: 'region_nam',
-        campaigns: ['MONITOR_01', 'COLLECTION_02'],
+        campaigns: [
+            'MONITOR_01',
+            'COLLECTION_02'
+            // , 'COLLECTION_DEV'
+            // , 'MONITOR_DEV'
+        ],
         defaultCampaign: 'MONITOR_01',
-        periodicityByCampaign: { MONITOR_01: 'monthly', COLLECTION_02: 'yearly' },
+        periodicityByCampaign: {
+            MONITOR_01: 'monthly',
+            COLLECTION_02: 'yearly'
+            // , COLLECTION_DEV: 'yearly'
+            // , MONITOR_DEV: 'monthly'
+        },
         getAssetSamples: function(campaign) { return 'projects/mapbiomas-colombia/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getGcsSamples: function(campaign) { return 'sudamerica/colombia/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-colombia/assets/FIRE/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
@@ -519,9 +559,19 @@ var countryConfigs = {
         getImagesRoot: function() { return 'projects/mapbiomas-chile/assets/FIRE/CATALOG_01/LIBRARY_IMAGES'; },
         bucket: 'mapbiomas-fire',
         property: 'region_nam',
-        campaigns: ['COLLECTION_02', 'MONITOR_01'],
+        campaigns: [
+            'COLLECTION_02',
+            'MONITOR_01'
+            // , 'COLLECTION_DEV'
+            // , 'MONITOR_DEV'
+        ],
         defaultCampaign: 'MONITOR_01',
-        periodicityByCampaign: { COLLECTION_02: 'yearly', MONITOR_01: 'monthly' },
+        periodicityByCampaign: {
+            COLLECTION_02: 'yearly',
+            MONITOR_01: 'monthly'
+            // , COLLECTION_DEV: 'yearly'
+            // , MONITOR_DEV: 'monthly'
+        },
         getAssetSamples: function(campaign) { return 'projects/mapbiomas-chile/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getGcsSamples: function(campaign) { return 'sudamerica/chile/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-chile/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
@@ -540,9 +590,19 @@ var countryConfigs = {
         getImagesRoot: function() { return 'projects/mapbiomas-paraguay/assets/FIRE/CATALOG_01/LIBRARY_IMAGES'; },
         bucket: 'mapbiomas-fire',
         property: 'region_nam',
-        campaigns: ['COLLECTION_03', 'MONITOR_01'],
+        campaigns: [
+            'COLLECTION_03',
+            'MONITOR_01'
+            // , 'COLLECTION_DEV'
+            // , 'MONITOR_DEV'
+        ],
         defaultCampaign: 'MONITOR_01',
-        periodicityByCampaign: { COLLECTION_03: 'yearly', MONITOR_01: 'monthly' },
+        periodicityByCampaign: {
+            COLLECTION_03: 'yearly',
+            MONITOR_01: 'monthly'
+            // , COLLECTION_DEV: 'yearly'
+            // , MONITOR_DEV: 'monthly'
+        },
         getAssetSamples: function(campaign) { return 'projects/mapbiomas-paraguay/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getGcsSamples: function(campaign) { return 'sudamerica/paraguay/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-paraguay/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
@@ -562,9 +622,19 @@ var countryConfigs = {
         getImagesRoot: function() { return 'projects/mapbiomas-venezuela/assets/FIRE/CATALOG_01/LIBRARY_IMAGES'; },
         bucket: 'mapbiomas-fire',
         property: 'region_nam',
-        campaigns: ['COLLECTION_02', 'MONITOR_01'],
+        campaigns: [
+            'COLLECTION_02',
+            'MONITOR_01'
+            // , 'COLLECTION_DEV'
+            // , 'MONITOR_DEV'
+        ],
         defaultCampaign: 'MONITOR_01',
-        periodicityByCampaign: { COLLECTION_02: 'yearly', MONITOR_01: 'monthly' },
+        periodicityByCampaign: {
+            COLLECTION_02: 'yearly',
+            MONITOR_01: 'monthly'
+            // , COLLECTION_DEV: 'yearly'
+            // , MONITOR_DEV: 'monthly'
+        },
         getAssetSamples: function(campaign) { return 'projects/mapbiomas-venezuela/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getGcsSamples: function(campaign) { return 'sudamerica/venezuela/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-venezuela/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
@@ -579,9 +649,19 @@ var countryConfigs = {
         getImagesRoot: function() { return 'projects/mapbiomas-indonesia/assets/FIRE/CATALOG_01/LIBRARY_IMAGES'; },
         bucket: 'mapbiomas-fire',
         property: 'region_nam',
-        campaigns: ['COLLECTION_03', 'MONITOR_01'],
+        campaigns: [
+            'COLLECTION_03',
+            'MONITOR_01'
+            // , 'COLLECTION_DEV'
+            // , 'MONITOR_DEV'
+        ],
         defaultCampaign: 'MONITOR_01',
-        periodicityByCampaign: { COLLECTION_03: 'yearly', MONITOR_01: 'monthly' },
+        periodicityByCampaign: {
+            COLLECTION_03: 'yearly',
+            MONITOR_01: 'monthly'
+            // , COLLECTION_DEV: 'yearly'
+            // , MONITOR_DEV: 'monthly'
+        },
         getAssetSamples: function(campaign) { return 'projects/mapbiomas-indonesia/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getGcsSamples: function(campaign) { return 'asia/indonesia/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-indonesia/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
@@ -598,9 +678,19 @@ var countryConfigs = {
         getImagesRoot: function() { return 'projects/mapbiomas-drc/assets/FIRE/CATALOG_01/LIBRARY_IMAGES'; },
         bucket: 'mapbiomas-fire',
         property: 'region_nam',
-        campaigns: ['COLLECTION_01'],
+        campaigns: [
+            'COLLECTION_01',
+            'MONITOR_01'
+            // , 'COLLECTION_DEV'
+            // , 'MONITOR_DEV'
+        ],
         defaultCampaign: 'COLLECTION_01',
-        periodicityByCampaign: { COLLECTION_01: 'yearly' },
+        periodicityByCampaign: {
+            COLLECTION_01: 'yearly',
+            MONITOR_01: 'monthly'
+            // , COLLECTION_DEV: 'yearly'
+            // , MONITOR_DEV: 'monthly'
+        },
         getAssetSamples: function(campaign) { return 'projects/mapbiomas-drc/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getGcsSamples: function(campaign) { return 'africa/drc/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-drc/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
@@ -641,44 +731,61 @@ Object.keys(countryConfigs).forEach(function(c) {
 });
 
 // Suggested layer/periodicity presets applied when the territory campaign changes.
+// Dev campaigns are kept commented; enable them only when the assets exist.
 var CAMPAIGN_PRESETS = {
     Peru: {
         MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] },
-        MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] },
         COLLECTION_03: { periodicity: 'yearly', assets: ['landsat'] }
+        // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
+        // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     },
     Brazil: {
         COLLECTION_06: { periodicity: 'yearly', assets: ['landsat'] },
-        COLLECTION_06_DEV: { periodicity: 'yearly', assets: ['landsat'] },
         MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] }
+        // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
+        // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     },
     Bolivia: {
         COLLECTION_02: { periodicity: 'yearly', assets: ['landsat'] },
-        MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] },
-        MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
+        MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] }
+        // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
+        // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     },
     Colombia: {
         MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] },
         COLLECTION_02: { periodicity: 'yearly', assets: ['landsat'] }
+        // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
+        // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     },
     Chile: {
         COLLECTION_02: { periodicity: 'yearly', assets: ['landsat'] },
         MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] }
+        // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
+        // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     },
     Paraguay: {
         COLLECTION_03: { periodicity: 'yearly', assets: ['landsat'] },
         MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] }
+        // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
+        // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     },
     Venezuela: {
         COLLECTION_02: { periodicity: 'yearly', assets: ['landsat'] },
         MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] }
+        // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
+        // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     },
     Indonesia: {
         COLLECTION_03: { periodicity: 'yearly', assets: ['landsat'] },
         MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] }
+        // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
+        // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     },
     DRC: {
-        COLLECTION_01: { periodicity: 'yearly', assets: ['landsat'] }
+        COLLECTION_01: { periodicity: 'yearly', assets: ['landsat'] },
+        MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] }
+        // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
+        // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     }
 };
 
@@ -712,15 +819,25 @@ var pendingOps = 0;
 var lab_activity = null;
 
 // Builds the fire emoji string client-side (avoids EE intercepting '🔥'.repeat).
+// Caps the glyphs and appends the count so the header never grows sideways.
 function fireEmojis(n) {
+    var shown = Math.min(n, 3);
     var s = '';
-    for (var i = 0; i < n; i++) s += '🔥';
+    for (var i = 0; i < shown; i++) s += '🔥';
+    if (n > shown) s += ' ×' + n;
     return s;
+}
+
+var lastOpActivityAt = Date.now();
+
+function noteOpActivity() {
+    lastOpActivityAt = Date.now();
 }
 
 // Shows one fire emoji next to the title for each in-flight server operation.
 function trackOpStart() {
     pendingOps++;
+    noteOpActivity();
     if (lab_activity) {
         lab_activity.setValue(fireEmojis(pendingOps));
         lab_activity.style().set('shown', true);
@@ -730,6 +847,7 @@ function trackOpStart() {
 // Removes one fire emoji as an operation returns.
 function trackOpEnd() {
     if (pendingOps > 0) pendingOps--;
+    noteOpActivity();
     if (lab_activity) {
         lab_activity.setValue(fireEmojis(pendingOps));
         lab_activity.style().set('shown', pendingOps > 0);
@@ -744,6 +862,32 @@ function trackEvaluate(fn) {
         return fn.apply(null, arguments);
     };
 }
+
+// Evaluates a server object and always releases the activity slot, including
+// when the call fails synchronously (invalid asset, malformed expression).
+function safeEvaluate(eeObject, callback) {
+    var wrapped = trackEvaluate(callback);
+    try {
+        eeObject.evaluate(wrapped);
+    } catch (e) {
+        // trackEvaluate already counted the operation; release it before reporting.
+        trackOpEnd();
+        callback(null, e);
+    }
+}
+
+// Safety net: if EE drops a callback the counter would otherwise stay stuck.
+ui.util.setInterval(function () {
+    if (pendingOps > 0 && (Date.now() - lastOpActivityAt) > 120000) {
+        pendingOps = 0;
+        noteOpActivity();
+        if (lab_activity) {
+            lab_activity.setValue('');
+            lab_activity.style().set('shown', false);
+        }
+        print('M3: activity counter reset after 120s without server activity');
+    }
+}, 15000);
 
 var ASYNC_STATE = {
     regions: { token: 0 },
@@ -805,20 +949,33 @@ function ensureAssetFolder(path, callback) {
 }
 
 // Lists every asset below a folder, following pagination tokens.
+// Counts as a single in-flight operation for the whole listing, no matter how
+// many pages are fetched.
 function listAssetsAsync(parent, callback, pageToken, accumulated) {
-    var params = pageToken ? { pageToken: pageToken } : {};
-    var acc = accumulated || [];
-    try {
-        ee.data.listAssets(parent, params, function(result, error) {
-            if (error) { callback(null, error); return; }
-            if (!result) { callback(acc, null); return; }
-            var assets = acc.concat(result.assets || []);
-            if (result.nextPageToken) listAssetsAsync(parent, callback, result.nextPageToken, assets);
-            else callback(assets, null);
-        });
-    } catch (e) {
-        callback(null, e);
+    var isFirstPage = !pageToken;
+    if (isFirstPage) trackOpStart();
+
+    function finish(assets, error) {
+        if (isFirstPage) trackOpEnd();
+        callback(assets, error);
     }
+
+    function fetchPage(token, collected) {
+        var params = token ? { pageToken: token } : {};
+        try {
+            ee.data.listAssets(parent, params, function(result, error) {
+                if (error) { finish(null, error); return; }
+                if (!result) { finish(collected, null); return; }
+                var assets = collected.concat(result.assets || []);
+                if (result.nextPageToken) fetchPage(result.nextPageToken, assets);
+                else finish(assets, null);
+            });
+        } catch (e) {
+            finish(null, e);
+        }
+    }
+
+    fetchPage(pageToken, accumulated || []);
 }
 
 // Returns sorted region names, caching one server lookup per country/campaign.
@@ -837,16 +994,17 @@ function getCountryRegionNames(countryName, campaign, callback) {
     }
     regionNamesPending[cacheKey] = [callback];
     var regions = conf.getAssetRegions ? conf.getAssetRegions(selectedCampaign) : conf.asset_regions;
-    ee.FeatureCollection(regions)
-        .aggregate_array(conf.property)
-        .distinct()
-        .sort()
-        .evaluate(trackEvaluate(function (names) {
+    safeEvaluate(
+        ee.FeatureCollection(regions)
+            .aggregate_array(conf.property)
+            .distinct()
+            .sort(),
+        function (names) {
             regionNamesCache[cacheKey] = names || [];
             var cbs = regionNamesPending[cacheKey] || [];
             regionNamesPending[cacheKey] = null;
             cbs.forEach(function (cb) { cb(regionNamesCache[cacheKey]); });
-        }));
+        });
 }
 
 // Warms the region-name cache for every country's default campaign.
@@ -868,11 +1026,14 @@ function preloadHotspotAssets() {
 }
 
 // Ensures the selected campaign and its sample library exist before export.
+// Counts as one operation for the whole folder chain, not one per folder.
 function ensureCampaignFolders(conf, campaign, callback) {
     var samplePath = conf.getAssetSamples(campaign);
     var libraryPath = samplePath.split('/').slice(0, -1).join('/');
+    trackOpStart();
     ensureAssetFolder(libraryPath, function () {
         ensureAssetFolder(samplePath, function () {
+            trackOpEnd();
             callback();
         });
     });
@@ -1601,9 +1762,9 @@ function updateClassificationsDrawer() {
         var totalFc = ee.FeatureCollection(fireGeom.map(function (g) { return ee.Feature(ee.Geometry(g)); }))
             .merge(ee.FeatureCollection(notFireGeom.map(function (g) { return ee.Feature(ee.Geometry(g)); })));
 
-        totalFc.size().evaluate(trackEvaluate(function (size) {
+        safeEvaluate(totalFc.size(), function (size) {
             if (size > 0) Map.centerObject(totalFc);
-        }));
+        });
     }
 
     // --- Sample Stats Panel ---
@@ -1647,7 +1808,7 @@ function updateClassificationsDrawer() {
 
         panel_stats.add(ui.Label({ imageUrl: b64.get('load_gif'), style: { margin: '4px' } }));
 
-        stats.evaluate(trackEvaluate(function (s, err) {
+        safeEvaluate(stats, function (s, err) {
             if (!isCurrentAsync(ASYNC_STATE.stats, statsToken)) return;
             if (err) {
                 panel_stats.clear();
@@ -1689,7 +1850,7 @@ function updateClassificationsDrawer() {
             panel_stats.add(makeRow(L.lbl_not_fire, s.notFire_count, s.notFire_area, '#1a73e8', false));
             panel_stats.add(ui.Label('──────────────────────────────', { margin: '0px', color: '#ccc' }));
             panel_stats.add(makeRow(L.lbl_total, totalCount, totalArea, '#333', false));
-        }));
+        });
     }
 
     // Debounces stats recalculation while the user is drawing or editing.
@@ -2291,7 +2452,7 @@ function loadSampleAssets(folderPath) {
         if (!entry) {
             entry = { years: [] };
             mbfireBandCache[cfg.asset] = entry;
-            ee.Image(cfg.asset).bandNames().evaluate(function (names, err) {
+            safeEvaluate(ee.Image(cfg.asset).bandNames(), function (names, err) {
                 if (err || !names) {
                     entry.years = [];
                     print('MBFIRE: no bands found for ' + cfg.asset);
@@ -2904,10 +3065,14 @@ function loadSampleAssets(folderPath) {
                 updateStats();
             }
 
-            ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 1)).geometry().coordinates().map(function (list) { return ee.Geometry.Polygon(list); })
-                .evaluate(trackEvaluate(function (list, err) { onImportResult('fire', list, err); }));
-            ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 0)).geometry().coordinates().map(function (list) { return ee.Geometry.Polygon(list); })
-                .evaluate(trackEvaluate(function (list, err) { onImportResult('notFire', list, err); }));
+            safeEvaluate(
+                ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 1)).geometry().coordinates()
+                    .map(function (list) { return ee.Geometry.Polygon(list); }),
+                function (list, err) { onImportResult('fire', list, err); });
+            safeEvaluate(
+                ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 0)).geometry().coordinates()
+                    .map(function (list) { return ee.Geometry.Polygon(list); }),
+                function (list, err) { onImportResult('notFire', list, err); });
         }
     });
 
