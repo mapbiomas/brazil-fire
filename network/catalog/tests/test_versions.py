@@ -95,7 +95,6 @@ class CollectionVersionPathsTests(unittest.TestCase):
 class MonitorVersionPathsTests(unittest.TestCase):
     EXPECTED = {
         'development/version_03': 'network/catalog/development/version_03/src/core',
-        'development/version_04': 'network/catalog/development/version_04/src/core',
         'production': 'network/catalog/production/src/core',
     }
 
@@ -130,10 +129,10 @@ class MonitorVersionPathsTests(unittest.TestCase):
             for rel in self.EXPECTED
         }
         self.assertEqual(len(set(hashes.values())), 1, hashes)
-        v04_toolkit = os.path.join(
-            CATALOG, 'development', 'version_04', 'src', 'core', 'M3_toolkit.js'
+        toolkit = os.path.join(
+            CATALOG, 'development', 'version_03', 'src', 'core', 'M3_toolkit.js'
         )
-        self.assertIn('M3 Sample Toolkit | v06', _read(v04_toolkit))
+        self.assertIn('M3 Sample Toolkit | v08', _read(toolkit))
 
     def test_m3_links_are_version_aware(self):
         gee_urls = set()
@@ -150,11 +149,6 @@ class MonitorVersionPathsTests(unittest.TestCase):
             self.assertNotIn('peru-fire', gee)
             gee_urls.add(gee)
         self.assertEqual(len(gee_urls), 1)
-
-    def test_version_03_and_04_campaigns_match(self):
-        v03 = _campaigns(os.path.join(CATALOG, 'development', 'version_03'))
-        v04 = _campaigns(os.path.join(CATALOG, 'development', 'version_04'))
-        self.assertEqual(v03, v04)
 
     def test_production_matches_version_03(self):
         v03 = _campaigns(os.path.join(CATALOG, 'development', 'version_03'))

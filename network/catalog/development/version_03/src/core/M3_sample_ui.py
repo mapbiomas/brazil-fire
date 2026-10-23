@@ -27,7 +27,7 @@ def _find_repo_root(start):
 
 
 def _version_label(here):
-    """Return production/version_03/version_04 from the directory layout."""
+    """Return production/version_03 from the directory layout."""
     parts = os.path.normpath(here).split(os.sep)
     if "production" in parts:
         return "production"

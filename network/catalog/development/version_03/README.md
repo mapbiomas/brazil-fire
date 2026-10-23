@@ -1,7 +1,8 @@
 # MapBiomas Fire Monitor - Version 03 (stable reference)
 
-> **Stable reference (version_03).** This pipeline mirrors `../version_04/` for
-> production. See [`../../README.md`](../../README.md) for the catalog.
+> **Stable reference (version_03).** This folder is the active development copy
+> and the source for production (`../version_04/` was removed).
+> See [`../../README.md`](../../README.md) for the catalog.
 >
 > Colab links: [`COLAB_LINKS.csv`](./COLAB_LINKS.csv) /
 > [`COLAB_LINKS.txt`](./COLAB_LINKS.txt).

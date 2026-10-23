@@ -7,7 +7,7 @@ import os
 from M_lang import L as Lang
 
 
-# Canonical GEE reference toolkit (current production; catalog snapshots ship v06).
+# Canonical GEE reference toolkit (current production; catalog snapshots ship v08).
 GEE_TOOLKIT_URL = (
     "https://code.earthengine.google.com/?scriptPath="
     "users%2Fmapbiomasworkspace1%2Fmapbiomas-fire%3A5-Monitor-Fuego%2FM3%2FM3_Toolkit_Monitor_Fuego"
@@ -27,7 +27,7 @@ def _find_repo_root(start):
 
 
 def _version_label(here):
-    """Return production/version_03/version_04 from the directory layout."""
+    """Return production/version_03 from the directory layout."""
     parts = os.path.normpath(here).split(os.sep)
     if "production" in parts:
         return "production"

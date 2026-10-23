@@ -1,7 +1,7 @@
 # MapBiomas Fire Catalog - Production
 
-> **Production release.** Mirrors `development/version_03` (which mirrors
-> `development/version_04` at release time). Do not edit; see `PRODUCTION.md`.
+> **Production release.** Mirrors `development/version_03` (the active
+> development copy and stable reference). Do not edit; see `PRODUCTION.md`.
 > See [`../README.md`](../README.md) for the catalog.
 >
 > Colab links: [`COLAB_LINKS.csv`](./COLAB_LINKS.csv) /
