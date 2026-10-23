@@ -2592,12 +2592,18 @@ function loadSampleAssets(folderPath) {
         });
     }
 
+    // GEE style keys are whitelisted (no overflow/ellipsis), so long proposal
+    // names are shortened in JS instead of relying on CSS truncation.
+    function filteredProposalLabel(name) {
+        return name.length > 30 ? name.substring(0, 29) + '...' : name;
+    }
+
     function addFilteredRow(proposal) {
         var panel = ui.Panel({
             layout: ui.Panel.Layout.flow('vertical'),
             style: { margin: '2px 0px', padding: '0px', stretch: 'horizontal' }
         });
-        var label = ui.Label(proposal, {
+        var label = ui.Label(filteredProposalLabel(proposal), {
             stretch: 'horizontal',
             fontSize: '9px',
             fontWeight: 'bold',
@@ -2605,9 +2611,7 @@ function loadSampleAssets(folderPath) {
             margin: '0px',
             padding: '0px',
             minWidth: '0',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            whiteSpace: 'nowrap'
         });
         var stagesPanel = ui.Panel({
             layout: ui.Panel.Layout.flow('horizontal', true),
