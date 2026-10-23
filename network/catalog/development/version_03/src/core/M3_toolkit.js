@@ -2566,63 +2566,61 @@ function loadSampleAssets(folderPath) {
         updateFilteredStatus();
     }
 
-    // Column widths fit the FILTERED drawer without a horizontal scrollbar.
-    var FILTERED_LABEL_W = '92px';
-    var FILTERED_STAGE_W = '28px';
-    var filteredLabelStyle = function () {
-        return {
-            width: FILTERED_LABEL_W,
-            fontSize: '9px',
-            margin: '1px 1px',
-            padding: '0px',
-            color: '#333',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
-        };
-    };
-
-    function filteredHeader() {
-        var header = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: { margin: '0px', padding: '0px' } });
-        header.add(ui.Label(L.lbl_proposal, { width: FILTERED_LABEL_W, fontSize: '9px', fontWeight: 'bold', margin: '1px 1px' }));
-        filteredStageColumns.forEach(function (stage) {
-            header.add(ui.Label(stage, { width: FILTERED_STAGE_W, fontSize: '9px', fontWeight: 'bold', margin: '1px 0px' }));
-        });
-        return header;
-    }
-
+    // Each proposal uses two lines: the name (flexible, truncated with an
+    // ellipsis) and a wrapping row of stage checkboxes. Nothing has a fixed
+    // pixel width, so the drawer never grows a horizontal scrollbar.
     function rebuildFilteredRow(proposal, stages) {
         var row = filteredRows[proposal];
         if (!row) return;
         row.stages = stages || [];
-        row.panel.clear();
-        row.panel.add(row.label);
+        row.stagesPanel.clear();
         filteredStageColumns.forEach(function (stage) {
-            if (row.stages.indexOf(stage) === -1) {
-                row.panel.add(ui.Label('', { width: FILTERED_STAGE_W, margin: '0px', padding: '0px' }));
-                return;
-            }
+            if (row.stages.indexOf(stage) === -1) return;
+            var selected = !!resultState.filtered[filteredSelectionKey(proposal, stage)];
             var chk = ui.Checkbox({
-                label: '',
-                value: !!resultState.filtered[filteredSelectionKey(proposal, stage)],
+                label: stage,
+                value: selected,
                 onChange: function () {
+                    syncCheckBorder(chk);
                     toggleFilteredSelection(proposal, stage, chk.getValue());
                 },
-                style: { width: FILTERED_STAGE_W, margin: '0px', padding: '0px' }
+                style: { margin: '0px 6px 0px 0px', padding: '0px', fontSize: '9px' }
             });
+            styleCheck(chk, selected);
             row.checkboxes[stage] = chk;
-            row.panel.add(chk);
+            row.stagesPanel.add(chk);
         });
     }
 
     function addFilteredRow(proposal) {
-        var panel = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: { margin: '0px', padding: '0px' } });
-        var label = ui.Label(proposal, filteredLabelStyle());
-        panel.add(label);
-        filteredStageColumns.forEach(function (stage) {
-            panel.add(ui.Label('', { width: FILTERED_STAGE_W, margin: '0px', padding: '0px' }));
+        var panel = ui.Panel({
+            layout: ui.Panel.Layout.flow('vertical'),
+            style: { margin: '2px 0px', padding: '0px', stretch: 'horizontal' }
         });
-        filteredRows[proposal] = { panel: panel, label: label, stages: [], checkboxes: {} };
+        var label = ui.Label(proposal, {
+            stretch: 'horizontal',
+            fontSize: '9px',
+            fontWeight: 'bold',
+            color: '#333',
+            margin: '0px',
+            padding: '0px',
+            minWidth: '0',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+        });
+        var stagesPanel = ui.Panel({
+            layout: ui.Panel.Layout.flow('horizontal', true),
+            style: { margin: '1px 0px 0px 0px', padding: '0px', stretch: 'horizontal' }
+        });
+        panel.add(label).add(stagesPanel);
+        filteredRows[proposal] = {
+            panel: panel,
+            label: label,
+            stagesPanel: stagesPanel,
+            stages: [],
+            checkboxes: {}
+        };
         panelFiltered.add(panel);
     }
 
@@ -2631,7 +2629,6 @@ function loadSampleAssets(folderPath) {
         resultState.filtered = {};
         filteredRows = {};
         panelFiltered.clear();
-        panelFiltered.add(filteredHeader());
         setResultStatus('filtered', L.loading);
 
         listAssetsAsync(root + 'FILTERED/', function (assets, err) {
@@ -2692,7 +2689,9 @@ function loadSampleAssets(folderPath) {
     function makeFilteredDrawer() {
         var cab = createCabinet(L.cab_class_filtered, false, '2px 2px 2px 10px');
         subCabClass.content.add(cab.panel);
-        panelFiltered = ui.Panel({ style: { margin: '1px 0px', padding: '1px', backgroundColor: '#f9f9f9' } });
+        panelFiltered = ui.Panel({
+            style: { margin: '1px 0px', padding: '0px', stretch: 'horizontal', backgroundColor: '#f9f9f9' }
+        });
         cab.content.add(panelFiltered);
         var status = ui.Label('', { fontSize: '9px', color: '#777', margin: '1px' });
         resultStatusLabels.filtered = status;
