@@ -1287,6 +1287,50 @@ function user_interface() {
     var panel_samples = ui.Panel({ style: styles.card });
     panel_body.add(panel_control);
 
+    // --- SAMPLES DOCK (bottom-left over the map) ---
+    // Holds the whole MUESTRAS cabinet; when SAMPLES OFF the dock keeps only
+    // the toggle button, so the map gains the space back.
+    function applyToggleStyle(btn, on) {
+        btn.style().set({
+            backgroundColor: on ? '#2e7d32' : '#c62828',
+            border: '1px solid ' + (on ? '#1b5e20' : '#b71c1c'),
+            color: '#ffffff'
+        });
+    }
+
+    var samplesOn = true;
+    var samplesBody = ui.Panel({
+        layout: ui.Panel.Layout.flow('vertical'),
+        style: { margin: '0px', padding: '0px', shown: true }
+    });
+    var samplesToggle = ui.Button({
+        label: 'SAMPLES ON',
+        style: { margin: '2px', padding: '4px 8px', fontSize: '11px', fontWeight: 'bold', stretch: 'horizontal' },
+        onClick: function () {
+            samplesOn = !samplesOn;
+            samplesToggle.setLabel(samplesOn ? 'SAMPLES ON' : 'SAMPLES OFF');
+            applyToggleStyle(samplesToggle, samplesOn);
+            samplesBody.style().set('shown', samplesOn);
+            if (samplesOn) updateStats();
+        }
+    });
+    applyToggleStyle(samplesToggle, true);
+    var samplesDock = ui.Panel({
+        layout: ui.Panel.Layout.flow('vertical'),
+        style: {
+            position: 'bottom-left',
+            width: '340px',
+            maxHeight: '60%',
+            margin: '6px',
+            padding: '2px',
+            backgroundColor: '#ffffff',
+            border: '1px solid #d0d0d0',
+            shown: true
+        }
+    });
+    samplesDock.add(samplesToggle).add(samplesBody);
+    Map.add(samplesDock);
+
     // ==========================================
     // GENERAL MAP / DRAWING FUNCTIONS
     // ==========================================
@@ -2896,7 +2940,7 @@ function loadSampleAssets(folderPath) {
 
     // --- CABINET 4: SAMPLES ---
     var cabSamples = createCabinet(L.cab_samples, true);
-    panel_control.add(cabSamples.panel);
+    samplesBody.add(cabSamples.panel);
 
     // Sub-drawers panels
     var drawerInst = { panel: ui.Panel({ style: { shown: false, border: '1px solid #eee', margin: '2px' } }) };
