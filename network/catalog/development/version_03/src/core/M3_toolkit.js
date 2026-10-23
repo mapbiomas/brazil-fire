@@ -1188,14 +1188,21 @@ function classificationColor(key) {
 
 // Colored glyph used as the layer legend next to the label. The checkbox text
 // stays black; only the glyph carries the color.
-function colorSwatch(color) {
-    return ui.Label('\u25A0', {
+function colorSwatch(color, glyph) {
+    return ui.Label(glyph || '\u25A0', {
         color: color,
         fontSize: '22px',
         margin: '0px 4px 0px 0px',
         padding: '0px'
     });
 }
+
+// Neutral hints for layers where a single color carries no meaning.
+var RGB_GLYPH = '\u25A3';     // ▣ RGB composition
+var GRAY_GLYPH = '\u25D0';    // ◐ greyscale band
+var RAMP_GLYPH = '\u25A5';    // ▥ colour ramp
+var VECTOR_GLYPH = '\u25CF';  // ● vector layer
+var NEUTRAL_SWATCH = '#666666';
 
 var regionCheckboxes = {};
 var layerAllRegions = ui.Map.Layer(ee.Image(), {}, L.lbl_all_regions);
@@ -2316,7 +2323,16 @@ function loadSampleAssets(folderPath) {
             });
             styleCheck(chk, opt.value || false);
             checkboxes[opt.id] = chk;
-            flowPanel.add(chk);
+            if (opt.swatch) {
+                var swatchRow = ui.Panel({
+                    layout: ui.Panel.Layout.flow('horizontal'),
+                    style: { margin: '0px', padding: '0px' }
+                });
+                swatchRow.add(colorSwatch(opt.swatch.color, opt.swatch.glyph)).add(chk);
+                flowPanel.add(swatchRow);
+            } else {
+                flowPanel.add(chk);
+            }
         });
         var titleLabel = ui.Label(title, { fontSize: '11px', fontWeight: 'bold', margin: '1px 2px', backgroundColor: '#f9f9f9' });
         panel.add(titleLabel).add(flowPanel);
@@ -2536,12 +2552,12 @@ function loadSampleAssets(folderPath) {
     };
 
     var drawerAQ = createLayerDrawer(L.lbl_burned, [
-        { id: 'mcd64a1', label: L.ref_modis_mcd64a1, value: false },
-        { id: 'gabam', label: 'GABAM', value: false },
-        { id: 'fire_cci', label: 'FIRE_CCI', value: false },
-        { id: 'peru_ref', label: L.ref_cicatrizes_peru, value: false },
-        { id: 'mbfire_collection', label: 'MBFIRE Collection', value: false },
-        { id: 'mbfire_monitor', label: 'MBFIRE Monitor', value: false }
+        { id: 'mcd64a1', label: L.ref_modis_mcd64a1, value: false, swatch: { color: '#fc6000' } },
+        { id: 'gabam', label: 'GABAM', value: false, swatch: { color: '#b200ac' } },
+        { id: 'fire_cci', label: 'FIRE_CCI', value: false, swatch: { color: '#5149ba' } },
+        { id: 'peru_ref', label: L.ref_cicatrizes_peru, value: false, swatch: { color: '#804000' } },
+        { id: 'mbfire_collection', label: 'MBFIRE Collection', value: false, swatch: { color: '#000000' } },
+        { id: 'mbfire_monitor', label: 'MBFIRE Monitor', value: false, swatch: { color: '#000000' } }
     ]);
 
     // Hides the MBFIRE layers when the active country has no public product and
@@ -2563,28 +2579,69 @@ function loadSampleAssets(folderPath) {
     }
 
     var drawerFocos = createLayerDrawer(L.lbl_hotspots, [
-        { id: 'buffer_inpe', label: L.ref_buffer_focos, value: false },
-        { id: 'hotspots_inpe', label: L.ref_hotspots_inpe, value: false }
+        { id: 'buffer_inpe', label: L.ref_buffer_focos, value: false, swatch: { color: '#ff0000' } },
+        { id: 'hotspots_inpe', label: L.ref_hotspots_inpe, value: false, swatch: { color: '#0f03fc', glyph: VECTOR_GLYPH } }
     ]);
     drawerAQ.panel.style().set('shown', true); drawerFocos.panel.style().set('shown', true);
     subCabRef.content.add(drawerAQ.panel).add(drawerFocos.panel);
 
     // 2. Define sub-drawers for Satellites
+    // Gradient legends: a pixelLonlat strip painted with the layer palette.
+    var GRAY_PALETTE = ['#000000', '#ffffff'];
+    var satLegendPanel = ui.Panel({ style: { margin: '0px', padding: '0px' } });
+    var classLegendPanel = ui.Panel({ style: { margin: '0px', padding: '0px' } });
+
+    function gradientLegend(palette) {
+        return ui.Thumbnail({
+            image: ee.Image.pixelLonlat().select('longitude'),
+            params: { min: -180, max: 180, palette: palette, dimensions: '256x10' },
+            style: { stretch: 'horizontal', margin: '1px 0px' }
+        });
+    }
+
+    function addGradientLegend(panel, label, palette) {
+        var row = ui.Panel({
+            layout: ui.Panel.Layout.flow('vertical'),
+            style: { margin: '2px 0px', padding: '0px', stretch: 'horizontal' }
+        });
+        row.add(ui.Label(label, { fontSize: '9px', color: '#000', margin: '0px' }));
+        row.add(gradientLegend(palette));
+        panel.add(row);
+    }
+
+    // Rebuilt whenever the ramp layers are toggled.
+    function updateGradientLegends() {
+        satLegendPanel.clear();
+        classLegendPanel.clear();
+        if (visCheckboxes['ndvi'] && visCheckboxes['ndvi'].getValue()) {
+            addGradientLegend(satLegendPanel, L.opt_gray_ndvi, GRAY_PALETTE);
+        }
+        if (visCheckboxes['nbr'] && visCheckboxes['nbr'].getValue()) {
+            addGradientLegend(satLegendPanel, L.opt_gray_nbr, GRAY_PALETTE);
+        }
+        if (classBandCheckboxes['prb'] && classBandCheckboxes['prb'].getValue()) {
+            addGradientLegend(classLegendPanel, L.lbl_band_probability, PROB_PALETTE);
+        }
+        if (classBandCheckboxes['doy'] && classBandCheckboxes['doy'].getValue()) {
+            addGradientLegend(classLegendPanel, L.lbl_band_dayofyear, DOY_PALETTE);
+        }
+    }
+
     var drawerVis = createLayerDrawer(L.lbl_vis_preset, [
-        { id: 'fire', label: L.opt_rgb_fire, value: true },
-        { id: 'coverage', label: L.opt_rgb_coverage, value: false },
-        { id: 'false', label: L.opt_rgb_false, value: false },
-        { id: 'swir_alt', label: L.opt_rgb_swir_alt, value: false },
-        { id: 'natural', label: L.opt_rgb_natural, value: false },
-        { id: 'nir', label: L.opt_gray_nir, value: false },
-        { id: 'swir1', label: L.opt_gray_swir1, value: false },
-        { id: 'swir2', label: L.opt_gray_swir2, value: false },
-        { id: 'nbr', label: L.opt_gray_nbr, value: false },
-        { id: 'ndvi', label: L.opt_gray_ndvi, value: false }
+        { id: 'fire', label: L.opt_rgb_fire, value: true, swatch: { color: NEUTRAL_SWATCH, glyph: RGB_GLYPH } },
+        { id: 'coverage', label: L.opt_rgb_coverage, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RGB_GLYPH } },
+        { id: 'false', label: L.opt_rgb_false, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RGB_GLYPH } },
+        { id: 'swir_alt', label: L.opt_rgb_swir_alt, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RGB_GLYPH } },
+        { id: 'natural', label: L.opt_rgb_natural, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RGB_GLYPH } },
+        { id: 'nir', label: L.opt_gray_nir, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: GRAY_GLYPH } },
+        { id: 'swir1', label: L.opt_gray_swir1, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: GRAY_GLYPH } },
+        { id: 'swir2', label: L.opt_gray_swir2, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: GRAY_GLYPH } },
+        { id: 'nbr', label: L.opt_gray_nbr, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RAMP_GLYPH }, onChange: function () { updateGradientLegends(); } },
+        { id: 'ndvi', label: L.opt_gray_ndvi, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RAMP_GLYPH }, onChange: function () { updateGradientLegends(); } }
     ]);
     var visCheckboxes = drawerVis.checkboxes;
 
-    subCabSat.content.add(drawerVis.panel);
+    subCabSat.content.add(drawerVis.panel).add(satLegendPanel);
 
     var drawerAsset = createLayerDrawer(L.lbl_asset_mosaics, []);
     var assetCheckboxes = drawerAsset.checkboxes;
@@ -2649,7 +2706,12 @@ function loadSampleAssets(folderPath) {
                     styleCheck(chk, defaultValue);
                     drawerAsset.checkboxes[chkId] = chk;
                     assetCheckboxes = drawerAsset.checkboxes;
-                    drawerAsset.flowPanel.add(chk);
+                    var assetRow = ui.Panel({
+                        layout: ui.Panel.Layout.flow('horizontal'),
+                        style: { margin: '0px', padding: '0px' }
+                    });
+                    assetRow.add(colorSwatch(NEUTRAL_SWATCH, RGB_GLYPH)).add(chk);
+                    drawerAsset.flowPanel.add(assetRow);
                     anyVisible = true;
                 });
             });
@@ -2675,11 +2737,11 @@ function loadSampleAssets(folderPath) {
     }
 
     var drawerRaw = createLayerDrawer(L.lbl_raw_mosaics, [
-        { id: 'sentinel2', label: 'Sentinel2', value: false },
-        { id: 'landsat', label: 'Landsat', value: false },
-        { id: 'modis', label: 'MODIS', value: false },
-        { id: 'hls', label: 'HLS', value: false },
-        { id: 'planet', label: 'Planet', value: false }
+        { id: 'sentinel2', label: 'Sentinel2', value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RGB_GLYPH } },
+        { id: 'landsat', label: 'Landsat', value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RGB_GLYPH } },
+        { id: 'modis', label: 'MODIS', value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RGB_GLYPH } },
+        { id: 'hls', label: 'HLS', value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RGB_GLYPH } },
+        { id: 'planet', label: 'Planet', value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RGB_GLYPH } }
     ]);
     rawCheckboxes = drawerRaw.checkboxes;
 
@@ -2694,12 +2756,12 @@ function loadSampleAssets(folderPath) {
     cabLayers.content.add(subCabClass.panel);
 
     var drawerClassToggle = createLayerDrawer(L.lbl_bands, [
-        { id: 'cls', label: L.lbl_band_classification, value: true, onChange: function () { debouncedUpdateMosaic(); } },
-        { id: 'prb', label: L.lbl_band_probability, value: false, onChange: function () { debouncedUpdateMosaic(); } },
-        { id: 'doy', label: L.lbl_band_dayofyear, value: false, onChange: function () { debouncedUpdateMosaic(); } }
+        { id: 'cls', label: L.lbl_band_classification, value: true, swatch: { color: NEUTRAL_SWATCH }, onChange: function () { debouncedUpdateMosaic(); } },
+        { id: 'prb', label: L.lbl_band_probability, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RAMP_GLYPH }, onChange: function () { updateGradientLegends(); debouncedUpdateMosaic(); } },
+        { id: 'doy', label: L.lbl_band_dayofyear, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RAMP_GLYPH }, onChange: function () { updateGradientLegends(); debouncedUpdateMosaic(); } }
     ]);
     classBandCheckboxes = drawerClassToggle.checkboxes;
-    subCabClass.content.add(drawerClassToggle.panel);
+    subCabClass.content.add(drawerClassToggle.panel).add(classLegendPanel);
 
     // A. Regional classification models (M6).
     var subCabRegional = createCabinet(L.cab_class_regional, true, '2px 2px 2px 10px');
@@ -3388,6 +3450,7 @@ function loadSampleAssets(folderPath) {
     syncDateSelect();
     suggestNextVersion();
     updateStats();
+    updateGradientLegends();
 }
 
 user_interface();
