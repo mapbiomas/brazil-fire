@@ -1288,8 +1288,7 @@ function user_interface() {
     panel_body.add(panel_control);
 
     // --- SAMPLES DOCK (bottom-left over the map) ---
-    // Holds the whole MUESTRAS cabinet; when SAMPLES OFF the dock keeps only
-    // the toggle button, so the map gains the space back.
+    // Added/removed from the map by the SAMPLES ON/OFF button in the left panel.
     function applyToggleStyle(btn, on) {
         btn.style().set({
             backgroundColor: on ? '#2e7d32' : '#c62828',
@@ -1310,8 +1309,13 @@ function user_interface() {
             samplesOn = !samplesOn;
             samplesToggle.setLabel(samplesOn ? 'SAMPLES ON' : 'SAMPLES OFF');
             applyToggleStyle(samplesToggle, samplesOn);
-            samplesBody.style().set('shown', samplesOn);
-            if (samplesOn) updateStats();
+            if (samplesOn) {
+                Map.add(samplesDock);
+                updateStats();
+            } else {
+                // Fallback if GEE refuses to reparent: samplesDock.style().set('shown', false);
+                Map.remove(samplesDock);
+            }
         }
     });
     applyToggleStyle(samplesToggle, true);
@@ -1328,7 +1332,7 @@ function user_interface() {
             shown: true
         }
     });
-    samplesDock.add(samplesToggle).add(samplesBody);
+    samplesDock.add(samplesBody);
     Map.add(samplesDock);
 
     // ==========================================
@@ -2938,9 +2942,8 @@ function loadSampleAssets(folderPath) {
     makeFilteredDrawer();
     makePrepublicDrawer();
 
-    // --- CABINET 4: SAMPLES ---
-    var cabSamples = createCabinet(L.cab_samples, true);
-    samplesBody.add(cabSamples.panel);
+    // --- SAMPLES (button in the left panel, content in the map dock) ---
+    panel_control.add(samplesToggle);
 
     // Sub-drawers panels
     var drawerInst = { panel: ui.Panel({ style: { shown: false, border: '1px solid #eee', margin: '2px' } }) };
@@ -2974,11 +2977,11 @@ function loadSampleAssets(folderPath) {
         setRegionCampaign(countryConfigs[getSelectedCountry()], campaign);
     });
 
-    cabSamples.content.add(drawerControl.panel);
-    cabSamples.content.add(drawerInst.panel);
-    cabSamples.content.add(drawerImp.panel);
-    cabSamples.content.add(drawerAmo.panel);
-    cabSamples.content.add(drawerExp.panel);
+    samplesBody.add(drawerControl.panel);
+    samplesBody.add(drawerInst.panel);
+    samplesBody.add(drawerImp.panel);
+    samplesBody.add(drawerAmo.panel);
+    samplesBody.add(drawerExp.panel);
 
     // Populate Sub-drawers
     drawerInst.panel.add(ui.Label(L.instructions, { fontSize: '10px', color: '#555', margin: '2px', whiteSpace: 'pre' }));
