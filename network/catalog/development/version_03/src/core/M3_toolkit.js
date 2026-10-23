@@ -67,11 +67,11 @@ var L = (function () {
             tab_import: 'IMPORTAR',
             tab_export: 'EXPORTAR',
             btn_load: 'Cargar',
-            lbl_version: 'Sample id:',
-            lbl_shortname: 'Nombre corto (opcional):',
-            lbl_comment: 'Comentario (metadato):',
-            lbl_date: 'Fecha representada:',
-            lbl_satellites: 'Valido para satelites (opcional):',
+            lbl_version: 'Sample id',
+            lbl_shortname: 'Nombre corto',
+            lbl_comment: 'Comentario',
+            lbl_date: 'Fecha',
+            lbl_satellites: 'Satélites',
             placeholder_date: 'Seleccionar fecha...',
             placeholder_asset: 'Elegir muestra existente...',
             placeholder_sn: 'apodo (ej: norte_amazonia)',
@@ -83,8 +83,8 @@ var L = (function () {
             task_created: 'Tareas creadas: ',
             task_hint: ' (vaya a la pestana Tasks para ejecutar)',
             err_layers: 'Faltan capas "fire" o "notFire" en el mapa.',
-            err_no_sat: 'Seleccione al menos un satelite como metadato.',
-            err_no_date: 'Seleccione la fecha representada.',
+            err_no_sat: 'Seleccione un satélite.',
+            err_no_date: 'Seleccione la fecha.',
             lbl_stats: 'Resumen de Muestras:',
             lbl_refresh_stats: 'Actualizar',
             status_no_samples: 'Sin muestras dibujadas',
@@ -183,11 +183,11 @@ var L = (function () {
             tab_import: 'IMPORTAR',
             tab_export: 'EXPORTAR',
             btn_load: 'Carregar',
-            lbl_version: 'Sample id:',
-            lbl_shortname: 'Shortname (opcional):',
-            lbl_comment: 'Comentario (metadado):',
-            lbl_date: 'Data representada:',
-            lbl_satellites: 'Valido para os satelites (opcional):',
+            lbl_version: 'Sample id',
+            lbl_shortname: 'Nome curto',
+            lbl_comment: 'Comentário',
+            lbl_date: 'Data',
+            lbl_satellites: 'Satélites',
             placeholder_date: 'Selecionar data...',
             placeholder_asset: 'Escolher amostra existente...',
             placeholder_sn: 'apelido (ex: norte_amazonia)',
@@ -199,8 +199,8 @@ var L = (function () {
             task_created: 'Tasks criadas: ',
             task_hint: ' (va a aba Tasks para executar)',
             err_layers: 'Faltam camadas "fire" ou "notFire" no mapa.',
-            err_no_sat: 'Selecione ao menos um satelite como metadato.',
-            err_no_date: 'Selecione a data representada.',
+            err_no_sat: 'Selecione um satélite.',
+            err_no_date: 'Selecione a data.',
             lbl_stats: 'Resumo das Amostras:',
             lbl_refresh_stats: 'Atualizar',
             status_no_samples: 'Sem amostras desenhadas',
@@ -299,11 +299,11 @@ var L = (function () {
             tab_import: 'IMPORT',
             tab_export: 'EXPORT',
             btn_load: 'Load',
-            lbl_version: 'Sample id:',
-            lbl_shortname: 'Short name (optional):',
-            lbl_comment: 'Comment (metadata):',
-            lbl_date: 'Represented date:',
-            lbl_satellites: 'Valid for satellites (optional):',
+            lbl_version: 'Sample id',
+            lbl_shortname: 'Short name',
+            lbl_comment: 'Comment',
+            lbl_date: 'Date',
+            lbl_satellites: 'Satellites',
             placeholder_date: 'Select date...',
             placeholder_asset: 'Choose existing sample...',
             placeholder_sn: 'alias (e.g. north_amazonia)',
@@ -1192,7 +1192,7 @@ function colorSwatch(color, glyph) {
     return ui.Label(glyph || '\u25A0', {
         color: color,
         fontSize: '18px',
-        margin: '0px 1px 0px 0px',
+        margin: '-2px 1px 0px 0px',
         padding: '0px'
     });
 }
@@ -1366,9 +1366,6 @@ function user_interface() {
     function getSelectedCampaign() {
         if (selectedCampaignCfg) {
             return selectedCampaignCfg;
-        }
-        if (typeof select_campaign_exp !== 'undefined' && select_campaign_exp && select_campaign_exp.getValue()) {
-            return select_campaign_exp.getValue();
         }
         var conf = countryConfigs[getSelectedCountry()];
         return conf.defaultCampaign || conf.campaigns[0];
@@ -1763,16 +1760,33 @@ function updateClassificationsDrawer() {
     // Removes current fire/not-fire drawings and recreates empty layers.
     function clearDrawingTools() {
         var layers = Map.drawingTools().layers();
-        // Remove existing fire/notFire layers
+        // Remove base layers and every imported set (fire_imp_N / notFire_imp_N).
         for (var i = layers.length() - 1; i >= 0; i--) {
             var l = layers.get(i);
-            if (l.getName() === 'fire' || l.getName() === 'notFire') {
+            var name = l.getName();
+            if (name === 'fire' || name === 'notFire' ||
+                name.indexOf('fire_') === 0 || name.indexOf('notFire_') === 0) {
                 layers.remove(l);
             }
         }
         // Create new empty geometry layers for collection
         Map.drawingTools().addLayer({ geometries: [], name: 'fire', color: 'ff0000', shown: true });
         Map.drawingTools().addLayer({ geometries: [], name: 'notFire', color: '0000ff', shown: true });
+    }
+
+    // Every layer named prefix or starting with '<prefix>_' holds samples.
+    function samplingLayers(prefix) {
+        return Map.drawingTools().layers().filter(function (ly) {
+            var name = ly.getName();
+            return name === prefix || name.indexOf(prefix + '_') === 0;
+        });
+    }
+
+    // Merges the geometries of all sampling layers into one ee.List.
+    function mergedGeometries(prefix) {
+        return samplingLayers(prefix).map(function (ly) {
+            return ly.getEeObject().geometries();
+        }).reduce(function (acc, list) { return acc.cat(list); }, ee.List([]));
     }
 
     // Ensures the fire and not-fire drawing layers exist.
@@ -1791,10 +1805,8 @@ function updateClassificationsDrawer() {
 
     // Centers the map on the current drawn sample geometries.
     function centerDrawingTools() {
-        var fireLayer = Map.drawingTools().layers().filter(function (ly) { return ly.getName() === 'fire'; })[0];
-        var notFireLayer = Map.drawingTools().layers().filter(function (ly) { return ly.getName() === 'notFire'; })[0];
-        var fireGeom = fireLayer ? fireLayer.getEeObject().geometries() : ee.List([]);
-        var notFireGeom = notFireLayer ? notFireLayer.getEeObject().geometries() : ee.List([]);
+        var fireGeom = mergedGeometries('fire');
+        var notFireGeom = mergedGeometries('notFire');
         var totalFc = ee.FeatureCollection(fireGeom.map(function (g) { return ee.Feature(ee.Geometry(g)); }))
             .merge(ee.FeatureCollection(notFireGeom.map(function (g) { return ee.Feature(ee.Geometry(g)); })));
 
@@ -1818,22 +1830,13 @@ function updateClassificationsDrawer() {
         panel_stats.clear();
         panel_stats.add(ui.Label(L.lbl_stats, { fontSize: '11px', fontWeight: 'bold', margin: '2px 0px' }));
 
-        var layers = Map.drawingTools().layers();
-        var fireLayer = null;
-        var notFireLayer = null;
-        for (var i = 0; i < layers.length(); i++) {
-            var ly = layers.get(i);
-            if (ly.getName() === 'fire') fireLayer = ly;
-            if (ly.getName() === 'notFire') notFireLayer = ly;
-        }
-
-        if (!fireLayer || !notFireLayer) {
+        if (samplingLayers('fire').length === 0 && samplingLayers('notFire').length === 0) {
             panel_stats.add(ui.Label(L.status_no_samples, { fontSize: '10px', color: '#888', margin: '2px 0px' }));
             return;
         }
 
-        var fireGeoms = fireLayer.getEeObject().geometries();
-        var notFireGeoms = notFireLayer.getEeObject().geometries();
+        var fireGeoms = mergedGeometries('fire');
+        var notFireGeoms = mergedGeometries('notFire');
 
         var stats = ee.Dictionary({
             'fire_count': fireGeoms.length(),
@@ -2177,12 +2180,10 @@ function updateClassificationsDrawer() {
             updateClassificationsDrawer();
         });
 
-        // Sincroniza as campanhas de amostragem (importação/exportação).
+        // Sincroniza as campanhas de amostragem (importação).
         var campaigns = conf.campaigns;
         select_campaign_imp.items().reset(campaigns);
-        select_campaign_exp.items().reset(campaigns);
         select_campaign_imp.setValue(selectedCampaign, false);
-        select_campaign_exp.setValue(selectedCampaign, false);
         selectedCampaignCfg = selectedCampaign;
         if (typeof drawerCampaign !== 'undefined' && drawerCampaign) {
             Object.keys(drawerCampaign.buttons).forEach(function (key) {
@@ -2200,6 +2201,10 @@ function updateClassificationsDrawer() {
         updateAssetDrawer();
         updateMbfireDrawer();
         refreshResultSources();
+        applySatellitePreset();
+        if (lab_export_campaign) {
+            lab_export_campaign.setValue(L.lbl_select_campaign + ': ' + selectedCampaign);
+        }
     }
 
     // Rebuilds the campaign buttons for the active country only.
@@ -2250,6 +2255,9 @@ function updateClassificationsDrawer() {
                 return { label: folder.label, value: folder.native ? folder.label : folder.path };
             }));
             select_campaign_imp.setValue(campaign, false);
+            if (lab_import_campaign) {
+                lab_import_campaign.setValue(L.lbl_select_campaign + ': ' + campaign);
+            }
             loadSampleAssets(folders[0].path);
         } catch (e) {
             select_campaign_imp.items().reset([]);
@@ -2443,7 +2451,7 @@ function loadSampleAssets(folderPath) {
         if (showAnual) populatePeriodPanel(drawerPeriodAnual.panel, 'anual');
         if (showMensal) populatePeriodPanel(drawerPeriodMensal.panel, 'mensal');
         applyDateFilter(txt_date_filter ? txt_date_filter.getValue() : '');
-        updateExportLabel(); debouncedUpdateMosaic();
+        syncExportDateFromPeriods(); debouncedUpdateMosaic();
     }
 
     function populatePeriodPanel(pnl, type) {
@@ -2457,7 +2465,7 @@ function loadSampleAssets(folderPath) {
         dates.forEach(function (d, i) {
             var chk = ui.Checkbox({
                 label: d, value: (type === 'mensal' && i === 0), // O primeiro agora é o mais recente
-                onChange: function () { syncCheckBorder(chk); updateExportLabel(); debouncedUpdateMosaic(); },
+                onChange: function () { syncCheckBorder(chk); syncExportDateFromPeriods(); debouncedUpdateMosaic(); },
                 style: { margin: '1px 3px', fontSize: '10px', backgroundColor: '#f9f9f9' }
             });
             styleCheck(chk, type === 'mensal' && i === 0);
@@ -3084,7 +3092,7 @@ function loadSampleAssets(folderPath) {
         };
     }
 
-    // Single-choice checkbox list (always keeps one item checked).
+    // Multi-choice checkbox list (import can add several sets at once).
     function makeCheckboxPicker() {
         var hint = ui.Label('', { fontSize: '9px', color: '#777', margin: '0px' });
         var wrap = ui.Panel({
@@ -3097,27 +3105,28 @@ function loadSampleAssets(folderPath) {
         });
         panel.add(hint).add(wrap);
         var boxes = {};
-        var current = null;
+        var selected = {};
         var listeners = [];
+
+        function getValue() { return Object.keys(selected); }
 
         function render(items) {
             wrap.clear();
             boxes = {};
+            selected = {};
             (items || []).forEach(function (item) {
                 var chk = ui.Checkbox({
                     label: item.label,
-                    value: item.value === current,
+                    value: false,
                     style: { margin: '0px 6px 0px 0px', padding: '0px', fontSize: '9px' },
                     onChange: function (checked) {
-                        if (!checked) { chk.setValue(true, false); return; }
-                        current = item.value;
-                        Object.keys(boxes).forEach(function (k) {
-                            if (k !== current) boxes[k].setValue(false, false);
-                        });
-                        listeners.forEach(function (fn) { fn(current); });
+                        if (checked) selected[item.value] = true;
+                        else delete selected[item.value];
+                        syncCheckBorder(chk);
+                        listeners.forEach(function (fn) { fn(getValue()); });
                     }
                 });
-                styleCheck(chk, item.value === current);
+                styleCheck(chk, false);
                 boxes[item.value] = chk;
                 wrap.add(chk);
             });
@@ -3126,11 +3135,16 @@ function loadSampleAssets(folderPath) {
         return {
             panel: panel,
             items: function () { return { reset: render }; },
-            getValue: function () { return current; },
-            setValue: function (v, fire) {
-                current = v;
-                Object.keys(boxes).forEach(function (k) { boxes[k].setValue(k === v, false); });
-                if (fire !== false) listeners.forEach(function (fn) { fn(v); });
+            getValue: getValue,
+            setValue: function (v) {
+                selected = {};
+                var list = [];
+                if (Object.prototype.toString.call(v) === '[object Array]') list = v;
+                else if (v) list = [v];
+                list.forEach(function (k) { selected[k] = true; });
+                Object.keys(boxes).forEach(function (k) {
+                    boxes[k].setValue(!!selected[k], false);
+                });
             },
             onChange: function (fn) { listeners.push(fn); },
             setPlaceholder: function (text) { hint.setValue(text || ''); }
@@ -3142,12 +3156,7 @@ function loadSampleAssets(folderPath) {
     }
 
     var select_campaign_imp = makeCampaignSelector();
-    var select_campaign_exp = makeCampaignSelector();
-    select_campaign_exp.onChange(function (campaign) {
-        if (!campaign) return;
-        setRegionCampaign(countryConfigs[getSelectedCountry()], campaign);
-        syncDateSelect();
-    });
+    // The export campaign is always the territory one; no selector here.
 
     samplesBody.add(drawerControl.panel);
     samplesBody.add(drawerInst.panel);
@@ -3215,16 +3224,19 @@ function loadSampleAssets(folderPath) {
     var lab_import_loading = ui.Label({ imageUrl: b64.get('load_gif'), style: { margin: '4px', shown: false } });
     var lab_import_status = ui.Label('', { fontSize: '10px', color: 'red', margin: '2px', shown: false });
 
+    var importSeq = 0;
     var btt_import_action = ui.Button({
         imageUrl: ICONS.download, style: styles.btn_blue,
         onClick: function () {
-            var id = select_address.getValue();
-            if (!id) return;
+            var ids = select_address.getValue();
+            if (!ids || !ids.length) return;
             var importToken = beginAsync(ASYNC_STATE.import);
             lab_import_status.style().set('shown', false);
             lab_import_loading.style().set('shown', true);
 
-            var parts = id.split('_');
+            // Period and region come from the first selected asset.
+            var firstId = ids[0];
+            var parts = firstId.split('_');
             var lastPart = parts[parts.length - 1], penultPart = parts[parts.length - 2];
             var recoveredPeriod = (!isNaN(penultPart) && !isNaN(lastPart)) ? (penultPart + '_' + lastPart) : lastPart;
             periodicityActive['mensal'] = (!isNaN(penultPart) && !isNaN(lastPart));
@@ -3238,7 +3250,7 @@ function loadSampleAssets(folderPath) {
             var matchedRegion = null;
             var regionNames = Object.keys(regionCheckboxes);
             for (var i = 0; i < regionNames.length; i++) {
-                if (id.indexOf(regionNames[i]) !== -1) { matchedRegion = regionNames[i]; break; }
+                if (firstId.indexOf(regionNames[i]) !== -1) { matchedRegion = regionNames[i]; break; }
             }
             if (matchedRegion) {
                 Object.keys(regionCheckboxes).forEach(function (k) { regionCheckboxes[k].setValue(k === matchedRegion, false); });
@@ -3246,43 +3258,53 @@ function loadSampleAssets(folderPath) {
             }
             updateExportPreview();
 
-            var pending = 2;
-            var results = {};
-            function onImportResult(which, list, err) {
-                if (!isCurrentAsync(ASYNC_STATE.import, importToken)) return;
+            // Import is additive: each selected asset becomes its own pair of
+            // drawing layers. Only the clear button removes samples.
+            var pending = ids.length * 2;
+            function finishOne(err) {
                 if (err) {
-                    lab_import_loading.style().set('shown', false);
                     lab_import_status.setValue('Error importing samples').style().set('shown', true);
-                    return;
                 }
-                results[which] = list;
                 pending--;
                 if (pending > 0) return;
                 lab_import_loading.style().set('shown', false);
-                // Remove existing fire/notFire drawing layers
-                var layers = Map.drawingTools().layers();
-                for (var i = layers.length() - 1; i >= 0; i--) {
-                    var l = layers.get(i);
-                    if (l.getName() === 'fire' || l.getName() === 'notFire') {
-                        layers.remove(l);
-                    }
-                }
-                Map.drawingTools().addLayer({ geometries: results.fire, name: 'fire', color: 'ff0000', shown: true });
-                Map.drawingTools().addLayer({ geometries: results.notFire, name: 'notFire', color: '0000ff', shown: true });
                 updateStats();
+                centerDrawingTools();
             }
 
-            safeEvaluate(
-                ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 1)).geometry().coordinates()
-                    .map(function (list) { return ee.Geometry.Polygon(list); }),
-                function (list, err) { onImportResult('fire', list, err); });
-            safeEvaluate(
-                ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 0)).geometry().coordinates()
-                    .map(function (list) { return ee.Geometry.Polygon(list); }),
-                function (list, err) { onImportResult('notFire', list, err); });
+            ids.forEach(function (id) {
+                safeEvaluate(
+                    ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 1)).geometry().coordinates()
+                        .map(function (list) { return ee.Geometry.Polygon(list); }),
+                    function (list, err) {
+                        if (isCurrentAsync(ASYNC_STATE.import, importToken) && !err && list && list.length) {
+                            Map.drawingTools().addLayer({
+                                geometries: list,
+                                name: 'fire_imp_' + (++importSeq),
+                                color: 'ff0000', shown: true
+                            });
+                        }
+                        finishOne(err);
+                    });
+                safeEvaluate(
+                    ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 0)).geometry().coordinates()
+                        .map(function (list) { return ee.Geometry.Polygon(list); }),
+                    function (list, err) {
+                        if (isCurrentAsync(ASYNC_STATE.import, importToken) && !err && list && list.length) {
+                            Map.drawingTools().addLayer({
+                                geometries: list,
+                                name: 'notFire_imp_' + (++importSeq),
+                                color: '0000ff', shown: true
+                            });
+                        }
+                        finishOne(err);
+                    });
+            });
         }
     });
 
+    var lab_import_campaign = ui.Label('', { fontSize: '10px', fontWeight: 'bold', margin: '0px' });
+    drawerImp.panel.add(lab_import_campaign);
     drawerImp.panel.add(ui.Label('Vector sample', { fontSize: '10px', margin: '0px' }));
     drawerImp.panel.add(select_campaign_imp.panel);
     drawerImp.panel.add(select_address.panel);
@@ -3301,7 +3323,7 @@ function loadSampleAssets(folderPath) {
     function suggestNextVersion() {
         lab_version_status.setValue(L.ver_checking).style().set('color', '#888');
         var conf = countryConfigs[getSelectedCountry()];
-        var campaign = select_campaign_exp.getValue();
+        var campaign = getSelectedCampaign();
         var versionToken = beginAsync(ASYNC_STATE.version);
 
         if (!campaign) {
@@ -3345,63 +3367,64 @@ function loadSampleAssets(folderPath) {
     // --- Shortname (opcional) ---
     var txt_shortname = ui.Textbox({ placeholder: L.placeholder_sn, onChange: updateExportPreview, style: { margin: '1px', padding: '0px', stretch: 'horizontal' } });
     var txt_comment = ui.Textbox({ placeholder: L.placeholder_cmt, style: { margin: '1px', padding: '0px', stretch: 'horizontal' } });
-    // Export date picker: years only for annual campaigns, years + months for
-    // monthly campaigns. Replaces the former ui.Select.
-    var pick_year = makeChipGroup();
-    var pick_month = makeChipGroup();
-    var datePanel = ui.Panel({
-        layout: ui.Panel.Layout.flow('vertical'),
-        style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
+    // Export date picker: single-choice checkboxes fed by the same dynamic list
+    // used in the TEMPORAL cabinet (newest first).
+    var exportDatePanel = ui.Panel({
+        layout: ui.Panel.Layout.flow('horizontal', true),
+        style: { margin: '0px', padding: '0px', stretch: 'horizontal', maxHeight: '110px' }
     });
-    datePanel.add(pick_year.panel).add(pick_month.panel);
+    var exportDateChecks = {};
+    var exportDateValue = null;
 
     function exportPeriodicity() {
-        var campaign = select_campaign_exp.getValue();
+        var campaign = getSelectedCampaign();
         if (!campaign) return 'yearly';
         return getCampaignPreset(getSelectedCountry(), campaign).periodicity === 'monthly'
             ? 'monthly' : 'yearly';
     }
 
-    function refreshDatePicker() {
-        var monthly = exportPeriodicity() === 'monthly';
-        pick_month.panel.style().set('shown', monthly);
-
-        var maxYear = new Date().getFullYear();
-        var minYear = monthly ? MONTHLY_START_YEAR : START_YEAR;
-        var years = [];
-        for (var y = maxYear; y >= minYear; y--) years.push(String(y));
-        pick_year.items().reset(years);
-
-        if (monthly) {
-            var months = [];
-            for (var m = 1; m <= 12; m++) months.push(m < 10 ? '0' + m : String(m));
-            pick_month.items().reset(months);
-        }
+    function renderExportDates() {
+        exportDatePanel.clear();
+        exportDateChecks = {};
+        exportDateValue = null;
+        var dates = getDynamicDates(exportPeriodicity() === 'monthly' ? 'mensal' : 'anual');
+        dates.forEach(function (d) {
+            var chk = ui.Checkbox({
+                label: d, value: false,
+                style: { margin: '0px 6px 0px 0px', padding: '0px', fontSize: '9px' },
+                onChange: function () {
+                    if (!chk.getValue()) { chk.setValue(true, false); return; }
+                    exportDateValue = d;
+                    Object.keys(exportDateChecks).forEach(function (k) {
+                        if (k !== d) exportDateChecks[k].setValue(false, false);
+                    });
+                    updateExportPreview();
+                }
+            });
+            styleCheck(chk, false);
+            exportDateChecks[d] = chk;
+            exportDatePanel.add(chk);
+        });
     }
 
     var select_date_export = {
-        panel: datePanel,
+        panel: exportDatePanel,
         items: function () { return { reset: function () {} }; },
-        getValue: function () {
-            var y = pick_year.getValue();
-            if (!y) return null;
-            if (exportPeriodicity() !== 'monthly') return String(y);
-            var m = pick_month.getValue();
-            return m ? (y + '_' + m) : String(y);
-        },
+        getValue: function () { return exportDateValue; },
         setValue: function (v, fire) {
-            if (!v) return;
-            var parts = String(v).split('_');
-            pick_year.setValue(parts[0], false);
-            if (parts[1]) pick_month.setValue(parts[1], false);
+            if (!v || !exportDateChecks[v]) return;
+            exportDateValue = v;
+            Object.keys(exportDateChecks).forEach(function (k) {
+                exportDateChecks[k].setValue(k === v, false);
+            });
             if (fire !== false) updateExportPreview();
         },
-        onChange: function (fn) { pick_year.onChange(fn); pick_month.onChange(fn); },
+        onChange: function () {},
         setPlaceholder: function () {}
     };
 
     function syncDateSelect() {
-        refreshDatePicker();
+        renderExportDates();
         var monthly = exportPeriodicity() === 'monthly';
         var periods = getSelectedPeriods();
         var candidate = periods[0] || '';
@@ -3409,6 +3432,19 @@ function loadSampleAssets(folderPath) {
             candidate = getDynamicDates(monthly ? 'mensal' : 'anual')[0] || '';
         }
         select_date_export.setValue(candidate);
+        if (lab_export_campaign) {
+            lab_export_campaign.setValue(L.lbl_select_campaign + ': ' + (getSelectedCampaign() || '-'));
+        }
+        updateExportPreview();
+    }
+
+    // Keeps the export date following the TEMPORAL cabinet when a single
+    // period is selected.
+    function syncExportDateFromPeriods() {
+        var periods = getSelectedPeriods();
+        if (periods.length === 1 && select_date_export && exportDateChecks[periods[0]]) {
+            select_date_export.setValue(periods[0], false);
+        }
         updateExportPreview();
     }
 
@@ -3432,6 +3468,17 @@ function loadSampleAssets(folderPath) {
         var sats = [];
         satValues.forEach(function (sv) { if (satCheckboxes[sv].getValue()) sats.push(sv); });
         return sats;
+    }
+
+    // Suggests the satellites of the active campaign (sentinel2 / landsat).
+    function applySatellitePreset() {
+        var wanted = getCampaignPreset(getSelectedCountry(), getSelectedCampaign()).assets || [];
+        satValues.forEach(function (sv) {
+            var on = wanted.indexOf(sv) !== -1;
+            satCheckboxes[sv].setValue(on, false);
+            styleCheck(satCheckboxes[sv], on);
+        });
+        updateExportPreview();
     }
     function getSampleName() {
         var num = txt_version.getValue() || '0001';
@@ -3470,9 +3517,7 @@ function loadSampleAssets(folderPath) {
 
     // --- getLandcoverVector com metadados ricos ---
     function getLandcoverVector(satellite) {
-        var fireLayer = Map.drawingTools().layers().filter(function (ly) { return ly.getName() === 'fire'; });
-        var notFireLayer = Map.drawingTools().layers().filter(function (ly) { return ly.getName() === 'notFire'; });
-        if (fireLayer.length === 0 || notFireLayer.length === 0) {
+        if (samplingLayers('fire').length === 0 || samplingLayers('notFire').length === 0) {
             print(L.err_layers);
             return null;
         }
@@ -3494,17 +3539,19 @@ function loadSampleAssets(folderPath) {
             };
         }
 
-        var fire = ee.FeatureCollection(
-            fireLayer[0].getEeObject().geometries().map(function (g) {
-                return ee.Feature(ee.Geometry(g), makeProps(1));
-            })
-        );
-        var notFire = ee.FeatureCollection(
-            notFireLayer[0].getEeObject().geometries().map(function (g) {
-                return ee.Feature(ee.Geometry(g), makeProps(0));
-            })
-        );
-        return fire.merge(notFire);
+        function collect(prefix, fireVal) {
+            var out = ee.FeatureCollection([]);
+            samplingLayers(prefix).forEach(function (ly) {
+                out = out.merge(ee.FeatureCollection(
+                    ly.getEeObject().geometries().map(function (g) {
+                        return ee.Feature(ee.Geometry(g), makeProps(fireVal));
+                    })
+                ));
+            });
+            return out;
+        }
+
+        return collect('fire', 1).merge(collect('notFire', 0));
     }
 
     // --- Botão unificado de exportação ---
@@ -3521,7 +3568,7 @@ function loadSampleAssets(folderPath) {
             var sats = getSelectedSatellites();
             if (sats.length === 0) { print(L.err_no_sat); return; }
             var conf = countryConfigs[getSelectedCountry()];
-            var selectedCampaign = select_campaign_exp.getValue();
+            var selectedCampaign = getSelectedCampaign();
             var ver = getSampleName();
             var sn = txt_shortname.getValue() ? redundanceReplace(txt_shortname.getValue()) : '';
             var dt_formatted = redundanceReplace(dt || 'YYYY');
@@ -3561,8 +3608,8 @@ function loadSampleAssets(folderPath) {
     });
 
     // --- Montar o panel_export ---
-    drawerExp.panel.add(ui.Label(L.lbl_select_campaign, { fontSize: '11px', fontWeight: 'bold', margin: '0px' }));
-    drawerExp.panel.add(select_campaign_exp.panel);
+    var lab_export_campaign = ui.Label('', { fontSize: '10px', fontWeight: 'bold', margin: '0px' });
+    drawerExp.panel.add(lab_export_campaign);
     drawerExp.panel.add(ui.Label(L.lbl_version, styles.label));
     var rowVer = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: styles.row });
     rowVer.add(txt_version).add(lab_version_status);
