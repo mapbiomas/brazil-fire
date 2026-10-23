@@ -828,16 +828,9 @@ function fireEmojis(n) {
     return s;
 }
 
-var lastOpActivityAt = Date.now();
-
-function noteOpActivity() {
-    lastOpActivityAt = Date.now();
-}
-
 // Shows one fire emoji next to the title for each in-flight server operation.
 function trackOpStart() {
     pendingOps++;
-    noteOpActivity();
     if (lab_activity) {
         lab_activity.setValue(fireEmojis(pendingOps));
         lab_activity.style().set('shown', true);
@@ -847,7 +840,6 @@ function trackOpStart() {
 // Removes one fire emoji as an operation returns.
 function trackOpEnd() {
     if (pendingOps > 0) pendingOps--;
-    noteOpActivity();
     if (lab_activity) {
         lab_activity.setValue(fireEmojis(pendingOps));
         lab_activity.style().set('shown', pendingOps > 0);
@@ -875,19 +867,6 @@ function safeEvaluate(eeObject, callback) {
         callback(null, e);
     }
 }
-
-// Safety net: if EE drops a callback the counter would otherwise stay stuck.
-ui.util.setInterval(function () {
-    if (pendingOps > 0 && (Date.now() - lastOpActivityAt) > 120000) {
-        pendingOps = 0;
-        noteOpActivity();
-        if (lab_activity) {
-            lab_activity.setValue('');
-            lab_activity.style().set('shown', false);
-        }
-        print('M3: activity counter reset after 120s without server activity');
-    }
-}, 15000);
 
 var ASYNC_STATE = {
     regions: { token: 0 },
@@ -1177,6 +1156,7 @@ var CLASS_PALETTE = [
 ];
 
 var PROB_PALETTE = ['#ffcccc', '#ff6666', '#cc0000', '#660000'];
+var DOY_PALETTE = ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#fee090', '#fdae61', '#f46d43', '#d73027'];
 
 var START_YEAR = APP_CONFIG.startYear;
 var MONTHLY_START_YEAR = APP_CONFIG.monthlyStartYear || APP_CONFIG.startYear;
@@ -1206,12 +1186,13 @@ function classificationColor(key) {
     return classificationColors[key];
 }
 
-// Small colored square used as the layer legend next to the label.
+// Colored glyph used as the layer legend next to the label. The checkbox text
+// stays black; only the glyph carries the color.
 function colorSwatch(color) {
     return ui.Label('\u25A0', {
         color: color,
-        fontSize: '11px',
-        margin: '0px 3px 0px 0px',
+        fontSize: '22px',
+        margin: '0px 4px 0px 0px',
         padding: '0px'
     });
 }
@@ -1551,7 +1532,7 @@ function user_interface() {
                         desiredLayerIds.push(lId);
                         updateManagedLayer(lId,
                             doyImg,
-                            { min: 1, max: 366, palette: ['313695', '4575b4', '74add1', 'abd9e9', 'e0f3f8', 'fee090', 'fdae61', 'f46d43', 'd73027'] },
+                            { min: 1, max: 366, palette: DOY_PALETTE },
                             modelId + ' doy ' + dateStr);
                     }
                     if (classBandPrb) {
@@ -1588,7 +1569,7 @@ function user_interface() {
                     desiredLayerIds.push(lIdDoy);
                     updateManagedLayer(lIdDoy,
                         doyImg,
-                        { min: 1, max: 366, palette: ['313695', '4575b4', '74add1', 'abd9e9', 'e0f3f8', 'fee090', 'fdae61', 'f46d43', 'd73027'] },
+                        { min: 1, max: 366, palette: DOY_PALETTE },
                         label + ' doy');
                 }
                 if (classBandPrb) {
