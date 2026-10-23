@@ -1191,8 +1191,8 @@ function classificationColor(key) {
 function colorSwatch(color, glyph) {
     return ui.Label(glyph || '\u25A0', {
         color: color,
-        fontSize: '22px',
-        margin: '0px 4px 0px 0px',
+        fontSize: '18px',
+        margin: '0px 1px 0px 0px',
         padding: '0px'
     });
 }
@@ -1300,7 +1300,7 @@ function user_interface() {
         btn.style().set({
             backgroundColor: on ? '#2e7d32' : '#c62828',
             border: '1px solid ' + (on ? '#1b5e20' : '#b71c1c'),
-            color: '#ffffff'
+            color: '#000000'
         });
     }
 
@@ -1708,7 +1708,7 @@ function updateClassificationsDrawer() {
                             if (totalAdded === 1) drawerClassModels.panel.remove(labelLoading);
                             var classRow = ui.Panel({
                                 layout: ui.Panel.Layout.flow('horizontal'),
-                                style: { margin: '1px 0px', padding: '0px', stretch: 'horizontal' }
+                                style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
                             });
                             var chk = ui.Checkbox({
                                 label: modelId,
@@ -1904,7 +1904,7 @@ function updateClassificationsDrawer() {
 
     // Styles a checkbox and keeps its border in sync with its state.
     function styleCheck(chk, initial) {
-        chk.style().set('margin', '2px 6px 2px 0px');
+        chk.style().set('margin', '0px 4px 0px 0px');
         chk.style().set('padding', '0px');
         chk.style().set('fontSize', '10px');
         if (initial !== undefined) chk.setValue(!!initial, false);
@@ -2305,7 +2305,7 @@ function loadSampleAssets(folderPath) {
     }
 
     function createLayerDrawer(title, options) {
-        var panel = ui.Panel({ style: { margin: '2px 0px', padding: '1px', border: '1px solid #e0e0e0', backgroundColor: '#f9f9f9' } });
+        var panel = ui.Panel({ style: { margin: '0px', padding: '0px', border: '1px solid #e0e0e0', backgroundColor: '#f9f9f9' } });
         var flowPanel = ui.Panel({
             layout: ui.Panel.Layout.flow('horizontal', true),
             style: { margin: '0px', padding: '0px', backgroundColor: '#f9f9f9', maxHeight: '100px' }
@@ -2334,13 +2334,13 @@ function loadSampleAssets(folderPath) {
                 flowPanel.add(chk);
             }
         });
-        var titleLabel = ui.Label(title, { fontSize: '11px', fontWeight: 'bold', margin: '1px 2px', backgroundColor: '#f9f9f9' });
+        var titleLabel = ui.Label(title, { fontSize: '11px', fontWeight: 'bold', margin: '0px', backgroundColor: '#f9f9f9' });
         panel.add(titleLabel).add(flowPanel);
         return { panel: panel, checkboxes: checkboxes, flowPanel: flowPanel };
     }
 
     function createButtonDrawer(title, options) {
-        var panel = ui.Panel({ style: { margin: '2px 0px', padding: '1px', border: '1px solid #e0e0e0', backgroundColor: '#f9f9f9' } });
+        var panel = ui.Panel({ style: { margin: '0px', padding: '0px', border: '1px solid #e0e0e0', backgroundColor: '#f9f9f9' } });
         var flowPanel = ui.Panel({
             layout: ui.Panel.Layout.flow('horizontal', true),
             style: { margin: '0px', padding: '0px', backgroundColor: '#f9f9f9', maxHeight: '100px', stretch: 'horizontal' }
@@ -2478,8 +2478,8 @@ function loadSampleAssets(folderPath) {
     var cabLayers = createCabinet(L.cab_layers, true);
     panel_control.add(cabLayers.panel);
 
-    var subCabSat = createCabinet(L.cab_satellites, true, '2px 2px 2px 10px');
-    var subCabRef = createCabinet(L.cab_reference, false, '2px 2px 2px 10px');
+    var subCabSat = createCabinet(L.cab_satellites, true, '2px 2px 2px 2px');
+    var subCabRef = createCabinet(L.cab_reference, false, '2px 2px 2px 2px');
     cabLayers.content.add(subCabSat.panel).add(subCabRef.panel);
 
     // 1. Define sub-drawers for Reference
@@ -2586,14 +2586,14 @@ function loadSampleAssets(folderPath) {
     subCabRef.content.add(drawerAQ.panel).add(drawerFocos.panel);
 
     // 2. Define sub-drawers for Satellites
-    // Gradient legends: a pixelLonlat strip painted with the layer palette.
+    // Gradient legends: a pixelLonLat strip painted with the layer palette.
     var GRAY_PALETTE = ['#000000', '#ffffff'];
     var satLegendPanel = ui.Panel({ style: { margin: '0px', padding: '0px' } });
     var classLegendPanel = ui.Panel({ style: { margin: '0px', padding: '0px' } });
 
     function gradientLegend(palette) {
         return ui.Thumbnail({
-            image: ee.Image.pixelLonlat().select('longitude'),
+            image: ee.Image.pixelLonLat().select('longitude'),
             params: { min: -180, max: 180, palette: palette, dimensions: '256x10' },
             style: { stretch: 'horizontal', margin: '1px 0px' }
         });
@@ -2752,7 +2752,7 @@ function loadSampleAssets(folderPath) {
     Object.keys(drawerFocos.checkboxes).forEach(function (k) { extraCheckboxes[k] = drawerFocos.checkboxes[k]; });
 
     // --- SUB-CABINET: CLASSIFICAÇÕES (REGIONAL + CONSOLIDATED RESULTS) ---
-    var subCabClass = createCabinet(L.cab_classifications, false, '2px 2px 2px 10px');
+    var subCabClass = createCabinet(L.cab_classifications, false, '2px 2px 2px 2px');
     cabLayers.content.add(subCabClass.panel);
 
     var drawerClassToggle = createLayerDrawer(L.lbl_bands, [
@@ -2764,7 +2764,7 @@ function loadSampleAssets(folderPath) {
     subCabClass.content.add(drawerClassToggle.panel).add(classLegendPanel);
 
     // A. Regional classification models (M6).
-    var subCabRegional = createCabinet(L.cab_class_regional, true, '2px 2px 2px 10px');
+    var subCabRegional = createCabinet(L.cab_class_regional, true, '2px 2px 2px 2px');
     subCabClass.content.add(subCabRegional.panel);
     var drawerClassModels = { panel: ui.Panel({ style: { margin: '2px 0px', padding: '1px', backgroundColor: '#f9f9f9' } }) };
     subCabRegional.content.add(drawerClassModels.panel);
@@ -2882,7 +2882,7 @@ function loadSampleAssets(folderPath) {
     function addFilteredRow(proposal) {
         var panel = ui.Panel({
             layout: ui.Panel.Layout.flow('vertical'),
-            style: { margin: '2px 0px', padding: '0px', stretch: 'horizontal' }
+            style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
         });
         var label = ui.Label(filteredProposalLabel(proposal), {
             stretch: 'horizontal',
@@ -2896,7 +2896,7 @@ function loadSampleAssets(folderPath) {
         });
         var stagesPanel = ui.Panel({
             layout: ui.Panel.Layout.flow('horizontal', true),
-            style: { margin: '1px 0px 0px 0px', padding: '0px', stretch: 'horizontal' }
+            style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
         });
         panel.add(label).add(stagesPanel);
         filteredRows[proposal] = {
@@ -2972,10 +2972,10 @@ function loadSampleAssets(folderPath) {
     }
 
     function makeFilteredDrawer() {
-        var cab = createCabinet(L.cab_class_filtered, false, '2px 2px 2px 10px');
+        var cab = createCabinet(L.cab_class_filtered, false, '2px 2px 2px 2px');
         subCabClass.content.add(cab.panel);
         panelFiltered = ui.Panel({
-            style: { margin: '1px 0px', padding: '0px', stretch: 'horizontal', backgroundColor: '#f9f9f9' }
+            style: { margin: '0px', padding: '0px', stretch: 'horizontal', backgroundColor: '#f9f9f9' }
         });
         cab.content.add(panelFiltered);
         var status = ui.Label('', { fontSize: '9px', color: '#777', margin: '1px' });
@@ -2984,7 +2984,7 @@ function loadSampleAssets(folderPath) {
     }
 
     function makePrepublicDrawer() {
-        var cab = createCabinet(L.cab_class_prepublic, false, '2px 2px 2px 10px');
+        var cab = createCabinet(L.cab_class_prepublic, false, '2px 2px 2px 2px');
         subCabClass.content.add(cab.panel);
         var row = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: { margin: '0px', padding: '0px' } });
         var chk = ui.Checkbox({
@@ -3022,14 +3022,123 @@ function loadSampleAssets(folderPath) {
     drawerExp.panel.style().set('shown', true);
     drawerAmo.panel.style().set('shown', true);
 
-    // --- CAMPAIGN SELECTORS (Synced) ---
-    function makeCampaignSelector() {
-        return ui.Select({
-            items: [],
-            placeholder: L.placeholder_campaign,
-            value: null,
-            style: { margin: '2px', stretch: 'horizontal' }
+    // --- CAMPAIGN / ADDRESS PICKERS (replace the old ui.Select widgets) ---
+    // Single-choice chip group.
+    function makeChipGroup() {
+        var panel = ui.Panel({
+            layout: ui.Panel.Layout.flow('horizontal', true),
+            style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
         });
+        var buttons = {};
+        var current = null;
+        var listeners = [];
+
+        function paintChip(value) {
+            Object.keys(buttons).forEach(function (k) {
+                buttons[k].style().set('border', k === value
+                    ? '1px solid rgba(21,101,192,0.6)' : '1px solid #dddddd');
+                buttons[k].style().set('backgroundColor', k === value ? '#e8f0fe' : '#ffffff');
+            });
+        }
+
+        function select(value) {
+            current = value;
+            paintChip(value);
+            listeners.forEach(function (fn) { fn(value); });
+        }
+
+        function render(items) {
+            panel.clear();
+            buttons = {};
+            (items || []).forEach(function (item) {
+                var value = (item && item.value !== undefined) ? item.value : item;
+                var label = (item && item.label !== undefined) ? item.label : item;
+                var btn = ui.Button({
+                    label: label,
+                    style: {
+                        margin: '0px 2px 2px 0px',
+                        padding: '1px 4px',
+                        fontSize: '10px',
+                        border: '1px solid #dddddd',
+                        backgroundColor: '#ffffff'
+                    },
+                    onClick: function () { select(value); }
+                });
+                buttons[value] = btn;
+                panel.add(btn);
+            });
+            if (current !== null && buttons[current]) paintChip(current);
+        }
+
+        return {
+            panel: panel,
+            items: function () { return { reset: render }; },
+            getValue: function () { return current; },
+            setValue: function (v, fire) {
+                current = v;
+                paintChip(v);
+                if (fire !== false) listeners.forEach(function (fn) { fn(v); });
+            },
+            onChange: function (fn) { listeners.push(fn); },
+            setPlaceholder: function () {}
+        };
+    }
+
+    // Single-choice checkbox list (always keeps one item checked).
+    function makeCheckboxPicker() {
+        var hint = ui.Label('', { fontSize: '9px', color: '#777', margin: '0px' });
+        var wrap = ui.Panel({
+            layout: ui.Panel.Layout.flow('horizontal', true),
+            style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
+        });
+        var panel = ui.Panel({
+            layout: ui.Panel.Layout.flow('vertical'),
+            style: { margin: '0px', padding: '0px', stretch: 'horizontal', maxHeight: '90px' }
+        });
+        panel.add(hint).add(wrap);
+        var boxes = {};
+        var current = null;
+        var listeners = [];
+
+        function render(items) {
+            wrap.clear();
+            boxes = {};
+            (items || []).forEach(function (item) {
+                var chk = ui.Checkbox({
+                    label: item.label,
+                    value: item.value === current,
+                    style: { margin: '0px 6px 0px 0px', padding: '0px', fontSize: '9px' },
+                    onChange: function (checked) {
+                        if (!checked) { chk.setValue(true, false); return; }
+                        current = item.value;
+                        Object.keys(boxes).forEach(function (k) {
+                            if (k !== current) boxes[k].setValue(false, false);
+                        });
+                        listeners.forEach(function (fn) { fn(current); });
+                    }
+                });
+                styleCheck(chk, item.value === current);
+                boxes[item.value] = chk;
+                wrap.add(chk);
+            });
+        }
+
+        return {
+            panel: panel,
+            items: function () { return { reset: render }; },
+            getValue: function () { return current; },
+            setValue: function (v, fire) {
+                current = v;
+                Object.keys(boxes).forEach(function (k) { boxes[k].setValue(k === v, false); });
+                if (fire !== false) listeners.forEach(function (fn) { fn(v); });
+            },
+            onChange: function (fn) { listeners.push(fn); },
+            setPlaceholder: function (text) { hint.setValue(text || ''); }
+        };
+    }
+
+    function makeCampaignSelector() {
+        return makeChipGroup();
     }
 
     var select_campaign_imp = makeCampaignSelector();
@@ -3037,6 +3146,7 @@ function loadSampleAssets(folderPath) {
     select_campaign_exp.onChange(function (campaign) {
         if (!campaign) return;
         setRegionCampaign(countryConfigs[getSelectedCountry()], campaign);
+        syncDateSelect();
     });
 
     samplesBody.add(drawerControl.panel);
@@ -3048,9 +3158,7 @@ function loadSampleAssets(folderPath) {
     // Populate Sub-drawers
     drawerInst.panel.add(ui.Label(L.instructions, { fontSize: '10px', color: '#555', margin: '2px', whiteSpace: 'pre' }));
 
-    // Drawing control buttons row
-    var rowDraw = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: { margin: '2px 0px', stretch: 'horizontal' } });
-
+    // Drawing control buttons: two rows of three.
     function setLayerMode(name) {
         var layers = Map.drawingTools().layers();
         for (var i = 0; i < layers.length(); i++) {
@@ -3062,28 +3170,37 @@ function loadSampleAssets(folderPath) {
         }
     }
 
-    var btnFire = ui.Button({ label: L.btn_fire, style: { color: '#d32f2f', margin: '1px', padding: '0px', stretch: 'horizontal' }, onClick: function () { setLayerMode('fire'); } });
-    var btnNotFire = ui.Button({ label: L.btn_not_fire, style: { color: '#1a73e8', margin: '1px', padding: '0px', stretch: 'horizontal' }, onClick: function () { setLayerMode('notFire'); } });
-    var btnHand = ui.Button({ label: L.btn_hand, style: { margin: '1px', padding: '0px', stretch: 'horizontal' }, onClick: function () { Map.drawingTools().setShape(null); } });
-    var btnClear = ui.Button({ label: L.btn_delete, style: { margin: '1px', padding: '0px', stretch: 'horizontal' }, onClick: clearDrawingTools });
-    var btnCenter = ui.Button({ label: L.btn_center, style: { margin: '1px', padding: '0px', stretch: 'horizontal' }, onClick: centerDrawingTools });
+    var btnFire = ui.Button({ label: L.btn_fire, style: { color: '#d32f2f', margin: '0px 2px 2px 0px', padding: '0px', stretch: 'horizontal' }, onClick: function () { setLayerMode('fire'); } });
+    var btnNotFire = ui.Button({ label: L.btn_not_fire, style: { color: '#1a73e8', margin: '0px 2px 2px 0px', padding: '0px', stretch: 'horizontal' }, onClick: function () { setLayerMode('notFire'); } });
+    var btnHand = ui.Button({ label: L.btn_hand, style: { margin: '0px 2px 2px 0px', padding: '0px', stretch: 'horizontal' }, onClick: function () { Map.drawingTools().setShape(null); } });
+    var btnClear = ui.Button({ label: L.btn_delete, style: { margin: '0px 2px 2px 0px', padding: '0px', stretch: 'horizontal' }, onClick: clearDrawingTools });
+    var btnCenter = ui.Button({ label: L.btn_center, style: { margin: '0px 2px 2px 0px', padding: '0px', stretch: 'horizontal' }, onClick: centerDrawingTools });
 
     var btt_refresh_stats = ui.Button({
         label: '↻',
-        style: { margin: '1px', padding: '0px', width: '28px', fontSize: '12px' },
+        style: { margin: '0px 2px 2px 0px', padding: '0px', fontSize: '12px', stretch: 'horizontal' },
         onClick: function () { updateStats(); }
     });
 
-    rowDraw.add(btnFire).add(btnNotFire).add(btnHand).add(btnClear).add(btnCenter).add(btt_refresh_stats);
+    var rowDraw1 = ui.Panel({
+        layout: ui.Panel.Layout.flow('horizontal'),
+        style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
+    });
+    var rowDraw2 = ui.Panel({
+        layout: ui.Panel.Layout.flow('horizontal'),
+        style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
+    });
+    rowDraw1.add(btnFire).add(btnNotFire).add(btnHand);
+    rowDraw2.add(btnClear).add(btnCenter).add(btt_refresh_stats);
 
-    drawerAmo.panel.add(rowDraw);
+    drawerAmo.panel.add(rowDraw1).add(rowDraw2);
     drawerAmo.panel.add(panel_stats);
     // Export and Import will be populated below...
 
     // ==========================================
     // ABA: IMPORTAR
     // ==========================================
-    var select_address = ui.Select({ style: styles.input });
+    var select_address = makeCheckboxPicker();
     select_campaign_imp.onChange(function (folderPath) {
         if (!folderPath) return;
         var conf = countryConfigs[getSelectedCountry()];
@@ -3166,10 +3283,11 @@ function loadSampleAssets(folderPath) {
         }
     });
 
+    drawerImp.panel.add(ui.Label('Vector sample', { fontSize: '10px', margin: '0px' }));
+    drawerImp.panel.add(select_campaign_imp.panel);
+    drawerImp.panel.add(select_address.panel);
     var row_imp = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: styles.row });
-    row_imp.add(select_campaign_imp);
-    drawerImp.panel.add(ui.Label('Vector sample', { fontSize: '10px', margin: '3px 2px' }));
-    row_imp.add(select_address).add(btt_import_action).add(lab_import_loading).add(lab_import_status);
+    row_imp.add(btt_import_action).add(lab_import_loading).add(lab_import_status);
     drawerImp.panel.add(row_imp);
 
     // ==========================================
@@ -3227,42 +3345,70 @@ function loadSampleAssets(folderPath) {
     // --- Shortname (opcional) ---
     var txt_shortname = ui.Textbox({ placeholder: L.placeholder_sn, onChange: updateExportPreview, style: { margin: '1px', padding: '0px', stretch: 'horizontal' } });
     var txt_comment = ui.Textbox({ placeholder: L.placeholder_cmt, style: { margin: '1px', padding: '0px', stretch: 'horizontal' } });
-    var select_date_export = ui.Select({ placeholder: L.placeholder_date, onChange: updateExportPreview, style: { margin: '1px', stretch: 'horizontal' } });
+    // Export date picker: years only for annual campaigns, years + months for
+    // monthly campaigns. Replaces the former ui.Select.
+    var pick_year = makeChipGroup();
+    var pick_month = makeChipGroup();
+    var datePanel = ui.Panel({
+        layout: ui.Panel.Layout.flow('vertical'),
+        style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
+    });
+    datePanel.add(pick_year.panel).add(pick_month.panel);
 
-    function buildDateSelectItems() {
-        var items = [];
-        var today = new Date();
-        // Limitamos ao ano atual real, não permitindo datas futuras inconsistentes
-        var maxYear = today.getFullYear();
-        var maxMonth = today.getMonth();
-        if (maxMonth === 0) { maxMonth = 12; maxYear--; }
-
-        // Se estivermos em 2026 no sistema, mas os dados reais param antes, 
-        // vamos forçar um limite conservador (ex: 2025_12) se necessário,
-        // ou deixar o usuário escolher. Aqui vamos apenas garantir que a ordem é inversa.
-
-        // Meses
-        for (var y = maxYear; y >= MONTHLY_START_YEAR; y--) {
-            var mEnd = (y === maxYear) ? Math.min(maxMonth, 12) : 12;
-            for (var m = mEnd; m >= 1; m--) {
-                var mm = m < 10 ? '0' + m : m.toString();
-                items.push({ label: y + '_' + mm, value: y + '_' + mm });
-            }
-        }
-        // Anos
-        for (var yr = maxYear; yr >= START_YEAR; yr--) {
-            items.push({ label: '' + yr, value: '' + yr });
-        }
-        return items;
+    function exportPeriodicity() {
+        var campaign = select_campaign_exp.getValue();
+        if (!campaign) return 'yearly';
+        return getCampaignPreset(getSelectedCountry(), campaign).periodicity === 'monthly'
+            ? 'monthly' : 'yearly';
     }
 
-    function syncDateSelect() {
-        select_date_export.items().reset(buildDateSelectItems());
-        var periods = getSelectedPeriods();
-        // PRIORIDADE: Se houver um período selecionado na aba TEMPORAL, usa ele!
-        if (periods.length > 0) {
-            select_date_export.setValue(periods[0]);
+    function refreshDatePicker() {
+        var monthly = exportPeriodicity() === 'monthly';
+        pick_month.panel.style().set('shown', monthly);
+
+        var maxYear = new Date().getFullYear();
+        var minYear = monthly ? MONTHLY_START_YEAR : START_YEAR;
+        var years = [];
+        for (var y = maxYear; y >= minYear; y--) years.push(String(y));
+        pick_year.items().reset(years);
+
+        if (monthly) {
+            var months = [];
+            for (var m = 1; m <= 12; m++) months.push(m < 10 ? '0' + m : String(m));
+            pick_month.items().reset(months);
         }
+    }
+
+    var select_date_export = {
+        panel: datePanel,
+        items: function () { return { reset: function () {} }; },
+        getValue: function () {
+            var y = pick_year.getValue();
+            if (!y) return null;
+            if (exportPeriodicity() !== 'monthly') return String(y);
+            var m = pick_month.getValue();
+            return m ? (y + '_' + m) : String(y);
+        },
+        setValue: function (v, fire) {
+            if (!v) return;
+            var parts = String(v).split('_');
+            pick_year.setValue(parts[0], false);
+            if (parts[1]) pick_month.setValue(parts[1], false);
+            if (fire !== false) updateExportPreview();
+        },
+        onChange: function (fn) { pick_year.onChange(fn); pick_month.onChange(fn); },
+        setPlaceholder: function () {}
+    };
+
+    function syncDateSelect() {
+        refreshDatePicker();
+        var monthly = exportPeriodicity() === 'monthly';
+        var periods = getSelectedPeriods();
+        var candidate = periods[0] || '';
+        if (!candidate || ((candidate.indexOf('_') !== -1) !== monthly)) {
+            candidate = getDynamicDates(monthly ? 'mensal' : 'anual')[0] || '';
+        }
+        select_date_export.setValue(candidate);
         updateExportPreview();
     }
 
@@ -3415,8 +3561,8 @@ function loadSampleAssets(folderPath) {
     });
 
     // --- Montar o panel_export ---
-    drawerExp.panel.add(ui.Label(L.lbl_select_campaign, { fontSize: '11px', fontWeight: 'bold', margin: '4px 2px 2px 2px' }));
-    drawerExp.panel.add(select_campaign_exp);
+    drawerExp.panel.add(ui.Label(L.lbl_select_campaign, { fontSize: '11px', fontWeight: 'bold', margin: '0px' }));
+    drawerExp.panel.add(select_campaign_exp.panel);
     drawerExp.panel.add(ui.Label(L.lbl_version, styles.label));
     var rowVer = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: styles.row });
     rowVer.add(txt_version).add(lab_version_status);
@@ -3429,7 +3575,7 @@ function loadSampleAssets(folderPath) {
     drawerExp.panel.add(txt_comment);
 
     drawerExp.panel.add(ui.Label(L.lbl_date, styles.label));
-    drawerExp.panel.add(select_date_export);
+    drawerExp.panel.add(select_date_export.panel);
     drawerExp.panel.add(lab_date_error);
 
     drawerExp.panel.add(ui.Label(L.lbl_satellites, styles.label));
