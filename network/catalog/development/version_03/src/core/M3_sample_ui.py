@@ -7,7 +7,7 @@ import os
 from M_lang import L as Lang
 
 
-# Canonical GEE reference toolkit (current production; catalog snapshots ship v06).
+# Canonical GEE reference toolkit (current production; catalog snapshots ship v08).
 GEE_TOOLKIT_URL = (
     "https://code.earthengine.google.com/?scriptPath="
     "users%2Fmapbiomasworkspace1%2Fmapbiomas-fire%3A5-Monitor-Fuego%2FM3%2FM3_Toolkit_Monitor_Fuego"
