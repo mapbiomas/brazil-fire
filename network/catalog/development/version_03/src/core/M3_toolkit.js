@@ -439,8 +439,10 @@ var countryConfigs = {
         getRegionalFolder: function(campaign) { return CATALOG_ROOT + '/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
         // Latest official collection published under projects/mapbiomas-public.
         mbfireCollection: {
-            asset: 'projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_v1',
-            bandPrefix: 'burned_area_'
+            asset: 'projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_v1'
+        },
+        mbfireMonthly: {
+            asset: 'projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_monthly_burned_v1'
         },
         mbfireMonitor: {
             asset: 'projects/mapbiomas-public/assets/peru/fire/monitor/mapbiomas_fire_monthly_burned_v1'
@@ -477,8 +479,10 @@ var countryConfigs = {
         // collection5_1 is declared in the monitor catalog but not published yet,
         // so collection4_1 is the latest one actually available in mapbiomas-public.
         mbfireCollection: {
-            asset: 'projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_annual_burned_v1',
-            bandPrefix: 'burned_area_'
+            asset: 'projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_annual_burned_v1'
+        },
+        mbfireMonthly: {
+            asset: 'projects/mapbiomas-public/assets/brazil/fire/collection4_1/mapbiomas_fire_collection41_monthly_burned_v1'
         },
         mbfireMonitor: {
             asset: 'projects/mapbiomas-public/assets/brazil/fire/monitor/mapbiomas_fire_monthly_burned_v1'
@@ -514,8 +518,10 @@ var countryConfigs = {
         getGcsSamples: function(campaign) { return 'sudamerica/bolivia/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-bolivia/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
         mbfireCollection: {
-            asset: 'projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_annual_burned_v1',
-            bandPrefix: 'burned_area_'
+            asset: 'projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_annual_burned_v1'
+        },
+        mbfireMonthly: {
+            asset: 'projects/mapbiomas-public/assets/bolivia/fire/collection1/mapbiomas_bolivia_fire_collection1_monthly_burned_v1'
         },
         historicalSampleFolders: [
             { label: 'COLLECTION1', path: 'projects/mapbiomas-bolivia/assets/FIRE/COLLECTION1/SAMPLES' }
@@ -545,8 +551,10 @@ var countryConfigs = {
         getGcsSamples: function(campaign) { return 'sudamerica/colombia/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-colombia/assets/FIRE/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
         mbfireCollection: {
-            asset: 'projects/mapbiomas-public/assets/colombia/fire/collection1/mapbiomas_colombia_fire_collection1_annual_burned_v1',
-            bandPrefix: 'burned_area_'
+            asset: 'projects/mapbiomas-public/assets/colombia/fire/collection1/mapbiomas_colombia_fire_collection1_annual_burned_v1'
+        },
+        mbfireMonthly: {
+            asset: 'projects/mapbiomas-public/assets/colombia/fire/collection1/mapbiomas_colombia_fire_collection1_monthly_burned_v1'
         },
         historicalSampleFolders: [
             { label: 'COLLECTION1', path: 'projects/mapbiomas-colombia/assets/FIRE/COLLECTION1/SAMPLES' }
@@ -576,8 +584,10 @@ var countryConfigs = {
         getGcsSamples: function(campaign) { return 'sudamerica/chile/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-chile/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
         mbfireCollection: {
-            asset: 'projects/mapbiomas-public/assets/chile/fire/collection1/mapbiomas_chile_fire_collection1_annual_burned_v1',
-            bandPrefix: 'burned_area_'
+            asset: 'projects/mapbiomas-public/assets/chile/fire/collection1/mapbiomas_chile_fire_collection1_annual_burned_v1'
+        },
+        mbfireMonthly: {
+            asset: 'projects/mapbiomas-public/assets/chile/fire/collection1/mapbiomas_chile_fire_collection1_monthly_burned_v1'
         },
         historicalSampleFolders: [
             { label: 'COLLECTION1', path: 'projects/mapbiomas-chile/assets/FIRE/COLLECTION1/SAMPLES' }
@@ -607,8 +617,10 @@ var countryConfigs = {
         getGcsSamples: function(campaign) { return 'sudamerica/paraguay/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-paraguay/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
         mbfireCollection: {
-            asset: 'projects/mapbiomas-public/assets/paraguay/fire/collection1/mapbiomas_paraguay_fire_collection1_annual_burned_v1',
-            bandPrefix: 'burned_area_'
+            asset: 'projects/mapbiomas-public/assets/paraguay/fire/collection1/mapbiomas_paraguay_fire_collection1_annual_burned_v1'
+        },
+        mbfireMonthly: {
+            asset: 'projects/mapbiomas-public/assets/paraguay/fire/collection1/mapbiomas_paraguay_fire_collection1_monthly_burned_v1'
         },
         historicalSampleFolders: [
             { label: 'COLLECTION1', path: 'projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/SAMPLES' },
@@ -666,8 +678,10 @@ var countryConfigs = {
         getGcsSamples: function(campaign) { return 'asia/indonesia/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-indonesia/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
         mbfireCollection: {
-            asset: 'projects/mapbiomas-public/assets/indonesia/fire/collection2/mapbiomas_indonesia_fire_collection2_annual_burned_v1',
-            bandPrefix: 'burned_area_'
+            asset: 'projects/mapbiomas-public/assets/indonesia/fire/collection2/mapbiomas_indonesia_fire_collection2_annual_burned_v1'
+        },
+        mbfireMonthly: {
+            asset: 'projects/mapbiomas-public/assets/indonesia/fire/collection2/mapbiomas_indonesia_fire_collection2_monthly_burned_v1'
         },
         historicalSampleFolders: []
     },
@@ -2594,30 +2608,41 @@ function loadSampleAssets(folderPath) {
     // Official MapBiomas Fire products published under projects/mapbiomas-public.
     // Both layers follow the selected period: the collection layer serves the
     // annual scar of the chosen year, the monitor layer sums the chosen months.
+    // Band catalog per asset: [{ name, year }]. Loaded once and cached.
     var mbfireBandCache = {};
 
-    // Reads the years actually published in the asset so the app never selects
-    // a band that does not exist. Result is cached per asset.
-    function mbfireYears(cfg) {
+    // Reads the bands actually published in the asset. Returns null while the
+    // evaluation is in flight so callers can render an empty layer and retry.
+    function mbfireBandsFor(cfg) {
         if (!cfg || !cfg.asset) return [];
         var entry = mbfireBandCache[cfg.asset];
         if (!entry) {
-            entry = { years: [] };
+            entry = { bands: null };
             mbfireBandCache[cfg.asset] = entry;
             safeEvaluate(ee.Image(cfg.asset).bandNames(), function (names, err) {
                 if (err || !names) {
-                    entry.years = [];
+                    entry.bands = [];
                     print('MBFIRE: no bands found for ' + cfg.asset);
                     return;
                 }
-                entry.years = names.map(function (name) {
+                entry.bands = names.map(function (name) {
                     var match = /(\d{4})$/.exec(name);
-                    return match ? parseInt(match[1], 10) : null;
-                }).filter(function (y) { return y !== null; });
+                    return match ? { name: name, year: parseInt(match[1], 10) } : null;
+                }).filter(function (b) { return b !== null; });
                 debouncedUpdateMosaic();
             });
         }
-        return entry.years;
+        return entry.bands;
+    }
+
+    // Band name for a year: undefined while loading, null when the year is absent.
+    function mbfireBandName(cfg, year) {
+        var bands = mbfireBandsFor(cfg);
+        if (!bands) return undefined;
+        for (var i = 0; i < bands.length; i++) {
+            if (bands[i].year === year) return bands[i].name;
+        }
+        return null;
     }
 
     function mbfireConf(key) {
@@ -2631,21 +2656,32 @@ function loadSampleAssets(folderPath) {
 
     extraDatasets['mbfire_collection'] = {
         name: 'MBFIRE Collection',
-        vis: { min: 0, max: 1, palette: ['000000'] },
+        vis: { min: 0, max: 1, palette: ['800000'] },
         build: function (start, end, bounds, year, month) {
             var cfg = mbfireConf('mbfireCollection');
             if (!cfg) return emptyBurned();
             var numericYear = parseInt(year, 10);
-            if (mbfireYears(cfg).indexOf(numericYear) === -1) return emptyBurned();
-            return ee.Image(cfg.asset)
-                .select(cfg.bandPrefix + numericYear).gt(0)
+            var annualBand = mbfireBandName(cfg, numericYear);
+            if (!annualBand) return emptyBurned();
+
+            if (month) {
+                // Monthly product: one band per year whose pixel value is the
+                // month burned (1-12), so eq(month) isolates that month.
+                var monthlyCfg = mbfireConf('mbfireMonthly');
+                var monthBand = monthlyCfg ? mbfireBandName(monthlyCfg, numericYear) : null;
+                if (monthBand) {
+                    return ee.Image(monthlyCfg.asset).select(monthBand).eq(month)
+                        .rename('burned').selfMask();
+                }
+            }
+            return ee.Image(cfg.asset).select(annualBand).gt(0)
                 .rename('burned').selfMask();
         }
     };
 
     extraDatasets['mbfire_monitor'] = {
         name: 'MBFIRE Monitor',
-        vis: { min: 0, max: 1, palette: ['000000'] },
+        vis: { min: 0, max: 1, palette: ['ff0000'] },
         build: function (start, end, bounds, year, month) {
             var cfg = mbfireConf('mbfireMonitor');
             if (!cfg) return emptyBurned();
@@ -2663,8 +2699,8 @@ function loadSampleAssets(folderPath) {
         { id: 'gabam', label: 'GABAM', value: false, swatch: { color: '#b200ac' } },
         { id: 'fire_cci', label: 'FIRE_CCI', value: false, swatch: { color: '#5149ba' } },
         { id: 'peru_ref', label: L.ref_cicatrizes_peru, value: false, swatch: { color: '#804000' } },
-        { id: 'mbfire_collection', label: 'MBFIRE Collection', value: false, swatch: { color: '#000000' } },
-        { id: 'mbfire_monitor', label: 'MBFIRE Monitor', value: false, swatch: { color: '#000000' } }
+        { id: 'mbfire_collection', label: 'MBFIRE Collection', value: false, swatch: { color: '#800000' } },
+        { id: 'mbfire_monitor', label: 'MBFIRE Monitor', value: false, swatch: { color: '#ff0000' } }
     ]);
 
     // Hides the MBFIRE layers when the active country has no public product and
