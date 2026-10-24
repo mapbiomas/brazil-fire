@@ -2304,9 +2304,6 @@ function user_interface() {
         updateMbfireDrawer();
         refreshResultSources();
         applySatellitePreset();
-        if (lab_export_campaign) {
-            lab_export_campaign.setValue(L.lbl_select_campaign + ': ' + selectedCampaign);
-        }
     }
 
     // Rebuilds the campaign buttons for the active country only.
@@ -2357,8 +2354,8 @@ function user_interface() {
                 return { label: folder.label, value: folder.native ? folder.label : folder.path };
             }));
             select_campaign_imp.setValue(campaign, false);
-            if (drawerControl && drawerControl.titleLabel) {
-                drawerControl.titleLabel.setValue(campaign);
+            if (lab_samples_campaign) {
+                lab_samples_campaign.setValue(campaign);
             }
             loadSampleAssets(folders[0].path);
         } catch (e) {
@@ -2446,7 +2443,7 @@ function loadSampleAssets(folderPath) {
         });
         var titleLabel = ui.Label(title, { fontSize: '11px', fontWeight: 'bold', margin: '0px', backgroundColor: '#f9f9f9' });
         panel.add(titleLabel).add(flowPanel);
-        return { panel: panel, checkboxes: checkboxes, flowPanel: flowPanel, titleLabel: titleLabel };
+        return { panel: panel, checkboxes: checkboxes, flowPanel: flowPanel };
     }
 
     function createButtonDrawer(title, options) {
@@ -3117,31 +3114,77 @@ function loadSampleAssets(folderPath) {
     // --- SAMPLES (button in the left panel, content in the map dock) ---
     panel_control.add(samplesToggle);
 
-    // Sub-drawers panels
-    var drawerInst = { panel: ui.Panel({ style: { shown: false, border: '1px solid #eee', margin: '2px' } }) };
-    var drawerImp = { panel: ui.Panel({ style: { shown: false, border: '1px solid #eee', margin: '2px' } }) };
-    var drawerAmo = { panel: ui.Panel({ style: { shown: false, border: '1px solid #eee', margin: '2px' } }) };
-    var drawerExp = { panel: ui.Panel({ style: { shown: false, border: '1px solid #eee', margin: '2px' } }) };
+    // Sub-drawers panels (visibility is controlled by the dock drawers).
+    var drawerInst = { panel: ui.Panel({ style: { margin: '0px', padding: '0px' } }) };
+    var drawerImp = { panel: ui.Panel({ style: { margin: '0px', padding: '0px' } }) };
+    var drawerAmo = { panel: ui.Panel({ style: { margin: '0px', padding: '0px' } }) };
+    var drawerExp = { panel: ui.Panel({ style: { margin: '0px', padding: '0px' } }) };
 
-    // The drawer title shows the active campaign (highlighted), replacing the
-    // old "Panel" label.
-    var drawerControl = createLayerDrawer('', [
-        { id: 'inst', label: L.short_guide, value: false, onChange: function (v) { drawerInst.panel.style().set('shown', v); } },
-        { id: 'imp', label: L.short_import, value: false, onChange: function (v) { drawerImp.panel.style().set('shown', v); } },
-        { id: 'amo', label: L.cab_samples, value: true, onChange: function (v) { drawerAmo.panel.style().set('shown', v); if (v) updateStats(); } },
-        { id: 'exp', label: L.short_export, value: true, onChange: function (v) { drawerExp.panel.style().set('shown', v); if (v) { suggestNextVersion(); syncDateSelect(); } } }
-    ]);
-    drawerControl.titleLabel.style().set({
-        fontSize: '11px',
-        fontWeight: 'bold',
-        color: '#1a5c2a',
-        backgroundColor: '#e8f5e9',
-        margin: '0px',
-        padding: '1px 3px',
-        stretch: 'horizontal'
+    // --- Dock presentation helpers ---
+    // Compact collapsible drawer used inside the samples dock.
+    function createDockDrawer(title, isOpen, onToggle) {
+        var panel = ui.Panel({
+            style: { margin: '0px 0px 3px 0px', padding: '0px', border: '1px solid #e0e0e0', backgroundColor: '#fdfdfd' }
+        });
+        var header = ui.Panel({
+            layout: ui.Panel.Layout.flow('horizontal'),
+            style: { margin: '0px', padding: '1px 2px', backgroundColor: '#f0f0f0', border: '1px solid #e6e6e6' }
+        });
+        var toggle = ui.Button({
+            label: isOpen ? '\u25BC' : '\u25B6',
+            style: { margin: '0px', padding: '0px 2px', fontSize: '9px', color: '#555', backgroundColor: 'ffffff00' }
+        });
+        header.add(toggle).add(ui.Label(title, {
+            fontSize: '10px', fontWeight: 'bold', color: '#333', margin: '0px 3px', backgroundColor: 'ffffff00'
+        }));
+        var content = ui.Panel({ style: { margin: '0px', padding: '2px', backgroundColor: '#fdfdfd' } });
+        content.style().set('shown', isOpen);
+        toggle.onClick(function () {
+            var shown = content.style().get('shown');
+            content.style().set('shown', !shown);
+            toggle.setLabel(shown ? '\u25B6' : '\u25BC');
+            if (onToggle) onToggle(!shown);
+        });
+        panel.add(header).add(content);
+        return { panel: panel, content: content };
+    }
+
+    function dockKicker(text) {
+        return ui.Label(text, { fontSize: '8px', color: '#777', margin: '0px', backgroundColor: 'ffffff00' });
+    }
+
+    function dockDivider() {
+        return ui.Panel({ style: { margin: '3px 0px', padding: '0px', height: '1px', backgroundColor: '#e0e0e0' } });
+    }
+
+    function statusLine(text, kind) {
+        var color = kind === 'error' ? '#c62828' : (kind === 'success' ? '#2e7d32' : '#777');
+        return ui.Label(text || '', { fontSize: '9px', color: color, margin: '0px' });
+    }
+
+    // --- Dock header and drawers ---
+    var lab_samples_campaign = ui.Label('', {
+        fontSize: '11px', fontWeight: 'bold', color: '#1a5c2a',
+        margin: '0px 0px 2px 0px', stretch: 'horizontal'
     });
-    drawerExp.panel.style().set('shown', true);
-    drawerAmo.panel.style().set('shown', true);
+    samplesBody.add(dockKicker('SAMPLES'));
+    samplesBody.add(lab_samples_campaign);
+
+    var dockMuestras = createDockDrawer(L.cab_samples, true, function (open) { if (open) updateStats(); });
+    dockMuestras.content.add(drawerAmo.panel);
+
+    var dockImportar = createDockDrawer(L.short_import, false);
+    dockImportar.content.add(drawerImp.panel);
+
+    var dockExportar = createDockDrawer(L.short_export, true, function (open) {
+        if (open) { suggestNextVersion(); syncDateSelect(); }
+    });
+    dockExportar.content.add(drawerExp.panel);
+
+    var dockGuia = createDockDrawer(L.short_guide, false);
+    dockGuia.content.add(drawerInst.panel);
+
+    samplesBody.add(dockMuestras.panel).add(dockImportar.panel).add(dockExportar.panel).add(dockGuia.panel);
 
     // --- CAMPAIGN / ADDRESS PICKERS (replace the old ui.Select widgets) ---
     // Single-choice chip group.
@@ -3271,12 +3314,6 @@ function loadSampleAssets(folderPath) {
     var select_campaign_imp = makeCampaignSelector();
     // The export campaign is always the territory one; no selector here.
 
-    samplesBody.add(drawerControl.panel);
-    samplesBody.add(drawerInst.panel);
-    samplesBody.add(drawerImp.panel);
-    samplesBody.add(drawerAmo.panel);
-    samplesBody.add(drawerExp.panel);
-
     // Populate Sub-drawers
     drawerInst.panel.add(ui.Label(L.instructions, { fontSize: '10px', color: '#555', margin: '2px', whiteSpace: 'pre' }));
 
@@ -3316,6 +3353,7 @@ function loadSampleAssets(folderPath) {
     rowDraw2.add(btnClear).add(btnCenter).add(btt_refresh_stats);
 
     drawerAmo.panel.add(rowDraw1).add(rowDraw2);
+    drawerAmo.panel.add(dockDivider());
     drawerAmo.panel.add(panel_stats);
     // Export and Import will be populated below...
 
@@ -3335,10 +3373,15 @@ function loadSampleAssets(folderPath) {
     });
 
     var lab_import_loading = ui.Label({ imageUrl: b64.get('load_gif'), style: { margin: '4px', shown: false } });
-    var lab_import_status = ui.Label('', { fontSize: '10px', color: 'red', margin: '2px', shown: false });
+    var lab_import_status = statusLine('', 'error');
+    lab_import_status.style().set('shown', false);
 
     var btt_import_action = ui.Button({
-        imageUrl: ICONS.download, style: styles.btn_blue,
+        label: L.short_import,
+        style: {
+            margin: '2px 0px 0px 0px', padding: '2px 4px', fontSize: '10px', fontWeight: 'bold',
+            color: '#1a73e8', border: '1px solid #1a73e8', backgroundColor: '#ffffff', stretch: 'horizontal'
+        },
         onClick: function () {
             var ids = select_address.getValue();
             if (!ids || !ids.length) return;
@@ -3409,9 +3452,11 @@ function loadSampleAssets(folderPath) {
         }
     });
 
-    drawerImp.panel.add(ui.Label('Vector sample', { fontSize: '10px', margin: '0px' }));
+    drawerImp.panel.add(dockKicker(L.lbl_select_campaign));
     drawerImp.panel.add(select_campaign_imp.panel);
+    drawerImp.panel.add(dockKicker(L.cab_samples));
     drawerImp.panel.add(select_address.panel);
+    drawerImp.panel.add(dockDivider());
     var row_imp = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: styles.row });
     row_imp.add(btt_import_action).add(lab_import_loading).add(lab_import_status);
     drawerImp.panel.add(row_imp);
@@ -3421,7 +3466,7 @@ function loadSampleAssets(folderPath) {
     // ==========================================
 
     // --- Versão automática ---
-    var lab_version_status = ui.Label(L.ver_checking, { fontSize: '10px', color: '#888', margin: '1px' });
+    var lab_version_status = statusLine(L.ver_checking, 'hint');
     var txt_version = ui.Textbox({ placeholder: '0001', value: 'v0001', onChange: updateExportPreview, style: { margin: '1px', padding: '0px', width: '55px' } });
 
     function suggestNextVersion() {
@@ -3536,9 +3581,6 @@ function loadSampleAssets(folderPath) {
             candidate = getDynamicDates(monthly ? 'mensal' : 'anual')[0] || '';
         }
         select_date_export.setValue(candidate);
-        if (lab_export_campaign) {
-            lab_export_campaign.setValue(L.lbl_select_campaign + ': ' + (getSelectedCampaign() || '-'));
-        }
         updateExportPreview();
     }
 
@@ -3565,8 +3607,9 @@ function loadSampleAssets(folderPath) {
     });
 
     // --- Preview do nome ---
-    var lab_export_preview = ui.Label({ value: '', style: { margin: '1px', fontSize: '10px', fontWeight: 'bold', color: '#1a73e8', stretch: 'horizontal' } });
-    var lab_date_error = ui.Label(L.err_no_date, { fontSize: '10px', color: 'red', margin: '0px 2px', shown: false });
+    var lab_export_preview = ui.Label({ value: '', style: { margin: '0px', fontSize: '9px', fontWeight: 'bold', color: '#1a73e8', stretch: 'horizontal' } });
+    var lab_date_error = statusLine(L.err_no_date, 'error');
+    lab_date_error.style().set('shown', false);
 
     function getSelectedSatellites() {
         var sats = [];
@@ -3661,7 +3704,10 @@ function loadSampleAssets(folderPath) {
     // --- Botão unificado de exportação ---
     var btt_export = ui.Button({
         label: L.btn_export,
-        style: { margin: '1px 0px', fontWeight: 'bold', color: '#0f9d58', stretch: 'horizontal' },
+        style: {
+            margin: '2px 0px 0px 0px', padding: '3px 4px', fontSize: '10px', fontWeight: 'bold',
+            color: '#ffffff', backgroundColor: '#2e7d32', border: '1px solid #1b5e20', stretch: 'horizontal'
+        },
         onClick: function () {
             var dt = select_date_export.getValue();
             if (!dt) {
@@ -3712,8 +3758,6 @@ function loadSampleAssets(folderPath) {
     });
 
     // --- Montar o panel_export ---
-    var lab_export_campaign = ui.Label('', { fontSize: '10px', fontWeight: 'bold', margin: '0px' });
-    drawerExp.panel.add(lab_export_campaign);
     drawerExp.panel.add(ui.Label(L.lbl_version, styles.label));
     var rowVer = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: styles.row });
     rowVer.add(txt_version).add(lab_version_status);
@@ -3732,6 +3776,7 @@ function loadSampleAssets(folderPath) {
     drawerExp.panel.add(ui.Label(L.lbl_satellites, styles.label));
     drawerExp.panel.add(satRow);
 
+    drawerExp.panel.add(dockDivider());
     drawerExp.panel.add(lab_export_preview);
     drawerExp.panel.add(btt_export);
 
