@@ -1,12 +1,12 @@
-// MapBiomas Fire | M3 Sample Toolkit | v09b
+// MapBiomas Fire | M3 Sample Toolkit | v09
 // Multi-country sample collection, rescue and export
 /*
- * Purpose: v09 with the flat/icon button practice (no inline base64 assets).
+ * Purpose: v08 features + map-render optimisations + flat/icon button practice.
  * Runtime: Google Earth Engine Code Editor.
  * Scope: Peru, Brazil, Bolivia, Colombia, Chile, Paraguay, Venezuela, Indonesia and DRC;
  *        historical sample rescue; Asset + GCS export.
- * Status: experiment.
- * Based on: M3_Toolkit_Monitor_Fuego_v09.
+ * Status: development version.
+ * Based on: M3_Toolkit_Monitor_Fuego_v08.
  */
 
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/

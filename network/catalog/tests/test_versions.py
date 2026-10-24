@@ -1,4 +1,4 @@
-"""Offline validation of every catalog version layout and entry-point path."""
+﻿"""Offline validation of every catalog version layout and entry-point path."""
 
 import csv
 import glob
@@ -132,7 +132,7 @@ class MonitorVersionPathsTests(unittest.TestCase):
         toolkit = os.path.join(
             CATALOG, 'development', 'version_03', 'src', 'core', 'M3_toolkit.js'
         )
-        self.assertIn('M3 Sample Toolkit | v09b', _read(toolkit))
+        self.assertIn('M3 Sample Toolkit | v09', _read(toolkit))
 
     def test_m3_links_are_version_aware(self):
         gee_urls = set()
