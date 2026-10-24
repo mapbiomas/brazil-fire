@@ -1355,11 +1355,12 @@ function user_interface() {
 
     // --- SAMPLES DOCK (bottom-left over the map) ---
     // Added/removed from the map by the SAMPLES ON/OFF button in the left panel.
+    // Single text colour; the state is carried by the border (green on / red off).
     function applyToggleStyle(btn, on) {
         btn.style().set({
-            backgroundColor: on ? '#2e7d32' : '#c62828',
-            border: '1px solid ' + (on ? '#1b5e20' : '#b71c1c'),
-            color: '#000000'
+            backgroundColor: '#333333',
+            border: '2px solid ' + (on ? '#2e7d32' : '#c62828'),
+            color: '#e0e0e0'
         });
     }
 
@@ -3287,11 +3288,11 @@ function loadSampleAssets(folderPath) {
         var current = null;
         var listeners = [];
 
+        // One text colour for every chip; the selection is the border.
         function paintChip(value) {
             Object.keys(buttons).forEach(function (k) {
                 buttons[k].style().set('border', k === value
-                    ? '1px solid rgba(21,101,192,0.6)' : '1px solid #dddddd');
-                buttons[k].style().set('backgroundColor', k === value ? '#e8f0fe' : '#ffffff');
+                    ? '1px solid #1565c0' : '1px solid #dddddd');
             });
         }
 
@@ -3313,6 +3314,7 @@ function loadSampleAssets(folderPath) {
                         margin: '0px 2px 2px 0px',
                         padding: '1px 4px',
                         fontSize: '10px',
+                        color: '#333333',
                         border: '1px solid #dddddd',
                         backgroundColor: '#ffffff'
                     },
