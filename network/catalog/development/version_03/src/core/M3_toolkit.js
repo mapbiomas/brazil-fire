@@ -1760,12 +1760,9 @@ function updateClassificationsDrawer() {
     // Removes current fire/not-fire drawings and recreates empty layers.
     function clearDrawingTools() {
         var layers = Map.drawingTools().layers();
-        // Remove base layers and every imported set (fire_imp_N / notFire_imp_N).
         for (var i = layers.length() - 1; i >= 0; i--) {
             var l = layers.get(i);
-            var name = l.getName();
-            if (name === 'fire' || name === 'notFire' ||
-                name.indexOf('fire_') === 0 || name.indexOf('notFire_') === 0) {
+            if (l.getName() === 'fire' || l.getName() === 'notFire') {
                 layers.remove(l);
             }
         }
@@ -1774,19 +1771,29 @@ function updateClassificationsDrawer() {
         Map.drawingTools().addLayer({ geometries: [], name: 'notFire', color: '0000ff', shown: true });
     }
 
-    // Every layer named prefix or starting with '<prefix>_' holds samples.
-    function samplingLayers(prefix) {
-        return Map.drawingTools().layers().filter(function (ly) {
-            var name = ly.getName();
-            return name === prefix || name.indexOf(prefix + '_') === 0;
+    // Incorporates geometries into the existing sampling layer, so imports keep
+    // growing the same fire / notFire layer instead of creating new ones.
+    function mergeIntoLayer(name, newGeoms) {
+        if (!newGeoms || !newGeoms.length) {
+            updateStats();
+            return;
+        }
+        var layer = Map.drawingTools().layers().filter(function (ly) {
+            return ly.getName() === name;
+        })[0];
+        if (!layer) return;
+        safeEvaluate(layer.getEeObject().geometries(), function (current, err) {
+            var merged = (err || !current ? [] : current).concat(newGeoms);
+            Map.drawingTools().layers().remove(layer);
+            Map.drawingTools().addLayer({
+                geometries: merged,
+                name: name,
+                color: name === 'fire' ? 'ff0000' : '0000ff',
+                shown: true
+            });
+            updateStats();
+            centerDrawingTools();
         });
-    }
-
-    // Merges the geometries of all sampling layers into one ee.List.
-    function mergedGeometries(prefix) {
-        return samplingLayers(prefix).map(function (ly) {
-            return ly.getEeObject().geometries();
-        }).reduce(function (acc, list) { return acc.cat(list); }, ee.List([]));
     }
 
     // Ensures the fire and not-fire drawing layers exist.
@@ -1805,8 +1812,10 @@ function updateClassificationsDrawer() {
 
     // Centers the map on the current drawn sample geometries.
     function centerDrawingTools() {
-        var fireGeom = mergedGeometries('fire');
-        var notFireGeom = mergedGeometries('notFire');
+        var fireLayer = Map.drawingTools().layers().filter(function (ly) { return ly.getName() === 'fire'; })[0];
+        var notFireLayer = Map.drawingTools().layers().filter(function (ly) { return ly.getName() === 'notFire'; })[0];
+        var fireGeom = fireLayer ? fireLayer.getEeObject().geometries() : ee.List([]);
+        var notFireGeom = notFireLayer ? notFireLayer.getEeObject().geometries() : ee.List([]);
         var totalFc = ee.FeatureCollection(fireGeom.map(function (g) { return ee.Feature(ee.Geometry(g)); }))
             .merge(ee.FeatureCollection(notFireGeom.map(function (g) { return ee.Feature(ee.Geometry(g)); })));
 
@@ -1830,13 +1839,22 @@ function updateClassificationsDrawer() {
         panel_stats.clear();
         panel_stats.add(ui.Label(L.lbl_stats, { fontSize: '11px', fontWeight: 'bold', margin: '2px 0px' }));
 
-        if (samplingLayers('fire').length === 0 && samplingLayers('notFire').length === 0) {
+        var layers = Map.drawingTools().layers();
+        var fireLayer = null;
+        var notFireLayer = null;
+        for (var i = 0; i < layers.length(); i++) {
+            var ly = layers.get(i);
+            if (ly.getName() === 'fire') fireLayer = ly;
+            if (ly.getName() === 'notFire') notFireLayer = ly;
+        }
+
+        if (!fireLayer || !notFireLayer) {
             panel_stats.add(ui.Label(L.status_no_samples, { fontSize: '10px', color: '#888', margin: '2px 0px' }));
             return;
         }
 
-        var fireGeoms = mergedGeometries('fire');
-        var notFireGeoms = mergedGeometries('notFire');
+        var fireGeoms = fireLayer.getEeObject().geometries();
+        var notFireGeoms = notFireLayer.getEeObject().geometries();
 
         var stats = ee.Dictionary({
             'fire_count': fireGeoms.length(),
@@ -3224,7 +3242,6 @@ function loadSampleAssets(folderPath) {
     var lab_import_loading = ui.Label({ imageUrl: b64.get('load_gif'), style: { margin: '4px', shown: false } });
     var lab_import_status = ui.Label('', { fontSize: '10px', color: 'red', margin: '2px', shown: false });
 
-    var importSeq = 0;
     var btt_import_action = ui.Button({
         imageUrl: ICONS.download, style: styles.btn_blue,
         onClick: function () {
@@ -3258,9 +3275,11 @@ function loadSampleAssets(folderPath) {
             }
             updateExportPreview();
 
-            // Import is additive: each selected asset becomes its own pair of
-            // drawing layers. Only the clear button removes samples.
+            // Import is additive: every selected asset is merged into the same
+            // fire / notFire layers. Only the clear button empties them.
             var pending = ids.length * 2;
+            var newFire = [];
+            var newNotFire = [];
             function finishOne(err) {
                 if (err) {
                     lab_import_status.setValue('Error importing samples').style().set('shown', true);
@@ -3268,8 +3287,8 @@ function loadSampleAssets(folderPath) {
                 pending--;
                 if (pending > 0) return;
                 lab_import_loading.style().set('shown', false);
-                updateStats();
-                centerDrawingTools();
+                mergeIntoLayer('fire', newFire);
+                mergeIntoLayer('notFire', newNotFire);
             }
 
             ids.forEach(function (id) {
@@ -3277,12 +3296,8 @@ function loadSampleAssets(folderPath) {
                     ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 1)).geometry().coordinates()
                         .map(function (list) { return ee.Geometry.Polygon(list); }),
                     function (list, err) {
-                        if (isCurrentAsync(ASYNC_STATE.import, importToken) && !err && list && list.length) {
-                            Map.drawingTools().addLayer({
-                                geometries: list,
-                                name: 'fire_imp_' + (++importSeq),
-                                color: 'ff0000', shown: true
-                            });
+                        if (isCurrentAsync(ASYNC_STATE.import, importToken) && !err && list) {
+                            newFire = newFire.concat(list);
                         }
                         finishOne(err);
                     });
@@ -3290,12 +3305,8 @@ function loadSampleAssets(folderPath) {
                     ee.FeatureCollection(id).filter(ee.Filter.eq('fire', 0)).geometry().coordinates()
                         .map(function (list) { return ee.Geometry.Polygon(list); }),
                     function (list, err) {
-                        if (isCurrentAsync(ASYNC_STATE.import, importToken) && !err && list && list.length) {
-                            Map.drawingTools().addLayer({
-                                geometries: list,
-                                name: 'notFire_imp_' + (++importSeq),
-                                color: '0000ff', shown: true
-                            });
+                        if (isCurrentAsync(ASYNC_STATE.import, importToken) && !err && list) {
+                            newNotFire = newNotFire.concat(list);
                         }
                         finishOne(err);
                     });
@@ -3517,7 +3528,9 @@ function loadSampleAssets(folderPath) {
 
     // --- getLandcoverVector com metadados ricos ---
     function getLandcoverVector(satellite) {
-        if (samplingLayers('fire').length === 0 || samplingLayers('notFire').length === 0) {
+        var fireLayer = Map.drawingTools().layers().filter(function (ly) { return ly.getName() === 'fire'; });
+        var notFireLayer = Map.drawingTools().layers().filter(function (ly) { return ly.getName() === 'notFire'; });
+        if (fireLayer.length === 0 || notFireLayer.length === 0) {
             print(L.err_layers);
             return null;
         }
@@ -3539,19 +3552,17 @@ function loadSampleAssets(folderPath) {
             };
         }
 
-        function collect(prefix, fireVal) {
-            var out = ee.FeatureCollection([]);
-            samplingLayers(prefix).forEach(function (ly) {
-                out = out.merge(ee.FeatureCollection(
-                    ly.getEeObject().geometries().map(function (g) {
-                        return ee.Feature(ee.Geometry(g), makeProps(fireVal));
-                    })
-                ));
-            });
-            return out;
-        }
-
-        return collect('fire', 1).merge(collect('notFire', 0));
+        var fire = ee.FeatureCollection(
+            fireLayer[0].getEeObject().geometries().map(function (g) {
+                return ee.Feature(ee.Geometry(g), makeProps(1));
+            })
+        );
+        var notFire = ee.FeatureCollection(
+            notFireLayer[0].getEeObject().geometries().map(function (g) {
+                return ee.Feature(ee.Geometry(g), makeProps(0));
+            })
+        );
+        return fire.merge(notFire);
     }
 
     // --- Botão unificado de exportação ---
