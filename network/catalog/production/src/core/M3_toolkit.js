@@ -1,12 +1,12 @@
-// MapBiomas Fire | M3 Sample Toolkit | v09
+// MapBiomas Fire | M3 Sample Toolkit | v09b
 // Multi-country sample collection, rescue and export
 /*
- * Purpose: same feature set as v08 with map-render optimisations.
+ * Purpose: v09 with the flat/icon button practice (no inline base64 assets).
  * Runtime: Google Earth Engine Code Editor.
  * Scope: Peru, Brazil, Bolivia, Colombia, Chile, Paraguay, Venezuela, Indonesia and DRC;
  *        historical sample rescue; Asset + GCS export.
- * Status: development version.
- * Based on: M3_Toolkit_Monitor_Fuego_v08.
+ * Status: experiment.
+ * Based on: M3_Toolkit_Monitor_Fuego_v09.
  */
 
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
@@ -394,14 +394,59 @@ var L = (function () {
 })();
 
 // =============================================================================
-// 03. UI ICONS
+// 03. UI TOKENS AND BUTTON HELPERS
 // =============================================================================
-// Using base64 strings for simple, self-contained UI icons
-var ICONS = {
-    load: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAdUlEQVR4nGNgGAWjYBSMglEwCkbBSAMMDA0Nf//+Zf7//z8DIyNjOxBnoig8DMUuKPLBUPyGog8NixMQp4EIFIDiNBB9vBSNdMAwNDTEAwMDA6Dof0SGYuC/BCh+Q5EvAMVpIPrpUDTSAEPDQ0M8MNAAoPANAOfdJAmhH1mMAAAAAElFTkSuQmCC',
-    download: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAgklEQVR4nO2UOQqAMBQF5xpWFhY2FlpYeXuDHkLQwkKwEI8QCViI+5IgaAYeBAJvyA8J/IkMkGOECYGcxQoWSCv4nqBaKd1KeUcQA92J8h5I7p4iAtqdcrUX8hAfqFfKGyBAEy5QTMrV/XhoxgHy8VdVa4t+xIWHJQ8iTAtSAwN4iQH5pnQ8NtSv6QAAAABJRU5ErkJggg==",
-
+// Practice: small actions use a single unicode glyph (scalable, zero payload);
+// brand/illustration assets come from the b64 module, never inline.
+var UI = {
+    size: { xs: '8px', sm: '9px', md: '10px', lg: '11px' },
+    color: {
+        text: '#444444', muted: '#777777', primary: '#1a73e8',
+        danger: '#c62828', ok: '#2e7d32', fire: '#d32f2f', notFire: '#1a73e8'
+    },
+    glyph: { down: '\u25BC', right: '\u25B6', refresh: '\u21BB', close: '\u2715' }
 };
+
+// Text button with a flat, consistent look.
+function flatButton(label, onClick, opts) {
+    opts = opts || {};
+    var style = {
+        margin: opts.margin || '0px 2px 2px 0px',
+        padding: opts.padding || '1px 4px',
+        fontSize: opts.fontSize || UI.size.md,
+        fontWeight: opts.normal ? 'normal' : 'bold',
+        color: opts.color || UI.color.text,
+        backgroundColor: opts.background || '#ffffff',
+        border: '1px solid ' + (opts.border || '#dddddd'),
+        textAlign: 'center'
+    };
+    if (opts.stretch !== false) style.stretch = 'horizontal';
+    var cfg = { label: label, style: style };
+    if (onClick) cfg.onClick = onClick;
+    return ui.Button(cfg);
+}
+
+// Single-glyph button sized to its click area (no image assets).
+function iconButton(glyph, onClick, opts) {
+    opts = opts || {};
+    var size = opts.size || '18px';
+    var cfg = {
+        label: glyph,
+        style: {
+            margin: opts.margin || '0px',
+            padding: '0px',
+            width: size,
+            height: size,
+            fontSize: opts.fontSize || '11px',
+            color: opts.color || UI.color.text,
+            backgroundColor: 'ffffff00',
+            border: '1px solid rgba(0,0,0,0)',
+            textAlign: 'center'
+        }
+    };
+    if (onClick) cfg.onClick = onClick;
+    return ui.Button(cfg);
+}
 
 Map.setOptions('SATELLITE');
 
@@ -2410,8 +2455,7 @@ function loadSampleAssets(folderPath) {
         var content = ui.Panel({ style: { margin: '0px', padding: '0px', backgroundColor: '#fdfdfd' } });
         var header = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: { margin: '2px 0px', padding: '1px', backgroundColor: '#f0f0f0', border: '1px solid #ddd' } });
 
-        var iconKey = isOpen ? 'arraw_v' : 'arraw_>';
-        var toggleBtn = ui.Button({ imageUrl: b64.get(iconKey), style: { margin: '0px', padding: '0px', backgroundColor: 'ffffff00' } });
+        var toggleBtn = iconButton(isOpen ? UI.glyph.down : UI.glyph.right, null, { fontSize: '9px' });
 
         var fontSize = customMargin ? '15px' : '18px';
         header.add(toggleBtn).add(ui.Label(title, { fontSize: fontSize, fontWeight: 'bold', margin: '1px 4px', color: '#444', backgroundColor: 'ffffff00' }));
@@ -2420,7 +2464,7 @@ function loadSampleAssets(folderPath) {
         toggleBtn.onClick(function () {
             var isShown = content.style().get('shown');
             content.style().set('shown', !isShown);
-            toggleBtn.setImageUrl(!isShown ? b64.get('arraw_v') : b64.get('arraw_>'));
+            toggleBtn.setLabel(!isShown ? UI.glyph.down : UI.glyph.right);
         });
         return { panel: panel, content: content };
     }
@@ -3206,6 +3250,16 @@ function loadSampleAssets(folderPath) {
     samplesBody.add(dockKicker('SAMPLES'));
     samplesBody.add(lab_samples_campaign);
 
+    // SVG experiment: uncomment to check whether the Code Editor renders SVG
+    // data URIs (about 250 readable chars instead of 4-8 kB of PNG base64).
+    // var svgTest = ui.Button({
+    //     imageUrl: 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    //         '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">' +
+    //         '<circle cx="8" cy="8" r="6" fill="none" stroke="#444" stroke-width="1.5"/></svg>'),
+    //     style: { margin: '0px', padding: '0px', backgroundColor: 'ffffff00', border: '1px solid rgba(0,0,0,0)' }
+    // });
+    // samplesBody.add(svgTest);
+
     var dockMuestras = createDockDrawer(L.cab_samples, true, function (open) { if (open) updateStats(); });
     dockMuestras.content.add(drawerAmo.panel);
 
@@ -3365,17 +3419,13 @@ function loadSampleAssets(folderPath) {
         }
     }
 
-    var btnFire = ui.Button({ label: L.btn_fire, style: { color: '#d32f2f', margin: '0px 2px 2px 0px', padding: '0px', stretch: 'horizontal' }, onClick: function () { setLayerMode('fire'); } });
-    var btnNotFire = ui.Button({ label: L.btn_not_fire, style: { color: '#1a73e8', margin: '0px 2px 2px 0px', padding: '0px', stretch: 'horizontal' }, onClick: function () { setLayerMode('notFire'); } });
-    var btnHand = ui.Button({ label: L.btn_hand, style: { margin: '0px 2px 2px 0px', padding: '0px', stretch: 'horizontal' }, onClick: function () { Map.drawingTools().setShape(null); } });
-    var btnClear = ui.Button({ label: L.btn_delete, style: { margin: '0px 2px 2px 0px', padding: '0px', stretch: 'horizontal' }, onClick: clearDrawingTools });
-    var btnCenter = ui.Button({ label: L.btn_center, style: { margin: '0px 2px 2px 0px', padding: '0px', stretch: 'horizontal' }, onClick: centerDrawingTools });
+    var btnFire = flatButton(L.btn_fire, function () { setLayerMode('fire'); }, { color: UI.color.fire });
+    var btnNotFire = flatButton(L.btn_not_fire, function () { setLayerMode('notFire'); }, { color: UI.color.notFire });
+    var btnHand = flatButton(L.btn_hand, function () { Map.drawingTools().setShape(null); }, { normal: true });
+    var btnClear = flatButton(L.btn_delete, clearDrawingTools, { normal: true });
+    var btnCenter = flatButton(L.btn_center, centerDrawingTools, { normal: true });
 
-    var btt_refresh_stats = ui.Button({
-        label: '↻',
-        style: { margin: '0px 2px 2px 0px', padding: '0px', fontSize: '12px', stretch: 'horizontal' },
-        onClick: function () { updateStats(); }
-    });
+    var btt_refresh_stats = flatButton(UI.glyph.refresh, function () { updateStats(); }, { fontSize: '12px', normal: true });
 
     var rowDraw1 = ui.Panel({
         layout: ui.Panel.Layout.flow('horizontal'),
