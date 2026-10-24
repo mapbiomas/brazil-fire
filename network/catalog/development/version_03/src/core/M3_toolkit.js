@@ -2273,8 +2273,8 @@ function updateClassificationsDrawer() {
                 return { label: folder.label, value: folder.native ? folder.label : folder.path };
             }));
             select_campaign_imp.setValue(campaign, false);
-            if (lab_import_campaign) {
-                lab_import_campaign.setValue(L.lbl_select_campaign + ': ' + campaign);
+            if (drawerControl && drawerControl.titleLabel) {
+                drawerControl.titleLabel.setValue(campaign);
             }
             loadSampleAssets(folders[0].path);
         } catch (e) {
@@ -2362,7 +2362,7 @@ function loadSampleAssets(folderPath) {
         });
         var titleLabel = ui.Label(title, { fontSize: '11px', fontWeight: 'bold', margin: '0px', backgroundColor: '#f9f9f9' });
         panel.add(titleLabel).add(flowPanel);
-        return { panel: panel, checkboxes: checkboxes, flowPanel: flowPanel };
+        return { panel: panel, checkboxes: checkboxes, flowPanel: flowPanel, titleLabel: titleLabel };
     }
 
     function createButtonDrawer(title, options) {
@@ -3039,12 +3039,23 @@ function loadSampleAssets(folderPath) {
     var drawerAmo = { panel: ui.Panel({ style: { shown: false, border: '1px solid #eee', margin: '2px' } }) };
     var drawerExp = { panel: ui.Panel({ style: { shown: false, border: '1px solid #eee', margin: '2px' } }) };
 
-    var drawerControl = createLayerDrawer(L.lbl_dashboard, [
+    // The drawer title shows the active campaign (highlighted), replacing the
+    // old "Panel" label.
+    var drawerControl = createLayerDrawer('', [
         { id: 'inst', label: L.short_guide, value: false, onChange: function (v) { drawerInst.panel.style().set('shown', v); } },
         { id: 'imp', label: L.short_import, value: false, onChange: function (v) { drawerImp.panel.style().set('shown', v); } },
         { id: 'amo', label: L.cab_samples, value: true, onChange: function (v) { drawerAmo.panel.style().set('shown', v); if (v) updateStats(); } },
         { id: 'exp', label: L.short_export, value: true, onChange: function (v) { drawerExp.panel.style().set('shown', v); if (v) { suggestNextVersion(); syncDateSelect(); } } }
     ]);
+    drawerControl.titleLabel.style().set({
+        fontSize: '11px',
+        fontWeight: 'bold',
+        color: '#1a5c2a',
+        backgroundColor: '#e8f5e9',
+        margin: '0px',
+        padding: '1px 3px',
+        stretch: 'horizontal'
+    });
     drawerExp.panel.style().set('shown', true);
     drawerAmo.panel.style().set('shown', true);
 
@@ -3314,8 +3325,6 @@ function loadSampleAssets(folderPath) {
         }
     });
 
-    var lab_import_campaign = ui.Label('', { fontSize: '10px', fontWeight: 'bold', margin: '0px' });
-    drawerImp.panel.add(lab_import_campaign);
     drawerImp.panel.add(ui.Label('Vector sample', { fontSize: '10px', margin: '0px' }));
     drawerImp.panel.add(select_campaign_imp.panel);
     drawerImp.panel.add(select_address.panel);
