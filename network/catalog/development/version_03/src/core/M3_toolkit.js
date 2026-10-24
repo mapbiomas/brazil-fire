@@ -1,12 +1,12 @@
-// MapBiomas Fire | M3 Sample Toolkit | v08
+// MapBiomas Fire | M3 Sample Toolkit | v09
 // Multi-country sample collection, rescue and export
 /*
- * Purpose: territory campaign selector with layer presets + consolidated result drawers.
+ * Purpose: same feature set as v08 with map-render optimisations.
  * Runtime: Google Earth Engine Code Editor.
  * Scope: Peru, Brazil, Bolivia, Colombia, Chile, Paraguay, Venezuela, Indonesia and DRC;
  *        historical sample rescue; Asset + GCS export.
  * Status: development version.
- * Based on: M3_Toolkit_Monitor_Fuego_v07.
+ * Based on: M3_Toolkit_Monitor_Fuego_v08.
  */
 
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
@@ -1410,7 +1410,47 @@ function user_interface() {
     }
 
     // Rebuilds visible map layers from the current temporal and layer state.
+    // Everything that can change the rendered layers. When it is unchanged the
+    // render is skipped entirely (avoids duplicate and no-op rebuilds).
+    var lastMosaicSignature = null;
+
+    function renderSignature() {
+        function checkedKeys(boxes) {
+            if (!boxes) return '';
+            return Object.keys(boxes).filter(function (k) {
+                return boxes[k] && boxes[k].getValue();
+            }).sort().join(',');
+        }
+        return [
+            getSelectedCountry(),
+            getSelectedCampaign(),
+            periodicityActive['anual'] ? 'A' : '',
+            periodicityActive['mensal'] ? 'M' : '',
+            getMapPeriods().join(','),
+            getSelectedRegionNames().join(','),
+            getSelectedVis().join(','),
+            checkedKeys(assetCheckboxes),
+            checkedKeys(rawCheckboxes),
+            checkedKeys(extraCheckboxes),
+            checkedKeys(classCheckboxes),
+            Object.keys(resultState.filtered).sort().map(function (k) {
+                return k + ':' + ((resultState.filtered[k].periods || []).length);
+            }).join(','),
+            resultSourceCheckboxes.prepublic && resultSourceCheckboxes.prepublic.getValue()
+                ? '1:' + (resultState.prepublic.periods || []).length : '0',
+            ['cls', 'prb', 'doy'].filter(function (k) {
+                return classBandCheckboxes[k] && classBandCheckboxes[k].getValue();
+            }).join('')
+        ].join('|');
+    }
+
     function updateMosaic() {
+        var signature = renderSignature();
+        if (signature === lastMosaicSignature) {
+            lab_loading.style().set('shown', false);
+            return;
+        }
+        lastMosaicSignature = signature;
         var checkedPeriods = getMapPeriods();
         var checkedVisKeys = getSelectedVis();
         var pais = getSelectedCountry().toLowerCase();
@@ -1449,7 +1489,7 @@ function user_interface() {
                     var layer = mosaicLayers[s];
                     var layerChk = assetCheckboxes[s + '__' + folderPeriod];
                     if (layerChk && layerChk.getValue()) {
-                        var layerId = 'asset_' + s + '_' + dateStr + '_' + visKey;
+                        var layerId = 'asset_' + s + '_' + dateStr;
                         desiredLayerIds.push(layerId);
 
                         var mosaicType = layer.buffer ? 'MINNBR_BUFFER' : 'MINNBR';
@@ -1497,7 +1537,7 @@ function user_interface() {
                 // --- GESTÃO DE RAW ---
                 ['sentinel2', 'landsat', 'modis', 'hls', 'planet'].forEach(function (s) {
                     if (rawCheckboxes[s] && rawCheckboxes[s].getValue()) {
-                        var layerId = 'raw_' + s + '_' + dateStr + '_' + visKey;
+                        var layerId = 'raw_' + s + '_' + dateStr;
                         desiredLayerIds.push(layerId);
 
                         if (s === 'planet') {
@@ -1668,59 +1708,92 @@ function user_interface() {
     }
 
     // Lists regional classification models compatible with selected regions.
-function updateClassificationsDrawer() {
+    // Regional model catalog cached per folder: clicking regions no longer
+    // re-lists every model collection.
+    var regionalCatalogCache = {};
+
+    function updateClassificationsDrawer() {
         drawerClassModels.panel.clear();
         classCheckboxes = {};
         var selectedNames = getSelectedRegionNames();
         if (selectedNames.length === 0) return;
 
         var classificationToken = beginAsync(ASYNC_STATE.classifications);
+        var cacheKey = REGIONAL_FOLDER;
         var labelLoading = ui.Label(L.loading, { fontSize: '10px', color: '#888' });
         drawerClassModels.panel.add(labelLoading);
 
-        listAssetsAsync(REGIONAL_FOLDER, function (modelAssets, err) {
+        function renderModels(models) {
             if (!isCurrentAsync(ASYNC_STATE.classifications, classificationToken)) return;
+            drawerClassModels.panel.clear();
+            classCheckboxes = {};
+            var totalAdded = 0;
+            (models || []).forEach(function (entry) {
+                var hasData = selectedNames.some(function (r) {
+                    return entry.images.some(function (img) { return img.indexOf(r) !== -1; });
+                });
+                if (!hasData) return;
+                totalAdded++;
+                var classRow = ui.Panel({
+                    layout: ui.Panel.Layout.flow('horizontal'),
+                    style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
+                });
+                var chk = ui.Checkbox({
+                    label: entry.id,
+                    value: false,
+                    onChange: function () { syncCheckBorder(chk); debouncedUpdateMosaic(); },
+                    style: { margin: '0px', padding: '0px', fontSize: '10px', color: '#000' }
+                });
+                styleCheck(chk, false);
+                classRow.add(colorSwatch(classificationColor('regional:' + entry.id))).add(chk);
+                classCheckboxes[entry.id] = chk;
+                drawerClassModels.panel.add(classRow);
+            });
+            if (totalAdded === 0) {
+                drawerClassModels.panel.add(ui.Label(L.status_no_models_region, { fontSize: '10px', color: '#888' }));
+            }
+        }
+
+        var cached = regionalCatalogCache[cacheKey];
+        if (cached && cached.models) {
+            renderModels(cached.models);
+            return;
+        }
+        if (cached && cached.pending) {
+            cached.waiters.push(renderModels);
+            return;
+        }
+        cached = { models: null, pending: true, waiters: [renderModels] };
+        regionalCatalogCache[cacheKey] = cached;
+
+        listAssetsAsync(REGIONAL_FOLDER, function (modelAssets, err) {
             if (err || !modelAssets || modelAssets.length === 0) {
-                labelLoading.setValue(L.status_no_models_region);
+                cached.pending = false;
+                cached.models = [];
+                var waiters = cached.waiters;
+                cached.waiters = [];
+                waiters.forEach(function (fn) { fn([]); });
                 return;
             }
 
             var pending = modelAssets.length;
-            var totalAdded = 0;
-
+            var models = [];
             modelAssets.forEach(function (c) {
                 var modelId = c.id.split('/').pop();
-                var colPath = REGIONAL_FOLDER + '/' + modelId;
-                listAssetsAsync(colPath, function (assets, imageErr) {
-                    if (!isCurrentAsync(ASYNC_STATE.classifications, classificationToken)) return;
+                listAssetsAsync(REGIONAL_FOLDER + '/' + modelId, function (assets, imageErr) {
                     pending--;
                     if (!imageErr && assets && assets.length) {
-                        var imageNames = assets.map(function (i) { return i.id.split('/').pop(); });
-                        var hasData = selectedNames.some(function (r) {
-                            return imageNames.some(function (img) { return img.indexOf(r) !== -1; });
+                        models.push({
+                            id: modelId,
+                            images: assets.map(function (i) { return i.id.split('/').pop(); })
                         });
-
-                        if (hasData) {
-                            totalAdded++;
-                            if (totalAdded === 1) drawerClassModels.panel.remove(labelLoading);
-                            var classRow = ui.Panel({
-                                layout: ui.Panel.Layout.flow('horizontal'),
-                                style: { margin: '0px', padding: '0px', stretch: 'horizontal' }
-                            });
-                            var chk = ui.Checkbox({
-                                label: modelId,
-                                value: false,
-                                onChange: function () { syncCheckBorder(chk); debouncedUpdateMosaic(); },
-                                style: { margin: '0px', padding: '0px', fontSize: '10px', color: '#000' }
-                            });
-                            styleCheck(chk, false);
-                            classRow.add(colorSwatch(classificationColor('regional:' + modelId))).add(chk);
-                            classCheckboxes[modelId] = chk;
-                            drawerClassModels.panel.add(classRow);
-                        }
                     }
-                    if (pending === 0 && totalAdded === 0) {
-                        labelLoading.setValue(L.status_no_models_region);
+                    if (pending === 0) {
+                        cached.pending = false;
+                        cached.models = models;
+                        var pendingWaiters = cached.waiters;
+                        cached.waiters = [];
+                        pendingWaiters.forEach(function (fn) { fn(models); });
                     }
                 });
             });
@@ -1728,13 +1801,24 @@ function updateClassificationsDrawer() {
     }
 
     // Creates or updates one managed map layer without duplicating it.
+    // Vis params and name are only re-applied when they actually change, which
+    // avoids needless tile re-renders.
     function updateManagedLayer(id, eeObject, vis, name) {
         if (managedLayers[id]) {
             managedLayers[id].setEeObject(eeObject);
-            managedLayers[id].setVisParams(vis);
-            managedLayers[id].setName(name);
+            var visKeyStr = JSON.stringify(vis);
+            if (managedLayers[id].__visKey !== visKeyStr) {
+                managedLayers[id].setVisParams(vis);
+                managedLayers[id].__visKey = visKeyStr;
+            }
+            if (managedLayers[id].__name !== name) {
+                managedLayers[id].setName(name);
+                managedLayers[id].__name = name;
+            }
         } else {
             var l = ui.Map.Layer(eeObject, vis, name);
+            l.__visKey = JSON.stringify(vis);
+            l.__name = name;
             managedLayers[id] = l;
             // Insere antes das regiões (que estão no topo)
             var idx = Math.max(0, Map.layers().length() - 2);
