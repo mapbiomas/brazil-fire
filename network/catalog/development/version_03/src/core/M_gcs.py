@@ -191,6 +191,17 @@ def rm(path, recursive=False):
     _call(args)
 
 
+def rm_files(paths, batch_size=100):
+    """Remove several GCS objects using batched gsutil calls.
+
+    gsutil rm does not expand wildcards, so callers pass the exact object
+    list. Batching keeps the command line under the Windows limit.
+    """
+    urls = [_gcs_path(path) for path in paths if path]
+    for start in range(0, len(urls), batch_size):
+        _call(['rm', '-f'] + urls[start:start + batch_size])
+
+
 def mkdir(path):
     """Create a directory placeholder in GCS.
 
@@ -233,5 +244,6 @@ class GCS:
     write_text = staticmethod(write_text)
     write_json = staticmethod(write_json)
     rm = staticmethod(rm)
+    rm_files = staticmethod(rm_files)
     mkdir = staticmethod(mkdir)
     copy = staticmethod(copy)

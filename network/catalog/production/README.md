@@ -37,7 +37,7 @@ and promotion are handled by the GEE scripts (M7-M9).
 |---|---|---|
 | **M0** | Campaign/target resolution, authentication, paths | `M0_auth_config.py`, `M_campaigns.py`, `M_targets.py` |
 | **M1** | Export quality mosaics from GEE to GCS chunks | `M1_export_logic.py`, `M1_export_ui.py` |
-| **M2** | Assemble chunks into COGs and sync the cache | `M2_mosaic_logic.py`, `M2_mosaic_ui.py` |
+| **M2** | Assemble chunks into COGs, sync the cache, remove the source chunks | `M2_mosaic_logic.py`, `M2_mosaic_ui.py` |
 | **M3** | Collect training samples in GEE | `M3_toolkit.js`, `M3_sample_ui.py` |
 | **M4** | Train the DNN, evaluate and save weights/metrics | `M4_algorithms_dnn.py`, `M4_data_extractor.py`, `M4_ui.py` |
 | **M5** | Tile inference (probability + auxiliary band) | `M5_inference.py`, `M5_classifier.py`, `M5_classifier_ui.py` |

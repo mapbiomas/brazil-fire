@@ -3,7 +3,6 @@ M1 - Exportação GEE Multi-sensor (Lógica)
 Converte generate_quality_mosaic_for_multisensors.js para a Python API do Earth Engine.
 """
 import ee
-import time
 
 from M_periods import parse_period
 
@@ -180,8 +179,6 @@ def _blocklist_filter(sensor):
         ee.Filter.inList('system:index', ee.List(blocked_ids))
     )
 
-_landsat_blocklist_filter = _blocklist_filter
-
 def get_quality_mosaic(sensor, year, start_date, end_date, bounds, month=None, method='minnbr'):
     """
     Gera o mosaico de qualidade para a constelação e método escolhidos.
@@ -328,31 +325,6 @@ def export_to_asset(mosaic_obj, name, year, month=None, period='monthly', config
     return task
 
 
-def clear_gcs_chunks(year, month=None, period='monthly', period_key=None):
-    """
-    Remove chunks antigos do GCS para evitar que se misturem com novos.
-    """
-    from M0_auth_config import monthly_chunk_path, yearly_chunk_path, period_chunk_path, CONFIG, GLOBAL_OPTS
-    from M_gcs import exists, rm
-    
-    m_method = GLOBAL_OPTS.get('MOSAIC_METHOD', 'minnbr').lower()
-    info = parse_period(period_key, periodicity=period) if period_key else None
-    if info:
-        folder = period_chunk_path(info.key, mosaic=m_method)
-    elif period == 'monthly':
-        folder = monthly_chunk_path(year, month, mosaic=m_method)
-    else:
-        folder = yearly_chunk_path(year, mosaic=m_method)
-        
-    path = f"{CONFIG['bucket']}/{folder}/"
-    print(f"[GCS] Cleaning old chunks to avoid mixing: gs://{path}")
-    try:
-        if exists(path):
-            rm(path, recursive=True)
-    except Exception as e:
-        print(f"[WARN] Failed to clean chunks: {e}")
-
-
 def delete_gcs_band(year, month, period, band, sensor=None, mosaic=None, period_key=None):
     """Deleta os chunks de uma banda específica no GCS."""
     from M0_auth_config import monthly_chunk_path, yearly_chunk_path, period_chunk_path, mosaic_name, mosaic_name_for_period, CONFIG, GLOBAL_OPTS, _single
@@ -374,20 +346,6 @@ def delete_gcs_band(year, month, period, band, sensor=None, mosaic=None, period_
             rm(f)
     except Exception as e:
         print(f"[WARN] Failed to delete band {band}: {e}")
-
-
-def delete_asset_band(year, month, period, band, period_key=None):
-    """Deleta um asset específico no GEE."""
-    from M0_auth_config import get_asset_mosaic_collection, mosaic_name, mosaic_name_for_period
-    info = parse_period(period_key, periodicity=period) if period_key else None
-    collection_id = get_asset_mosaic_collection(period=period, band=band, period_key=period_key)
-    name = mosaic_name_for_period(info.key) if info else mosaic_name(year, month, period)
-    asset_id = f"{collection_id}/{name}_{band}"
-    try:
-        print(f"[GEE] Removing Asset: {asset_id}")
-        ee.data.deleteAsset(asset_id)
-    except Exception as e:
-        print(f"[ERR] Failed to delete asset: {e}")
 
 
 def export_to_gcs(mosaic_obj, name, year, month=None, period='monthly', bands=None, config_module=None, mosaic=None, sensor=None, period_key=None):

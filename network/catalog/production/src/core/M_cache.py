@@ -9,15 +9,13 @@ import os
 import json
 import datetime
 import threading
-import logging
 from M0_auth_config import CONFIG, _get_fs
-from M_periods import ENABLED_PERIODICITIES, FOLDER_TO_PERIODICITY, PERIODS, parse_period, period_state_key
+from M_periods import ENABLED_PERIODICITIES, FOLDER_TO_PERIODICITY, parse_period, period_state_key
 
 class CacheManager:
     LIBRARY_CACHE_FILE = "library.json"
     CAMPAIGN_CACHE_FILE = "campaign.json"
     LEGACY_CACHE_FILE = "state.json"
-    CACHE_FILE = LEGACY_CACHE_FILE  # backward-compatible alias
     _state = None
     _lock = threading.RLock() # Lock reentrante para evitar race conditions no mesmo kernel
 
@@ -50,11 +48,6 @@ class CacheManager:
             'campaign': CONFIG.get('campaign'),
             'gcs_campaigns_prefix': CONFIG.get('gcs_campaigns_prefix'),
         }
-
-    @staticmethod
-    def _scope():
-        """Backward-compatible alias for the library scope."""
-        return CacheManager._library_scope()
 
     @staticmethod
     def _local_candidates(filename):
@@ -130,11 +123,6 @@ class CacheManager:
         cache = (CONFIG.get('gcs_cache')
                  or f"{CONFIG.get('gcs_campaigns_prefix')}/.CACHE")
         return f"gs://{CONFIG['bucket']}/{cache}/{CacheManager.LEGACY_CACHE_FILE}"
-
-    @staticmethod
-    def _get_gcs_path():
-        """Backward-compatible alias for the library cache path."""
-        return CacheManager._get_library_gcs_path()
 
     @staticmethod
     def clear():
@@ -228,7 +216,7 @@ class CacheManager:
         """Popula cache listando assets do GEE em paralelo para performance."""
         import ee, time
         from concurrent.futures import ThreadPoolExecutor
-        from M0_auth_config import CONFIG, GLOBAL_OPTS, get_asset_mosaic_collection
+        from M0_auth_config import CONFIG, get_asset_mosaic_collection
         
         start_time = time.time()
         state = CacheManager.get_state()
@@ -318,7 +306,7 @@ class CacheManager:
     @staticmethod
     def build_cache_from_gcs(logger=None, years=None):
         """Escaneia o GCS para detectar chunks e COGs existentes."""
-        from M0_auth_config import CONFIG, _gcs_library_base
+        from M0_auth_config import CONFIG
 
         bands_all = CONFIG.get('bands_all', ['blue', 'green', 'red', 'nir', 'swir1', 'swir2', 'dayOfYear'])
         sorted_bands = sorted(bands_all, key=len, reverse=True)
@@ -603,45 +591,6 @@ class CacheManager:
         """Return cached COG names for a periodicity."""
         state = CacheManager.get_state()
         return list(state.get(period_state_key('cogs', periodicity), []))
-
-    @staticmethod
-    def add_asset(name, period):
-        with CacheManager._lock:
-            state = CacheManager.get_state()
-            key = period_state_key('assets', period) if period in PERIODS else ('assets_monthly' if period == 'monthly' else 'assets_annually')
-            state.setdefault(key, [])
-            if name not in state[key]:
-                state[key].append(name)
-                CacheManager.save(state)
-
-    @staticmethod
-    def remove_asset(name, period):
-        with CacheManager._lock:
-            state = CacheManager.get_state()
-            key = period_state_key('assets', period) if period in PERIODS else ('assets_monthly' if period == 'monthly' else 'assets_annually')
-            state.setdefault(key, [])
-            if name in state[key]:
-                state[key].remove(name)
-                CacheManager.save(state)
-
-    @staticmethod
-    def add_gcs_chunk(name, bands):
-        with CacheManager._lock:
-            state = CacheManager.get_state()
-            if name not in state['gcs_chunks']:
-                state['gcs_chunks'][name] = []
-            for band in bands:
-                if band not in state['gcs_chunks'][name]:
-                    state['gcs_chunks'][name].append(band)
-            CacheManager.save(state)
-
-    @staticmethod
-    def remove_gcs_chunk(name):
-        with CacheManager._lock:
-            state = CacheManager.get_state()
-            if name in state['gcs_chunks']:
-                del state['gcs_chunks'][name]
-                CacheManager.save(state)
 
     @staticmethod
     def reset():

@@ -9,8 +9,8 @@ runtime code tests run per version with `python -m unittest discover -s tests`.
 | `network/version_02/` (legacy root mirror) | `classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb` | `A_0_1` and notebook point to `network/version_02/...`; unchanged from the pre-move commit `45b7a17`. **Reference version:** `catalog/development/version_01`. **Deprecated:** remove after public notice |
 | `catalog/development/version_00/` | `classification_algorithms/A_0_1...` and notebook | Both point to `network/catalog/development/version_00/classification_algorithms` (Collection 1) |
 | `catalog/development/version_01/` | `classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb` | `A_0_1` and notebook point to `network/catalog/development/version_01/classification_algorithms` (Collection 2) |
-| `catalog/development/version_03/` | `notebooks/monitor_01_*.ipynb` and `collection_*.ipynb` | 14 notebooks; `repo_path = network/catalog/development/version_03/src/core`; 77 tests OK |
-| `catalog/production/` | `notebooks/monitor_01_*.ipynb` and `collection_*.ipynb` | 14 notebooks; `repo_path = network/catalog/production/src/core`; 77 tests OK |
+| `catalog/development/version_03/` | `notebooks/monitor_01_*.ipynb` and `collection_*.ipynb` | 14 notebooks; `repo_path = network/catalog/development/version_03/src/core`; 105 tests OK |
+| `catalog/production/` | `notebooks/monitor_01_*.ipynb` and `collection_*.ipynb` | 14 notebooks; `repo_path = network/catalog/production/src/core`; 105 tests OK |
 
 Catalog `version_02` is reserved and has no folder. `version_04` was removed;
 `version_03` is now the active development copy and the stable reference.
@@ -41,4 +41,4 @@ python -m unittest discover -s network/catalog/production/tests
   to `CATALOG_01/COLLECTION_02`, FILTERED matrix without horizontal scrollbar.
 - The catalog versions are path-validated; GEE/GCS operations still require
   authentication and are not part of the offline test suite.
-- Offline layout suite: 11 tests OK (`network/catalog/tests`).
+- Offline layout suite: 10 tests OK (`network/catalog/tests`).

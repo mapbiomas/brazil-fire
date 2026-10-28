@@ -1,17 +1,13 @@
 print("\n>>> M2_mosaic_ui initializing (v7.0 Tabs) <<<")
-import ee
 import traceback
-import threading
 import ipywidgets as widgets
-from IPython.display import display, clear_output
 
 from M0_auth_config import CONFIG, GLOBAL_OPTS, mosaic_name_for_period, is_edit_mode, period_cog_path, get_sensor_start_year, resolve_years
 from M_periods import list_periods, period_state_key
-import M0_auth_config as config_module
 from M_cache import CacheManager
 from M_ui_components import PipelineStepUI, cell_log, ProgressTracker
 from M_lang import L as Lang
-from M2_mosaic_logic import assemble_country_mosaic
+from M_mosaics import methods_for
 
 class MosaicAssemblerUI(PipelineStepUI):
     def __init__(self, years=None):
@@ -25,7 +21,6 @@ class MosaicAssemblerUI(PipelineStepUI):
         self.is_refreshing = False
         # Persistência de abas
         self.last_tabs = (0, 0, 0)
-        self.search_query = ""
         
         try:
             self.main_area.children = [widgets.HTML(f"<i>{Lang.LOADING_INTERFACE}</i>")]
@@ -63,9 +58,6 @@ class MosaicAssemblerUI(PipelineStepUI):
                 self.state = CacheManager.build_cache_from_gcs(logger=self.update_status, years=self.years)
             except Exception as e:
                 print(f"[WARN] M2: could not sync GCS cache: {e}")
-        self.gcs_chunks = self.state.get('gcs_chunks', {})
-
-    _CELL_W  = '80px'
 
     def _on_select_all(self, _):
         for chk in self.chk_dict.values():
@@ -113,10 +105,6 @@ class MosaicAssemblerUI(PipelineStepUI):
             date_str = period_info.key
             y = period_info.year
             m = period_info.index if period_info.periodicity == 'monthly' else None
-
-            # Filtro de busca
-            if self.search_query and self.search_query.lower() not in date_str.lower():
-                continue
 
             cells = [widgets.HTML(f'<div style="width:100px;font-family:monospace;">{date_str}</div>')]
                 
@@ -234,7 +222,6 @@ class MosaicAssemblerUI(PipelineStepUI):
         # --- SISTEMA DE ABAS (TABS) ---
         sensors = [s.upper() for s in (GLOBAL_OPTS['SENSOR'] if isinstance(GLOBAL_OPTS['SENSOR'], list) else [GLOBAL_OPTS['SENSOR']])]
         periods = GLOBAL_OPTS['PERIODICITY'] if isinstance(GLOBAL_OPTS['PERIODICITY'], list) else [GLOBAL_OPTS['PERIODICITY']]
-        methods = CONFIG['mosaic_methods']
         
         self.sensor_tabs = widgets.Tab()
         self.sensor_children = []
@@ -244,6 +231,7 @@ class MosaicAssemblerUI(PipelineStepUI):
             period_tabs = widgets.Tab()
             period_children = []
             for j, p in enumerate(periods):
+                methods = methods_for(CONFIG['mosaic_methods'], sensor=s.lower(), period=p)
                 method_tabs = widgets.Tab()
                 method_children = []
                 for k, m in enumerate(methods):
@@ -342,19 +330,6 @@ class MosaicAssemblerUI(PipelineStepUI):
         target.children = [widgets.HTML(f"<i>{Lang.LOADING_INTERFACE}</i>")]
         self._load_tab(real_idx, p_idx, m_idx)
 
-    def _on_search_change(self, change):
-        self.search_query = change['new']
-        vis_idx = self.sensor_tabs.selected_index
-        if vis_idx == 0:  # Guide tab
-            return
-        real_idx = vis_idx - 1
-        p_idx = self.sensor_children[real_idx].selected_index
-        m_idx = self.sensor_children[real_idx].children[p_idx].selected_index
-        
-        target_container = self.sensor_children[real_idx].children[p_idx].children[m_idx]
-        target_container.children = [widgets.HTML(f"<i>{Lang.FILTERING}</i>")]
-        self._load_tab(real_idx, p_idx, m_idx)
-
     def _refresh_cache(self):
         if self.is_refreshing: return
         try:
@@ -433,7 +408,8 @@ def start_mosaic_assembly(ui_obj):
             ui_obj.state = CacheManager.build_cache_from_gcs(
                 logger=print, years=getattr(ui_obj, 'years', None)
             )
-            ui_obj.gcs_chunks = ui_obj.state.get('gcs_chunks', {})
             ui_obj._reload_current_tab()
         except Exception as e:
             print(f"[WARN] M2: could not refresh cache after assembly: {e}")
+            # Chunks were removed, so the old cache is no longer trustworthy.
+            CacheManager.mark_stale()

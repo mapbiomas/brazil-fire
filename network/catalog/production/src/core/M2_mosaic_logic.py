@@ -9,22 +9,27 @@ import time
 
 from M0_auth_config import (
     CONFIG, mosaic_name, mosaic_name_for_period, _get_fs,
-    monthly_chunk_path, monthly_mosaic_path, monthly_cog_path,
-    yearly_chunk_path, yearly_mosaic_path, yearly_cog_path,
+    monthly_chunk_path, monthly_cog_path,
+    yearly_chunk_path, yearly_cog_path,
     period_chunk_path, period_cog_path,
     get_temp_dir, check_command_exists
 )
 from M_periods import parse_period
-from M_gcs import upload, download
+from M_gcs import upload, download, rm_files
 
-# Mapeamento de Tipos de Dados Recomendado (IPAM/MapBiomas)
+# M2 output is 8-bit for every band except dayOfYear, which needs Int16.
 BAND_DATATYPES = {
-    'blue': 'Int16', 'green': 'Int16', 'red': 'Int16', 
-    'nir': 'Int16', 'swir1': 'Int16', 'swir2': 'Int16',
+    'blue': 'Byte', 'green': 'Byte', 'red': 'Byte',
+    'nir': 'Byte', 'swir1': 'Byte', 'swir2': 'Byte',
     'nbr': 'Int16', 'dayOfYear': 'Int16',
     'classification': 'Byte', 'burned_area': 'Byte',
     'probability': 'Float32', 'score': 'Float32'
 }
+
+# The COG is the final product; chunks are only intermediate files. Deleting
+# them after a successful upload keeps the bucket from holding two copies.
+DELETE_CHUNKS_AFTER_COG = True
+
 
 def list_gcs_files(prefix, logger=None):
     """Lista shards no GCS usando gcsfs."""
@@ -176,6 +181,20 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
                 upload(cog_local_path, dest)
                 
                 if logger: logger(f" Success: {cog_remote_name}", "success")
+                if DELETE_CHUNKS_AFTER_COG:
+                    try:
+                        rm_files(remote_shards)
+                        if logger:
+                            logger(
+                                f" Cleaned {len(remote_shards)} source chunks for {clean_b_name}.",
+                                "info",
+                            )
+                    except Exception as e:
+                        if logger:
+                            logger(
+                                f"[WARN] COG built but source chunks may remain for {clean_b_name}: {e}",
+                                "warning",
+                            )
                 results.append(f"gs://{dest}")
             finally:
                 if os.path.exists(band_tmp): shutil.rmtree(band_tmp)

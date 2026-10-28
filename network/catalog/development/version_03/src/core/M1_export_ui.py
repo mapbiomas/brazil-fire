@@ -1,9 +1,7 @@
 print("\n>>> M1_export_ui initializing (v7.0 Tabs) <<<")
 import ee
 import traceback
-import threading
 import ipywidgets as widgets
-from IPython.display import display, clear_output
 
 from M0_auth_config import CONFIG, GLOBAL_OPTS, mosaic_name_for_period, is_edit_mode, get_sensor_start_year, resolve_years
 from M_periods import list_periods, parse_period, period_state_key
@@ -11,12 +9,26 @@ import M0_auth_config as config_module
 from M_cache import CacheManager
 from M_ui_components import PipelineStepUI, cell_log
 from M_lang import L as Lang
-from M1_export_logic import get_quality_mosaic, export_to_asset, export_to_gcs, clear_gcs_chunks, delete_gcs_band, delete_asset_band
+from M_mosaics import methods_for
+
+
+def resolve_output_state(row_type, has_chunks, has_cog, has_asset, is_active):
+    """Return (state, exists) for one M1 grid cell.
+
+    GCS rows are satisfied by either the exported chunks or the assembled
+    COG. ASSET rows only depend on the GEE asset. An active export task wins
+    over any existing output.
+    """
+    if row_type == 'ASSET':
+        exists = has_asset
+    else:
+        exists = bool(has_chunks or has_cog)
+    if is_active:
+        return 'RUN', exists
+    return ('OK' if exists else 'MISS'), exists
+
 
 class ExportDispatcherUI(PipelineStepUI):
-    RELEASE_DAY = 2
-    TASK_LIMIT  = 50
-
     def __init__(self, years=None):
         super().__init__(
             title=Lang.M1_TITLE_FULL, 
@@ -40,7 +52,6 @@ class ExportDispatcherUI(PipelineStepUI):
         self.bands = CONFIG['bands_all']
         self.update_status(Lang.LOADING_CACHE)
         self.state = CacheManager.load() or {}
-        self.gcs_chunks = self.state.get('gcs_chunks', {})
 
     def _get_active_tasks(self):
         try:
@@ -49,11 +60,6 @@ class ExportDispatcherUI(PipelineStepUI):
             return active
         except Exception:
             return []
-
-    _DATE_W  = '100px'
-    _TYPE_W  = '60px'
-    _SEL_W   = '40px'
-    _CELL_W  = '80px'
 
     def _on_select_all(self, _):
         for chk in self.chk_dict.values():
@@ -112,6 +118,10 @@ class ExportDispatcherUI(PipelineStepUI):
             include_current=(period == 'yearly'),
             now=self.now,
         )
+        cogs_list = {
+            name.lower()
+            for name in self.state.get(period_state_key('cogs', period), [])
+        }
         for period_info in periods:
             if period_info.year < get_sensor_start_year(sensor):
                 continue
@@ -135,11 +145,15 @@ class ExportDispatcherUI(PipelineStepUI):
                     m_base_name = mosaic_name_for_period(date_str, mosaic=mosaic_method, sensor=sensor)
 
                     chunks_dict = self.state.get('gcs_chunks', {})
-                    exists_gcs = b in chunks_dict.get(m_base_name.lower(), [])
+                    has_chunks = b.lower() in {
+                        chunk.lower() for chunk in chunks_dict.get(m_base_name.lower(), [])
+                    }
 
                     assets_key = period_state_key('assets', period)
                     assets_list = self.state.get(assets_key, [])
-                    exists_gee = m_name.lower() in assets_list
+                    has_asset = m_name.lower() in {asset.lower() for asset in assets_list}
+
+                    has_cog = m_name.lower() in cogs_list
 
                     m_name_lower = m_name.lower()
                     # Busca precisa usando a flag pessoal: FLAG_TIPO_NOME
@@ -149,16 +163,12 @@ class ExportDispatcherUI(PipelineStepUI):
                     chk = widgets.Checkbox(value=False, indent=False, layout=L(width='18px', height='18px', margin='0'))
                     chk._meta = {'sensor': sensor, 'period': period, 'mosaic': mosaic_method, 'year': y, 'month': m, 'period_key': date_str, 'band': b, 'type': row_type}
 
-                    exists = exists_gcs if row_type == 'GCS' else exists_gee
+                    status, exists = resolve_output_state(
+                        row_type, has_chunks, has_cog, has_asset, is_active,
+                    )
                     chk._meta['exists'] = exists
                     chk._meta['active'] = is_active
-                    
-                    if is_active:
-                        status, css = 'RUN', 'mfm-run'
-                    elif exists:
-                        status, css = 'OK', 'mfm-ok'
-                    else:
-                        status, css = 'MISS', 'mfm-null'
+                    css = {'RUN': 'mfm-run', 'OK': 'mfm-ok', 'MISS': 'mfm-null'}[status]
 
                     chk.disabled = is_active or (exists and not is_edit_mode())
 
@@ -222,7 +232,6 @@ class ExportDispatcherUI(PipelineStepUI):
 
         sensors = [s.upper() for s in (GLOBAL_OPTS['SENSOR'] if isinstance(GLOBAL_OPTS['SENSOR'], list) else [GLOBAL_OPTS['SENSOR']])]
         periods = GLOBAL_OPTS['PERIODICITY'] if isinstance(GLOBAL_OPTS['PERIODICITY'], list) else [GLOBAL_OPTS['PERIODICITY']]
-        methods = CONFIG['mosaic_methods']
         
         self.update_status(Lang.SYNCING_TASKS)
         active_tasks = self._get_active_tasks()
@@ -235,6 +244,7 @@ class ExportDispatcherUI(PipelineStepUI):
             period_tabs = widgets.Tab()
             period_children = []
             for j, p in enumerate(periods):
+                methods = methods_for(CONFIG['mosaic_methods'], sensor=s.lower(), period=p)
                 method_tabs = widgets.Tab()
                 method_children = []
                 for k, m in enumerate(methods):
@@ -380,12 +390,11 @@ def start_export(ui_obj, mode=None):
         print(f"[WARN] {message}")
         cell_log(message, type='warning')
 
-    from M1_export_logic import export_to_asset, export_to_gcs
     print(f" Starting {len(selected)} exports...")
     cell_log(f"Starting {len(selected)} exports...", type='info')
 
     import M1_export_logic as logic
-    from M0_auth_config import CONFIG, mosaic_name
+    from M0_auth_config import CONFIG
     
     country_geom = ee.FeatureCollection(CONFIG['asset_regions']).geometry().bounds()
 

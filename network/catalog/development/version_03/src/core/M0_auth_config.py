@@ -46,6 +46,7 @@ def _make_config(
     gee_campaigns_prefix,
     campaign,
     asset_regions,
+    mosaic_methods,
 ):
     """Build the CONFIG dict from project-level parameters. All required."""
     return {
@@ -54,7 +55,7 @@ def _make_config(
         'gee_project': gee_project,
         'campaign': campaign,
         'asset_regions': asset_regions,
-        'mosaic_methods': ['minnbr'],
+        'mosaic_methods': list(mosaic_methods),
 
         # --- GCS prefixos ---
         'gcs_library_images_prefix': gcs_library_images_prefix,
@@ -237,6 +238,9 @@ def set_global_opts(
     All required parameters must be provided explicitly.
     No defaults for project-level configuration.
 
+    ``mosaic_methods`` is required: the active methods come from the notebook
+    configuration, never from an internal default.
+
     Passing convention: use a plain string for a single option and a list
     only when selecting more than one (e.g. sensor='landsat' but
     mosaic_methods=['minnbr', 'median']).
@@ -253,14 +257,34 @@ def set_global_opts(
             + '.'
         )
 
-    selected_mosaics = None
-    if mosaic_methods is not None:
-        from M_mosaics import all_methods as _all_mosaic_methods
-        valid_mosaics = set(_all_mosaic_methods())
-        requested_mosaics = mosaic_methods if isinstance(mosaic_methods, (list, tuple)) else [mosaic_methods]
-        selected_mosaics = [m for m in requested_mosaics if m in valid_mosaics]
-        if not selected_mosaics:
-            raise ValueError(f"mosaic_methods must contain one or more of: {', '.join(sorted(valid_mosaics))}.")
+    from M_mosaics import all_methods as _all_mosaic_methods, available_methods as _available_methods
+    valid_mosaics = set(_all_mosaic_methods())
+    if mosaic_methods is None:
+        raise ValueError(
+            "mosaic_methods is required; pass one or more of: "
+            + ', '.join(sorted(valid_mosaics))
+            + "."
+        )
+    requested_mosaics = mosaic_methods if isinstance(mosaic_methods, (list, tuple)) else [mosaic_methods]
+    selected_mosaics = [m for m in requested_mosaics if m in valid_mosaics]
+    if not selected_mosaics:
+        raise ValueError(f"mosaic_methods must contain one or more of: {', '.join(sorted(valid_mosaics))}.")
+
+    for sensor_name in requested_sensors:
+        for period_name in requested_periods:
+            supported = set(_available_methods(
+                sensor=str(sensor_name).lower(),
+                period=str(period_name).lower(),
+            ))
+            if not supported:
+                continue
+            unsupported = [m for m in selected_mosaics if m not in supported]
+            if unsupported:
+                raise ValueError(
+                    f"mosaic_methods {unsupported} not supported for "
+                    f"{sensor_name}/{period_name}. "
+                    f"Available: {', '.join(sorted(supported))}."
+                )
 
     # Build CONFIG
     new_config = _make_config(
@@ -273,6 +297,7 @@ def set_global_opts(
         gee_campaigns_prefix=gee_campaigns_prefix,
         campaign=campaign,
         asset_regions=asset_regions,
+        mosaic_methods=selected_mosaics,
     )
 
     # Preserve the CONFIG object so modules that imported it keep the active values.
@@ -287,9 +312,6 @@ def set_global_opts(
     GLOBAL_OPTS['PERSONAL_TASK_FLAG'] = personal_task_flag
     GLOBAL_OPTS['LANGUAGE'] = language
 
-    # Aplica filtro de metodos de mosaico se passado
-    if selected_mosaics is not None:
-        CONFIG['mosaic_methods'] = selected_mosaics
     GLOBAL_OPTS['MOSAIC_METHOD'] = CONFIG['mosaic_methods'][0]
 
     from M_lang import L

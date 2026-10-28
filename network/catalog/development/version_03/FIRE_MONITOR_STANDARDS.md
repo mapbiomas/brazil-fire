@@ -134,7 +134,7 @@ Supports monthly and annual periods with configurable mosaic types (minnbr, minn
 
 ### M2 — Mosaic Assembly (COG)
 
-Assembles M1 chunks into Cloud-Optimized GeoTIFFs via GDAL VRT → compressed COG (DEFLATE). Outputs to `.../{temporal_id}/COG/`. Results consumed by M4 (training) and M5 (classification).
+Assembles M1 chunks into Cloud-Optimized GeoTIFFs via GDAL VRT → compressed COG (DEFLATE). Outputs to `.../{temporal_id}/COG/`. Results consumed by M4 (training) and M5 (classification). After a successful COG upload, M2 removes the source chunks for that band; rebuilding a COG requires re-exporting the chunks from M1.
 
 ### M3 — Sample Collection (GEE JS Toolkit)
 
