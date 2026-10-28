@@ -1,12 +1,13 @@
-// MapBiomas Fire | M3 Sample Toolkit | v09
+// MapBiomas Fire | M3 Sample Toolkit | v10
 // Multi-country sample collection, rescue and export
 /*
- * Purpose: v08 features + map-render optimisations + flat/icon button practice.
+ * Purpose: v09b features + the unified UI system from M3_UI_Reference
+ *          (one button language, SVG icons, border-only states).
  * Runtime: Google Earth Engine Code Editor.
- * Scope: Peru, Brazil, Bolivia, Colombia, Chile, Paraguay, Venezuela, Indonesia and DRC;
+ * Scope: Peru, Brazil, Bolivia, Colombia, Chile, Ecuador, Paraguay and Venezuela;
  *        historical sample rescue; Asset + GCS export.
- * Status: development version.
- * Based on: M3_Toolkit_Monitor_Fuego_v08.
+ * Status: development.
+ * Based on: M3_Toolkit_Monitor_Fuego_v09b.
  */
 
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
@@ -37,415 +38,101 @@ var APP_CONFIG = {
 
 // =============================================================================
 // 02. LANGUAGE DICTIONARY
+// Data and translations(language) are defined at the end of this file.
 // =============================================================================
-// Add or edit translations here; interface logic should use L keys only.
-var L = (function () {
-    var dict = {
-        es: {
-            title: 'MapBiomas Fuego',
-            cab_config: 'TERRITORIO',
-            cab_temporal: 'TEMPORAL',
-            cab_layers: 'CAPAS',
-            cab_samples: 'MUESTRAS',
-            lbl_country: 'Pais',
-            lbl_regions: 'Regiones',
-            lbl_periodicity: 'Periodicidad',
-            opt_annual: 'Anual',
-            opt_monthly: 'Mensual',
-            lbl_asset_mosaics: 'Mosaicos classificados',
-            lbl_raw_mosaics: 'Mosaicos on the fly',
-            lbl_ref_cats: 'Categorias de Referencia',
-            lbl_burned: 'Area Quemada',
-            lbl_hotspots: 'Focos / Buffers',
-            cab_instructions: 'Como usar este modulo',
-            instructions: '1. Use las herramientas de dibujo en el mapa.\n' +
-                '2. Capa "fire" (rojo) = area quemada.\n' +
-                '3. Capa "notFire" (azul) = area no quemada.\n' +
-                '4. Complete los metadatos en la pestana EXPORTAR.\n' +
-                '5. Haga clic en EXPORTAR para guardar en Asset y GCS.\n' +
-                '6. Vaya a la pestana Tasks en GEE para ejecutar.',
-            tab_import: 'IMPORTAR',
-            tab_export: 'EXPORTAR',
-            btn_load: 'Cargar',
-            lbl_version: 'Sample id',
-            lbl_shortname: 'Nombre corto',
-            lbl_comment: 'Comentario',
-            lbl_date: 'Fecha',
-            lbl_satellites: 'Satélites',
-            placeholder_date: 'Seleccionar fecha...',
-            placeholder_asset: 'Elegir muestra existente...',
-            placeholder_sn: 'apodo (ej: norte_amazonia)',
-            placeholder_cmt: 'comentario (metadato libre)',
-            btn_export: 'EXPORTAR (Asset + GCS)',
-            ver_checking: 'Verificando...',
-            ver_suggested: 'sugerida: ',
-            ver_empty: 'asset vacio',
-            task_created: 'Tareas creadas: ',
-            task_hint: ' (vaya a la pestana Tasks para ejecutar)',
-            err_layers: 'Faltan capas "fire" o "notFire" en el mapa.',
-            err_no_sat: 'Seleccione un satélite.',
-            err_no_date: 'Seleccione la fecha.',
-            lbl_stats: 'Resumen de Muestras:',
-            lbl_refresh_stats: 'Actualizar',
-            status_no_samples: 'Sin muestras dibujadas',
-            lbl_fire: 'Fuego',
-            lbl_not_fire: 'No Fuego',
-            lbl_total: 'Total',
-            lbl_area: 'Area (ha)',
-            lbl_count: 'Cant.',
-            lbl_satellites_toggle: 'Satelites',
-            lbl_vis_preset: 'Visualizacion',
-            opt_rgb_fire: '[SWIR1/NIR/RED] A',
-            opt_rgb_coverage: '[SWIR1/NIR/RED] B',
-            opt_rgb_false: '[NIR/SWIR1/RED]',
-            opt_rgb_natural: '[RED/GREEN/BLUE]',
-            opt_gray_nir: 'NIR',
-            opt_gray_swir1: 'SWIR1',
-            opt_gray_swir2: 'SWIR2',
-            opt_gray_nbr: 'NBR',
-            opt_gray_ndvi: 'NDVI',
-            opt_rgb_swir_alt: '[SWIR2/SWIR1/NIR]',
-            cab_satellites: 'Satelite',
-            cab_reference: 'Referencia',
-            cab_classifications: 'Clasificaciones',
-            cab_class_regional: 'Regionales',
-            cab_class_filtered: 'FILTERED',
-            cab_class_candidates: 'CANDIDATES',
-            cab_class_prepublic: 'PRE_PUBLIC',
-            lbl_proposal: 'Propuesta',
-            lbl_stage: 'Etapa',
-            lbl_show: 'Mostrar',
-            lbl_images: 'imagenes',
-            status_no_results: 'Sin resultados',
-            short_guide: 'Guia',
-            short_import: 'Importar',
-            short_export: 'Exportar',
-            btn_fire: 'Fuego',
-            btn_not_fire: 'No Fuego',
-            btn_hand: 'Mover',
-            btn_delete: 'Borrar',
-            btn_center: 'Centrar',
-            loading: '',
-            ref_name_modis_ba: 'MODIS Burned Area',
-            ref_name_gabam: 'GABAM',
-            ref_name_firms: 'FIRMS',
-            ref_name_fire_cci: 'FIRE_CCI',
-            ref_cicatrizes_peru: 'Cicatrizes Peru',
-            ref_name_buffer_inpe: 'Buffer Focos INPE',
-            ref_name_hotspots_inpe: 'Hotspots INPE (Puntos)',
-            lbl_all_regions: 'Todas las Regiones',
-            lbl_selected_region: 'Region Seleccionada',
-            status_no_models_region: '(sin modelos en la region)',
-            lbl_qty_pct: 'Cant%',
-            lbl_area_pct: 'Area%',
-            lbl_class_col: 'CLASE',
-            btn_all_regions: 'Todos',
-            btn_sel_single: 'Única',
-            btn_sel_multi: 'Varias',
-            placeholder_region_filter: 'filtre regiones (ej. amazonia -02)',
-            placeholder_date_filter: 'filtre fechas (ej. 2023 -01)',
-            ref_modis_mcd64a1: 'MODIS MCD64A1',
-            ref_buffer_focos: 'Buffer Focos',
-            ref_hotspots_inpe: 'Hotspots INPE',
-            sat_sentinel2_buffer: 'Sentinel2 Buffer',
-            lbl_bands: 'Bandas',
-            lbl_band_classification: 'Clasificacion',
-            lbl_band_probability: 'Probabilidad',
-            lbl_band_dayofyear: 'Dia del Ano',
-            lbl_dashboard: 'Panel',
-            placeholder_campaign: 'Seleccionar campana...',
-            lbl_campaign: 'Campana',
-            lbl_select_campaign: 'Seleccionar Campana'
-        },
-        pt: {
-            title: 'MapBiomas Fogo',
-            cab_config: 'TERRITÓRIO',
-            cab_temporal: 'TEMPORAL',
-            cab_layers: 'CAMADAS',
-            cab_samples: 'AMOSTRAS',
-            lbl_country: 'Pais',
-            lbl_regions: 'Regioes',
-            lbl_periodicity: 'Periodicidade',
-            opt_annual: 'Anual',
-            opt_monthly: 'Mensal',
-            lbl_asset_mosaics: 'Mosaicos classificados',
-            lbl_raw_mosaics: 'Mosaicos on the fly',
-            lbl_ref_cats: 'Categorias de Referencia',
-            lbl_burned: 'Area Queimada',
-            lbl_hotspots: 'Focos / Buffers',
-            cab_instructions: 'Como usar este modulo',
-            instructions: '1. Use as ferramentas de desenho no mapa.\n' +
-                '2. Camada "fire" (vermelho) = area queimada.\n' +
-                '3. Camada "notFire" (azul) = area nao queimada.\n' +
-                '4. Preencha os metadados na aba EXPORTAR.\n' +
-                '5. Clique em EXPORTAR para salvar no Asset e GCS.\n' +
-                '6. Acesse a aba Tasks no GEE para executar.',
-            tab_import: 'IMPORTAR',
-            tab_export: 'EXPORTAR',
-            btn_load: 'Carregar',
-            lbl_version: 'Sample id',
-            lbl_shortname: 'Nome curto',
-            lbl_comment: 'Comentário',
-            lbl_date: 'Data',
-            lbl_satellites: 'Satélites',
-            placeholder_date: 'Selecionar data...',
-            placeholder_asset: 'Escolher amostra existente...',
-            placeholder_sn: 'apelido (ex: norte_amazonia)',
-            placeholder_cmt: 'comentario (metadado livre)',
-            btn_export: 'EXPORTAR (Asset + GCS)',
-            ver_checking: 'Verificando...',
-            ver_suggested: 'sugerida: ',
-            ver_empty: 'asset vazio',
-            task_created: 'Tasks criadas: ',
-            task_hint: ' (va a aba Tasks para executar)',
-            err_layers: 'Faltam camadas "fire" ou "notFire" no mapa.',
-            err_no_sat: 'Selecione um satélite.',
-            err_no_date: 'Selecione a data.',
-            lbl_stats: 'Resumo das Amostras:',
-            lbl_refresh_stats: 'Atualizar',
-            status_no_samples: 'Sem amostras desenhadas',
-            lbl_fire: 'Fogo',
-            lbl_not_fire: 'Nao Fogo',
-            lbl_total: 'Total',
-            lbl_area: 'Area (ha)',
-            lbl_count: 'Qtd.',
-            lbl_satellites_toggle: 'Satelites',
-            lbl_vis_preset: 'Visualizacao',
-            opt_rgb_fire: '[SWIR1/NIR/RED] A',
-            opt_rgb_coverage: '[SWIR1/NIR/RED] B',
-            opt_rgb_false: '[NIR/SWIR1/RED]',
-            opt_rgb_natural: '[RED/GREEN/BLUE]',
-            opt_gray_nir: 'NIR',
-            opt_gray_swir1: 'SWIR1',
-            opt_gray_swir2: 'SWIR2',
-            opt_gray_nbr: 'NBR',
-            opt_gray_ndvi: 'NDVI',
-            opt_rgb_swir_alt: '[SWIR2/SWIR1/NIR]',
-            cab_satellites: 'Satelite',
-            cab_reference: 'Referencia',
-            cab_classifications: 'Classificacoes',
-            cab_class_regional: 'Regionais',
-            cab_class_filtered: 'FILTERED',
-            cab_class_candidates: 'CANDIDATES',
-            cab_class_prepublic: 'PRE_PUBLIC',
-            lbl_proposal: 'Proposta',
-            lbl_stage: 'Etapa',
-            lbl_show: 'Mostrar',
-            lbl_images: 'imagens',
-            status_no_results: 'Sem resultados',
-            short_guide: 'Guia',
-            short_import: 'Importar',
-            short_export: 'Exportar',
-            btn_fire: 'Fogo',
-            btn_not_fire: 'Nao Fogo',
-            btn_hand: 'Mover',
-            btn_delete: 'Deletar',
-            btn_center: 'Centralizar',
-            loading: '',
-            ref_name_modis_ba: 'MODIS Burned Area',
-            ref_name_gabam: 'GABAM',
-            ref_name_firms: 'FIRMS',
-            ref_name_fire_cci: 'FIRE_CCI',
-            ref_cicatrizes_peru: 'Cicatrizes Peru',
-            ref_name_buffer_inpe: 'Buffer Focos INPE',
-            ref_name_hotspots_inpe: 'Hotspots INPE (Pontos)',
-            lbl_all_regions: 'Todas as Regioes',
-            lbl_selected_region: 'Regiao Selecionada',
-            status_no_models_region: '(sem modelos na regiao)',
-            lbl_qty_pct: 'Qtd%',
-            lbl_area_pct: 'Area%',
-            lbl_class_col: 'CLASSE',
-            btn_all_regions: 'Todos',
-            btn_sel_single: 'Única',
-            btn_sel_multi: 'Várias',
-            placeholder_region_filter: 'filtre regiões (ex.: amazonia -02)',
-            placeholder_date_filter: 'filtre datas (ex.: 2023 -01)',
-            ref_modis_mcd64a1: 'MODIS MCD64A1',
-            ref_buffer_focos: 'Buffer Focos',
-            ref_hotspots_inpe: 'Hotspots INPE',
-            sat_sentinel2_buffer: 'Sentinel2 Buffer',
-            lbl_bands: 'Bandas',
-            lbl_band_classification: 'Classificacao',
-            lbl_band_probability: 'Probabilidade',
-            lbl_band_dayofyear: 'Dia do Ano',
-            lbl_dashboard: 'Painel',
-            placeholder_campaign: 'Selecionar campanha...',
-            lbl_campaign: 'Campanha',
-            lbl_select_campaign: 'Selecionar Campanha'
-        },
-        en: {
-            title: 'MapBiomas Fire',
-            cab_config: 'TERRITORY',
-            cab_temporal: 'TEMPORAL',
-            cab_layers: 'LAYERS',
-            cab_samples: 'SAMPLES',
-            lbl_country: 'Country',
-            lbl_regions: 'Regions',
-            lbl_periodicity: 'Periodicity',
-            opt_annual: 'Annual',
-            opt_monthly: 'Monthly',
-            lbl_asset_mosaics: 'Mosaicos classificados',
-            lbl_raw_mosaics: 'Mosaicos on the fly',
-            lbl_ref_cats: 'Reference Categories',
-            lbl_burned: 'Burned Area',
-            lbl_hotspots: 'Hotspots / Buffers',
-            cab_instructions: 'How to use this module',
-            instructions: '1. Use the map drawing tools.\n' +
-                '2. Layer "fire" (red) = burned area.\n' +
-                '3. Layer "notFire" (blue) = unburned area.\n' +
-                '4. Fill in metadata in the EXPORT tab.\n' +
-                '5. Click EXPORT to save to Asset and GCS.\n' +
-                '6. Go to the Tasks tab in GEE to run.',
-            tab_import: 'IMPORT',
-            tab_export: 'EXPORT',
-            btn_load: 'Load',
-            lbl_version: 'Sample id',
-            lbl_shortname: 'Short name',
-            lbl_comment: 'Comment',
-            lbl_date: 'Date',
-            lbl_satellites: 'Satellites',
-            placeholder_date: 'Select date...',
-            placeholder_asset: 'Choose existing sample...',
-            placeholder_sn: 'alias (e.g. north_amazonia)',
-            placeholder_cmt: 'comment (free metadata)',
-            btn_export: 'EXPORT (Asset + GCS)',
-            ver_checking: 'Checking...',
-            ver_suggested: 'suggested: ',
-            ver_empty: 'empty asset',
-            task_created: 'Tasks created: ',
-            task_hint: ' (go to Tasks tab to run)',
-            err_layers: 'Missing "fire" or "notFire" layers on map.',
-            err_no_sat: 'Select at least one satellite as metadata.',
-            err_no_date: 'Select the represented date.',
-            lbl_stats: 'Sample Summary:',
-            lbl_refresh_stats: 'Refresh',
-            status_no_samples: 'No drawn samples',
-            lbl_fire: 'Fire',
-            lbl_not_fire: 'Not Fire',
-            lbl_total: 'Total',
-            lbl_area: 'Area (ha)',
-            lbl_count: 'Qty.',
-            lbl_satellites_toggle: 'Satellites',
-            lbl_vis_preset: 'Visualization',
-            opt_rgb_fire: '[SWIR1/NIR/RED] A',
-            opt_rgb_coverage: '[SWIR1/NIR/RED] B',
-            opt_rgb_false: '[NIR/SWIR1/RED]',
-            opt_rgb_natural: '[RED/GREEN/BLUE]',
-            opt_gray_nir: 'NIR',
-            opt_gray_swir1: 'SWIR1',
-            opt_gray_swir2: 'SWIR2',
-            opt_gray_nbr: 'NBR',
-            opt_gray_ndvi: 'NDVI',
-            opt_rgb_swir_alt: '[SWIR2/SWIR1/NIR]',
-            cab_satellites: 'Satellite',
-            cab_reference: 'Reference',
-            cab_classifications: 'Classifications',
-            cab_class_regional: 'Regional',
-            cab_class_filtered: 'FILTERED',
-            cab_class_candidates: 'CANDIDATES',
-            cab_class_prepublic: 'PRE_PUBLIC',
-            lbl_proposal: 'Proposal',
-            lbl_stage: 'Stage',
-            lbl_show: 'Show',
-            lbl_images: 'images',
-            status_no_results: 'No results',
-            short_guide: 'Guide',
-            short_import: 'Import',
-            short_export: 'Export',
-            btn_fire: 'Fire',
-            btn_not_fire: 'Not Fire',
-            btn_hand: 'Move',
-            btn_delete: 'Delete',
-            btn_center: 'Center',
-            loading: '',
-            ref_name_modis_ba: 'MODIS Burned Area',
-            ref_name_gabam: 'GABAM',
-            ref_name_firms: 'FIRMS',
-            ref_name_fire_cci: 'FIRE_CCI',
-            ref_cicatrizes_peru: 'Peru Fire Scars',
-            ref_name_buffer_inpe: 'INPE Hotspot Buffer',
-            ref_name_hotspots_inpe: 'INPE Hotspots (Points)',
-            lbl_all_regions: 'All Regions',
-            lbl_selected_region: 'Selected Region',
-            status_no_models_region: '(no models in region)',
-            lbl_qty_pct: 'Qty%',
-            lbl_area_pct: 'Area%',
-            lbl_class_col: 'CLASS',
-            btn_all_regions: 'All',
-            btn_sel_single: 'Single',
-            btn_sel_multi: 'Multiple',
-            placeholder_region_filter: 'filter regions (e.g. amazonia -02)',
-            placeholder_date_filter: 'filter dates (e.g. 2023 -01)',
-            ref_modis_mcd64a1: 'MODIS MCD64A1',
-            ref_buffer_focos: 'Buffer Focos',
-            ref_hotspots_inpe: 'Hotspots INPE',
-            sat_sentinel2_buffer: 'Sentinel2 Buffer',
-            lbl_bands: 'Bands',
-            lbl_band_classification: 'Classification',
-            lbl_band_probability: 'Probability',
-            lbl_band_dayofyear: 'Day of Year',
-            lbl_dashboard: 'Dashboard',
-            placeholder_campaign: 'Select campaign...',
-            lbl_campaign: 'Campaign',
-            lbl_select_campaign: 'Select Campaign'
-        }
-    };
-    return dict[APP_CONFIG.language] || dict['es'];
-})();
+var L = translations(APP_CONFIG.language);
 
+// 03. UI SYSTEM (tokens + components)
 // =============================================================================
-// 03. UI TOKENS AND BUTTON HELPERS
-// =============================================================================
-// Practice: small actions use a single unicode glyph (scalable, zero payload);
-// brand/illustration assets come from the b64 module, never inline.
+// Fonte de verdade: M3_UI_Reference. Copie este bloco inteiro entre versões.
+// Botões são SVG (texto ou ícone); rótulos de leitura continuam nativos.
+var svg = require('users/workspaceipam/packages:mapbiomas-toolkit/utils/svg');
+
 var UI = {
     size: { xs: '8px', sm: '9px', md: '10px', lg: '11px' },
+    text: { sm: 8, md: 9, lg: 10 },
+    hit: { sm: '18px', md: '22px', lg: '26px' },
     color: {
         text: '#444444', muted: '#777777', primary: '#1a73e8',
-        danger: '#c62828', ok: '#2e7d32', fire: '#d32f2f', notFire: '#1a73e8'
+        danger: '#c62828', ok: '#2e7d32', fire: '#d32f2f', notFire: '#1a73e8',
+        ink: '#333333', border: '#dddddd', surface: '#ffffff'
     },
-    glyph: { down: '\u25BC', right: '\u25B6', refresh: '\u21BB', close: '\u2715' }
+    // Variantes do botão SVG. `state` carrega o estado só na borda.
+    variant: {
+        flat:     { color: '#444444', background: '#ffffff', border: '#dddddd' },
+        outline:  { color: '#1a73e8', background: '#ffffff', border: '#1a73e8' },
+        primary:  { color: '#ffffff', background: '#2e7d32', border: '#1b5e20' },
+        chipOn:   { color: '#333333', background: '#ffffff', border: '#1a73e8' },
+        chipOff:  { color: '#333333', background: '#ffffff', border: '#dddddd' },
+        stateOn:  { color: '#e0e0e0', background: '#333333', border: '#2e7d32' },
+        stateOff: { color: '#e0e0e0', background: '#333333', border: '#c62828' }
+    }
 };
 
-// Text button with a flat, consistent look.
-function flatButton(label, onClick, opts) {
+// Opções comuns a todo botão de texto SVG.
+function buttonOptions(v, opts) {
     opts = opts || {};
-    var style = {
-        margin: opts.margin || '0px 2px 2px 0px',
-        padding: opts.padding || '1px 4px',
-        fontSize: opts.fontSize || UI.size.md,
-        fontWeight: opts.normal ? 'normal' : 'bold',
-        color: opts.color || UI.color.text,
-        backgroundColor: opts.background || '#ffffff',
-        border: '1px solid ' + (opts.border || '#dddddd'),
-        textAlign: 'center'
+    return {
+        size: opts.size || UI.text.md,
+        color: opts.color || v.color,
+        stroke: opts.stroke || (opts.normal ? 1 : 1.2),
+        border: v.border,
+        borderWidth: 1,
+        pad: opts.pad == null ? 2 : opts.pad,
+        background: v.background,
+        margin: opts.margin == null ? 1 : opts.margin,
+        padding: '1px'
     };
-    if (opts.stretch !== false) style.stretch = 'horizontal';
-    var cfg = { label: label, style: style };
-    if (onClick) cfg.onClick = onClick;
-    return ui.Button(cfg);
 }
 
-// Single-glyph button sized to its click area (no image assets).
-function iconButton(glyph, onClick, opts) {
+// Botão de texto em SVG: o rótulo é uma imagem; não usa label nativo.
+function button(label, onClick, variant, opts) {
+    var v = UI.variant[variant] || UI.variant.flat;
+    var btn = svg.textButton(label, onClick, buttonOptions(v, opts));
+    btn._label = label;
+    btn._variant = variant || 'flat';
+    return btn;
+}
+
+// Repinta um botão existente com outra variante (mesmo rótulo).
+function repaint(btn, variant, opts) {
+    var v = UI.variant[variant] || UI.variant.flat;
+    btn.setImageUrl(svg.text(btn._label, buttonOptions(v, opts)));
+    btn._variant = variant;
+}
+
+// Compatibilidade: o resto do arquivo usa flatButton.
+function flatButton(label, onClick, opts) {
+    return button(label, onClick, (opts && opts.variant) || 'flat', opts);
+}
+
+// Estado on/off: uma cor de fonte; a borda carrega o estado.
+function stateButton(label, on, onClick) {
+    return button(label, onClick, on ? 'stateOn' : 'stateOff', { pad: 3 });
+}
+
+function setStateButton(btn, on) {
+    repaint(btn, on ? 'stateOn' : 'stateOff', { pad: 3 });
+}
+
+// Chip de seleção única: a seleção é a borda.
+function chipButton(label, selected, onClick) {
+    return button(label, onClick, selected ? 'chipOn' : 'chipOff',
+        { size: UI.text.sm, pad: 1 });
+}
+
+// Ícone ghost: sem fundo, sem borda, hit area fixa.
+function icon(name, onClick, opts) {
     opts = opts || {};
-    var size = opts.size || '18px';
-    var cfg = {
-        label: glyph,
+    var box = opts.box || UI.hit.sm;
+    return svg.iconButton(name, onClick, {
+        size: opts.size || 14,
+        color: opts.color || UI.color.text,
         style: {
-            margin: opts.margin || '0px',
-            padding: '0px',
-            width: size,
-            height: size,
-            fontSize: opts.fontSize || '11px',
-            color: opts.color || UI.color.text,
-            backgroundColor: 'ffffff00',
-            border: '1px solid rgba(0,0,0,0)',
-            textAlign: 'center'
+            margin: '0px', padding: '0px', width: box, height: box,
+            backgroundColor: 'ffffff00', border: '1px solid rgba(0,0,0,0)'
         }
-    };
-    if (onClick) cfg.onClick = onClick;
-    return ui.Button(cfg);
+    });
 }
 
 Map.setOptions('SATELLITE');
@@ -638,6 +325,23 @@ var countryConfigs = {
             { label: 'COLLECTION1', path: 'projects/mapbiomas-chile/assets/FIRE/COLLECTION1/SAMPLES' }
         ]
     },
+    'Ecuador': {
+        asset_regions: 'projects/mapbiomas-ecuador/assets/FIRE/CATALOG_01/MONITOR_01/AUXILIARY/regiones_fuego_ecuador_v1',
+        getAssetRegions: function(campaign) {
+            return 'projects/mapbiomas-ecuador/assets/FIRE/CATALOG_01/' + campaign + '/AUXILIARY/regiones_fuego_ecuador_v1';
+        },
+        countryCode: 'ecuador',
+        getImagesRoot: function() { return 'projects/mapbiomas-ecuador/assets/FIRE/CATALOG_01/LIBRARY_IMAGES'; },
+        bucket: 'mapbiomas-fire',
+        property: 'region_nam',
+        campaigns: ['MONITOR_01', 'COLLECTION_02'],
+        defaultCampaign: 'MONITOR_01',
+        periodicityByCampaign: { MONITOR_01: 'monthly', COLLECTION_02: 'yearly' },
+        getAssetSamples: function(campaign) { return 'projects/mapbiomas-ecuador/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
+        getGcsSamples: function(campaign) { return 'sudamerica/ecuador/CATALOG_01/' + campaign + '/LIBRARY_SAMPLES'; },
+        getRegionalFolder: function(campaign) { return 'projects/mapbiomas-ecuador/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
+        historicalSampleFolders: []
+    },
     'Paraguay': {
         asset_regions: 'projects/mapbiomas-paraguay/assets/FIRE/AUXILIARY_DATA/regiones_fuego_paraguay_v1',
         getAssetRegions: function(campaign) { return countryConfigs['Paraguay'].asset_regions; },
@@ -699,6 +403,7 @@ var countryConfigs = {
             { label: 'COLLECTION1', path: 'projects/mapbiomas-venezuela/assets/FIRE/COLLECTION1/SAMPLES' }
         ]
     },
+    /* Indonesia and DRC do not currently have usable regional auxiliary data.
     'Indonesia': {
         asset_regions: 'projects/mapbiomas-indonesia/assets/FIRE/AUXILIARY_DATA/regiones_fuego_indonesia_v1',
         getAssetRegions: function(campaign) { return countryConfigs['Indonesia'].asset_regions; },
@@ -755,6 +460,7 @@ var countryConfigs = {
         getRegionalFolder: function(campaign) { return 'projects/mapbiomas-drc/assets/FIRE/CATALOG_01/' + campaign + '/LIBRARY_CLASSIFICATIONS/REGIONAL'; },
         historicalSampleFolders: []
     }
+    */
 };
 
 // Builds the official mosaic layer catalog from the country's image root.
@@ -822,6 +528,10 @@ var CAMPAIGN_PRESETS = {
         // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
         // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     },
+    Ecuador: {
+        MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] },
+        COLLECTION_02: { periodicity: 'yearly', assets: ['landsat'] }
+    },
     Paraguay: {
         COLLECTION_03: { periodicity: 'yearly', assets: ['landsat'] },
         MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] }
@@ -834,6 +544,7 @@ var CAMPAIGN_PRESETS = {
         // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
         // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     },
+    /* Indonesia and DRC are temporarily disabled until regional auxiliary data is available.
     Indonesia: {
         COLLECTION_03: { periodicity: 'yearly', assets: ['landsat'] },
         MONITOR_01: { periodicity: 'monthly', assets: ['sentinel2'] }
@@ -846,6 +557,7 @@ var CAMPAIGN_PRESETS = {
         // , COLLECTION_DEV: { periodicity: 'yearly', assets: ['landsat'] }
         // , MONITOR_DEV: { periodicity: 'monthly', assets: ['sentinel2'] }
     }
+    */
 };
 
 // Returns a safe preset for a country/campaign pair.
@@ -871,6 +583,7 @@ var current_regiones = ee.FeatureCollection(
         : countryConfigs[APP_CONFIG.defaultCountry].asset_regions
 );
 var regionNamesCache = {};
+var regionNamesFallback = {};
 var regionNamesPending = {};
 var assetLayersCache = {};
 var assetPresetPending = null;
@@ -1018,12 +731,20 @@ function listAssetsAsync(parent, callback, pageToken, accumulated) {
 
 // Returns sorted region names, caching one server lookup per country/campaign.
 // Concurrent requests for the same country/campaign are queued until the lookup returns.
+function countryBoundary(conf, countryName) {
+    var countryNa = conf.boundaryName || countryName;
+    var label = conf.boundaryLabel || countryName;
+    return ee.FeatureCollection('USDOS/LSIB_SIMPLE/2017')
+        .filter(ee.Filter.eq('country_na', countryNa))
+        .map(function (feature) { return feature.set(conf.property, label); });
+}
+
 function getCountryRegionNames(countryName, campaign, callback) {
     var conf = countryConfigs[countryName];
     var selectedCampaign = campaign || conf.defaultCampaign || conf.campaigns[0];
     var cacheKey = countryName + '::' + selectedCampaign;
     if (regionNamesCache[cacheKey]) {
-        callback(regionNamesCache[cacheKey]);
+        callback(regionNamesCache[cacheKey], !!regionNamesFallback[cacheKey]);
         return;
     }
     if (regionNamesPending[cacheKey]) {
@@ -1032,16 +753,30 @@ function getCountryRegionNames(countryName, campaign, callback) {
     }
     regionNamesPending[cacheKey] = [callback];
     var regions = conf.getAssetRegions ? conf.getAssetRegions(selectedCampaign) : conf.asset_regions;
+    if (!regions) {
+        regionNamesFallback[cacheKey] = true;
+        regionNamesCache[cacheKey] = [conf.boundaryLabel || countryName];
+        var pendingWithoutSource = regionNamesPending[cacheKey] || [];
+        regionNamesPending[cacheKey] = null;
+        pendingWithoutSource.forEach(function (cb) {
+            cb(regionNamesCache[cacheKey], true);
+        });
+        return;
+    }
     safeEvaluate(
         ee.FeatureCollection(regions)
             .aggregate_array(conf.property)
             .distinct()
             .sort(),
-        function (names) {
-            regionNamesCache[cacheKey] = names || [];
+        function (names, error) {
+            var useBoundary = !!error || !names || !names.length;
+            regionNamesFallback[cacheKey] = useBoundary;
+            regionNamesCache[cacheKey] = useBoundary ? [conf.boundaryLabel || countryName] : names;
             var cbs = regionNamesPending[cacheKey] || [];
             regionNamesPending[cacheKey] = null;
-            cbs.forEach(function (cb) { cb(regionNamesCache[cacheKey]); });
+            cbs.forEach(function (cb) {
+                cb(regionNamesCache[cacheKey], useBoundary);
+            });
         });
 }
 
@@ -1248,11 +983,21 @@ function classificationColor(key) {
 // Colored glyph used as the layer legend next to the label. The checkbox text
 // stays black; only the glyph carries the color.
 function colorSwatch(color, glyph) {
-    return ui.Label(glyph || '\u25A0', {
+    var symbol = glyph || '\u25A0';
+    var shape = symbol === VECTOR_GLYPH ? 'circle' : 'square';
+    if (symbol === '\u25A0' || symbol === VECTOR_GLYPH) {
+        return ui.Label({
+            imageUrl: svg.shapeImage(shape, { size: 12, inset: 1.5, color: color }),
+            style: { width: '16px', height: '16px', margin: '0px 2px 0px 0px', padding: '0px' }
+        });
+    }
+    return ui.Label(symbol, {
         color: color,
-        fontSize: '18px',
-        margin: '-2px 1px 0px 0px',
-        padding: '0px'
+        fontSize: '14px',
+        margin: '0px 2px 0px 0px',
+        padding: '0px',
+        width: '16px',
+        textAlign: 'center'
     });
 }
 
@@ -1355,37 +1100,23 @@ function user_interface() {
 
     // --- SAMPLES DOCK (bottom-left over the map) ---
     // Added/removed from the map by the SAMPLES ON/OFF button in the left panel.
-    // Single text colour; the state is carried by the border (green on / red off).
-    function applyToggleStyle(btn, on) {
-        btn.style().set({
-            backgroundColor: '#333333',
-            border: '2px solid ' + (on ? '#2e7d32' : '#c62828'),
-            color: '#e0e0e0'
-        });
-    }
-
     var samplesOn = true;
     var samplesBody = ui.Panel({
         layout: ui.Panel.Layout.flow('vertical'),
         style: { margin: '0px', padding: '0px', shown: true }
     });
-    var samplesToggle = ui.Button({
-        label: 'SAMPLES ON',
-        style: { margin: '2px', padding: '4px 8px', fontSize: '11px', fontWeight: 'bold', stretch: 'horizontal' },
-        onClick: function () {
-            samplesOn = !samplesOn;
-            samplesToggle.setLabel(samplesOn ? 'SAMPLES ON' : 'SAMPLES OFF');
-            applyToggleStyle(samplesToggle, samplesOn);
-            if (samplesOn) {
-                Map.add(samplesDock);
-                updateStats();
-            } else {
-                // Fallback if GEE refuses to reparent: samplesDock.style().set('shown', false);
-                Map.remove(samplesDock);
-            }
+    var samplesToggle = stateButton('SAMPLES ON', true, function () {
+        samplesOn = !samplesOn;
+        samplesToggle._label = samplesOn ? 'SAMPLES ON' : 'SAMPLES OFF';
+        setStateButton(samplesToggle, samplesOn);
+        if (samplesOn) {
+            Map.add(samplesDock);
+            updateStats();
+        } else {
+            // Fallback if GEE refuses to reparent: samplesDock.style().set('shown', false);
+            Map.remove(samplesDock);
         }
     });
-    applyToggleStyle(samplesToggle, true);
     var samplesDock = ui.Panel({
         layout: ui.Panel.Layout.flow('vertical'),
         style: {
@@ -2088,19 +1819,16 @@ function user_interface() {
         syncCheckBorder(chk);
     }
 
-    // Discreet style shared by all toggle buttons; outline when active.
+    // Repinta o toggle (chip SVG) conforme o estado.
     function styleToggleButton(btn, active) {
-        btn.style().set('margin', '0px');
-        btn.style().set('padding', '0px 2px');
-        btn.style().set('fontSize', '10px');
-        btn.style().set('border', active ? '1px solid rgba(21,101,192,0.4)' : '1px solid rgba(0,0,0,0)');
+        repaint(btn, active ? 'chipOn' : 'chipOff', { size: UI.text.sm, pad: 1 });
     }
 
     // Switches between single ('single') and multiple ('multi') region selection.
     function setRegionSelectMode(mode) {
         regionSelectMode = mode;
         if (btt_region_mode) {
-            btt_region_mode.setLabel(mode === 'single' ? L.btn_sel_single : L.btn_sel_multi);
+            btt_region_mode._label = mode === 'single' ? L.btn_sel_single : L.btn_sel_multi;
             styleToggleButton(btt_region_mode, mode === 'multi');
         }
         if (mode === 'single') {
@@ -2131,7 +1859,7 @@ function user_interface() {
     function toggleDateMode() {
         layerDateMode = (layerDateMode === 'single') ? 'multi' : 'single';
         if (btt_date_mode) {
-            btt_date_mode.setLabel(layerDateMode === 'single' ? L.btn_sel_single : L.btn_sel_multi);
+            btt_date_mode._label = layerDateMode === 'single' ? L.btn_sel_single : L.btn_sel_multi;
             styleToggleButton(btt_date_mode, layerDateMode === 'multi');
         }
         debouncedUpdateMosaic();
@@ -2234,9 +1962,10 @@ function user_interface() {
         var conf = countryConfigs[countryName];
         var selectedCampaign = campaign || conf.defaultCampaign || conf.campaigns[0];
 
-        current_regiones = ee.FeatureCollection(
-            conf.getAssetRegions ? conf.getAssetRegions(selectedCampaign) : conf.asset_regions
-        );
+        var hasRegionSource = !!(conf.getAssetRegions || conf.asset_regions);
+        current_regiones = hasRegionSource
+            ? ee.FeatureCollection(conf.getAssetRegions ? conf.getAssetRegions(selectedCampaign) : conf.asset_regions)
+            : countryBoundary(conf, countryName);
         if (conf.getRegionalFolder) REGIONAL_FOLDER = conf.getRegionalFolder(selectedCampaign);
 
         // Atualiza bordas de todas as regiões no mapa
@@ -2249,47 +1978,37 @@ function user_interface() {
 
             var header = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: { margin: '0px', padding: '0px', backgroundColor: '#f9f9f9' } });
 
-            btt_all_regions = ui.Button({
-                label: L.btn_all_regions,
-                style: { margin: '0px', padding: '0px 2px', fontSize: '10px', border: '1px solid rgba(0,0,0,0)' },
-                onClick: function () {
-                    var visible = Object.keys(regionCheckboxes).filter(isRegionVisible);
-                    var anyUnchecked = visible.some(function (k) { return !regionCheckboxes[k].getValue(); });
-                    if (anyUnchecked) {
-                        if (regionSelectMode === 'single') setRegionSelectMode('multi');
-                        visible.forEach(function (k) { setCheckValue(regionCheckboxes[k], true); });
-                    } else {
-                        visible.forEach(function (k) { setCheckValue(regionCheckboxes[k], false); });
-                    }
-                    updateAllRegionsButtonState();
-                    updateSelectedRegionsMap();
-                    updateExportLabel();
-                    debouncedUpdateMosaic();
-                    updateShortnameSuggestion();
+            btt_all_regions = button(L.btn_all_regions, function () {
+                var visible = Object.keys(regionCheckboxes).filter(isRegionVisible);
+                var anyUnchecked = visible.some(function (k) { return !regionCheckboxes[k].getValue(); });
+                if (anyUnchecked) {
+                    if (regionSelectMode === 'single') setRegionSelectMode('multi');
+                    visible.forEach(function (k) { setCheckValue(regionCheckboxes[k], true); });
+                } else {
+                    visible.forEach(function (k) { setCheckValue(regionCheckboxes[k], false); });
                 }
-            });
+                updateAllRegionsButtonState();
+                updateSelectedRegionsMap();
+                updateExportLabel();
+                debouncedUpdateMosaic();
+                updateShortnameSuggestion();
+            }, 'chipOff', { size: UI.text.sm, pad: 1 });
 
-            btt_region_mode = ui.Button({
-                label: L.btn_sel_multi,
-                style: { margin: '0px', padding: '0px 2px', fontSize: '10px', border: '1px solid rgba(21,101,192,0.4)' },
-                onClick: function () { setRegionSelectMode(regionSelectMode === 'single' ? 'multi' : 'single'); }
-            });
+            btt_region_mode = button(L.btn_sel_multi, function () {
+                setRegionSelectMode(regionSelectMode === 'single' ? 'multi' : 'single');
+            }, 'chipOn', { size: UI.text.sm, pad: 1 });
 
-            btt_center_icon = ui.Button({
-                label: L.btn_center,
-                style: { margin: '0px', padding: '0px 2px', fontSize: '10px', border: '1px solid rgba(0,0,0,0)' },
-                onClick: function () {
-                    var selectedNames = [];
-                    Object.keys(regionCheckboxes).forEach(function (key) {
-                        if (regionCheckboxes[key].getValue()) selectedNames.push(key);
-                    });
-                    if (selectedNames.length > 0) {
-                        Map.centerObject(current_regiones.filter(ee.Filter.inList(countryConfigs[getSelectedCountry()].property, selectedNames)));
-                    } else {
-                        Map.centerObject(current_regiones);
-                    }
+            btt_center_icon = button(L.btn_center, function () {
+                var selectedNames = [];
+                Object.keys(regionCheckboxes).forEach(function (key) {
+                    if (regionCheckboxes[key].getValue()) selectedNames.push(key);
+                });
+                if (selectedNames.length > 0) {
+                    Map.centerObject(current_regiones.filter(ee.Filter.inList(countryConfigs[getSelectedCountry()].property, selectedNames)));
+                } else {
+                    Map.centerObject(current_regiones);
                 }
-            });
+            }, 'chipOff', { size: UI.text.sm, pad: 1 });
 
             var spacer = ui.Panel({ style: { stretch: 'horizontal' } });
             header.add(btt_all_regions).add(btt_center_icon).add(lab_loading).add(spacer).add(btt_region_mode);
@@ -2305,9 +2024,17 @@ function user_interface() {
         lab_loading.style().set('shown', true);
 
         var regionToken = beginAsync(ASYNC_STATE.regions);
-        getCountryRegionNames(countryName, selectedCampaign, function (list) {
+        getCountryRegionNames(countryName, selectedCampaign, function (list, usingBoundary) {
             if (!isCurrentAsync(ASYNC_STATE.regions, regionToken)) return;
             lab_loading.style().set('shown', false);
+            if (usingBoundary) {
+                current_regiones = countryBoundary(conf, countryName);
+                layerAllRegions.setEeObject(current_regiones.style({
+                    color: 'ffffff', fillColor: '00000000', width: 1
+                }));
+                print('M3: no auxiliary regions available for ' + countryName +
+                    '; using the national boundary from USDOS/LSIB_SIMPLE/2017.');
+            }
             regionCheckboxes = {};
             list.forEach(function (name, i) {
                 var chk = ui.Checkbox({
@@ -2344,8 +2071,8 @@ function user_interface() {
 
         // Sincroniza as campanhas de amostragem (importação).
         var campaigns = conf.campaigns;
-        select_campaign_imp.items().reset(campaigns);
-        select_campaign_imp.setValue(selectedCampaign, false);
+        picker_campaign_imp.items().reset(campaigns);
+        picker_campaign_imp.setValue(selectedCampaign, false);
         selectedCampaignCfg = selectedCampaign;
         if (typeof drawerCampaign !== 'undefined' && drawerCampaign) {
             Object.keys(drawerCampaign.buttons).forEach(function (key) {
@@ -2374,14 +2101,10 @@ function user_interface() {
         drawerCampaign.flowPanel.clear();
         drawerCampaign.buttons = {};
         conf.campaigns.forEach(function (campaign) {
-            var btn = ui.Button({
-                label: campaign,
-                style: { margin: '0px', padding: '0px 2px', fontSize: '10px', border: '1px solid rgba(0,0,0,0)' },
-                onClick: function () {
-                    if (campaign === getSelectedCampaign()) return;
-                    setRegionCampaign(conf, campaign);
-                }
-            });
+            var btn = button(campaign, function () {
+                if (campaign === getSelectedCampaign()) return;
+                setRegionCampaign(conf, campaign);
+            }, campaign === active ? 'chipOn' : 'chipOff', { size: UI.text.sm, pad: 1 });
             styleToggleButton(btn, campaign === active);
             drawerCampaign.buttons[campaign] = btn;
             drawerCampaign.flowPanel.add(btn);
@@ -2410,31 +2133,31 @@ function user_interface() {
                 folders.push({ label: folder.label, path: folder.path, native: false });
             });
 
-            select_campaign_imp.items().reset(folders.map(function (folder) {
+            picker_campaign_imp.items().reset(folders.map(function (folder) {
                 return { label: folder.label, value: folder.native ? folder.label : folder.path };
             }));
-            select_campaign_imp.setValue(campaign, false);
+            picker_campaign_imp.setValue(campaign, false);
             if (lab_samples_campaign) {
                 lab_samples_campaign.setValue(campaign);
             }
             loadSampleAssets(folders[0].path);
         } catch (e) {
-            select_campaign_imp.items().reset([]);
-            select_address.items().reset([]);
-            select_campaign_imp.setPlaceholder('Sample folder unavailable');
-            select_address.setPlaceholder('No vector samples found');
+            picker_campaign_imp.items().reset([]);
+            picker_sample.items().reset([]);
+            picker_campaign_imp.setPlaceholder('Sample folder unavailable');
+            picker_sample.setPlaceholder('No vector samples found');
         }
     }
 
     // Lists direct vector assets; nested folders and collections are ignored.
 function loadSampleAssets(folderPath) {
         var sampleToken = beginAsync(ASYNC_STATE.samples);
-        select_address.items().reset([]);
-        select_address.setPlaceholder(L.loading);
+        picker_sample.items().reset([]);
+        picker_sample.setPlaceholder(L.loading);
         listAssetsAsync(folderPath, function (assets, err) {
             if (!isCurrentAsync(ASYNC_STATE.samples, sampleToken)) return;
             if (err) {
-                select_address.setPlaceholder('Folder unavailable or has no vectors');
+                picker_sample.setPlaceholder('Folder unavailable or has no vectors');
                 return;
             }
             var items = (assets || []).filter(function (obj) {
@@ -2442,9 +2165,9 @@ function loadSampleAssets(folderPath) {
             }).map(function (obj) {
                 return { label: obj.id.split('/').slice(-1)[0], value: obj.id };
             });
-            select_address.items().reset(items);
-            select_address.setPlaceholder(items.length > 0 ? L.placeholder_asset : 'No vector samples in folder');
-            if (items.length > 0) select_address.setValue(items[0].value, false);
+            picker_sample.items().reset(items);
+            picker_sample.setPlaceholder(items.length > 0 ? L.placeholder_asset : 'No vector samples in folder');
+            if (items.length > 0) picker_sample.setValue(items[0].value, false);
         });
     }
 
@@ -2456,7 +2179,7 @@ function loadSampleAssets(folderPath) {
         var content = ui.Panel({ style: { margin: '0px', padding: '0px', backgroundColor: '#fdfdfd' } });
         var header = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: { margin: '2px 0px', padding: '1px', backgroundColor: '#f0f0f0', border: '1px solid #ddd' } });
 
-        var toggleBtn = iconButton(isOpen ? UI.glyph.down : UI.glyph.right, null, { fontSize: '9px' });
+        var toggleBtn = icon(isOpen ? 'arrowDown' : 'arrowRight', null, { size: 12 });
 
         var fontSize = customMargin ? '15px' : '18px';
         header.add(toggleBtn).add(ui.Label(title, { fontSize: fontSize, fontWeight: 'bold', margin: '1px 4px', color: '#444', backgroundColor: 'ffffff00' }));
@@ -2465,7 +2188,9 @@ function loadSampleAssets(folderPath) {
         toggleBtn.onClick(function () {
             var isShown = content.style().get('shown');
             content.style().set('shown', !isShown);
-            toggleBtn.setLabel(!isShown ? UI.glyph.down : UI.glyph.right);
+            toggleBtn.setImageUrl(svg.icon(!isShown ? 'arrowDown' : 'arrowRight', {
+                size: 12, color: UI.color.text
+            }));
         });
         return { panel: panel, content: content };
     }
@@ -2513,13 +2238,9 @@ function loadSampleAssets(folderPath) {
         });
         var buttons = {};
         options.forEach(function (opt) {
-            var btn = ui.Button({
-                label: opt.label,
-                style: { margin: '0px', padding: '0px 2px', fontSize: '10px', border: '1px solid rgba(0,0,0,0)' },
-                onClick: function () {
-                    if (opt.onClick) opt.onClick(opt.id, btn);
-                }
-            });
+            var btn = button(opt.label, function () {
+                if (opt.onClick) opt.onClick(opt.id, btn);
+            }, opt.active ? 'chipOn' : 'chipOff', { size: UI.text.sm, pad: 1 });
             styleToggleButton(btn, opt.active || false);
             buttons[opt.id] = btn;
             flowPanel.add(btn);
@@ -2571,11 +2292,9 @@ function loadSampleAssets(folderPath) {
     var periodicityButtons = drawerPeriodicity.buttons;
     cabTemporal.content.add(drawerPeriodicity.panel);
 
-    btt_date_mode = ui.Button({
-        label: L.btn_sel_multi,
-        style: { margin: '0px', padding: '0px 2px', fontSize: '10px', border: '1px solid rgba(0,0,0,0)' },
-        onClick: function () { toggleDateMode(); }
-    });
+    btt_date_mode = button(L.btn_sel_multi, function () {
+        toggleDateMode();
+    }, 'chipOff', { size: UI.text.sm, pad: 1 });
     styleToggleButton(btt_date_mode, layerDateMode === 'multi');
     var dateSpacer = ui.Panel({ style: { stretch: 'horizontal' } });
     drawerPeriodicity.flowPanel.add(dateSpacer).add(btt_date_mode);
@@ -3211,10 +2930,7 @@ function loadSampleAssets(folderPath) {
             layout: ui.Panel.Layout.flow('horizontal'),
             style: { margin: '0px', padding: '1px 2px', backgroundColor: '#f0f0f0', border: '1px solid #e6e6e6' }
         });
-        var toggle = ui.Button({
-            label: isOpen ? '\u25BC' : '\u25B6',
-            style: { margin: '0px', padding: '0px 2px', fontSize: '9px', color: '#555', backgroundColor: 'ffffff00' }
-        });
+        var toggle = icon(isOpen ? 'arrowDown' : 'arrowRight', null, { size: 10 });
         header.add(toggle).add(ui.Label(title, {
             fontSize: '10px', fontWeight: 'bold', color: '#333', margin: '0px 3px', backgroundColor: 'ffffff00'
         }));
@@ -3223,7 +2939,9 @@ function loadSampleAssets(folderPath) {
         toggle.onClick(function () {
             var shown = content.style().get('shown');
             content.style().set('shown', !shown);
-            toggle.setLabel(shown ? '\u25B6' : '\u25BC');
+            toggle.setImageUrl(svg.icon(shown ? 'arrowRight' : 'arrowDown', {
+                size: 10, color: UI.color.text
+            }));
             if (onToggle) onToggle(!shown);
         });
         panel.add(header).add(content);
@@ -3277,7 +2995,7 @@ function loadSampleAssets(folderPath) {
 
     samplesBody.add(dockMuestras.panel).add(dockImportar.panel).add(dockExportar.panel).add(dockGuia.panel);
 
-    // --- CAMPAIGN / ADDRESS PICKERS (replace the old ui.Select widgets) ---
+    // --- CAMPAIGN / ADDRESS PICKERS (custom chip/check controls) ---
     // Single-choice chip group.
     function makeChipGroup() {
         var panel = ui.Panel({
@@ -3291,12 +3009,12 @@ function loadSampleAssets(folderPath) {
         // One text colour for every chip; the selection is the border.
         function paintChip(value) {
             Object.keys(buttons).forEach(function (k) {
-                buttons[k].style().set('border', k === value
-                    ? '1px solid #1565c0' : '1px solid #dddddd');
+                repaint(buttons[k], k === value ? 'chipOn' : 'chipOff',
+                    { size: UI.text.sm, pad: 1 });
             });
         }
 
-        function select(value) {
+        function choose(value) {
             current = value;
             paintChip(value);
             listeners.forEach(function (fn) { fn(value); });
@@ -3308,18 +3026,7 @@ function loadSampleAssets(folderPath) {
             (items || []).forEach(function (item) {
                 var value = (item && item.value !== undefined) ? item.value : item;
                 var label = (item && item.label !== undefined) ? item.label : item;
-                var btn = ui.Button({
-                    label: label,
-                    style: {
-                        margin: '0px 2px 2px 0px',
-                        padding: '1px 4px',
-                        fontSize: '10px',
-                        color: '#333333',
-                        border: '1px solid #dddddd',
-                        backgroundColor: '#ffffff'
-                    },
-                    onClick: function () { select(value); }
-                });
+                var btn = chipButton(label, current === value, function () { choose(value); });
                 buttons[value] = btn;
                 panel.add(btn);
             });
@@ -3341,7 +3048,7 @@ function loadSampleAssets(folderPath) {
     }
 
     // Multi-choice checkbox list (import can add several sets at once).
-    function makeCheckboxPicker() {
+    function makeCheckPicker() {
         var hint = ui.Label('', { fontSize: '9px', color: '#777', margin: '0px' });
         var wrap = ui.Panel({
             layout: ui.Panel.Layout.flow('horizontal', true),
@@ -3399,11 +3106,7 @@ function loadSampleAssets(folderPath) {
         };
     }
 
-    function makeCampaignSelector() {
-        return makeChipGroup();
-    }
-
-    var select_campaign_imp = makeCampaignSelector();
+    var picker_campaign_imp = makeChipGroup();
     // The export campaign is always the territory one; no selector here.
 
     // Populate Sub-drawers
@@ -3427,7 +3130,7 @@ function loadSampleAssets(folderPath) {
     var btnClear = flatButton(L.btn_delete, clearDrawingTools, { normal: true });
     var btnCenter = flatButton(L.btn_center, centerDrawingTools, { normal: true });
 
-    var btt_refresh_stats = flatButton(UI.glyph.refresh, function () { updateStats(); }, { fontSize: '12px', normal: true });
+    var btt_refresh_stats = icon('refresh', function () { updateStats(); }, { size: 14, box: UI.hit.md });
 
     var rowDraw1 = ui.Panel({
         layout: ui.Panel.Layout.flow('horizontal'),
@@ -3448,8 +3151,8 @@ function loadSampleAssets(folderPath) {
     // ==========================================
     // ABA: IMPORTAR
     // ==========================================
-    var select_address = makeCheckboxPicker();
-    select_campaign_imp.onChange(function (folderPath) {
+    var picker_sample = makeCheckPicker();
+    picker_campaign_imp.onChange(function (folderPath) {
         if (!folderPath) return;
         var conf = countryConfigs[getSelectedCountry()];
         var isCampaign = (conf.campaigns || []).indexOf(folderPath) !== -1;
@@ -3464,14 +3167,8 @@ function loadSampleAssets(folderPath) {
     var lab_import_status = statusLine('', 'error');
     lab_import_status.style().set('shown', false);
 
-    var btt_import_action = ui.Button({
-        label: L.short_import,
-        style: {
-            margin: '2px 0px 0px 0px', padding: '2px 4px', fontSize: '10px', fontWeight: 'bold',
-            color: '#1a73e8', border: '1px solid #1a73e8', backgroundColor: '#ffffff', stretch: 'horizontal'
-        },
-        onClick: function () {
-            var ids = select_address.getValue();
+    var btt_import_action = button(L.short_import, function () {
+            var ids = picker_sample.getValue();
             if (!ids || !ids.length) return;
             var importToken = beginAsync(ASYNC_STATE.import);
             lab_import_status.style().set('shown', false);
@@ -3537,13 +3234,12 @@ function loadSampleAssets(folderPath) {
                         finishOne(err);
                     });
             });
-        }
-    });
+        }, 'outline', { margin: '2px 0px 0px 0px' });
 
     drawerImp.panel.add(dockKicker(L.lbl_select_campaign));
-    drawerImp.panel.add(select_campaign_imp.panel);
+    drawerImp.panel.add(picker_campaign_imp.panel);
     drawerImp.panel.add(dockKicker(L.cab_samples));
-    drawerImp.panel.add(select_address.panel);
+    drawerImp.panel.add(picker_sample.panel);
     drawerImp.panel.add(dockDivider());
     var row_imp = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: styles.row });
     row_imp.add(btt_import_action).add(lab_import_loading).add(lab_import_status);
@@ -3644,7 +3340,7 @@ function loadSampleAssets(folderPath) {
         });
     }
 
-    var select_date_export = {
+    var picker_date_export = {
         panel: exportDatePanel,
         items: function () { return { reset: function () {} }; },
         getValue: function () { return exportDateValue; },
@@ -3668,7 +3364,7 @@ function loadSampleAssets(folderPath) {
         if (!candidate || ((candidate.indexOf('_') !== -1) !== monthly)) {
             candidate = getDynamicDates(monthly ? 'mensal' : 'anual')[0] || '';
         }
-        select_date_export.setValue(candidate);
+        picker_date_export.setValue(candidate);
         updateExportPreview();
     }
 
@@ -3676,8 +3372,8 @@ function loadSampleAssets(folderPath) {
     // period is selected.
     function syncExportDateFromPeriods() {
         var periods = getSelectedPeriods();
-        if (periods.length === 1 && select_date_export && exportDateChecks[periods[0]]) {
-            select_date_export.setValue(periods[0], false);
+        if (periods.length === 1 && picker_date_export && exportDateChecks[periods[0]]) {
+            picker_date_export.setValue(periods[0], false);
         }
         updateExportPreview();
     }
@@ -3723,7 +3419,7 @@ function loadSampleAssets(folderPath) {
     function updateExportPreview() {
         var ver = getSampleName();
         var sn = txt_shortname.getValue() ? redundanceReplace(txt_shortname.getValue()) : '';
-        var dt = select_date_export.getValue();
+        var dt = picker_date_export.getValue();
 
         lab_date_error.style().set('shown', !dt);
 
@@ -3761,7 +3457,7 @@ function loadSampleAssets(folderPath) {
         var selectedNames = [];
         Object.keys(regionCheckboxes).forEach(function (k) { if (regionCheckboxes[k].getValue()) selectedNames.push(k); });
         var safeRegion = selectedNames.length === 1 ? selectedNames[0] : (selectedNames.length > 1 ? 'multi' : 'none');
-        var datePeriod = select_date_export.getValue() || 'YYYY';
+        var datePeriod = picker_date_export.getValue() || 'YYYY';
         var ver = getSampleName();
         var sn = txt_shortname.getValue() || '';
         var comment = txt_comment.getValue() || '';
@@ -3790,14 +3486,8 @@ function loadSampleAssets(folderPath) {
     }
 
     // --- Botão unificado de exportação ---
-    var btt_export = ui.Button({
-        label: L.btn_export,
-        style: {
-            margin: '2px 0px 0px 0px', padding: '3px 4px', fontSize: '10px', fontWeight: 'bold',
-            color: '#ffffff', backgroundColor: '#2e7d32', border: '1px solid #1b5e20', stretch: 'horizontal'
-        },
-        onClick: function () {
-            var dt = select_date_export.getValue();
+    var btt_export = button(L.btn_export, function () {
+            var dt = picker_date_export.getValue();
             if (!dt) {
                 print(L.err_no_date);
                 return;
@@ -3842,14 +3532,12 @@ function loadSampleAssets(folderPath) {
             } catch (e) {
                 print('Nao foi possivel criar a pasta da campanha: ' + e);
             }
-        }
-    });
+        }, 'primary', { margin: '2px 0px 0px 0px' });
 
     // --- Montar o panel_export ---
     drawerExp.panel.add(ui.Label(L.lbl_version, styles.label));
-    var rowVer = ui.Panel({ layout: ui.Panel.Layout.flow('horizontal'), style: styles.row });
-    rowVer.add(txt_version).add(lab_version_status);
-    drawerExp.panel.add(rowVer);
+    drawerExp.panel.add(lab_version_status);
+    drawerExp.panel.add(txt_version);
 
     drawerExp.panel.add(ui.Label(L.lbl_shortname, styles.label));
     drawerExp.panel.add(txt_shortname);
@@ -3858,7 +3546,7 @@ function loadSampleAssets(folderPath) {
     drawerExp.panel.add(txt_comment);
 
     drawerExp.panel.add(ui.Label(L.lbl_date, styles.label));
-    drawerExp.panel.add(select_date_export.panel);
+    drawerExp.panel.add(picker_date_export.panel);
     drawerExp.panel.add(lab_date_error);
 
     drawerExp.panel.add(ui.Label(L.lbl_satellites, styles.label));
@@ -4010,3 +3698,363 @@ var processHLS_L30 = function (img) {
         'system:time_end': img.get('system:time_end')
     }));
 };
+
+
+// =============================================================================
+// LANGUAGE DATA (kept at the end; function declarations are hoisted)
+// =============================================================================
+function translations(language) {
+    var dict = {
+        es: {
+            title: 'MapBiomas Fuego',
+            cab_config: 'TERRITORIO',
+            cab_temporal: 'TEMPORAL',
+            cab_layers: 'CAPAS',
+            cab_samples: 'MUESTRAS',
+            lbl_country: 'Pais',
+            lbl_regions: 'Regiones',
+            lbl_periodicity: 'Periodicidad',
+            opt_annual: 'Anual',
+            opt_monthly: 'Mensual',
+            lbl_asset_mosaics: 'Mosaicos classificados',
+            lbl_raw_mosaics: 'Mosaicos on the fly',
+            lbl_ref_cats: 'Categorias de Referencia',
+            lbl_burned: 'Area Quemada',
+            lbl_hotspots: 'Focos / Buffers',
+            cab_instructions: 'Como usar este modulo',
+            instructions: '1. Use las herramientas de dibujo en el mapa.\n' +
+                '2. Capa "fire" (rojo) = area quemada.\n' +
+                '3. Capa "notFire" (azul) = area no quemada.\n' +
+                '4. Complete los metadatos en la pestana EXPORTAR.\n' +
+                '5. Haga clic en EXPORTAR para guardar en Asset y GCS.\n' +
+                '6. Vaya a la pestana Tasks en GEE para ejecutar.',
+            tab_import: 'IMPORTAR',
+            tab_export: 'EXPORTAR',
+            btn_load: 'Cargar',
+            lbl_version: 'Sample id',
+            lbl_shortname: 'Nombre corto',
+            lbl_comment: 'Comentario',
+            lbl_date: 'Fecha',
+            lbl_satellites: 'Satélites',
+            placeholder_date: 'Seleccionar fecha...',
+            placeholder_asset: 'Elegir muestra existente...',
+            placeholder_sn: 'apodo (ej: norte_amazonia)',
+            placeholder_cmt: 'comentario (metadato libre)',
+            btn_export: 'EXPORTAR (Asset + GCS)',
+            ver_checking: 'Verificando...',
+            ver_suggested: 'Sugerencia de Sample id: ',
+            ver_empty: 'asset vacio',
+            task_created: 'Tareas creadas: ',
+            task_hint: ' (vaya a la pestana Tasks para ejecutar)',
+            err_layers: 'Faltan capas "fire" o "notFire" en el mapa.',
+            err_no_sat: 'Seleccione un satélite.',
+            err_no_date: 'Seleccione la fecha.',
+            lbl_stats: 'Resumen de Muestras:',
+            lbl_refresh_stats: 'Actualizar',
+            status_no_samples: 'Sin muestras dibujadas',
+            lbl_fire: 'Fuego',
+            lbl_not_fire: 'No Fuego',
+            lbl_total: 'Total',
+            lbl_area: 'Area (ha)',
+            lbl_count: 'Cant.',
+            lbl_satellites_toggle: 'Satelites',
+            lbl_vis_preset: 'Visualizacion',
+            opt_rgb_fire: '[SWIR1/NIR/RED] A',
+            opt_rgb_coverage: '[SWIR1/NIR/RED] B',
+            opt_rgb_false: '[NIR/SWIR1/RED]',
+            opt_rgb_natural: '[RED/GREEN/BLUE]',
+            opt_gray_nir: 'NIR',
+            opt_gray_swir1: 'SWIR1',
+            opt_gray_swir2: 'SWIR2',
+            opt_gray_nbr: 'NBR',
+            opt_gray_ndvi: 'NDVI',
+            opt_rgb_swir_alt: '[SWIR2/SWIR1/NIR]',
+            cab_satellites: 'Satelite',
+            cab_reference: 'Referencia',
+            cab_classifications: 'Clasificaciones',
+            cab_class_regional: 'Regionales',
+            cab_class_filtered: 'FILTERED',
+            cab_class_candidates: 'CANDIDATES',
+            cab_class_prepublic: 'PRE_PUBLIC',
+            lbl_proposal: 'Propuesta',
+            lbl_stage: 'Etapa',
+            lbl_show: 'Mostrar',
+            lbl_images: 'imagenes',
+            status_no_results: 'Sin resultados',
+            short_guide: 'Guia',
+            short_import: 'Importar',
+            short_export: 'Exportar',
+            btn_fire: 'Fuego',
+            btn_not_fire: 'No Fuego',
+            btn_hand: 'Mover',
+            btn_delete: 'Borrar',
+            btn_center: 'Centrar',
+            loading: '',
+            ref_name_modis_ba: 'MODIS Burned Area',
+            ref_name_gabam: 'GABAM',
+            ref_name_firms: 'FIRMS',
+            ref_name_fire_cci: 'FIRE_CCI',
+            ref_cicatrizes_peru: 'Cicatrizes Peru',
+            ref_name_buffer_inpe: 'Buffer Focos INPE',
+            ref_name_hotspots_inpe: 'Hotspots INPE (Puntos)',
+            lbl_all_regions: 'Todas las Regiones',
+            lbl_selected_region: 'Region Seleccionada',
+            status_no_models_region: '(sin modelos en la region)',
+            lbl_qty_pct: 'Cant%',
+            lbl_area_pct: 'Area%',
+            lbl_class_col: 'CLASE',
+            btn_all_regions: 'Todos',
+            btn_sel_single: 'Única',
+            btn_sel_multi: 'Varias',
+            placeholder_region_filter: 'filtre regiones (ej. amazonia -02)',
+            placeholder_date_filter: 'filtre fechas (ej. 2023 -01)',
+            ref_modis_mcd64a1: 'MODIS MCD64A1',
+            ref_buffer_focos: 'Buffer Focos',
+            ref_hotspots_inpe: 'Hotspots INPE',
+            sat_sentinel2_buffer: 'Sentinel2 Buffer',
+            lbl_bands: 'Bandas',
+            lbl_band_classification: 'Clasificacion',
+            lbl_band_probability: 'Probabilidad',
+            lbl_band_dayofyear: 'Dia del Ano',
+            lbl_dashboard: 'Panel',
+            placeholder_campaign: 'Seleccionar campana...',
+            lbl_campaign: 'Campana',
+            lbl_select_campaign: 'Seleccionar Campana'
+        },
+        pt: {
+            title: 'MapBiomas Fogo',
+            cab_config: 'TERRITÓRIO',
+            cab_temporal: 'TEMPORAL',
+            cab_layers: 'CAMADAS',
+            cab_samples: 'AMOSTRAS',
+            lbl_country: 'Pais',
+            lbl_regions: 'Regioes',
+            lbl_periodicity: 'Periodicidade',
+            opt_annual: 'Anual',
+            opt_monthly: 'Mensal',
+            lbl_asset_mosaics: 'Mosaicos classificados',
+            lbl_raw_mosaics: 'Mosaicos on the fly',
+            lbl_ref_cats: 'Categorias de Referencia',
+            lbl_burned: 'Area Queimada',
+            lbl_hotspots: 'Focos / Buffers',
+            cab_instructions: 'Como usar este modulo',
+            instructions: '1. Use as ferramentas de desenho no mapa.\n' +
+                '2. Camada "fire" (vermelho) = area queimada.\n' +
+                '3. Camada "notFire" (azul) = area nao queimada.\n' +
+                '4. Preencha os metadados na aba EXPORTAR.\n' +
+                '5. Clique em EXPORTAR para salvar no Asset e GCS.\n' +
+                '6. Acesse a aba Tasks no GEE para executar.',
+            tab_import: 'IMPORTAR',
+            tab_export: 'EXPORTAR',
+            btn_load: 'Carregar',
+            lbl_version: 'Sample id',
+            lbl_shortname: 'Nome curto',
+            lbl_comment: 'Comentário',
+            lbl_date: 'Data',
+            lbl_satellites: 'Satélites',
+            placeholder_date: 'Selecionar data...',
+            placeholder_asset: 'Escolher amostra existente...',
+            placeholder_sn: 'apelido (ex: norte_amazonia)',
+            placeholder_cmt: 'comentario (metadado livre)',
+            btn_export: 'EXPORTAR (Asset + GCS)',
+            ver_checking: 'Verificando...',
+            ver_suggested: 'Sugestão de Sample id: ',
+            ver_empty: 'asset vazio',
+            task_created: 'Tasks criadas: ',
+            task_hint: ' (va a aba Tasks para executar)',
+            err_layers: 'Faltam camadas "fire" ou "notFire" no mapa.',
+            err_no_sat: 'Selecione um satélite.',
+            err_no_date: 'Selecione a data.',
+            lbl_stats: 'Resumo das Amostras:',
+            lbl_refresh_stats: 'Atualizar',
+            status_no_samples: 'Sem amostras desenhadas',
+            lbl_fire: 'Fogo',
+            lbl_not_fire: 'Nao Fogo',
+            lbl_total: 'Total',
+            lbl_area: 'Area (ha)',
+            lbl_count: 'Qtd.',
+            lbl_satellites_toggle: 'Satelites',
+            lbl_vis_preset: 'Visualizacao',
+            opt_rgb_fire: '[SWIR1/NIR/RED] A',
+            opt_rgb_coverage: '[SWIR1/NIR/RED] B',
+            opt_rgb_false: '[NIR/SWIR1/RED]',
+            opt_rgb_natural: '[RED/GREEN/BLUE]',
+            opt_gray_nir: 'NIR',
+            opt_gray_swir1: 'SWIR1',
+            opt_gray_swir2: 'SWIR2',
+            opt_gray_nbr: 'NBR',
+            opt_gray_ndvi: 'NDVI',
+            opt_rgb_swir_alt: '[SWIR2/SWIR1/NIR]',
+            cab_satellites: 'Satelite',
+            cab_reference: 'Referencia',
+            cab_classifications: 'Classificacoes',
+            cab_class_regional: 'Regionais',
+            cab_class_filtered: 'FILTERED',
+            cab_class_candidates: 'CANDIDATES',
+            cab_class_prepublic: 'PRE_PUBLIC',
+            lbl_proposal: 'Proposta',
+            lbl_stage: 'Etapa',
+            lbl_show: 'Mostrar',
+            lbl_images: 'imagens',
+            status_no_results: 'Sem resultados',
+            short_guide: 'Guia',
+            short_import: 'Importar',
+            short_export: 'Exportar',
+            btn_fire: 'Fogo',
+            btn_not_fire: 'Nao Fogo',
+            btn_hand: 'Mover',
+            btn_delete: 'Deletar',
+            btn_center: 'Centralizar',
+            loading: '',
+            ref_name_modis_ba: 'MODIS Burned Area',
+            ref_name_gabam: 'GABAM',
+            ref_name_firms: 'FIRMS',
+            ref_name_fire_cci: 'FIRE_CCI',
+            ref_cicatrizes_peru: 'Cicatrizes Peru',
+            ref_name_buffer_inpe: 'Buffer Focos INPE',
+            ref_name_hotspots_inpe: 'Hotspots INPE (Pontos)',
+            lbl_all_regions: 'Todas as Regioes',
+            lbl_selected_region: 'Regiao Selecionada',
+            status_no_models_region: '(sem modelos na regiao)',
+            lbl_qty_pct: 'Qtd%',
+            lbl_area_pct: 'Area%',
+            lbl_class_col: 'CLASSE',
+            btn_all_regions: 'Todos',
+            btn_sel_single: 'Única',
+            btn_sel_multi: 'Várias',
+            placeholder_region_filter: 'filtre regiões (ex.: amazonia -02)',
+            placeholder_date_filter: 'filtre datas (ex.: 2023 -01)',
+            ref_modis_mcd64a1: 'MODIS MCD64A1',
+            ref_buffer_focos: 'Buffer Focos',
+            ref_hotspots_inpe: 'Hotspots INPE',
+            sat_sentinel2_buffer: 'Sentinel2 Buffer',
+            lbl_bands: 'Bandas',
+            lbl_band_classification: 'Classificacao',
+            lbl_band_probability: 'Probabilidade',
+            lbl_band_dayofyear: 'Dia do Ano',
+            lbl_dashboard: 'Painel',
+            placeholder_campaign: 'Selecionar campanha...',
+            lbl_campaign: 'Campanha',
+            lbl_select_campaign: 'Selecionar Campanha'
+        },
+        en: {
+            title: 'MapBiomas Fire',
+            cab_config: 'TERRITORY',
+            cab_temporal: 'TEMPORAL',
+            cab_layers: 'LAYERS',
+            cab_samples: 'SAMPLES',
+            lbl_country: 'Country',
+            lbl_regions: 'Regions',
+            lbl_periodicity: 'Periodicity',
+            opt_annual: 'Annual',
+            opt_monthly: 'Monthly',
+            lbl_asset_mosaics: 'Mosaicos classificados',
+            lbl_raw_mosaics: 'Mosaicos on the fly',
+            lbl_ref_cats: 'Reference Categories',
+            lbl_burned: 'Burned Area',
+            lbl_hotspots: 'Hotspots / Buffers',
+            cab_instructions: 'How to use this module',
+            instructions: '1. Use the map drawing tools.\n' +
+                '2. Layer "fire" (red) = burned area.\n' +
+                '3. Layer "notFire" (blue) = unburned area.\n' +
+                '4. Fill in metadata in the EXPORT tab.\n' +
+                '5. Click EXPORT to save to Asset and GCS.\n' +
+                '6. Go to the Tasks tab in GEE to run.',
+            tab_import: 'IMPORT',
+            tab_export: 'EXPORT',
+            btn_load: 'Load',
+            lbl_version: 'Sample id',
+            lbl_shortname: 'Short name',
+            lbl_comment: 'Comment',
+            lbl_date: 'Date',
+            lbl_satellites: 'Satellites',
+            placeholder_date: 'Select date...',
+            placeholder_asset: 'Choose existing sample...',
+            placeholder_sn: 'alias (e.g. north_amazonia)',
+            placeholder_cmt: 'comment (free metadata)',
+            btn_export: 'EXPORT (Asset + GCS)',
+            ver_checking: 'Checking...',
+            ver_suggested: 'Sample id suggestion: ',
+            ver_empty: 'empty asset',
+            task_created: 'Tasks created: ',
+            task_hint: ' (go to Tasks tab to run)',
+            err_layers: 'Missing "fire" or "notFire" layers on map.',
+            err_no_sat: 'Select at least one satellite as metadata.',
+            err_no_date: 'Select the represented date.',
+            lbl_stats: 'Sample Summary:',
+            lbl_refresh_stats: 'Refresh',
+            status_no_samples: 'No drawn samples',
+            lbl_fire: 'Fire',
+            lbl_not_fire: 'Not Fire',
+            lbl_total: 'Total',
+            lbl_area: 'Area (ha)',
+            lbl_count: 'Qty.',
+            lbl_satellites_toggle: 'Satellites',
+            lbl_vis_preset: 'Visualization',
+            opt_rgb_fire: '[SWIR1/NIR/RED] A',
+            opt_rgb_coverage: '[SWIR1/NIR/RED] B',
+            opt_rgb_false: '[NIR/SWIR1/RED]',
+            opt_rgb_natural: '[RED/GREEN/BLUE]',
+            opt_gray_nir: 'NIR',
+            opt_gray_swir1: 'SWIR1',
+            opt_gray_swir2: 'SWIR2',
+            opt_gray_nbr: 'NBR',
+            opt_gray_ndvi: 'NDVI',
+            opt_rgb_swir_alt: '[SWIR2/SWIR1/NIR]',
+            cab_satellites: 'Satellite',
+            cab_reference: 'Reference',
+            cab_classifications: 'Classifications',
+            cab_class_regional: 'Regional',
+            cab_class_filtered: 'FILTERED',
+            cab_class_candidates: 'CANDIDATES',
+            cab_class_prepublic: 'PRE_PUBLIC',
+            lbl_proposal: 'Proposal',
+            lbl_stage: 'Stage',
+            lbl_show: 'Show',
+            lbl_images: 'images',
+            status_no_results: 'No results',
+            short_guide: 'Guide',
+            short_import: 'Import',
+            short_export: 'Export',
+            btn_fire: 'Fire',
+            btn_not_fire: 'Not Fire',
+            btn_hand: 'Move',
+            btn_delete: 'Delete',
+            btn_center: 'Center',
+            loading: '',
+            ref_name_modis_ba: 'MODIS Burned Area',
+            ref_name_gabam: 'GABAM',
+            ref_name_firms: 'FIRMS',
+            ref_name_fire_cci: 'FIRE_CCI',
+            ref_cicatrizes_peru: 'Peru Fire Scars',
+            ref_name_buffer_inpe: 'INPE Hotspot Buffer',
+            ref_name_hotspots_inpe: 'INPE Hotspots (Points)',
+            lbl_all_regions: 'All Regions',
+            lbl_selected_region: 'Selected Region',
+            status_no_models_region: '(no models in region)',
+            lbl_qty_pct: 'Qty%',
+            lbl_area_pct: 'Area%',
+            lbl_class_col: 'CLASS',
+            btn_all_regions: 'All',
+            btn_sel_single: 'Single',
+            btn_sel_multi: 'Multiple',
+            placeholder_region_filter: 'filter regions (e.g. amazonia -02)',
+            placeholder_date_filter: 'filter dates (e.g. 2023 -01)',
+            ref_modis_mcd64a1: 'MODIS MCD64A1',
+            ref_buffer_focos: 'Buffer Focos',
+            ref_hotspots_inpe: 'Hotspots INPE',
+            sat_sentinel2_buffer: 'Sentinel2 Buffer',
+            lbl_bands: 'Bands',
+            lbl_band_classification: 'Classification',
+            lbl_band_probability: 'Probability',
+            lbl_band_dayofyear: 'Day of Year',
+            lbl_dashboard: 'Dashboard',
+            placeholder_campaign: 'Select campaign...',
+            lbl_campaign: 'Campaign',
+            lbl_select_campaign: 'Select Campaign'
+        }
+    };
+    return dict[language] || dict['es'];
+}
+
+// =============================================================================
