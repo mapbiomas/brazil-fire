@@ -24,6 +24,19 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     status = w.HTML(value="<b>Pronto para iniciar.</b>")
     progress = w.IntProgress(value=0, min=0, max=1, description="Frames:", layout=w.Layout(width="95%"))
     run = w.Button(description="Gerar lote", button_style="primary")
+    sprout = w.HTML(
+        value=(
+            '<style>@keyframes gif-factory-sprout {'
+            '0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); }}'
+            '.gif-factory-sprout { display: inline-block; transform-origin: bottom center; '
+            'animation: gif-factory-sprout 1.5s ease-in-out infinite; }'
+            '@media (prefers-reduced-motion: reduce) { .gif-factory-sprout { animation: none; }}'
+            '</style><span role="status" aria-label="Processamento em andamento">'
+            '<span class="gif-factory-sprout" aria-hidden="true">🌱</span> '
+            '<span style="color:#4b7255; font-size:12px">Cultivando mapas…</span></span>'
+        ),
+        layout=w.Layout(display="none", margin="0 0 0 10px"),
+    )
     selection = w.SelectMultiple(description="Arquivos:", layout=w.Layout(width="95%", height="180px"))
     drive = w.Text(value="/content/drive/MyDrive/mapbiomas_gif_factory", description="Drive:", layout=w.Layout(width="95%"))
     auto = w.Checkbox(value=False, description="Enviar automaticamente após cada combinação")
@@ -116,6 +129,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             status.value = f"<b>Seleção inválida:</b> {escape(str(exc))}"
             return
         run.disabled = True
+        sprout.layout.display = ""
         destination, automatic = drive.value, auto.value
         run_id = f"{safe_name(delivery.value, 'Resultados')}_{datetime.now():%Y-%m-%d_%H%M%S_%f}"
         delivery_root = Path(output_root) / run_id
@@ -203,12 +217,14 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                 log.append_stdout(f"Erro ao finalizar lote: {exc}\n")
             finally:
                 run.disabled = False
+                sprout.layout.display = "none"
         Thread(target=worker, daemon=True).start()
     run.on_click(on_run)
     sections = w.Accordion(children=[w.VBox(territory_boxes), w.VBox([delivery, w.HTML("<b>Período</b> — 0 = todos os anos"), year_start, year_end, *kinds.values(), auto, drive]), w.VBox([refresh, selection, send])], selected_index=None)
     for i, title in enumerate(["Territórios", "Saídas e destino", "Arquivos gerados e envio posterior"]):
         sections.set_title(i, title)
     update_files()
-    ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), tabs, sections, run, status, progress, log])
+    controls = w.HBox([run, sprout], layout=w.Layout(align_items="center"))
+    ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), tabs, sections, controls, status, progress, log])
     display(ui)
     return ui
