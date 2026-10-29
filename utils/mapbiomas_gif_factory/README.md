@@ -1,6 +1,6 @@
 # MapBiomas GIF Factory — piloto
 
-Protótipo independente para criar GIFs no Google Colab a partir de imagens multibanda do Earth Engine. Começa com Fogo coleção 5 e DF; o exemplo precisa de validação visual e de acesso antes de uso em produção. Não representa o catálogo completo do MapBiomas.
+Protótipo independente para criar GIFs no Google Colab a partir de imagens multibanda do Earth Engine. Começa com Fogo coleção 5 e biomas brasileiros; o exemplo precisa de validação visual e de acesso antes de uso em produção. Não representa o catálogo completo do MapBiomas.
 
 [![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/utils/mapbiomas_gif_factory/notebooks/piloto.ipynb)
 
@@ -18,6 +18,7 @@ O armazenamento `/content` é temporário e desaparece quando a sessão do Colab
 
 - Somente `ee.Image` multibanda, com bandas explicitamente informadas, visualização simples e legenda fornecida pelo usuário. ImageCollection, RGB e produtos que exigem processadores próprios ainda não são suportados.
 - A legenda do exemplo vem da configuração existente da Fábrica de GIFs; os parâmetros, nomes de bandas e resultado ainda precisam ser testados no Earth Engine.
+- Os biomas usam os assets `projects/ee-ipam/assets/IBGE/limite_biomas_IBGE_2026` e, para Mata Atlântica, `users/wallacesilva/mata_atlantica_`, conforme a configuração do projeto original. A conta autenticada precisa ter permissão de leitura; disponibilidade e filtros devem ser confirmados no Earth Engine.
 - Frames brutos são thumbnails recortados e visualizados pelo Earth Engine; preparados são atualmente uma cópia RGB desses thumbnails; finais acrescentam título e legenda. Esta implementação não reproduz todos os elementos cartográficos da Fábrica original.
 - A geração ocorre sequencialmente; não há retomada automática de processamento ou manifesto persistente. Cada disparo cria uma pasta própria. O envio automático ocorre a cada arquivo finalizado, mas erros de Drive não interrompem a geração.
 - Não há integração automática com o catálogo de referência. Acrescentar coleções e legendas requer revisão e testes individuais.

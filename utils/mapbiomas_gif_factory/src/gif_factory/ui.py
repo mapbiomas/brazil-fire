@@ -10,7 +10,7 @@ from .presets import LAYERS, TERRITORIES
 
 def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_output"):
     validate(layers, territories)
-    source = w.ToggleButtons(options=[("Arrays do notebook", "custom"), ("Exemplo Fogo 5 / DF (experimental)", "preset")], description="Origem:")
+    source = w.ToggleButtons(options=[("Arrays do notebook", "custom"), ("Exemplo Fogo 5 / biomas (experimental)", "preset")], description="Origem:")
     layer_select = w.SelectMultiple(description="Camadas:", layout=w.Layout(width="95%", height="140px"))
     territory_select = w.SelectMultiple(description="Territórios:", layout=w.Layout(width="95%", height="140px"))
     kinds = {k: w.Checkbox(value=(k == "gif"), description=label) for k, label in [("gif", "GIF"), ("colagem", "Colagem"), ("brutos", "Frames brutos"), ("preparados", "Frames preparados"), ("finais", "Frames finais")]}

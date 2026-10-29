@@ -8,8 +8,18 @@ LAYERS = [{
     "legend": [{"label": "Não observado", "color": "fdfdfd"}, {"label": "Fogo", "color": "800000"}],
 }]
 
-TERRITORIES = [{
-    "id": "uf_df", "name": "Distrito Federal",
-    "asset": "projects/mapbiomas-workspace/AUXILIAR/estados-2017",
-    "filter": {"field": "NM_ESTADO", "value": "DISTRITO FEDERAL"},
-}]
+_BIOMES_ASSET = "projects/ee-ipam/assets/IBGE/limite_biomas_IBGE_2026"
+TERRITORIES = [
+    {"id": "bioma_amazonia", "name": "Amazônia", "asset": _BIOMES_ASSET,
+     "filter": {"field": "Bioma", "value": "Amazônia"}},
+    {"id": "bioma_caatinga", "name": "Caatinga", "asset": _BIOMES_ASSET,
+     "filter": {"field": "Bioma", "value": "Caatinga"}},
+    {"id": "bioma_cerrado", "name": "Cerrado", "asset": _BIOMES_ASSET,
+     "filter": {"field": "Bioma", "value": "Cerrado"}},
+    {"id": "bioma_mata_atlantica", "name": "Mata Atlântica",
+     "asset": "users/wallacesilva/mata_atlantica_"},
+    {"id": "bioma_pampa", "name": "Pampa", "asset": _BIOMES_ASSET,
+     "filter": {"field": "Bioma", "value": "Pampa"}},
+    {"id": "bioma_pantanal", "name": "Pantanal", "asset": _BIOMES_ASSET,
+     "filter": {"field": "Bioma", "value": "Pantanal"}},
+]
