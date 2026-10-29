@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+import json
 from pathlib import Path
 from unittest.mock import patch
 from types import ModuleType
@@ -14,6 +15,25 @@ class BasicTests(unittest.TestCase):
         validate(LAYERS, TERRITORIES)
         with self.assertRaises(ValueError):
             validate([{**LAYERS[0], "id": "../bad"}], TERRITORIES)
+
+    def test_pending_layer_requires_reason_and_valid_id(self):
+        pending = {"id": "lulc_10", "name": "Uso e cobertura", "enabled": False, "reason": "Legenda pendente"}
+        validate([pending], TERRITORIES)
+        with self.assertRaises(ValueError):
+            validate([{**pending, "reason": ""}], TERRITORIES)
+        with self.assertRaises(ValueError):
+            validate([pending, pending], TERRITORIES)
+
+    def test_notebook_custom_arrays_are_explicit_and_valid(self):
+        notebook = json.loads((Path(__file__).parents[1] / "notebooks/piloto.ipynb").read_text(encoding="utf-8"))
+        namespace = {}
+        for cell in notebook["cells"][2:4]:
+            exec("".join(cell["source"]), namespace)
+        layers, territories = namespace["LAYERS"], namespace["TERRITORIES"]
+        validate(layers, territories)
+        self.assertEqual({x["id"] for x in territories}, {"matopiba", "matopiba_cerrado"})
+        self.assertTrue({"lulc_10", "lulc_10_1", "fogo4_anual"}.issubset({x["id"] for x in layers}))
+        self.assertEqual(len([x for x in layers if x.get("collection") == "Coleção 4"]), 11)
 
     def test_copy_is_selective_and_does_not_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:

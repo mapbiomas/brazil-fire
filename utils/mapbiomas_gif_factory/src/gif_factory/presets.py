@@ -6,6 +6,13 @@ LAYERS = [{
     "bands": ["burned_area_2023", "burned_area_2024"],
     "visualization": {"min": 0, "max": 1, "palette": ["fdfdfd", "800000"]},
     "legend": [{"label": "Não observado", "color": "fdfdfd"}, {"label": "Fogo", "color": "800000"}],
+}, {
+    "id": "annual_burned_col4", "name": "Área queimada anual", "theme": "Fogo", "collection": "Coleção 4",
+    "asset": "projects/mapbiomas-public/assets/brazil/fire/collection4/mapbiomas_fire_collection4_annual_burned_v1",
+    "bands": ["burned_area_2022", "burned_area_2023"],
+    "visualization": {"min": 0, "max": 1, "palette": ["fdfdfd", "800000"]},
+    "legend": [{"label": "Não observado", "color": "fdfdfd"}, {"label": "Fogo", "color": "800000"}],
+    "status": "experimental",
 }]
 
 _BIOMES_ASSET = "projects/ee-ipam/assets/IBGE/limite_biomas_IBGE_2026"

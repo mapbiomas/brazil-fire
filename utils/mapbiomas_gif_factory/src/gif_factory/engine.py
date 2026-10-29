@@ -11,6 +11,13 @@ def validate(layers, territories):
                                    ("território", territories, ("id", "name", "asset"))):
         ids = set()
         for item in items:
+            if item.get("enabled", True) is False:
+                if not item.get("id") or not item.get("name") or not item.get("reason"):
+                    raise ValueError(f"{label}: item pendente precisa de id, name e reason")
+                if not re.fullmatch(r"[A-Za-z0-9_-]+", item["id"]) or item["id"] in ids:
+                    raise ValueError(f"{label}: id inválido ou repetido: {item['id']}")
+                ids.add(item["id"])
+                continue
             missing = [key for key in required if not item.get(key)]
             if missing:
                 raise ValueError(f"{label}: campos ausentes: {', '.join(missing)}")

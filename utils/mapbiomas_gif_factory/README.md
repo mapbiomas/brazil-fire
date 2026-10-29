@@ -22,13 +22,23 @@ Cada território contém somente as pastas selecionadas: `GIFs`, `Colagens` e/ou
 
 ## Escopo e limitações
 
-- Somente `ee.Image` multibanda, com bandas explicitamente informadas, visualização simples e legenda fornecida pelo usuário. ImageCollection, RGB e produtos que exigem processadores próprios ainda não são suportados.
+- Somente `ee.Image` multibanda, com bandas explicitamente informadas, visualização simples e legenda fornecida pelo usuário. ImageCollection, RGB e produtos que exigem processadores próprios ainda não são suportados. A correspondência de códigos e cores para classes não consecutivas precisa de validação específica; não presumir que uma paleta curta corresponde aos valores de classe.
 - A legenda do exemplo vem da configuração existente da Fábrica de GIFs; os parâmetros, nomes de bandas e resultado ainda precisam ser testados no Earth Engine.
 - Os biomas usam os assets `projects/ee-ipam/assets/IBGE/limite_biomas_IBGE_2026` e, para Mata Atlântica, `users/wallacesilva/mata_atlantica_`, conforme a configuração do projeto original. A conta autenticada precisa ter permissão de leitura; disponibilidade e filtros devem ser confirmados no Earth Engine.
 - O pipeline cartográfico original é incluído no pacote; os níveis correspondem a `frames_pure`, `frames_clean` e `frames_maps`. O pipeline original redimensiona os arquivos em `frames_pure` após o download. A equivalência visual entre plataformas ainda deve ser testada, inclusive fontes e acesso aos assets.
 - A geração ocorre sequencialmente em uma thread; não há retomada automática de processamento ou manifesto persistente. Cada disparo cria uma pasta própria. Os resultados selecionados são copiados e enviados ao Drive após cada combinação, não durante seu processamento. Erros de Drive não interrompem a geração.
 - A estimativa apresentada é apenas para o download dos frames da combinação atual, calculada com a média observada; não inclui composição, GIF ou envio ao Drive.
 - Não há integração automática com o catálogo de referência. Acrescentar coleções e legendas requer revisão e testes individuais.
+- A célula de camadas contém exemplos para cobertura 10/10.1 e produtos Fogo 4. Itens marcados como pendentes estão desabilitados até validar bandas, simbologia e transformações; Fogo 4 anual é experimental. Para habilitar um item pendente, o responsável precisa completar e validar `bands`, `visualization` e `legend` e remover `enabled: False`.
+- Os territórios personalizados são independentes das iniciativas. Os exemplos MATOPIBA e MATOPIBA no Cerrado vêm das configurações locais e não tiveram acesso verificado nesta versão. Troque os assets na célula se necessário.
+
+## Próximas etapas de expansão
+
+1. Conferir assets, nomes de bandas e legenda oficial das coleções de uso e cobertura 10 e 10.1. Implementar mapeamento explícito valor → cor → rótulo para classes não consecutivas.
+2. Validar os produtos da coleção 4 de Fogo individualmente, incluindo os que exigem decodificação; incorporar gradualmente ao catálogo permanente.
+3. Reaproveitar configurações de Peru Fogo 2, Paraguai Fogo 1 e degradação do projeto original, verificando assets, territórios, legendas e processadores antes de publicar cada preset.
+4. Adicionar ImageCollection temporal: por exemplo Atmosfera com uma imagem por ano, selecionando por `year` quando existir ou por `system:time_start`, e detectando anos ausentes e duplicados. Mosaicos, RGB e séries mensais requerem estratégias separadas.
+5. Verificar interseção entre território e cobertura dos dados antes da geração; a seleção atual permite qualquer combinação, mas não garante que contenha pixels válidos.
 
 ## Desenvolvimento
 

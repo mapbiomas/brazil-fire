@@ -44,9 +44,13 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
         for (theme, collection), group in groups.items():
             checks = []
             for layer in group:
-                check = w.Checkbox(value=False, description=layer["name"], indent=False, layout=w.Layout(width="95%"))
+                enabled = layer.get("enabled", True)
+                label = layer["name"] + (" [pendente]" if not enabled else " [experimental]" if layer.get("status") == "experimental" else "")
+                check = w.Checkbox(value=False, description=label, disabled=not enabled, indent=False, layout=w.Layout(width="95%"))
                 product_checks.append((origin, layer, check))
                 checks.append(check)
+                if not enabled:
+                    checks.append(w.HTML(f"<small>{escape(layer.get('reason', 'Configuração pendente.'))}</small>"))
             children.append(w.VBox(checks))
             titles.append(f"{theme} / {collection}")
         accordion = w.Accordion(children=children, selected_index=None)
