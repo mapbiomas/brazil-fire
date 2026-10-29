@@ -8,15 +8,15 @@ Protótipo independente para criar GIFs no Google Colab a partir de imagens mult
 
 1. Abra `utils/mapbiomas_gif_factory/notebooks/piloto.ipynb` do repositório `mapbiomas/brazil-fire` no Colab.
 2. Na primeira célula, o projeto Earth Engine padrão é `mapbiomas-brazil`. Se você não tiver acesso a ele, altere `GEE_PROJECT` para outro projeto habilitado ao qual tenha acesso. Execute as células em ordem. Opcionalmente fixe `REPO_REF` em um commit validado.
-3. Edite as listas de camadas e territórios e encontre-as na guia Personalizado; exemplos experimentais também aparecem na guia Brasil. As bandas são descobertas automaticamente; para limitar anos de uma camada personalizada, use `start_year` e/ou `end_year` no objeto da camada.
-4. Selecione as opções na interface e execute a célula seguinte, `ui.start_batch()`. Por padrão apenas o GIF fica em `/content/mapbiomas_gif_factory_output`.
+3. Edite as listas de camadas e territórios e encontre-as na seção Personalizado; exemplos experimentais também aparecem na seção Brasil. As bandas são descobertas automaticamente; para limitar anos de uma camada personalizada, use `start_year` e/ou `end_year` no objeto da camada.
+4. Selecione pelo menos uma camada e um território na interface e execute a célula seguinte, `ui.start_batch()`. Nenhuma camada ou território é pré-selecionado; por padrão apenas o GIF fica em `/content/mapbiomas_gif_factory_output`.
 5. A primeira célula tenta montar o Drive para envio automático ou posterior. Se não quiser usá-lo, comente o bloco de montagem; caso a montagem falhe, ainda é possível gerar arquivos em `/content`. Use a pasta sugerida ou outra de sua preferência. Na guia de envio, atualize a lista e selecione os arquivos desejados. Arquivos existentes no destino não são sobrescritos.
 
 O armazenamento `/content` é temporário e desaparece quando a sessão do Colab termina. O envio posterior exige que a sessão e seus arquivos ainda existam. Cópias com falha são reportadas e podem ser novamente selecionadas.
 
 ## Configurações personalizadas
 
-As células `LAYERS` e `TERRITORIES` do notebook são listas Python explícitas. Edite-as e execute novamente a célula da interface. As camadas aparecem na guia **Personalizado**; os territórios podem ser usados com qualquer camada selecionada. Os exemplos de Fogo 4 e MATOPIBA são experimentais: confirme acesso e resultado no Earth Engine.
+As células `LAYERS` e `TERRITORIES` do notebook são listas Python explícitas. Edite-as e execute novamente a célula da interface. As camadas aparecem na seção **Personalizado**; os territórios podem ser usados com qualquer camada selecionada. Os exemplos de Fogo 4 e MATOPIBA são experimentais: confirme acesso e resultado no Earth Engine.
 
 Uma camada de imagem multibanda tem o seguinte formato:
 

@@ -48,14 +48,14 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     # Preset catalog and user-provided layers are intentionally separate.
     catalog = [("Brasil", LAYERS), ("Personalizado", layers)]
     product_checks = []
-    tab_contents = []
+    catalog_sections = []
     for origin, entries in catalog:
         groups = {}
         for layer in entries:
             theme = layer.get("theme", "Fogo" if origin == "Brasil" else "Outros")
             collection = layer.get("collection", "Coleção 5" if origin == "Brasil" else "Sem coleção")
             groups.setdefault((theme, collection), []).append(layer)
-        children, titles = [], []
+        children = [w.HTML(f"<h4>{escape(origin)}</h4>")]
         for (theme, collection), group in groups.items():
             checks = []
             for layer in group:
@@ -66,17 +66,11 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                 checks.append(check)
                 if not enabled:
                     checks.append(w.HTML(f"<small>{escape(layer.get('reason', 'Configuração pendente.'))}</small>"))
-            children.append(w.VBox(checks))
-            titles.append(f"{theme} / {collection}")
-        accordion = w.Accordion(children=children, selected_index=None)
-        for i, title in enumerate(titles):
-            accordion.set_title(i, title)
-        tab_contents.append(accordion if children else w.HTML("Nenhuma camada configurada."))
-    if product_checks:
-        product_checks[0][2].value = True
-    tabs = w.Tab(children=tab_contents)
-    for i, (name, _) in enumerate(catalog):
-        tabs.set_title(i, name)
+            children.append(w.VBox([w.HTML(f"<b>{escape(str(theme))} / {escape(str(collection))}</b>"), *checks]))
+        if not groups:
+            children.append(w.HTML("Nenhuma camada configurada."))
+        catalog_sections.append(w.VBox(children))
+    catalog_panel = w.VBox(catalog_sections)
 
     # Notebook territories remain customizable and separate from preset territories.
     territory_checks = []
@@ -84,7 +78,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     for name, entries in [("Biomas do catálogo", TERRITORIES), ("Personalizados", territories)]:
         checks = []
         for territory in entries:
-            check = w.Checkbox(value=(name == "Biomas do catálogo" and not checks), description=territory["name"], indent=False)
+            check = w.Checkbox(value=False, description=territory["name"], indent=False)
             territory_checks.append((name, territory, check))
             checks.append(check)
         territory_boxes.append(w.VBox([w.HTML(f"<b>{name}</b>"), *checks]))
@@ -274,11 +268,13 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             sprout.layout.display = "none"
             status.value = f"<b>Erro ao iniciar o lote:</b> {escape(str(exc))}"
             log.append_stdout(f"Erro ao iniciar lote: {exc}\n")
-    sections = w.Accordion(children=[w.VBox(territory_boxes), w.VBox([delivery, *kinds.values(), auto, drive]), w.VBox([refresh, selection, send])], selected_index=None)
-    for i, title in enumerate(["Territórios", "Saídas e destino", "Arquivos gerados e envio posterior"]):
-        sections.set_title(i, title)
     update_files()
-    ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), tabs, sections, sprout, status, overall, progress, log])
+    territories_panel = w.VBox([w.HTML("<h3>Territórios</h3>"), *territory_boxes])
+    output_panel = w.VBox([w.HTML("<h3>Saídas e destino</h3>"), delivery, *kinds.values(), auto, drive])
+    delivery_panel = w.VBox([w.HTML("<h3>Arquivos gerados e envio posterior</h3>"), refresh, selection, send])
+    ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), catalog_panel,
+                 territories_panel, output_panel, delivery_panel,
+                 sprout, status, overall, progress, log])
     ui.start_batch = start_batch
     display(ui)
     return ui

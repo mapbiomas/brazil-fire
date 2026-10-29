@@ -8,6 +8,21 @@ from unittest.mock import patch
 
 @unittest.skipUnless(importlib.util.find_spec("ipywidgets") and importlib.util.find_spec("IPython"), "ipywidgets indisponível")
 class UIProgressTests(unittest.TestCase):
+    def test_selection_panels_are_visible_without_tabs_or_accordions(self):
+        from gif_factory import ui as module
+        import ipywidgets as widgets
+        with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"):
+            widget = module.show_ui([module.LAYERS[0]], [], output_root=tmp, project="test")
+            def walk(node):
+                yield node
+                for child in getattr(node, "children", ()):
+                    yield from walk(child)
+            nodes = list(walk(widget))
+            self.assertFalse(any(isinstance(node, (widgets.Tab, widgets.Accordion)) for node in nodes))
+            self.assertTrue(any(isinstance(node, widgets.Checkbox) and "Área queimada" in node.description for node in nodes))
+            self.assertTrue(any(isinstance(node, widgets.Checkbox) and "Amazônia" in node.description for node in nodes))
+            self.assertTrue(any(isinstance(node, widgets.Checkbox) and node.description == "GIFs" for node in nodes))
+
     def test_fallback_respects_each_personalized_period(self):
         from gif_factory import ui as module
         base = module.LAYERS[0]
@@ -23,10 +38,10 @@ class UIProgressTests(unittest.TestCase):
             return [file]
         with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"), patch.object(module, "generate", fake_generate):
             widget = module.show_ui(layers, [], output_root=tmp, project="test")
-            tabs = widget.children[1]
-            tabs.children[0].children[0].children[0].value = False
-            for checkbox in tabs.children[1].children[0].children:
+            catalog = widget.children[1]
+            for checkbox in catalog.children[1].children[1].children[1:]:
                 checkbox.value = True
+            widget.children[2].children[1].children[1].value = True
             widget.start_batch()
             self.assertEqual(seen, [(2020, 2021), (2023, 2024)])
 
@@ -34,7 +49,9 @@ class UIProgressTests(unittest.TestCase):
         from gif_factory import ui as module
         with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"):
             widget = module.show_ui([], [], output_root=tmp, project="test")
-            status = widget.children[4]
+            status = widget.children[6]
+            widget.children[1].children[0].children[1].children[1].value = True
+            widget.children[2].children[1].children[1].value = True
             with patch.object(module, "Thread", side_effect=RuntimeError("não iniciou")):
                 widget.start_batch()
             self.assertIn("Erro ao iniciar", status.value)
@@ -60,8 +77,10 @@ class UIProgressTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"), patch.object(module, "generate", fake_generate):
             widget = module.show_ui([], [], output_root=tmp, project="test")
-            sprout = widget.children[3]
-            status, overall, download = widget.children[4:7]
+            sprout = widget.children[5]
+            status, overall, download = widget.children[6:9]
+            widget.children[1].children[0].children[1].children[1].value = True
+            widget.children[2].children[1].children[1].value = True
             widget.start_batch(wait=False)
             try:
                 self.assertTrue(entered.wait(2))
