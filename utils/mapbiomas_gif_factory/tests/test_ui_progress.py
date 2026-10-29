@@ -2,12 +2,32 @@ import importlib.util
 import threading
 import time
 import tempfile
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
 
 @unittest.skipUnless(importlib.util.find_spec("ipywidgets") and importlib.util.find_spec("IPython"), "ipywidgets indisponível")
 class UIProgressTests(unittest.TestCase):
+    def test_existing_complete_output_skips_regeneration(self):
+        from gif_factory import ui as module
+        calls = []
+        def fake_generate(layer, territory, root, kinds, after, **kwargs):
+            calls.append(kinds)
+            kwargs["on_progress"]("discovered", ["ano_2023"])
+            (root / "GIFs").mkdir(parents=True, exist_ok=True)
+            file = root / "GIFs/result.gif"
+            file.write_bytes(b"gif")
+            return [file]
+        with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"), patch.object(module, "generate", fake_generate), patch.object(module, "discover", return_value=(["ano_2023"], ["ano_2023"])):
+            widget = module.show_ui([], [], output_root=str(Path(tmp) / "out"), temp_root=str(Path(tmp) / "temp"), project="test")
+            widget.children[1].children[0].children[1].children[1].value = True
+            widget.children[2].children[1].children[1].value = True
+            widget.start_batch()
+            widget.start_batch()
+            self.assertEqual(len(calls), 1)
+            self.assertIn("1 já disponível", widget.children[6].value)
+
     def test_selection_panels_are_visible_without_tabs_or_accordions(self):
         from gif_factory import ui as module
         import ipywidgets as widgets
@@ -32,14 +52,14 @@ class UIProgressTests(unittest.TestCase):
         def fake_generate(layer, territory, root, kinds, after, **kwargs):
             seen.append((layer.get("start_year"), layer.get("end_year")))
             kwargs["on_progress"]("discovered", ["ano_2023"])
-            root.mkdir(parents=True, exist_ok=True)
-            file = root / "result.gif"
+            (root / "GIFs").mkdir(parents=True, exist_ok=True)
+            file = root / "GIFs/result.gif"
             file.write_bytes(b"gif")
             return [file]
-        with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"), patch.object(module, "generate", fake_generate):
-            widget = module.show_ui(layers, [], output_root=tmp, project="test")
+        with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"), patch.object(module, "generate", fake_generate), patch.object(module, "discover", return_value=(["ano_2023"], ["ano_2023"])):
+            widget = module.show_ui(layers, [], output_root=str(Path(tmp) / "out"), temp_root=str(Path(tmp) / "temp"), project="test")
             catalog = widget.children[1]
-            for checkbox in catalog.children[1].children[1].children[1:]:
+            for checkbox in catalog.children[2].children[1].children[1:]:
                 checkbox.value = True
             widget.children[2].children[1].children[1].value = True
             widget.start_batch()
@@ -70,13 +90,13 @@ class UIProgressTests(unittest.TestCase):
             release.wait(4)
             event("frame_done", 1, 2, "ano_2023", 1)
             event("stage", "Gerando GIF")
-            root.mkdir(parents=True, exist_ok=True)
-            result = root / "mapa.gif"
+            (root / "GIFs").mkdir(parents=True, exist_ok=True)
+            result = root / "GIFs/mapa.gif"
             result.write_bytes(b"gif")
             return [result]
 
-        with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"), patch.object(module, "generate", fake_generate):
-            widget = module.show_ui([], [], output_root=tmp, project="test")
+        with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"), patch.object(module, "generate", fake_generate), patch.object(module, "discover", return_value=(["ano_2023", "ano_2024"], ["ano_2023", "ano_2024"])):
+            widget = module.show_ui([], [], output_root=str(Path(tmp) / "out"), temp_root=str(Path(tmp) / "temp"), project="test")
             sprout = widget.children[5]
             status, overall, download = widget.children[6:9]
             widget.children[1].children[0].children[1].children[1].value = True

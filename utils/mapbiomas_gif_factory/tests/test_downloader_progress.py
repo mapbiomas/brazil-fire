@@ -6,6 +6,17 @@ from unittest.mock import patch
 
 @unittest.skipUnless(all(importlib.util.find_spec(x) for x in ("ee", "requests", "PIL", "yaml")), "dependências do Earth Engine indisponíveis")
 class DownloaderProgressTests(unittest.TestCase):
+    def test_territory_manager_uses_in_list_for_multiple_values(self):
+        from unittest.mock import MagicMock
+        from mapbiomas_data.core.territory_manager import TerritoryManager
+        class Config:
+            territories = {"biomes": {"selecionados": {"name": "Biomas", "source": "asset", "filter_in": {"field": "Bioma", "values": ["Cerrado", "Caatinga"]}}}}
+        ee = MagicMock()
+        with patch.dict("sys.modules", {"ee": ee}):
+            TerritoryManager(Config()).get_feature_collection("selecionados")
+        ee.Filter.inList.assert_called_once_with("Bioma", ["Cerrado", "Caatinga"])
+        ee.FeatureCollection.return_value.filter.assert_called_once_with(ee.Filter.inList.return_value)
+
     def test_retry_and_callback_failure_do_not_repeat_successful_download(self):
         from mapbiomas_data.core.ee_downloader import EEDownloader
         class Config:

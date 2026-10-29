@@ -1,85 +1,86 @@
 # MapBiomas GIF Factory — piloto
 
-Protótipo independente para criar GIFs no Google Colab a partir de imagens multibanda do Earth Engine. Começa com Fogo coleção 5 e biomas brasileiros; o exemplo precisa de validação visual e de acesso antes de uso em produção. Não representa o catálogo completo do MapBiomas.
+Protótipo para produzir GIFs cartográficos de imagens multibanda do Earth Engine no Google Colab. O catálogo inicial inclui produtos experimentais de Fogo do Brasil e Peru; assets, permissões, legendas e resultados precisam ser conferidos antes do uso em produção.
 
 [![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/utils/mapbiomas_gif_factory/notebooks/piloto.ipynb)
 
-## Como executar
+## Como usar
 
-1. Abra `utils/mapbiomas_gif_factory/notebooks/piloto.ipynb` do repositório `mapbiomas/brazil-fire` no Colab.
-2. Na primeira célula, o projeto Earth Engine padrão é `mapbiomas-brazil`. Se você não tiver acesso a ele, altere `GEE_PROJECT` para outro projeto habilitado ao qual tenha acesso. Execute as células em ordem. Opcionalmente fixe `REPO_REF` em um commit validado.
-3. Edite as listas de camadas e territórios e encontre-as na seção Personalizado; exemplos experimentais também aparecem na seção Brasil. As bandas são descobertas automaticamente; para limitar anos de uma camada personalizada, use `start_year` e/ou `end_year` no objeto da camada.
-4. Selecione pelo menos uma camada e um território na interface e execute a célula seguinte, `ui.start_batch()`. Nenhuma camada ou território é pré-selecionado; por padrão apenas o GIF fica em `/content/mapbiomas_gif_factory_output`.
-5. A primeira célula tenta montar o Drive para envio automático ou posterior. Se não quiser usá-lo, comente o bloco de montagem; caso a montagem falhe, ainda é possível gerar arquivos em `/content`. Use a pasta sugerida ou outra de sua preferência. Na guia de envio, atualize a lista e selecione os arquivos desejados. Arquivos existentes no destino não são sobrescritos.
+1. Abra o notebook acima. Na primeira célula, `GEE_PROJECT` usa `mapbiomas-brazil`; altere para um projeto Earth Engine ao qual você tenha acesso, se necessário.
+2. Execute as células em ordem. Edite `LAYERS` e `TERRITORIES` se quiser acrescentar itens personalizados; as bandas de imagens multibanda são descobertas automaticamente.
+3. Na interface, selecione pelo menos um produto, um território e os tipos de arquivo. Países inteiros e biomas individuais de Brasil e Peru estão disponíveis; territórios personalizados podem ser combinados com qualquer produto.
+4. Escolha se a biblioteca principal será local ou, marcando envio automático, o Drive. Use **Verificar disponibilidade** para consultar o estado das combinações selecionadas. Execute a célula `ui.start_batch()` para iniciar.
+5. Se a biblioteca principal já tiver resultados completos e compatíveis, eles não serão reprocessados. Caso haja conflito, o processo avisa e não sobrescreve. Para enviar arquivos locais mais tarde, selecione-os na seção de envio; os metadados necessários são copiados junto.
 
-O armazenamento `/content` é temporário e desaparece quando a sessão do Colab termina. O envio posterior exige que a sessão e seus arquivos ainda existam. Cópias com falha são reportadas e podem ser novamente selecionadas.
+O armazenamento `/content` desaparece quando a sessão Colab termina. Os dados temporários não são enviados ao Drive automaticamente.
 
-## Configurações personalizadas
+## Pastas e disponibilidade
 
-As células `LAYERS` e `TERRITORIES` do notebook são listas Python explícitas. Edite-as e execute novamente a célula da interface. As camadas aparecem na seção **Personalizado**; os territórios podem ser usados com qualquer camada selecionada. Os exemplos de Fogo 4 e MATOPIBA são experimentais: confirme acesso e resultado no Earth Engine.
+A biblioteca é permanente durante a sessão local, ou no Drive se este for escolhido como destino. Não há uma pasta de entrega por execução:
 
-Uma camada de imagem multibanda tem o seguinte formato:
+```text
+mapbiomas_gif_factory/
+├── Brasil_Fogo_Colecao_5/Area_queimada_anual/Amazonia/
+│   ├── GIFs/
+│   ├── Colagens/
+│   ├── Frames/
+│   └── metadados/
+└── Peru_Fuego_Coleccion_2/Area_quemada_anual/Peru/
+```
+
+Os intermediários ficam visíveis em `/content/temp/<iniciativa_tema_colecao>/<produto>/<territorio>/<período>/<execução>/processamento/`. Eles permanecem na sessão para inspeção, inclusive após falhas; o projeto não apaga automaticamente pastas antigas.
+
+- **Disponível:** os tipos de saída selecionados têm metadados compatíveis e todos os arquivos registrados conferem.
+- **Parcial:** há metadados compatíveis, mas falta algum arquivo ou tipo de saída; pode ser necessário gerar novamente no temporário. Arquivos existentes não são substituídos.
+- **Não gerado:** não há resultado registrado para a seleção.
+- **Verificar:** metadados ausentes/inválidos, arquivos alterados ou configuração diferente. Não há sobrescrita automática; examine a pasta no destino.
+
+Com envio automático habilitado, o Drive é a referência. Apagar um arquivo no Drive faz a próxima verificação indicar resultado parcial, mesmo que exista cópia local. Com envio automático desativado, a biblioteca local é a referência. Um envio posterior seletivo leva os metadados e pode aparecer como parcial até todos os arquivos de um tipo serem copiados.
+
+Uma série completa usa `completo` nos metadados e não recebe período extra no nome do GIF/colagem. Um intervalo parcial contínuo acrescenta, por exemplo, `_2020-2023`; uma seleção irregular recebe um identificador, e os nomes exatos das bandas ficam nos metadados. Frames parciais ficam em subpasta própria. A conferência verifica configuração, lista de bandas, tamanho e SHA-256 dos arquivos; ela não detecta uma alteração no conteúdo do asset Earth Engine se o endereço e os nomes das bandas permanecerem iguais.
+
+## Camadas e territórios personalizados
+
+As células `LAYERS` e `TERRITORIES` são listas Python explícitas. Altere-as e execute novamente a interface. Para uma camada `ee.Image` multibanda:
 
 ```python
 LAYERS = [{
-    "id": "minha_camada",                # identificador único: letras, números, _ ou -
-    "name": "Minha camada",              # nome exibido
-    "theme": "Meu tema",                  # opcional
-    "collection": "Minha coleção",        # opcional
-    "asset": "projects/.../minha_imagem", # ee.Image multibanda
+    "id": "minha_camada",  # identificador único: letras, números, _ ou -
+    "name": "Minha camada",
+    "theme": "Meu tema",             # opcional
+    "collection": "Minha coleção",   # opcional
+    "asset": "projects/.../minha_imagem",
     "visualization": {"min": 0, "max": 1, "palette": ["fdfdfd", "800000"]},
-    "legend": [
-        {"label": "Não observado", "color": "fdfdfd"},
-        {"label": "Fogo", "color": "800000"},
-    ],
+    "legend": [{"label": "Não observado", "color": "fdfdfd"},
+               {"label": "Fogo", "color": "800000"}],
+    # "start_year": 2020,  # opcionais; omitidos = todas as bandas
+    # "end_year": 2023,
 }]
 ```
 
-`id`, `name`, `asset`, `visualization` e `legend` são obrigatórios. `theme` e `collection` são opcionais. A fábrica descobre as bandas; para limitar o período desta camada, adicione `"start_year": 2020` e/ou `"end_year": 2023`. Sem estes campos, usa todas as bandas disponíveis. Para selecionar bandas manualmente, inclua opcionalmente `"bands": ["nome_da_banda"]`. A ordem e as cores de `legend` devem corresponder à paleta de `visualization`: o renderizador usa a paleta para as cores e os rótulos da legenda. Não use este exemplo binário como legenda genérica para produtos categóricos: classes não consecutivas exigem correspondência validada entre valores, cores e rótulos.
+`id`, `name`, `asset`, `visualization` e `legend` são obrigatórios. `bands` é opcional para seleção explícita. As cores da legenda devem corresponder à paleta; para classes não consecutivas, não presumir que uma paleta curta represente corretamente os valores. Os exemplos de Fogo 4 e MATOPIBA são experimentais.
 
-A última célula é o único disparo do lote; aguarde sua conclusão antes de executá-la novamente. A primeira célula ativa o gerenciador de widgets do Colab.
-
-Um território usa uma FeatureCollection e pode ter filtro de igualdade:
+Um território é uma `ee.FeatureCollection`. O filtro opcional usa `ee.Filter.inList`:
 
 ```python
 TERRITORIES = [{
-    "id": "meu_territorio",             # identificador único
-    "name": "Meu território",
-    "asset": "projects/.../meu_limite", # ee.FeatureCollection
-    # Opcional; remova se quiser usar toda a coleção:
-    "filter": {"field": "nome_do_campo", "value": "valor"},
+    "id": "meus_biomas",
+    "name": "Cerrado e Caatinga",
+    "asset": "projects/ee-ipam/assets/IBGE/limite_biomas_IBGE_2026",
+    "filter": {"field": "Bioma", "values": ["Cerrado", "Caatinga"]},
 }]
 ```
 
-Confira a existência e as permissões do asset e, quando houver filtro, o nome e o valor do atributo. O projeto não valida automaticamente se um território intersecta os dados da camada.
+Para apenas um valor, pode usar `"value": "Cerrado"` no lugar de `values`. Omita `filter` para usar toda a coleção. Confirme acesso ao asset e os valores do atributo. O projeto ainda não verifica automaticamente se o território intersecta os dados.
 
-## Organização dos resultados
+## Limitações e próximos passos
 
-Cada disparo cria uma pasta com o nome de entrega escolhido e data/hora, sem alterar resultados de execuções anteriores. Dentro dela, os arquivos ficam em `Brasil/Fogo/Colecao_5/Produto/Territorio/`, com biomas do mesmo produto como pastas irmãs. Camadas do notebook aparecem em `Personalizado/Tema/Colecao/Produto/Territorio/`. Se tema ou coleção não forem informados, são usados `Sem_tema` e `Sem_colecao`.
-
-Cada território contém somente as pastas selecionadas: `GIFs`, `Colagens` e/ou `Frames/Mapa_basico`, `Frames/Mapa_com_ano_e_escala`, `Frames/Mapa_completo`. A entrega inclui um `LEIA-ME.txt` com os produtos, territórios e períodos concluídos. O arquivo também pode ser selecionado para envio posterior ao Drive. O nome da pasta de entrega recebe data e hora automaticamente para evitar misturar execuções; arquivos existentes no destino não são sobrescritos.
-
-## Escopo e limitações
-
-- Somente `ee.Image` multibanda, com descoberta automática de bandas, visualização simples e legenda fornecida pelo usuário. Bandas com ano ou intervalo identificável são ordenadas temporalmente; quando há ambiguidade a execução é interrompida com instruções. `bands` é opcional para seleção avançada explícita. ImageCollection, RGB e produtos que exigem processadores próprios ainda não são suportados. A correspondência de códigos e cores para classes não consecutivas precisa de validação específica; não presumir que uma paleta curta corresponde aos valores de classe.
-- A legenda do exemplo vem da configuração existente da Fábrica de GIFs; os parâmetros, nomes de bandas e resultado ainda precisam ser testados no Earth Engine.
-- Os biomas usam os assets `projects/ee-ipam/assets/IBGE/limite_biomas_IBGE_2026` e, para Mata Atlântica, `users/wallacesilva/mata_atlantica_`, conforme a configuração do projeto original. A conta autenticada precisa ter permissão de leitura; disponibilidade e filtros devem ser confirmados no Earth Engine.
-- O pipeline cartográfico original é incluído no pacote; os níveis correspondem a `frames_pure`, `frames_clean` e `frames_maps`. O pipeline original redimensiona os arquivos em `frames_pure` após o download. A equivalência visual entre plataformas ainda deve ser testada, inclusive fontes e acesso aos assets.
-- A geração ocorre sequencialmente em uma thread; não há retomada automática de processamento ou manifesto persistente. Cada disparo cria uma pasta própria. Os resultados selecionados são copiados e enviados ao Drive após cada combinação, não durante seu processamento. Erros de Drive não interrompem a geração.
-- A estimativa apresentada é apenas para o download dos frames da combinação atual, calculada com a média observada; não inclui composição, GIF ou envio ao Drive.
-- A barra de lote conta combinações processadas, inclusive falhas; a barra de download conta somente frames baixados. O relógio atualiza durante as esperas, e tentativas e erros são registrados no painel.
-- Não há integração automática com o catálogo de referência. Acrescentar coleções e legendas requer revisão e testes individuais.
-- A célula personalizada contém um exemplo editável de Fogo 4 anual. Uso e cobertura 10/10.1 e os demais produtos de Fogo 4 ainda não integram o catálogo permanente; precisam de validação de simbologia e transformações.
-- Os territórios personalizados são independentes das iniciativas. Os exemplos MATOPIBA e MATOPIBA no Cerrado vêm das configurações locais e não tiveram acesso verificado nesta versão. Troque os assets na célula se necessário.
-
-## Próximas etapas de expansão
-
-1. Conferir assets, nomes de bandas e legenda oficial das coleções de uso e cobertura 10 e 10.1. Implementar mapeamento explícito valor → cor → rótulo para classes não consecutivas.
-2. Validar os produtos da coleção 4 de Fogo individualmente, incluindo os que exigem decodificação; incorporar gradualmente ao catálogo permanente.
-3. Reaproveitar configurações de Peru Fogo 2, Paraguai Fogo 1 e degradação do projeto original, verificando assets, territórios, legendas e processadores antes de publicar cada preset.
-4. Adicionar ImageCollection temporal: por exemplo Atmosfera com uma imagem por ano, selecionando por `year` quando existir ou por `system:time_start`, e detectando anos ausentes e duplicados. Mosaicos, RGB e séries mensais requerem estratégias separadas.
-5. Verificar interseção entre território e cobertura dos dados antes da geração; a seleção atual permite qualquer combinação, mas não garante que contenha pixels válidos.
+- O adaptador atual suporta `ee.Image` multibanda. ImageCollection anual, RGB e produtos que exigem processadores específicos ainda requerem adaptação. Peru e os produtos recém-adicionados são experimentais e devem ser conferidos no Colab.
+- Bandas com ano ou intervalo identificável são ordenadas temporalmente; seleção ambígua é interrompida, em vez de produzir uma sequência presumida.
+- A biblioteca não importa automaticamente os resultados gerados pela versão anterior; arquivos antigos sem metadados compatíveis aparecem como `Verificar` se ocuparem o novo caminho.
+- A estimativa de tempo cobre apenas o download atual; a barra de lote conta combinações processadas, inclusive falhas.
+- Próximas expansões: legendas verificadas de uso e cobertura 10/10.1, produtos com processadores próprios e ImageCollection anual, incluindo Atmosfera.
 
 ## Desenvolvimento
 
-`pip install -e .` e `python -m unittest discover -s tests`. O teste de ponta a ponta requer credenciais Earth Engine, acesso aos assets e uma sessão Colab.
+`pip install -e .` e `python -m unittest discover -s tests`. A validação visual e de ponta a ponta requer Earth Engine, permissões dos assets, Google Drive e uma sessão Colab.

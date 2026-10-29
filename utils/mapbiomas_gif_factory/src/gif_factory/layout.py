@@ -18,7 +18,8 @@ def safe_name(value, fallback="Sem_nome"):
 def product_path(origin, layer):
     theme = layer.get("theme") or ("Fogo" if origin == "Brasil" else "Sem_tema")
     collection = layer.get("collection") or ("Colecao_5" if origin == "Brasil" else "Sem_colecao")
-    return Path(*(safe_name(x) for x in (origin, theme, collection, layer["name"])))
+    group = "_".join(safe_name(x) for x in (origin, theme, collection))
+    return Path(group) / safe_name(layer["name"])
 
 
 def combination_path(origin, layer, territory):

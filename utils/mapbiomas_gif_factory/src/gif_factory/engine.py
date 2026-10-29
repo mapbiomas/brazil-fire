@@ -1,9 +1,11 @@
 """Adaptador de configurações do notebook para o pipeline cartográfico offline."""
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from contextlib import nullcontext
 import re
 import shutil
 from .layout import safe_name
+from .temporal import resolve_bands
 
 
 def validate(layers, territories):
@@ -32,6 +34,19 @@ def validate(layers, territories):
                     raise ValueError(f"{item['name']}: start_year e end_year devem ser anos inteiros positivos.")
                 if start is not None and end is not None and start > end:
                     raise ValueError(f"{item['name']}: ano inicial maior que o ano final.")
+            if label == "território" and item.get("filter"):
+                filt = item["filter"]
+                if not isinstance(filt, dict) or not filt.get("field") or ("value" in filt) == ("values" in filt):
+                    raise ValueError(f"{item['name']}: filtro precisa de field e de value ou values, não ambos.")
+                values = filt.get("values") if "values" in filt else filt.get("value")
+                if "values" in filt and (not isinstance(values, list) or not values):
+                    raise ValueError(f"{item['name']}: values deve ser uma lista não vazia.")
+                if "value" in filt and isinstance(values, (list, dict)):
+                    raise ValueError(f"{item['name']}: use values para uma lista de valores.")
+                if isinstance(values, list) and any(value is None or value == "" or isinstance(value, (list, dict)) for value in values):
+                    raise ValueError(f"{item['name']}: values deve conter apenas valores simples não vazios.")
+                if values is None or values == "":
+                    raise ValueError(f"{item['name']}: filtro sem valor.")
 
 
 class NotebookConfig:
@@ -40,11 +55,13 @@ class NotebookConfig:
         viz.setdefault("cmap_type", "binary" if len(layer["legend"]) == 2 else "discrete")
         viz.setdefault("discrete_labels", [x["label"] for x in layer["legend"]])
         viz.setdefault("label", layer.get("legend_label", ""))
-        product = {"name": layer["name"], "asset": layer["asset"], "bands": layer.get("bands", []), "visualization": "notebook", "start_year": layer.get("start_year"), "end_year": layer.get("end_year")}
+        product = {"name": layer["name"], "asset": layer["asset"], "bands": layer.get("bands", []), "visualization": "notebook", "start_year": layer.get("start_year"), "end_year": layer.get("end_year"), "bands_slice": layer.get("bands_slice"), "year_offset": layer.get("year_offset", 0)}
         self.datasets = {"notebook": {"products": {layer["id"]: product}, "title_collection": layer.get("collection_title", "")}}
         entry = {"name": territory["name"], "source": territory["asset"]}
         if territory.get("filter"):
-            entry["filter_in"] = {"field": territory["filter"]["field"], "values": [territory["filter"]["value"]]}
+            filt = territory["filter"]
+            values = filt["values"] if "values" in filt else [filt["value"]]
+            entry["filter_in"] = {"field": filt["field"], "values": values}
         self.territories = {"biomes": {territory["id"]: entry}}
         self.visualizations = {"notebook": viz}
         self.categories = {}
@@ -54,7 +71,18 @@ class NotebookConfig:
         return {"gif_creation": {"frame_duration": 300, "loop_count": 1000, "quality": 95}}.get(key, {})
 
 
-def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, project=None, on_progress=None):
+def discover(layer):
+    import ee
+    image = ee.Image(layer["asset"])
+    if layer.get("bands_slice"):
+        image = image.slice(*layer["bands_slice"])
+    available = image.bandNames().getInfo()
+    all_bands = resolve_bands(available)
+    selected = resolve_bands(available, layer.get("bands"), layer.get("start_year"), layer.get("end_year"))
+    return all_bands, selected
+
+
+def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, project=None, on_progress=None, work_dir=None, variant="completo"):
     from mapbiomas_data.core.pipeline import Pipeline
     validate([layer], [territory])
     if not project:
@@ -75,7 +103,10 @@ def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, pr
             pass
     produced = []
     # Keep pipeline intermediates separate from the requested deliverables.
-    with TemporaryDirectory(prefix="gif_factory_") as tmp:
+    if work_dir is not None:
+        Path(work_dir).mkdir(parents=True, exist_ok=False)
+    context = nullcontext(str(work_dir)) if work_dir is not None else TemporaryDirectory(prefix="gif_factory_")
+    with context as tmp:
         result = pipeline.run("notebook", layer["id"], territory["id"], output_dir=tmp,
                               create_collage="colagem" in kinds, add_labels=True,
                               vertical_dimension=dimension)
@@ -88,12 +119,15 @@ def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, pr
         for kind, (source_folder, dest_folder) in folders.items():
             if kind not in kinds:
                 continue
+            if variant != "completo" and kind in {"brutos", "preparados", "finais"}:
+                dest_folder = str(Path(dest_folder) / variant)
             for source in sorted((Path(tmp) / source_folder).glob("*")):
                 if not source.is_file() or source.suffix.lower() not in {".gif", ".png"}:
                     continue
                 # Preserve the source basename (including year, period and special mode)
                 # and add the territory, so a downloaded file is identifiable alone.
-                target = out / dest_folder / f"{safe_name(territory['name'])}_{source.name}"
+                suffix = f"_{variant}" if variant != "completo" and kind in {"gif", "colagem"} else ""
+                target = out / dest_folder / f"{safe_name(territory['name'])}_{source.stem}{suffix}{source.suffix}"
                 target.parent.mkdir(parents=True, exist_ok=True)
                 with source.open("rb") as src, target.open("xb") as dst:
                     shutil.copyfileobj(src, dst)

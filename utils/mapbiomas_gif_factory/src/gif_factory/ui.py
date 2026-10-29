@@ -6,11 +6,12 @@ from html import escape
 from copy import deepcopy
 import ipywidgets as w
 from IPython.display import display
-from .engine import generate, validate
-from .storage import list_artifacts, copy_artifacts
+from .engine import generate, validate, discover
+from .storage import list_artifacts
 from .presets import LAYERS, TERRITORIES
-from .layout import combination_path, ensure_unique_paths, safe_name
+from .layout import combination_path, ensure_unique_paths
 from .progress import ProgressState
+from .library import assess, fingerprint, ingest, variant_for, sync_selected
 
 
 def _duration(seconds):
@@ -18,7 +19,7 @@ def _duration(seconds):
     return f"{seconds // 60:02d}:{seconds % 60:02d}"
 
 
-def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_output", project=None):
+def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_output", project=None, temp_root="/content/temp"):
     validate(layers, territories)
     validate(LAYERS, TERRITORIES)
     log = w.Output(layout=w.Layout(border="1px solid #ddd", max_height="250px", overflow="auto"))
@@ -41,12 +42,12 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     )
     selection = w.SelectMultiple(description="Arquivos:", layout=w.Layout(width="95%", height="180px"))
     drive = w.Text(value="/content/drive/MyDrive/mapbiomas_gif_factory", description="Drive:", layout=w.Layout(width="95%"))
-    auto = w.Checkbox(value=False, description="Enviar automaticamente após cada combinação")
-    delivery = w.Text(value="Resultados", description="Entrega:", layout=w.Layout(width="95%"))
+    auto = w.Checkbox(value=False, description="Usar biblioteca no Drive e enviar automaticamente")
     kinds = {k: w.Checkbox(value=(k == "gif"), description=label) for k, label in [("gif", "GIFs"), ("colagem", "Colagens"), ("brutos", "Frames: mapa básico"), ("preparados", "Frames: mapa com ano e escala"), ("finais", "Frames: mapa completo")]}
 
     # Preset catalog and user-provided layers are intentionally separate.
-    catalog = [("Brasil", LAYERS), ("Personalizado", layers)]
+    catalog = [("Brasil", [x for x in LAYERS if x.get("initiative", "Brasil") == "Brasil"]),
+               ("Peru", [x for x in LAYERS if x.get("initiative") == "Peru"]), ("Personalizado", layers)]
     product_checks = []
     catalog_sections = []
     for origin, entries in catalog:
@@ -75,7 +76,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     # Notebook territories remain customizable and separate from preset territories.
     territory_checks = []
     territory_boxes = []
-    for name, entries in [("Biomas do catálogo", TERRITORIES), ("Personalizados", territories)]:
+    for name, entries in [("Países e biomas do catálogo", TERRITORIES), ("Personalizados", territories)]:
         checks = []
         for territory in entries:
             check = w.Checkbox(value=False, description=territory["name"], indent=False)
@@ -90,8 +91,50 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     def publish(files, destination):
         if not Path("/content/drive/MyDrive").is_dir():
             raise RuntimeError("Monte o Google Drive antes de enviar os arquivos.")
-        return copy_artifacts(files, output_root, destination)
+        return sync_selected(files, output_root, destination)
 
+    availability = w.Output(layout=w.Layout(border="1px solid #ddd", max_height="200px", overflow="auto"))
+    check_status = w.Button(description="Verificar disponibilidade", layout=w.Layout(width="210px"))
+    def selected_combinations():
+        return [(origin, deepcopy(layer), deepcopy(territory))
+                for origin, layer, check in product_checks if check.value
+                for _, territory, tcheck in territory_checks if tcheck.value]
+    def library_root():
+        if auto.value:
+            if not Path("/content/drive/MyDrive").is_dir():
+                raise RuntimeError("Monte o Drive antes de consultar ou gerar para a biblioteca do Drive.")
+            return Path(drive.value)
+        return Path(output_root)
+    def check_selected(_):
+        combos = selected_combinations()
+        selected_kinds = {k for k, checkbox in kinds.items() if checkbox.value}
+        availability.clear_output()
+        if not combos or not selected_kinds:
+            availability.append_stdout("Selecione camada, território e tipo de saída.\n")
+            return
+        try:
+            root = library_root()
+        except Exception as exc:
+            availability.append_stdout(f"Erro: {exc}\n")
+            return
+        availability.append_stdout(f"Biblioteca consultada: {root}\n")
+        check_status.disabled = True
+        def work():
+            try:
+                for origin, layer, territory in combos:
+                    try:
+                        all_bands, bands = discover(layer)
+                        variant = variant_for(all_bands, bands)
+                        result = assess(root / combination_path(origin, layer, territory), variant,
+                                        fingerprint(layer, territory, bands), selected_kinds)
+                        labels = {"disponivel": "✓ Disponível", "parcial": "◐ Parcial", "nao_gerado": "○ Não gerado", "verificar": "⚠ Verificar"}
+                        availability.append_stdout(f"{labels[result]}: {origin} / {layer['name']} / {territory['name']} ({variant})\n")
+                    except Exception as exc:
+                        availability.append_stdout(f"⚠ Verificar: {layer['name']} / {territory['name']}: {exc}\n")
+            finally:
+                check_status.disabled = False
+        Thread(target=work, daemon=True).start()
+    check_status.on_click(check_selected)
     refresh = w.Button(description="Atualizar arquivos")
     send = w.Button(description="Enviar selecionados")
     refresh.on_click(update_files)
@@ -122,8 +165,8 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             return
         sprout.layout.display = ""
         destination, automatic = drive.value, auto.value
-        run_id = f"{safe_name(delivery.value, 'Resultados')}_{datetime.now():%Y-%m-%d_%H%M%S_%f}"
-        delivery_root = Path(output_root) / run_id
+        run_id = datetime.now().strftime("%Y-%m-%d_%H%M%S_%f")
+        delivery_root = Path(output_root)
         status.value = "<b>▶ INICIANDO</b> — preparando lote..."
         progress.value = 0
         overall.value = 0
@@ -133,8 +176,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             total = len(chosen_layers) * len(chosen_territories)
             state = ProgressState(total)
             stop_clock = Event()
-            ok = failed = drive_failures = 0
-            completed = []
+            ok = failed = skipped = 0
             def render():
                 snap = state.snapshot()
                 eta = "calculando…" if snap["eta"] is None else "~" + _duration(snap["eta"])
@@ -174,69 +216,57 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                         if kind in ("frame_retry", "frame_failed"):
                             log.append_stdout(state.snapshot()["detail"] + "\n")
                         render()
-                    def after(path):
-                        nonlocal drive_failures
-                        if automatic:
-                            state.update("stage", f"Enviando ao Drive: {path.name}")
-                            render()
-                            try:
-                                for _, copy_status, detail in publish([path], destination):
-                                    if copy_status != "copiado":
-                                        drive_failures += 1
-                                    log.append_stdout(f"Drive: {copy_status}: {path} {detail}\n")
-                            except Exception as exc:
-                                drive_failures += 1
-                                log.append_stdout(f"Drive falhou; arquivo local preservado: {exc}\n")
-                            state.update("stage", "Organizando arquivos selecionados")
-                            render()
                     try:
-                        combo_root = delivery_root / combination_path(origin, layer, territory)
-                        files = generate(layer, territory, combo_root, selected_kinds, after,
-                                         project=project, on_progress=event)
+                        relative = combination_path(origin, layer, territory)
+                        local_root = delivery_root / relative
+                        if automatic and not Path("/content/drive/MyDrive").is_dir():
+                            raise RuntimeError("Drive não montado; monte o Drive ou desative o envio automático.")
+                        primary_root = (Path(destination) / relative) if automatic else local_root
+                        state.update("stage", "Consultando bandas e biblioteca")
+                        render()
+                        all_bands, selected_bands = discover(layer)
+                        variant = variant_for(all_bands, selected_bands)
+                        signature = fingerprint(layer, territory, selected_bands)
+                        existing = assess(primary_root, variant, signature, selected_kinds)
+                        if existing == "disponivel":
+                            skipped += 1
+                            log.append_stdout(f"DISPONÍVEL {number}/{total}: já existe no destino ({variant}); não reprocessado.\n")
+                            continue
+                        if existing == "verificar":
+                            raise RuntimeError("Existem arquivos incompatíveis ou sem metadados confiáveis; verifique a biblioteca. Nada foi sobrescrito.")
+                        if existing == "parcial":
+                            log.append_stdout("Resultado parcial: gerando novamente para preencher apenas arquivos ausentes.\n")
+                        missing_kinds = {kind for kind in selected_kinds if assess(primary_root, variant, signature, {kind}) != "disponivel"}
+                        run_root = Path(temp_root) / relative / variant / run_id
+                        stage = run_root / "entrega"
+                        configured = dict(layer, bands=selected_bands)
+                        files = generate(configured, territory, stage, missing_kinds, None,
+                                         project=project, on_progress=event, work_dir=run_root / "processamento", variant=variant)
+                        state.update("stage", "Enviando ao Drive" if automatic else "Publicando arquivos locais")
+                        render()
+                        if automatic:
+                            ingest(stage, primary_root, variant, signature, selected_bands, layer, territory)
+                            try:
+                                ingest(stage, local_root, variant, signature, selected_bands, layer, territory)
+                            except Exception as exc:
+                                log.append_stdout(f"Aviso: cópia local não atualizada: {exc}\n")
+                        else:
+                            ingest(stage, local_root, variant, signature, selected_bands, layer, territory)
                         ok += 1
-                        completed.append((origin, layer, territory, list(discovered)))
-                        log.append_stdout(f"FINALIZADO {number}/{total}: {len(files)} arquivos em /content\n")
+                        log.append_stdout(f"FINALIZADO {number}/{total}: {len(files)} arquivos publicados em {primary_root}\n")
                     except Exception as exc:
                         failed += 1
                         log.append_stdout(f"FALHA {number}/{total}: {exc}\n")
                     finally:
                         state.finish_combo()
                         render()
-                if completed:
-                    readme = delivery_root / "LEIA-ME.txt"
-                    lines = ["RESULTADOS CARTOGRÁFICOS MAPBIOMAS", "", f"Entrega: {run_id}",
-                             "Dados: MapBiomas; verifique as fontes e condições de uso de cada coleção.",
-                             "A lista abaixo descreve a execução; um envio seletivo pode conter apenas parte dos arquivos.",
-                             "", "Produtos e territórios concluídos:"]
-                    for origin, layer, territory, bands in completed:
-                        lines.append(f"- {origin} / {layer.get('theme', 'Sem tema')} / {layer.get('collection', 'Sem coleção')} / {layer['name']} / {territory['name']}")
-                        lines.append(f"  Períodos/bandas: {', '.join(bands)}")
-                    lines.extend(["", "Frames, quando disponíveis:",
-                                  "- Mapa_basico: imagem visualizada do Earth Engine, redimensionada.",
-                                  "- Mapa_com_ano_e_escala: mapa preparado com ano e elementos cartográficos aplicáveis.",
-                                  "- Mapa_completo: frame com título e legenda usado no GIF.",
-                                  "", "Apenas as saídas escolhidas na geração estão incluídas."])
-                    with readme.open("x", encoding="utf-8") as file:
-                        file.write("\n".join(lines) + "\n")
-                    if automatic:
-                        state.update("stage", "Enviando LEIA-ME ao Drive")
-                        render()
-                        try:
-                            for _, copy_status, detail in publish([readme], destination):
-                                if copy_status != "copiado":
-                                    drive_failures += 1
-                                log.append_stdout(f"Drive: {copy_status}: {readme} {detail}\n")
-                        except Exception as exc:
-                            drive_failures += 1
-                            log.append_stdout(f"Drive falhou; arquivo local preservado: {exc}\n")
-                    log.append_stdout(f"Pasta de entrega: {delivery_root}\n")
                 update_files()
                 stop_clock.set()
                 if ticker.is_alive():
                     ticker.join()
-                title = "✓ LOTE CONCLUÍDO" if not failed else "⚠ CONCLUÍDO COM FALHAS" if ok else "✕ LOTE FALHOU"
-                drive_status = (f"{drive_failures} envio(s) não concluído(s)" if drive_failures else "cópias solicitadas concluídas") if automatic else "envio automático não solicitado"
-                status.value = f"<b>{title}</b> · {ok} sucesso(s), {failed} falha(s)<br>Drive: {drive_status}<br>Tempo total: {_duration(state.snapshot()['elapsed'])}"
+                title = "✓ LOTE CONCLUÍDO" if not failed else "⚠ CONCLUÍDO COM FALHAS" if ok or skipped else "✕ LOTE FALHOU"
+                drive_status = ("verifique as falhas no log" if failed else "resultados disponíveis no Drive") if automatic else "não utilizado para esta execução"
+                status.value = f"<b>{title}</b> · {ok} gerado(s), {skipped} já disponível(is), {failed} falha(s)<br>Drive: {drive_status}<br>Tempo total: {_duration(state.snapshot()['elapsed'])}"
             except Exception as exc:
                 stop_clock.set()
                 if ticker.is_alive():
@@ -270,7 +300,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             log.append_stdout(f"Erro ao iniciar lote: {exc}\n")
     update_files()
     territories_panel = w.VBox([w.HTML("<h3>Territórios</h3>"), *territory_boxes])
-    output_panel = w.VBox([w.HTML("<h3>Saídas e destino</h3>"), delivery, *kinds.values(), auto, drive])
+    output_panel = w.VBox([w.HTML("<h3>Saídas e destino</h3>"), *kinds.values(), auto, drive, check_status, availability])
     delivery_panel = w.VBox([w.HTML("<h3>Arquivos gerados e envio posterior</h3>"), refresh, selection, send])
     ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), catalog_panel,
                  territories_panel, output_panel, delivery_panel,

@@ -10,6 +10,7 @@ from gif_factory.presets import LAYERS, TERRITORIES
 from gif_factory.layout import combination_path, ensure_unique_paths, safe_name
 from gif_factory.temporal import resolve_bands
 from gif_factory.progress import ProgressState
+from gif_factory.library import assess, fingerprint, ingest, sync_selected, variant_for
 
 
 class BasicTests(unittest.TestCase):
@@ -52,6 +53,7 @@ class BasicTests(unittest.TestCase):
 
     def test_presets_and_invalid_id(self):
         validate(LAYERS, TERRITORIES)
+        self.assertTrue({"pais_brasil", "peru", "peru_bioma_andes", "peru_bioma_desierto", "peru_bioma_bosque_seco"}.issubset({x["id"] for x in TERRITORIES}))
         with self.assertRaises(ValueError):
             validate([{**LAYERS[0], "id": "../bad"}], TERRITORIES)
 
@@ -128,6 +130,16 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(cfg.territories["biomes"][TERRITORIES[0]["id"]]["filter_in"]["values"], ["Amazônia"])
         self.assertEqual(cfg.visualizations["notebook"]["discrete_labels"], ["Não observado", "Fogo"])
 
+    def test_territory_filter_supports_one_or_many_values(self):
+        territory = {**TERRITORIES[0], "filter": {"field": "Bioma", "values": ["Cerrado", "Caatinga"]}}
+        validate([LAYERS[0]], [territory])
+        cfg = NotebookConfig(LAYERS[0], territory, "project")
+        self.assertEqual(cfg.territories["biomes"][territory["id"]]["filter_in"]["values"], ["Cerrado", "Caatinga"])
+        with self.assertRaises(ValueError):
+            validate([LAYERS[0]], [{**territory, "filter": {"field": "Bioma", "values": []}}])
+        with self.assertRaises(ValueError):
+            validate([LAYERS[0]], [{**territory, "filter": {"field": "Bioma", "value": "A", "values": ["B"]}}])
+
     def test_pipeline_adapter_only_exports_selected_files(self):
         module = ModuleType("mapbiomas_data.core.pipeline")
         class FakePipeline:
@@ -156,7 +168,7 @@ class BasicTests(unittest.TestCase):
         amazon = combination_path("Brasil", LAYERS[0], TERRITORIES[0])
         caatinga = combination_path("Brasil", LAYERS[0], TERRITORIES[1])
         self.assertEqual(amazon.parent, caatinga.parent)
-        self.assertEqual(str(amazon).replace("\\", "/"), "Brasil/Fogo/Colecao_5/Area_queimada_anual/Amazonia")
+        self.assertEqual(str(amazon).replace("\\", "/"), "Brasil_Fogo_Colecao_5/Area_queimada_anual/Amazonia")
         combos = [("Brasil", LAYERS[0], TERRITORIES[0]), ("Brasil", LAYERS[0], TERRITORIES[1])]
         ensure_unique_paths(combos)
         with self.assertRaises(ValueError):
@@ -166,7 +178,7 @@ class BasicTests(unittest.TestCase):
         self.assertNotIn("/", safe_name("../../Mata Atlântica"))
         custom = {**LAYERS[0], "name": "Área de teste", "theme": "Água", "collection": "Coleção 1"}
         self.assertEqual(str(combination_path("Personalizado", custom, TERRITORIES[0])).replace("\\", "/"),
-                         "Personalizado/Agua/Colecao_1/Area_de_teste/Amazonia")
+                         "Personalizado_Agua_Colecao_1/Area_de_teste/Amazonia")
         with self.assertRaises(ValueError):
             ensure_unique_paths([("Personalizado", custom, TERRITORIES[0]),
                                  ("Personalizado", {**custom, "name": "Area de teste"}, TERRITORIES[0])])
@@ -181,9 +193,68 @@ class BasicTests(unittest.TestCase):
                 path.write_bytes(b"gif")
                 files.append(path)
             self.assertTrue(all(item[1] == "copiado" for item in copy_artifacts(files, local, drive)))
-            product = drive / "Entrega_2026/Brasil/Fogo/Colecao_5/Area_queimada_anual"
+            product = drive / "Entrega_2026/Brasil_Fogo_Colecao_5/Area_queimada_anual"
             self.assertTrue((product / "Amazonia/GIFs/mapa.gif").exists())
             self.assertTrue((product / "Caatinga/GIFs/mapa.gif").exists())
+
+    def test_library_variants_and_deletion_are_safe(self):
+        all_bands = ["burned_area_2020", "burned_area_2021", "burned_area_2022"]
+        self.assertEqual(variant_for(all_bands, all_bands), "completo")
+        self.assertEqual(variant_for(all_bands, all_bands[:2]), "2020-2021")
+        self.assertTrue(variant_for(all_bands, all_bands[::2]).startswith("selecao_"))
+        with tempfile.TemporaryDirectory() as tmp:
+            stage, dest = Path(tmp) / "stage", Path(tmp) / "dest"
+            (stage / "GIFs").mkdir(parents=True)
+            file = stage / "GIFs/gif.gif"
+            file.write_bytes(b"original")
+            sig = fingerprint(LAYERS[0], TERRITORIES[0], all_bands)
+            self.assertEqual(assess(dest, "completo", sig, {"gif"}), "nao_gerado")
+            ingest(stage, dest, "completo", sig, all_bands, LAYERS[0], TERRITORIES[0])
+            self.assertEqual(assess(dest, "completo", sig, {"gif"}), "disponivel")
+            self.assertEqual(assess(dest, "completo", sig, {"gif", "finais"}), "parcial")
+            (dest / "GIFs/gif.gif").unlink()
+            self.assertEqual(assess(dest, "completo", sig, {"gif"}), "parcial")
+            ingest(stage, dest, "completo", sig, all_bands, LAYERS[0], TERRITORIES[0])
+            (dest / "GIFs/gif.gif").write_bytes(b"alterado")
+            self.assertEqual(assess(dest, "completo", sig, {"gif"}), "verificar")
+            with self.assertRaises(FileExistsError):
+                ingest(stage, dest, "completo", sig, all_bands, LAYERS[0], TERRITORIES[0])
+            self.assertEqual((dest / "GIFs/gif.gif").read_bytes(), b"alterado")
+
+    def test_selected_drive_copy_keeps_partial_manifest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root, dest, stage = Path(tmp) / "local", Path(tmp) / "drive", Path(tmp) / "stage"
+            (stage / "Frames/Mapa_completo").mkdir(parents=True)
+            (stage / "Frames/Mapa_completo/2020.png").write_bytes(b"a")
+            (stage / "Frames/Mapa_completo/2021.png").write_bytes(b"b")
+            combo = root / "Brasil_Fogo_Colecao_5/produto/territorio"
+            bands = ["a_2020", "a_2021"]
+            sig = fingerprint(LAYERS[0], TERRITORIES[0], bands)
+            files = ingest(stage, combo, "completo", sig, bands, LAYERS[0], TERRITORIES[0])
+            sync_selected(files[:1], root, dest)
+            target = dest / combo.relative_to(root)
+            self.assertEqual(assess(target, "completo", sig, {"finais"}), "parcial")
+            sync_selected(files[1:], root, dest)
+            self.assertEqual(assess(target, "completo", sig, {"finais"}), "disponivel")
+
+    def test_full_and_partial_versions_coexist_and_new_bands_are_detected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stage, destination = Path(tmp) / "stage", Path(tmp) / "library"
+            (stage / "GIFs").mkdir(parents=True)
+            (stage / "GIFs/mapa_2020-2021.gif").write_bytes(b"partial")
+            partial = ["ano_2020", "ano_2021"]
+            complete = partial + ["ano_2022"]
+            partial_sig = fingerprint(LAYERS[0], TERRITORIES[0], partial)
+            full_sig = fingerprint(LAYERS[0], TERRITORIES[0], complete)
+            ingest(stage, destination, "2020-2021", partial_sig, partial, LAYERS[0], TERRITORIES[0])
+            self.assertEqual(assess(destination, "completo", full_sig, {"gif"}), "nao_gerado")
+            another = Path(tmp) / "stage2/GIFs"
+            another.mkdir(parents=True)
+            (another / "mapa.gif").write_bytes(b"full")
+            ingest(another.parent, destination, "completo", full_sig, complete, LAYERS[0], TERRITORIES[0])
+            self.assertEqual(assess(destination, "completo", full_sig, {"gif"}), "disponivel")
+            next_sig = fingerprint(LAYERS[0], TERRITORIES[0], complete + ["ano_2023"])
+            self.assertEqual(assess(destination, "completo", next_sig, {"gif"}), "verificar")
 
 
 if __name__ == "__main__":
