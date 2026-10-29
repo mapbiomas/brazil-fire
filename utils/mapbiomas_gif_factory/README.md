@@ -6,7 +6,7 @@ Protótipo para produzir GIFs cartográficos de imagens multibanda do Earth Engi
 
 ## Como usar
 
-1. Abra o notebook acima. Na primeira célula, `GEE_PROJECT` usa `mapbiomas-brazil`; altere para um projeto Earth Engine ao qual você tenha acesso, se necessário.
+1. Abra o notebook acima. Na primeira célula, `GEE_PROJECT` usa `mapbiomas-brazil`; altere para um projeto Earth Engine ao qual você tenha acesso, se necessário. A célula clona o repositório na primeira execução e, nas seguintes, apenas busca e reposiciona em `REPO_REF`, reinstala o pacote e descarta módulos em cache — assim você recebe atualizações sem reiniciar o runtime.
 2. Execute as células em ordem. Edite `LAYERS` e `TERRITORIES` se quiser acrescentar itens personalizados; as bandas de imagens multibanda são descobertas automaticamente.
 3. Na interface, escolha **uma iniciativa** (Brasil, Peru ou Personalizado) e navegue pelas guias **Produtos**, **Territórios**, **Saídas e destino** e **Resultados**. Em Produtos, o seletor de **Tema** filtra os produtos da iniciativa ativa. Um lote nunca mistura iniciativas: trocar de iniciativa limpa as seleções.
 4. Selecione pelo menos um produto, um território e os tipos de arquivo. Países inteiros e biomas individuais estão disponíveis para Brasil e Peru. **Territórios personalizados ficam disponíveis em qualquer iniciativa**, para rodar um produto já preparado sobre um limite não previsto. Na iniciativa **Personalizado**, aparecem apenas as suas camadas, e todos os grupos de território ficam acessíveis.
