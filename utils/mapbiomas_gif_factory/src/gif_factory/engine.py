@@ -1,7 +1,8 @@
-"""Geração experimental de GIFs a partir de imagens EE multibanda."""
+"""Adaptador de configurações do notebook para o pipeline cartográfico offline."""
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import re
+import shutil
 
 
 def validate(layers, territories):
@@ -19,75 +20,60 @@ def validate(layers, territories):
                 raise ValueError("bands deve ser uma lista de nomes de bandas.")
 
 
-def generate(layer, territory, root, kinds, on_artifact=None, dimension=600):
-    import ee
-    import requests
-    from PIL import Image, ImageDraw, ImageFont
+class NotebookConfig:
+    def __init__(self, layer, territory, project):
+        viz = dict(layer["visualization"])
+        viz.setdefault("cmap_type", "binary" if len(layer["legend"]) == 2 else "discrete")
+        viz.setdefault("discrete_labels", [x["label"] for x in layer["legend"]])
+        viz.setdefault("label", layer.get("legend_label", ""))
+        product = {"name": layer["name"], "asset": layer["asset"], "bands": layer["bands"], "visualization": "notebook"}
+        self.datasets = {"notebook": {"products": {layer["id"]: product}, "title_collection": layer.get("collection_title", "")}}
+        entry = {"name": territory["name"], "source": territory["asset"]}
+        if territory.get("filter"):
+            entry["filter_in"] = {"field": territory["filter"]["field"], "values": [territory["filter"]["value"]]}
+        self.territories = {"biomes": {territory["id"]: entry}}
+        self.visualizations = {"notebook": viz}
+        self.categories = {}
+        self.ee_project_id = project
+
+    def get_processing_config(self, key):
+        return {"gif_creation": {"frame_duration": 300, "loop_count": 1000, "quality": 95}}.get(key, {})
+
+
+def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, project=None, on_progress=None):
+    from mapbiomas_data.core.pipeline import Pipeline
     validate([layer], [territory])
-    root = Path(root) / layer["id"] / territory["id"]
-    root.mkdir(parents=True, exist_ok=True)
-    region = ee.FeatureCollection(territory["asset"])
-    if territory.get("filter"):
-        f = territory["filter"]
-        region = region.filter(ee.Filter.eq(f["field"], f["value"]))
-    if region.size().getInfo() == 0:
-        raise ValueError("Território sem feições após aplicação do filtro.")
-    geometry = region.geometry()
-    image = ee.Image(layer["asset"])
-    existing = image.bandNames().getInfo()
-    missing = [b for b in layer["bands"] if b not in existing]
-    if missing:
-        raise ValueError(f"Bandas não encontradas: {missing}; disponíveis: {existing}")
+    if not project:
+        raise ValueError("Informe o projeto Earth Engine usado na autenticação.")
+    out = Path(root) / layer["id"] / territory["id"]
+    out.mkdir(parents=True, exist_ok=True)
+    config = NotebookConfig(layer, territory, project)
+    pipeline = Pipeline(config)
+    if on_progress:
+        pipeline.downloader.progress_callback = on_progress
+        pipeline.progress_callback = on_progress
     produced = []
-
-    def save(img, relative, **kwargs):
-        path = root / relative
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if path.exists():
-            raise FileExistsError(f"Arquivo já existe: {path}. Use outra pasta de execução.")
-        img.save(path, **kwargs)
-        produced.append(path)
-        if on_artifact:
-            on_artifact(path)
-
-    finals = []
-    with TemporaryDirectory() as tmp:
-        for index, band in enumerate(layer["bands"]):
-            params = dict(layer["visualization"], dimensions=dimension, region=geometry.bounds(), format="png")
-            url = image.select(band).clip(geometry).getThumbURL(params)
-            response = requests.get(url, timeout=120)
-            response.raise_for_status()
-            raw_path = Path(tmp) / f"{index}.png"
-            raw_path.write_bytes(response.content)
-            with Image.open(raw_path) as raw_image:
-                raw = raw_image.convert("RGB")
-            if "brutos" in kinds:
-                save(raw, f"frames/brutos/{index:03d}.png")
-            if "preparados" in kinds:
-                save(raw, f"frames/preparados/{index:03d}.png")
-            try:
-                font = ImageFont.truetype("DejaVuSans.ttf", 13)
-            except OSError:
-                font = ImageFont.load_default()
-            final = Image.new("RGB", (max(raw.width, 500), raw.height + 90 + 22 * len(layer["legend"])), "white")
-            final.paste(raw, (0, 40))
-            draw = ImageDraw.Draw(final)
-            draw.text((10, 10), f"{layer['name']} | {territory['name']} | {band}", fill="black", font=font)
-            for i, entry in enumerate(layer["legend"]):
-                y = raw.height + 50 + i * 22
-                draw.rectangle((10, y, 25, y + 15), fill="#" + entry["color"].lstrip("#"))
-                draw.text((32, y), entry["label"], fill="black", font=font)
-            finals.append(final)
-            if "finais" in kinds:
-                save(final, f"frames/finais/{index:03d}.png")
-        if "gif" in kinds:
-            save(finals[0], "gifs/animacao.gif", save_all=True, append_images=finals[1:], duration=500, loop=0)
-        if "colagem" in kinds:
-            width = max(frame.width for frame in finals)
-            height = max(frame.height for frame in finals)
-            columns = min(3, len(finals))
-            collage = Image.new("RGB", (width * columns, height * ((len(finals) + columns - 1) // columns)), "white")
-            for i, frame in enumerate(finals):
-                collage.paste(frame, ((i % columns) * width, (i // columns) * height))
-            save(collage, "colagens/colagem.png")
+    # Keep pipeline intermediates separate from the requested deliverables.
+    with TemporaryDirectory(prefix="gif_factory_") as tmp:
+        result = pipeline.run("notebook", layer["id"], territory["id"], output_dir=tmp,
+                              create_collage="colagem" in kinds, add_labels=True,
+                              vertical_dimension=dimension)
+        if result.get("status") != "success":
+            raise RuntimeError(result.get("error", "Falha no pipeline cartográfico."))
+        folders = {"gif": ("gifs", "gifs"), "colagem": ("collages_combined", "colagens"),
+                   "brutos": ("frames_pure", "frames/brutos"), "preparados": ("frames_clean", "frames/preparados"),
+                   "finais": ("frames_maps", "frames/finais")}
+        for kind, (source_folder, dest_folder) in folders.items():
+            if kind not in kinds:
+                continue
+            for source in sorted((Path(tmp) / source_folder).glob("*")):
+                if not source.is_file() or source.suffix.lower() not in {".gif", ".png"}:
+                    continue
+                target = out / dest_folder / source.name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with source.open("rb") as src, target.open("xb") as dst:
+                    shutil.copyfileobj(src, dst)
+                produced.append(target)
+                if on_artifact:
+                    on_artifact(target)
     return produced
