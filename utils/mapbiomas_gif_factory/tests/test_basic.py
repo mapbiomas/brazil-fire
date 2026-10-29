@@ -84,8 +84,9 @@ class BasicTests(unittest.TestCase):
         layers, territories = namespace["LAYERS"], namespace["TERRITORIES"]
         validate(layers, territories)
         self.assertEqual({x["id"] for x in territories}, {"matopiba", "matopiba_cerrado"})
-        self.assertTrue({"lulc_10", "lulc_10_1", "fogo4_anual"}.issubset({x["id"] for x in layers}))
-        self.assertEqual(len([x for x in layers if x.get("collection") == "Coleção 4"]), 11)
+        self.assertEqual([x["id"] for x in layers], ["fogo_anual"])
+        self.assertNotIn("bands", layers[0])
+        self.assertEqual(layers[0]["status"], "experimental")
 
     def test_copy_is_selective_and_does_not_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -14,6 +14,43 @@ Protótipo independente para criar GIFs no Google Colab a partir de imagens mult
 
 O armazenamento `/content` é temporário e desaparece quando a sessão do Colab termina. O envio posterior exige que a sessão e seus arquivos ainda existam. Cópias com falha são reportadas e podem ser novamente selecionadas.
 
+## Configurações personalizadas
+
+As células `LAYERS` e `TERRITORIES` do notebook são listas Python explícitas. Edite-as e execute novamente a célula da interface. As camadas aparecem na guia **Personalizado**; os territórios podem ser usados com qualquer camada selecionada. Os exemplos de Fogo 4 e MATOPIBA são experimentais: confirme acesso e resultado no Earth Engine.
+
+Uma camada de imagem multibanda tem o seguinte formato:
+
+```python
+LAYERS = [{
+    "id": "minha_camada",                # identificador único: letras, números, _ ou -
+    "name": "Minha camada",              # nome exibido
+    "theme": "Meu tema",                  # opcional
+    "collection": "Minha coleção",        # opcional
+    "asset": "projects/.../minha_imagem", # ee.Image multibanda
+    "visualization": {"min": 0, "max": 1, "palette": ["fdfdfd", "800000"]},
+    "legend": [
+        {"label": "Não observado", "color": "fdfdfd"},
+        {"label": "Fogo", "color": "800000"},
+    ],
+}]
+```
+
+`id`, `name`, `asset`, `visualization` e `legend` são obrigatórios. `theme` e `collection` são opcionais. A fábrica descobre as bandas; para restringi-las manualmente, inclua opcionalmente `"bands": ["nome_da_banda"]`. A ordem e as cores de `legend` devem corresponder à paleta de `visualization`: o renderizador usa a paleta para as cores e os rótulos da legenda. Não use este exemplo binário como legenda genérica para produtos categóricos: classes não consecutivas exigem correspondência validada entre valores, cores e rótulos.
+
+Um território usa uma FeatureCollection e pode ter filtro de igualdade:
+
+```python
+TERRITORIES = [{
+    "id": "meu_territorio",             # identificador único
+    "name": "Meu território",
+    "asset": "projects/.../meu_limite", # ee.FeatureCollection
+    # Opcional; remova se quiser usar toda a coleção:
+    "filter": {"field": "nome_do_campo", "value": "valor"},
+}]
+```
+
+Confira a existência e as permissões do asset e, quando houver filtro, o nome e o valor do atributo. O projeto não valida automaticamente se um território intersecta os dados da camada.
+
 ## Organização dos resultados
 
 Cada disparo cria uma pasta com o nome de entrega escolhido e data/hora, sem alterar resultados de execuções anteriores. Dentro dela, os arquivos ficam em `Brasil/Fogo/Colecao_5/Produto/Territorio/`, com biomas do mesmo produto como pastas irmãs. Camadas do notebook aparecem em `Personalizado/Tema/Colecao/Produto/Territorio/`. Se tema ou coleção não forem informados, são usados `Sem_tema` e `Sem_colecao`.
@@ -30,7 +67,7 @@ Cada território contém somente as pastas selecionadas: `GIFs`, `Colagens` e/ou
 - A estimativa apresentada é apenas para o download dos frames da combinação atual, calculada com a média observada; não inclui composição, GIF ou envio ao Drive.
 - A barra de lote conta combinações processadas, inclusive falhas; a barra de download conta somente frames baixados. O relógio atualiza durante as esperas, e tentativas e erros são registrados no painel.
 - Não há integração automática com o catálogo de referência. Acrescentar coleções e legendas requer revisão e testes individuais.
-- A célula de camadas contém exemplos para cobertura 10/10.1 e produtos Fogo 4. Itens marcados como pendentes estão desabilitados até validar simbologia e transformações; Fogo 4 anual é experimental. Para habilitar um item pendente, o responsável precisa completar e validar `visualization` e `legend` e remover `enabled: False`.
+- A célula personalizada contém um exemplo editável de Fogo 4 anual. Uso e cobertura 10/10.1 e os demais produtos de Fogo 4 ainda não integram o catálogo permanente; precisam de validação de simbologia e transformações.
 - Os territórios personalizados são independentes das iniciativas. Os exemplos MATOPIBA e MATOPIBA no Cerrado vêm das configurações locais e não tiveram acesso verificado nesta versão. Troque os assets na célula se necessário.
 
 ## Próximas etapas de expansão
