@@ -44,20 +44,21 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     drive = w.Text(value="/content/drive/MyDrive/mapbiomas_gif_factory", description="Drive:", layout=w.Layout(width="95%"))
     auto = w.Checkbox(value=False, description="Usar biblioteca no Drive e enviar automaticamente")
     kinds = {k: w.Checkbox(value=(k == "gif"), description=label) for k, label in [("gif", "GIFs"), ("colagem", "Colagens"), ("brutos", "Frames: mapa básico"), ("preparados", "Frames: mapa com ano e escala"), ("finais", "Frames: mapa completo")]}
-    initiative = w.ToggleButtons(options=["Brasil", "Peru"], value="Brasil", description="Iniciativa:")
+    initiative = w.ToggleButtons(options=["Brasil", "Peru", "Personalizado"], value="Brasil", description="Iniciativa:")
+    theme_nav = w.ToggleButtons(options=[], description="Tema:")
 
-    # Preset catalog and user-provided layers are intentionally separate.
+    # Catálogo de presets e camadas do usuário ficam separados por iniciativa.
     catalog = [("Brasil", [x for x in LAYERS if x.get("initiative", "Brasil") == "Brasil"]),
                ("Peru", [x for x in LAYERS if x.get("initiative") == "Peru"]), ("Personalizado", layers)]
     product_checks = []
-    catalog_sections = []
+    theme_panels = {}
     for origin, entries in catalog:
         groups = {}
         for layer in entries:
             theme = layer.get("theme", "Fogo" if origin == "Brasil" else "Outros")
             collection = layer.get("collection", "Coleção 5" if origin == "Brasil" else "Sem coleção")
             groups.setdefault((theme, collection), []).append(layer)
-        children = [w.HTML(f"<h4>{escape(origin)}</h4>")]
+        sections = []
         for (theme, collection), group in groups.items():
             checks = []
             for layer in group:
@@ -68,13 +69,16 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                 checks.append(check)
                 if not enabled:
                     checks.append(w.HTML(f"<small>{escape(layer.get('reason', 'Configuração pendente.'))}</small>"))
-            children.append(w.VBox([w.HTML(f"<b>{escape(str(theme))} / {escape(str(collection))}</b>"), *checks]))
-        if not groups:
-            children.append(w.HTML("Nenhuma camada configurada."))
-        catalog_sections.append(w.VBox(children))
-    catalog_panel = w.VBox(catalog_sections)
+            panel = w.VBox([w.HTML(f"<b>{escape(str(collection))}</b>"), *checks])
+            panel.theme = str(theme)
+            sections.append(panel)
+        if not sections:
+            sections.append(w.HTML("Nenhuma camada configurada."))
+        theme_panels[origin] = sections
+    theme_body = w.VBox([])
+    catalog_panel = w.VBox([w.HTML("<h3>Produtos</h3>"), theme_nav, theme_body])
 
-    # Notebook territories remain customizable and separate from preset territories.
+    # Territórios personalizados continuam disponíveis em qualquer iniciativa.
     territory_checks = []
     territory_boxes = []
     brazil_territories = [t for t in TERRITORIES if not t["id"].startswith("peru")]
@@ -87,17 +91,36 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             checks.append(check)
         territory_boxes.append(w.VBox([w.HTML(f"<b>{name}</b>"), *checks]))
 
+    def render_themes(*_):
+        origin = initiative.value
+        sections = theme_panels[origin]
+        themes = []
+        for panel in sections:
+            theme = getattr(panel, "theme", None)
+            if theme and theme not in themes:
+                themes.append(theme)
+        previous = theme_nav.value
+        theme_nav.options = themes
+        if themes and previous not in themes:
+            theme_nav.value = themes[0]
+        theme_nav.layout.display = "" if len(themes) > 1 else "none"
+        for panel in sections:
+            theme = getattr(panel, "theme", None)
+            visible = theme is None or len(themes) <= 1 or theme == theme_nav.value
+            panel.layout.display = "" if visible else "none"
+        theme_body.children = [*sections]
+
     def change_initiative(change=None):
-        active = initiative.value
         if change:
             for _, _, check in product_checks + territory_checks:
                 check.value = False
-        catalog_sections[0].layout.display = "" if active == "Brasil" else "none"
-        catalog_sections[1].layout.display = "" if active == "Peru" else "none"
-        territory_boxes[0].layout.display = "" if active == "Brasil" else "none"
-        territory_boxes[1].layout.display = "" if active == "Peru" else "none"
+        active = initiative.value
+        # "Personalizado" é um espaço livre: camadas próprias e qualquer território.
+        territory_boxes[0].layout.display = "" if active in ("Brasil", "Personalizado") else "none"
+        territory_boxes[1].layout.display = "" if active in ("Peru", "Personalizado") else "none"
+        render_themes()
+    theme_nav.observe(render_themes, names="value")
     initiative.observe(change_initiative, names="value")
-    change_initiative()
 
     def update_files(*_):
         files = list_artifacts(output_root)
@@ -112,9 +135,10 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     check_status = w.Button(description="Verificar disponibilidade", layout=w.Layout(width="210px"))
     def selected_combinations():
         active = initiative.value
+        allowed_territories = ("Brasil", "Peru", "Personalizados") if active == "Personalizado" else (active, "Personalizados")
         return [(active, deepcopy(layer), deepcopy(territory))
-                for origin, layer, check in product_checks if check.value and origin in (active, "Personalizado")
-                for group, territory, tcheck in territory_checks if tcheck.value and group in (active, "Personalizados")]
+                for origin, layer, check in product_checks if check.value and origin == active
+                for group, territory, tcheck in territory_checks if tcheck.value and group in allowed_territories]
     def library_root():
         if auto.value:
             if not Path("/content/drive/MyDrive").is_dir():
@@ -313,6 +337,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             status.value = f"<b>Erro ao iniciar o lote:</b> {escape(str(exc))}"
             log.append_stdout(f"Erro ao iniciar lote: {exc}\n")
     update_files()
+    change_initiative()
     territories_panel = w.VBox([w.HTML("<h3>Territórios</h3>"), *territory_boxes])
     output_panel = w.VBox([w.HTML("<h3>Saídas e destino</h3>"), *kinds.values(), auto, drive, check_status, availability])
     delivery_panel = w.VBox([w.HTML("<h3>Arquivos gerados e envio posterior</h3>"), refresh, selection, send])
@@ -327,5 +352,13 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     ui.start_batch = start_batch
     ui.initiative = initiative
     ui.navigation = navigation
+    ui.theme_nav = theme_nav
+    ui.product_checks = product_checks
+    ui.territory_checks = territory_checks
+    ui.status_html = status
+    ui.sprout = sprout
+    ui.overall = overall
+    ui.download_progress = progress
+    ui.log_output = log
     display(ui)
     return ui

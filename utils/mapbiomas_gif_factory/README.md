@@ -8,8 +8,8 @@ Protótipo para produzir GIFs cartográficos de imagens multibanda do Earth Engi
 
 1. Abra o notebook acima. Na primeira célula, `GEE_PROJECT` usa `mapbiomas-brazil`; altere para um projeto Earth Engine ao qual você tenha acesso, se necessário.
 2. Execute as células em ordem. Edite `LAYERS` e `TERRITORIES` se quiser acrescentar itens personalizados; as bandas de imagens multibanda são descobertas automaticamente.
-3. Na interface, escolha **uma iniciativa** (Brasil ou Peru) e navegue pelas guias **Produtos**, **Territórios**, **Saídas e destino** e **Resultados**. Um lote nunca mistura iniciativas: os produtos e territórios exibidos pertencem à iniciativa ativa, e trocar de iniciativa limpa as seleções. Territórios personalizados continuam disponíveis em qualquer iniciativa.
-4. Selecione pelo menos um produto, um território e os tipos de arquivo. Países inteiros e biomas individuais estão disponíveis para Brasil e Peru.
+3. Na interface, escolha **uma iniciativa** (Brasil, Peru ou Personalizado) e navegue pelas guias **Produtos**, **Territórios**, **Saídas e destino** e **Resultados**. Em Produtos, o seletor de **Tema** filtra os produtos da iniciativa ativa. Um lote nunca mistura iniciativas: trocar de iniciativa limpa as seleções.
+4. Selecione pelo menos um produto, um território e os tipos de arquivo. Países inteiros e biomas individuais estão disponíveis para Brasil e Peru. **Territórios personalizados ficam disponíveis em qualquer iniciativa**, para rodar um produto já preparado sobre um limite não previsto. Na iniciativa **Personalizado**, aparecem apenas as suas camadas, e todos os grupos de território ficam acessíveis.
 5. Escolha se a biblioteca principal será local ou, marcando envio automático, o Drive. Use **Verificar disponibilidade** para consultar o estado das combinações selecionadas. Execute a célula `ui.start_batch()` para iniciar.
 6. Se a biblioteca principal já tiver resultados completos e compatíveis, eles não serão reprocessados. Caso haja conflito, o processo avisa e não sobrescreve. Para enviar arquivos locais mais tarde, selecione-os na seção de envio; os metadados necessários são copiados junto.
 
@@ -42,7 +42,9 @@ Uma série completa usa `completo` nos metadados e não recebe período extra no
 
 ## Camadas e territórios personalizados
 
-As células `LAYERS` e `TERRITORIES` são listas Python explícitas. Altere-as e execute novamente a interface. Para uma camada `ee.Image` multibanda:
+As células `LAYERS` e `TERRITORIES` são listas Python explícitas. Altere-as e execute novamente a interface. As camadas de `LAYERS` aparecem na iniciativa **Personalizado** e são gravadas em `Personalizado_<tema>_<coleção>/...`; os presets ficam em Brasil e Peru. Os territórios de `TERRITORIES` aparecem no grupo **Personalizados** e podem ser combinados com produtos de qualquer iniciativa.
+
+Para uma camada `ee.Image` multibanda:
 
 ```python
 LAYERS = [{
