@@ -27,23 +27,16 @@ class UIProgressTests(unittest.TestCase):
             tabs.children[0].children[0].children[0].value = False
             for checkbox in tabs.children[1].children[0].children:
                 checkbox.value = True
-            button = widget.children[3].children[0]
             widget.start_batch()
-            deadline = time.monotonic() + 4
-            while button.disabled and time.monotonic() < deadline:
-                time.sleep(0.02)
-            self.assertFalse(button.disabled)
             self.assertEqual(seen, [(2020, 2021), (2023, 2024)])
 
-    def test_startup_failure_is_visible_and_button_restored(self):
+    def test_startup_failure_is_visible(self):
         from gif_factory import ui as module
         with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"):
             widget = module.show_ui([], [], output_root=tmp, project="test")
-            button = widget.children[3].children[0]
             status = widget.children[4]
             with patch.object(module, "Thread", side_effect=RuntimeError("não iniciou")):
                 widget.start_batch()
-            self.assertFalse(button.disabled)
             self.assertIn("Erro ao iniciar", status.value)
             self.assertIn("não iniciou", status.value)
 
@@ -67,23 +60,23 @@ class UIProgressTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp, patch.object(module, "display"), patch.object(module, "generate", fake_generate):
             widget = module.show_ui([], [], output_root=tmp, project="test")
-            button, sprout = widget.children[3].children
+            sprout = widget.children[3]
             status, overall, download = widget.children[4:7]
-            button.click()
+            widget.start_batch(wait=False)
             try:
                 self.assertTrue(entered.wait(2))
-                self.assertTrue(button.disabled)
                 self.assertEqual(sprout.layout.display, "")
                 self.assertIn("Frame 1 de 2", status.value)
                 self.assertEqual(download.layout.display, "")
                 time.sleep(1.2)
                 self.assertIn("00:01", status.value)
+                widget.start_batch(wait=False)
+                self.assertIn("Já existe um lote", status.value)
             finally:
                 release.set()
             deadline = time.monotonic() + 4
-            while button.disabled and time.monotonic() < deadline:
+            while sprout.layout.display != "none" and time.monotonic() < deadline:
                 time.sleep(0.02)
-            self.assertFalse(button.disabled)
             self.assertIn("LOTE CONCLUÍDO", status.value)
             self.assertEqual(overall.value, 1)
             self.assertEqual(sprout.layout.display, "none")

@@ -1,7 +1,7 @@
 """Seleção hierárquica e progresso do lote no Colab."""
 from datetime import datetime
 from pathlib import Path
-from threading import Thread, Event
+from threading import Thread, Event, Lock
 from html import escape
 from copy import deepcopy
 import ipywidgets as w
@@ -22,10 +22,10 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     validate(layers, territories)
     validate(LAYERS, TERRITORIES)
     log = w.Output(layout=w.Layout(border="1px solid #ddd", max_height="250px", overflow="auto"))
-    status = w.HTML(value="<b>Pronto para iniciar.</b>")
+    status = w.HTML(value="<b>Pronto.</b> Selecione as opções e execute a próxima célula para gerar o lote.")
     overall = w.IntProgress(value=0, min=0, max=1, description="Lote:", layout=w.Layout(width="95%"))
     progress = w.IntProgress(value=0, min=0, max=1, description="Download:", layout=w.Layout(width="95%", display="none"))
-    run = w.Button(description="Gerar lote", button_style="primary")
+    batch_lock = Lock()
     sprout = w.HTML(
         value=(
             '<style>@keyframes gif-factory-sprout {'
@@ -126,7 +126,6 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
         except ValueError as exc:
             status.value = f"<b>Seleção inválida:</b> {escape(str(exc))}"
             return
-        run.disabled = True
         sprout.layout.display = ""
         destination, automatic = drive.value, auto.value
         run_id = f"{safe_name(delivery.value, 'Resultados')}_{datetime.now():%Y-%m-%d_%H%M%S_%f}"
@@ -252,27 +251,34 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                 log.append_stdout(f"Erro ao finalizar lote: {exc}\n")
             finally:
                 stop_clock.set()
-                run.disabled = False
                 sprout.layout.display = "none"
-        Thread(target=worker, daemon=True).start()
-    def start_batch(_=None):
-        if run.disabled:
+                batch_lock.release()
+        thread = Thread(target=worker, daemon=True)
+        thread.start()
+        return thread
+    def start_batch(wait=True):
+        if not batch_lock.acquire(blocking=False):
             status.value = "<b>Já existe um lote em andamento.</b>"
             return
+        thread = None
         try:
-            on_run(None)
+            thread = on_run(None)
+            if thread is None:
+                batch_lock.release()
+                return
+            if wait:
+                thread.join()
         except Exception as exc:
-            run.disabled = False
+            if thread is None:
+                batch_lock.release()
             sprout.layout.display = "none"
             status.value = f"<b>Erro ao iniciar o lote:</b> {escape(str(exc))}"
             log.append_stdout(f"Erro ao iniciar lote: {exc}\n")
-    run.on_click(start_batch)
     sections = w.Accordion(children=[w.VBox(territory_boxes), w.VBox([delivery, *kinds.values(), auto, drive]), w.VBox([refresh, selection, send])], selected_index=None)
     for i, title in enumerate(["Territórios", "Saídas e destino", "Arquivos gerados e envio posterior"]):
         sections.set_title(i, title)
     update_files()
-    controls = w.HBox([run, sprout], layout=w.Layout(align_items="center"))
-    ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), tabs, sections, controls, status, overall, progress, log])
+    ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), tabs, sections, sprout, status, overall, progress, log])
     ui.start_batch = start_batch
     display(ui)
     return ui

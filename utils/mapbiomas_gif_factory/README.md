@@ -7,9 +7,9 @@ Protótipo independente para criar GIFs no Google Colab a partir de imagens mult
 ## Como executar
 
 1. Abra `utils/mapbiomas_gif_factory/notebooks/piloto.ipynb` do repositório `mapbiomas/brazil-fire` no Colab.
-2. Na primeira célula configure um projeto Google Cloud habilitado para Earth Engine. Execute as células em ordem. Opcionalmente fixe `REPO_REF` em um commit validado.
+2. Na primeira célula, o projeto Earth Engine padrão é `mapbiomas-brazil`. Se você não tiver acesso a ele, altere `GEE_PROJECT` para outro projeto habilitado ao qual tenha acesso. Execute as células em ordem. Opcionalmente fixe `REPO_REF` em um commit validado.
 3. Edite as listas de camadas e territórios e encontre-as na guia Personalizado; exemplos experimentais também aparecem na guia Brasil. As bandas são descobertas automaticamente; para limitar anos de uma camada personalizada, use `start_year` e/ou `end_year` no objeto da camada.
-4. Selecione as saídas e execute. Por padrão apenas o GIF fica em `/content/mapbiomas_gif_factory_output`.
+4. Selecione as opções na interface e execute a célula seguinte, `ui.start_batch()`. Por padrão apenas o GIF fica em `/content/mapbiomas_gif_factory_output`.
 5. A primeira célula tenta montar o Drive para envio automático ou posterior. Se não quiser usá-lo, comente o bloco de montagem; caso a montagem falhe, ainda é possível gerar arquivos em `/content`. Use a pasta sugerida ou outra de sua preferência. Na guia de envio, atualize a lista e selecione os arquivos desejados. Arquivos existentes no destino não são sobrescritos.
 
 O armazenamento `/content` é temporário e desaparece quando a sessão do Colab termina. O envio posterior exige que a sessão e seus arquivos ainda existam. Cópias com falha são reportadas e podem ser novamente selecionadas.
@@ -37,7 +37,7 @@ LAYERS = [{
 
 `id`, `name`, `asset`, `visualization` e `legend` são obrigatórios. `theme` e `collection` são opcionais. A fábrica descobre as bandas; para limitar o período desta camada, adicione `"start_year": 2020` e/ou `"end_year": 2023`. Sem estes campos, usa todas as bandas disponíveis. Para selecionar bandas manualmente, inclua opcionalmente `"bands": ["nome_da_banda"]`. A ordem e as cores de `legend` devem corresponder à paleta de `visualization`: o renderizador usa a paleta para as cores e os rótulos da legenda. Não use este exemplo binário como legenda genérica para produtos categóricos: classes não consecutivas exigem correspondência validada entre valores, cores e rótulos.
 
-Se o botão não responder, confirme primeiro se os widgets estão visíveis e faça as seleções. Depois, na última célula do notebook, descomente `ui.start_batch()` e execute-a como alternativa ao botão. Não use os dois disparos simultaneamente. A primeira célula ativa o gerenciador de widgets do Colab.
+A última célula é o único disparo do lote; aguarde sua conclusão antes de executá-la novamente. A primeira célula ativa o gerenciador de widgets do Colab.
 
 Um território usa uma FeatureCollection e pode ter filtro de igualdade:
 
