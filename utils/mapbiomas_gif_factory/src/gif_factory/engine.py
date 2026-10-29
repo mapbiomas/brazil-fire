@@ -30,6 +30,10 @@ def validate(layers, territories):
                 raise ValueError("bands deve ser uma lista de nomes de bandas.")
             if label == "camada":
                 start, end = item.get("start_year"), item.get("end_year")
+                if item.get("axis", "time") not in ("time", "depth"):
+                    raise ValueError(f"{item['name']}: eixo não suportado.")
+                if item.get("axis") == "depth" and (start is not None or end is not None):
+                    raise ValueError(f"{item['name']}: filtro de ano não se aplica à profundidade.")
                 if any(value is not None and (isinstance(value, bool) or not isinstance(value, int) or value < 1) for value in (start, end)):
                     raise ValueError(f"{item['name']}: start_year e end_year devem ser anos inteiros positivos.")
                 if start is not None and end is not None and start > end:
@@ -55,7 +59,7 @@ class NotebookConfig:
         viz.setdefault("cmap_type", "binary" if len(layer["legend"]) == 2 else "discrete")
         viz.setdefault("discrete_labels", [x["label"] for x in layer["legend"]])
         viz.setdefault("label", layer.get("legend_label", ""))
-        product = {"name": layer["name"], "asset": layer["asset"], "bands": layer.get("bands", []), "visualization": "notebook", "start_year": layer.get("start_year"), "end_year": layer.get("end_year"), "bands_slice": layer.get("bands_slice"), "year_offset": layer.get("year_offset", 0)}
+        product = {"name": layer["name"], "asset": layer["asset"], "bands": layer.get("bands", []), "visualization": "notebook", "start_year": layer.get("start_year"), "end_year": layer.get("end_year"), "bands_slice": layer.get("bands_slice"), "year_offset": layer.get("year_offset", 0), "axis": layer.get("axis", "time")}
         self.datasets = {"notebook": {"products": {layer["id"]: product}, "title_collection": layer.get("collection_title", "")}}
         entry = {"name": territory["name"], "source": territory["asset"]}
         if territory.get("filter"):
@@ -71,14 +75,35 @@ class NotebookConfig:
         return {"gif_creation": {"frame_duration": 300, "loop_count": 1000, "quality": 95}}.get(key, {})
 
 
-def discover(layer):
+def load_image(layer):
     import ee
+    if layer.get("axis") == "depth":
+        if not layer.get("depth_band"):
+            raise ValueError("Informe depth_band para a coleção de profundidade.")
+        collection = ee.ImageCollection(layer["asset"])
+        depths = collection.aggregate_array("depth").getInfo()
+        indices = collection.aggregate_array("system:index").getInfo()
+        if not depths or len(depths) != len(indices) or len(set(depths)) != len(depths):
+            raise ValueError("Profundidades ausentes, duplicadas ou inconsistentes na coleção.")
+        bands = []
+        for depth, index in zip(depths, indices):
+            if not isinstance(depth, str) or not re.fullmatch(r"\d{3}_\d{3}", depth):
+                raise ValueError(f"Profundidade inválida: {depth}")
+            image = ee.Image(collection.filter(ee.Filter.eq("system:index", index)).first())
+            bands.append(image.select(layer["depth_band"]).rename(f"depth_{depth}"))
+        return ee.Image.cat(bands)
     image = ee.Image(layer["asset"])
     if layer.get("bands_slice"):
         image = image.slice(*layer["bands_slice"])
+    return image
+
+
+def discover(layer):
+    image = load_image(layer)
     available = image.bandNames().getInfo()
-    all_bands = resolve_bands(available)
-    selected = resolve_bands(available, layer.get("bands"), layer.get("start_year"), layer.get("end_year"))
+    axis = layer.get("axis", "time")
+    all_bands = resolve_bands(available, axis=axis)
+    selected = resolve_bands(available, layer.get("bands"), layer.get("start_year"), layer.get("end_year"), axis=axis)
     return all_bands, selected
 
 
@@ -90,6 +115,8 @@ def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, pr
     out = Path(root)
     config = NotebookConfig(layer, territory, project)
     pipeline = Pipeline(config)
+    if layer.get("axis") == "depth":
+        pipeline._load_product_image = lambda _: load_image(layer)
     if on_progress:
         def notify(*args):
             try:

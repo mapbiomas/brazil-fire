@@ -8,9 +8,10 @@ Protótipo para produzir GIFs cartográficos de imagens multibanda do Earth Engi
 
 1. Abra o notebook acima. Na primeira célula, `GEE_PROJECT` usa `mapbiomas-brazil`; altere para um projeto Earth Engine ao qual você tenha acesso, se necessário.
 2. Execute as células em ordem. Edite `LAYERS` e `TERRITORIES` se quiser acrescentar itens personalizados; as bandas de imagens multibanda são descobertas automaticamente.
-3. Na interface, selecione pelo menos um produto, um território e os tipos de arquivo. Países inteiros e biomas individuais de Brasil e Peru estão disponíveis; territórios personalizados podem ser combinados com qualquer produto.
-4. Escolha se a biblioteca principal será local ou, marcando envio automático, o Drive. Use **Verificar disponibilidade** para consultar o estado das combinações selecionadas. Execute a célula `ui.start_batch()` para iniciar.
-5. Se a biblioteca principal já tiver resultados completos e compatíveis, eles não serão reprocessados. Caso haja conflito, o processo avisa e não sobrescreve. Para enviar arquivos locais mais tarde, selecione-os na seção de envio; os metadados necessários são copiados junto.
+3. Na interface, escolha **uma iniciativa** (Brasil ou Peru) e navegue pelas guias **Produtos**, **Territórios**, **Saídas e destino** e **Resultados**. Um lote nunca mistura iniciativas: os produtos e territórios exibidos pertencem à iniciativa ativa, e trocar de iniciativa limpa as seleções. Territórios personalizados continuam disponíveis em qualquer iniciativa.
+4. Selecione pelo menos um produto, um território e os tipos de arquivo. Países inteiros e biomas individuais estão disponíveis para Brasil e Peru.
+5. Escolha se a biblioteca principal será local ou, marcando envio automático, o Drive. Use **Verificar disponibilidade** para consultar o estado das combinações selecionadas. Execute a célula `ui.start_batch()` para iniciar.
+6. Se a biblioteca principal já tiver resultados completos e compatíveis, eles não serão reprocessados. Caso haja conflito, o processo avisa e não sobrescreve. Para enviar arquivos locais mais tarde, selecione-os na seção de envio; os metadados necessários são copiados junto.
 
 O armazenamento `/content` desaparece quando a sessão Colab termina. Os dados temporários não são enviados ao Drive automaticamente.
 
@@ -60,6 +61,28 @@ LAYERS = [{
 
 `id`, `name`, `asset`, `visualization` e `legend` são obrigatórios. `bands` é opcional para seleção explícita. As cores da legenda devem corresponder à paleta; para classes não consecutivas, não presumir que uma paleta curta represente corretamente os valores. Os exemplos de Fogo 4 e MATOPIBA são experimentais.
 
+### Eixo da sequência: tempo ou profundidade
+
+Por padrão a animação percorre os anos das bandas. Produtos de Solo organizados por camada de profundidade usam outro eixo, com `axis` e `depth_band`:
+
+```python
+LAYERS = [{
+    "id": "argila_col3",
+    "name": "Fração de argila",
+    "theme": "Solo",
+    "collection": "Coleção 3",
+    "asset": "projects/.../mapbiomas_brazil_collection3_soil_clay_fraction_v1",
+    "axis": "depth",          # "time" (padrão) ou "depth"
+    "depth_band": "clay_fraction",
+    "visualization": {"min": 0, "max": 100, "palette": ["ffffcc", "800026"]},
+    "legend": [{"label": "0", "color": "ffffcc"}, {"label": "100", "color": "800026"}],
+}]
+```
+
+Nesse eixo, a fábrica lê a propriedade `depth` de cada imagem da coleção, monta a sequência e rotula os frames como `0–10 cm`. `start_year`/`end_year` são rejeitados, e colagens e GIFs especiais por ano são desligados. Os produtos de profundidade do catálogo estão desabilitados: ainda falta validar legenda e visualização de cada variável.
+
+Para séries cumulativas, como `fire_frequency_1985_1999`, o rótulo do frame usa o ano final quando todas as janelas começam no mesmo ano; caso contrário, o intervalo completo é mantido.
+
 Um território é uma `ee.FeatureCollection`. O filtro opcional usa `ee.Filter.inList`:
 
 ```python
@@ -75,11 +98,12 @@ Para apenas um valor, pode usar `"value": "Cerrado"` no lugar de `values`. Omita
 
 ## Limitações e próximos passos
 
-- O adaptador atual suporta `ee.Image` multibanda. ImageCollection anual, RGB e produtos que exigem processadores específicos ainda requerem adaptação. Peru e os produtos recém-adicionados são experimentais e devem ser conferidos no Colab.
+- O adaptador suporta `ee.Image` multibanda em eixo de tempo e coleções de Solo em eixo de profundidade. ImageCollection anual (como Atmosfera), mosaicos, RGB e produtos que exigem processadores específicos ainda requerem adaptação. Peru, Frequência de fogo e Solo são experimentais e devem ser conferidos no Colab.
 - Bandas com ano ou intervalo identificável são ordenadas temporalmente; seleção ambígua é interrompida, em vez de produzir uma sequência presumida.
 - A biblioteca não importa automaticamente os resultados gerados pela versão anterior; arquivos antigos sem metadados compatíveis aparecem como `Verificar` se ocuparem o novo caminho.
 - A estimativa de tempo cobre apenas o download atual; a barra de lote conta combinações processadas, inclusive falhas.
-- Próximas expansões: legendas verificadas de uso e cobertura 10/10.1, produtos com processadores próprios e ImageCollection anual, incluindo Atmosfera.
+- A verificação de disponibilidade consulta metadados e arquivos; ela não valida ausência de interseção entre território e cobertura dos dados.
+- Próximas expansões: legendas verificadas de uso e cobertura 10/10.1, produtos com processadores próprios, produtos de profundidade de Solo e ImageCollection anual, incluindo Atmosfera.
 
 ## Desenvolvimento
 

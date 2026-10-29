@@ -21,7 +21,7 @@ from ..core.ee_downloader import EEDownloader
 from ..core.ee_transforms import run_processor, PROCESSOR_REGISTRY, only_coverage
 from ..core.state_manager import StateManager
 from ..utils.file_utils import ensure_dir
-from gif_factory.temporal import resolve_bands
+from gif_factory.temporal import resolve_bands, sequence_labels
 
 
 class Pipeline:
@@ -142,7 +142,8 @@ class Pipeline:
             real_band_names = self.downloader.get_band_names(image)
             yaml_bands = product_info.get("bands", [])
             band_names = resolve_bands(real_band_names, yaml_bands,
-                                       product_info.get("start_year"), product_info.get("end_year"))
+                                       product_info.get("start_year"), product_info.get("end_year"),
+                                       axis=product_info.get("axis", "time"))
             if band_names_filter:
                 band_names = [b for b in band_names if any(b.endswith(s) for s in band_names_filter)]
                 print(f"  Filtradas para anos específicos: {band_names_filter}")
@@ -296,15 +297,15 @@ class Pipeline:
                 title_line3 = None
 
             year_offset = int(product_info.get("year_offset", 0) or 0)
-            label_map = {}
+            band_stems = []
             for fp in frame_paths:
                 band_name = os.path.splitext(os.path.basename(fp))[0]
                 if band_name.startswith(prefix):
                     band_name = band_name[len(prefix):]
-                year_part = re.sub(r"^[a-z_]+", "", band_name).replace("_", "\u2192")
-                if year_offset and re.fullmatch(r"\d{4}", year_part):
-                    year_part = str(int(year_part) + year_offset)
-                label_map[os.path.basename(fp)] = year_part
+                band_stems.append((os.path.basename(fp), band_name))
+            labels = sequence_labels([stem for _, stem in band_stems],
+                                     axis=product_info.get("axis", "time"), year_offset=year_offset)
+            label_map = {filename: label for (filename, _), label in zip(band_stems, labels)}
 
             need_clean = create_collage or add_labels
             clean_paths = []
@@ -370,7 +371,9 @@ class Pipeline:
                     timings["collage_build"] = 0
                     collage_path = os.path.join(collages_dir, f"{product_id}_{territory_id}_collage.png")
 
-                if not state.is_complete("special_collages"):
+                if product_info.get("axis") == "depth":
+                    print("  Colagens especiais por ano não se aplicam à profundidade.")
+                elif not state.is_complete("special_collages"):
                     print(f"\n[3b2/4] Criando colagens especiais...")
                     t_sc = time.perf_counter()
                     special_modes = {
@@ -514,7 +517,9 @@ class Pipeline:
                     gif_path = self._find_existing_gif(gifs_dir, product_id, territory_id)
                     result["gif_path"] = gif_path
 
-                if not state.is_complete("special_gifs"):
+                if product_info.get("axis") == "depth":
+                    print("  GIFs especiais por ano não se aplicam à profundidade.")
+                elif not state.is_complete("special_gifs"):
                     if getattr(self, "progress_callback", None):
                         self.progress_callback("stage", "Gerando GIFs especiais")
                     print(f"\n[4b/4] Criando GIFs especiais...")

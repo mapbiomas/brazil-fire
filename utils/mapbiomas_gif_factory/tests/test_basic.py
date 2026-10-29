@@ -8,7 +8,7 @@ from gif_factory.engine import validate, generate, NotebookConfig
 from gif_factory.storage import copy_artifacts, list_artifacts
 from gif_factory.presets import LAYERS, TERRITORIES
 from gif_factory.layout import combination_path, ensure_unique_paths, safe_name
-from gif_factory.temporal import resolve_bands
+from gif_factory.temporal import resolve_bands, sequence_labels
 from gif_factory.progress import ProgressState
 from gif_factory.library import assess, fingerprint, ingest, sync_selected, variant_for
 
@@ -77,6 +77,26 @@ class BasicTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             resolve_bands(["classification_2020"], start_year=2021)
         self.assertEqual(resolve_bands(["foo", "bar"], ["bar", "foo"]), ["bar", "foo"])
+
+    def test_cumulative_windows_are_labelled_by_end_year(self):
+        labels = sequence_labels(["fire_frequency_1985_1985", "fire_frequency_1985_1999", "fire_frequency_1985_2025"])
+        self.assertEqual(labels, ["1985", "1999", "2025"])
+        self.assertEqual(sequence_labels(["burned_area_2020", "burned_area_2021"]), ["2020", "2021"])
+        self.assertEqual(sequence_labels(["ano_2020", "ano_2021"], year_offset=-1), ["2019", "2020"])
+        self.assertEqual(sequence_labels(["depth_000_010", "depth_010_020"], axis="depth"),
+                         ["0–10 cm", "10–20 cm"])
+        # Janelas com inícios diferentes mantêm o intervalo explícito.
+        self.assertEqual(sequence_labels(["a_1985_2000", "a_1990_2020"]), ["1985→2000", "1990→2020"])
+
+    def test_depth_sequence_is_not_interpreted_as_years(self):
+        depths = ["depth_030_060", "depth_000_030", "depth_000_010", "depth_000_020"]
+        self.assertEqual(resolve_bands(depths, axis="depth"), ["depth_000_010", "depth_000_020", "depth_000_030", "depth_030_060"])
+        with self.assertRaises(ValueError):
+            resolve_bands(depths, start_year=2020, axis="depth")
+        with self.assertRaises(ValueError):
+            resolve_bands(["depth_030_010"], axis="depth")
+        config = NotebookConfig({**LAYERS[0], "axis": "depth"}, TERRITORIES[0], "p")
+        self.assertEqual(config.datasets["notebook"]["products"][LAYERS[0]["id"]]["axis"], "depth")
 
     def test_layer_year_limits_are_independent_and_validated(self):
         layer = {**LAYERS[0], "start_year": 2020, "end_year": 2023}

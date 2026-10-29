@@ -44,6 +44,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     drive = w.Text(value="/content/drive/MyDrive/mapbiomas_gif_factory", description="Drive:", layout=w.Layout(width="95%"))
     auto = w.Checkbox(value=False, description="Usar biblioteca no Drive e enviar automaticamente")
     kinds = {k: w.Checkbox(value=(k == "gif"), description=label) for k, label in [("gif", "GIFs"), ("colagem", "Colagens"), ("brutos", "Frames: mapa básico"), ("preparados", "Frames: mapa com ano e escala"), ("finais", "Frames: mapa completo")]}
+    initiative = w.ToggleButtons(options=["Brasil", "Peru"], value="Brasil", description="Iniciativa:")
 
     # Preset catalog and user-provided layers are intentionally separate.
     catalog = [("Brasil", [x for x in LAYERS if x.get("initiative", "Brasil") == "Brasil"]),
@@ -76,13 +77,27 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     # Notebook territories remain customizable and separate from preset territories.
     territory_checks = []
     territory_boxes = []
-    for name, entries in [("Países e biomas do catálogo", TERRITORIES), ("Personalizados", territories)]:
+    brazil_territories = [t for t in TERRITORIES if not t["id"].startswith("peru")]
+    peru_territories = [t for t in TERRITORIES if t["id"].startswith("peru")]
+    for name, entries in [("Brasil", brazil_territories), ("Peru", peru_territories), ("Personalizados", territories)]:
         checks = []
         for territory in entries:
             check = w.Checkbox(value=False, description=territory["name"], indent=False)
             territory_checks.append((name, territory, check))
             checks.append(check)
         territory_boxes.append(w.VBox([w.HTML(f"<b>{name}</b>"), *checks]))
+
+    def change_initiative(change=None):
+        active = initiative.value
+        if change:
+            for _, _, check in product_checks + territory_checks:
+                check.value = False
+        catalog_sections[0].layout.display = "" if active == "Brasil" else "none"
+        catalog_sections[1].layout.display = "" if active == "Peru" else "none"
+        territory_boxes[0].layout.display = "" if active == "Brasil" else "none"
+        territory_boxes[1].layout.display = "" if active == "Peru" else "none"
+    initiative.observe(change_initiative, names="value")
+    change_initiative()
 
     def update_files(*_):
         files = list_artifacts(output_root)
@@ -96,9 +111,10 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     availability = w.Output(layout=w.Layout(border="1px solid #ddd", max_height="200px", overflow="auto"))
     check_status = w.Button(description="Verificar disponibilidade", layout=w.Layout(width="210px"))
     def selected_combinations():
-        return [(origin, deepcopy(layer), deepcopy(territory))
-                for origin, layer, check in product_checks if check.value
-                for _, territory, tcheck in territory_checks if tcheck.value]
+        active = initiative.value
+        return [(active, deepcopy(layer), deepcopy(territory))
+                for origin, layer, check in product_checks if check.value and origin in (active, "Personalizado")
+                for group, territory, tcheck in territory_checks if tcheck.value and group in (active, "Personalizados")]
     def library_root():
         if auto.value:
             if not Path("/content/drive/MyDrive").is_dir():
@@ -149,13 +165,11 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     send.on_click(on_send)
 
     def on_run(_):
-        chosen_layers = [(origin, item) for origin, item, check in product_checks if check.value]
-        chosen_territories = [item for _, item, check in territory_checks if check.value]
+        combos = selected_combinations()
         selected_kinds = {k for k, checkbox in kinds.items() if checkbox.value}
-        if not chosen_layers or not chosen_territories or not selected_kinds:
+        if not combos or not selected_kinds:
             status.value = "<b>Selecione produto, território e saída.</b>"
             return
-        combos = [(origin, deepcopy(layer), deepcopy(territory)) for origin, layer in chosen_layers for territory in chosen_territories]
         try:
             for _, layer, territory in combos:
                 validate([layer], [territory])
@@ -173,7 +187,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
         overall.max = len(combos)
         log.clear_output()
         def worker():
-            total = len(chosen_layers) * len(chosen_territories)
+            total = len(combos)
             state = ProgressState(total)
             stop_clock = Event()
             ok = failed = skipped = 0
@@ -302,9 +316,16 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     territories_panel = w.VBox([w.HTML("<h3>Territórios</h3>"), *territory_boxes])
     output_panel = w.VBox([w.HTML("<h3>Saídas e destino</h3>"), *kinds.values(), auto, drive, check_status, availability])
     delivery_panel = w.VBox([w.HTML("<h3>Arquivos gerados e envio posterior</h3>"), refresh, selection, send])
-    ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), catalog_panel,
-                 territories_panel, output_panel, delivery_panel,
-                 sprout, status, overall, progress, log])
+    navigation = w.ToggleButtons(options=["Produtos", "Territórios", "Saídas e destino", "Resultados"], description="Guia:")
+    panels = [catalog_panel, territories_panel, output_panel, delivery_panel]
+    def change_panel(*_):
+        for i, panel in enumerate(panels):
+            panel.layout.display = "" if navigation.value == navigation.options[i] else "none"
+    navigation.observe(change_panel, names="value")
+    change_panel()
+    ui = w.VBox([initiative, navigation, *panels, sprout, status, overall, progress, log])
     ui.start_batch = start_batch
+    ui.initiative = initiative
+    ui.navigation = navigation
     display(ui)
     return ui
