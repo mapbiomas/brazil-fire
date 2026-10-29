@@ -76,6 +76,17 @@ class BasicTests(unittest.TestCase):
             resolve_bands(["classification_2020"], start_year=2021)
         self.assertEqual(resolve_bands(["foo", "bar"], ["bar", "foo"]), ["bar", "foo"])
 
+    def test_layer_year_limits_are_independent_and_validated(self):
+        layer = {**LAYERS[0], "start_year": 2020, "end_year": 2023}
+        validate([layer], TERRITORIES)
+        cfg = NotebookConfig(layer, TERRITORIES[0], "project")
+        product = cfg.datasets["notebook"]["products"][layer["id"]]
+        self.assertEqual((product["start_year"], product["end_year"]), (2020, 2023))
+        self.assertIsNone(NotebookConfig(LAYERS[0], TERRITORIES[0], "project").datasets["notebook"]["products"][LAYERS[0]["id"]]["start_year"])
+        for invalid in ({"start_year": 2025, "end_year": 2020}, {"start_year": "2020"}, {"end_year": -1}):
+            with self.assertRaises(ValueError):
+                validate([{**LAYERS[0], **invalid}], TERRITORIES)
+
     def test_notebook_custom_arrays_are_explicit_and_valid(self):
         notebook = json.loads((Path(__file__).parents[1] / "notebooks/piloto.ipynb").read_text(encoding="utf-8"))
         namespace = {}

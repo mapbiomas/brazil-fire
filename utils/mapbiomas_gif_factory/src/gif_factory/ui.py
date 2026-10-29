@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from threading import Thread, Event
 from html import escape
+from copy import deepcopy
 import ipywidgets as w
 from IPython.display import display
 from .engine import generate, validate
@@ -42,8 +43,6 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     drive = w.Text(value="/content/drive/MyDrive/mapbiomas_gif_factory", description="Drive:", layout=w.Layout(width="95%"))
     auto = w.Checkbox(value=False, description="Enviar automaticamente após cada combinação")
     delivery = w.Text(value="Resultados", description="Entrega:", layout=w.Layout(width="95%"))
-    year_start = w.IntText(value=0, description="Ano inicial:")
-    year_end = w.IntText(value=0, description="Ano final:")
     kinds = {k: w.Checkbox(value=(k == "gif"), description=label) for k, label in [("gif", "GIFs"), ("colagem", "Colagens"), ("brutos", "Frames: mapa básico"), ("preparados", "Frames: mapa com ano e escala"), ("finais", "Frames: mapa completo")]}
 
     # Preset catalog and user-provided layers are intentionally separate.
@@ -119,12 +118,10 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
         if not chosen_layers or not chosen_territories or not selected_kinds:
             status.value = "<b>Selecione produto, território e saída.</b>"
             return
-        first_year, last_year = year_start.value, year_end.value
-        if first_year < 0 or last_year < 0 or (first_year and last_year and first_year > last_year):
-            status.value = "<b>Período inválido.</b> Use 0 para não limitar o ano."
-            return
-        combos = [(origin, layer, territory) for origin, layer in chosen_layers for territory in chosen_territories]
+        combos = [(origin, deepcopy(layer), deepcopy(territory)) for origin, layer in chosen_layers for territory in chosen_territories]
         try:
+            for _, layer, territory in combos:
+                validate([layer], [territory])
             ensure_unique_paths(combos)
         except ValueError as exc:
             status.value = f"<b>Seleção inválida:</b> {escape(str(exc))}"
@@ -166,8 +163,8 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                     except Exception as exc:
                         log.append_stdout(f"Aviso de atualização do painel: {exc}\n")
             ticker = Thread(target=tick, daemon=True)
-            ticker.start()
             try:
+                ticker.start()
                 for number, (origin, layer, territory) in enumerate(combos, 1):
                     header = f"{origin} / {layer.get('theme', 'Fogo' if origin == 'Brasil' else 'Personalizado')} / {layer.get('collection', 'Coleção 5' if origin == 'Brasil' else 'Sem coleção')} / {layer['name']} / {territory['name']}"
                     state.begin(number, header)
@@ -201,8 +198,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                             render()
                     try:
                         combo_root = delivery_root / combination_path(origin, layer, territory)
-                        configured_layer = dict(layer, start_year=first_year or None, end_year=last_year or None)
-                        files = generate(configured_layer, territory, combo_root, selected_kinds, after,
+                        files = generate(layer, territory, combo_root, selected_kinds, after,
                                          project=project, on_progress=event)
                         ok += 1
                         completed.append((origin, layer, territory, list(discovered)))
@@ -243,13 +239,15 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                     log.append_stdout(f"Pasta de entrega: {delivery_root}\n")
                 update_files()
                 stop_clock.set()
-                ticker.join()
+                if ticker.is_alive():
+                    ticker.join()
                 title = "✓ LOTE CONCLUÍDO" if not failed else "⚠ CONCLUÍDO COM FALHAS" if ok else "✕ LOTE FALHOU"
                 drive_status = (f"{drive_failures} envio(s) não concluído(s)" if drive_failures else "cópias solicitadas concluídas") if automatic else "envio automático não solicitado"
                 status.value = f"<b>{title}</b> · {ok} sucesso(s), {failed} falha(s)<br>Drive: {drive_status}<br>Tempo total: {_duration(state.snapshot()['elapsed'])}"
             except Exception as exc:
                 stop_clock.set()
-                ticker.join()
+                if ticker.is_alive():
+                    ticker.join()
                 status.value = f"<b>Erro ao finalizar o lote:</b> {escape(str(exc))}"
                 log.append_stdout(f"Erro ao finalizar lote: {exc}\n")
             finally:
@@ -257,12 +255,24 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                 run.disabled = False
                 sprout.layout.display = "none"
         Thread(target=worker, daemon=True).start()
-    run.on_click(on_run)
-    sections = w.Accordion(children=[w.VBox(territory_boxes), w.VBox([delivery, w.HTML("<b>Período</b> — 0 = todos os anos"), year_start, year_end, *kinds.values(), auto, drive]), w.VBox([refresh, selection, send])], selected_index=None)
+    def start_batch(_=None):
+        if run.disabled:
+            status.value = "<b>Já existe um lote em andamento.</b>"
+            return
+        try:
+            on_run(None)
+        except Exception as exc:
+            run.disabled = False
+            sprout.layout.display = "none"
+            status.value = f"<b>Erro ao iniciar o lote:</b> {escape(str(exc))}"
+            log.append_stdout(f"Erro ao iniciar lote: {exc}\n")
+    run.on_click(start_batch)
+    sections = w.Accordion(children=[w.VBox(territory_boxes), w.VBox([delivery, *kinds.values(), auto, drive]), w.VBox([refresh, selection, send])], selected_index=None)
     for i, title in enumerate(["Territórios", "Saídas e destino", "Arquivos gerados e envio posterior"]):
         sections.set_title(i, title)
     update_files()
     controls = w.HBox([run, sprout], layout=w.Layout(align_items="center"))
     ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), tabs, sections, controls, status, overall, progress, log])
+    ui.start_batch = start_batch
     display(ui)
     return ui

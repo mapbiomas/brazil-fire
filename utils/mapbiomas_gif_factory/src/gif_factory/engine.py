@@ -26,6 +26,12 @@ def validate(layers, territories):
             ids.add(item["id"])
             if label == "camada" and item.get("bands") is not None and (not isinstance(item["bands"], list) or not all(isinstance(b, str) and b for b in item["bands"])):
                 raise ValueError("bands deve ser uma lista de nomes de bandas.")
+            if label == "camada":
+                start, end = item.get("start_year"), item.get("end_year")
+                if any(value is not None and (isinstance(value, bool) or not isinstance(value, int) or value < 1) for value in (start, end)):
+                    raise ValueError(f"{item['name']}: start_year e end_year devem ser anos inteiros positivos.")
+                if start is not None and end is not None and start > end:
+                    raise ValueError(f"{item['name']}: ano inicial maior que o ano final.")
 
 
 class NotebookConfig:
