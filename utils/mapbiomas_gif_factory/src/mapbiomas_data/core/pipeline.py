@@ -309,6 +309,8 @@ class Pipeline:
             need_clean = create_collage or add_labels
             clean_paths = []
             if need_clean:
+                if getattr(self, "progress_callback", None):
+                    self.progress_callback("stage", "Preparando mapas com ano, escala e norte")
                 if not state.is_complete("frames_clean"):
                     print(f"\n[3a/4] Criando frames_clean (ano + escala + norte)...")
                     t3a = time.perf_counter()
@@ -485,6 +487,8 @@ class Pipeline:
                     ]
 
                 if not state.is_complete("gif"):
+                    if getattr(self, "progress_callback", None):
+                        self.progress_callback("stage", "Gerando GIF principal")
                     print(f"\n[4/4] Criando GIF principal...")
                     t5 = time.perf_counter()
                     frame_ms = self.config.get_processing_config("gif_creation").get("frame_duration", 300)
@@ -511,6 +515,8 @@ class Pipeline:
                     result["gif_path"] = gif_path
 
                 if not state.is_complete("special_gifs"):
+                    if getattr(self, "progress_callback", None):
+                        self.progress_callback("stage", "Gerando GIFs especiais")
                     print(f"\n[4b/4] Criando GIFs especiais...")
                     t_sg = time.perf_counter()
                     special_modes = ["decadal", "quinzenal", "first_last", "last_six"]

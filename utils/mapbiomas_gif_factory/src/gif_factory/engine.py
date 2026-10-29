@@ -57,8 +57,16 @@ def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, pr
     config = NotebookConfig(layer, territory, project)
     pipeline = Pipeline(config)
     if on_progress:
-        pipeline.downloader.progress_callback = on_progress
-        pipeline.progress_callback = on_progress
+        def notify(*args):
+            try:
+                on_progress(*args)
+            except Exception as exc:
+                print(f"Aviso: não foi possível atualizar progresso: {exc}")
+        pipeline.downloader.progress_callback = notify
+        pipeline.progress_callback = notify
+    else:
+        def notify(*args):
+            pass
     produced = []
     # Keep pipeline intermediates separate from the requested deliverables.
     with TemporaryDirectory(prefix="gif_factory_") as tmp:
@@ -67,6 +75,7 @@ def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, pr
                               vertical_dimension=dimension)
         if result.get("status") != "success":
             raise RuntimeError(result.get("error", "Falha no pipeline cartográfico."))
+        notify("stage", "Organizando arquivos selecionados")
         folders = {"gif": ("gifs", "GIFs"), "colagem": ("collages_combined", "Colagens"),
                    "brutos": ("frames_pure", "Frames/Mapa_basico"), "preparados": ("frames_clean", "Frames/Mapa_com_ano_e_escala"),
                    "finais": ("frames_maps", "Frames/Mapa_completo")}

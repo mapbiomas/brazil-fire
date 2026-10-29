@@ -57,12 +57,20 @@ class EEDownloader:
         ensure_dir(output_dir)
         downloaded = []
 
-        for band_name in band_names:
-            if getattr(self, "progress_callback", None):
-                self.progress_callback("frame_start", len(downloaded), len(band_names), band_name)
+        def notify(kind, *args):
+            callback = getattr(self, "progress_callback", None)
+            if callback:
+                try:
+                    callback(kind, *args)
+                except Exception as exc:
+                    print(f"  [AVISO] Não foi possível atualizar progresso: {exc}")
+
+        for index, band_name in enumerate(band_names, 1):
+            notify("frame_start", index, len(band_names), band_name)
             filename = f"{prefix}{band_name}.png"
             filepath = os.path.join(output_dir, filename)
             max_attempts = 3
+            frame_started = time.monotonic()
 
             for attempt in range(1, max_attempts + 1):
                 try:
@@ -77,17 +85,18 @@ class EEDownloader:
                                 f.write(chunk)
 
                     downloaded.append(filepath)
-                    if getattr(self, "progress_callback", None):
-                        self.progress_callback("frame_done", len(downloaded), len(band_names), band_name)
+                    notify("frame_done", index, len(band_names), band_name, time.monotonic() - frame_started)
                     print(f"  [OK] {filename}")
                     break
 
                 except Exception as e:
                     if attempt < max_attempts:
                         wait = 2 ** attempt
+                        notify("frame_retry", index, len(band_names), band_name, attempt, max_attempts, wait, str(e))
                         print(f"  [RETRY {attempt}/{max_attempts}] {band_name}: {e} (esperando {wait}s)")
                         time.sleep(wait)
                     else:
+                        notify("frame_failed", index, len(band_names), band_name, str(e))
                         print(f"  [FALHA] {band_name} apos {max_attempts} tentativas: {e}")
 
         return downloaded

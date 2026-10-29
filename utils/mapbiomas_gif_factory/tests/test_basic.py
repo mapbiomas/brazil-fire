@@ -9,9 +9,47 @@ from gif_factory.storage import copy_artifacts, list_artifacts
 from gif_factory.presets import LAYERS, TERRITORIES
 from gif_factory.layout import combination_path, ensure_unique_paths, safe_name
 from gif_factory.temporal import resolve_bands
+from gif_factory.progress import ProgressState
 
 
 class BasicTests(unittest.TestCase):
+    def test_progress_clock_retry_estimate_and_stages(self):
+        now = [100.0]
+        state = ProgressState(2, clock=lambda: now[0])
+        state.begin(1, "Brasil / Cerrado")
+        state.update("discovered", ["1985", "1986", "1987"])
+        state.update("frame_start", 1, 3, "1985")
+        now[0] += 5
+        state.update("frame_retry", 1, 3, "1985", 1, 3, 2, "erro")
+        self.assertIn("tentativa 1 de 3", state.snapshot()["detail"])
+        self.assertEqual(state.snapshot()["elapsed"], 5)
+        state.update("frame_done", 1, 3, "1985", 5)
+        self.assertIsNone(state.snapshot()["eta"])
+        state.update("frame_start", 2, 3, "1986")
+        state.update("frame_done", 2, 3, "1986", 3)
+        self.assertEqual(state.snapshot()["eta"], 4)
+        self.assertEqual(state.snapshot()["frame_done"], 2)
+        state.update("stage", "Gerando GIF")
+        self.assertIsNone(state.snapshot()["eta"])
+        state.finish_combo()
+        self.assertEqual(state.snapshot()["completed"], 1)
+        now[0] += 3
+        state.begin(2, "Brasil / Amazônia")
+        self.assertEqual(state.snapshot()["frame_done"], 0)
+        self.assertEqual(state.snapshot()["elapsed"], 8)
+        self.assertEqual(state.snapshot()["combo_elapsed"], 0)
+
+    def test_progress_frame_failure_keeps_real_index(self):
+        state = ProgressState(1)
+        state.begin(1, "Teste")
+        state.update("frame_start", 1, 3, "a")
+        state.update("frame_failed", 1, 3, "a", "sem acesso")
+        self.assertIn("falhou", state.snapshot()["detail"])
+        state.update("frame_start", 2, 3, "b")
+        self.assertIn("Frame 2 de 3", state.snapshot()["detail"])
+        state.update("frame_done", 2, 3, "b", 1)
+        self.assertEqual(state.snapshot()["frame_done"], 1)
+
     def test_presets_and_invalid_id(self):
         validate(LAYERS, TERRITORIES)
         with self.assertRaises(ValueError):

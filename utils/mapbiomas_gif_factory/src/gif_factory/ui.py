@@ -1,8 +1,7 @@
 """Seleção hierárquica e progresso do lote no Colab."""
 from datetime import datetime
 from pathlib import Path
-from threading import Thread
-from time import monotonic
+from threading import Thread, Event
 from html import escape
 import ipywidgets as w
 from IPython.display import display
@@ -10,6 +9,7 @@ from .engine import generate, validate
 from .storage import list_artifacts, copy_artifacts
 from .presets import LAYERS, TERRITORIES
 from .layout import combination_path, ensure_unique_paths, safe_name
+from .progress import ProgressState
 
 
 def _duration(seconds):
@@ -22,7 +22,8 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     validate(LAYERS, TERRITORIES)
     log = w.Output(layout=w.Layout(border="1px solid #ddd", max_height="250px", overflow="auto"))
     status = w.HTML(value="<b>Pronto para iniciar.</b>")
-    progress = w.IntProgress(value=0, min=0, max=1, description="Frames:", layout=w.Layout(width="95%"))
+    overall = w.IntProgress(value=0, min=0, max=1, description="Lote:", layout=w.Layout(width="95%"))
+    progress = w.IntProgress(value=0, min=0, max=1, description="Download:", layout=w.Layout(width="95%", display="none"))
     run = w.Button(description="Gerar lote", button_style="primary")
     sprout = w.HTML(
         value=(
@@ -135,47 +136,69 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
         delivery_root = Path(output_root) / run_id
         status.value = "<b>▶ INICIANDO</b> — preparando lote..."
         progress.value = 0
+        overall.value = 0
+        overall.max = len(combos)
         log.clear_output()
         def worker():
-            started = monotonic()
             total = len(chosen_layers) * len(chosen_territories)
-            ok = failed = 0
+            state = ProgressState(total)
+            stop_clock = Event()
+            ok = failed = drive_failures = 0
             completed = []
+            def render():
+                snap = state.snapshot()
+                eta = "calculando…" if snap["eta"] is None else "~" + _duration(snap["eta"])
+                details = f"<br>{escape(snap['detail'])}" if snap['detail'] else ""
+                download = snap["stage"] == "Baixando frames"
+                remaining = f"<br>Previsão do download atual: {eta}" if download else ""
+                status.value = (f"<b>◉ LOTE EM ANDAMENTO</b> — {snap['completed']} de {snap['total']} combinações processadas"
+                                f"<br>{escape(snap['header'])}<br><b>{escape(snap['stage'])}</b>{details}"
+                                f"<br>Tempo total: {_duration(snap['elapsed'])} · combinação: {_duration(snap['combo_elapsed'])}{remaining}")
+                overall.value = snap["completed"]
+                progress.layout.display = "" if download else "none"
+                if download:
+                    progress.max = max(1, snap["frame_total"])
+                    progress.value = min(snap["frame_done"], progress.max)
+            def tick():
+                while not stop_clock.wait(1):
+                    try:
+                        render()
+                    except Exception as exc:
+                        log.append_stdout(f"Aviso de atualização do painel: {exc}\n")
+            ticker = Thread(target=tick, daemon=True)
+            ticker.start()
             try:
                 for number, (origin, layer, territory) in enumerate(combos, 1):
                     header = f"{origin} / {layer.get('theme', 'Fogo' if origin == 'Brasil' else 'Personalizado')} / {layer.get('collection', 'Coleção 5' if origin == 'Brasil' else 'Sem coleção')} / {layer['name']} / {territory['name']}"
-                    progress.max = 1
-                    progress.value = 0
-                    status.value = f"<b>◉ PREPARANDO {number} de {total}</b><br>{escape(header)}<br>Tempo: {_duration(monotonic()-started)} · previsão: calculando…"
+                    state.begin(number, header)
+                    render()
                     log.append_stdout(f"INICIANDO {number}/{total}: {header}\n")
-                    frame_start = monotonic()
                     discovered = []
                     def event(kind, *args):
-                        nonlocal frame_start
                         if kind == "discovered":
                             discovered[:] = args[0]
-                            progress.max = max(1, len(discovered))
-                            frame_start = monotonic()
                             log.append_stdout(f"Descobertas {len(discovered)} bandas: {discovered[0]} → {discovered[-1]}\n")
-                            status.value = f"<b>◉ {number} de {total}</b><br>{escape(header)}<br>{len(discovered)} unidades encontradas; iniciando download."
-                        elif kind in ("frame_start", "frame_done"):
-                            done, count, band = args
-                            progress.max = max(1, count)
-                            progress.value = done
-                            elapsed_frames = monotonic() - frame_start
-                            estimate = f"~{_duration(elapsed_frames / done * (count-done))} para download" if done else "calculando…"
-                            current = min(done + (kind == "frame_start"), count)
-                            status.value = f"<b>◉ {number} de {total}</b><br>{escape(header)}<br>Frame {current} de {count} — {escape(str(band))}<br>Decorrido: {_duration(monotonic()-started)} · restante estimado: {estimate}"
-                        elif kind == "stage":
-                            status.value = f"<b>◉ {number} de {total}</b><br>{escape(header)}<br>{escape(str(args[0]))} · {_duration(monotonic()-started)}"
+                        if kind == "stage":
                             log.append_stdout(f"{args[0]}...\n")
+                        state.update(kind, *args)
+                        if kind in ("frame_retry", "frame_failed"):
+                            log.append_stdout(state.snapshot()["detail"] + "\n")
+                        render()
                     def after(path):
+                        nonlocal drive_failures
                         if automatic:
+                            state.update("stage", f"Enviando ao Drive: {path.name}")
+                            render()
                             try:
-                                for _, state, detail in publish([path], destination):
-                                    log.append_stdout(f"Drive: {state}: {path} {detail}\n")
+                                for _, copy_status, detail in publish([path], destination):
+                                    if copy_status != "copiado":
+                                        drive_failures += 1
+                                    log.append_stdout(f"Drive: {copy_status}: {path} {detail}\n")
                             except Exception as exc:
+                                drive_failures += 1
                                 log.append_stdout(f"Drive falhou; arquivo local preservado: {exc}\n")
+                            state.update("stage", "Organizando arquivos selecionados")
+                            render()
                     try:
                         combo_root = delivery_root / combination_path(origin, layer, territory)
                         configured_layer = dict(layer, start_year=first_year or None, end_year=last_year or None)
@@ -187,6 +210,9 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                     except Exception as exc:
                         failed += 1
                         log.append_stdout(f"FALHA {number}/{total}: {exc}\n")
+                    finally:
+                        state.finish_combo()
+                        render()
                 if completed:
                     readme = delivery_root / "LEIA-ME.txt"
                     lines = ["RESULTADOS CARTOGRÁFICOS MAPBIOMAS", "", f"Entrega: {run_id}",
@@ -204,18 +230,30 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                     with readme.open("x", encoding="utf-8") as file:
                         file.write("\n".join(lines) + "\n")
                     if automatic:
+                        state.update("stage", "Enviando LEIA-ME ao Drive")
+                        render()
                         try:
-                            for _, state, detail in publish([readme], destination):
-                                log.append_stdout(f"Drive: {state}: {readme} {detail}\n")
+                            for _, copy_status, detail in publish([readme], destination):
+                                if copy_status != "copiado":
+                                    drive_failures += 1
+                                log.append_stdout(f"Drive: {copy_status}: {readme} {detail}\n")
                         except Exception as exc:
+                            drive_failures += 1
                             log.append_stdout(f"Drive falhou; arquivo local preservado: {exc}\n")
                     log.append_stdout(f"Pasta de entrega: {delivery_root}\n")
-                status.value = f"<b>✓ LOTE FINALIZADO</b> · {ok} sucesso(s), {failed} falha(s) · {_duration(monotonic()-started)}"
                 update_files()
+                stop_clock.set()
+                ticker.join()
+                title = "✓ LOTE CONCLUÍDO" if not failed else "⚠ CONCLUÍDO COM FALHAS" if ok else "✕ LOTE FALHOU"
+                drive_status = (f"{drive_failures} envio(s) não concluído(s)" if drive_failures else "cópias solicitadas concluídas") if automatic else "envio automático não solicitado"
+                status.value = f"<b>{title}</b> · {ok} sucesso(s), {failed} falha(s)<br>Drive: {drive_status}<br>Tempo total: {_duration(state.snapshot()['elapsed'])}"
             except Exception as exc:
+                stop_clock.set()
+                ticker.join()
                 status.value = f"<b>Erro ao finalizar o lote:</b> {escape(str(exc))}"
                 log.append_stdout(f"Erro ao finalizar lote: {exc}\n")
             finally:
+                stop_clock.set()
                 run.disabled = False
                 sprout.layout.display = "none"
         Thread(target=worker, daemon=True).start()
@@ -225,6 +263,6 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
         sections.set_title(i, title)
     update_files()
     controls = w.HBox([run, sprout], layout=w.Layout(align_items="center"))
-    ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), tabs, sections, controls, status, progress, log])
+    ui = w.VBox([w.HTML("<h3>Catálogo de camadas</h3>"), tabs, sections, controls, status, overall, progress, log])
     display(ui)
     return ui
