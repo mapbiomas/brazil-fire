@@ -9,6 +9,7 @@ from IPython.display import display
 from .engine import generate, validate
 from .storage import list_artifacts, copy_artifacts
 from .presets import LAYERS, TERRITORIES
+from .layout import combination_path, ensure_unique_paths, safe_name
 
 
 def _duration(seconds):
@@ -26,7 +27,8 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     selection = w.SelectMultiple(description="Arquivos:", layout=w.Layout(width="95%", height="180px"))
     drive = w.Text(value="/content/drive/MyDrive/mapbiomas_gif_factory", description="Drive:", layout=w.Layout(width="95%"))
     auto = w.Checkbox(value=False, description="Enviar automaticamente após cada combinação")
-    kinds = {k: w.Checkbox(value=(k == "gif"), description=label) for k, label in [("gif", "GIFs"), ("colagem", "Colagens"), ("brutos", "Frames puros"), ("preparados", "Frames clean"), ("finais", "Frames mapas completos")]}
+    delivery = w.Text(value="Resultados", description="Entrega:", layout=w.Layout(width="95%"))
+    kinds = {k: w.Checkbox(value=(k == "gif"), description=label) for k, label in [("gif", "GIFs"), ("colagem", "Colagens"), ("brutos", "Frames: mapa básico"), ("preparados", "Frames: mapa com ano e escala"), ("finais", "Frames: mapa completo")]}
 
     # Preset catalog and user-provided layers are intentionally separate.
     catalog = [("Brasil", LAYERS), ("Personalizado", layers)]
@@ -97,9 +99,16 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
         if not chosen_layers or not chosen_territories or not selected_kinds:
             status.value = "<b>Selecione produto, território e saída.</b>"
             return
+        combos = [(origin, layer, territory) for origin, layer in chosen_layers for territory in chosen_territories]
+        try:
+            ensure_unique_paths(combos)
+        except ValueError as exc:
+            status.value = f"<b>Seleção inválida:</b> {escape(str(exc))}"
+            return
         run.disabled = True
         destination, automatic = drive.value, auto.value
-        run_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        run_id = f"{safe_name(delivery.value, 'Resultados')}_{datetime.now():%Y-%m-%d_%H%M%S_%f}"
+        delivery_root = Path(output_root) / run_id
         status.value = "<b>▶ INICIANDO</b> — preparando lote..."
         progress.value = 0
         log.clear_output()
@@ -107,8 +116,8 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             started = monotonic()
             total = len(chosen_layers) * len(chosen_territories)
             ok = failed = 0
+            completed = []
             try:
-                combos = [(origin, layer, territory) for origin, layer in chosen_layers for territory in chosen_territories]
                 for number, (origin, layer, territory) in enumerate(combos, 1):
                     header = f"{origin} / {layer.get('theme', 'Fogo' if origin == 'Brasil' else 'Personalizado')} / {layer.get('collection', 'Coleção 5' if origin == 'Brasil' else 'Sem coleção')} / {layer['name']} / {territory['name']}"
                     progress.max = max(1, len(layer['bands']))
@@ -136,21 +145,48 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                             except Exception as exc:
                                 log.append_stdout(f"Drive falhou; arquivo local preservado: {exc}\n")
                     try:
-                        combo_root = Path(output_root) / run_id / f"{number:03d}_{'brasil' if origin == 'Brasil' else 'personalizado'}"
+                        combo_root = delivery_root / combination_path(origin, layer, territory)
                         files = generate(layer, territory, combo_root, selected_kinds, after,
                                          project=project, on_progress=event)
                         ok += 1
+                        completed.append((origin, layer, territory))
                         log.append_stdout(f"FINALIZADO {number}/{total}: {len(files)} arquivos em /content\n")
                     except Exception as exc:
                         failed += 1
                         log.append_stdout(f"FALHA {number}/{total}: {exc}\n")
+                if completed:
+                    readme = delivery_root / "LEIA-ME.txt"
+                    lines = ["RESULTADOS CARTOGRÁFICOS MAPBIOMAS", "", f"Entrega: {run_id}",
+                             "Dados: MapBiomas; verifique as fontes e condições de uso de cada coleção.",
+                             "A lista abaixo descreve a execução; um envio seletivo pode conter apenas parte dos arquivos.",
+                             "", "Produtos e territórios concluídos:"]
+                    for origin, layer, territory in completed:
+                        lines.append(f"- {origin} / {layer.get('theme', 'Sem tema')} / {layer.get('collection', 'Sem coleção')} / {layer['name']} / {territory['name']}")
+                        lines.append(f"  Períodos/bandas: {', '.join(layer['bands'])}")
+                    lines.extend(["", "Frames, quando disponíveis:",
+                                  "- Mapa_basico: imagem visualizada do Earth Engine, redimensionada.",
+                                  "- Mapa_com_ano_e_escala: mapa preparado com ano e elementos cartográficos aplicáveis.",
+                                  "- Mapa_completo: frame com título e legenda usado no GIF.",
+                                  "", "Apenas as saídas escolhidas na geração estão incluídas."])
+                    with readme.open("x", encoding="utf-8") as file:
+                        file.write("\n".join(lines) + "\n")
+                    if automatic:
+                        try:
+                            for _, state, detail in publish([readme], destination):
+                                log.append_stdout(f"Drive: {state}: {readme} {detail}\n")
+                        except Exception as exc:
+                            log.append_stdout(f"Drive falhou; arquivo local preservado: {exc}\n")
+                    log.append_stdout(f"Pasta de entrega: {delivery_root}\n")
                 status.value = f"<b>✓ LOTE FINALIZADO</b> · {ok} sucesso(s), {failed} falha(s) · {_duration(monotonic()-started)}"
                 update_files()
+            except Exception as exc:
+                status.value = f"<b>Erro ao finalizar o lote:</b> {escape(str(exc))}"
+                log.append_stdout(f"Erro ao finalizar lote: {exc}\n")
             finally:
                 run.disabled = False
         Thread(target=worker, daemon=True).start()
     run.on_click(on_run)
-    sections = w.Accordion(children=[w.VBox(territory_boxes), w.VBox(list(kinds.values()) + [auto, drive]), w.VBox([refresh, selection, send])], selected_index=None)
+    sections = w.Accordion(children=[w.VBox(territory_boxes), w.VBox([delivery, *kinds.values(), auto, drive]), w.VBox([refresh, selection, send])], selected_index=None)
     for i, title in enumerate(["Territórios", "Saídas e destino", "Arquivos gerados e envio posterior"]):
         sections.set_title(i, title)
     update_files()

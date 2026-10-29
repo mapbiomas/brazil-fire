@@ -3,6 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import re
 import shutil
+from .layout import safe_name
 
 
 def validate(layers, territories):
@@ -45,8 +46,7 @@ def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, pr
     validate([layer], [territory])
     if not project:
         raise ValueError("Informe o projeto Earth Engine usado na autenticação.")
-    out = Path(root) / layer["id"] / territory["id"]
-    out.mkdir(parents=True, exist_ok=True)
+    out = Path(root)
     config = NotebookConfig(layer, territory, project)
     pipeline = Pipeline(config)
     if on_progress:
@@ -60,20 +60,24 @@ def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, pr
                               vertical_dimension=dimension)
         if result.get("status") != "success":
             raise RuntimeError(result.get("error", "Falha no pipeline cartográfico."))
-        folders = {"gif": ("gifs", "gifs"), "colagem": ("collages_combined", "colagens"),
-                   "brutos": ("frames_pure", "frames/brutos"), "preparados": ("frames_clean", "frames/preparados"),
-                   "finais": ("frames_maps", "frames/finais")}
+        folders = {"gif": ("gifs", "GIFs"), "colagem": ("collages_combined", "Colagens"),
+                   "brutos": ("frames_pure", "Frames/Mapa_basico"), "preparados": ("frames_clean", "Frames/Mapa_com_ano_e_escala"),
+                   "finais": ("frames_maps", "Frames/Mapa_completo")}
         for kind, (source_folder, dest_folder) in folders.items():
             if kind not in kinds:
                 continue
             for source in sorted((Path(tmp) / source_folder).glob("*")):
                 if not source.is_file() or source.suffix.lower() not in {".gif", ".png"}:
                     continue
-                target = out / dest_folder / source.name
+                # Preserve the source basename (including year, period and special mode)
+                # and add the territory, so a downloaded file is identifiable alone.
+                target = out / dest_folder / f"{safe_name(territory['name'])}_{source.name}"
                 target.parent.mkdir(parents=True, exist_ok=True)
                 with source.open("rb") as src, target.open("xb") as dst:
                     shutil.copyfileobj(src, dst)
                 produced.append(target)
                 if on_artifact:
                     on_artifact(target)
+        if not produced:
+            raise RuntimeError("O pipeline não produziu arquivos dos tipos selecionados.")
     return produced

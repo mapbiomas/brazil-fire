@@ -5,7 +5,7 @@ import shutil
 
 def list_artifacts(root):
     root = Path(root)
-    return sorted(p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in {".gif", ".png"}) if root.exists() else []
+    return sorted(p for p in root.rglob("*") if p.is_file() and (p.suffix.lower() in {".gif", ".png"} or p.name == "LEIA-ME.txt")) if root.exists() else []
 
 
 def copy_artifacts(files, root, destination):

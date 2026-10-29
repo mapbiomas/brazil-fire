@@ -6,6 +6,7 @@ from types import ModuleType
 from gif_factory.engine import validate, generate, NotebookConfig
 from gif_factory.storage import copy_artifacts, list_artifacts
 from gif_factory.presets import LAYERS, TERRITORIES
+from gif_factory.layout import combination_path, ensure_unique_paths, safe_name
 
 
 class BasicTests(unittest.TestCase):
@@ -63,7 +64,42 @@ class BasicTests(unittest.TestCase):
             self.assertEqual(len(result), 2)
             self.assertEqual(result, artifacts)
             self.assertEqual(events[0][0], "frame_done")
-            self.assertFalse((Path(tmp) / LAYERS[0]["id"] / TERRITORIES[0]["id"] / "frames/brutos").exists())
+            self.assertFalse((Path(tmp) / "Frames/Mapa_basico").exists())
+            self.assertTrue((Path(tmp) / "GIFs/Amazonia_a.gif").exists())
+            self.assertTrue((Path(tmp) / "Frames/Mapa_completo/Amazonia_a.png").exists())
+
+    def test_layout_groups_biomes_and_detects_duplicates(self):
+        amazon = combination_path("Brasil", LAYERS[0], TERRITORIES[0])
+        caatinga = combination_path("Brasil", LAYERS[0], TERRITORIES[1])
+        self.assertEqual(amazon.parent, caatinga.parent)
+        self.assertEqual(str(amazon).replace("\\", "/"), "Brasil/Fogo/Colecao_5/Area_queimada_anual/Amazonia")
+        combos = [("Brasil", LAYERS[0], TERRITORIES[0]), ("Brasil", LAYERS[0], TERRITORIES[1])]
+        ensure_unique_paths(combos)
+        with self.assertRaises(ValueError):
+            ensure_unique_paths(combos + [combos[0]])
+
+    def test_custom_names_are_safe_and_collision_is_not_silent(self):
+        self.assertNotIn("/", safe_name("../../Mata Atlântica"))
+        custom = {**LAYERS[0], "name": "Área de teste", "theme": "Água", "collection": "Coleção 1"}
+        self.assertEqual(str(combination_path("Personalizado", custom, TERRITORIES[0])).replace("\\", "/"),
+                         "Personalizado/Agua/Colecao_1/Area_de_teste/Amazonia")
+        with self.assertRaises(ValueError):
+            ensure_unique_paths([("Personalizado", custom, TERRITORIES[0]),
+                                 ("Personalizado", {**custom, "name": "Area de teste"}, TERRITORIES[0])])
+
+    def test_drive_preserves_shared_product_structure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            local, drive = Path(tmp) / "local", Path(tmp) / "drive"
+            files = []
+            for territory in TERRITORIES[:2]:
+                path = local / "Entrega_2026" / combination_path("Brasil", LAYERS[0], territory) / "GIFs" / "mapa.gif"
+                path.parent.mkdir(parents=True)
+                path.write_bytes(b"gif")
+                files.append(path)
+            self.assertTrue(all(item[1] == "copiado" for item in copy_artifacts(files, local, drive)))
+            product = drive / "Entrega_2026/Brasil/Fogo/Colecao_5/Area_queimada_anual"
+            self.assertTrue((product / "Amazonia/GIFs/mapa.gif").exists())
+            self.assertTrue((product / "Caatinga/GIFs/mapa.gif").exists())
 
 
 if __name__ == "__main__":

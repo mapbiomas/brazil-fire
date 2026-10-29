@@ -14,6 +14,12 @@ Protótipo independente para criar GIFs no Google Colab a partir de imagens mult
 
 O armazenamento `/content` é temporário e desaparece quando a sessão do Colab termina. O envio posterior exige que a sessão e seus arquivos ainda existam. Cópias com falha são reportadas e podem ser novamente selecionadas.
 
+## Organização dos resultados
+
+Cada disparo cria uma pasta com o nome de entrega escolhido e data/hora, sem alterar resultados de execuções anteriores. Dentro dela, os arquivos ficam em `Brasil/Fogo/Colecao_5/Produto/Territorio/`, com biomas do mesmo produto como pastas irmãs. Camadas do notebook aparecem em `Personalizado/Tema/Colecao/Produto/Territorio/`. Se tema ou coleção não forem informados, são usados `Sem_tema` e `Sem_colecao`.
+
+Cada território contém somente as pastas selecionadas: `GIFs`, `Colagens` e/ou `Frames/Mapa_basico`, `Frames/Mapa_com_ano_e_escala`, `Frames/Mapa_completo`. A entrega inclui um `LEIA-ME.txt` com os produtos, territórios e períodos concluídos. O arquivo também pode ser selecionado para envio posterior ao Drive. O nome da pasta de entrega recebe data e hora automaticamente para evitar misturar execuções; arquivos existentes no destino não são sobrescritos.
+
 ## Escopo e limitações
 
 - Somente `ee.Image` multibanda, com bandas explicitamente informadas, visualização simples e legenda fornecida pelo usuário. ImageCollection, RGB e produtos que exigem processadores próprios ainda não são suportados.
