@@ -21,6 +21,7 @@ from ..core.ee_downloader import EEDownloader
 from ..core.ee_transforms import run_processor, PROCESSOR_REGISTRY, only_coverage
 from ..core.state_manager import StateManager
 from ..utils.file_utils import ensure_dir
+from gif_factory.temporal import resolve_bands
 
 
 class Pipeline:
@@ -140,23 +141,16 @@ class Pipeline:
 
             real_band_names = self.downloader.get_band_names(image)
             yaml_bands = product_info.get("bands", [])
-            if yaml_bands:
-                missing_bands = [b for b in yaml_bands if b not in real_band_names]
-                if missing_bands:
-                    raise ValueError(f"Bandas não encontradas: {missing_bands}")
-                valid = [b for b in yaml_bands if b in real_band_names]
-                if valid:
-                    band_names = valid
-                else:
-                    band_names = real_band_names
-            else:
-                band_names = real_band_names
+            band_names = resolve_bands(real_band_names, yaml_bands,
+                                       product_info.get("start_year"), product_info.get("end_year"))
             if band_names_filter:
                 band_names = [b for b in band_names if any(b.endswith(s) for s in band_names_filter)]
                 print(f"  Filtradas para anos específicos: {band_names_filter}")
             if max_bands > 0 and len(band_names) > max_bands:
                 band_names = band_names[:max_bands]
             print(f"Bandas: {len(band_names)} (de {len(real_band_names)} disponíveis)")
+            if getattr(self, "progress_callback", None):
+                self.progress_callback("discovered", band_names)
 
             is_rgb = product_info.get("rgb", False)
             rgb_band_groups = None
@@ -501,7 +495,7 @@ class Pipeline:
                         image_paths=map_paths,
                         output_dir=gifs_dir,
                         filename=gif_filename,
-                        sort_frames=True,
+                        sort_frames=False,
                         viz_palette=viz_params.get("palette"),
                     )
                     timings["gif_creation"] = round(time.perf_counter() - t5, 1)
@@ -529,7 +523,7 @@ class Pipeline:
                                 image_paths=selected,
                                 output_dir=gifs_dir,
                                 filename=sgif_name,
-                                sort_frames=True,
+                                sort_frames=False,
                                 viz_palette=viz_params.get("palette"),
                             )
                     timings["special_gifs"] = round(time.perf_counter() - t_sg, 1)

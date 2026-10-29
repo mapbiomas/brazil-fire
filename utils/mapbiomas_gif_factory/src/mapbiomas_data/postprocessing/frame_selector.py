@@ -8,7 +8,9 @@ FRAME_MODES = ("all", "decadal", "quinzenal", "first_last", "collage", "last_six
 
 
 def select_frames(frame_paths: List[str], mode: str) -> List[str]:
-    sorted_paths = sorted(frame_paths)
+    # O pipeline entrega os frames na ordem temporal resolvida; ordenar nomes
+    # novamente pode trocar anos quando os prefixos das bandas diferem.
+    sorted_paths = list(frame_paths)
 
     if mode == "all":
         return sorted_paths

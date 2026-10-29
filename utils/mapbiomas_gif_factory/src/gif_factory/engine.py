@@ -7,7 +7,7 @@ from .layout import safe_name
 
 
 def validate(layers, territories):
-    for label, items, required in (("camada", layers, ("id", "name", "asset", "bands", "visualization", "legend")),
+    for label, items, required in (("camada", layers, ("id", "name", "asset", "visualization", "legend")),
                                    ("território", territories, ("id", "name", "asset"))):
         ids = set()
         for item in items:
@@ -24,7 +24,7 @@ def validate(layers, territories):
             if not re.fullmatch(r"[A-Za-z0-9_-]+", item["id"]) or item["id"] in ids:
                 raise ValueError(f"{label}: id inválido ou repetido: {item['id']}")
             ids.add(item["id"])
-            if label == "camada" and (not isinstance(item["bands"], list) or not all(isinstance(b, str) and b for b in item["bands"])):
+            if label == "camada" and item.get("bands") is not None and (not isinstance(item["bands"], list) or not all(isinstance(b, str) and b for b in item["bands"])):
                 raise ValueError("bands deve ser uma lista de nomes de bandas.")
 
 
@@ -34,7 +34,7 @@ class NotebookConfig:
         viz.setdefault("cmap_type", "binary" if len(layer["legend"]) == 2 else "discrete")
         viz.setdefault("discrete_labels", [x["label"] for x in layer["legend"]])
         viz.setdefault("label", layer.get("legend_label", ""))
-        product = {"name": layer["name"], "asset": layer["asset"], "bands": layer["bands"], "visualization": "notebook"}
+        product = {"name": layer["name"], "asset": layer["asset"], "bands": layer.get("bands", []), "visualization": "notebook", "start_year": layer.get("start_year"), "end_year": layer.get("end_year")}
         self.datasets = {"notebook": {"products": {layer["id"]: product}, "title_collection": layer.get("collection_title", "")}}
         entry = {"name": territory["name"], "source": territory["asset"]}
         if territory.get("filter"):

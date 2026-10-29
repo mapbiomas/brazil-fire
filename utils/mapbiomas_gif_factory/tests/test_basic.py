@@ -8,6 +8,7 @@ from gif_factory.engine import validate, generate, NotebookConfig
 from gif_factory.storage import copy_artifacts, list_artifacts
 from gif_factory.presets import LAYERS, TERRITORIES
 from gif_factory.layout import combination_path, ensure_unique_paths, safe_name
+from gif_factory.temporal import resolve_bands
 
 
 class BasicTests(unittest.TestCase):
@@ -23,6 +24,19 @@ class BasicTests(unittest.TestCase):
             validate([{**pending, "reason": ""}], TERRITORIES)
         with self.assertRaises(ValueError):
             validate([pending, pending], TERRITORIES)
+
+    def test_temporal_discovery_and_range(self):
+        self.assertEqual(resolve_bands(["classification_2024", "classification_1985", "classification_2023"], start_year=2023),
+                         ["classification_2023", "classification_2024"])
+        self.assertEqual(resolve_bands(["freq_1985_2024", "freq_1985_2023"]), ["freq_1985_2023", "freq_1985_2024"])
+        self.assertEqual(resolve_bands(["f_2020_12", "f_2020_01"]), ["f_2020_01", "f_2020_12"])
+        with self.assertRaises(ValueError):
+            resolve_bands(["foo", "bar"])
+        with self.assertRaises(ValueError):
+            resolve_bands(["a_2023", "b_2023"])
+        with self.assertRaises(ValueError):
+            resolve_bands(["classification_2020"], start_year=2021)
+        self.assertEqual(resolve_bands(["foo", "bar"], ["bar", "foo"]), ["bar", "foo"])
 
     def test_notebook_custom_arrays_are_explicit_and_valid(self):
         notebook = json.loads((Path(__file__).parents[1] / "notebooks/piloto.ipynb").read_text(encoding="utf-8"))

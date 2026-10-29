@@ -28,6 +28,8 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     drive = w.Text(value="/content/drive/MyDrive/mapbiomas_gif_factory", description="Drive:", layout=w.Layout(width="95%"))
     auto = w.Checkbox(value=False, description="Enviar automaticamente após cada combinação")
     delivery = w.Text(value="Resultados", description="Entrega:", layout=w.Layout(width="95%"))
+    year_start = w.IntText(value=0, description="Ano inicial:")
+    year_end = w.IntText(value=0, description="Ano final:")
     kinds = {k: w.Checkbox(value=(k == "gif"), description=label) for k, label in [("gif", "GIFs"), ("colagem", "Colagens"), ("brutos", "Frames: mapa básico"), ("preparados", "Frames: mapa com ano e escala"), ("finais", "Frames: mapa completo")]}
 
     # Preset catalog and user-provided layers are intentionally separate.
@@ -103,6 +105,10 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
         if not chosen_layers or not chosen_territories or not selected_kinds:
             status.value = "<b>Selecione produto, território e saída.</b>"
             return
+        first_year, last_year = year_start.value, year_end.value
+        if first_year < 0 or last_year < 0 or (first_year and last_year and first_year > last_year):
+            status.value = "<b>Período inválido.</b> Use 0 para não limitar o ano."
+            return
         combos = [(origin, layer, territory) for origin, layer in chosen_layers for territory in chosen_territories]
         try:
             ensure_unique_paths(combos)
@@ -124,13 +130,21 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             try:
                 for number, (origin, layer, territory) in enumerate(combos, 1):
                     header = f"{origin} / {layer.get('theme', 'Fogo' if origin == 'Brasil' else 'Personalizado')} / {layer.get('collection', 'Coleção 5' if origin == 'Brasil' else 'Sem coleção')} / {layer['name']} / {territory['name']}"
-                    progress.max = max(1, len(layer['bands']))
+                    progress.max = 1
                     progress.value = 0
                     status.value = f"<b>◉ PREPARANDO {number} de {total}</b><br>{escape(header)}<br>Tempo: {_duration(monotonic()-started)} · previsão: calculando…"
                     log.append_stdout(f"INICIANDO {number}/{total}: {header}\n")
                     frame_start = monotonic()
+                    discovered = []
                     def event(kind, *args):
-                        if kind in ("frame_start", "frame_done"):
+                        nonlocal frame_start
+                        if kind == "discovered":
+                            discovered[:] = args[0]
+                            progress.max = max(1, len(discovered))
+                            frame_start = monotonic()
+                            log.append_stdout(f"Descobertas {len(discovered)} bandas: {discovered[0]} → {discovered[-1]}\n")
+                            status.value = f"<b>◉ {number} de {total}</b><br>{escape(header)}<br>{len(discovered)} unidades encontradas; iniciando download."
+                        elif kind in ("frame_start", "frame_done"):
                             done, count, band = args
                             progress.max = max(1, count)
                             progress.value = done
@@ -150,10 +164,11 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                                 log.append_stdout(f"Drive falhou; arquivo local preservado: {exc}\n")
                     try:
                         combo_root = delivery_root / combination_path(origin, layer, territory)
-                        files = generate(layer, territory, combo_root, selected_kinds, after,
+                        configured_layer = dict(layer, start_year=first_year or None, end_year=last_year or None)
+                        files = generate(configured_layer, territory, combo_root, selected_kinds, after,
                                          project=project, on_progress=event)
                         ok += 1
-                        completed.append((origin, layer, territory))
+                        completed.append((origin, layer, territory, list(discovered)))
                         log.append_stdout(f"FINALIZADO {number}/{total}: {len(files)} arquivos em /content\n")
                     except Exception as exc:
                         failed += 1
@@ -164,9 +179,9 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                              "Dados: MapBiomas; verifique as fontes e condições de uso de cada coleção.",
                              "A lista abaixo descreve a execução; um envio seletivo pode conter apenas parte dos arquivos.",
                              "", "Produtos e territórios concluídos:"]
-                    for origin, layer, territory in completed:
+                    for origin, layer, territory, bands in completed:
                         lines.append(f"- {origin} / {layer.get('theme', 'Sem tema')} / {layer.get('collection', 'Sem coleção')} / {layer['name']} / {territory['name']}")
-                        lines.append(f"  Períodos/bandas: {', '.join(layer['bands'])}")
+                        lines.append(f"  Períodos/bandas: {', '.join(bands)}")
                     lines.extend(["", "Frames, quando disponíveis:",
                                   "- Mapa_basico: imagem visualizada do Earth Engine, redimensionada.",
                                   "- Mapa_com_ano_e_escala: mapa preparado com ano e elementos cartográficos aplicáveis.",
@@ -190,7 +205,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                 run.disabled = False
         Thread(target=worker, daemon=True).start()
     run.on_click(on_run)
-    sections = w.Accordion(children=[w.VBox(territory_boxes), w.VBox([delivery, *kinds.values(), auto, drive]), w.VBox([refresh, selection, send])], selected_index=None)
+    sections = w.Accordion(children=[w.VBox(territory_boxes), w.VBox([delivery, w.HTML("<b>Período</b> — 0 = todos os anos"), year_start, year_end, *kinds.values(), auto, drive]), w.VBox([refresh, selection, send])], selected_index=None)
     for i, title in enumerate(["Territórios", "Saídas e destino", "Arquivos gerados e envio posterior"]):
         sections.set_title(i, title)
     update_files()

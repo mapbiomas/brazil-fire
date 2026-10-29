@@ -8,7 +8,7 @@ Protótipo independente para criar GIFs no Google Colab a partir de imagens mult
 
 1. Abra `utils/mapbiomas_gif_factory/notebooks/piloto.ipynb` do repositório `mapbiomas/brazil-fire` no Colab.
 2. Na primeira célula configure um projeto Google Cloud habilitado para Earth Engine. Execute as células em ordem. Opcionalmente fixe `REPO_REF` em um commit validado.
-3. Edite as listas de camadas e territórios e encontre-as na guia Personalizado; o exemplo experimental também aparece na guia Brasil. Confira os nomes das bandas no asset; o exemplo usa 2023 e 2024.
+3. Edite as listas de camadas e territórios e encontre-as na guia Personalizado; exemplos experimentais também aparecem na guia Brasil. As bandas são descobertas automaticamente; para um teste curto, use os campos de ano inicial e final em Saídas e destino.
 4. Selecione as saídas e execute. Por padrão apenas o GIF fica em `/content/mapbiomas_gif_factory_output`.
 5. A primeira célula tenta montar o Drive para envio automático ou posterior. Se não quiser usá-lo, comente o bloco de montagem; caso a montagem falhe, ainda é possível gerar arquivos em `/content`. Use a pasta sugerida ou outra de sua preferência. Na guia de envio, atualize a lista e selecione os arquivos desejados. Arquivos existentes no destino não são sobrescritos.
 
@@ -22,14 +22,14 @@ Cada território contém somente as pastas selecionadas: `GIFs`, `Colagens` e/ou
 
 ## Escopo e limitações
 
-- Somente `ee.Image` multibanda, com bandas explicitamente informadas, visualização simples e legenda fornecida pelo usuário. ImageCollection, RGB e produtos que exigem processadores próprios ainda não são suportados. A correspondência de códigos e cores para classes não consecutivas precisa de validação específica; não presumir que uma paleta curta corresponde aos valores de classe.
+- Somente `ee.Image` multibanda, com descoberta automática de bandas, visualização simples e legenda fornecida pelo usuário. Bandas com ano ou intervalo identificável são ordenadas temporalmente; quando há ambiguidade a execução é interrompida com instruções. `bands` é opcional para seleção avançada explícita. ImageCollection, RGB e produtos que exigem processadores próprios ainda não são suportados. A correspondência de códigos e cores para classes não consecutivas precisa de validação específica; não presumir que uma paleta curta corresponde aos valores de classe.
 - A legenda do exemplo vem da configuração existente da Fábrica de GIFs; os parâmetros, nomes de bandas e resultado ainda precisam ser testados no Earth Engine.
 - Os biomas usam os assets `projects/ee-ipam/assets/IBGE/limite_biomas_IBGE_2026` e, para Mata Atlântica, `users/wallacesilva/mata_atlantica_`, conforme a configuração do projeto original. A conta autenticada precisa ter permissão de leitura; disponibilidade e filtros devem ser confirmados no Earth Engine.
 - O pipeline cartográfico original é incluído no pacote; os níveis correspondem a `frames_pure`, `frames_clean` e `frames_maps`. O pipeline original redimensiona os arquivos em `frames_pure` após o download. A equivalência visual entre plataformas ainda deve ser testada, inclusive fontes e acesso aos assets.
 - A geração ocorre sequencialmente em uma thread; não há retomada automática de processamento ou manifesto persistente. Cada disparo cria uma pasta própria. Os resultados selecionados são copiados e enviados ao Drive após cada combinação, não durante seu processamento. Erros de Drive não interrompem a geração.
 - A estimativa apresentada é apenas para o download dos frames da combinação atual, calculada com a média observada; não inclui composição, GIF ou envio ao Drive.
 - Não há integração automática com o catálogo de referência. Acrescentar coleções e legendas requer revisão e testes individuais.
-- A célula de camadas contém exemplos para cobertura 10/10.1 e produtos Fogo 4. Itens marcados como pendentes estão desabilitados até validar bandas, simbologia e transformações; Fogo 4 anual é experimental. Para habilitar um item pendente, o responsável precisa completar e validar `bands`, `visualization` e `legend` e remover `enabled: False`.
+- A célula de camadas contém exemplos para cobertura 10/10.1 e produtos Fogo 4. Itens marcados como pendentes estão desabilitados até validar simbologia e transformações; Fogo 4 anual é experimental. Para habilitar um item pendente, o responsável precisa completar e validar `visualization` e `legend` e remover `enabled: False`.
 - Os territórios personalizados são independentes das iniciativas. Os exemplos MATOPIBA e MATOPIBA no Cerrado vêm das configurações locais e não tiveram acesso verificado nesta versão. Troque os assets na célula se necessário.
 
 ## Próximas etapas de expansão
