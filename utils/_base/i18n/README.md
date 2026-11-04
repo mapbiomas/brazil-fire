@@ -1,11 +1,11 @@
 # i18n
 
-Textos de interface compartilhados em três idiomas: `pt-BR.json`, `en.json`, `es.json`. Os três têm exatamente as mesmas chaves.
+Shared interface texts in three languages: `pt-BR.json`, `en.json`, `es.json`. The three files have exactly the same keys.
 
 ```json
 { "lang": "es", "months": ["Enero", "..."], "strings": { "bulletin.title": "Boletín del Monitor de Fuego" } }
 ```
 
-- Códigos de idioma alinhados a `M_lang.py` (`network/catalog/production/src/core/`): `pt`, `en`, `es`. Os idiomas `fr` e `id` são específicos do pipeline do Fire Monitor e não entram aqui.
-- Primeira versão: títulos e rótulos já usados em `fire_monitor_highlights` (PT e ES) e traduzidos para EN. O HTML existente **não** foi migrado (Fase 2).
-- Revisão de falante nativo pendente em EN e ES.
+- Language codes follow `M_lang.py` (`network/catalog/production/src/core/`): `pt`, `en`, `es`. `fr` and `id` are specific to the Fire Monitor pipeline and are not included.
+- First version: titles and labels already used in `fire_monitor_highlights` (PT and ES), translated to EN. The existing HTML was **not** migrated yet.
+- EN and ES need review by a native speaker.

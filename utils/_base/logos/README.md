@@ -1,20 +1,20 @@
 # Logos
 
-| Arquivo | Logo | Idioma |
+| File | Logo | Language |
 |---|---|---|
-| `MapBiomas_Fogo_PT.png` | MapBiomas [FOGO] | Português (Brasil) |
-| `MapBiomas_Fire_EN.png` | MapBiomas [FIRE] | Inglês |
-| `MapBiomas_Fuego_ES.png` | MapBiomas [FUEGO] | Espanhol |
-| `Monitor_PT.png` | Monitor do Fogo | Português (Brasil) |
-| `Monitor_EN.png` | Fire Monitor | Inglês |
-| `Monitor_ES.png` | Monitor de Fuego | Espanhol |
+| `MapBiomas_Fogo_PT.png` | MapBiomas [FOGO] | Portuguese |
+| `MapBiomas_Fire_EN.png` | MapBiomas [FIRE] | English |
+| `MapBiomas_Fuego_ES.png` | MapBiomas [FUEGO] | Spanish |
+| `Monitor_PT.png` | Monitor do Fogo | Portuguese |
+| `Monitor_EN.png` | Fire Monitor | English |
+| `Monitor_ES.png` | Monitor de Fuego | Spanish |
 
-Logos gerais do MapBiomas Fogo (`MapBiomas_*`) para coleções e documentos; logos `Monitor_*` para o Monitor. Cópias das logos do Monitor de `utils/fire_monitor_highlights/logos/`. Esta pasta passa a ser a fonte única (Fase 2 remove as duplicatas).
+`MapBiomas_*` are the general MapBiomas Fire logos (collections, documents); `Monitor_*` are for the Fire Monitor. This folder is the single source; tools that must open standalone (static HTML) keep a copy next to the file.
 
-## Regras de uso
+## Usage rules
 
-- Use a logo no idioma do documento.
-- Não distorça: mantenha a proporção; não recolora.
-- Largura mínima sugerida: 120 px em tela, 25 mm em impressão. **A confirmar com a identidade visual MapBiomas.**
-- Área de proteção: deixe ao redor da logo uma margem livre de pelo menos a altura da letra "M". **A confirmar.**
-- Fundo claro: versão colorida (arquivos acima). Fundo escuro: versão monocromática em `variacoes/` — **ainda não existe**; peça à identidade visual antes de usar em fundo escuro.
+- Use the logo in the language of the document.
+- Do not distort, recolor or change proportions.
+- Suggested minimum width: 120 px on screen, 25 mm in print. **To be confirmed with MapBiomas visual identity.**
+- Clear space: at least the height of the letter "M" around the logo. **To be confirmed.**
+- Light backgrounds: the colored files above. Dark backgrounds: a monochrome version in `variacoes/` — **does not exist yet**.

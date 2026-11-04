@@ -1,34 +1,34 @@
-# <Nome da ferramenta>
+# <Tool name>
 
-## 🔗 Abrir online: **[<link da versão publicada>](<URL>)**
+## 🔗 Open the app: **[<published link>](<URL>)**
 
-_(Remova esta linha se a ferramenta não tiver versão publicada.)_
+_(Remove this line if the tool has no published version.)_
 
-<Uma ou duas frases: o que a ferramenta faz e para quem.>
+<One or two sentences: what the tool does and for whom.>
 
-## 🗂️ Estrutura de pastas
+## 🗂️ Folder structure
 
 ```
-utils/<nome_da_ferramenta>/
+utils/<tool_name>/
 ├── README.md
-├── CLAUDE.md          # documentação técnica (opcional)
+├── CLAUDE.md          # technical documentation (optional)
 └── ...
 ```
 
-| Item | Para que serve |
+| Item | Purpose |
 |---|---|
-| `<arquivo>` | <descrição> |
+| `<file>` | <description> |
 
-## ▶️ Como rodar localmente
+## ▶️ Run locally
 
-1. <passo>
-2. <passo>
+1. <step>
+2. <step>
 
-## ➕ Como contribuir / adicionar um item novo
+## ➕ Add a new item (country, legend, product...)
 
-1. <passo>
-2. <passo>
+1. <step>
+2. <step>
 
-## 📚 Fontes de dados oficiais
+## 📚 Official data sources
 
-- [<nome da fonte>](<URL>)
+- [<source name>](<URL>)

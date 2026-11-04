@@ -8,7 +8,7 @@ on:
     branches: [main]
     paths:
       - "utils/fire_monitor_highlights/src/**"
-      - "utils/legends_mapbiomas_fire/app/**"
+      - "utils/fire_legends/app/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -39,7 +39,7 @@ jobs:
           cp -r utils/fire_monitor_highlights/src/peru/. $app/peru/
           cp $app/peru/boletin-fuego.html $app/peru/index.html
           mkdir -p _site/legends
-          cp -r utils/legends_mapbiomas_fire/app/. _site/legends/
+          cp -r utils/fire_legends/app/. _site/legends/
           cat > $app/index.html <<'EOF'
           <!doctype html>
           <meta charset="utf-8">

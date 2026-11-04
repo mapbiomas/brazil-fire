@@ -22,7 +22,6 @@ utils/fire_monitor_highlights/
 ├── README.md
 ├── CLAUDE.md                     # technical documentation
 ├── .gitignore
-├── logos/                        # official logos: Monitor_EN.png, Monitor_ES.png, Monitor_PT.png
 └── src/
     ├── brazil/                   # Portuguese · API plataforma.monitorfogo.mapbiomas.org
     │   ├── boletim-fogo.html     # bulletin of the month + Destaque dinâmico
@@ -32,7 +31,15 @@ utils/fire_monitor_highlights/
         └── Monitor_ES.png
 ```
 
-Each country has its own folder with an independent HTML file, because the APIs, territory types, available data and language differ. To add a country, copy the closest folder and adapt the API and texts. Details are in [CLAUDE.md](CLAUDE.md) (in Portuguese).
+The official logos live in [`utils/_base/logos/`](../_base/logos/); each country folder keeps a copy next to its HTML so the page also works when opened locally.
+
+## ➕ Add a country
+
+1. Copy the closest folder in `src/` (for example `src/peru/`) to `src/<country>/`.
+2. Adapt the API URL, territory types, language and logo (UI texts: [`utils/_base/i18n/`](../_base/i18n/)).
+3. Add the country to the "Assemble site" step of [`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) and to the table at the top of this README.
+
+Each country has its own independent HTML file, because the APIs, territory types, available data and language differ. Details are in [CLAUDE.md](CLAUDE.md) (in Portuguese).
 
 ---
 

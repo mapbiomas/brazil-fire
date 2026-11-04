@@ -1,30 +1,30 @@
-# utils/_base — padrões compartilhados
+# utils/_base — shared standards
 
-Fonte única de logos, paletas de cores, textos de interface (i18n), modelos de documentação e regras de código para as ferramentas de `utils/`. Serve à equipe do Brasil e aos países da rede MapBiomas Fogo.
+Single source of logos, UI strings (i18n), documentation templates and coding rules for the tools in `utils/`. For the Brazil team and the countries of the MapBiomas Fire network.
 
-**Regra de ouro:** não redefina cores, logos ou textos dentro de uma ferramenta. Aponte para esta pasta.
+**Rule:** do not redefine logos or texts inside a tool. Point to this folder.
 
-## Estrutura
+## Structure
 
 ```
 utils/_base/
 ├── README.md
-├── logos/          # Monitor_PT/EN/ES.png, variacoes/ (vazia por enquanto)
-├── palette/        # vazia por enquanto (paletas a definir)
-├── i18n/           # pt-BR.json, en.json, es.json (mesmas chaves)
-├── templates/      # README, CLAUDE e CHANGELOG para novas ferramentas
-└── docs/           # padrões de código, política de commit, nomes de saída
+├── logos/          # MapBiomas Fire and Monitor logos (PT/EN/ES), variacoes/ (empty)
+├── palette/        # empty for now (palettes to be defined)
+├── i18n/           # pt-BR.json, en.json, es.json (same keys)
+├── templates/      # README, CLAUDE and CHANGELOG templates for new tools
+└── docs/           # code standards, commit policy, output naming (Portuguese)
 ```
 
-## Como usar
+## How to use
 
-| Preciso de… | Use |
+| I need… | Use |
 |---|---|
-| logo | `logos/Monitor_<PT|EN|ES>.png` (regras em `logos/README.md`) |
-| cor de classe de fogo | CSVs em `utils/legends_mapbiomas_fire/legends/` (paletas em `palette/` ainda por definir) |
-| texto de interface | `i18n/<idioma>.json`, chave em `strings` |
-| nova ferramenta | copie os arquivos de `templates/` |
+| a logo | `logos/` (rules in `logos/README.md`) |
+| a fire class color | CSVs in `utils/fire_legends/legends/` |
+| an interface text | `i18n/<language>.json`, key under `strings` |
+| a new tool | copy the files in `templates/` |
 
-## Estado
+## Status
 
-Fase 1: pasta criada. As três ferramentas ainda **não** consomem estes arquivos (Fase 2). A pasta `palette/` ficou vazia de propósito, para ser preenchida depois.
+Phase 1 done. `fire_legends` and `fire_monitor_highlights` follow these standards (README format, folder naming, logos from here). `mapbiomas_gif_factory` has not been migrated yet. `palette/` is empty on purpose.

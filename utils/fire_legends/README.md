@@ -20,7 +20,7 @@ _Inventory of 30/10/2026 (official site and `gs://mapbiomas-public`)._ Colors ma
 ## Folder structure
 
 ```
-utils/legends_mapbiomas_fire/
+utils/fire_legends/
 ├── README.md
 ├── registry.csv          # one row per legend: status, years, GEE asset, source
 ├── legends/              # one CSV per legend: pixel_value, name_pt/en/es, hex
@@ -48,9 +48,18 @@ utils/legends_mapbiomas_fire/
 1. Create `legends/<country>_col<N>_<product>.csv` (copy an existing one). `hex` is 6 digits, lowercase (`#a900ff`); `pixel_value` is a whole number.
 2. Add a row in `registry.csv`: `file` = the CSV name and `app_country`, `app_collection`, `app_product` = the codes the app uses (for example `brasil`, `5`, `fire_frequency`).
 3. Run `python build_legends.py`. It checks the CSVs, lists any problem and rewrites `LEGENDS.md`, `preview.html` and `app/palettes.json`.
-4. Commit the CSVs with the generated files. `python -m unittest discover -s utils/legends_mapbiomas_fire/tests` checks they are in sync. The app is republished automatically.
+4. Commit the CSVs with the generated files. `python -m unittest discover -s utils/fire_legends/tests` checks they are in sync. The app is republished automatically.
 
 Only the Python standard library is needed.
+
+## Run locally
+
+- Validate: `python build_legends.py --check` (from this folder).
+- App: open `app/index.html` through a local server, for example `python -m http.server` inside `app/` (it loads `palettes.json`).
+
+## Other countries
+
+Legends are stored per country, collection and product. To add one, follow the steps above; leave `status` as `pending_colors` or `not_found` when colors or documents are missing, instead of copying Brazil's values. Shared logos and texts: [`utils/_base/`](../_base/). Technical notes: [CLAUDE.md](CLAUDE.md).
 
 ## Sources
 

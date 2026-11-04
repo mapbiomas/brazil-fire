@@ -17,7 +17,7 @@
 | `README.md` | Visão geral para o público. |
 | `CLAUDE.md` | Este documento técnico. |
 
-> **Regra do projeto**: não fazer commit nem push sem autorização explícita.
+> **Regra do projeto**: não fazer commit nem push sem autorização explícita (política do repositório: `utils/_base/docs/politica_commit_push.md`). Padrões compartilhados (logos, textos de interface, README em inglês): `utils/_base/`. A pasta `logos/` desta ferramenta foi removida; as logos oficiais estão em `utils/_base/logos/` e cada país mantém uma cópia ao lado do HTML.
 
 ---
 
