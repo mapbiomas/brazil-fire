@@ -1,4 +1,4 @@
-# MapBiomas Fire Monitor - Pipeline (M0-M6)
+# MapBiomas Fire - Pipeline (M0-M6)
 
 ## Documentation and User Guide
 Expand this section to understand the data architecture, environment requirements, and workflow.
