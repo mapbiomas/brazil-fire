@@ -1,6 +1,8 @@
-# Boletim do Monitor do Fogo 🔥
+**Online**: https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/ (Brasil: `/brazil/` · Perú: `/peru/`)
 
-**Protótipo**: Teste de automação do boletim mensal do [Monitor do Fogo](https://plataforma.monitorfogo.mapbiomas.org/).
+**Localmente**: abra [`src/brazil/boletim-fogo.html`](src/brazil/boletim-fogo.html) ou [`src/peru/boletin-fuego.html`](src/peru/boletin-fuego.html) no navegador (mantenha o logo da pasta junto do HTML). Não há build nem dependências para instalar.
+
+# Boletim do Monitor do Fogo 🔥
 
 Relatório visual com dados ao vivo sobre área queimada no Brasil, exportável em PDF.
 
@@ -20,12 +22,6 @@ Relatório visual com dados ao vivo sobre área queimada no Brasil, exportável 
   - Download dos dados em CSV, dos gráficos em PNG, PDF do painel e link com os filtros
   - "Fora do normal?": o território e o período escolhidos comparados à variação típica dos anos anteriores, no território e em cada subdivisão
 
-## 🚀 Acesso
-
-**Online**: https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/ (Brasil: `/brazil/` · Perú: `/peru/`)
-
-**Localmente**: abra [`src/brazil/boletim-fogo.html`](src/brazil/boletim-fogo.html) ou [`src/peru/boletin-fuego.html`](src/peru/boletin-fuego.html) no navegador (mantenha `Monitor_PT.png` na mesma pasta). Não há build nem dependências para instalar.
-
 ## 🗂️ Estrutura desta pasta
 
 ```
@@ -33,13 +29,14 @@ utils/fire_monitor_highlights/
 ├── README.md
 ├── CLAUDE.md                     # documentação técnica
 ├── .gitignore
+├── logos/                        # logos oficiais: Monitor_EN.png, Monitor_ES.png, Monitor_PT.png
 └── src/
     ├── brazil/                   # Brasil (português) · API plataforma.monitorfogo.mapbiomas.org
     │   ├── boletim-fogo.html     # boletim do mês + Destaque dinâmico
     │   └── Monitor_PT.png
     └── peru/                     # Perú (español) · API fogo-peru.geodatin.com
         ├── boletin-fuego.html    # só o boletim do mês (5 folhas A4)
-        └── Monitor_PT.png        # logo provisório (o do Brasil)
+        └── Monitor_ES.png
 ```
 
 Cada país tem a sua pasta, com um HTML independente: as APIs, os tipos de território (estados e biomas no Brasil; departamentos, biomas e distritos no Peru), os dados disponíveis e o idioma são diferentes. Para um novo país, copie a pasta mais parecida e adapte a API e os textos.
