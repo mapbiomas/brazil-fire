@@ -31,7 +31,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .brand{display:flex;align-items:center;gap:14px;min-width:0}
 .logo{height:52px;width:auto;background:#fff;border-radius:8px;padding:4px 6px;flex:none}
 .brand h1{font-weight:700;font-size:clamp(1.25rem,2.6vw,1.7rem);margin:0;letter-spacing:-.01em;text-wrap:balance}
-.brand h1 span{color:var(--accent)} .brand h1 .m{color:#808283} .brand h1 .plain{color:inherit;font-weight:600}
+.brand h1 span{color:var(--accent)}
 .brand p{margin:2px 0 0;color:var(--muted);font-size:13px;max-width:60ch}
 .hright{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
@@ -139,7 +139,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
     <div class="brand">
       <img class="logo" id="logo" src="logos/MapBiomas_Fogo_PT.png" alt="MapBiomas Fogo">
       <div>
-        <h1><span class="m">MAP</span><span>BIOMAS</span> <span id="t-fire">Fogo</span> · <span id="t-title" class="plain"></span></h1>
+        <h1><span id="t-title"></span></h1>
         <p id="t-sub"></p>
       </div>
     </div>
@@ -665,7 +665,7 @@ function renderStatic(){
   document.documentElement.lang=S.lang==="pt"?"pt-BR":S.lang;
   ["title","sub","country","colls","subprod","legend","meta","palette","export","sources","matrix"].forEach(k=>{const el=$("t-"+k);if(el)el.textContent=t(k)});
   const LG={pt:["Fogo","MapBiomas_Fogo_PT"],es:["Fuego","MapBiomas_Fuego_ES"],en:["Fire","MapBiomas_Fire_EN"]}[S.lang]||["Fogo","MapBiomas_Fogo_PT"];
-  $("t-fire").textContent=LG[0];$("logo").src="logos/"+LG[1]+".png";
+  $("logo").src="logos/"+LG[1]+".png";
   $("t-matrix-note").textContent=t("matrixNote");
   $("view-consult").textContent=t("v_consult");$("view-reg").textContent=t("v_reg");
   $("lay-list").textContent=t("list");$("lay-bar").textContent=t("bar");
