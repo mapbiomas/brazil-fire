@@ -31,17 +31,30 @@ jobs:
 
       - name: Assemble site
         run: |
-          mkdir -p _site/fire_monitor_highlights
-          cp -r utils/fire_monitor_highlights/src/. _site/fire_monitor_highlights/
-          cp _site/fire_monitor_highlights/boletim-fogo.html _site/fire_monitor_highlights/index.html
+          app=_site/fire_monitor_highlights
+          mkdir -p $app/brazil $app/peru
+          cp -r utils/fire_monitor_highlights/src/brazil/. $app/brazil/
+          cp $app/brazil/boletim-fogo.html $app/brazil/index.html
+          cp -r utils/fire_monitor_highlights/src/peru/. $app/peru/
+          cp $app/peru/boletin-fuego.html $app/peru/index.html
+          cat > $app/index.html <<'EOF'
+          <!doctype html>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>MapBiomas Fire · Monthly bulletin</title>
+          <h1>MapBiomas Fire · Boletim / Boletín</h1>
+          <ul>
+            <li><a href="brazil/">Brasil · Boletim do Monitor do Fogo</a></li>
+            <li><a href="peru/">Perú · Boletín del Monitor de Fuego</a></li>
+          </ul>
+          EOF
           cat > _site/index.html <<'EOF'
           <!doctype html>
           <meta charset="utf-8">
           <meta http-equiv="refresh" content="0; url=fire_monitor_highlights/">
           <title>MapBiomas Fire</title>
-          <a href="fire_monitor_highlights/">Boletim do Monitor do Fogo</a>
+          <a href="fire_monitor_highlights/">MapBiomas Fire · Boletim / Boletín</a>
           EOF
-
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

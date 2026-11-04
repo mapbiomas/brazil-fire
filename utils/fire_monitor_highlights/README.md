@@ -22,25 +22,33 @@ Relatório visual com dados ao vivo sobre área queimada no Brasil, exportável 
 
 ## 🚀 Acesso
 
-**Online**: https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/
+**Online**: https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/ (Brasil: `/brazil/` · Perú: `/peru/`)
 
-**Localmente**: abra [`src/boletim-fogo.html`](src/boletim-fogo.html) no navegador (mantenha `Monitor_PT.png` na mesma pasta). Não há build nem dependências para instalar.
+**Localmente**: abra [`src/brazil/boletim-fogo.html`](src/brazil/boletim-fogo.html) ou [`src/peru/boletin-fuego.html`](src/peru/boletin-fuego.html) no navegador (mantenha `Monitor_PT.png` na mesma pasta). Não há build nem dependências para instalar.
 
 ## 🗂️ Estrutura desta pasta
 
 ```
 utils/fire_monitor_highlights/
 ├── README.md
-├── CLAUDE.md                 # documentação técnica
+├── CLAUDE.md                     # documentação técnica
 ├── .gitignore
 └── src/
-    ├── boletim-fogo.html     # aplicação (única fonte de verdade)
-    └── Monitor_PT.png        # logo usado nas folhas e na impressão
+    ├── brazil/                   # Brasil (português) · API plataforma.monitorfogo.mapbiomas.org
+    │   ├── boletim-fogo.html     # boletim do mês + Destaque dinâmico
+    │   └── Monitor_PT.png
+    └── peru/                     # Perú (español) · API fogo-peru.geodatin.com
+        ├── boletin-fuego.html    # só o boletim do mês (5 folhas A4)
+        └── Monitor_PT.png        # logo provisório (o do Brasil)
 ```
+
+Cada país tem a sua pasta, com um HTML independente: as APIs, os tipos de território (estados e biomas no Brasil; departamentos, biomas e distritos no Peru), os dados disponíveis e o idioma são diferentes. Para um novo país, copie a pasta mais parecida e adapte a API e os textos.
 
 ## 🌎 Outros países
 
-Hoje o boletim foi construído para o Brasil e lê a API pública do Monitor do Fogo. A ideia é que o mesmo gerador sirva a outros países da rede MapBiomas Fogo; essa adaptação ainda não foi feita.
+- **Brasil** (`src/brazil/`): boletim do mês com 5 folhas e o painel Destaque dinâmico.
+- **Peru** (`src/peru/`): boletim do mês com 5 folhas, em espanhol, sem o painel dinâmico. Limites: a API do Peru só tem dados desde julho de 2025 (não há média histórica) e não tem dados de maio de 2026; o boletim avisa isso no rodapé e no gráfico acumulado.
+- Outros países: ainda não adaptados.
 
 ## 📚 Para desenvolvedores
 

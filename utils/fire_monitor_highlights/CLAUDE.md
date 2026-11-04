@@ -2,7 +2,9 @@
 
 **Protótipo**: automação do boletim mensal do [Monitor do Fogo](https://plataforma.monitorfogo.mapbiomas.org/) — relatório visual sobre área queimada no Brasil, exportável em PDF.
 
-> **Local no repositório**: `utils/fire_monitor_highlights/` (código e logo em `src/`). A tabela abaixo foi escrita para o repositório original `veralaisa/boletim-monitor-fogo`, onde os arquivos ficam na raiz.
+> **Local no repositório**: `utils/fire_monitor_highlights/`, uma pasta por país em `src/` (`src/brazil/` e `src/peru/`). Esta documentação descreve o boletim do **Brasil** (`src/brazil/boletim-fogo.html`); a tabela abaixo foi escrita para o repositório original `veralaisa/boletim-monitor-fogo`, onde os arquivos ficam na raiz. Publicado em https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/brazil/ (workflow `.github/workflows/pages.yml`).
+
+> **Peru** (`src/peru/boletin-fuego.html`): derivado do boletim do Brasil, em espanhol, só com o boletim do mês. Usa a API `https://fogo-peru.geodatin.com` (mesmo formato; território `country` com código 1; subdivisões `department`, `province`, `district`, `biome`; tiles em `/api/territories/grouping/tiles/{grouping}`; `/bounds` devolve só a caixa). A API do Peru tem dados só desde julho de 2025 e o mês de maio de 2026 não existe.
 
 ## 📁 Arquivos
 

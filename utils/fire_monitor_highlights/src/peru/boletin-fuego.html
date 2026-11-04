@@ -1,0 +1,1223 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boletín del Monitor de Fuego · Perú</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.min.js"></script>
+<style>
+  :root {
+    /* Vermelhos da logo MapBiomas Fogo (Monitor_PT.png) */
+    --red: #E94030;
+    --red-d: #B42A1C;
+    --red-l: #F7BBB5;
+    --fire: #D32F2F;
+    --gray: #BDBDBD;
+    --dark: #212121;
+    --ink: #1F1F1F;
+    --ink2: #4F4F4F;
+    --muted: #6B6B6B;
+    --line: #E6E6E6;
+    --soft: #F6F5F4;
+    --good: #2E7D4F;
+    --viewer: #E7E6E4;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--viewer);
+    color: var(--ink);
+    font: 13px/1.45 Montserrat, system-ui, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, p { margin: 0; }
+  button { font: inherit; cursor: pointer; }
+
+  /* Barra do aplicativo (não vai para o PDF) */
+  .top {
+    position: sticky; top: 0; z-index: 1000;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px;
+    padding: 10px 20px;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; margin-right: auto; font-size: 12px; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: .05em; }
+  .brand img { display: block; height: 30px; width: auto; }
+  .tabs { display: flex; gap: 4px; background: var(--soft); padding: 4px; border-radius: 999px; }
+  .tab { border: 0; background: none; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink2); }
+  .tab.on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .1); }
+  .pill { border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: var(--red); color: #fff; border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 700; }
+  .btn:hover { background: var(--red-d); }
+
+  /* ===== Boletim: folhas A4 ===== */
+  .doc { padding: 24px 12px 40px; }
+  .doc[hidden] { display: none; }
+  .sheet {
+    position: relative;
+    width: 210mm; min-height: 297mm;
+    margin: 0 auto 24px;
+    padding: 9mm 10mm 7mm;
+    background: #fff;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, .08);
+    display: flex; flex-direction: column; gap: 12px;
+    font-size: 12px;
+  }
+
+  .sh { display: flex; align-items: center; gap: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--red); }
+  .sh-logo { display: block; height: 42px; width: auto; }
+  .sh-sep { width: 1.5px; align-self: stretch; background: var(--red); }
+  .sh-d { font-size: 18px; font-weight: 800; letter-spacing: .03em; color: var(--red); text-transform: uppercase; }
+  .sh-p { margin-left: auto; font-size: 14px; font-weight: 800; text-transform: uppercase; }
+
+  .eyebrow { margin-bottom: 3px; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--red); }
+  .lead { margin-top: 4px; max-width: 72ch; font-size: 11.5px; line-height: 1.3; color: var(--ink2); text-wrap: balance; }
+
+  .blk { position: relative; min-width: 0; }
+  .cv { position: relative; }
+  .cv canvas { max-width: 100%; }
+
+  /* Cards de apoio (painel e cards de contexto do boletim). */
+  .tl { background: var(--soft); border-radius: 14px; padding: 9px 11px; }
+  .tl-l { font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink2); line-height: 1.3; }
+  .tl-v { margin-top: 2px; font-size: 24px; font-weight: 700; line-height: 1.1; }
+  .tl-v.up { color: var(--red-d); }
+  .tl-v.down { color: var(--good); }
+  .tl-s { margin-top: 2px; font-size: 9.5px; line-height: 1.3; color: var(--ink2); }
+
+  .ct { margin-bottom: 2px; font-size: 11.5px; line-height: 1.25; font-weight: 700; }
+  .cs { margin-bottom: 4px; font-size: 10.5px; line-height: 1.3; color: var(--ink2); }
+  .cvar { margin: 0 0 2px; font-size: 9.5px; line-height: 1.3; color: var(--ink2); }
+  .cvar b { font-weight: 800; }
+  .cvar .up { color: var(--red-d); }
+  .cvar .down { color: var(--good); }
+  .cvar .med { display: inline-block; width: 14px; margin: 0 3px 2px 0; border-top: 1.5px dashed var(--ink); vertical-align: middle; }
+  .fn { margin-top: 4px; font-size: 9px; line-height: 1.3; color: var(--muted); }
+
+  .leg { display: flex; flex-wrap: wrap; gap: 3px 10px; margin: 4px 0; font-size: 9.5px; line-height: 1.3; color: var(--ink2); }
+  .leg i { display: inline-block; width: 9px; height: 9px; margin-right: 4px; border-radius: 2px; vertical-align: -1px; }
+  .leg i.avg { width: 12px; height: 0; border-top: 2px solid var(--ink); border-radius: 0; vertical-align: 2px; }
+  .leg i.wk { width: 1px; height: 10px; margin: 0 6px 0 3px; background: var(--muted); border-radius: 0; }
+
+  /* Fora do normal? (painel): tabelas de anomalia e quadro do método. */
+  .ztab { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+  .ztab th, .ztab td { padding: 4px 8px; border-bottom: 1px solid #FFFFFF; text-align: right; white-space: nowrap; }
+  .ztab th { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--ink2); background: var(--soft); }
+  .ztab .l { text-align: left; }
+  .ztab td.zs { text-align: left; white-space: normal; }
+  .ztab td b { font-weight: 800; }
+  .ztab tr.za2 td { background: #D46A5F; color: #FFFFFF; }
+  .ztab tr.za1 td { background: #F6CBC5; }
+  .ztab tr.zb1 td { background: #CDE6D5; }
+  .ztab tr.zb2 td { background: #5FA67D; color: #FFFFFF; }
+  .ztab tr.sep td { padding-top: 8px; background: #FFFFFF; color: var(--ink); font-weight: 800; text-align: left; }
+  .como { padding: 12px 16px; border-left: 3px solid var(--red); border-radius: 12px; background: var(--soft); font-size: 13px; line-height: 1.5; color: var(--ink2); }
+  .como b { color: var(--ink); }
+  .como ol { margin: 6px 0; padding-left: 18px; }
+
+  .lmap { height: 340px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #FFFFFF; }
+  .lmap .leaflet-control-attribution { font-size: 8px; }
+  /* O VectorGrid desenha os polígonos, mas às vezes não marca o tile como carregado,
+     e o Leaflet deixa o tile oculto. Os tiles vetoriais podem aparecer assim que desenhados. */
+  .lmap svg.leaflet-tile { visibility: visible; }
+  .map-svg { display: block; width: 100%; height: auto; }
+  .ml-s { font: 700 13px Montserrat, sans-serif; }
+  .ml-v { font: 500 10px Montserrat, sans-serif; }
+
+  .sf { margin-top: auto; display: flex; justify-content: space-between; gap: 12px; padding-top: 6px; border-top: 1px solid var(--line); font-size: 9px; color: var(--muted); }
+
+  /* ===== Destaques: folhas A4 paisagem (versão 1 do boletim oficial) ===== */
+  .sheet.slide { width: 297mm; min-height: 210mm; padding: 8mm 12mm 6mm; gap: 10px; }
+  .sl-g { flex: 1; display: grid; grid-template-columns: 1.05fr 1fr; gap: 24px; min-height: 0; }
+  .sl-g > * { min-width: 0; }
+  .sl-l { position: relative; display: flex; flex-direction: column; }
+  .sl-r { display: flex; flex-direction: column; gap: 10px; }
+  .sl-t { margin-bottom: 2px; font-size: 15px; font-weight: 700; text-align: center; }
+  .sl-kl { font-size: 11px; font-weight: 500; letter-spacing: .02em; text-transform: uppercase; color: var(--ink2); }
+  .sl-kv { font-size: 44px; font-weight: 800; line-height: 1.05; letter-spacing: -.02em; }
+  .sl-kv small { margin-left: 6px; font-size: 26px; font-weight: 800; }
+  .sl-r .ct { margin-bottom: 0; font-size: 13px; }
+  .sl-r .cs { margin-bottom: 2px; font-size: 11px; }
+  /* O mapa encosta no título (folhas 2 e 4); a sobra de altura fica embaixo, com legenda e selo. */
+  .sl-mapa { flex: 1; display: flex; align-items: flex-start; justify-content: center; min-height: 0; }
+  .sl-mapa .map-svg { height: 500px; width: auto; max-width: 100%; }
+  .lmap.sl-lm { flex: 1; height: auto; min-height: 380px; border: 0; }
+  /* Legenda do mapa coroplético: sem fundo nem borda, integrada ao branco da folha. */
+  .sl-legw { position: absolute; right: 0; bottom: 4px; z-index: 450; padding: 0; background: none; }
+  .sl-legw b { display: block; max-width: 190px; font-size: 11px; line-height: 1.25; }
+  .sl-legw .leg { flex-direction: column; gap: 1px; margin: 2px 0 0; font-size: 10px; }
+  .sl-legw .leg span:last-child { display: none; }
+  /* Selo circular de destaque (substitui os antigos losangos). */
+  .selo {
+    position: absolute; left: 0; bottom: 0; z-index: 450;
+    display: grid; place-items: center; width: 160px; height: 160px; padding: 20px;
+    border-radius: 50%; background: var(--red); color: #FFFFFF; box-shadow: 0 6px 18px rgba(233, 64, 48, .28);
+    font-size: 13px; font-weight: 800; line-height: 1.15; text-align: center; text-transform: uppercase; text-wrap: balance;
+  }
+  .selo.sm { position: static; flex: none; width: 84px; height: 84px; padding: 10px; font-size: 10.5px; box-shadow: 0 4px 12px rgba(233, 64, 48, .25); }
+  .sl-loc { position: absolute; left: 0; top: 0; z-index: 450; width: 120px; }
+  .cv-h2 { height: 420px; }
+  .cv-h4 { height: 470px; }
+  .cv-sl { height: 160px; }
+  /* Mês × Acumulado: duas colunas espelhadas com card, série por ano e uso e cobertura (folhas 1, 3 e 5). */
+  .sl-g.mxg { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+  .mx-col { display: flex; flex-direction: column; gap: 12px; }
+  .mx-card { padding: 14px 18px 12px; border: 1px solid #EFEDEB; border-radius: 16px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 6px 18px rgba(0, 0, 0, .05); }
+  .mx-card .sl-kv { margin-top: 2px; font-size: 46px; }
+  .mx-card .sl-kv small { font-size: 24px; }
+  .mx-sub { margin-top: 1px; font-size: 11px; font-weight: 600; color: var(--ink2); }
+  /* Card de contexto dentro do card principal (folha 1): fundo cinza-claro e cantos bem arredondados. */
+  .mx-card.com-tile { display: grid; grid-template-columns: minmax(0, 1fr) 156px; align-items: center; gap: 14px; }
+  .mx-tile { padding: 10px 12px; border-radius: 14px; background: #F4F4F4; }
+  .mx-tile .tl-v { font-size: 22px; font-weight: 800; }
+  .mx-tile .tl-s { font-size: 10px; }
+  /* Variação em pílula: seta e % em destaque, base de comparação e diferença em hectares ao lado. */
+  .sl-pls { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-top: 8px; }
+  .sl-var.pl { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 6px; font-size: 11px; line-height: 1.3; color: var(--ink2); }
+  .sl-var.pl b { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .sl-var.pl.up b { color: var(--red-d); }
+  .sl-var.pl.down b { color: var(--good); }
+  .sl-var.pl small { font-size: 10px; color: var(--muted); }
+  .mxg .cv-sl { height: 190px; }
+  /* As variações já estão nos cards; a linha repetida acima de cada gráfico sai destas folhas. */
+  .mxg .cvar { display: none; }
+  /* Título da folha (eyebrow + título grande), com selo opcional à esquerda. */
+  .mx-tit { position: relative; display: flex; align-items: center; gap: 14px; }
+  .mx-tit h1 { font-size: 20px; line-height: 1.2; }
+  .mx-tit .lead { margin-top: 2px; max-width: none; }
+  /* Folhas 3 e 5: mapa | mês | acumulado. */
+  .sl-g.mxg.c3 { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+  .c3 .mx-card { padding: 12px 14px 10px; }
+  .c3 .mx-card .sl-kv { font-size: 34px; }
+  .c3 .mx-card .sl-kv small { font-size: 18px; }
+  .c3 .sl-pls { gap: 3px 14px; }
+  /* Folhas 3 e 5: série anual mais alta, e o uso e cobertura desce um pouco para abrir espaço. */
+  .c3 .cv-sl { height: 205px; }
+  .c3 .mx-lulc { margin-top: 10px; }
+  .c3 .sl-l { gap: 8px; }
+  .c3 .mx-tit { align-items: flex-start; gap: 10px; }
+  .c3 .mx-tit .selo.sm { width: 74px; height: 74px; padding: 8px; font-size: 9.5px; }
+  .c3 .mx-tit h1 { font-size: 15px; }
+  .c3 .mx-tit .lead { font-size: 10.5px; }
+  .d5-mt { margin: 0; font-size: 12px; }
+  .d5-mw { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .d5-mw .lmap.sl-lm { min-height: 0; border-radius: 12px; }
+  .d5-mw .sl-loc { width: 104px; }
+  /* Legenda do mapa municipal abaixo do mapa, em linha e sem fundo. */
+  .d5-leg b { display: block; font-size: 11px; }
+  .d5-leg .leg { margin: 2px 0 0; font-size: 10px; }
+  /* A unidade já está no título da legenda. */
+  .d5-leg .leg span:last-child { display: none; }
+  /* Folha 4: mapa de estados | KPI, resumo e barras do top 10. */
+  #d4 .lead { margin-top: -4px; font-size: 12px; }
+  /* Barra de uso e cobertura em dois níveis: natural × antrópico em cima, classes de nível 2 embaixo. */
+  .lulc-h { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 18px; margin-bottom: 4px; }
+  .lulc-h .ct { margin: 0; font-size: 13px; }
+  .lulc-h .lulc-leg { margin: 0 0 0 auto; }
+  .lulc { position: relative; display: grid; gap: 3px; }
+  .lulc-r { display: flex; height: 24px; border-radius: 4px; overflow: hidden; }
+  .lulc-r span { display: flex; align-items: center; justify-content: center; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lulc-r.macro span { font-size: 12px; }
+  .lulc-div { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--ink2); }
+  .lulc-leg { list-style: none; margin: 7px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 3px 16px; font-size: 10.5px; color: var(--ink2); }
+  .lulc-leg i { display: inline-block; width: 11px; height: 11px; margin-right: 5px; border-radius: 50%; vertical-align: -1px; }
+
+  /* Carregamento e erro */
+  .st {
+    position: absolute; inset: 0; z-index: 500;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px; text-align: center; border-radius: 8px;
+    background: rgba(255, 255, 255, .88); color: var(--muted); font-size: 12px;
+  }
+  .st[hidden] { display: none; }
+  .st.err { background: rgba(255, 255, 255, .97); color: var(--red-d); }
+  .spin { flex: none; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--red); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .tip { position: fixed; z-index: 2000; pointer-events: none; max-width: 240px; padding: 6px 9px; border-radius: 6px; background: var(--ink); color: #fff; font-size: 12px; line-height: 1.35; }
+  .tip[hidden] { display: none; }
+
+  /* ===== Destaque dinâmico ===== */
+  .xpane { max-width: 1240px; margin: 0 auto; padding: 18px 20px 40px; display: grid; gap: 14px; }
+  .xpane[hidden] { display: none; }
+  .card { position: relative; min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .card h2 { font-size: 16px; line-height: 1.25; font-weight: 700; }
+  .card .sub { margin-top: 3px; font-size: 12px; color: var(--ink2); }
+  .card .st { border-radius: 12px; }
+  .xrow { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .xrow > * { min-width: 0; }
+  .c-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .c-a { display: flex; flex: none; gap: 6px; }
+  .mini { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--ink2); }
+  .mini:hover:not(:disabled) { border-color: var(--red); color: var(--red-d); }
+  .mini:disabled { opacity: .4; cursor: default; }
+  select { font: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; min-width: 130px; }
+  select:disabled { background: var(--soft); color: var(--muted); }
+  select:focus-visible, .combo input:focus-visible, .chip:focus-visible, .mini:focus-visible, .btn-s:focus-visible { outline: 2px solid var(--red); outline-offset: 1px; }
+
+  .x-filtros { display: grid; gap: 12px; }
+  .x-frow { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; }
+  .x-campo { display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+  .xpane .fn { font-size: 11.5px; line-height: 1.4; color: var(--ink2); }
+  .xpane .leg { font-size: 11.5px; color: var(--ink2); }
+  .xpane .eyebrow { font-size: 11px; }
+  .x-sec { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px 16px; margin-top: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--red); }
+  .x-sec h3 { margin: 0; font-size: 19px; font-weight: 800; color: var(--ink); }
+  .x-sec p { margin: 3px 0 0; max-width: 80ch; font-size: 13px; color: var(--ink2); }
+  .x-sec-a { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+  .x-ou { align-self: flex-end; padding-bottom: 8px; font-size: 12px; color: var(--ink2); }
+  .x-per .x-tiles { margin-top: 14px; }
+  .x-per .x-frow { margin-top: 12px; }
+  .x-uso-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+  .lc-w { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 18px; align-items: center; margin-top: 12px; }
+  .lc-d { position: relative; height: 190px; }
+  .lc-l { display: grid; gap: 0; max-height: 280px; overflow: auto; margin: 0; padding: 0 4px 0 0; list-style: none; }
+  .lc-l li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto 46px; gap: 8px; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--ink); }
+  .lc-l i { width: 12px; height: 12px; border-radius: 3px; }
+  .lc-l .h { color: var(--ink2); font-variant-numeric: tabular-nums; }
+  .lc-l .p { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lc-res { display: flex; gap: 10px; margin-top: 12px; }
+  .lc-res div { flex: 1; padding: 8px 10px; border-radius: 8px; background: var(--soft); font-size: 12px; color: var(--ink2); }
+  .lc-res b { display: block; font-size: 18px; color: var(--ink); }
+  .x-ctx { position: fixed; z-index: 1100; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 32px); padding: 6px 6px 6px 16px; background: #fff; border: 1px solid var(--line); border-radius: 999px; box-shadow: 0 6px 20px rgba(0, 0, 0, .14); font-size: 13px; color: var(--ink2); }
+  .x-ctx[hidden] { display: none; }
+  .x-ctx span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .x-ctx b { color: var(--ink); }
+  .combo { position: relative; }
+  .combo input { width: 300px; font: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+  .combo input:disabled { background: var(--soft); color: var(--ink2); }
+  .combo-l { position: absolute; z-index: 1200; left: 0; right: 0; top: calc(100% + 4px); max-height: 320px; overflow: auto; margin: 0; padding: 4px; list-style: none; background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, .12); letter-spacing: 0; text-transform: none; }
+  .combo-l[hidden] { display: none; }
+  .combo-l li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 8px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--ink); cursor: pointer; }
+  .combo-l li small { flex: none; font-size: 11px; color: var(--muted); }
+  .combo-l li:hover, .combo-l li.on { background: var(--soft); }
+  .combo-l li.on { box-shadow: inset 3px 0 0 var(--red); }
+  .chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink2); }
+  .chip:hover { border-color: var(--red-l); }
+  .chip.on { background: var(--red); border-color: var(--red); color: #fff; }
+  .chip.sel { border-color: var(--ink2); color: var(--ink); font-weight: 700; }
+  .chip i { display: inline-block; width: 12px; height: 3px; margin-right: 6px; border-radius: 2px; vertical-align: middle; }
+  .chip b { margin-left: 6px; font-weight: 800; color: var(--muted); }
+  .chips .x-lab { margin-right: 2px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+  .x-acts { display: flex; gap: 8px; margin-left: auto; }
+  .btn-s { border: 1px solid var(--red); background: #fff; color: var(--red-d); border-radius: 999px; padding: 7px 14px; font-size: 12px; font-weight: 700; }
+  .btn-s:hover:not(:disabled) { background: #FDF0EE; }
+  .btn-s:disabled { opacity: .5; cursor: default; }
+  .x-aviso { padding: 8px 10px; border-radius: 8px; background: #FDF0EE; color: var(--red-d); font-size: 12px; }
+  .x-aviso[hidden] { display: none; }
+  .x-linha { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .x-resumo { font-size: 13px; color: var(--ink2); }
+  .x-resumo b { color: var(--ink); }
+  .x-tiles { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .x-tiles .tl { background: var(--soft); padding: 12px 14px; }
+  .x-tiles .tl-l { font-size: 11px; }
+  .x-tiles .tl-v { font-size: 24px; }
+  .x-tiles .tl-s { font-size: 11.5px; }
+  .x-tiles .st { border-radius: 10px; }
+  .x-anos { margin-top: 10px; }
+  .ch { position: relative; height: 300px; margin-top: 10px; }
+  .ch.alto { height: 340px; }
+  .cal-w { position: relative; margin-top: 10px; }
+  .cal-w canvas { display: block; width: 100%; }
+  .cal-leg { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; font-size: 11px; color: var(--ink2); }
+  .cal-leg .g { width: 160px; height: 8px; border-radius: 2px; background: linear-gradient(90deg, #FFF3F1, #F8B1AA, #F06A61, #E94030, #A82416); }
+  .x-mopts { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; margin-top: 12px; }
+  .x-maps { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 8px; }
+  .x-mapw { position: relative; min-width: 0; }
+  .leaf { height: 500px; max-width: 760px; margin: 0 auto; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #F2F2F2; }
+  .leaf svg.leaflet-tile { visibility: visible; }
+  /* Comparação e Top 15: tabela-gráfico com microbarras. */
+  .x-cmp { display: inline-flex; margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .x-cmp button { border: 0; background: #fff; padding: 6px 13px; font: inherit; font-size: 12px; font-weight: 700; color: var(--ink2); cursor: pointer; }
+  .x-cmp button + button { border-left: 1px solid var(--line); }
+  .x-cmp button:hover { background: var(--soft); }
+  .x-cmp button.on { background: var(--red); color: #fff; }
+  .x-rankopts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; }
+  .x-rankopts .x-cmp { margin-top: 0; }
+  .x-ranklab { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+  .x-ranklab.sep { margin-left: 8px; }
+  .rk15 { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 1px; }
+  .rk15 li { display: grid; grid-template-columns: 26px minmax(0, 1fr) minmax(80px, 1.3fr) 96px 80px; align-items: center; gap: 10px;
+    padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  .rk15 .p { text-align: right; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .rk15 .n { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+  .rk15 .n small { margin-left: 5px; font-size: 11px; font-weight: 500; color: var(--muted); }
+  .rk15 .b { height: 10px; border-radius: 3px; background: var(--soft); overflow: hidden; }
+  .rk15 .b i { display: block; height: 100%; border-radius: 3px; background: var(--red); }
+  .rk15 .v { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .rk15 .d { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .rk15 .d.up { color: var(--red-d); }
+  .rk15 .d.down { color: var(--good); }
+  .rk15 .d.zero { color: var(--muted); }
+  .rk15 .vazio { display: block; padding: 18px 8px; color: var(--muted); font-size: 12.5px; text-align: center; }
+  .rk15 li.vazio-l { display: block; border-bottom: 0; }
+  /* Linhas navegáveis: clicar abre o território. */
+  .rk15 li.nav { cursor: pointer; border-radius: 6px; }
+  .rk15 li.nav:hover { background: var(--soft); }
+  .rk15 li.nav:focus-visible { outline: 2px solid var(--red); outline-offset: -2px; }
+  @media screen and (max-width: 700px) {
+    .rk15 li { grid-template-columns: 22px minmax(0, 1fr) 86px 68px; }
+    .rk15 .b { display: none; }
+  }
+  .st.info { background: rgba(255, 255, 255, .95); color: var(--ink2); }
+  .x-print-head { display: none; }
+  .foot { font-size: 12px; color: var(--muted); text-align: center; }
+  .foot a { color: inherit; }
+
+  /* Painel no modo PDF: largura de uma folha A4 deitada, sem os controles. */
+  html.px .xpane { width: 277mm; max-width: none; margin: 0 auto; padding: 0; }
+  html.px :is(.x-filtros, .c-a, .x-mopts, .x-anos, .x-cmp, .x-rankopts, #x-mapa-n, .leaflet-control-zoom, .x-perrow, .x-sec .x-campo, .x-sec-a, .x-ctx, .x-per .sub) { display: none !important; }
+  html.px .x-print-head { display: flex; align-items: center; gap: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--red); }
+  html.px .x-print-head img { height: 34px; }
+  html.px .x-print-head .x-ph-desc { margin-left: auto; font-size: 12px; font-weight: 700; }
+  html.px .card { break-inside: avoid; }
+
+  /* Telas estreitas: as folhas viram fluxo contínuo de uma coluna.
+     html.pm (modo impressão) desliga isso para os gráficos se redesenharem no tamanho da folha. */
+  @media screen and (max-width: 820px) {
+    html:not(.pm) .top { padding: 10px 14px; }
+    html:not(.pm) .doc { padding: 0; }
+    html:not(.pm) .sheet { width: auto; min-height: 0; margin: 0 0 10px; padding: 18px 16px; box-shadow: none; }
+    html:not(.pm) :is(.xrow, .sl-g) { grid-template-columns: 1fr; }
+    /* .sl-g.mxg.c3 é mais específica que a regra acima: as folhas 3 e 5 precisam da sua própria. */
+    html:not(.pm) .sl-g.mxg.c3 { grid-template-columns: 1fr; }
+    html:not(.pm) .d5-mw .lmap.sl-lm { height: 300px; }
+    html:not(.px) .ztab { font-size: 11px; }
+    html:not(.px) :is(.ztab th, .ztab td) { padding: 3px 5px; white-space: normal; }
+    html:not(.pm) .mx-card.com-tile { grid-template-columns: 1fr; }
+    html:not(.pm) .mx-card .sl-kv { font-size: 34px; }
+    html:not(.pm) .mx-tit { flex-wrap: wrap; }
+    html:not(.pm) .lmap.sl-lm { min-height: 300px; }
+    html:not(.pm) .lulc-h .lulc-leg { margin-left: 0; }
+    html:not(.pm) .selo { position: static; margin: 8px auto 0; width: 110px; height: 110px; padding: 12px; font-size: 10px; }
+    html:not(.pm) :is(.sl-legw, .sl-loc) { position: static; }
+    html:not(.pm) .lmap.sl-lm { min-height: 0; flex: none; }
+    html:not(.pm) .sl-mapa .map-svg { height: auto; width: 100%; }
+    html:not(.pm) .sl-kv { font-size: 34px; }
+    html:not(.pm) .x-tiles { grid-template-columns: 1fr 1fr; }
+    html:not(.pm) .sh { flex-wrap: wrap; gap: 8px 12px; }
+    html:not(.pm) .sh-sep { display: none; }
+    html:not(.pm) .sh-p { margin-left: 0; }
+    html:not(.pm) .lmap { height: 300px !important; }
+    html:not(.pm):not(.px) .xpane { padding: 14px; }
+    html:not(.px) .x-frow > * { flex: 1 1 150px; }
+    html:not(.px) .combo input { width: 100%; }
+    html:not(.pm) select { min-width: 0; width: 100%; }
+    html:not(.px) .x-acts { margin-left: 0; }
+    html:not(.px) .leaf { height: 360px; }
+    html:not(.px) .c-h, html:not(.px) .x-linha { flex-wrap: wrap; }
+    html:not(.px) .x-tiles .tl-v { font-size: 20px; }
+    html:not(.px) .x-uso-row, html:not(.px) .lc-w { grid-template-columns: 1fr; }
+    html:not(.px) .lc-d { width: 190px; margin: 0 auto; }
+    html:not(.px) .x-ou { display: none; }
+    html:not(.px) .x-perrow > .x-campo:first-child { flex-basis: 100%; }
+    html:not(.px) .x-perrow > label { flex: 1 1 30%; }
+  }
+  /* No modo impressão a folha mantém o tamanho A4 mesmo em janelas estreitas. */
+  html.pm .doc { padding: 0; }
+  html.pm .sheet { margin: 0 auto; box-shadow: none; }
+
+  @page painel { size: A4 landscape; margin: 10mm; }
+  @media print {
+    @page { size: A4 landscape; margin: 0; }
+    body { background: #fff; }
+    .top, .no-print, .tip { display: none !important; }
+    html:not(.px) .xpane { display: none !important; }
+    html:not(.px) #tab-boletim { display: block !important; padding: 0; }
+    html.px #tab-boletim { display: none !important; }
+    html.px .xpane { display: grid !important; page: painel; }
+    .sheet.slide { width: 297mm; height: 210mm; min-height: 0; margin: 0; box-shadow: none; overflow: hidden; break-after: page; }
+    .sheet:last-of-type { break-after: auto; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <img src="Monitor_PT.png" alt="MapBiomas Fuego · Perú">
+    <span>Boletín mensual · Perú</span>
+  </div>
+  <span class="pill" id="periodo">Cargando…</span>
+  <button class="btn" id="btn-print" title="Genera el PDF del boletín del mes (A4 horizontal)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+    Exportar PDF
+  </button>
+</header>
+
+<main class="doc" id="tab-boletim">
+
+  <!-- 1: Perú -->
+  <section class="sheet slide" id="d1">
+    <header class="sh"></header>
+    <div class="mx-tit">
+      <div>
+        <p class="eyebrow">Perú</p>
+        <h1 id="d1-t">Destacados del fuego en el Perú</h1>
+      </div>
+    </div>
+    <div class="sl-g mxg">
+      <div class="blk mx-col" id="d1-mes" data-col></div>
+      <div class="blk mx-col" id="d1-acum" data-col></div>
+    </div>
+    <footer class="sf"><span>Fuente: MapBiomas Perú · Monitor de Fuego · <span data-atual></span>. Uso y cobertura: MapBiomas Perú, clases de nivel 2.<span data-nota></span></span><span>1/5</span></footer>
+  </section>
+
+  <!-- 2: Ranking de biomas -->
+  <section class="sheet slide" id="d2">
+    <header class="sh"></header>
+    <div class="sl-g">
+      <div class="blk sl-l" id="d2-mapa">
+        <div class="st"></div>
+        <p class="sl-t" id="d2-map-t">Biomas más afectados</p>
+        <div class="sl-mapa"><div class="lmap sl-lm" id="d2-map"></div></div>
+        <div class="sl-legw"><b id="d2-leg-t">Área quemada por bioma (ha)</b><div class="leg" id="d2-leg"></div></div>
+        <div class="selo" id="d2-selo"></div>
+      </div>
+      <div class="blk sl-r" id="d2-rank">
+        <div class="st"></div>
+        <div id="d2-k"></div>
+        <div>
+          <p class="ct">Ranking de los biomas más afectados</p>
+          <p class="cs" id="d2-c-d"></p>
+          <div class="cv cv-h4"><canvas id="d2-c"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <footer class="sf"><span>Fuente: MapBiomas Perú · Monitor de Fuego · <span data-atual></span>. Límites de biomas: Monitor de Fuego.</span><span>2/5</span></footer>
+  </section>
+
+  <!-- 3: Bioma más afectado -->
+  <section class="sheet slide" id="d3">
+    <header class="sh"></header>
+    <div class="sl-g mxg c3">
+      <div class="blk sl-l" id="d3-mapa">
+        <div class="st"></div>
+        <div class="mx-tit">
+          <div class="selo sm" id="d3-selo"></div>
+          <div>
+            <p class="eyebrow">Bioma más afectado</p>
+            <h1 id="d3-t">Bioma más afectado</h1>
+            <p class="lead" id="d3-lead"></p>
+          </div>
+        </div>
+        <p class="ct d5-mt" id="d3-map-t">Cicatrices de fuego en el año</p>
+        <div class="d5-mw">
+          <div class="lmap sl-lm" id="d3-map"></div>
+        </div>
+      </div>
+      <div class="blk mx-col" id="d3-mes" data-col></div>
+      <div class="blk mx-col" id="d3-acum" data-col></div>
+    </div>
+    <footer class="sf"><span>Fuente: MapBiomas Perú · Monitor de Fuego · <span data-atual></span>. Cicatrices y límites: Monitor de Fuego. Uso y cobertura: MapBiomas Perú, nivel 2.</span><span>3/5</span></footer>
+  </section>
+
+  <!-- 4: Ranking de departamentos -->
+  <section class="sheet slide" id="d4">
+    <header class="sh"></header>
+    <div class="sl-g">
+      <div class="blk sl-l" id="d4-mapa">
+        <div class="st"></div>
+        <p class="sl-t" id="d4-map-t">Departamentos más afectados</p>
+        <div class="sl-mapa"><div class="lmap sl-lm" id="d4-map"></div></div>
+        <div class="sl-legw"><b id="d4-leg-t">Área quemada por departamento (ha)</b><div class="leg" id="d4-leg"></div></div>
+        <div class="selo" id="d4-selo"></div>
+      </div>
+      <div class="blk sl-r" id="d4-rank">
+        <div class="st"></div>
+        <div id="d4-k"></div>
+        <p class="lead" id="d4-lead"></p>
+        <div>
+          <p class="ct">Ranking de los departamentos más afectados</p>
+          <p class="cs" id="d4-c-d"></p>
+          <div class="cv cv-h2"><canvas id="d4-c"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <footer class="sf"><span>Fuente: MapBiomas Perú · Monitor de Fuego · <span data-atual></span>. Límites departamentales: Monitor de Fuego.</span><span>4/5</span></footer>
+  </section>
+
+  <!-- 5: Departamento más afectado -->
+  <section class="sheet slide" id="d5">
+    <header class="sh"></header>
+    <div class="sl-g mxg c3">
+      <div class="blk sl-l" id="d5-mapa">
+        <div class="st"></div>
+        <div class="mx-tit">
+          <div class="selo sm" id="d5-selo"></div>
+          <div>
+            <p class="eyebrow">Departamento más afectado</p>
+            <h1 id="d5-t">Departamento más afectado</h1>
+            <p class="lead" id="d5-lead"></p>
+          </div>
+        </div>
+        <div class="d5-mw">
+          <div class="lmap sl-lm" id="d5-map"></div>
+        </div>
+        <div class="d5-leg"><b id="d5-leg-t">Área quemada por distrito (ha)</b><div class="leg" id="d5-leg"></div></div>
+      </div>
+      <div class="blk mx-col" id="d5-mes" data-col></div>
+      <div class="blk mx-col" id="d5-acum" data-col></div>
+    </div>
+    <footer class="sf"><span>Fuente: MapBiomas Perú · Monitor de Fuego · <span data-atual></span>. Límites: Monitor de Fuego. Uso y cobertura: MapBiomas Perú, nivel 2.</span><span>5/5</span></footer>
+  </section>
+</main>
+
+<div class="tip" id="tip" hidden></div>
+
+<script>
+'use strict';
+
+const API = 'https://fogo-peru.geodatin.com';
+const PAIS = 1; // código de Perú en la API
+
+const MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'set', 'oct', 'nov', 'dic'];
+const MES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto',
+  'setiembre', 'octubre', 'noviembre', 'diciembre'];
+
+const C = { red: '#E94030', redD: '#B42A1C', redL: '#F7BBB5', fire: '#D32F2F', gray: '#BDBDBD', dark: '#212121', ink: '#1F1F1F', ink2: '#4F4F4F', muted: '#6B6B6B', line: '#E6E6E6', good: '#2E7D4F' };
+
+// Subdivisión preferida por tipo de territorio; solo se usa si /groupings la lista.
+const PREF = { country: ['department'], biome: ['biome'], department: ['district'] };
+
+// Escala secuencial de fuego en 5 clases (cuantiles).
+const RAMP5 = ['#FDE3E0', '#F8B1AA', '#F06A61', '#E94030', '#A82416'];
+const SEM_DADO = '#EFEFEF';
+
+/* ---------- utilitários ---------- */
+const $ = id => document.getElementById(id);
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const range = (a, b) => Array.from({ length: Math.max(0, b - a + 1) }, (_, i) => a + i);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const nf0 = v => Math.round(v).toLocaleString('es-PE');
+const cmp = (v, d = 2) => {
+  const a = Math.abs(v);
+  if (a >= 1e6) return (v / 1e6).toLocaleString('es-PE', { maximumFractionDigits: d }) + ' M';
+  if (a >= 1e3) return Math.round(v / 1e3).toLocaleString('es-PE') + ' mil';
+  return Math.round(v).toLocaleString('es-PE');
+};
+const haC = v => v == null ? '—' : `${cmp(v)} ha`;
+const pctTxt = p => p == null ? '—' : `${p > 0 ? '+' : p < 0 ? '−' : ''}${Math.abs(Math.round(p))}%`;
+const fmtP = p => p > 0 && p < 1 ? '<1%' : `${Math.round(p)}%`;
+const tone = p => p > 0 ? 'up' : p < 0 ? 'down' : '';
+const sumTs = (ts, y, a, b) => ts.monthly
+  .filter(p => p.year === y && p.month >= a && p.month <= b)
+  .reduce((s, p) => s + (p.areaHa || 0), 0);
+const lista = a => a.length <= 1 ? (a[0] || '') : `${a.slice(0, -1).join(', ')} y ${a[a.length - 1]}`;
+const MINUSC = new Set(['da', 'de', 'do', 'das', 'dos', 'e', 'em']);
+// Nomes de UC e quilombo chegam em caixa alta e com o código do CNUC; deixa legível.
+const limparNome = s => s.replace(/\s*\(\d{4}\.\d{2}\.\d{4}\)\s*$/, '').toLowerCase().split(' ')
+  .map((w, i) => i > 0 && MINUSC.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+function classes(values, n = 5) {
+  const v = values.filter(x => x > 0).sort((a, b) => a - b);
+  if (!v.length) return { cor: () => SEM_DADO, idx: () => -1, leg: [] };
+  const br = [...new Set(range(1, n - 1).map(i => v[Math.floor(i * v.length / n)]))];
+  const pal = RAMP5.slice(RAMP5.length - (br.length + 1));
+  const idx = x => { let i = 0; while (i < br.length && x > br[i]) i++; return i; };
+  const leg = pal.map((c, i) => ({ c, de: i === 0 ? v[0] : br[i - 1], ate: i < br.length ? br[i] : v[v.length - 1] }));
+  return { cor: x => x > 0 ? pal[idx(x)] : SEM_DADO, idx: x => x > 0 ? idx(x) + (RAMP5.length - pal.length) : -1, leg };
+}
+const fmtLeg = v => v >= 1e4 ? cmp(v, 1) : nf0(v);
+const legHTML = cls => cls.leg.map(l => `<span><i style="background:${l.c}"></i>${fmtLeg(l.de)} – ${fmtLeg(l.ate)}</span>`).join('')
+  + `<span><i style="background:${SEM_DADO}"></i>sin área quemada</span><span>(ha)</span>`;
+/* ---------- API ---------- */
+async function getJSON(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+const gCache = {};
+function groupings(type, code) {
+  const k = `${type}/${code}`;
+  return gCache[k] ||= getJSON(`/api/territories/${k}/groupings`).catch(e => { delete gCache[k]; throw e; });
+}
+// Valida o grouping em /groupings antes de qualquer estatística (evita HTTP 500).
+async function pickGroup(type, code, want) {
+  const g = await groupings(type, code);
+  const key = [want, ...(PREF[type] || [])].filter(Boolean).find(x => x in g) || Object.keys(g)[0];
+  if (!key) throw new Error('nenhuma subdivisão válida');
+  return { key, nome: g[key].es || g[key].pt };
+}
+async function st(kind, type, code, params = {}, want) {
+  const g = await pickGroup(type, code, want);
+  const q = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null && v !== '')).toString();
+  return getJSON(`/api/statistics/${kind}/${type}/${code}/${g.key}${q ? '?' + q : ''}`);
+}
+/* ---------- estados de carregamento ---------- */
+// err: false = carregando, true = erro, 'info' = aviso neutro.
+function status(id, msg = '', err = false) {
+  const el = document.querySelector(`#${id} > .st`);
+  if (!el) return;
+  el.hidden = !msg;
+  el.classList.toggle('err', err === true);
+  el.classList.toggle('info', err === 'info');
+  el.innerHTML = msg ? `${err ? '' : '<span class="spin"></span>'}<span>${msg}</span>` : '';
+}
+async function secao(id, fn) {
+  status(id, 'Carregando…');
+  try { await fn(); status(id); }
+  catch (e) { console.error(id, e); status(id, `Não foi possível carregar este bloco (${e.message}).`, true); }
+}
+
+const tip = $('tip');
+function showTip(ev, html) {
+  tip.innerHTML = html; tip.hidden = false;
+  tip.style.left = `${Math.min(ev.clientX + 14, window.innerWidth - 250)}px`;
+  tip.style.top = `${ev.clientY + 14}px`;
+}
+const hideTip = () => { tip.hidden = true; };
+/* ---------- Chart.js ---------- */
+const CHS = {};
+function mkChart(key, canvasId, cfg) {
+  if (!window.Chart) throw new Error('la biblioteca de gráficos no cargó');
+  CHS[key]?.destroy();
+  // Desenha o canvas em 3x a resolução de tela: os gráficos continuam nítidos com zoom no PDF.
+  cfg.options = { ...cfg.options, devicePixelRatio: Math.max(3, window.devicePixelRatio || 1) };
+  CHS[key] = new Chart($(canvasId), cfg);
+}
+const topLabels = {
+  id: 'topLabels',
+  afterDatasetsDraw(chart, _a, o) {
+    if (!o.indices) return;
+    const { ctx, chartArea } = chart, meta = chart.getDatasetMeta(0);
+    ctx.save();
+    ctx.font = '700 8.5px Montserrat, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.lineJoin = 'round';
+    // Contorno branco: o rótulo continua legível quando cruza a linha da média.
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.fillStyle = C.ink2;
+    const colocados = [];
+    o.indices.forEach(i => {
+      const el = meta.data[i], v = chart.data.datasets[0].data[i];
+      if (!el || !v) return;
+      const txt = o.fmt(v), w = ctx.measureText(txt).width;
+      const l = el.x - w / 2, r = el.x + w / 2;
+      // Nunca desenha acima da área do gráfico (o rótulo seria cortado).
+      let y = Math.max(el.y - 5, chartArea.top + 9);
+      // Se encostar no rótulo anterior, sobe um degrau em vez de desaparecer.
+      for (let k = 0; k < 3; k++) {
+        const bate = colocados.some(p => l < p.r + 2 && r > p.l - 2 && y - 9 < p.b && y > p.t);
+        if (!bate) break;
+        y -= 11;
+      }
+      ctx.strokeText(txt, el.x, y);
+      ctx.fillText(txt, el.x, y);
+      colocados.push({ l, r, t: y - 9, b: y + 2 });
+    });
+    ctx.restore();
+  }
+};
+const yAxis = extra => ({ beginAtZero: true, border: { display: false }, grid: { color: '#EFEFEF' }, ticks: { callback: v => cmp(v, 1) }, ...extra });
+const axTitle = text => ({ display: true, text, color: C.ink2, font: { size: 9.5, weight: '600' }, padding: { top: 2, bottom: 2 } });
+
+const MAPS = {};
+function mapaEstatico(id, bounds, semBase = false) {
+  if (!window.L) throw new Error('la biblioteca de mapas no cargó');
+  MAPS[id]?.m.remove();
+  // Mapa estático: sem interação e sem animações. A animação de zoom faz os vector tiles
+  // sumirem no Leaflet 1.9 e deixa a impressão sem os tiles do enquadramento novo.
+  const m = L.map(id, {
+    zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
+    boxZoom: false, keyboard: false, touchZoom: false, zoomSnap: .1, attributionControl: true,
+    zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false, inertia: false
+  });
+  m.attributionControl.setPrefix(false);
+  // Fundo branco absoluto: sem basemap. As divisas e os limites vêm dos tiles vetoriais.
+  m.attributionControl.addAttribution('Límites: Monitor de Fuego');
+  const bb = L.geoJSON(bounds).getBounds();
+  // Em aba escondida o mapa tem tamanho zero e fitBounds daria coordenadas NaN: só centraliza,
+  // e reajustarMapas() enquadra de verdade quando a aba aparecer (o tamanho muda).
+  const sz = m.getSize();
+  if (sz.x && sz.y) m.fitBounds(bb, { padding: [4, 4], animate: false });
+  else m.setView(bb.getCenter(), 4, { animate: false });
+  MAPS[id] = { m, bb, tam: sz.toString() };
+  return m;
+}
+// Só reenquadra quando o tamanho do mapa mudou; reenquadrar à toa descarta os tiles já carregados.
+function reajustarMapas() {
+  Object.values(MAPS).forEach(item => {
+    item.m.invalidateSize({ pan: false });
+    const tam = item.m.getSize().toString();
+    if (tam === item.tam) return;
+    item.tam = tam;
+    item.m.fitBounds(item.bb, { padding: [4, 4], animate: false });
+  });
+}
+function mvt(path, style, zIndex) {
+  if (!L.vectorGrid) throw new Error('la biblioteca de vectores no cargó');
+  return L.vectorGrid.protobuf(`${API}${path}/{z}/{x}/{y}.mvt`, {
+    vectorTileLayerStyles: { default: style }, interactive: false, zIndex, maxNativeZoom: 14
+  });
+}
+/* ---------- componentes do boletim ---------- */
+// Linha tracejada da média dos anos anteriores nos gráficos por ano.
+const linhaMedia = {
+  id: 'linhaMedia',
+  afterDatasetsDraw(chart, _a, o) {
+    if (o.v == null) return;
+    const { ctx, chartArea: a, scales: { y } } = chart, py = y.getPixelForValue(o.v);
+    ctx.save();
+    ctx.strokeStyle = C.dark;
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(a.left, py); ctx.lineTo(a.right + 2, py); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = C.dark;
+    ctx.font = '500 8px Montserrat, sans-serif';
+    ctx.fillText('promedio', a.right + 5, py - 5);
+    ctx.font = '800 9px Montserrat, sans-serif';
+    ctx.fillText(o.txt, a.right + 5, py + 5);
+    ctx.restore();
+  }
+};
+const varSpan = (p, ref) => p == null ? '' : `<b class="${tone(p)}">${p > 0 ? '▲' : '▼'} ${Math.abs(Math.round(p))}%</b> vs. ${ref}`;
+function yearChart(id, anos, vals, Y) {
+  const ant = vals.filter((_, i) => anos[i] < Y);
+  // Con un solo año anterior el promedio es igual a ese año: no se muestra.
+  const med = ant.length > 1 ? ant.reduce((s, v) => s + v, 0) / ant.length : null;
+  const a0 = anos.find(y => y < Y), a1 = anos.filter(y => y < Y).pop();
+  mkChart(id, id, {
+    type: 'bar',
+    data: {
+      labels: anos.map(String),
+      datasets: [{ data: vals, backgroundColor: anos.map(y => y === Y ? C.fire : C.gray), borderRadius: 3, barPercentage: .78, categoryPercentage: .9 }]
+    },
+    plugins: [linhaMedia, topLabels],
+    options: {
+      maintainAspectRatio: false,
+      layout: { padding: { top: 26, right: 40 } },
+      plugins: {
+        legend: { display: false },
+        linhaMedia: { v: med, txt: med == null ? '' : cmp(med, 1) },
+        topLabels: { indices: vals.map((_, i) => i), fmt: v => cmp(v, 1) },
+        tooltip: { callbacks: { label: c => haC(c.raw) } }
+      },
+      scales: {
+        x: {
+          grid: { display: false }, border: { color: C.line },
+          ticks: { font: { size: 9.5 }, color: c => anos[c.index] === Y ? C.redD : C.muted },
+          title: axTitle('Año')
+        },
+        y: yAxis({ grace: '12%', ticks: { callback: v => cmp(v, 1), font: { size: 9 }, maxTicksLimit: 4 }, title: axTitle('Área quemada (ha)') })
+      }
+    }
+  });
+  const v = vals[anos.indexOf(Y)], pv = vals[anos.indexOf(Y - 1)];
+  $(`${id}-s`).innerHTML = [pv ? varSpan(pct(v, pv), Y - 1) : '', med ? varSpan(pct(v, med), `<i class="med"></i>promedio ${a0}–${a1}`) : '']
+    .filter(Boolean).join(' · ');
+}
+const swatch = c => `background:${c.cor}${c.borda ? `;box-shadow:inset 0 0 0 1px ${c.borda}` : ''}`;
+const cabecalho = per => `
+  <img class="sh-logo" src="Monitor_PT.png" alt="MapBiomas Fuego · Perú">
+  <span class="sh-sep"></span><div class="sh-d">Destacados</div>
+  <span class="sh-sep"></span><div class="sh-p">${per}</div>`;
+
+function kpiSlide(el, rotulo, v) {
+  $(el).innerHTML = `<p class="sl-kl">${rotulo}</p><p class="sl-kv">${nf0(v)}<small>ha</small></p>`;
+}
+// Caja "−1.082.478 ha / Diminuição de 67% em relação à média". O areaHa da API é a diferença.
+// pilula = true: versão compacta "▼ 55% vs. média 2019–2025 (−3,2 mi ha)", usada nos cards da folha 1.
+function caixaVar(v, ref, pilula = false) {
+  if (!v || v.percentage == null) return '';
+  const up = v.percentage > 0, p = Math.abs(Math.round(v.percentage));
+  if (pilula) {
+    return `<div class="sl-var pl ${up ? 'up' : 'down'}"><b>${up ? '▲ +' : '▼ −'}${p}%</b>`
+      + `<span>${ref}</span><small>(${up ? '+' : '−'}${cmp(Math.abs(v.areaHa), 1)} ha)</small></div>`;
+  }
+  return `<div class="sl-var ${up ? 'up' : 'down'}"><p class="sl-vv">${up ? '+' : '−'}${nf0(Math.abs(v.areaHa))} ha</p>`
+    + `<p class="sl-vt">${up ? 'Aumento' : 'Disminución'} de ${p}% respecto ${ref}</p></div>`;
+}
+// Card Mês × Acumulado: rótulo, número extragrande, participação no Brasil (opcional)
+// e as variações em pílula (vs. ano anterior e vs. média). Com tile, um card de contexto à direita.
+function kpiCard(el, rotulo, d, per, sub = '', tile = null, sinVar = false) {
+  const { Y } = P;
+  const corpo = `<p class="sl-kl">${rotulo}</p><p class="sl-kv">${nf0(d.areaHa)}<small>ha</small></p>`
+    + (sub ? `<p class="mx-sub">${sub}</p>` : '')
+    + `<div class="sl-pls">${sinVar ? '' : caixaVar(d.previousYearVariation, `vs. ${per} de ${Y - 1}`, true)}`
+    + `${P.anos.length > 2 && !sinVar ? caixaVar(d.averageVariation, `vs. promedio ${P.anos[0]}–${Y - 1}`, true) : ''}</div>`;
+  $(el).classList.toggle('com-tile', !!tile);
+  $(el).innerHTML = tile
+    ? `<div>${corpo}</div><div class="mx-tile"><p class="tl-l">${tile.l}</p><p class="tl-v">${tile.v}</p><p class="tl-s">${tile.s}</p></div>`
+    : corpo;
+}
+// Tarjetas de contexto da folha 1: pico do ano (série mensal) e vegetação nativa (uso e cobertura do mês).
+function tilePico(ts) {
+  const { Y, M } = P;
+  const meses = range(1, M).filter(m => P.meses.includes(m)).map(m => ({ m, v: sumTs(ts, Y, m, m) }));
+  const pico = meses.reduce((a, b) => (b.v > a.v ? b : a)), tot = meses.reduce((s, x) => s + x.v, 0) || 1;
+  return { l: 'Pico del año', v: cap(MES_L[pico.m - 1]), s: `${cmp(pico.v, 1)} ha · ${fmtP(pico.v / tot * 100)} del total del año` };
+}
+
+const claro = c => { try { return d3.hsl(c).l > .82; } catch { return false; } };
+const BORDA_CLARA = '#C9B98A';
+const pct = (a, b) => b > 0 ? (a - b) / b * 100 : null;
+const semUF = n => n;
+const rotulos = {
+  id: 'rotulos',
+  afterDatasetsDraw(chart, _a, o) {
+    if (!o.fmt) return;
+    const { ctx } = chart, meta = chart.getDatasetMeta(0);
+    ctx.save();
+    ctx.font = '600 10px Montserrat, sans-serif';
+    ctx.fillStyle = C.ink2;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    meta.data.forEach((el, i) => { const v = chart.data.datasets[0].data[i]; if (v) ctx.fillText(o.fmt(v, i), el.x + 4, el.y); });
+    ctx.restore();
+  }
+};
+
+function barrasH(id, nomes, vals, cls, total) {
+  const fmt = v => total ? `${nf0(v)} ha · ${fmtP(v / total * 100)}` : nf0(v);
+  mkChart(id, id, {
+    type: 'bar',
+    data: { labels: nomes, datasets: [{ data: vals, backgroundColor: vals.map(v => cls.cor(v)), borderRadius: 3, barPercentage: .82, categoryPercentage: .9 }] },
+    plugins: [rotulos],
+    options: {
+      indexAxis: 'y', maintainAspectRatio: false,
+      layout: { padding: { right: total ? 104 : 58 } },
+      plugins: { legend: { display: false }, rotulos: { fmt }, tooltip: { callbacks: { label: c => fmt(c.raw) } } },
+      scales: {
+        x: yAxis({ ticks: { callback: v => cmp(v, 1), font: { size: 9.5 }, maxTicksLimit: 7 }, title: axTitle('Área quemada (ha)') }),
+        y: { grid: { display: false }, border: { color: C.ink }, ticks: { font: { size: 10.5 }, color: C.ink } }
+      }
+    }
+  });
+}
+
+/* ---------- Uso y cobertura (leyenda MapBiomas Perú; los colores vienen de la API) ---------- */
+let trP;
+const lcTrans = () => trP ||= getJSON('/api/land-covers/translations').catch(e => { trP = null; throw e; });
+const LC_NAT = new Set([1, 3, 4, 5, 6, 10, 11, 12, 13, 29, 66, 70]);          // bosques, formaciones naturales no boscosas, matorral, loma
+const LC_ANTR = new Set([9, 14, 15, 18, 21, 24, 30, 31, 35, 40, 72]);          // agropecuario, plantación, urbano, minería, acuicultura
+const LULC_MACRO = { nat: { nome: 'Natural', cor: '#1f8d49' }, antr: { nome: 'Antrópico', cor: '#ffefc3' } };
+const pct1 = p => `${(Math.round(p * 10) / 10).toLocaleString('es-PE')}%`;
+const corTexto = c => { try { return d3.hsl(c).l > .6 ? C.ink : '#FFFFFF'; } catch { return C.ink; } };
+function lulcResumo(lc) {
+  const cor = P.cor || {};
+  const mk = (i, m) => ({ id: i.id, nome: i.nameEs || i.namePt, cor: cor[i.id] || '#B5B5B5', ha: i.areaHa, m, borda: claro(cor[i.id] || '#B5B5B5') ? BORDA_CLARA : '' });
+  const itens = lc.filter(i => i.areaHa > 0);
+  const nat = itens.filter(i => LC_NAT.has(i.id)).map(i => mk(i, 'nat')).sort((a, b) => b.ha - a.ha);
+  const antr = itens.filter(i => LC_ANTR.has(i.id)).map(i => mk(i, 'antr')).sort((a, b) => b.ha - a.ha);
+  const tot = [...nat, ...antr].reduce((s, c) => s + c.ha, 0);
+  [...nat, ...antr].forEach(c => { c.p = tot ? c.ha / tot * 100 : 0; });
+  return { cls: [...nat, ...antr], nat, antr, tot, pNat: nat.reduce((s, c) => s + c.p, 0) };
+}
+function tileNativa(lc) {
+  const r = lulcResumo(lc);
+  const nat = r.tot ? Math.round(r.pNat) : 0;
+  return { l: 'Vegetación nativa', v: `${nat}%`, s: `${nat}% nativa · ${100 - nat}% antrópica` };
+}
+const LULC_OUTRAS = { nome: 'Otras', cor: '#B5B5B5' };
+function agruparMiudas(arr) {
+  const grandes = arr.filter(c => c.p >= .5), miudas = arr.filter(c => c.p < .5);
+  if (!miudas.length) return grandes;
+  return [...grandes, { ...LULC_OUTRAS, outras: true, inclui: miudas.map(c => c.nome),
+    ha: miudas.reduce((s, c) => s + c.ha, 0), p: miudas.reduce((s, c) => s + c.p, 0) }];
+}
+function lulcHTML(lc, titulo, min = 6) {
+  const { nat, antr, tot, pNat } = lulcResumo(lc);
+  const cab = `<p class="ct">${titulo}</p>`;
+  if (!tot) return `<div class="lulc-h">${cab}</div><p class="fn">Sin área quemada en clases naturales y antrópicas en el período.</p>`;
+  const soma = (a, k) => a.reduce((s, c) => s + c[k], 0);
+  const seg = (nome, cor, borda, p, ha) => p > 0
+    ? `<span style="width:${p}%;background:${cor};color:${corTexto(cor)}${borda ? `;box-shadow:inset 0 0 0 1px ${borda}` : ''}" title="${esc(nome)}: ${pct1(p)} · ${nf0(ha)} ha">${p >= min ? `${Math.round(p)}%` : ''}</span>`
+    : '';
+  const { nat: mN, antr: mA } = LULC_MACRO;
+  const gNat = agruparMiudas(nat), gAntr = agruparMiudas(antr), micro = [...gNat, ...gAntr];
+  const outras = micro.filter(c => c.outras);
+  const nomeSeg = c => c.outras ? `Otras (${c.inclui.join(', ')})` : c.nome;
+  const leg = micro.filter(c => !c.outras);
+  if (outras.length) leg.push({ ...LULC_OUTRAS, p: soma(outras, 'p'), inclui: outras.flatMap(c => c.inclui), outras: true });
+  return `<div class="lulc-h">${cab}<ul class="lulc-leg">`
+      + [mN, mA].map(m => `<li><i style="background:${m.cor}${claro(m.cor) ? `;box-shadow:inset 0 0 0 1px ${BORDA_CLARA}` : ''}"></i>${m.nome}</li>`).join('') + `</ul></div>
+    <div class="lulc" role="img" aria-label="${mN.nome} ${pct1(pNat)}, ${mA.nome} ${pct1(100 - pNat)}">
+      <div class="lulc-r macro">${seg(mN.nome, mN.cor, '', pNat, soma(nat, 'ha'))}${seg(mA.nome, mA.cor, BORDA_CLARA, 100 - pNat, soma(antr, 'ha'))}</div>
+      <div class="lulc-r">${micro.map(c => seg(nomeSeg(c), c.cor, c.borda, c.p, c.ha)).join('')}</div>
+      <i class="lulc-div" style="left:${pNat}%"></i>
+    </div>
+    <ul class="lulc-leg">${leg.map(c => `<li title="${esc(c.outras ? `${pct1(c.p)}: ${c.inclui.join(', ')}` : pct1(c.p))}"><i style="${swatch(c)}"></i>${c.outras ? 'Otras (&lt;0,5% cada una)' : c.nome}</li>`).join('')}</ul>`;
+}
+
+/* ==========================================================
+   BOLETÍN DEL MES
+   ========================================================== */
+const P = {};
+
+async function detectarPeriodo() {
+  const anos = await getJSON('/api/statistics/years');
+  for (const y of [...anos].reverse().slice(0, 2)) {
+    const meses = await getJSON(`/api/statistics/${y}/months`);
+    for (const m of [...meses].reverse()) {
+      const a = await st('area', 'country', PAIS, { year: y, monthStart: m, monthEnd: m }, 'department');
+      if (a.areaHa > 0) { P.Y = y; P.M = m; P.anos = anos.filter(x => x <= y); P.meses = meses; return; }
+    }
+  }
+  throw new Error('ningún mes con datos');
+}
+
+// Área del mes, acumulado, serie y cobertura de un territorio (bioma o departamento líder).
+async function dadosTerritorio(type, code, want) {
+  const { Y, M } = P;
+  const q = { year: Y, monthStart: M, monthEnd: M }, qa = { year: Y, monthStart: 1, monthEnd: M };
+  const [mes, acum, ts, lcMes, lcAcum] = await Promise.all([
+    st('area', type, code, q, want),
+    st('area', type, code, qa, want),
+    st('time-series', type, code, { monthStart: 1, monthEnd: 12 }, want),
+    st('land-cover', type, code, { ...q, level: 2 }, want),
+    st('land-cover', type, code, { ...qa, level: 2 }, want)
+  ]);
+  return { mes, acum, ts, lcMes, lcAcum };
+}
+const rankRaw = (type, code, grp, q) => getJSON(`/api/statistics/ranking/${type}/${code}/${grp}/raw?year=${q.year}&monthStart=${q.monthStart}&monthEnd=${q.monthEnd}`);
+const topDe = r => r.reduce((a, i) => ((i.value || 0) > (a.value || 0) ? i : a), r[0] || {});
+
+async function initBoletim() {
+  document.querySelectorAll('[data-col]').forEach(el => { el.innerHTML = colunaHTML(el.id); });
+  const blocos = [...document.querySelectorAll('#tab-boletim .blk')].map(b => b.id);
+  blocos.forEach(id => status(id, 'Cargando…'));
+  try { await periodoP; }
+  catch (e) {
+    blocos.forEach(id => status(id, `No se pudo identificar el mes más reciente (${e.message}).`, true));
+    $('periodo').textContent = 'Sin datos';
+    return;
+  }
+  const { Y, M } = P, mes = MES_L[M - 1];
+  $('periodo').textContent = `${mes} ${Y}`;
+  document.title = `Boletín del Monitor de Fuego · Perú · ${cap(mes)} ${Y}`;
+  document.querySelectorAll('.sh').forEach(h => { h.innerHTML = cabecalho(`${mes} ${Y}`); });
+  document.querySelectorAll('[data-atual]').forEach(s => { s.textContent = `datos hasta ${mes} de ${Y}`; });
+  $('d1-t').textContent = `Destacados del fuego en el Perú en ${mes} de ${Y}`;
+
+  const q = { year: Y, monthStart: M, monthEnd: M }, qa = { year: Y, monthStart: 1, monthEnd: M };
+  const D = {
+    ts: st('time-series', 'country', PAIS, { monthStart: 1, monthEnd: 12 }, 'department'),
+    mes: st('area', 'country', PAIS, q, 'department'),
+    acum: st('area', 'country', PAIS, qa, 'department'),
+    lcMes: st('land-cover', 'country', PAIS, { ...q, level: 2 }, 'department'),
+    lcAcum: st('land-cover', 'country', PAIS, { ...qa, level: 2 }, 'department'),
+    depRaw: rankRaw('country', PAIS, 'department', q),
+    bioRaw: rankRaw('country', PAIS, 'biome', q),
+    tr: lcTrans()
+  };
+  D.bioma = D.bioRaw.then(r => { const t = topDe(r); if (!t.code) throw new Error('sin biomas con datos'); return t; });
+  D.dep = D.depRaw.then(r => { const t = topDe(r); if (!t.code) throw new Error('sin departamentos con datos'); return t; });
+  D.dBio = D.bioma.then(b => dadosTerritorio('biome', b.code, 'biome'));
+  D.dDep = D.dep.then(u => dadosTerritorio('department', u.code, 'district'));
+  D.disDep = D.dep.then(u => rankRaw('department', u.code, 'district', q));
+  Object.values(D).forEach(p => p.catch(() => {}));
+
+  // Colores de las clases de uso y cobertura (API) y avisos sobre los datos disponibles.
+  try { P.cor = Object.fromEntries((await D.tr).map(t => [t.id, t.color])); } catch { P.cor = {}; }
+  const ts0 = await D.ts.catch(() => ({ monthly: [] }));
+  const ini0 = ts0.monthly.filter(p => p.year === P.anos[0]).reduce((m, p) => Math.min(m, p.month), 13);
+  P.parcialAnt = P.anos.length > 1 && ini0 > 1;           // el año anterior no empieza en enero
+  P.iniAnt = ini0;
+  const faltan = range(1, M).filter(m => !P.meses.includes(m)).map(m => MES_L[m - 1]);
+  const notas = [];
+  if (P.parcialAnt) notas.push(`Los datos de ${P.anos[0]} comienzan en ${MES_L[ini0 - 1]}.`);
+  if (faltan.length) notas.push(`Sin datos en ${Y}: ${lista(faltan)}.`);
+  document.querySelectorAll('[data-nota]').forEach(s => { s.textContent = notas.length ? ' ' + notas.join(' ') : ''; });
+
+  await Promise.all([
+    secao('d1-mes', async () => { const d = await dadosBR(D); colunaMx('d1-mes', 'mes', d, null, tileNativa(d.lcMes)); }),
+    secao('d1-acum', async () => { const d = await dadosBR(D); colunaMx('d1-acum', 'acum', d, null, tilePico(d.ts)); }),
+    secao('d2-mapa', () => d2Mapa(D)),
+    secao('d2-rank', () => d2Rank(D)),
+    secao('d3-mapa', () => d3Mapa(D)),
+    secao('d3-mes', async () => colunaMx('d3-mes', 'mes', await D.dBio, await totaisBR(D))),
+    secao('d3-acum', async () => colunaMx('d3-acum', 'acum', await D.dBio, await totaisBR(D))),
+    secao('d4-mapa', () => d4Mapa(D)),
+    secao('d4-rank', () => d4Rank(D)),
+    secao('d5-mapa', () => d5Mapa(D)),
+    secao('d5-mes', async () => colunaMx('d5-mes', 'mes', await D.dDep, await totaisBR(D))),
+    secao('d5-acum', async () => colunaMx('d5-acum', 'acum', await D.dDep, await totaisBR(D)))
+  ]);
+}
+
+// Mapa coroplético de un nivel (biomas o departamentos) con los límites del país.
+async function mapaNivel(id, grupo, vals, cls) {
+  const bounds = await getJSON(`/api/territories/country/${PAIS}/bounds`);
+  const m = mapaEstatico(id, bounds);
+  mvt(`/api/territories/grouping/tiles/${grupo}`, p => ({
+    fill: true, fillColor: cls.cor(vals[p.code] || 0), fillOpacity: 1, color: '#212121', weight: .8
+  }), 2).addTo(m);
+}
+
+// Cicatrices de fuego de un territorio entre los meses ini y fim del año de referencia.
+async function mapaFogo(id, type, code, ini, fim) {
+  const { Y } = P;
+  const [fire, bounds] = await Promise.all([
+    getJSON(`/api/maps/fire/monthly?territoryType=${type}&territoryCode=${code}&year=${Y}&monthStart=${ini}&monthEnd=${fim}`),
+    getJSON(`/api/territories/${type}/${code}/bounds`)
+  ]);
+  const m = mapaEstatico(id, bounds);
+  mvt('/api/territories/grouping/tiles/department', { fill: false, color: '#D9D9D9', weight: .55 }, 2).addTo(m);
+  L.tileLayer(fire.url, { zIndex: 3 }).addTo(m);
+  mvt('/api/territories/grouping/tiles/biome', { fill: false, color: '#212121', weight: 1 }, 4).addTo(m);
+}
+
+// Coroplético de los distritos de un departamento.
+async function mapaDistritos(id, legId, u, dis) {
+  const bounds = await getJSON(`/api/territories/department/${u.code}/bounds`);
+  const vals = Object.fromEntries(dis.map(i => [i.code, i.value || 0]));
+  const cls = classes(dis.map(i => i.value || 0));
+  const m = mapaEstatico(id, bounds);
+  mvt('/api/territories/grouping/tiles/district', p => (String(p.departmentCode) === String(u.code)
+    ? { fill: true, fillColor: cls.cor(vals[p.code] || 0), fillOpacity: 1, color: '#FFFFFF', weight: .5 }
+    : { fill: false, stroke: false }), 2).addTo(m);
+  mvt('/api/territories/grouping/tiles/department', { fill: false, color: '#212121', weight: .9 }, 3).addTo(m);
+  $(legId).innerHTML = legHTML(cls);
+}
+
+/* ----- Columnas Mes × Acumulado ----- */
+function anosSlide(id, ts, acum = false) {
+  const { Y, M, anos } = P, nm = MES_L[M - 1], ini = acum ? 1 : M;
+  const per = acum && M > 1 ? `enero a ${nm}` : nm;
+  $(`${id}-t`).textContent = `Área quemada ${acum && M > 1 ? 'de' : 'en'} ${per}, por año`;
+  const parcial = acum && P.parcialAnt ? ` Los datos de ${anos[0]} comienzan en ${MES_L[P.iniAnt - 1]}: la barra de ${anos[0]} no cubre el período completo.` : '';
+  $(`${id}-d`).textContent = (acum && M > 1
+    ? `Representa el área quemada de enero a ${nm} de cada año, entre ${anos[0]} y ${Y}.`
+    : `Representa el área quemada en ${nm} de cada año, entre ${anos[0]} y ${Y}.`) + parcial;
+  yearChart(id, anos, anos.map(y => sumTs(ts, y, ini, M)), Y);
+}
+const colunaHTML = id => `<div class="st"></div>
+  <div class="mx-card" id="${id}-k"></div>
+  <div>
+    <p class="ct" id="${id}-a-t"></p>
+    <p class="cs" id="${id}-a-d"></p>
+    <p class="cvar" id="${id}-a-s"></p>
+    <div class="cv cv-sl"><canvas id="${id}-a"></canvas></div>
+  </div>
+  <div class="mx-lulc" id="${id}-lulc"></div>`;
+const dadosBR = D => Promise.all([D.mes, D.acum, D.ts, D.lcMes, D.lcAcum])
+  .then(([mes, acum, ts, lcMes, lcAcum]) => ({ mes, acum, ts, lcMes, lcAcum }));
+const totaisBR = D => Promise.all([D.mes, D.acum]).then(([m, a]) => ({ mes: m.areaHa, acum: a.areaHa }));
+function colunaMx(id, tipo, d, br, tile = null) {
+  const acum = tipo === 'acum', v = acum ? d.acum : d.mes;
+  const { Y, M } = P, nm = MES_L[M - 1];
+  const per = acum ? (M === 1 ? 'enero' : `ene–${MES[M - 1]}`) : nm;
+  const rotulo = acum ? `Acumulado ${M === 1 ? 'en' : 'de'} ${per} de ${Y}` : `Área quemada en ${nm} de ${Y}`;
+  const sub = br ? `${fmtP(v.areaHa / (acum ? br.acum : br.mes) * 100)} del área quemada en el Perú ${acum ? 'en el año' : 'en el mes'}` : '';
+  // El acumulado no se compara con el año anterior si ese año no tiene datos desde enero.
+  kpiCard(`${id}-k`, rotulo, v, per, sub, tile, acum && P.parcialAnt);
+  anosSlide(`${id}-a`, d.ts, acum);
+  const estreita = !!$(id).closest('.c3');
+  $(`${id}-lulc`).innerHTML = lulcHTML(acum ? d.lcAcum : d.lcMes, `Uso y cobertura${estreita ? '' : ' del área quemada'} (${per} de ${Y})`, estreita ? 9 : 6);
+}
+
+/* ----- 2: Ranking de biomas ----- */
+async function d2Mapa(D) {
+  const [r, mesA, b] = await Promise.all([D.bioRaw, D.mes, D.bioma]);
+  const nm = MES_L[P.M - 1];
+  const cls = classes(r.map(i => i.value || 0));
+  $('d2-map-t').textContent = `Biomas más afectados en ${nm}`;
+  $('d2-selo').textContent = `${b.name} fue el bioma más afectado`;
+  await mapaNivel('d2-map', 'biome', Object.fromEntries(r.map(i => [i.code, i.value || 0])), cls);
+  $('d2-leg-t').textContent = `Área quemada en ${nm} de ${P.Y} por bioma (ha)`;
+  $('d2-leg').innerHTML = legHTML(cls);
+}
+async function d2Rank(D) {
+  const [r, mesA] = await Promise.all([D.bioRaw, D.mes]);
+  const { Y, M } = P, nm = MES_L[M - 1];
+  kpiSlide('d2-k', `Área quemada en ${nm} de ${Y} (Perú)`, mesA.areaHa);
+  $('d2-c-d').textContent = `Área quemada en ${nm} de ${Y} y participación de cada bioma en el total del Perú.`;
+  const ord = [...r].sort((a, b) => (b.value || 0) - (a.value || 0));
+  const vals = ord.map(i => i.value || 0);
+  barrasH('d2-c', ord.map(i => i.name), vals, classes(vals), mesA.areaHa);
+}
+
+/* ----- 3: Bioma más afectado ----- */
+async function d3Mapa(D) {
+  const [b, d, br] = await Promise.all([D.bioma, D.dBio, totaisBR(D)]);
+  const { Y, M } = P, nm = MES_L[M - 1];
+  $('d3-selo').textContent = b.name;
+  $('d3-t').textContent = `${b.name} fue el bioma más afectado en ${nm}`;
+  $('d3-lead').textContent = `${fmtP(d.mes.areaHa / br.mes * 100)} del área quemada en el Perú en el mes y ${fmtP(d.acum.areaHa / br.acum * 100)} en el año.`;
+  $('d3-map-t').textContent = M === 1 ? `Cicatrices de fuego en enero de ${Y}` : `Cicatrices de fuego de enero a ${nm} de ${Y}`;
+  await mapaFogo('d3-map', 'biome', b.code, 1, M);
+}
+
+/* ----- 4: Ranking de departamentos ----- */
+async function d4Mapa(D) {
+  const [r, mesA] = await Promise.all([D.depRaw, D.mes]);
+  const nm = MES_L[P.M - 1];
+  const ord = [...r].sort((a, b) => (b.value || 0) - (a.value || 0));
+  const cls = classes(r.map(i => i.value || 0));
+  $('d4-map-t').textContent = `Departamentos más afectados en ${nm}`;
+  $('d4-selo').textContent = lista(ord.slice(0, 3).map(i => i.name));
+  await mapaNivel('d4-map', 'department', Object.fromEntries(r.map(i => [i.code, i.value || 0])), cls);
+  $('d4-leg-t').textContent = `Área quemada en ${nm} de ${P.Y} por departamento (ha)`;
+  $('d4-leg').innerHTML = legHTML(cls);
+}
+async function d4Rank(D) {
+  const [r, mesA] = await Promise.all([D.depRaw, D.mes]);
+  const { Y, M } = P, nm = MES_L[M - 1], tot = mesA.areaHa || 1;
+  const ord = [...r].sort((a, b) => (b.value || 0) - (a.value || 0));
+  const vals = ord.map(i => i.value || 0), nomes = ord.map(i => i.name);
+  const soma = n => vals.slice(0, n).reduce((s, v) => s + v, 0);
+  kpiSlide('d4-k', `Área quemada en ${nm} de ${Y} (Perú)`, mesA.areaHa);
+  $('d4-lead').textContent = `${lista(nomes.slice(0, 3))} suman ${fmtP(soma(3) / tot * 100)} del área quemada del país. `
+    + `Los 10 primeros departamentos suman ${fmtP(soma(10) / tot * 100)}.`;
+  $('d4-c-d').textContent = `Área quemada en ${nm} de ${Y} y participación de cada departamento en el total del Perú.`;
+  barrasH('d4-c', nomes.slice(0, 10), vals.slice(0, 10), classes(vals), mesA.areaHa);
+}
+
+/* ----- 5: Departamento más afectado (mapa por distritos) ----- */
+async function d5Mapa(D) {
+  const [u, dis, d, br] = await Promise.all([D.dep, D.disDep, D.dDep, totaisBR(D)]);
+  const nm = MES_L[P.M - 1];
+  const ord = [...dis].sort((a, b) => (b.value || 0) - (a.value || 0));
+  $('d5-selo').textContent = u.name;
+  $('d5-t').textContent = `${u.name} fue el departamento más afectado en ${nm}`;
+  $('d5-lead').textContent = `${fmtP(d.mes.areaHa / br.mes * 100)} del área quemada en el Perú en el mes y `
+    + `${fmtP(d.acum.areaHa / br.acum * 100)} en el año.` + (ord[0] ? ` ${ord[0].name} lideró los distritos (${haC(ord[0].value)}).` : '');
+  $('d5-leg-t').textContent = `Área quemada en ${nm} de ${P.Y} por distritos de ${u.name} (ha)`;
+  await mapaDistritos('d5-map', 'd5-leg', u, dis);
+}
+
+/* ---------- impresión (A4 horizontal) ---------- */
+function modoImpressao(on) {
+  document.documentElement.classList.toggle('pm', on);
+  Object.values(CHS).forEach(c => c.resize());
+  reajustarMapas();
+}
+$('btn-print').addEventListener('click', async () => {
+  await document.fonts.ready;
+  modoImpressao(true);
+  await new Promise(r => setTimeout(r, 700));
+  window.print();
+});
+window.addEventListener('beforeprint', () => modoImpressao(true));
+window.addEventListener('afterprint', () => setTimeout(() => modoImpressao(false), 50));
+let tResize;
+window.addEventListener('resize', () => { clearTimeout(tResize); tResize = setTimeout(reajustarMapas, 150); });
+
+if (window.Chart) {
+  Chart.defaults.font.family = 'Montserrat, system-ui, "Segoe UI", sans-serif';
+  Chart.defaults.color = C.muted;
+  Chart.defaults.borderColor = C.line;
+  Chart.defaults.animation = false;
+}
+const periodoP = detectarPeriodo();
+periodoP.catch(() => {});
+// #pdf abre el boletín ya en el diseño de hoja (para generar el PDF desde la línea de comandos).
+if (location.hash === '#pdf') document.documentElement.classList.add('pm');
+initBoletim();
+</script>
+</body></html>
