@@ -132,7 +132,7 @@ entry points are under `production/notebooks/`.
    (`5-Monitor-Fuego/M3/dev/M3_Toolkit_Monitor_Fuego_v10`). Copy it to
    `development/version_03/src/core/M3_toolkit.js` and promote it with the rest;
    `production` keeps an identical copy. The GEE link points to
-   `5-Monitor-Fuego/M3/M3_Toolkit_Monitor_Fuego` (current production) as the
+   `5-MapBiomas-Fuego/M3/M3_Toolkit_MapBiomas_Fuego` (current production) as the
    live reference.
 
 ## Deprecation plan

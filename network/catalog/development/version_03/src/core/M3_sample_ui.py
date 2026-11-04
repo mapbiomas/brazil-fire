@@ -10,7 +10,7 @@ from M_lang import L as Lang
 # Canonical GEE reference toolkit (current production; catalog snapshots ship v08).
 GEE_TOOLKIT_URL = (
     "https://code.earthengine.google.com/?scriptPath="
-    "users%2Fmapbiomasworkspace1%2Fmapbiomas-fire%3A5-Monitor-Fuego%2FM3%2FM3_Toolkit_Monitor_Fuego"
+    "users%2Fmapbiomasworkspace1%2Fmapbiomas-fire%3A5-MapBiomas-Fuego%2FM3%2FM3_Toolkit_MapBiomas_Fuego"
 )
 
 
@@ -60,7 +60,7 @@ def show_toolkit_links():
     """
     github_link, gee_link = _toolkit_links()
     version = _version_label(os.path.dirname(os.path.abspath(__file__)))
-    slides_link = "https://docs.google.com/presentation/d/1kQlwA-DAliL07Hp5b67o82PIBtYnsuk2tWjq04D6KYk"
+    slides_link = "https://docs.google.com/presentation/d/1aYaCFHvjWZp_-suBloyRHyBAPHkYjU_enNnZ6cPw-w4/edit?usp=sharing"
 
     print("\n" + "="*70)
     print(f"   {Lang.M3_TITLE}")

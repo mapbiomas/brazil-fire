@@ -35,7 +35,7 @@ python -m unittest discover -s network/catalog/production/tests
   (`5-Monitor-Fuego/M3/dev/M3_Toolkit_Monitor_Fuego_v08`); `version_03` and
   `production` have identical v08 copies. The notebooks link to the copy of the
   version being run; the M3 gateway links to the current GEE production
-  reference (`5-Monitor-Fuego/M3/M3_Toolkit_Monitor_Fuego`).
+  reference (`5-MapBiomas-Fuego/M3/M3_Toolkit_MapBiomas_Fuego`).
 - M3 v08 scope: nine countries, annual axis from 1985, monthly from 2019,
   `MBFIRE Collection`/`MBFIRE Monitor` reference layers, Bolivia regions pinned
   to `CATALOG_01/COLLECTION_02`, FILTERED matrix without horizontal scrollbar.

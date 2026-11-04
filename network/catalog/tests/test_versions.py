@@ -143,7 +143,7 @@ class MonitorVersionPathsTests(unittest.TestCase):
                 f'network/catalog/{rel}/src/core/M3_toolkit.js', github, rel
             )
             self.assertIn(
-                '5-Monitor-Fuego%2FM3%2FM3_Toolkit_Monitor_Fuego', gee, rel
+                '5-MapBiomas-Fuego%2FM3%2FM3_Toolkit_MapBiomas_Fuego', gee, rel
             )
             self.assertNotIn('peru-fire', github)
             self.assertNotIn('peru-fire', gee)
