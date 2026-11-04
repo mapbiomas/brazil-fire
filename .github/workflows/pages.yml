@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - "utils/fire_monitor_highlights/src/**"
+      - "utils/legends_mapbiomas_fire/app/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -37,6 +38,8 @@ jobs:
           cp $app/brazil/boletim-fogo.html $app/brazil/index.html
           cp -r utils/fire_monitor_highlights/src/peru/. $app/peru/
           cp $app/peru/boletin-fuego.html $app/peru/index.html
+          mkdir -p _site/legends
+          cp -r utils/legends_mapbiomas_fire/app/. _site/legends/
           cat > $app/index.html <<'EOF'
           <!doctype html>
           <meta charset="utf-8">
@@ -51,9 +54,13 @@ jobs:
           cat > _site/index.html <<'EOF'
           <!doctype html>
           <meta charset="utf-8">
-          <meta http-equiv="refresh" content="0; url=fire_monitor_highlights/">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
           <title>MapBiomas Fire</title>
-          <a href="fire_monitor_highlights/">MapBiomas Fire · Boletim / Boletín</a>
+          <h1>MapBiomas Fire</h1>
+          <ul>
+            <li><a href="fire_monitor_highlights/">Boletim mensal / Boletín mensual</a></li>
+            <li><a href="legends/">Legendas e paletas / Legends and palettes</a></li>
+          </ul>
           EOF
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

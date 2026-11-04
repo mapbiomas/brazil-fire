@@ -1,13 +1,39 @@
 # MapBiomas Fire · Legends
 
-Register of the MapBiomas Fire legends (pixel values, names in PT/EN/ES and HEX colors), with which ones are **active**, which are still **pending** and where each one comes from.
+## 🔗 Open the app: **[https://mapbiomas.github.io/brazil-fire/legends/](https://mapbiomas.github.io/brazil-fire/legends/)**
 
-- **[LEGENDS.md](LEGENDS.md)**: all registered legends as tables (generated).
-- **[preview.html](preview.html)**: the same legends with color swatches; download and open in a browser (generated).
-- **[registry.csv](registry.csv)**: one row per legend: country, collection, product, status, years, GEE asset and source.
-- **[legends/](legends/)**: one CSV per legend with the classes: `pixel_value, name_pt, name_en, name_es, hex`.
+Consult the legends and palettes of every MapBiomas Fire collection published so far (per country, collection and product) and export them as GEE code, QGIS colormap, SLD, SVG/PNG or plain HEX lists.
 
-## Status
+| Country | Published collections |
+|---|---|
+| 🇧🇷 Brazil | 2 · 3 · 4 · 4.1 · **5** · Monitor |
+| 🇦🇷 Argentina | 1 |
+| 🇧🇴 Bolivia | 1 |
+| 🇨🇱 Chile | 1 |
+| 🇨🇴 Colombia | 1 |
+| 🇵🇾 Paraguay | 1 |
+| 🇵🇪 Peru | 1 · 2 · Monitor |
+| 🇮🇩 Indonesia | 1 · 2 · Monitor |
+
+_Inventory of 30/10/2026 (official site and `gs://mapbiomas-public`)._ Colors marked **validada** in the app come from the official legend documents registered in this folder (today: **Brazil, Collection 5**). For the other collections the app shows a generated suggestion until their colors are registered.
+
+## Folder structure
+
+```
+utils/legends_mapbiomas_fire/
+├── README.md
+├── registry.csv          # one row per legend: status, years, GEE asset, source
+├── legends/              # one CSV per legend: pixel_value, name_pt/en/es, hex
+├── LEGENDS.md            # all registered legends as tables (generated)
+├── preview.html          # the same with color swatches (generated)
+├── build_legends.py      # validates the CSVs and regenerates the files above
+├── app/
+│   ├── index.html        # the web app
+│   └── palettes.json     # registered palettes for the app (generated)
+└── tests/
+```
+
+## Status of a legend (`registry.csv`)
 
 | status | meaning |
 |---|---|
@@ -20,18 +46,13 @@ Register of the MapBiomas Fire legends (pixel values, names in PT/EN/ES and HEX 
 ## Add or change a legend
 
 1. Create `legends/<country>_col<N>_<product>.csv` (copy an existing one). `hex` is 6 digits, lowercase (`#a900ff`); `pixel_value` is a whole number.
-2. Add a row for it in `registry.csv` (`file` = the CSV name). When a new collection replaces an old one, set the old row to `deprecated`.
-3. Run `python build_legends.py`. It checks the CSVs, lists any problem and rewrites `LEGENDS.md` and `preview.html`.
-4. Commit the CSVs together with the generated files. `python -m unittest discover -s utils/legends_mapbiomas_fire/tests` checks that they are in sync.
+2. Add a row in `registry.csv`: `file` = the CSV name and `app_country`, `app_collection`, `app_product` = the codes the app uses (for example `brasil`, `5`, `fire_frequency`).
+3. Run `python build_legends.py`. It checks the CSVs, lists any problem and rewrites `LEGENDS.md`, `preview.html` and `app/palettes.json`.
+4. Commit the CSVs with the generated files. `python -m unittest discover -s utils/legends_mapbiomas_fire/tests` checks they are in sync. The app is republished automatically.
 
 Only the Python standard library is needed.
 
-## What is registered today
+## Sources
 
-| Country | Collection | Source | State |
-|---|---|---|---|
-| Brazil | 5 (5.1) | [Legend code PDF](https://brasil.mapbiomas.org/wp-content/uploads/sites/3/2026/09/Codigo-Legenda-MapBiomas-Fogo-Brazil-Col5.pdf) | 6 products with colors; annual burned area under `review` |
-| Peru | 1 | [Legend code PDF](https://peru.mapbiomas.org/wp-content/uploads/sites/14/2025/10/CODIGO-DE-LEGENDA-FUEGO-COL-1-Peru.pdf) | 8 products, pixel values only (no colors published) |
-| Chile | 1 | [news](https://uchile.cl/noticias/244097/mapbiomas-fuego-revela-mas-de-12-millones-de-hectareas-afectadas) | collection announced, no legend document found |
-
-No fire legend was found for Bolivia, Colombia, Ecuador, Paraguay or Venezuela.
+- Brazil Collection 5: [legend code PDF](https://brasil.mapbiomas.org/wp-content/uploads/sites/3/2026/09/Codigo-Legenda-MapBiomas-Fogo-Brazil-Col5.pdf)
+- Peru Collection 1: [legend code PDF](https://peru.mapbiomas.org/wp-content/uploads/sites/14/2025/10/CODIGO-DE-LEGENDA-FUEGO-COL-1-Peru.pdf) (pixel values only, no colors published)

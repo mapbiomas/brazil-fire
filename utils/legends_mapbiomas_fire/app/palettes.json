@@ -1,0 +1,886 @@
+{
+ "brasil__5__annual_burned_scar_size_range": {
+  "classes": [
+   {
+    "en": "< 10 ha",
+    "es": "< 10 ha",
+    "hex": "#d0ae35",
+    "pt": "< 10 ha",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "10 - 250 ha",
+    "es": "10 - 250 ha",
+    "hex": "#c68e2f",
+    "pt": "10 - 250 ha",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "250 - 500 ha",
+    "es": "250 - 500 ha",
+    "hex": "#b96d2b",
+    "pt": "250 - 500 ha",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "500 - 5.000 ha",
+    "es": "500 - 5.000 ha",
+    "hex": "#ac4b28",
+    "pt": "500 - 5.000 ha",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5.000 - 10.000 ha",
+    "es": "5.000 - 10.000 ha",
+    "hex": "#933328",
+    "pt": "5.000 - 10.000 ha",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "10.000 - 50.000 ha",
+    "es": "10.000 - 50.000 ha",
+    "hex": "#72251d",
+    "pt": "10.000 - 50.000 ha",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "50.000 - 100.000 ha",
+    "es": "50.000 - 100.000 ha",
+    "hex": "#4e180f",
+    "pt": "50.000 - 100.000 ha",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": ">= 100.000 ha",
+    "es": ">= 100.000 ha",
+    "hex": "#240d00",
+    "pt": ">= 100.000 ha",
+    "src": "oficial",
+    "v": 8
+   }
+  ],
+  "collection": "5",
+  "country": "brasil",
+  "expected": 8,
+  "notes": "Size classes differ from Peru Col1 (see peru_col1_fire_scar_size).",
+  "status": "validada",
+  "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "brasil__5__fire_frequency": {
+  "classes": [
+   {
+    "hex": "#faf3cd",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "hex": "#fdf1b0",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "hex": "#fbe981",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "hex": "#fae258",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "hex": "#f9de44",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "hex": "#f8d71f",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "hex": "#f1ca1e",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "hex": "#e9bc1c",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "hex": "#e2af1a",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "hex": "#daa118",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "hex": "#d29316",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "hex": "#cc8715",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "hex": "#c57b14",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "hex": "#bd6c12",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "hex": "#b76011",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "hex": "#b0540f",
+    "src": "oficial",
+    "v": 16
+   },
+   {
+    "hex": "#a8450d",
+    "src": "oficial",
+    "v": 17
+   },
+   {
+    "hex": "#9f360b",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "hex": "#992a0a",
+    "src": "oficial",
+    "v": 19
+   },
+   {
+    "hex": "#921e08",
+    "src": "oficial",
+    "v": 20
+   },
+   {
+    "hex": "#8c1307",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "hex": "#810004",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "hex": "#770105",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "hex": "#6a0306",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "hex": "#600407",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "hex": "#5a0508",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "hex": "#4b0709",
+    "src": "oficial",
+    "v": 27
+   },
+   {
+    "hex": "#450709",
+    "src": "oficial",
+    "v": 28
+   },
+   {
+    "hex": "#3f0708",
+    "src": "oficial",
+    "v": 29
+   },
+   {
+    "hex": "#390608",
+    "src": "oficial",
+    "v": 30
+   },
+   {
+    "hex": "#330607",
+    "src": "oficial",
+    "v": 31
+   },
+   {
+    "hex": "#2d0506",
+    "src": "oficial",
+    "v": 32
+   },
+   {
+    "hex": "#270506",
+    "src": "oficial",
+    "v": 33
+   },
+   {
+    "hex": "#220505",
+    "src": "oficial",
+    "v": 34
+   },
+   {
+    "hex": "#1c0404",
+    "src": "oficial",
+    "v": 35
+   },
+   {
+    "hex": "#170404",
+    "src": "oficial",
+    "v": 36
+   },
+   {
+    "hex": "#120303",
+    "src": "oficial",
+    "v": 37
+   },
+   {
+    "hex": "#0d0203",
+    "src": "oficial",
+    "v": 38
+   },
+   {
+    "hex": "#080202",
+    "src": "oficial",
+    "v": 39
+   },
+   {
+    "hex": "#040101",
+    "src": "oficial",
+    "v": 40
+   },
+   {
+    "hex": "#020000",
+    "src": "oficial",
+    "v": 41
+   }
+  ],
+  "collection": "5",
+  "country": "brasil",
+  "expected": 41,
+  "notes": "",
+  "status": "validada",
+  "subproduct": "fire_frequency",
+  "updatedAt": "from-repository"
+ },
+ "brasil__5__interval_since_fire": {
+  "classes": [
+   {
+    "hex": "#940000",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "hex": "#b51f16",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "hex": "#d63b24",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "hex": "#f05a28",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "hex": "#f47a20",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "hex": "#f7951d",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "hex": "#f7b21a",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "hex": "#f4cc1e",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "hex": "#e6df2a",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "hex": "#cde33a",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "hex": "#aee044",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "hex": "#8bd84f",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "hex": "#65cd5b",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "hex": "#42bf68",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "hex": "#2fb47a",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "hex": "#2aa98b",
+    "src": "oficial",
+    "v": 16
+   },
+   {
+    "hex": "#35a4a0",
+    "src": "oficial",
+    "v": 17
+   },
+   {
+    "hex": "#3aa0b8",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "hex": "#3696ca",
+    "src": "oficial",
+    "v": 19
+   },
+   {
+    "hex": "#2f84c5",
+    "src": "oficial",
+    "v": 20
+   },
+   {
+    "hex": "#2d6db7",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "hex": "#3159a8",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "hex": "#3d4d9d",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "hex": "#4b4597",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "hex": "#5b3f93",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "hex": "#6b3a91",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "hex": "#7b3590",
+    "src": "oficial",
+    "v": 27
+   },
+   {
+    "hex": "#8b318f",
+    "src": "oficial",
+    "v": 28
+   },
+   {
+    "hex": "#9b2f8e",
+    "src": "oficial",
+    "v": 29
+   },
+   {
+    "hex": "#aa318d",
+    "src": "oficial",
+    "v": 30
+   },
+   {
+    "hex": "#b83b93",
+    "src": "oficial",
+    "v": 31
+   },
+   {
+    "hex": "#c5489c",
+    "src": "oficial",
+    "v": 32
+   },
+   {
+    "hex": "#d158a8",
+    "src": "oficial",
+    "v": 33
+   },
+   {
+    "hex": "#dc6ab5",
+    "src": "oficial",
+    "v": 34
+   },
+   {
+    "hex": "#e47bc0",
+    "src": "oficial",
+    "v": 35
+   },
+   {
+    "hex": "#ea8ccb",
+    "src": "oficial",
+    "v": 36
+   },
+   {
+    "hex": "#efa0d5",
+    "src": "oficial",
+    "v": 37
+   },
+   {
+    "hex": "#f3b5df",
+    "src": "oficial",
+    "v": 38
+   },
+   {
+    "hex": "#d9d9d9",
+    "src": "oficial",
+    "v": 39
+   },
+   {
+    "hex": "#8c8c8c",
+    "src": "oficial",
+    "v": 40
+   }
+  ],
+  "collection": "5",
+  "country": "brasil",
+  "expected": 40,
+  "notes": "In the official PDF the Portuguese column is shifted by one from pixel 20 on (shows '21 anos' for pixel 20) and ends with '40 anos' twice. Here the Portuguese names follow the pixel value.",
+  "status": "validada",
+  "subproduct": "interval_since_fire",
+  "updatedAt": "from-repository"
+ },
+ "brasil__5__monthly_burned": {
+  "classes": [
+   {
+    "en": "January",
+    "es": "Enero",
+    "hex": "#a900ff",
+    "pt": "Janeiro",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "February",
+    "es": "Febrero",
+    "hex": "#6f02ff",
+    "pt": "Fevereiro",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "March",
+    "es": "Marzo",
+    "hex": "#020aff",
+    "pt": "Março",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "April",
+    "es": "Abril",
+    "hex": "#0675ff",
+    "pt": "Abril",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "May",
+    "es": "Mayo",
+    "hex": "#06ffff",
+    "pt": "Maio",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "June",
+    "es": "Junio",
+    "hex": "#ffee00",
+    "pt": "Junho",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "July",
+    "es": "Julio",
+    "hex": "#ff7700",
+    "pt": "Julho",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "August",
+    "es": "Agosto",
+    "hex": "#ff0800",
+    "pt": "Agosto",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "September",
+    "es": "Septiembre",
+    "hex": "#c20202",
+    "pt": "Setembro",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "October",
+    "es": "Octubre",
+    "hex": "#8b0000",
+    "pt": "Outubro",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "November",
+    "es": "Noviembre",
+    "hex": "#0aa602",
+    "pt": "Novembro",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "December",
+    "es": "Diciembre",
+    "hex": "#83f27e",
+    "pt": "Dezembro",
+    "src": "oficial",
+    "v": 12
+   }
+  ],
+  "collection": "5",
+  "country": "brasil",
+  "expected": 12,
+  "notes": "",
+  "status": "validada",
+  "subproduct": "monthly_burned",
+  "updatedAt": "from-repository"
+ },
+ "brasil__5__severity_class": {
+  "classes": [
+   {
+    "en": "Very Low",
+    "es": "Muy baja",
+    "hex": "#003f1b",
+    "pt": "Muito baixa",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "Low",
+    "es": "Baja",
+    "hex": "#8ee637",
+    "pt": "Baixa",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "Moderate",
+    "es": "Moderada",
+    "hex": "#ffd426",
+    "pt": "Moderada",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "High",
+    "es": "Alta",
+    "hex": "#ed7513",
+    "pt": "Alta",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "Very High",
+    "es": "Muy alta",
+    "hex": "#db2024",
+    "pt": "Muito alta",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "Extreme",
+    "es": "Extrema",
+    "hex": "#99151d",
+    "pt": "Extrema",
+    "src": "oficial",
+    "v": 6
+   }
+  ],
+  "collection": "5",
+  "country": "brasil",
+  "expected": 6,
+  "notes": "Beta (potential severity from delta NBR).",
+  "status": "validada",
+  "subproduct": "severity_class",
+  "updatedAt": "from-repository"
+ },
+ "brasil__5__year_last_fire": {
+  "classes": [
+   {
+    "hex": "#010079",
+    "src": "oficial",
+    "v": 1985
+   },
+   {
+    "hex": "#010b7b",
+    "src": "oficial",
+    "v": 1986
+   },
+   {
+    "hex": "#01177c",
+    "src": "oficial",
+    "v": 1987
+   },
+   {
+    "hex": "#00227e",
+    "src": "oficial",
+    "v": 1988
+   },
+   {
+    "hex": "#002d80",
+    "src": "oficial",
+    "v": 1989
+   },
+   {
+    "hex": "#003881",
+    "src": "oficial",
+    "v": 1990
+   },
+   {
+    "hex": "#004284",
+    "src": "oficial",
+    "v": 1991
+   },
+   {
+    "hex": "#004c86",
+    "src": "oficial",
+    "v": 1992
+   },
+   {
+    "hex": "#005688",
+    "src": "oficial",
+    "v": 1993
+   },
+   {
+    "hex": "#00608a",
+    "src": "oficial",
+    "v": 1994
+   },
+   {
+    "hex": "#026b8d",
+    "src": "oficial",
+    "v": 1995
+   },
+   {
+    "hex": "#007d96",
+    "src": "oficial",
+    "v": 1996
+   },
+   {
+    "hex": "#008998",
+    "src": "oficial",
+    "v": 1997
+   },
+   {
+    "hex": "#198d98",
+    "src": "oficial",
+    "v": 1998
+   },
+   {
+    "hex": "#26a09e",
+    "src": "oficial",
+    "v": 1999
+   },
+   {
+    "hex": "#41aca6",
+    "src": "oficial",
+    "v": 2000
+   },
+   {
+    "hex": "#5db9ad",
+    "src": "oficial",
+    "v": 2001
+   },
+   {
+    "hex": "#78c5b5",
+    "src": "oficial",
+    "v": 2002
+   },
+   {
+    "hex": "#94d2bd",
+    "src": "oficial",
+    "v": 2003
+   },
+   {
+    "hex": "#9fbd98",
+    "src": "oficial",
+    "v": 2004
+   },
+   {
+    "hex": "#aaa772",
+    "src": "oficial",
+    "v": 2005
+   },
+   {
+    "hex": "#b4924d",
+    "src": "oficial",
+    "v": 2006
+   },
+   {
+    "hex": "#bf7c27",
+    "src": "oficial",
+    "v": 2007
+   },
+   {
+    "hex": "#ca6702",
+    "src": "oficial",
+    "v": 2008
+   },
+   {
+    "hex": "#c45905",
+    "src": "oficial",
+    "v": 2009
+   },
+   {
+    "hex": "#bf4b08",
+    "src": "oficial",
+    "v": 2010
+   },
+   {
+    "hex": "#b93c0c",
+    "src": "oficial",
+    "v": 2011
+   },
+   {
+    "hex": "#b42e0f",
+    "src": "oficial",
+    "v": 2012
+   },
+   {
+    "hex": "#ae2012",
+    "src": "oficial",
+    "v": 2013
+   },
+   {
+    "hex": "#aa2016",
+    "src": "oficial",
+    "v": 2014
+   },
+   {
+    "hex": "#a6211a",
+    "src": "oficial",
+    "v": 2015
+   },
+   {
+    "hex": "#a3211e",
+    "src": "oficial",
+    "v": 2016
+   },
+   {
+    "hex": "#9f2222",
+    "src": "oficial",
+    "v": 2017
+   },
+   {
+    "hex": "#9b2226",
+    "src": "oficial",
+    "v": 2018
+   },
+   {
+    "hex": "#961b1e",
+    "src": "oficial",
+    "v": 2019
+   },
+   {
+    "hex": "#901417",
+    "src": "oficial",
+    "v": 2020
+   },
+   {
+    "hex": "#8b0e0f",
+    "src": "oficial",
+    "v": 2021
+   },
+   {
+    "hex": "#850708",
+    "src": "oficial",
+    "v": 2022
+   },
+   {
+    "hex": "#810000",
+    "src": "oficial",
+    "v": 2023
+   },
+   {
+    "hex": "#780000",
+    "src": "oficial",
+    "v": 2024
+   },
+   {
+    "hex": "#750000",
+    "src": "oficial",
+    "v": 2025
+   }
+  ],
+  "collection": "5",
+  "country": "brasil",
+  "expected": 41,
+  "notes": "One color per year.",
+  "status": "validada",
+  "subproduct": "year_last_fire",
+  "updatedAt": "from-repository"
+ }
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the MapBiomas Fire legend registry and regenerate LEGENDS.md and preview.html.
+"""Validate the MapBiomas Fire legend registry and regenerate LEGENDS.md, preview.html and app/palettes.json.
 
 Usage (from this folder):
     python build_legends.py            # validate, then write LEGENDS.md and preview.html
@@ -9,6 +9,7 @@ Only the Python standard library is used.
 """
 import csv
 import html
+import json
 import os
 import re
 import sys
@@ -18,7 +19,8 @@ REGISTRY = os.path.join(HERE, "registry.csv")
 LEGENDS_DIR = os.path.join(HERE, "legends")
 
 REGISTRY_COLUMNS = ["legend_id", "country", "collection", "product", "status", "years",
-                    "pixel_meaning", "file", "gee_asset", "source_url", "notes"]
+                    "pixel_meaning", "file", "gee_asset", "source_url", "notes",
+                    "app_country", "app_collection", "app_product"]
 LEGEND_COLUMNS = ["pixel_value", "name_pt", "name_en", "name_es", "hex"]
 STATUSES = {"active", "review", "pending_colors", "deprecated", "not_found"}
 HEX_RE = re.compile(r"^#[0-9a-f]{6}$")
@@ -51,6 +53,8 @@ def load():
         if row["status"] in ("active", "deprecated") and not row["file"]:
             errors.append(f"{where}: status '{row['status']}' needs a file in legends/")
         if row["file"]:
+            if not (row["app_country"] and row["app_collection"] and row["app_product"]):
+                errors.append(f"{where}: app_country, app_collection and app_product are required when there is a file")
             used_files.add(row["file"])
             path = os.path.join(LEGENDS_DIR, row["file"])
             if not os.path.isfile(path):
@@ -106,6 +110,30 @@ def markdown(rows, legends):
     return "\n".join(out) + "\n"
 
 
+LABELLED_PRODUCTS = {"monthly_burned", "annual_burned_scar_size_range", "severity_class"}
+
+
+def palettes(rows, legends):
+    """palettes.json for the web app: {country__collection__product: palette}."""
+    out = {}
+    for r in rows:
+        items = legends.get(r["legend_id"])
+        if not items:
+            continue
+        classes = []
+        for i in items:
+            c = {"v": int(i["pixel_value"]), "hex": i["hex"], "src": "oficial"}
+            if r["app_product"] in LABELLED_PRODUCTS:
+                c.update({"pt": i["name_pt"], "en": i["name_en"], "es": i["name_es"]})
+            classes.append(c)
+        key = f"{r['app_country']}__{r['app_collection']}__{r['app_product']}"
+        out[key] = {"country": r["app_country"], "collection": r["app_collection"], "subproduct": r["app_product"],
+                    "classes": classes, "expected": len(classes),
+                    "status": "validada" if r["status"] == "active" else "revisao",
+                    "notes": r["notes"], "updatedAt": "from-repository"}
+    return json.dumps(out, ensure_ascii=False, indent=1, sort_keys=True) + "\n"
+
+
 def preview(rows, legends):
     esc = html.escape
     parts = ["<!doctype html><html lang='en'><meta charset='utf-8'><title>MapBiomas Fire · Legends</title>",
@@ -139,7 +167,8 @@ def main(argv):
     print(f"OK: {len(rows)} legends in the registry, {len(legends)} with colors ({n_colors} classes).")
     if "--check" in argv:
         return 0
-    for name, text in (("LEGENDS.md", markdown(rows, legends)), ("preview.html", preview(rows, legends))):
+    for name, text in (("LEGENDS.md", markdown(rows, legends)), ("preview.html", preview(rows, legends)),
+                       (os.path.join("app", "palettes.json"), palettes(rows, legends))):
         with open(os.path.join(HERE, name), "w", encoding="utf-8", newline="\n") as handle:
             handle.write(text)
         print("wrote", name)
