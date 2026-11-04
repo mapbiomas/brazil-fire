@@ -64,7 +64,8 @@ copy of `version_03`.
 | Venezuela | `venezuela.monitor_01` | `venezuela.collection_02` |
 | Peru | `peru.monitor_01` | `peru.collection_03` |
 
-Annual campaigns use **Collection 02**, except Brazil (**Collection 06**).
+Annual campaigns use **Collection 02**, except Brazil (**Collection 06**) and
+Paraguay and Peru (**Collection 03**).
 
 ## Usage
 
@@ -99,8 +100,8 @@ authenticate()
 an optional helper for scripts and catalog tooling.
 
 Campaigns are declared in `campaigns/*.json` and targets in `targets/*.json`.
-The catalog covers seven countries; annual campaigns use **Collection 02**,
-except Brazil (**Collection 06**).
+The catalog covers eight countries; annual campaigns use **Collection 02**,
+except Brazil (**Collection 06**) and Paraguay and Peru (**Collection 03**).
 
 
 Development notebooks are under `development/version_03/notebooks/`. The public

@@ -123,8 +123,8 @@ authenticate()
 an optional helper for scripts and catalog tooling.
 
 Campaigns are declared in `campaigns/*.json` and targets in `targets/*.json`.
-The catalog covers seven countries; annual campaigns use **Collection 02**,
-except Brazil (**Collection 06**).
+The catalog covers eight countries; annual campaigns use **Collection 02**,
+except Brazil (**Collection 06**) and Paraguay and Peru (**Collection 03**).
 
 ## Environment
 
