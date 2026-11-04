@@ -1,0 +1,5 @@
+# Backups locais e PDFs gerados
+boletim-fogo-versao-*.html
+boletim-fogo-backup-*.html
+*.pdf
+.claude/
