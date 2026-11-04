@@ -1,0 +1,30 @@
+{
+  "id": "peru.monitor_01",
+  "label": "Peru - MONITOR_01",
+  "country": "peru",
+  "source": "monitor",
+  "campaign": "MONITOR_01",
+  "collection": null,
+  "sensors": [
+    "sentinel2"
+  ],
+  "periodicity": "monthly",
+  "mosaic_methods": [
+    "minnbr",
+    "minnbr_buffer"
+  ],
+  "catalog": "CATALOG_01",
+  "gcs_root": "sudamerica/peru/CATALOG_01",
+  "gee_project": "mapbiomas-peru",
+  "gee_root": "projects/mapbiomas-peru/assets/FIRE/CATALOG_01",
+  "asset_regions": "projects/mapbiomas-peru/assets/FIRE/CATALOG_01/MONITOR_01/AUXILIARY/regiones_fuego_peru_v1",
+  "region_property": "region_nam",
+  "year_start": 2025,
+  "year_end": 2026,
+  "engine": "monitor",
+  "targets": [
+    "burned_area"
+  ],
+  "status": "active",
+  "personal_task_flag": "MONITOR"
+}

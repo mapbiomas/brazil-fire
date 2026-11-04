@@ -73,6 +73,15 @@
       "status": "active"
     },
     {
+      "id": "peru.monitor_01",
+      "label": "Peru - MONITOR_01",
+      "country": "peru",
+      "source": "monitor",
+      "campaign": "MONITOR_01",
+      "periodicity": "monthly",
+      "status": "active"
+    },
+    {
       "id": "ecuador.monitor_01",
       "label": "Ecuador - MONITOR_01",
       "country": "ecuador",
