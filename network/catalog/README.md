@@ -60,8 +60,9 @@ copy of `version_03`.
 | Colombia | `colombia.monitor_01` | `colombia.collection_02` |
 | Chile | `chile.monitor_01` | `chile.collection_02` |
 | Ecuador | `ecuador.monitor_01` | `ecuador.collection_02` |
-| Paraguay | `paraguay.monitor_01` | `paraguay.collection_02` |
+| Paraguay | `paraguay.monitor_01` | `paraguay.collection_03` |
 | Venezuela | `venezuela.monitor_01` | `venezuela.collection_02` |
+| Peru | `peru.monitor_01` | `peru.collection_03` |
 
 Annual campaigns use **Collection 02**, except Brazil (**Collection 06**).
 

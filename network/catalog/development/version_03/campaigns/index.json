@@ -109,11 +109,20 @@
       "status": "active"
     },
     {
-      "id": "paraguay.collection_02",
-      "label": "Paraguay - COLLECTION_02",
+      "id": "paraguay.collection_03",
+      "label": "Paraguay - COLLECTION_03",
       "country": "paraguay",
       "source": "collection",
-      "campaign": "COLLECTION_02",
+      "campaign": "COLLECTION_03",
+      "periodicity": "yearly",
+      "status": "active"
+    },
+    {
+      "id": "peru.collection_03",
+      "label": "Peru - COLLECTION_03",
+      "country": "peru",
+      "source": "collection",
+      "campaign": "COLLECTION_03",
       "periodicity": "yearly",
       "status": "active"
     },

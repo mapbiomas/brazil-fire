@@ -18,5 +18,6 @@ Bolivia    https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/m
 Colombia   https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_colombia.ipynb
 Chile      https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_chile.ipynb
 Ecuador    https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_ecuador.ipynb
-Paraguay   https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_paraguay.ipynb
+Paraguay   https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_03_paraguay.ipynb
 Venezuela  https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_venezuela.ipynb
+Peru       https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_03_peru.ipynb

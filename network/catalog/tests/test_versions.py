@@ -98,11 +98,11 @@ class MonitorVersionPathsTests(unittest.TestCase):
         'production': 'network/catalog/production/src/core',
     }
 
-    def test_each_version_has_15_notebooks_with_the_right_repo_path(self):
+    def test_each_version_has_16_notebooks_with_the_right_repo_path(self):
         for rel, expected in self.EXPECTED.items():
             base = os.path.join(CATALOG, rel)
             notebooks = _notebooks(base)
-            self.assertEqual(len(notebooks), 15, f'{rel}: expected 15 notebooks')
+            self.assertEqual(len(notebooks), 16, f'{rel}: expected 16 notebooks')
             for notebook in notebooks:
                 self.assertIn(expected, _read(notebook), notebook)
 
@@ -117,7 +117,7 @@ class MonitorVersionPathsTests(unittest.TestCase):
             path = os.path.join(CATALOG, rel, 'COLAB_LINKS.csv')
             with open(path, newline='', encoding='utf-8') as handle:
                 rows = list(csv.DictReader(handle))
-            self.assertEqual(len(rows), 15, rel)
+            self.assertEqual(len(rows), 16, rel)
             for row in rows:
                 url = row['colab_url']
                 self.assertIn(f'/network/catalog/{rel}/notebooks/', url, url)
