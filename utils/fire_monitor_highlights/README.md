@@ -22,7 +22,7 @@ Relatório visual com dados ao vivo sobre área queimada no Brasil, exportável 
 
 ## 🚀 Acesso
 
-**Online**: https://veralaisa.github.io/boletim-monitor-fogo/
+**Online**: https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/
 
 **Localmente**: abra [`src/boletim-fogo.html`](src/boletim-fogo.html) no navegador (mantenha `Monitor_PT.png` na mesma pasta). Não há build nem dependências para instalar.
 

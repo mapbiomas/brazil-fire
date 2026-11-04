@@ -1,0 +1,50 @@
+# Publishes static apps from utils/ to GitHub Pages:
+#   https://mapbiomas.github.io/brazil-fire/<app>/
+# To add another page, copy its files into _site/<app>/ in the "Assemble site" step.
+name: Publish GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "utils/fire_monitor_highlights/src/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site/fire_monitor_highlights
+          cp -r utils/fire_monitor_highlights/src/. _site/fire_monitor_highlights/
+          cp _site/fire_monitor_highlights/boletim-fogo.html _site/fire_monitor_highlights/index.html
+          cat > _site/index.html <<'EOF'
+          <!doctype html>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=fire_monitor_highlights/">
+          <title>MapBiomas Fire</title>
+          <a href="fire_monitor_highlights/">Boletim do Monitor do Fogo</a>
+          EOF
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
