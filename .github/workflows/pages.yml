@@ -63,7 +63,7 @@ jobs:
           <ul>
             <li><a href="fire_monitor_highlights/">Boletim mensal / Boletín mensual</a></li>
             <li><a href="legends/">Legendas e paletas / Legends and palettes</a></li>
-            <li><a href="dashboard/">Painel Coleção 5.1 / Collection 5.1 dashboard</a></li>
+            <li><a href="dashboard/">Painel do fogo · Brasil · Coleção 5.1 / Fire dashboard · Brazil · Collection 5.1</a></li>
           </ul>
           EOF
       - uses: actions/configure-pages@v5

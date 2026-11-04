@@ -1,8 +1,10 @@
-# MapBiomas Fire · Dashboard
+# MapBiomas Fire · Dashboard (Brazil)
 
 ## 🔗 Open the app: **[https://mapbiomas.github.io/brazil-fire/dashboard/](https://mapbiomas.github.io/brazil-fire/dashboard/)**
 
-Interactive dashboard of MapBiomas Fire **Collection 5.1** (Brazil, 1985–2025). It reads the statistics straight from the public MapBiomas Platform API, so there is nothing to build or install. Filter by biome, state, municipality and period, and explore the products in tabs: annual, accumulated, monthly, frequency, last fire year, scar size, severity, return interval, land tenure, territories rankings and maps.
+> 🇧🇷 **Brazil only.** This dashboard covers Brazilian data (Collection 5.1, 1985–2025) and its interface is in Portuguese. See [Adapt it to another country](#️-adapt-it-to-another-country-or-collection).
+
+Interactive dashboard of MapBiomas Fire **Collection 5.1** for Brazil (1985–2025), with the MapBiomas Fogo logo. It reads the statistics straight from the public MapBiomas Platform API, so there is nothing to build or install. Filter by biome, state, municipality and period, and explore the products in tabs: annual, accumulated, monthly, frequency, last fire year, scar size, severity, return interval, land tenure, territories rankings and maps.
 
 Highlights:
 
@@ -20,7 +22,8 @@ utils/fire_dashboard/
 └── app/
     ├── index.html
     ├── style.css
-    └── app.js
+    ├── app.js
+    └── logos/MapBiomas_Fogo_PT.png   # copy of utils/_base/logos (the page must open standalone)
 ```
 
 | Item | Purpose |

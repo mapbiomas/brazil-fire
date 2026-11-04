@@ -103,12 +103,14 @@ body {
   min-width: 0;
 }
 
-.brand-mark {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--brand);
+/* Logo oficial MapBiomas Fogo; fundo branco para ler também no tema escuro. */
+.logo {
+  height: 46px;
+  width: auto;
   flex: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #fff;
 }
 
 .brand h1 {
@@ -116,6 +118,13 @@ body {
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+.brand h1 .pais { color: var(--brand); }
+
+@media (max-width: 520px) {
+  .logo { height: 36px; }
+  .brand h1 { font-size: 1rem; }
 }
 
 .subtitle {
