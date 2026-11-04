@@ -1,12 +1,15 @@
 # Logos
 
-| Arquivo | Idioma |
-|---|---|
-| `Monitor_PT.png` | Português (Brasil) |
-| `Monitor_EN.png` | Inglês |
-| `Monitor_ES.png` | Espanhol |
+| Arquivo | Logo | Idioma |
+|---|---|---|
+| `MapBiomas_Fogo_PT.png` | MapBiomas [FOGO] | Português (Brasil) |
+| `MapBiomas_Fire_EN.png` | MapBiomas [FIRE] | Inglês |
+| `MapBiomas_Fuego_ES.png` | MapBiomas [FUEGO] | Espanhol |
+| `Monitor_PT.png` | Monitor do Fogo | Português (Brasil) |
+| `Monitor_EN.png` | Fire Monitor | Inglês |
+| `Monitor_ES.png` | Monitor de Fuego | Espanhol |
 
-Por enquanto só as logos do Monitor; outras logos serão adicionadas depois. Cópias das logos de `utils/fire_monitor_highlights/logos/`. Esta pasta passa a ser a fonte única (Fase 2 remove as duplicatas).
+Logos gerais do MapBiomas Fogo (`MapBiomas_*`) para coleções e documentos; logos `Monitor_*` para o Monitor. Cópias das logos do Monitor de `utils/fire_monitor_highlights/logos/`. Esta pasta passa a ser a fonte única (Fase 2 remove as duplicatas).
 
 ## Regras de uso
 
