@@ -9,6 +9,7 @@ on:
     paths:
       - "utils/fire_monitor_highlights/src/**"
       - "utils/fire_legends/app/**"
+      - "utils/fire_dashboard/app/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -40,6 +41,8 @@ jobs:
           cp $app/peru/boletin-fuego.html $app/peru/index.html
           mkdir -p _site/legends
           cp -r utils/fire_legends/app/. _site/legends/
+          mkdir -p _site/dashboard
+          cp -r utils/fire_dashboard/app/. _site/dashboard/
           cat > $app/index.html <<'EOF'
           <!doctype html>
           <meta charset="utf-8">
@@ -60,6 +63,7 @@ jobs:
           <ul>
             <li><a href="fire_monitor_highlights/">Boletim mensal / Boletín mensual</a></li>
             <li><a href="legends/">Legendas e paletas / Legends and palettes</a></li>
+            <li><a href="dashboard/">Painel Coleção 5.1 / Collection 5.1 dashboard</a></li>
           </ul>
           EOF
       - uses: actions/configure-pages@v5

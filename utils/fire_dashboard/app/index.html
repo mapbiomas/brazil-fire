@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MapBiomas Fogo · Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <h1>MapBiomas Fogo</h1>
+          <p class="subtitle" id="subtitle">Estatísticas de área queimada</p>
+        </div>
+      </div>
+      <span id="source-badge" class="badge" data-state="pending">Conectando…</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="banner" class="banner" role="alert" hidden></div>
+
+    <section class="filters" aria-label="Filtros globais">
+      <label class="field">
+        <span>Bioma</span>
+        <select id="f-bioma" disabled></select>
+      </label>
+      <label class="field">
+        <span>Estado</span>
+        <select id="f-estado" disabled></select>
+      </label>
+      <label class="field">
+        <span>Município</span>
+        <select id="f-municipio" disabled></select>
+      </label>
+      <div class="field field-period">
+        <span>Período <output id="f-periodo" class="period-value">—</output></span>
+        <div class="range-slider">
+          <div class="range-track"><div class="range-fill" id="f-fill"></div></div>
+          <input type="range" id="f-ini" aria-label="Ano início do período" disabled>
+          <input type="range" id="f-fim" aria-label="Ano fim do período" disabled>
+        </div>
+        <div class="range-scale"><span id="f-min"></span><span id="f-max"></span></div>
+      </div>
+    </section>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+
+    <nav id="tabs" class="tabs" role="tablist" aria-label="Subprodutos do fogo"></nav>
+
+    <section id="panel" class="panel" role="tabpanel" tabindex="0"></section>
+  </main>
+
+  <footer class="wrap footer">
+    Dados: MapBiomas Fogo, via API pública da Plataforma MapBiomas. Áreas em hectares (ha).
+    <span id="footer-env"></span>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
