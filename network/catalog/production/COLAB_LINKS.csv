@@ -1,4 +1,4 @@
-﻿pais,campanha,tipo,notebook,colab_url
+pais,campanha,tipo,notebook,colab_url
 Brasil,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_brazil.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_brazil.ipynb
 Brasil,COLLECTION_06,anual (Landsat),collection_06_brazil.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_06_brazil.ipynb
 Bolivia,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_bolivia.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_bolivia.ipynb
@@ -13,3 +13,4 @@ Paraguay,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_paraguay.ipynb,https:
 Paraguay,COLLECTION_02,anual (Landsat),collection_02_paraguay.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_paraguay.ipynb
 Venezuela,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_venezuela.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_venezuela.ipynb
 Venezuela,COLLECTION_02,anual (Landsat),collection_02_venezuela.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_venezuela.ipynb
+Peru,MONITOR_01,monitor (Sentinel-2 mensal),monitor_01_peru.ipynb,https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_peru.ipynb

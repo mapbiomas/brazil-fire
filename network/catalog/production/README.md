@@ -18,6 +18,7 @@
 | Ecuador | [monitor_01_ecuador.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_ecuador.ipynb) | [collection_02_ecuador.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_ecuador.ipynb) |
 | Paraguay | [monitor_01_paraguay.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_paraguay.ipynb) | [collection_02_paraguay.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_paraguay.ipynb) |
 | Venezuela | [monitor_01_venezuela.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_venezuela.ipynb) | [collection_02_venezuela.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_02_venezuela.ipynb) |
+| Peru | [monitor_01_peru.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_peru.ipynb) | - |
 
 Full URLs are also available in [`COLAB_LINKS.csv`](./COLAB_LINKS.csv).
 

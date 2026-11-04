@@ -10,6 +10,7 @@ Chile      https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/m
 Ecuador    https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_ecuador.ipynb
 Paraguay   https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_paraguay.ipynb
 Venezuela  https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_venezuela.ipynb
+Peru       https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/monitor_01_peru.ipynb
 
 ANNUAL (Landsat, Collection 02/06)
 Brazil     https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/production/notebooks/collection_06_brazil.ipynb
