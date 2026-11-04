@@ -1,4 +1,10 @@
-**Online**: https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/ (Brasil: `/brazil/` · Perú: `/peru/`)
+## 🔗 Acesse o boletim online
+
+| 🇧🇷 Brasil · português | 🇵🇪 Perú · español |
+|:---:|:---:|
+| **[Boletim do Monitor do Fogo →](https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/brazil/)** | **[Boletín del Monitor de Fuego →](https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/peru/)** |
+
+_Página inicial com os dois países: https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/_
 
 **Localmente**: abra [`src/brazil/boletim-fogo.html`](src/brazil/boletim-fogo.html) ou [`src/peru/boletin-fuego.html`](src/peru/boletin-fuego.html) no navegador (mantenha o logo da pasta junto do HTML). Não há build nem dependências para instalar.
 
