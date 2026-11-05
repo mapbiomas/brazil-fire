@@ -30,6 +30,20 @@ class ReferenceCatalogTests(unittest.TestCase):
         self.assertEqual(len(suggest_style("severity_class")["visualization"]["palette"]), 6)
         self.assertIsNone(suggest_style("lulc_coverage"))
 
+    def test_suggest_style_follows_country_language(self):
+        self.assertEqual(suggest_style("annual_burned", "es")["legend"][0]["label"], "No observado")
+        self.assertEqual(suggest_style("annual_burned", "es")["legend"][1]["label"], "Fuego")
+        self.assertEqual(suggest_style("annual_burned", "en")["legend"][1]["label"], "Fire")
+        self.assertEqual(suggest_style("monthly_burned", "es")["legend"][0]["label"], "Enero")
+        self.assertEqual(suggest_style("monthly_burned", "en")["legend"][0]["label"], "January")
+        self.assertEqual(suggest_style("severity_class", "en")["legend"][0]["label"], "Very low")
+
+    def test_layer_for_record_uses_initiative_language(self):
+        peru = layer_for_record({**self.record, "initiative": "peru", "product": "annual_burned"})
+        self.assertEqual(peru["legend"][0]["label"], "No observado")
+        indonesia = layer_for_record({**self.record, "initiative": "indonesia", "product": "annual_burned"})
+        self.assertEqual(indonesia["legend"][1]["label"], "Fire")
+
     def test_layer_for_record_marks_unknown_style_disabled(self):
         enabled = layer_for_record({**self.record, "product": "annual_burned"})
         self.assertTrue(enabled.get("enabled", True))
