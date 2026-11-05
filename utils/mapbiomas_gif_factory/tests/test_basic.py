@@ -174,7 +174,7 @@ class BasicTests(unittest.TestCase):
                 return {"status": "success"}
         module.Pipeline = FakePipeline
         events, artifacts = [], []
-        with tempfile.TemporaryDirectory() as tmp, patch.dict("sys.modules", {"mapbiomas_data.core.pipeline": module}):
+        with tempfile.TemporaryDirectory() as tmp, patch.dict("sys.modules", {"mapbiomas_data.core.pipeline": module}), patch("gif_factory.engine.prepare_layer", side_effect=lambda layer: layer):
             result = generate(LAYERS[0], TERRITORIES[0], tmp, {"gif", "finais"}, artifacts.append,
                               project="test", on_progress=lambda *event: events.append(event))
             self.assertEqual(len(result), 2)

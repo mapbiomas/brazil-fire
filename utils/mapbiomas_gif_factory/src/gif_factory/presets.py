@@ -51,6 +51,34 @@ LAYERS.extend([
      "legend_label": "Frecuencia de incendios", "status": "experimental"},
 ])
 
+# Platform legend snapshots (Brazil Fire 5.1), accessed 2026-11-05.
+# Still experimental until the actual asset bands and output are tested in GEE.
+_MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+           "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+_MONTH_COLORS = ["cc00ff", "6600ff", "0000ff", "00ccff", "00ffcc", "ffff00",
+                 "ff9900", "ff3300", "cc0000", "00cc00", "009900", "66ff66"]
+_SEVERITY_LABELS = ["Muito baixa", "Baixa", "Moderada", "Alta", "Muito alta", "Extrema"]
+_SEVERITY_COLORS = ["003f1b", "8ee637", "ffd426", "ed7513", "db2024", "99151d"]
+LAYERS.extend([
+    {"id": "fire_annual_br51", "name": "Área queimada anual", "theme": "Fogo", "collection": "Coleção 5.1",
+     "asset": "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_annual_burned_v1",
+     "visualization": {"min": 0, "max": 1, "palette": ["fdfdfd", "800000"]},
+     "legend": [{"label": "Não observado", "color": "fdfdfd"}, {"label": "Fogo", "color": "800000"}],
+     "status": "experimental"},
+    {"id": "fire_monthly_br51", "name": "Mês da área queimada", "theme": "Fogo", "collection": "Coleção 5.1",
+     "asset": "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_monthly_burned_v1",
+     "visualization": {"min": 1, "max": 12, "palette": _MONTH_COLORS, "cmap_type": "categorical", "nodata_value": 0, "nodata_color": "ffffff"},
+     "legend": [{"label": label, "color": color} for label, color in zip(_MONTHS, _MONTH_COLORS)],
+     "legend_source": "https://plataforma.mapbiomas.org/api/v1/brazil/legends/10bd9e71-faa3-4e16-a4bd-2b790ddce843?tenantId=mapbiomas",
+     "status": "experimental"},
+    {"id": "fire_severity_br51", "name": "Severidade potencial", "theme": "Fogo", "collection": "Coleção 5.1",
+     "asset": "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_severity_class_v1",
+     "visualization": {"min": 1, "max": 6, "palette": _SEVERITY_COLORS, "cmap_type": "categorical", "nodata_value": 0, "nodata_color": "ffffff"},
+     "legend": [{"label": label, "color": color} for label, color in zip(_SEVERITY_LABELS, _SEVERITY_COLORS)],
+     "legend_source": "https://plataforma.mapbiomas.org/api/v1/brazil/legends/247470b1-6120-43a8-b43b-5ea7e212d519?tenantId=mapbiomas",
+     "status": "experimental"},
+])
+
 for product, title, band, version in [
     ("soil_clay_fraction", "Fração de argila", "clay_fraction", "v1"),
     ("soil_sand_fraction", "Fração de areia", "sand_fraction", "v1"),

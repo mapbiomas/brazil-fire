@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 from contextlib import nullcontext
 import re
 import shutil
+from datetime import datetime, timezone
 from .layout import safe_name
 from .temporal import resolve_bands
 
@@ -75,9 +76,107 @@ class NotebookConfig:
         return {"gif_creation": {"frame_duration": 300, "loop_count": 1000, "quality": 95}}.get(key, {})
 
 
+def asset_type(layer):
+    """Resolve the real GEE asset type; never infer it from a product name."""
+    import ee
+    info = ee.data.getAsset(layer["asset"])
+    kind = info.get("type", "")
+    if kind not in ("IMAGE", "IMAGE_COLLECTION"):
+        raise ValueError(f"Tipo de asset não suportado: {kind or 'desconhecido'}")
+    return kind
+
+
+def _collection_frames(metadata, requested_band=None):
+    """Choose one band per timestamp, rejecting ambiguous mosaics or periods."""
+    if not metadata:
+        raise ValueError("A coleção não contém imagens.")
+    parsed = []
+    for item in metadata:
+        index, timestamp, names = item.get("index"), item.get("time"), item.get("bands") or []
+        if not index or (timestamp is None and item.get("year") is None):
+            raise ValueError("Coleção sem system:index ou data/ano em todas as imagens.")
+        if requested_band:
+            if requested_band not in names:
+                raise ValueError(f"Banda '{requested_band}' ausente em {index}.")
+            band = requested_band
+        elif len(names) == 1:
+            band = names[0]
+        else:
+            raise ValueError("A coleção tem imagens com múltiplas bandas; é necessário configurar qual banda animar.")
+        try:
+            date = (datetime.fromtimestamp(float(timestamp) / 1000, tz=timezone.utc)
+                    if timestamp is not None else datetime(int(item["year"]), 1, 1, tzinfo=timezone.utc))
+        except (ValueError, OverflowError, TypeError, OSError):
+            raise ValueError(f"Data inválida na imagem {index}.")
+        parsed.append((date, index, band))
+    years = [d.year for d, _, _ in parsed]
+    monthly = len(years) != len(set(years))
+    names = [f"year_{d.year}_{d.month:02d}" if monthly else f"year_{d.year}" for d, _, _ in parsed]
+    if len(names) != len(set(names)):
+        raise ValueError("Mais de uma imagem no mesmo período; configure uma regra de seleção ou mosaico.")
+    return sorted([(name, idx, band) for name, (_, idx, band) in zip(names, parsed)])
+
+
+def collection_variables(asset):
+    """List multiband variables when a collection is not a time sequence."""
+    import ee
+    if asset_type({"asset": asset}) != "IMAGE_COLLECTION":
+        return []
+    collection = ee.ImageCollection(asset)
+    size = collection.size().getInfo()
+    if size > 500:
+        raise ValueError("Coleção com mais de 500 imagens; requer filtro temporal.")
+    if not size:
+        raise ValueError("A coleção não contém imagens.")
+    images = collection.toList(size)
+    metadata = ee.List.sequence(0, size - 1).map(
+        lambda n: ee.Dictionary({"index": ee.Image(images.get(n)).get("system:index"),
+                                 "metric": ee.Image(images.get(n)).get("metric"),
+                                 "time": ee.Image(images.get(n)).get("system:time_start"),
+                                 "year": ee.Image(images.get(n)).get("year"),
+                                 "bands": ee.Image(images.get(n)).bandNames()})
+    ).getInfo()
+    if len(metadata) > 1 and all(m.get("time") is None and m.get("year") is None and len(m.get("bands") or []) > 1 for m in metadata):
+        if any(not m.get("index") for m in metadata):
+            raise ValueError("Imagens sem identificador; não é possível selecionar uma variável.")
+        return [(str(m.get("metric") or m["index"]), m["index"]) for m in metadata]
+    return []
+
+
+def prepare_layer(layer):
+    """Detect known depth layouts, leaving ordinary time-series unchanged."""
+    import ee
+    result = dict(layer)
+    if result.get("axis"):
+        return result
+    kind = asset_type(result)
+    if kind == "IMAGE_COLLECTION":
+        collection = ee.ImageCollection(result["asset"])
+        if collection.size().getInfo() == 0:
+            raise ValueError("A coleção não contém imagens.")
+        first = ee.Image(collection.first())
+        depth = first.get("depth").getInfo()
+        if isinstance(depth, str) and re.fullmatch(r"\d{3}_\d{3}", depth):
+            bands = first.bandNames().getInfo()
+            if len(bands) != 1:
+                raise ValueError("Coleção de profundidade com várias bandas; configure depth_band.")
+            result.update(axis="depth", depth_band=bands[0])
+    else:
+        names = ee.Image(result["asset"]).bandNames().getInfo()
+        matches = [re.fullmatch(r".+_(\d{3})_(\d{3})cm", name, re.IGNORECASE) for name in names]
+        if names and all(matches):
+            normalized = [f"depth_{m.group(1)}_{m.group(2)}" for m in matches]
+            if len(set(normalized)) != len(normalized):
+                raise ValueError("Profundidades duplicadas no asset; selecione a variável antes de animar.")
+            result.update(axis="depth", depth_source_bands=names, depth_output_bands=normalized)
+    return result
+
+
 def load_image(layer):
     import ee
     if layer.get("axis") == "depth":
+        if layer.get("depth_source_bands"):
+            return ee.Image(layer["asset"]).select(layer["depth_source_bands"], layer["depth_output_bands"])
         if not layer.get("depth_band"):
             raise ValueError("Informe depth_band para a coleção de profundidade.")
         collection = ee.ImageCollection(layer["asset"])
@@ -92,6 +191,35 @@ def load_image(layer):
             image = ee.Image(collection.filter(ee.Filter.eq("system:index", index)).first())
             bands.append(image.select(layer["depth_band"]).rename(f"depth_{depth}"))
         return ee.Image.cat(bands)
+    if asset_type(layer) == "IMAGE_COLLECTION":
+        collection = ee.ImageCollection(layer["asset"])
+        size = collection.size().getInfo()
+        if size > 500:
+            raise ValueError("Coleção com mais de 500 imagens; configure filtro temporal antes de processar.")
+        images = collection.toList(size)
+        metadata = ee.List.sequence(0, size - 1).map(
+            lambda n: ee.Dictionary({"index": ee.Image(images.get(n)).get("system:index"),
+                                     "time": ee.Image(images.get(n)).get("system:time_start"),
+                                     "year": ee.Image(images.get(n)).get("year"),
+                                     "metric": ee.Image(images.get(n)).get("metric"),
+                                     "bands": ee.Image(images.get(n)).bandNames()})
+        ).getInfo() if size else []
+        if layer.get("collection_member"):
+            metadata = [m for m in metadata if m.get("index") == layer["collection_member"]]
+            if not metadata:
+                raise ValueError("A imagem configurada não existe nesta coleção.")
+        if len(metadata) == 1 and len(metadata[0].get("bands") or []) > 1:
+            image = ee.Image(collection.filter(ee.Filter.eq("system:index", metadata[0]["index"])).first())
+            if layer.get("bands_slice"):
+                image = image.slice(*layer["bands_slice"])
+            return image
+        if metadata and any(item.get("time") is None and item.get("year") is None for item in metadata):
+            choices = ", ".join(f"{m.get('metric') or m.get('index')} ({m.get('index')})" for m in metadata[:20])
+            raise ValueError("Coleção contém imagens multibanda ou sem data; selecione a variável/imagem desejada. Opções: " + choices)
+        frames = _collection_frames(metadata, layer.get("collection_band"))
+        bands = [ee.Image(collection.filter(ee.Filter.eq("system:index", idx)).first()).select(band).rename(name)
+                 for name, idx, band in frames]
+        return ee.Image.cat(bands)
     image = ee.Image(layer["asset"])
     if layer.get("bands_slice"):
         image = image.slice(*layer["bands_slice"])
@@ -99,6 +227,7 @@ def load_image(layer):
 
 
 def discover(layer):
+    layer = prepare_layer(layer)
     image = load_image(layer)
     available = image.bandNames().getInfo()
     axis = layer.get("axis", "time")
@@ -109,14 +238,17 @@ def discover(layer):
 
 def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, project=None, on_progress=None, work_dir=None, variant="completo"):
     from mapbiomas_data.core.pipeline import Pipeline
+    layer = prepare_layer(layer)
     validate([layer], [territory])
     if not project:
         raise ValueError("Informe o projeto Earth Engine usado na autenticação.")
     out = Path(root)
     config = NotebookConfig(layer, territory, project)
     pipeline = Pipeline(config)
-    if layer.get("axis") == "depth":
-        pipeline._load_product_image = lambda _: load_image(layer)
+    # load_image applies bands_slice itself (also used by discover); prevent
+    # the pipeline from applying that same slice a second time.
+    config.datasets["notebook"]["products"][layer["id"]]["bands_slice"] = None
+    pipeline._load_product_image = lambda _: load_image(layer)
     if on_progress:
         def notify(*args):
             try:

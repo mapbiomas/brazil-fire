@@ -122,16 +122,52 @@ class UIProgressTests(unittest.TestCase):
             widget.run_button.click()
             self.assertIn("Selecione produto, território e saída", widget.status_html.value)
 
-    def test_reference_inventory_is_browsable_without_enabling_assets(self):
+    def test_reference_catalog_is_browsable_without_enabling_assets(self):
         with tempfile.TemporaryDirectory() as tmp:
             widget = self.run_ui(tmp)
-            self.assertTrue(any("Inventário" in option for option in widget.navigation.options))
-            widget.inventory_country.value = "brasil"
-            widget.inventory_theme.value = "fire"
-            self.assertTrue(widget.inventory_collection.options)
-            self.assertTrue(widget.inventory_product.options)
+            self.assertFalse(any("Inventário" in option for option in widget.navigation.options))
+            self.assertTrue(widget.reference_collection.options)
+            self.assertTrue(widget.reference_product.options)
             self.assertTrue(all(layer.get("initiative", "Brasil") in ("Brasil", "Peru")
                                 for origin, layer, _ in widget.product_checks if origin != "Personalizado"))
+
+    def test_reference_layer_can_be_explicitly_configured_for_another_country(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            widget = self.run_ui(tmp)
+            self.assertIn("Colômbia", widget.initiative.options)
+            widget.initiative.value = "Colômbia"
+            self.assertTrue(widget.reference_product.options)
+            widget.reference_colors.value = "ffffff,800000"
+            widget.reference_labels.value = "Sem fogo,Fogo"
+            widget.reference_confirm.value = True
+            widget.reference_add.click()
+            matches = [(layer, check) for origin, layer, check in widget.product_checks
+                       if origin == "Colômbia" and layer["id"].startswith("ref_")]
+            self.assertEqual(len(matches), 1)
+            self.assertTrue(matches[0][1].value)
+            self.assertEqual(matches[0][0]["status"], "experimental")
+
+    def test_municipality_search_adds_selection(self):
+        from gif_factory import ui as module
+        record = {"name": "Petrolina (PE)", "value": 123, "asset": "asset", "field": "ADM2_CODE"}
+        with tempfile.TemporaryDirectory() as tmp:
+            widget = self.run_ui(tmp)
+            with patch.object(module, "search_municipalities", return_value=[record]):
+                widget.municipality_text.value = "Petro"
+                widget.municipality_button.click()
+                widget.municipality_results.value = (0,)
+                widget.municipality_add.click()
+            selected = [t for _, t, check in widget.territory_checks if check.value]
+            self.assertEqual(selected[0]["name"], "Petrolina (PE)")
+            self.assertEqual(selected[0]["filter"]["values"], [123])
+
+    def test_simple_territory_type_selector(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            widget = self.run_ui(tmp)
+            self.assertEqual(list(widget.territory_type.options),
+                             ["Município", "Unidade de conservação", "Terra indígena"])
+            widget.territory_type.value = "Terra indígena"
+            self.assertEqual(widget.municipality_text.value, "")
 
     def test_selection_panels_are_visible_without_tabs_or_accordions(self):
         import ipywidgets as widgets
