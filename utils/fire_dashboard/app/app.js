@@ -380,6 +380,9 @@ const state = {
   nivel: 1,
   mensalAnos: [], // anos sobrepostos ao gráfico de média ± desvio padrão (máx. 4)
   mensalAnosTocados: false, // até o usuário escolher, o Mensal destaca o ano final
+  mesIni: 1, // temporada do fogo no Mensal: mês de início e de fim (1 = janeiro)
+  mesFim: 12,
+  paletaMes: "oficial", // "oficial" (legenda da API) ou "fogo" (tons de fogo)
   // camada2: camada sobreposta; cortina: compara dois anos; anoA: ano da esquerda; destaque: escurece fora do recorte.
   mapa: { tipo: "bruto", unidade: "estados", camada: "acumulado", visualizar: "biomas", camada2: "", cortina: "off", anoA: null, destaque: "off" },
   freqGrupo: "todas", // Frequência: "todas" (1 a N vezes), "15" (1 a 15 e 16+), "9" (1 a 9 e 10+)
@@ -1533,19 +1536,6 @@ async function loadAnual({ t, ini, fim }) {
       },
       {
         span: 12,
-        title: "Tabela da área queimada anual",
-        subtitle: `${ini}–${fim} · valores exatos da API da Plataforma MapBiomas (Coleção ${CONFIG.colecaoExigida}), em hectares`,
-        tabela: {
-          colunas: ["Ano", "Área queimada (ha)", "Variação em relação à média"],
-          linhas: [...anos].reverse().map((a) => {
-            const v = safeDiv(a.area, media) - 1;
-            return [String(a.ano), fmtFull.format(Math.round(a.area)), `${v >= 0 ? "+" : "−"}${pct(Math.abs(v))}`];
-          }),
-          total: ["Total do período", fmtFull.format(Math.round(totalPeriodo)), ""],
-        },
-      },
-      {
-        span: 12,
         section: true,
         title: "Uso e cobertura da terra nas áreas queimadas",
         subtitle: `Soma das áreas anuais ${ini}–${fim}`,
@@ -1577,8 +1567,8 @@ async function loadAnual({ t, ini, fim }) {
       },
     ],
   };
-  // Sem legenda de cobertura no país: só os 3 primeiros cards (anual, anos que mais queimaram, tabela).
-  return semCobertura ? { ...view, toolbar: [], cards: view.cards.slice(0, 3) } : view;
+  // Sem legenda de cobertura no país: só os 2 primeiros cards (anual e anos que mais queimaram).
+  return semCobertura ? { ...view, toolbar: [], cards: view.cards.slice(0, 2) } : view;
 }
 
 async function loadAcumulado({ t, ini, fim }) {
@@ -1677,82 +1667,127 @@ async function loadAcumulado({ t, ini, fim }) {
   };
 }
 
+// Paleta "tons de fogo" dos meses (como o gráfico mensal da Plataforma): jan–mar vermelhos,
+// abr–out amarelos e laranjas, nov–dez carmim. A "oficial" usa as cores da legenda da API.
+const PALETA_MESES_FOGO = ["#8e0b1d", "#a8131f", "#c4262e", "#ee7a22", "#f6b51e", "#f7a33a",
+  "#f39130", "#ec7a24", "#e66a1d", "#d95f1a", "#b8173c", "#9f1238"];
+
 async function loadMensal({ t, ini, fim }) {
   const [legenda, total] = await Promise.all([getLegend("mensal"), getLegend("anualTotal")]);
-  const meses = levelItems(legenda, 0);
+  const meses = levelItems(legenda, 0).slice(0, 12); // jan..dez, na ordem da legenda
   const res = await getStats({
     subthemeKey: sub("mensal"), legendKey: legenda.key, pixelValue: pixelValues(meses),
     year: range(ini, fim), ...territoryParams(t),
   });
+  const anosCal = byYear(res);
+  const valorCal = (ano, k) => anosCal.find((a) => a.ano === ano)?.valores.get(meses[k].pixelValue) || 0;
 
-  const anos = byYear(res);
-  const n = anos.length;
-  // Matriz ano × mês -> soma, média e desvio padrão amostral (n − 1), como a Tabela 9 do RAF.
-  const porMes = meses.map((m) => anos.map((a) => a.valores.get(m.pixelValue) || 0));
+  // Temporada do fogo: do mês de início ao mês de fim (pode atravessar o ano, ex.: jul–jun).
+  const mi = clamp(state.mesIni, 1, 12), mf = clamp(state.mesFim, 1, 12);
+  const janela = [];
+  for (let k = 0; k < 12; k++) {
+    const mm = ((mi - 1 + k) % 12) + 1;
+    janela.push(mm - 1);
+    if (mm === mf) break;
+  }
+  const cruza = janela.some((k, j) => j > 0 && k < janela[j - 1]);
+  const mesesJ = janela.map((k) => meses[k]);
+  const corMes = (k) => (state.paletaMes === "fogo" ? PALETA_MESES_FOGO[k] : meses[k].color);
+  // Uma temporada por ano de início; atravessando o ano, a última precisa do ano seguinte no período.
+  const temporadas = [];
+  for (let Y = ini; Y <= fim; Y++) {
+    if (cruza && Y + 1 > fim) break;
+    temporadas.push({
+      ano: Y,
+      rotulo: cruza ? `${Y}/${String(Y + 1).slice(2)}` : String(Y),
+      vals: janela.map((k) => valorCal(cruza && k < mi - 1 ? Y + 1 : Y, k)),
+    });
+  }
+  const n = temporadas.length;
+  const rotuloJanela = janela.length === 12 && !cruza ? "jan–dez" : `${meses[janela[0]].name.slice(0, 3).toLowerCase()}–${meses[janela[janela.length - 1]].name.slice(0, 3).toLowerCase()}`;
+
+  // Matriz temporada × mês -> soma, média e desvio padrão amostral (n − 1), como a Tabela 9 do RAF.
+  const porMes = janela.map((_, j) => temporadas.map((s) => s.vals[j]));
   const somas = porMes.map(sum);
   const totalPeriodo = sum(somas);
   const medias = porMes.map(mean);
   const dps = porMes.map((vals, i) => (n > 1 ? Math.sqrt(sum(vals.map((v) => (v - medias[i]) ** 2)) / (n - 1)) : 0));
   const picoIdx = medias.indexOf(Math.max(...medias));
-  const curtos = meses.map((m) => m.name.slice(0, 3));
-  // Trimestre consecutivo de maior soma (o RAF destaca agosto–outubro).
-  const trimestres = meses.map((_, i) => ({ i, soma: somas[i] + somas[(i + 1) % 12] + somas[(i + 2) % 12] }));
+  const curtos = mesesJ.map((m) => m.name.slice(0, 3));
+  // Trimestre consecutivo de maior soma dentro da temporada (o RAF destaca agosto–outubro).
+  const trimestres = janela.length >= 3 ? janela.slice(0, -2).map((_, i) => ({ i, soma: somas[i] + somas[i + 1] + somas[i + 2] })) : [];
   const trimestre = maxBy(trimestres, (x) => x.soma);
-  const nomeTri = trimestre ? `${curtos[trimestre.i]}–${curtos[(trimestre.i + 2) % 12]}` : "—";
+  const nomeTri = trimestre ? `${curtos[trimestre.i]}–${curtos[trimestre.i + 2]}` : "—";
 
-  // Por padrão destaca o ano final em vermelho, como a Figura 13 do RAF.
-  const disponiveis = anos.map((a) => a.ano);
-  if (!state.mensalAnosTocados) state.mensalAnos = [fim];
+  // Por padrão destaca a última temporada em vermelho, como a Figura 13 do RAF.
+  const disponiveis = temporadas.map((s) => s.ano);
+  const ultimaTemp = disponiveis[disponiveis.length - 1];
+  if (!state.mensalAnosTocados) state.mensalAnos = ultimaTemp ? [ultimaTemp] : [];
   state.mensalAnos = state.mensalAnos.filter((a) => disponiveis.includes(a));
   const selecionados = state.mensalAnos.map((ano, i) => {
-    const linha = anos.find((a) => a.ano === ano);
-    return { label: String(ano), ...SERIES_COLORS[i], values: meses.map((m) => linha.valores.get(m.pixelValue) || 0) };
+    const s = temporadas.find((x) => x.ano === ano);
+    return { label: s.rotulo, ...SERIES_COLORS[i], values: s.vals };
   });
-  const anoFim = anos.find((a) => a.ano === fim);
-  const picoFim = anoFim ? maxBy(meses, (m) => anoFim.valores.get(m.pixelValue) || 0) : null;
+  const tempFim = temporadas[n - 1];
+  const picoFimJ = tempFim ? tempFim.vals.indexOf(Math.max(...tempFim.vals)) : -1;
   const semFiltroLocal = !state.estadoId && !state.municipioId;
-  const vermelho = levelItems(total, 0)[0].color;
+  const opcoesMes = meses.map((m, k) => ({ value: String(k + 1), label: m.name }));
 
   return {
-    toolbar: [{
-      type: "chips",
-      label: `Anos em destaque (até ${SERIES_COLORS.length})`,
-      options: disponiveis.map((a) => {
-        const slot = SERIES_COLORS[state.mensalAnos.indexOf(a)];
-        return { value: a, label: String(a), color: slot?.color, dash: !!slot?.dash };
-      }),
-      selected: state.mensalAnos,
-      onChange: (ano) => {
-        ano = Number(ano);
-        state.mensalAnosTocados = true;
-        const sel = state.mensalAnos;
-        if (sel.includes(ano)) state.mensalAnos = sel.filter((a) => a !== ano);
-        else state.mensalAnos = [...sel, ano].slice(-SERIES_COLORS.length); // o mais antigo sai
-        loadCurrentTab();
-      },
-    }],
-    kpis: [
-      { label: "Mês de pico (média histórica)", value: meses[picoIdx]?.name || "—", note: `${ha(medias[picoIdx])} ± ${ha(dps[picoIdx])} · ${pct(safeDiv(somas[picoIdx], totalPeriodo))} da área do período` },
-      { label: "Trimestre de maior área queimada", value: nomeTri, note: `${pct(safeDiv(trimestre?.soma || 0, totalPeriodo))} da área queimada em ${ini}–${fim}` },
+    toolbar: [
       {
-        label: `Mês de pico em ${fim}`,
-        value: picoFim?.name || "—",
-        note: picoFim && meses[picoIdx] && picoFim.pixelValue !== meses[picoIdx].pixelValue
-          ? `Deslocado em relação à média (${meses[picoIdx].name})`
+        type: "select", label: "Temporada do fogo: mês de início", value: String(mi), options: opcoesMes,
+        onChange: (v) => { state.mesIni = Number(v); state.mensalAnosTocados = false; loadCurrentTab(); },
+      },
+      {
+        type: "select", label: "Mês de fim", value: String(mf), options: opcoesMes,
+        onChange: (v) => { state.mesFim = Number(v); state.mensalAnosTocados = false; loadCurrentTab(); },
+      },
+      {
+        type: "segmented", label: "Paleta dos meses", value: state.paletaMes,
+        options: [{ value: "oficial", label: "Legenda oficial" }, { value: "fogo", label: "Tons de fogo" }],
+        onChange: (v) => { state.paletaMes = v; loadCurrentTab(); },
+      },
+      {
+        type: "chips",
+        label: `Anos em destaque (até ${SERIES_COLORS.length})`,
+        options: temporadas.map((s) => {
+          const slot = SERIES_COLORS[state.mensalAnos.indexOf(s.ano)];
+          return { value: s.ano, label: s.rotulo, color: slot?.color, dash: !!slot?.dash };
+        }),
+        selected: state.mensalAnos,
+        onChange: (ano) => {
+          ano = Number(ano);
+          state.mensalAnosTocados = true;
+          const sel = state.mensalAnos;
+          if (sel.includes(ano)) state.mensalAnos = sel.filter((a) => a !== ano);
+          else state.mensalAnos = [...sel, ano].slice(-SERIES_COLORS.length); // o mais antigo sai
+          loadCurrentTab();
+        },
+      },
+    ],
+    kpis: [
+      { label: "Mês de pico (média histórica)", value: mesesJ[picoIdx]?.name || "—", note: `${ha(medias[picoIdx])} ± ${ha(dps[picoIdx])} · ${pct(safeDiv(somas[picoIdx], totalPeriodo))} da área do período` },
+      { label: "Trimestre de maior área queimada", value: nomeTri, note: `${pct(safeDiv(trimestre?.soma || 0, totalPeriodo))} da área queimada na temporada ${rotuloJanela}` },
+      {
+        label: `Mês de pico em ${tempFim?.rotulo || fim}`,
+        value: mesesJ[picoFimJ]?.name || "—",
+        note: picoFimJ >= 0 && picoFimJ !== picoIdx
+          ? `Deslocado em relação à média (${mesesJ[picoIdx]?.name})`
           : "Igual ao pico da média histórica",
       },
     ],
     cards: [
       {
         span: 8,
-        title: `Média mensal da área queimada ${ini}–${fim}`,
+        title: `Média mensal da área queimada ${ini}–${fim} · temporada ${rotuloJanela}`,
         subtitle: n > 1
-          ? `Área cinza = média (n = ${n} anos) · faixa clara = ± 1 desvio padrão · linhas = anos em destaque`
+          ? `Área cinza = média (n = ${n} anos) · faixa clara = ± 1 desvio padrão · linhas = anos em destaque${cruza ? " · temporadas atravessam o ano (ex.: 2020/21)" : ""}`
           : "Escolha um período com mais de um ano para a média e o desvio padrão",
         chart: {
           kind: "band",
           labels: curtos,
-          tooltipTitles: meses.map((m) => m.name),
+          tooltipTitles: mesesJ.map((m) => m.name),
           mean: { label: `Média ${ini}–${fim}`, color: "var(--text-muted)", values: medias },
           upper: medias.map((m, i) => m + dps[i]),
           lower: medias.map((m, i) => Math.max(0, m - dps[i])),
@@ -1771,13 +1806,25 @@ async function loadMensal({ t, ini, fim }) {
         ranking: {
           plain: true,
           total: totalPeriodo,
-          rows: meses.map((m, i) => ({
+          rows: mesesJ.map((m, i) => ({
             label: m.name,
             value: somas[i],
-            color: m.color,
+            color: corMes(janela[i]),
             detail: `média ${fmtCompact.format(medias[i])} ± ${fmtCompact.format(dps[i])} ha por ano`,
           })),
         },
+      },
+      {
+        span: 12,
+        title: `Área queimada por ano e mês · temporada ${rotuloJanela}`,
+        subtitle: `Cada barra soma os meses da temporada${cruza ? " (ex.: 2020/21 = meses de 2020 e de 2021)" : ""} · cores: ${state.paletaMes === "fogo" ? "tons de fogo" : "legenda oficial"}`,
+        alterna: "linhas",
+        chart: {
+          kind: "stacked",
+          labels: temporadas.map((s) => s.rotulo),
+          series: mesesJ.map((m, j) => ({ label: m.name, color: corMes(janela[j]), values: temporadas.map((s) => s.vals[j]) })),
+        },
+        legend: mesesJ.map((m, j) => ({ label: m.name, color: corMes(janela[j]) })),
       },
       {
         span: 12,
@@ -1794,12 +1841,12 @@ async function loadMensal({ t, ini, fim }) {
               year: range(ini, fim), territoryId: [b.id], spatialMethod: "union",
             });
             progress(`Calculando biomas… ${++feitos}/${biomas.length}`);
-            const somaMes = meses.map((m) => sum(byYear(r).map((a) => a.valores.get(m.pixelValue) || 0)));
+            const somaMes = janela.map((k) => sum(byYear(r).map((a) => a.valores.get(meses[k].pixelValue) || 0)));
             const tot = sum(somaMes);
             return { label: b.name, color: corBioma(b.name), values: somaMes.map((v) => safeDiv(v, tot)) };
           });
           return {
-            chart: { kind: "grouped", percent: true, labels: meses.map((m) => m.name.toLowerCase()), series },
+            chart: { kind: "grouped", percent: true, labels: mesesJ.map((m) => m.name.toLowerCase()), series },
             legend: series.map((s) => ({ label: s.label, color: s.color })),
           };
         },
@@ -1807,7 +1854,6 @@ async function loadMensal({ t, ini, fim }) {
     ],
   };
 }
-
 async function loadFrequencia({ t, ini, fim }) {
   const legenda = await getLegend("frequencia");
   // Brasil: faixas ("1 a 2 anos") com as classes "1 vez", "2 vezes"… dentro; outros países: só as classes.
@@ -3030,6 +3076,7 @@ function fillLazyCard(card, root, seq, tokens) {
   card.lazy(progress)
     .then((res) => {
       if (!vivo()) return;
+      root._res = res; // a tabela sob demanda usa o resultado do card
       const conteudo = res.chart ? chartBoxHtml(res.chart, card.title)
         : res.mini ? miniRoscasHtml(res.mini)
         : res.topcards ? topcardsHtml(res.topcards)
@@ -3136,14 +3183,22 @@ function cardHtml(card, i, view) {
       </section>`;
   }
   const toggle = card.alterna ? vistaToggleHtml(card, i) : "";
+  // Baixar o gráfico (PNG) e abrir a tabela (sob demanda) em todo card com dados.
+  const temDados = !card.map && !card.custom && !card.tabela &&
+    (card.chart || card.rosca || card.ranking || card.propbars || card.lazy || card.topcards || card.doughnut);
+  const acoes = temDados ? `
+        <div class="card-acoes">
+          <button type="button" data-acao="png" title="Baixar gráfico (PNG)">⬇ PNG</button>
+          <button type="button" data-acao="tabela" aria-pressed="false" title="Ver a tabela com os valores">▦ Tabela</button>
+        </div>` : "";
   return `
     <article class="card span-${card.span}${card.chart?.big ? " card-big" : ""}" data-card="${i}">
-      <header class="card-head${toggle ? " has-toggle" : ""}">
+      <header class="card-head${toggle || acoes ? " has-toggle" : ""}">
         <div>
           <h2>${escapeHtml(card.title)}</h2>
           ${card.subtitle ? `<p>${escapeHtml(card.subtitle)}</p>` : ""}
         </div>
-        ${toggle}
+        <div class="card-topo">${toggle}${acoes}</div>
       </header>
       <div class="card-body">${cardBodyHtml(card, vistaDe(card, i))}</div>
     </article>`;
@@ -3182,6 +3237,137 @@ function roscasHtml(roscas) {
   if (roscas.length <= 1) return doughnutHtml(roscas[0] || { slices: [] });
   return `<div class="donut-grid">${roscas.map((r) => `
     <div>${r.titulo ? `<p class="propbar-label">${escapeHtml(r.titulo)}</p>` : ""}${doughnutHtml(r)}</div>`).join("")}</div>`;
+}
+
+// ---------- Ações dos cards: baixar o gráfico (PNG) e tabela sob demanda ----------
+
+function acaoDoCard(e) {
+  const btn = e.target.closest("[data-acao]");
+  if (!btn) return;
+  const root = btn.closest("[data-card]");
+  const card = state.lastView?.cards?.[Number(root?.dataset.card)];
+  if (!root || !card) return;
+  if (btn.dataset.acao === "png") return baixarGraficoPng(root, card);
+  if (btn.dataset.acao === "csv") {
+    const t = tabelaDoCard(root, card);
+    const celula = (c) => (/[;"\n]/.test(String(c)) ? `"${String(c).replace(/"/g, '""')}"` : String(c));
+    const csv = "﻿" + [t.colunas, ...t.linhas, ...(t.total ? [t.total] : [])].map((l) => l.map((c) => celula(tr(c))).join(";")).join("\r\n");
+    return baixarArquivo(new Blob([csv], { type: "text/csv;charset=utf-8" }), `mapbiomas_fogo_${nomeSeguro(card.title).toLowerCase()}.csv`);
+  }
+  if (btn.dataset.acao === "tabela") {
+    const aberta = root.querySelector(".card-tabela");
+    btn.setAttribute("aria-pressed", String(!aberta));
+    if (aberta) return aberta.remove();
+    const t = tabelaDoCard(root, card);
+    const div = document.createElement("div");
+    div.className = "card-tabela";
+    div.innerHTML = `${tabelaHtml(t)}
+      <div class="card-tabela-acoes"><button type="button" class="md-botao" data-acao="csv">⬇ Baixar tabela (CSV)</button></div>`;
+    root.appendChild(div);
+  }
+}
+
+// Monta a tabela do card a partir do que está desenhado (gráficos Chart.js) ou dos dados do card.
+function tabelaDoCard(root, card) {
+  const fmtV = (v, pctc) => (v == null || Number.isNaN(v) ? "—" : pctc ? pct(v) : fmtFull.format(Math.round(v)));
+  const res = root._res || {};
+  const charts = [...root.querySelectorAll(".card-body canvas")].map((c) => Chart.getChart(c)).filter(Boolean);
+  const titulo = (ch) => ch.canvas.closest(".donut-grid > div")?.querySelector(".propbar-label")?.textContent?.trim()
+    || ch.canvas.closest("li")?.querySelector(".md-nome")?.textContent?.trim() || "";
+  if (charts.length) {
+    const roscas = charts.filter((ch) => ch.config.type === "doughnut");
+    if (roscas.length) {
+      const varias = roscas.length > 1;
+      const linhas = roscas.flatMap((ch) => {
+        const vals = ch.data.datasets[0]?.data || [];
+        const tot = sum(vals.map(Number).filter(Number.isFinite));
+        return (ch.data.labels || []).map((l, k) => [...(varias ? [titulo(ch)] : []), String(l), fmtV(vals[k]), pct(safeDiv(vals[k], tot))]);
+      });
+      return { colunas: [...(varias ? ["Grupo"] : []), "Classe", "Área (ha)", "%"], linhas };
+    }
+    const ch = charts[0];
+    const pctc = !!ch.options.plugins?.tabela?.percent;
+    const ds = ch.data.datasets.filter((d) => Array.isArray(d.data));
+    const labels = ch.data.labels || [];
+    const unidade = pctc ? "(%)" : "(ha)";
+    const linhas = labels.map((l, k) => [String(l), ...ds.map((d) => {
+      const v = d.data[k];
+      return fmtV(typeof v === "object" && v !== null ? v.y ?? v.x : v, pctc);
+    })]);
+    const total = !pctc && ds.length === 1 && labels.length > 1
+      ? ["Total do período", fmtV(sum(ds[0].data.map((v) => Number(v) || 0)), false)] : null;
+    return { colunas: ["", ...ds.map((d) => `${d.label || "Valor"} ${unidade}`)], linhas, total };
+  }
+  const ranking = res.ranking || card.ranking;
+  if (ranking) {
+    const tot = ranking.total || sum(ranking.rows.map((r) => r.value));
+    return { colunas: ["", "Área (ha)", "%"], linhas: ranking.rows.map((r) => [r.label, fmtV(r.value), pct(safeDiv(r.value, tot))]) };
+  }
+  if (card.propbars) {
+    const linhas = card.propbars.rows.flatMap((r) => {
+      const tot = sum(r.segments.map((s) => s.value));
+      return r.segments.filter((s) => s.value > 0).map((s) => [r.label, s.label, fmtV(s.value), pct(safeDiv(s.value, tot))]);
+    });
+    return { colunas: ["Grupo", "Classe", "Área (ha)", "%"], linhas };
+  }
+  const tops = res.topcards || card.topcards;
+  if (tops) return { colunas: ["", "Valor", "Nota"], linhas: tops.map((c) => [c.title, c.value, c.note || ""]) };
+  return { colunas: [""], linhas: [] };
+}
+
+// PNG do card: os canvas do gráfico nas posições da tela + título, subtítulo e legenda.
+async function baixarGraficoPng(root, card) {
+  const body = root.querySelector(".card-body");
+  const canvases = [...body.querySelectorAll("canvas")].filter((c) => c.offsetWidth);
+  if (!canvases.length) return setStatus(tr("Este card não tem gráfico para baixar; use a tabela."));
+  const br = body.getBoundingClientRect();
+  const W = Math.ceil(br.width), pad = 16, cab = 52, esc = 2;
+  const altura = Math.max(...canvases.map((c) => c.getBoundingClientRect().bottom)) - br.top;
+  const itens = itensDaLegenda(root.querySelector(".legend-row"));
+  const medir = document.createElement("canvas").getContext("2d");
+  medir.font = "500 12px Montserrat, sans-serif";
+  let x = pad, linha = 0;
+  const pos = itens.map((it) => {
+    const w = (it.color ? 18 : 0) + medir.measureText(it.label).width;
+    if (x + w > W + pad && x > pad) { linha++; x = pad; }
+    const p = { it, x, linha };
+    x += w + 16;
+    return p;
+  });
+  const rodape = (itens.length ? (linha + 1) * 20 + 8 : 0) + 24;
+  const cv = Object.assign(document.createElement("canvas"), { width: (W + 2 * pad) * esc, height: (cab + altura + rodape) * esc });
+  const ctx = cv.getContext("2d");
+  ctx.scale(esc, esc);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, W + 2 * pad, cab + altura + rodape);
+  ctx.fillStyle = "#1f1f1f";
+  ctx.font = "700 15px Montserrat, sans-serif";
+  ctx.fillText(tr(card.title), pad, 24, W);
+  ctx.fillStyle = "#555555";
+  ctx.font = "500 11px Montserrat, sans-serif";
+  ctx.fillText(tr(`${activeTerritory().nome} · ${state.ini}–${state.fim}${card.subtitle ? ` · ${card.subtitle}` : ""}`), pad, 42, W);
+  for (const c of canvases) {
+    const r = c.getBoundingClientRect();
+    ctx.drawImage(c, pad + r.left - br.left, cab + r.top - br.top, r.width, r.height);
+  }
+  ctx.textBaseline = "middle";
+  for (const { it, x: lx, linha: l } of pos) {
+    const yy = cab + altura + 14 + l * 20;
+    let tx = lx;
+    if (it.color) {
+      ctx.fillStyle = it.color;
+      if (it.linha) ctx.fillRect(lx, yy - 1, 12, 3); else ctx.fillRect(lx, yy - 6, 12, 12);
+      tx += 18;
+    }
+    ctx.fillStyle = "#333333";
+    ctx.font = "500 12px Montserrat, sans-serif";
+    ctx.fillText(it.label, tx, yy);
+  }
+  ctx.fillStyle = "#666666";
+  ctx.font = "500 10px Montserrat, sans-serif";
+  ctx.fillText(tr(`Fonte: ${PAIS.marca}${state.conn?.colecao ? ` · Coleção ${state.conn.colecao}` : ""} · plataforma.mapbiomas.org`), pad, cab + altura + rodape - 10, W);
+  const blob = await new Promise((resolve) => cv.toBlob(resolve, "image/png"));
+  if (blob) baixarArquivo(blob, `mapbiomas_fogo_${nomeSeguro(card.title).toLowerCase()}.png`);
 }
 
 function tabelaHtml(t) {
@@ -4004,6 +4190,7 @@ function baseOptions(t) {
 
 function chartConfig(spec, t) {
   const options = baseOptions(t);
+  options.plugins.tabela = { percent: !!spec.percent }; // lido pela tabela sob demanda
   const horizontal = spec.kind === "hbar";
   const stacked = spec.kind === "stacked" || spec.kind === "combo";
   const multi = stacked || spec.kind === "grouped";
@@ -4568,6 +4755,7 @@ async function start() {
 function init() {
   Chart.defaults.font.family = "'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif";
   Chart.register(crosshairPlugin, traducaoChartPlugin);
+  el.panel.addEventListener("click", acaoDoCard);
   readHash();
   montarPais();
   iniciarTraducao();

@@ -70,3 +70,9 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - Mapa por território: sem bolhas; "Comparar anos" = ano B − ano A ou ano − média do período. Clique: contorno em destaque (halo) e zoom. "Baixar mapa (PNG)" (`baixarMapaPng`): copia tiles e canvas do Leaflet (`preferCanvas`, tiles com `crossOrigin`) e acrescenta título, legenda, escala e fonte. `L.control.scale` em todos os mapas.
 - Dados brutos: "Subproduto" com grupos Anuais / Por período (`opcoesSelectHtml` com `grupo`); ano escolhível nos anuais; cortina só nos anuais, com ano da esquerda e da direita; contornos clicáveis (biomas, estados ou municípios do estado).
 - GIF: velocidades 700/350/180 ms; passo 6 "Limites no mapa" (biomas/ecorregiões ou 1º nível administrativo do país), desenhados em cinza sob o contorno do território.
+
+## Cards: PNG e tabela; Mensal com temporada
+
+- `cardHtml` põe "⬇ PNG" e "▦ Tabela" em todo card com dados; `acaoDoCard` (delegado em `el.panel`). A tabela vem de `tabelaDoCard`: dos gráficos Chart.js desenhados (`Chart.getChart`; `options.plugins.tabela.percent`), ou de `ranking`/`propbars`/`topcards` (cards lazy guardam `root._res`). CSV com `;`.
+- A tabela fixa da aba Anual saiu (agora é o botão Tabela do gráfico anual).
+- Mensal: `state.mesIni`/`mesFim` definem a temporada; atravessando o ano, a temporada Y = meses ≥ início em Y + meses < início em Y+1 (rótulo "2020/21"; a última sem o ano seguinte fica de fora). `state.paletaMes`: legenda oficial da API ou `PALETA_MESES_FOGO`. Novo card empilhado por ano e mês. A legenda mensal usa só os 12 primeiros itens (Colômbia traz 24).

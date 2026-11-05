@@ -1236,3 +1236,16 @@ a.md-botao { display: inline-block; text-decoration: none; }
   padding: 6px 10px; border: 1px solid var(--border); border-radius: 9px;
   background: var(--surface); color: var(--text); font: inherit; font-size: .85rem; font-weight: 600;
 }
+
+/* ---------- Ações dos cards (PNG e tabela) ---------- */
+.card-topo { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: flex-end; gap: 6px 8px; }
+.card-acoes { display: inline-flex; gap: 4px; }
+.card-acoes button {
+  padding: 4px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+  color: var(--text-2); font: inherit; font-size: .72rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.card-acoes button:hover { color: var(--text); border-color: var(--text-2); }
+.card-acoes button[aria-pressed="true"] { color: var(--text); background: var(--surface-muted); }
+.card-acoes button:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
+.card-tabela { margin-top: 14px; }
+.card-tabela-acoes { display: flex; justify-content: flex-end; margin-top: 8px; }

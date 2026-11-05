@@ -17,6 +17,8 @@ Brazil uses Collection 5.1 (1985–2025) and falls back to staging only if produ
 Highlights:
 
 - Charts can be switched between bars and lines, or bars and doughnut (small toggle at the top right of each card).
+- Every card has **⬇ PNG** (chart with title, legend and source) and **▦ Table** (values on demand, downloadable as CSV).
+- Monthly tab: choose the fire season (start and end month, e.g. July–June, labelled 2020/21) and the month palette (official legend or fire tones); burned area by year and month, stacked.
 - Annual and accumulated burned area can be stacked **by biome** (Brazil: two earthy palettes; other countries: categorical colors per biome or ecoregion).
 - Accumulated tab: share of each biome (or state/municipality) that burned at least once.
 - Municipality × biome: the map and the statistics use only the part of the municipality inside the biome.
