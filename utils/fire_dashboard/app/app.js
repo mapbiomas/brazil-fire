@@ -2874,7 +2874,7 @@ function doughnutHtml({ slices, centerLabel = "total" }) {
     <div class="donut">
       <div class="donut-chart">
         <canvas role="img" aria-label="Distribuição por classe"></canvas>
-        <div class="donut-center"><strong>${ha(total)}</strong><span>${escapeHtml(centerLabel)}</span></div>
+        <div class="donut-center"><strong>${total >= 1e6 ? mha(total) : ha(total)}</strong><span>${escapeHtml(centerLabel)}</span></div>
       </div>
       <ul class="legend-list">${legend}</ul>
     </div>`;
