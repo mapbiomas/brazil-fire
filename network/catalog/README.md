@@ -17,7 +17,7 @@ by the export/vectorization pipeline stay exactly the same.
 |---|---|---|
 | `development/version_00` | Collection 1 legacy (moved from `network/version_01`) | Kept for compatibility; removal planned |
 | `development/version_01` | Collection 2 active (moved from `network/version_02`) | Kept for compatibility; removal planned |
-| `development/version_02` | reserved | — |
+| `development/version_02` | Peru monitor pipeline (M0–M9, from `peru-fire/mapbiomas_fire_monitor/version_01`) | Reference copy + service-account auth |
 | `development/version_03` | campaign/target catalog | Active development + source for production |
 | `production/` | copy of `development/version_03` | Shipped release |
 
@@ -139,7 +139,8 @@ entry points are under `production/notebooks/`.
 
 `version_00` and `version_01` are kept only so existing scripts, notebooks and
 links continue to work. They will be removed after a public notice. New work
-must go to `version_03`. `version_02` is reserved.
+must go to `version_03`. `version_02` is the Peru monitor pipeline
+(`peru-fire/mapbiomas_fire_monitor/version_01`) kept as a reference copy.
 
 ## Provenance
 
