@@ -1,4 +1,100 @@
 {
+ "argentina__1__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "argentina",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "bolivia__1__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "bolivia",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "brasil__2__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "2",
+  "country": "brasil",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "brasil__3__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "3",
+  "country": "brasil",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "brasil__4__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "4",
+  "country": "brasil",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "brasil__5__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "5",
+  "country": "brasil",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country). The site also lists class 0 'Ausencia de fogo' as #fffff (5 digits, invalid); class 0 is not registered.",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
  "brasil__5__annual_burned_scar_size_range": {
   "classes": [
    {
@@ -881,6 +977,118 @@
   "notes": "One color per year.",
   "status": "validada",
   "subproduct": "year_last_fire",
+  "updatedAt": "from-repository"
+ },
+ "chile__1__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "chile",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "colombia__1__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "colombia",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "indonesia__1__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "indonesia",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "indonesia__2__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "2",
+  "country": "indonesia",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "paraguay__1__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "paraguay",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "peru__1__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "peru",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country). The official PDF lists pixel values only; the color follows the other countries.",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "peru__2__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "2",
+  "country": "peru",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  }
 }

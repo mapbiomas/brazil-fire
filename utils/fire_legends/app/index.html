@@ -262,7 +262,6 @@ const T = {
     assetSite:"Asset publicado no site oficial.",
     noAsset:"O site não publica asset GEE para esta coleção. O código usa o GeoTIFF do bucket oficial via ee.Image.loadGeoTIFF.",
     folderOnly:"Nome do arquivo não segue um padrão único nesta pasta; o código aponta para a pasta.",
-    bucketDate:"Inventário do bucket levantado em 30/10/2026 (a listagem pública foi fechada depois).",
     devColl:"Coleção em desenvolvimento cadastrada pela equipe; ainda sem dados publicados.",
     vectorsOnly:"No bucket esta coleção tem só vetores anuais.",
     notPre:"Intervalo sem arquivo pré-calculado. O código calcula a partir dos anuais.",
@@ -304,7 +303,6 @@ const T = {
     assetSite:"Asset publicado en el sitio oficial.",
     noAsset:"El sitio no publica asset GEE para esta colección. El código usa el GeoTIFF del bucket oficial vía ee.Image.loadGeoTIFF.",
     folderOnly:"Los nombres de archivo de esta carpeta no siguen un patrón único; el código apunta a la carpeta.",
-    bucketDate:"Inventario del bucket relevado el 30/10/2026 (el listado público se cerró después).",
     devColl:"Colección en desarrollo registrada por el equipo; aún sin datos publicados.",
     vectorsOnly:"En el bucket esta colección solo tiene vectores anuales.",
     notPre:"Intervalo sin archivo precalculado. El código lo calcula a partir de los anuales.",
@@ -346,7 +344,6 @@ const T = {
     assetSite:"Asset published on the official website.",
     noAsset:"The website publishes no GEE asset for this collection. The code reads the GeoTIFF from the official bucket with ee.Image.loadGeoTIFF.",
     folderOnly:"File names in this folder follow no single pattern; the code points to the folder.",
-    bucketDate:"Bucket inventory taken on 2026-10-30 (public listing was closed afterwards).",
     devColl:"Collection in development registered by the team; no published data yet.",
     vectorsOnly:"In the bucket this collection has annual vectors only.",
     notPre:"No precomputed file for this range. The code derives it from the annual files.",
@@ -673,7 +670,7 @@ function renderStatic(){
   $("btn-copy").textContent=t("copy");$("btn-dl").textContent=t("download");$("btn-newcoll").textContent="+ "+t("newColl");
   $("th-v").textContent=t("value");$("th-c").textContent=t("color");$("th-l").textContent=t("label");$("th-s").textContent=t("src");
   document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===S.lang));
-  $("sources").innerHTML=SOURCES.map(([l,u])=>`<a href="${u}" target="_blank" rel="noopener">${esc(l)}</a>`).join("")+`<span>${esc(t("bucketDate"))}</span>`;
+  $("sources").innerHTML=SOURCES.map(([l,u])=>`<a href="${u}" target="_blank" rel="noopener">${esc(l)}</a>`).join("");
 }
 function originFilters(id,state,prefix){
   $(id).innerHTML=["site","bucket","dev"].map(o=>`<label><input type="checkbox" id="${prefix}-${o}" data-${prefix}="${o}" ${state[o]?"checked":""}><span class="dot ${o}"></span>${t("o_"+o)}</label>`).join("");
@@ -733,7 +730,6 @@ function renderMeta(it,pal){
   if(S.sub==="monthly_burned_coverage")notes.push(["",t("monthCovNote")]);
   if(S.sub==="fire_frequency_coverage")notes.push(["",t("freqCovNote")]);
   if(S.sub==="fire_monitor")notes.push(["",t("monitorNote")]);
-  if(c.origin!=="dev")notes.push(["",t("bucketDate")]);
   $("meta-note").innerHTML=notes.map(n=>`<p class="note ${n[0]}">${esc(n[1])}</p>`).join("");
   $("pal-state").innerHTML=`<span class="badge ${pal.registered?pal.status:"faltando"}">${t("st_"+(pal.registered?pal.status:"faltando"))}</span>`;
 }
