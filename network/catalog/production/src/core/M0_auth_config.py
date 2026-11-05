@@ -247,6 +247,55 @@ def authenticate(project=None):
 
     _AUTHENTICATED = True
 
+    # Checagem real de acesso (não-fatal): sinal claro de GEE/GCS no notebook.
+    verify_auth()
+
+
+def verify_auth():
+    """Roda checagens reais e imprime um resumo claro (✅/❌) de GEE e GCS.
+
+    Não levanta exceção: o objetivo é dar um sinal inequívoco no notebook sobre
+    o que já funciona e o que ainda precisa de ajuste.
+    """
+    import ee
+
+    ok_gee = False
+    ok_gcs = False
+
+    print("\n" + "=" * 64)
+    print("VERIFICAÇÃO DE ACESSO (conta de serviço)")
+    print("=" * 64)
+
+    # Earth Engine
+    try:
+        ee.Number(1).getInfo()
+        ok_gee = True
+        print("  ✅ Earth Engine ..... OK")
+    except Exception as exc:
+        print("  ❌ Earth Engine ..... FALHOU")
+        print(f"     {exc}")
+
+    # Google Cloud Storage
+    try:
+        from M_gcs import _storage_client
+        if _storage_client().bucket(CONFIG['bucket']).exists():
+            ok_gcs = True
+            print(f"  ✅ GCS ({CONFIG['bucket']}) ..... OK")
+        else:
+            print(f"  ❌ GCS ({CONFIG['bucket']}) ..... bucket não encontrado/acessível")
+    except Exception as exc:
+        print("  ❌ GCS ................ FALHOU")
+        print(f"     {exc}")
+
+    print("-" * 64)
+    if ok_gee and ok_gcs:
+        print("  ✅ AUTENTICAÇÃO OK — pode seguir para os próximos módulos.")
+    else:
+        print("  ⚠️  Pendências acima. Corrija e rode o M0 de novo.")
+    print("=" * 64 + "\n")
+
+    return {"gee": ok_gee, "gcs": ok_gcs}
+
 
 _fs_instance = None
 
