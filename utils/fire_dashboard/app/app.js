@@ -1477,6 +1477,17 @@ async function loadAnual({ t, ini, fim }) {
     values: anosClasses.map((a) => a.valores.get(c.item.pixelValue) || 0),
   }));
   const rotuloNivel = state.nivel === 0 ? "Nível 0 · natural e antrópico" : `Nível ${state.nivel} da legenda oficial de uso e cobertura`;
+  // Tendência (Sen + Mann-Kendall), posição do último ano e médias por década.
+  const tend = tendenciaSen(anos.map((a) => a.area));
+  const recorde = recordeDoAno(anos);
+  const decadas = [];
+  for (const a of anos) {
+    const d = Math.floor(a.ano / 10) * 10;
+    let g = decadas.find((x) => x.d === d);
+    if (!g) decadas.push(g = { d, anos: [] });
+    g.anos.push(a);
+  }
+  const rotuloDecada = (g) => (g.anos.length > 1 ? `${g.anos[0].ano}–${g.anos[g.anos.length - 1].ano}` : String(g.anos[0].ano));
 
   const view = {
     toolbar: [{
@@ -1500,12 +1511,17 @@ async function loadAnual({ t, ini, fim }) {
       {
         label: `Território afetado em ${ultimo.ano}`,
         value: areaTerritorio ? pct(safeDiv(ultimo.area, areaTerritorio)) : "—",
-        note: areaTerritorio ? `de ${ha(areaTerritorio)} do recorte` : "Área do território não informada pela API",
+        note: areaTerritorio
+          ? porIdioma({ pt: `de ${ha(areaTerritorio)} do recorte`, es: `de ${ha(areaTerritorio)} del recorte`, en: `of ${ha(areaTerritorio)} in the selected area`, id: `dari ${ha(areaTerritorio)} wilayah terpilih` })
+          : "Área do território não informada pela API",
       },
+      ...(recorde ? [{ label: `Posição de ${ultimo.ano} na série ${ini}–${fim}`, value: recorde.valor, note: recorde.frase }] : []),
+      ...(tend ? [kpiTendencia(tend, media, ini, fim)] : []),
     ],
     cards: [
       {
         span: 12,
+        base: true,
         title: "Área queimada anual",
         alterna: "anual",
         // Vista "Por bioma": barras empilhadas com a área de cada bioma no recorte (interseção
@@ -1523,15 +1539,38 @@ async function loadAnual({ t, ini, fim }) {
           values: anos.map((a) => a.area),
           color: vermelhoEscuro,
           meanLine: media,
+          trendLine: tend?.linha,
         },
         legend: [
           { label: "Área queimada no ano", color: vermelhoEscuro },
           { label: `Média ${ini}–${fim}: ${mha(media)} por ano`, color: "var(--text-2)", line: true, dash: true },
+          ...(tend ? [{ label: "Tendência (inclinação de Sen)", color: COR_TENDENCIA, line: true }] : []),
           { label: "Mha = milhões de hectares", note: true },
         ],
       },
+      ...(decadas.length >= 2 ? [{
+        span: 12,
+        base: true,
+        title: "Média anual por década",
+        subtitle: `Média da área queimada por ano em cada década · ${ini}–${fim}`,
+        chart: {
+          kind: "bar",
+          height: 240,
+          unit: "Mha",
+          axisTitle: "Área queimada (Mha)",
+          labels: decadas.map(rotuloDecada),
+          values: decadas.map((g) => mean(g.anos.map((a) => a.area))),
+          color: vermelhoEscuro,
+          meanLine: media,
+        },
+        legend: [
+          { label: "Média anual na década", color: vermelhoEscuro },
+          { label: `Média ${ini}–${fim}: ${mha(media)} por ano`, color: "var(--text-2)", line: true, dash: true },
+        ],
+      }] : []),
       {
         span: 12,
+        base: true,
         title: "Anos que mais queimaram",
         subtitle: `Top 6 · ${ini}–${fim} · variação em relação à média do período`,
         topcards: [...anos].sort((a, b) => b.area - a.area).slice(0, 6).map((a) => {
@@ -1572,8 +1611,8 @@ async function loadAnual({ t, ini, fim }) {
       },
     ],
   };
-  // Sem legenda de cobertura no país: só os 2 primeiros cards (anual e anos que mais queimaram).
-  return semCobertura ? { ...view, toolbar: [], cards: view.cards.slice(0, 2) } : view;
+  // Sem legenda de cobertura no país: só os cards da área anual (série, décadas, anos que mais queimaram).
+  return semCobertura ? { ...view, toolbar: [], cards: view.cards.filter((c) => c.base) } : view;
 }
 
 async function loadAcumulado({ t, ini, fim }) {
@@ -2803,6 +2842,7 @@ async function loadMapaBruto({ t, ini, fim }) {
       title: cortina ? `${nomeSub(camada)} · ${anoA} × ${anoB}`
         : `${nomeSub(camada)} · ${camada.periodo ? `${ini}–${fim}` : anoUnico}`,
       subtitle: `Recorte: ${t.nome} · tiles oficiais do MapBiomas Fogo · clique num contorno para destacá-lo${explicacao ? ` · ${explicacao}` : ""}`,
+      info: "Mapa oficial do MapBiomas Fogo, pixel a pixel. Escolha o subproduto e o ano; nos subprodutos anuais, a cortina compara dois anos lado a lado.",
       map: {
         tileUrl, tileUrl2, modo: cortina ? "cortina" : camada2 ? "sobrepor" : "",
         anoA, anoB, destacar: m.destaque === "on",
@@ -2991,6 +3031,30 @@ async function referenceOutlines(visualizar) {
 // Renderização
 // ---------------------------------------------------------------------------
 
+// Copia o endereço com o hash atual (writeHash guarda país, idioma, aba, filtros e opções da aba).
+async function copiarLink(btn) {
+  writeHash();
+  const url = location.href;
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(url);
+    ok = true;
+  } catch {
+    // Sem permissão de área de transferência (ex.: file://): seleciona o texto num campo e copia.
+    const campo = document.createElement("textarea");
+    campo.value = url;
+    campo.style.position = "fixed";
+    campo.style.opacity = "0";
+    document.body.appendChild(campo);
+    campo.select();
+    try { ok = document.execCommand("copy"); } catch { ok = false; }
+    campo.remove();
+  }
+  const original = btn.textContent;
+  btn.textContent = ok ? "✓ Link copiado" : "Copie o endereço da barra do navegador";
+  setTimeout(() => { if (btn.isConnected) btn.textContent = original; }, 2500);
+}
+
 function renderView(view) {
   destroyCharts();
   const tokens = themeTokens();
@@ -2998,13 +3062,15 @@ function renderView(view) {
   const t = activeTerritory();
   el.panel.innerHTML = `
     <div class="panel-head">
-      <p class="context"><strong>${escapeHtml(t.nome)}</strong> · ${state.ini}–${state.fim}</p>
+      <p class="context"><strong>${escapeHtml(t.nome)}</strong> · ${state.ini}–${state.fim}
+        <button type="button" class="md-botao copiar-link" title="Copia um link que abre o painel nesta mesma análise (país, idioma, aba, filtros e opções)">🔗 Copiar link desta análise</button></p>
       ${headControls(view)}
     </div>
     ${view.kpis.length ? `<div class="kpis">${view.kpis.map(kpiHtml).join("")}</div>` : ""}
     <div class="grid">${view.cards.map((card, i) => cardHtml(card, i, view)).join("")}</div>`;
 
   view.toolbar?.forEach((ctl, i) => bindToolbar(ctl, i));
+  el.panel.querySelector(".copiar-link")?.addEventListener("click", (e) => copiarLink(e.currentTarget));
   const seq = state.seq;
   view.cards.forEach((card, i) => {
     const root = el.panel.querySelector(`[data-card="${i}"]`);
@@ -3273,6 +3339,57 @@ function headControls(view) {
   return itens.trim() ? `<div class="toolbar">${itens}</div>` : "";
 }
 
+// Explicação curta de cada card (botão ⓘ), pelo título em português; `card.info` tem prioridade.
+// Texto novo aqui precisa de linha em i18n.js.
+const INFO_CARDS = [
+  [/^Área queimada anual$/, "Soma da área que queimou em cada ano no território e no período escolhidos. A linha tracejada é a média do período; a linha azul é a tendência, estimada pela inclinação de Sen (robusta a anos extremos) e testada com Mann-Kendall."],
+  [/^Média anual por década$/, "Média da área queimada por ano em cada década. Ajuda a ver se o fogo aumentou ou diminuiu ao longo do tempo sem depender de um único ano extremo. Décadas incompletas usam só os anos do período escolhido."],
+  [/^Anos que mais queimaram$/, "Os seis anos com mais área queimada no período e quanto cada um ficou acima ou abaixo da média anual."],
+  [/^Vegetação natural x uso antrópico/, "Em que cobertura da terra o fogo ocorreu, cruzando as áreas queimadas com o mapa de uso e cobertura MapBiomas do mesmo ano. É a soma das áreas anuais: um lugar que queimou em dois anos conta duas vezes."],
+  [/^Área queimada por ano e classe$/, "A área queimada de cada ano dividida pela classe de cobertura da terra onde o fogo ocorreu."],
+  [/^Área queimada acumulada$/, "Área que queimou pelo menos uma vez entre o ano inicial e cada ano. Cada lugar conta uma vez só, mesmo que tenha queimado de novo; por isso a curva só sobe."],
+  [/^Quanto d[oe] .* queimou ao menos uma vez/, "Parte do território que queimou pelo menos uma vez no período: área queimada acumulada dividida pela área total."],
+  [/^Composição do acumulado por ano$/, "Em cada ano, a parte de baixo é o que já tinha queimado antes e a de cima é a área que queimou pela primeira vez no período. Partes de cima pequenas indicam que o fogo voltou a lugares já queimados."],
+  [/^Anos que mais adicionaram área inédita$/, "Anos em que o fogo mais chegou a áreas que ainda não tinham queimado no período."],
+  [/^Média mensal da área queimada/, "Área queimada média em cada mês, considerando todos os anos do período. Escolha anos de destaque para comparar com a média."],
+  [/^Distribuição mensal/, "Soma de todos os anos do período, mês a mês: mostra em que meses se concentra a temporada de fogo."],
+  [/^Soma do período e média por mês$/, "Resumo de cada mês: área total no período, parte do total e média por ano com desvio padrão."],
+  [/^Área queimada por ano e mês/, "Cada barra é um ano (ou temporada), dividida pelos meses em que o fogo ocorreu."],
+  [/^Proporção mensal da área queimada por/, "Para cada território, que parte da área queimada no período ocorreu em cada mês. Permite comparar o calendário do fogo entre territórios."],
+  [/^Faixas de frequência$/, "Quantas vezes cada lugar queimou no período, agrupado em faixas. Áreas que queimam muitas vezes indicam uso repetido do fogo ou vegetação que convive com o fogo."],
+  [/^Área queimada por classe de frequência$/, "Área em cada número de vezes que queimou no período. Em %, mostra a parte da área queimada do período em cada classe."],
+  [/^Área queimada por ano e tamanho de cicatriz$/, "Área queimada de cada ano dividida pelo tamanho da cicatriz (mancha contínua de área queimada). Cicatrizes grandes costumam vir de incêndios que fugiram do controle."],
+  [/^Distribuição por faixa de tamanho$/, "Parte da área queimada do período em cada faixa de tamanho de cicatriz."],
+  [/^Proporção por ano em cicatrizes/, "Em cada ano, que parte da área queimada estava em cicatrizes da faixa de tamanho escolhida."],
+  [/^Tempo desde o fogo anterior/, "Para as áreas que queimaram no ano final e já tinham queimado antes: quantos anos se passaram desde o fogo anterior."],
+  [/^Distribuição por tempo de retorno$/, "Parte da área com fogo anterior em cada faixa de tempo de retorno."],
+  [/^Intervalo médio de retorno/, "Média de anos entre queimadas sucessivas no mesmo lugar, para áreas que queimaram mais de uma vez. Intervalos curtos indicam fogo frequente."],
+  [/^Distribuição por intervalo médio$/, "Parte da área com fogo recorrente em cada faixa de intervalo médio de retorno."],
+  [/^Área por ano do último fogo$/, "Para cada lugar que queimou no período, o ano em que queimou pela última vez. Último fogo antigo = área há mais tempo sem queimar."],
+  [/^Tempo decorrido desde o último fogo$/, "Há quantos anos, contados até o ano final, cada área queimou pela última vez."],
+  [/^Anos de último fogo com mais área$/, "Os anos em que mais área queimou pela última vez."],
+  [/^Severidade total/, "Severidade é o quanto o fogo alterou a vegetação, estimada com imagens de satélite de antes e depois do fogo. Mostra a parte da área afetada em cada classe."],
+  [/^Área afetada por ano e classe de severidade$/, "Área afetada de cada ano dividida pela classe de severidade."],
+  [/^Distribuição no período$/, "Parte da área afetada do período em cada classe de severidade."],
+  [/^Proporção com severidade/, "Em cada ano, que parte da área afetada teve severidade igual ou maior que a classe indicada."],
+  [/que mais queimaram( no período)?$/, "Ranking pela soma das áreas queimadas em cada ano do período."],
+  [/que mais queimaram em \d{4}$/, "Ranking da área queimada no ano final do período."],
+  [/^Variação em \d{4} em relação à média/, "Quanto a área queimada no ano final ficou acima (vermelho) ou abaixo (azul) da média dos anos anteriores do período, em cada território."],
+  [/^Evolução anual: os 3 maiores/, "Série anual dos três territórios com mais área queimada no período."],
+  [/^Participação na área queimada por .*, ano a ano$/, "Em cada ano, como a área queimada se divide entre os territórios (cada barra soma 100%)."],
+  [/: área queimada no período$/, "Área queimada somada no período em cada território e sua parte no total."],
+  [/^Fogo por categoria fundiária/, "Área queimada em Terras Indígenas, Unidades de Conservação, assentamentos e outras categorias fundiárias."],
+  [/^Ranking das categorias$/, "Categorias fundiárias ordenadas pela área queimada no período."],
+  [/^Evolução anual nas principais categorias$/, "Série anual da área queimada nas principais categorias fundiárias."],
+  [/: explore o fogo no mapa$/, "Mapa por território: escolha o que mostrar, o ano ou a comparação, ou busque um território pelo nome. Clique num território para ver a série anual e a tendência."],
+  [/^Fábrica de GIFs$/, "Gera uma animação com um mapa por ano. Escolha país, território, produto e anos; o GIF é montado no seu navegador."],
+];
+
+function infoDoCard(card) {
+  if (card.section) return null;
+  return card.info || INFO_CARDS.find(([re]) => re.test(card.title || ""))?.[1] || null;
+}
+
 function cardHtml(card, i, view) {
   if (card.section) {
     const controles = (view.toolbar || []).map((ctl, j) => (ctl.inSection ? toolbarHtml(ctl, j) : "")).join("");
@@ -3294,15 +3411,17 @@ function cardHtml(card, i, view) {
           <button type="button" data-acao="png" title="Baixar gráfico (PNG)">⬇ PNG</button>
           <button type="button" data-acao="tabela" aria-pressed="false" title="Ver a tabela com os valores">▦ Tabela</button>
         </div>` : "";
+  const info = infoDoCard(card);
   return `
     <article class="card span-${card.span}${card.chart?.big ? " card-big" : ""}" data-card="${i}">
-      <header class="card-head${toggle || acoes ? " has-toggle" : ""}">
+      <header class="card-head${toggle || acoes || info ? " has-toggle" : ""}">
         <div>
-          <h2>${escapeHtml(card.title)}</h2>
+          <h2>${escapeHtml(card.title)}${info ? ` <button type="button" class="card-info" data-acao="info" aria-expanded="false" title="O que este gráfico mostra?" aria-label="O que este gráfico mostra?">ⓘ</button>` : ""}</h2>
           ${card.subtitle ? `<p>${escapeHtml(card.subtitle)}</p>` : ""}
         </div>
         <div class="card-topo">${toggle}${acoes}</div>
       </header>
+      ${info ? `<p class="card-info-texto" hidden>${escapeHtml(info)}</p>` : ""}
       ${(view.toolbar || []).some((c) => c.card === i) ? `<div class="toolbar card-controles">${(view.toolbar || []).map((c, j) => (c.card === i ? toolbarHtml(c, j) : "")).join("")}</div>` : ""}
       <div class="card-body">${cardBodyHtml(card, vistaDe(card, i))}</div>
     </article>`;
@@ -3351,6 +3470,13 @@ function acaoDoCard(e) {
   const root = btn.closest("[data-card]");
   const card = state.lastView?.cards?.[Number(root?.dataset.card)];
   if (!root || !card) return;
+  if (btn.dataset.acao === "info") {
+    const texto = root.querySelector(".card-info-texto");
+    if (!texto) return;
+    texto.hidden = !texto.hidden;
+    btn.setAttribute("aria-expanded", String(!texto.hidden));
+    return;
+  }
   if (btn.dataset.acao === "png") return baixarGraficoPng(root, card);
   if (btn.dataset.acao === "csv") {
     const t = tabelaDoCard(root, card);
@@ -3602,7 +3728,7 @@ function renderMap(box, spec) {
   controleNoMapa(map, "topright", `<button type="button" class="md-botao">⬇ Baixar mapa (PNG)</button>`, (div) => {
     div.querySelector("button").addEventListener("click", () => {
       const card = box.closest(".card");
-      baixarMapaPng(map, box, card?.querySelector("h2")?.textContent || "Mapa", card?.querySelector(".legend-row"));
+      baixarMapaPng(map, box, card?.querySelector("h2")?.textContent?.replace("ⓘ", "").trim() || "Mapa", card?.querySelector(".legend-row"));
     });
   });
   if (spec.modo === "sobrepor" && spec.tileUrl2) {
@@ -3882,6 +4008,12 @@ function renderMapaDinamico(map, spec, tokens, box) {
     <div class="segmented" role="group" data-g="${grupo}">
       ${opcoes.map(([v, r]) => `<button type="button" data-v="${v}" aria-pressed="false">${escapeHtml(r)}</button>`).join("")}
     </div>`;
+  // Busca por nome: nome exibido -> id (nomes repetidos ganham o id entre parênteses).
+  const semAcento = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  const nomesBusca = new Map();
+  const contagemNomes = new Map();
+  for (const t of territorios.values()) contagemNomes.set(t.name, (contagemNomes.get(t.name) || 0) + 1);
+  for (const [id, t] of territorios) nomesBusca.set(contagemNomes.get(t.name) > 1 ? `${t.name} (${id})` : t.name, id);
   const indicadores = [["area", "Área queimada (ha)"], ["pct", "% do território"], ...(n >= 2 ? [["mudanca", "Comparar anos"]] : [])];
   const selAno = (r, v, rotulo) => `<select class="md-select" data-r="${r}" aria-label="${rotulo}">${anos.map((a) => `<option value="${a}"${a === v ? " selected" : ""}>${a}</option>`).join("")}</select>`;
   ctlBox.innerHTML = `
@@ -3899,7 +4031,12 @@ function renderMapaDinamico(map, spec, tokens, box) {
       <span class="md-ano" data-quando-comp="anos">${selAno("anoB", st.anoB, "Ano")}<span>em relação a</span>${selAno("anoA", st.anoA, "Ano de referência")}</span>
       <span class="md-ano" data-quando-comp="media">${selAno("anoM", st.anoM, "Ano")}<span>em relação à média ${ano0}–${anoN}</span></span>
     </div>
-    <div class="md-passo"><span class="md-num">3</span><span class="md-rotulo">Baixar</span>
+    <div class="md-passo"><span class="md-num">3</span><span class="md-rotulo">Buscar</span>
+      <input type="search" class="md-busca" list="md-busca-lista-${root.dataset.card}" placeholder="Digite o nome do ${nomeUnid}…" aria-label="Buscar ${nomeUnid} pelo nome" autocomplete="off">
+      <datalist id="md-busca-lista-${root.dataset.card}">${[...nomesBusca.keys()].sort((a, b) => a.localeCompare(b, IDIOMA.locale)).map((nm) => `<option value="${escapeHtml(nm)}"></option>`).join("")}</datalist>
+      <span class="md-busca-msg" aria-live="polite"></span>
+    </div>
+    <div class="md-passo"><span class="md-num">4</span><span class="md-rotulo">Baixar</span>
       <button type="button" class="md-botao md-png">⬇ Baixar mapa (PNG)</button>
       <button type="button" class="md-botao md-csv" title="Planilha com o valor de cada ${nomeUnid} e a série anual">⬇ Baixar dados (CSV)</button>
     </div>`;
@@ -3948,6 +4085,27 @@ function renderMapaDinamico(map, spec, tokens, box) {
     desenhar();
   });
   ctlBox.querySelector('[data-r="ano"]').addEventListener("input", (e) => { pararPlay(); st.ano = Number(e.target.value); desenhar(); });
+  // Busca: nome exato da lista; senão, sem acento, o primeiro que começa com (ou contém) o texto.
+  const busca = ctlBox.querySelector(".md-busca");
+  const buscaMsg = ctlBox.querySelector(".md-busca-msg");
+  function buscar(final) {
+    const txt = busca.value.trim();
+    buscaMsg.textContent = "";
+    if (!txt) return;
+    let id = nomesBusca.get(txt);
+    if (!id && final) {
+      const alvo = semAcento(txt);
+      const nomes = [...nomesBusca.keys()];
+      const achado = nomes.find((nm) => semAcento(nm) === alvo) || nomes.find((nm) => semAcento(nm).startsWith(alvo))
+        || nomes.find((nm) => semAcento(nm).includes(alvo));
+      if (achado) { id = nomesBusca.get(achado); busca.value = achado; }
+      else buscaMsg.textContent = "Nenhum território com esse nome neste mapa.";
+    }
+    if (id && id !== st.sel) selecionar(id);
+  }
+  busca.addEventListener("input", () => buscar(false));
+  busca.addEventListener("change", () => buscar(true));
+  busca.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); buscar(true); } });
   ctlBox.querySelectorAll("select[data-r]").forEach((s) => s.addEventListener("change", () => {
     st[s.dataset.r] = Number(s.value);
     desenhar();
@@ -3969,6 +4127,8 @@ function renderMapaDinamico(map, spec, tokens, box) {
     const areaT = unidade !== "municipios" ? areaDe(id) : 0;
     const filtroEl = unidade === "biomas" ? el.bioma : el.estado;
     const podeFiltrar = unidade !== "municipios" && filtroEl.value !== id && [...filtroEl.options].some((o) => o.value === id);
+    const tend = tendenciaSen(t.porAno);
+    const kTend = tend ? kpiTendencia(tend, total / n, ano0, anoN) : null;
     detBox.hidden = false;
     detBox.innerHTML = `
       <div class="md-det-cab">
@@ -3984,15 +4144,18 @@ function renderMapaDinamico(map, spec, tokens, box) {
         <li><span>Ano que mais queimou</span><strong>${total ? `${anos[pico]} · ${ha(t.porAno[pico])}` : "—"}</strong></li>
         <li><span>Anos com fogo</span><strong>${comFogo} de ${n}</strong></li>
         ${areaT ? `<li><span>Área (aprox.)</span><strong>${ha(areaT)}</strong></li>` : ""}
+        ${kTend ? `<li title="${escapeHtml(kTend.note)}"><span>${escapeHtml(kTend.label)}</span><strong>${escapeHtml(kTend.value)}</strong><small>${escapeHtml(kTend.note)}</small></li>` : ""}
       </ul>
       <div class="chart-box" style="height:240px"><canvas role="img" aria-label="Área queimada por ano em ${escapeHtml(t.name)}"></canvas></div>
       <ul class="legend-row">
         <li><i class="sw" style="--c:${CHORO_RAMP[3]}"></i>Área queimada no ano</li>
         <li><i class="ln dash" style="--c:var(--text-2)"></i>Média ${ano0}–${anoN}</li>
+        ${tend ? `<li><i class="ln" style="--c:${COR_TENDENCIA}"></i>Tendência (inclinação de Sen)</li>` : ""}
       </ul>`;
     descartarGraficos(root);
     registrarGrafico(root, new Chart(detBox.querySelector("canvas"), chartConfig({
       kind: "bar", labels: anos.map(String), values: t.porAno, color: CHORO_RAMP[3], meanLine: total / n, axisTitle: "Área queimada (ha)",
+      trendLine: tend?.linha,
     }, tokens)));
     detBox.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "nearest" });
   }
@@ -4455,8 +4618,25 @@ function chartConfig(spec, t) {
       order: 1,
     }];
     if (spec.meanLine != null) datasets.push(linhaMedia(spec, t));
+    if (spec.trendLine) datasets.push(linhaTendencia(spec));
   }
   return { type: "bar", data: { labels: spec.labels, datasets }, options };
+}
+
+// Linha de tendência (inclinação de Sen): contínua, azul, para não confundir com a média tracejada.
+const COR_TENDENCIA = "#2f74b5";
+function linhaTendencia(spec) {
+  return {
+    type: "line",
+    label: "Tendência (Sen)",
+    data: spec.trendLine,
+    borderColor: COR_TENDENCIA,
+    borderWidth: 2,
+    pointRadius: 0,
+    pointHoverRadius: 0,
+    fill: false,
+    order: 0,
+  };
 }
 
 // Linha de referência da média do período (tracejada = referência, não dado).
@@ -4499,6 +4679,7 @@ function lineConfig(spec, t, options) {
     order: 1,
   }];
   if (spec.meanLine != null) datasets.push(linhaMedia(spec, t));
+  if (spec.trendLine) datasets.push(linhaTendencia(spec));
   return { type: "line", data: { labels: spec.labels, datasets }, options };
 }
 
@@ -4854,6 +5035,12 @@ function readHash() {
   if (MAP_LAYERS.some((c) => c.id === p.get("camada"))) state.mapa.camada = p.get("camada");
   if (MAP_VIEWS.some((v) => v.id === p.get("vis"))) state.mapa.visualizar = p.get("vis");
   if (["todas", "15", "9"].includes(p.get("freq"))) state.freqGrupo = p.get("freq");
+  const temp = (p.get("temporada") || "").split("-").map(Number);
+  if (temp.length === 2 && temp.every((m) => m >= 1 && m <= 12)) [state.mesIni, state.mesFim] = temp;
+  if (["oficial", "fogo"].includes(p.get("paleta"))) state.paletaMes = p.get("paleta");
+  if (["bioma", "estado"].includes(p.get("por"))) state.mensalNivel = p.get("por");
+  if (["ha", "pct"].includes(p.get("unid"))) state.freqUnid = p.get("unid");
+  if (p.get("cicatriz")) state.cicatrizClasse = p.get("cicatriz");
 }
 
 function writeHash() {
@@ -4865,7 +5052,16 @@ function writeHash() {
   if (state.municipioId) p.set("municipio", state.municipioId);
   if (state.tab === "anual") p.set("nivel", state.nivel);
   if (state.tab === "mensal" && state.mensalAnos.length) p.set("anos", state.mensalAnos.join(","));
-  if (state.tab === "frequencia") p.set("freq", state.freqGrupo);
+  if (state.tab === "mensal") {
+    if (state.mesIni !== 1 || state.mesFim !== 12) p.set("temporada", `${state.mesIni}-${state.mesFim}`);
+    if (state.paletaMes !== "oficial") p.set("paleta", state.paletaMes);
+    if (state.mensalNivel !== "bioma") p.set("por", state.mensalNivel);
+  }
+  if (state.tab === "frequencia") {
+    p.set("freq", state.freqGrupo);
+    if (state.freqUnid !== "ha") p.set("unid", state.freqUnid);
+  }
+  if (state.tab === "cicatriz" && state.cicatrizClasse !== "grandes") p.set("cicatriz", state.cicatrizClasse);
   if (state.tab === "mapa") {
     p.set("mapa", state.mapa.tipo);
     if (state.mapa.tipo === "ranking") p.set("unidade", state.mapa.unidade);
@@ -5602,6 +5798,116 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const range = (a, b) => Array.from({ length: Math.max(0, b - a + 1) }, (_, i) => a + i);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Texto no idioma da página, para frases com números no meio (o i18n.js troca só trechos fixos).
+const porIdioma = (o) => o[IDIOMA.id] ?? o.pt;
+
+// 1º, 1.º, 1st, ke-1.
+function ordinal(n) {
+  if (IDIOMA.id === "en") {
+    const s = n % 100 >= 11 && n % 100 <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th");
+    return `${n}${s}`;
+  }
+  return porIdioma({ pt: `${n}º`, es: `${n}.º`, id: `ke-${n}` });
+}
+
+const mediana = (arr) => {
+  const s = [...arr].sort((a, b) => a - b);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+};
+
+// Função de distribuição da normal padrão (erf de Abramowitz e Stegun 7.1.26, erro < 1,5e-7).
+function normalCdf(z) {
+  const x = Math.abs(z) / Math.SQRT2;
+  const t = 1 / (1 + 0.3275911 * x);
+  const erf = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+  return z >= 0 ? (1 + erf) / 2 : (1 - erf) / 2;
+}
+
+// Tendência de uma série anual: inclinação de Sen (mediana das inclinações entre todos os pares
+// de anos, robusta a anos extremos) e teste de Mann-Kendall (com correção de empates).
+// Devolve null com menos de 5 anos.
+function tendenciaSen(valores) {
+  const n = valores.length;
+  if (n < 5) return null;
+  let s = 0;
+  const inclinacoes = [];
+  for (let i = 0; i < n - 1; i++) {
+    for (let j = i + 1; j < n; j++) {
+      s += Math.sign(valores[j] - valores[i]);
+      inclinacoes.push((valores[j] - valores[i]) / (j - i));
+    }
+  }
+  const empates = new Map();
+  for (const v of valores) empates.set(v, (empates.get(v) || 0) + 1);
+  let variancia = n * (n - 1) * (2 * n + 5);
+  for (const t of empates.values()) if (t > 1) variancia -= t * (t - 1) * (2 * t + 5);
+  variancia /= 18;
+  const z = variancia > 0 ? (s > 0 ? (s - 1) : s < 0 ? (s + 1) : 0) / Math.sqrt(variancia) : 0;
+  const p = 2 * (1 - normalCdf(Math.abs(z)));
+  const slope = mediana(inclinacoes);
+  const intercept = mediana(valores.map((v, i) => v - slope * i));
+  return { slope, intercept, p, z, significativa: p < 0.05, linha: valores.map((_, i) => intercept + slope * i) };
+}
+
+// Posição do último ano na série e frase de recorde ("maior da série", "maior desde 2010"...).
+function recordeDoAno(anos) {
+  const n = anos.length;
+  const ultimo = anos[n - 1];
+  if (!ultimo || n < 3) return null;
+  const pos = 1 + anos.filter((a) => a.area > ultimo.area).length;
+  const antes = anos.slice(0, -1);
+  const maior = maxBy(anos, (a) => a.area);
+  let frase;
+  if (pos === 1) {
+    frase = porIdioma({ pt: "Recorde: maior área da série", es: "Récord: mayor área de la serie", en: "Record: largest area in the series", id: "Rekor: area terbesar dalam seri" });
+  } else if (pos === n) {
+    frase = porIdioma({ pt: "Menor área da série", es: "Menor área de la serie", en: "Smallest area in the series", id: "Area terkecil dalam seri" });
+  } else {
+    // Ano mais recente que superou (ou ficou abaixo de) o último: "maior desde X" vale se X for antigo.
+    const iMaior = findLastIndex(antes, (a) => a.area >= ultimo.area);
+    const iMenor = findLastIndex(antes, (a) => a.area <= ultimo.area);
+    if (iMaior >= 0 && antes.length - iMaior >= 3) {
+      const y = antes[iMaior].ano;
+      frase = porIdioma({ pt: `Maior área desde ${y}`, es: `Mayor área desde ${y}`, en: `Largest area since ${y}`, id: `Area terbesar sejak ${y}` });
+    } else if (iMenor >= 0 && antes.length - iMenor >= 3) {
+      const y = antes[iMenor].ano;
+      frase = porIdioma({ pt: `Menor área desde ${y}`, es: `Menor área desde ${y}`, en: `Smallest area since ${y}`, id: `Area terkecil sejak ${y}` });
+    } else {
+      frase = porIdioma({ pt: `Recorde: ${maior.ano} (${ha(maior.area)})`, es: `Récord: ${maior.ano} (${ha(maior.area)})`, en: `Record: ${maior.ano} (${ha(maior.area)})`, id: `Rekor: ${maior.ano} (${ha(maior.area)})` });
+    }
+  }
+  const valor = porIdioma({ pt: `${ordinal(pos)} de ${n}`, es: `${ordinal(pos)} de ${n}`, en: `${ordinal(pos)} of ${n}`, id: `${ordinal(pos)} dari ${n}` });
+  return { pos, n, valor, frase };
+}
+
+// KPI da tendência anual (Sen + Mann-Kendall) e da variação por década em relação à média.
+function kpiTendencia(tend, media, ini, fim) {
+  if (!tend) return null;
+  const sinal = tend.slope >= 0 ? "+" : "−";
+  const porDecada = pct(Math.abs(safeDiv(tend.slope * 10, media)));
+  const pTxt = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 3 }).format(tend.p);
+  const sobe = tend.slope >= 0;
+  const nota = tend.significativa
+    ? porIdioma({
+      pt: `${sobe ? "Alta" : "Queda"} significativa (Mann-Kendall, p = ${pTxt}) · ${sinal}${porDecada} da média por década`,
+      es: `${sobe ? "Aumento" : "Disminución"} significativo (Mann-Kendall, p = ${pTxt}) · ${sinal}${porDecada} del promedio por década`,
+      en: `Significant ${sobe ? "increase" : "decrease"} (Mann-Kendall, p = ${pTxt}) · ${sinal}${porDecada} of the mean per decade`,
+      id: `${sobe ? "Kenaikan" : "Penurunan"} signifikan (Mann-Kendall, p = ${pTxt}) · ${sinal}${porDecada} dari rata-rata per dekade`,
+    })
+    : porIdioma({
+      pt: `Sem tendência estatisticamente significativa (Mann-Kendall, p = ${pTxt})`,
+      es: `Sin tendencia estadísticamente significativa (Mann-Kendall, p = ${pTxt})`,
+      en: `No statistically significant trend (Mann-Kendall, p = ${pTxt})`,
+      id: `Tidak ada tren yang signifikan secara statistik (Mann-Kendall, p = ${pTxt})`,
+    });
+  return {
+    label: `Tendência ${ini}–${fim}`,
+    value: `${sinal}${ha(Math.abs(tend.slope))}/ano`,
+    note: nota,
+  };
+}
 
 function maxBy(arr, fn) {
   return arr.reduce((best, x) => (best === undefined || fn(x) > fn(best) ? x : best), undefined);

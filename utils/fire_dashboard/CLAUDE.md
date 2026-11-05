@@ -8,15 +8,16 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 
 ## Como rodar e testar
 
-- Abrir `app/index.html` no navegador. Não há testes automatizados.
-- Checagem de sintaxe: `node --check app/app.js`.
+- Abrir `app/index.html` no navegador (ou o site publicado). Não há testes automatizados.
+- Checagem de sintaxe: `node --check app/app.js` e `node --check app/i18n.js`.
+- Teste sem interface: Edge com `--headless=new --virtual-time-budget=120000 --dump-dom "file:///…/app/index.html#aba=anual"` e ler KPIs e títulos no HTML gerado. Para testar cliques, copiar o `index.html` para uma pasta temporária com `<base href>` apontando para `app/` e um script de teste no fim do `body`.
 
 ## Fonte da verdade
 
-- API de produção `https://plataforma.mapbiomas.org/api/v1` (staging só como reserva). Estritamente **Coleção 5.1** (`CONFIG.colecaoExigida`).
+- API de produção `https://plataforma.mapbiomas.org/api/v1/{região}` (staging só como reserva, e só no Brasil). Brasil: estritamente **Coleção 5.1** (`colecaoExigida`). Outros países: a coleção que a Plataforma serve, lida da nota informativa (`colecaoDaNota`; `colecaoPadrao` quando a nota não cita).
 - Estatísticas: `/statistics/area` (tarefas assíncronas; interseção com `spatialMethod=intersection` demora de 25 a 255 s na primeira vez e fica em cache no servidor). `territoryAreaHa` da resposta já é a área da parte dentro do recorte.
 - Geometrias: `/territories/geometry`. Ranking: `/statistics/ranking/area` (só municípios inteiros, não recorta por bioma).
-- Categorias de território: 230 municípios, 214 estados, 4 biomas (Cerrado = `1-4-3`).
+- Categorias de território no Brasil: 230 municípios, 214 estados, 4 biomas (Cerrado = `1-4-3`). Nos outros países, as categorias são achadas por regex na chave (`PAISES[].categorias`).
 
 ## Decisões
 
@@ -26,13 +27,15 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 
 ## Problemas conhecidos
 
-- Só português e só Brasil (ver README, seção de adaptação).
 - A primeira consulta de um estado ou município com bioma pode levar minutos; a página mostra o progresso.
 - O recorte exato dos 524 municípios na divisa do Cerrado leva dezenas de minutos na primeira vez.
+- Primeiros cálculos no servidor podem passar de 10 minutos (ex.: Frequência 2020–2025 e Cicatriz no Brasil, rankings fora do Brasil); recarregar mais tarde resolve, porque o resultado fica em cache.
+- Fora do Brasil: sem cores oficiais de bioma nem categorias fundiárias; Paraguai e Indonésia não informam o período nem a coleção na nota informativa.
+- Traduções (es, en, id) sem revisão de falante nativo.
 
 ## Mapas Interativos (blocos)
 
-- **Ranking por território** (`renderMapaDinamico`): tudo roda no navegador com o ranking anual já carregado (sem novas consultas). Passo 1 indicador (área · % do território · mudança entre períodos), passo 2 período todo / um ano com ▶ (escala de cores fixa entre anos) ou ano de corte, passo 3 cores ou bolhas e CSV (`;`, vírgula decimal). Clique abre série anual; em estados, atalho para filtrar o painel.
+- **Ranking por território** (`renderMapaDinamico`): tudo roda no navegador com o ranking anual já carregado (sem novas consultas). Passo 1 indicador (área · % do território · comparar anos), passo 2 período todo / um ano com ▶ (escala de cores fixa entre anos) ou a comparação, passo 3 busca por nome, passo 4 PNG e CSV (`;`, vírgula decimal). Clique (ou busca) abre a série anual com tendência; em estados e biomas, atalho para filtrar o painel.
 - A área do território para "% do território" vem do contorno (`turf.area`), portanto é aproximada; em municípios os pedaços dos tiles se sobrepõem um pouco na borda.
 - **Dados brutos**: sobrepor uma 2ª camada (com transparência), cortina entre dois anos (só camadas de um ano; recorte com `style.clip`, como o leaflet-side-by-side) e "Destacar o recorte" (`turf.mask`).
 - Não feito: limites de TIs/UCs sobre o mapa (a API só entrega geometria por território, não por categoria inteira) e hotspots (estatística espacial).
@@ -89,3 +92,12 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - GIF: ordem país, território, produto.
 - Mensal reorganizado: 1) média mensal com chips de anos no card; 2) distribuição mensal (soma de todos os anos, barras com % ou rosca); 3) soma e média por mês; 4) área por ano e mês; 5) proporção mensal por território com escolha biomas/estados (`state.mensalNivel`; estados: os 8 com mais área).
 - Frequência: cards em largura total; `rotulos: "pct"` no spec escreve a % sobre as barras (`rotulosBarrasPlugin`).
+
+## Explicações, recordes, tendência, link e busca (2026-11-05)
+
+- Botão ⓘ ao lado do título de cada card: abre uma explicação curta. Os textos ficam em `INFO_CARDS` (regex no título em português; `card.info` tem prioridade) e precisam de linha em `i18n.js`.
+- Anual: KPI "Posição de <ano> na série" (`recordeDoAno`: ordinal, recorde, "maior/menor área desde <ano>" quando o ano mais recente que o superou tem 3 ou mais anos de distância) e KPI "Tendência" (`tendenciaSen`: inclinação de Sen e teste de Mann-Kendall com correção de empates, p bilateral pela normal; significativa se p < 0,05; mínimo 5 anos). Linha de tendência azul (`spec.trendLine`, `COR_TENDENCIA`) no gráfico anual e no detalhe do mapa. Card "Média anual por década".
+- Frases com números no meio são montadas por idioma (`porIdioma`, `ordinal`), porque o `i18n.js` só troca trechos fixos.
+- "🔗 Copiar link desta análise" (`copiarLink`): copia o endereço com o hash. O hash agora guarda também temporada, paleta e "por" do Mensal, unidade da Frequência e faixa da Cicatriz.
+- Mapa por território: passo "Buscar" com lista de nomes (`datalist`); aceita nome sem acento ou só o começo; seleciona, contorna e dá zoom.
+- Testado sem interface: Anual no Brasil (pt) e no Peru (en); mapa por estados no Brasil, com a busca "sao paulo" abrindo o detalhe.

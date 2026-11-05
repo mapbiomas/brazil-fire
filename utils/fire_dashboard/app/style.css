@@ -1259,3 +1259,28 @@ a.md-botao { display: inline-block; text-decoration: none; }
 .donut-chart { width: 260px; height: 260px; }
 .donut-center strong { font-size: 1.3rem; }
 @media (max-width: 520px) { .donut { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Botão ⓘ (explicação do card) ---------- */
+.card-info {
+  display: inline-flex; align-items: center; justify-content: center; width: 1.4em; height: 1.4em;
+  margin-left: 4px; padding: 0; border: 0; border-radius: 50%; background: transparent;
+  color: var(--text-muted); font: inherit; font-size: .95em; line-height: 1; cursor: pointer; vertical-align: 1px;
+}
+.card-info:hover, .card-info[aria-expanded="true"] { color: var(--text); background: var(--surface-muted); }
+.card-info:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
+.card-info-texto {
+  margin: -4px 0 12px; padding: 8px 12px; border-left: 3px solid var(--border); border-radius: 0 8px 8px 0;
+  background: var(--surface-muted); color: var(--text-2); font-size: .82rem; line-height: 1.45;
+}
+
+/* ---------- Copiar link da análise ---------- */
+.context .copiar-link { margin-left: 10px; padding: 3px 10px; font-size: .75rem; vertical-align: 1px; }
+
+/* ---------- Busca no mapa por território ---------- */
+.md-busca {
+  min-width: 220px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 9px;
+  background: var(--surface); color: var(--text); font: inherit; font-size: .85rem;
+}
+.md-busca:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
+.md-busca-msg { font-size: .78rem; color: var(--text-muted); }
+.md-det-kpis small { font-size: .72rem; color: var(--text-muted); line-height: 1.35; }
