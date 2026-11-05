@@ -1,4 +1,20 @@
 {
+ "argentina__1__accumulated_burned": {
+  "classes": [
+   {
+    "hex": "#e84130",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "argentina",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
+  "status": "validada",
+  "subproduct": "accumulated_burned",
+  "updatedAt": "from-repository"
+ },
  "argentina__1__annual_burned": {
   "classes": [
    {
@@ -15,87 +31,7 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
- "bolivia__1__annual_burned": {
-  "classes": [
-   {
-    "hex": "#d4271e",
-    "src": "oficial",
-    "v": 1
-   }
-  ],
-  "collection": "1",
-  "country": "bolivia",
-  "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
-  "status": "validada",
-  "subproduct": "annual_burned",
-  "updatedAt": "from-repository"
- },
- "brasil__2__annual_burned": {
-  "classes": [
-   {
-    "hex": "#d4271e",
-    "src": "oficial",
-    "v": 1
-   }
-  ],
-  "collection": "2",
-  "country": "brasil",
-  "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
-  "status": "validada",
-  "subproduct": "annual_burned",
-  "updatedAt": "from-repository"
- },
- "brasil__3__annual_burned": {
-  "classes": [
-   {
-    "hex": "#d4271e",
-    "src": "oficial",
-    "v": 1
-   }
-  ],
-  "collection": "3",
-  "country": "brasil",
-  "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
-  "status": "validada",
-  "subproduct": "annual_burned",
-  "updatedAt": "from-repository"
- },
- "brasil__4__annual_burned": {
-  "classes": [
-   {
-    "hex": "#d4271e",
-    "src": "oficial",
-    "v": 1
-   }
-  ],
-  "collection": "4",
-  "country": "brasil",
-  "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
-  "status": "validada",
-  "subproduct": "annual_burned",
-  "updatedAt": "from-repository"
- },
- "brasil__5__annual_burned": {
-  "classes": [
-   {
-    "hex": "#d4271e",
-    "src": "oficial",
-    "v": 1
-   }
-  ],
-  "collection": "5",
-  "country": "brasil",
-  "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country). The site also lists class 0 'Ausencia de fogo' as #fffff (5 digits, invalid); class 0 is not registered.",
-  "status": "validada",
-  "subproduct": "annual_burned",
-  "updatedAt": "from-repository"
- },
- "brasil__5__annual_burned_scar_size_range": {
+ "argentina__1__annual_burned_scar_size_range": {
   "classes": [
    {
     "en": "< 10 ha",
@@ -162,7 +98,767 @@
     "v": 8
    }
   ],
-  "collection": "5",
+  "collection": "1",
+  "country": "argentina",
+  "expected": 8,
+  "notes": "Same 8-color scar size palette as Brazil Col5. Size classes assumed equal to Brazil Col5.",
+  "status": "validada",
+  "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "argentina__1__monthly_burned": {
+  "classes": [
+   {
+    "en": "January",
+    "es": "Enero",
+    "hex": "#cc00ff",
+    "pt": "Janeiro",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "February",
+    "es": "Febrero",
+    "hex": "#6600ff",
+    "pt": "Fevereiro",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "March",
+    "es": "Marzo",
+    "hex": "#0000ff",
+    "pt": "Março",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "April",
+    "es": "Abril",
+    "hex": "#00ccff",
+    "pt": "Abril",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "May",
+    "es": "Mayo",
+    "hex": "#00ffcc",
+    "pt": "Maio",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "June",
+    "es": "Junio",
+    "hex": "#ffff00",
+    "pt": "Junho",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "July",
+    "es": "Julio",
+    "hex": "#ff9900",
+    "pt": "Julho",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "August",
+    "es": "Agosto",
+    "hex": "#ff3300",
+    "pt": "Agosto",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "September",
+    "es": "Septiembre",
+    "hex": "#cc0000",
+    "pt": "Setembro",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "October",
+    "es": "Octubre",
+    "hex": "#00cc00",
+    "pt": "Outubro",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "November",
+    "es": "Noviembre",
+    "hex": "#009900",
+    "pt": "Novembro",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "December",
+    "es": "Diciembre",
+    "hex": "#66ff66",
+    "pt": "Dezembro",
+    "src": "oficial",
+    "v": 12
+   }
+  ],
+  "collection": "1",
+  "country": "argentina",
+  "expected": 12,
+  "notes": "Same 12-month palette for the monthly burned area of every country.",
+  "status": "validada",
+  "subproduct": "monthly_burned",
+  "updatedAt": "from-repository"
+ },
+ "bolivia__1__accumulated_burned": {
+  "classes": [
+   {
+    "hex": "#e84130",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "bolivia",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
+  "status": "validada",
+  "subproduct": "accumulated_burned",
+  "updatedAt": "from-repository"
+ },
+ "bolivia__1__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "bolivia",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "bolivia__1__annual_burned_scar_size_range": {
+  "classes": [
+   {
+    "en": "< 10 ha",
+    "es": "< 10 ha",
+    "hex": "#d0ae35",
+    "pt": "< 10 ha",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "10 - 250 ha",
+    "es": "10 - 250 ha",
+    "hex": "#c68e2f",
+    "pt": "10 - 250 ha",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "250 - 500 ha",
+    "es": "250 - 500 ha",
+    "hex": "#b96d2b",
+    "pt": "250 - 500 ha",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "500 - 5.000 ha",
+    "es": "500 - 5.000 ha",
+    "hex": "#ac4b28",
+    "pt": "500 - 5.000 ha",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5.000 - 10.000 ha",
+    "es": "5.000 - 10.000 ha",
+    "hex": "#933328",
+    "pt": "5.000 - 10.000 ha",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "10.000 - 50.000 ha",
+    "es": "10.000 - 50.000 ha",
+    "hex": "#72251d",
+    "pt": "10.000 - 50.000 ha",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "50.000 - 100.000 ha",
+    "es": "50.000 - 100.000 ha",
+    "hex": "#4e180f",
+    "pt": "50.000 - 100.000 ha",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": ">= 100.000 ha",
+    "es": ">= 100.000 ha",
+    "hex": "#240d00",
+    "pt": ">= 100.000 ha",
+    "src": "oficial",
+    "v": 8
+   }
+  ],
+  "collection": "1",
+  "country": "bolivia",
+  "expected": 8,
+  "notes": "Same 8 colors and size classes as Brazil Col5 (confirmed for Bolivia).",
+  "status": "validada",
+  "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "bolivia__1__fire_frequency": {
+  "classes": [
+   {
+    "hex": "#faf3cd",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "hex": "#fcefa2",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "hex": "#fae569",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "hex": "#f9df47",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "hex": "#f7d51f",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "hex": "#edc41d",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "hex": "#e4b21b",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "hex": "#daa118",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "hex": "#d08f16",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "hex": "#c88014",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "hex": "#be6d12",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "hex": "#b65e11",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "hex": "#ac4d0e",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "hex": "#a1390b",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "hex": "#99290a",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "hex": "#901a08",
+    "src": "oficial",
+    "v": 16
+   },
+   {
+    "hex": "#850705",
+    "src": "oficial",
+    "v": 17
+   },
+   {
+    "hex": "#780105",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "hex": "#680306",
+    "src": "oficial",
+    "v": 19
+   },
+   {
+    "hex": "#5d0508",
+    "src": "oficial",
+    "v": 20
+   },
+   {
+    "hex": "#4e0709",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "hex": "#440709",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "hex": "#3d0708",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "hex": "#350607",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "hex": "#2d0506",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "hex": "#260506",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "hex": "#1f0404",
+    "src": "oficial",
+    "v": 27
+   },
+   {
+    "hex": "#180404",
+    "src": "oficial",
+    "v": 28
+   },
+   {
+    "hex": "#110303",
+    "src": "oficial",
+    "v": 29
+   },
+   {
+    "hex": "#0b0203",
+    "src": "oficial",
+    "v": 30
+   },
+   {
+    "hex": "#050101",
+    "src": "oficial",
+    "v": 31
+   }
+  ],
+  "collection": "1",
+  "country": "bolivia",
+  "expected": 31,
+  "notes": "One color per number of fires (1-31).",
+  "status": "validada",
+  "subproduct": "fire_frequency",
+  "updatedAt": "from-repository"
+ },
+ "bolivia__1__monthly_burned": {
+  "classes": [
+   {
+    "en": "January",
+    "es": "Enero",
+    "hex": "#cc00ff",
+    "pt": "Janeiro",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "February",
+    "es": "Febrero",
+    "hex": "#6600ff",
+    "pt": "Fevereiro",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "March",
+    "es": "Marzo",
+    "hex": "#0000ff",
+    "pt": "Março",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "April",
+    "es": "Abril",
+    "hex": "#00ccff",
+    "pt": "Abril",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "May",
+    "es": "Mayo",
+    "hex": "#00ffcc",
+    "pt": "Maio",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "June",
+    "es": "Junio",
+    "hex": "#ffff00",
+    "pt": "Junho",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "July",
+    "es": "Julio",
+    "hex": "#ff9900",
+    "pt": "Julho",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "August",
+    "es": "Agosto",
+    "hex": "#ff3300",
+    "pt": "Agosto",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "September",
+    "es": "Septiembre",
+    "hex": "#cc0000",
+    "pt": "Setembro",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "October",
+    "es": "Octubre",
+    "hex": "#00cc00",
+    "pt": "Outubro",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "November",
+    "es": "Noviembre",
+    "hex": "#009900",
+    "pt": "Novembro",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "December",
+    "es": "Diciembre",
+    "hex": "#66ff66",
+    "pt": "Dezembro",
+    "src": "oficial",
+    "v": 12
+   }
+  ],
+  "collection": "1",
+  "country": "bolivia",
+  "expected": 12,
+  "notes": "Same 12-month palette for the monthly burned area of every country.",
+  "status": "validada",
+  "subproduct": "monthly_burned",
+  "updatedAt": "from-repository"
+ },
+ "bolivia__1__year_last_fire": {
+  "classes": [
+   {
+    "hex": "#010079",
+    "src": "oficial",
+    "v": 1995
+   },
+   {
+    "hex": "#010f7b",
+    "src": "oficial",
+    "v": 1996
+   },
+   {
+    "hex": "#001e7d",
+    "src": "oficial",
+    "v": 1997
+   },
+   {
+    "hex": "#002d80",
+    "src": "oficial",
+    "v": 1998
+   },
+   {
+    "hex": "#003b82",
+    "src": "oficial",
+    "v": 1999
+   },
+   {
+    "hex": "#004985",
+    "src": "oficial",
+    "v": 2000
+   },
+   {
+    "hex": "#005688",
+    "src": "oficial",
+    "v": 2001
+   },
+   {
+    "hex": "#01648b",
+    "src": "oficial",
+    "v": 2002
+   },
+   {
+    "hex": "#017793",
+    "src": "oficial",
+    "v": 2003
+   },
+   {
+    "hex": "#008998",
+    "src": "oficial",
+    "v": 2004
+   },
+   {
+    "hex": "#1d939a",
+    "src": "oficial",
+    "v": 2005
+   },
+   {
+    "hex": "#38a8a3",
+    "src": "oficial",
+    "v": 2006
+   },
+   {
+    "hex": "#5db9ad",
+    "src": "oficial",
+    "v": 2007
+   },
+   {
+    "hex": "#81c9b8",
+    "src": "oficial",
+    "v": 2008
+   },
+   {
+    "hex": "#9bc4a4",
+    "src": "oficial",
+    "v": 2009
+   },
+   {
+    "hex": "#aaa772",
+    "src": "oficial",
+    "v": 2010
+   },
+   {
+    "hex": "#b88b40",
+    "src": "oficial",
+    "v": 2011
+   },
+   {
+    "hex": "#c66e0e",
+    "src": "oficial",
+    "v": 2012
+   },
+   {
+    "hex": "#c45905",
+    "src": "oficial",
+    "v": 2013
+   },
+   {
+    "hex": "#bd4609",
+    "src": "oficial",
+    "v": 2014
+   },
+   {
+    "hex": "#b6330e",
+    "src": "oficial",
+    "v": 2015
+   },
+   {
+    "hex": "#ae2012",
+    "src": "oficial",
+    "v": 2016
+   },
+   {
+    "hex": "#a92017",
+    "src": "oficial",
+    "v": 2017
+   },
+   {
+    "hex": "#a4211d",
+    "src": "oficial",
+    "v": 2018
+   },
+   {
+    "hex": "#9f2222",
+    "src": "oficial",
+    "v": 2019
+   },
+   {
+    "hex": "#992023",
+    "src": "oficial",
+    "v": 2020
+   },
+   {
+    "hex": "#921619",
+    "src": "oficial",
+    "v": 2021
+   },
+   {
+    "hex": "#8b0e0f",
+    "src": "oficial",
+    "v": 2022
+   },
+   {
+    "hex": "#840505",
+    "src": "oficial",
+    "v": 2023
+   },
+   {
+    "hex": "#7b0000",
+    "src": "oficial",
+    "v": 2024
+   },
+   {
+    "hex": "#750000",
+    "src": "oficial",
+    "v": 2025
+   }
+  ],
+  "collection": "1",
+  "country": "bolivia",
+  "expected": 31,
+  "notes": "One color per year (1995-2025).",
+  "status": "validada",
+  "subproduct": "year_last_fire",
+  "updatedAt": "from-repository"
+ },
+ "brasil__5.1__accumulated_burned": {
+  "classes": [
+   {
+    "hex": "#e84130",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "5.1",
+  "country": "brasil",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
+  "status": "validada",
+  "subproduct": "accumulated_burned",
+  "updatedAt": "from-repository"
+ },
+ "brasil__5.1__annual_burned": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "5.1",
+  "country": "brasil",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country). The site also lists class 0 'Ausencia de fogo' as #fffff (5 digits, invalid); class 0 is not registered.",
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "brasil__5.1__annual_burned_scar_size_range": {
+  "classes": [
+   {
+    "en": "< 10 ha",
+    "es": "< 10 ha",
+    "hex": "#d0ae35",
+    "pt": "< 10 ha",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "10 - 250 ha",
+    "es": "10 - 250 ha",
+    "hex": "#c68e2f",
+    "pt": "10 - 250 ha",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "250 - 500 ha",
+    "es": "250 - 500 ha",
+    "hex": "#b96d2b",
+    "pt": "250 - 500 ha",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "500 - 5.000 ha",
+    "es": "500 - 5.000 ha",
+    "hex": "#ac4b28",
+    "pt": "500 - 5.000 ha",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5.000 - 10.000 ha",
+    "es": "5.000 - 10.000 ha",
+    "hex": "#933328",
+    "pt": "5.000 - 10.000 ha",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "10.000 - 50.000 ha",
+    "es": "10.000 - 50.000 ha",
+    "hex": "#72251d",
+    "pt": "10.000 - 50.000 ha",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "50.000 - 100.000 ha",
+    "es": "50.000 - 100.000 ha",
+    "hex": "#4e180f",
+    "pt": "50.000 - 100.000 ha",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": ">= 100.000 ha",
+    "es": ">= 100.000 ha",
+    "hex": "#240d00",
+    "pt": ">= 100.000 ha",
+    "src": "oficial",
+    "v": 8
+   }
+  ],
+  "collection": "5.1",
   "country": "brasil",
   "expected": 8,
   "notes": "Size classes differ from Peru Col1 (see peru_col1_fire_scar_size).",
@@ -170,7 +866,7 @@
   "subproduct": "annual_burned_scar_size_range",
   "updatedAt": "from-repository"
  },
- "brasil__5__fire_frequency": {
+ "brasil__5.1__fire_frequency": {
   "classes": [
    {
     "hex": "#faf3cd",
@@ -378,7 +1074,7 @@
     "v": 41
    }
   ],
-  "collection": "5",
+  "collection": "5.1",
   "country": "brasil",
   "expected": 41,
   "notes": "",
@@ -386,7 +1082,7 @@
   "subproduct": "fire_frequency",
   "updatedAt": "from-repository"
  },
- "brasil__5__interval_since_fire": {
+ "brasil__5.1__interval_since_fire": {
   "classes": [
    {
     "hex": "#940000",
@@ -589,7 +1285,7 @@
     "v": 40
    }
   ],
-  "collection": "5",
+  "collection": "5.1",
   "country": "brasil",
   "expected": 40,
   "notes": "In the official PDF the Portuguese column is shifted by one from pixel 20 on (shows '21 anos' for pixel 20) and ends with '40 anos' twice. Here the Portuguese names follow the pixel value.",
@@ -597,12 +1293,12 @@
   "subproduct": "interval_since_fire",
   "updatedAt": "from-repository"
  },
- "brasil__5__monthly_burned": {
+ "brasil__5.1__monthly_burned": {
   "classes": [
    {
     "en": "January",
     "es": "Enero",
-    "hex": "#a900ff",
+    "hex": "#cc00ff",
     "pt": "Janeiro",
     "src": "oficial",
     "v": 1
@@ -610,7 +1306,7 @@
    {
     "en": "February",
     "es": "Febrero",
-    "hex": "#6f02ff",
+    "hex": "#6600ff",
     "pt": "Fevereiro",
     "src": "oficial",
     "v": 2
@@ -618,7 +1314,7 @@
    {
     "en": "March",
     "es": "Marzo",
-    "hex": "#020aff",
+    "hex": "#0000ff",
     "pt": "Março",
     "src": "oficial",
     "v": 3
@@ -626,7 +1322,7 @@
    {
     "en": "April",
     "es": "Abril",
-    "hex": "#0675ff",
+    "hex": "#00ccff",
     "pt": "Abril",
     "src": "oficial",
     "v": 4
@@ -634,7 +1330,7 @@
    {
     "en": "May",
     "es": "Mayo",
-    "hex": "#06ffff",
+    "hex": "#00ffcc",
     "pt": "Maio",
     "src": "oficial",
     "v": 5
@@ -642,7 +1338,7 @@
    {
     "en": "June",
     "es": "Junio",
-    "hex": "#ffee00",
+    "hex": "#ffff00",
     "pt": "Junho",
     "src": "oficial",
     "v": 6
@@ -650,7 +1346,7 @@
    {
     "en": "July",
     "es": "Julio",
-    "hex": "#ff7700",
+    "hex": "#ff9900",
     "pt": "Julho",
     "src": "oficial",
     "v": 7
@@ -658,7 +1354,7 @@
    {
     "en": "August",
     "es": "Agosto",
-    "hex": "#ff0800",
+    "hex": "#ff3300",
     "pt": "Agosto",
     "src": "oficial",
     "v": 8
@@ -666,7 +1362,7 @@
    {
     "en": "September",
     "es": "Septiembre",
-    "hex": "#c20202",
+    "hex": "#cc0000",
     "pt": "Setembro",
     "src": "oficial",
     "v": 9
@@ -674,7 +1370,7 @@
    {
     "en": "October",
     "es": "Octubre",
-    "hex": "#8b0000",
+    "hex": "#00cc00",
     "pt": "Outubro",
     "src": "oficial",
     "v": 10
@@ -682,7 +1378,7 @@
    {
     "en": "November",
     "es": "Noviembre",
-    "hex": "#0aa602",
+    "hex": "#009900",
     "pt": "Novembro",
     "src": "oficial",
     "v": 11
@@ -690,21 +1386,21 @@
    {
     "en": "December",
     "es": "Diciembre",
-    "hex": "#83f27e",
+    "hex": "#66ff66",
     "pt": "Dezembro",
     "src": "oficial",
     "v": 12
    }
   ],
-  "collection": "5",
+  "collection": "5.1",
   "country": "brasil",
   "expected": 12,
-  "notes": "",
+  "notes": "Same 12-month palette for the monthly burned area of every country. These colors replace the ones in the official Col5 legend PDF.",
   "status": "validada",
   "subproduct": "monthly_burned",
   "updatedAt": "from-repository"
  },
- "brasil__5__severity_class": {
+ "brasil__5.1__severity_class": {
   "classes": [
    {
     "en": "Very Low",
@@ -755,7 +1451,7 @@
     "v": 6
    }
   ],
-  "collection": "5",
+  "collection": "5.1",
   "country": "brasil",
   "expected": 6,
   "notes": "Beta (potential severity from delta NBR).",
@@ -763,7 +1459,7 @@
   "subproduct": "severity_class",
   "updatedAt": "from-repository"
  },
- "brasil__5__year_last_fire": {
+ "brasil__5.1__year_last_fire": {
   "classes": [
    {
     "hex": "#010079",
@@ -971,12 +1667,28 @@
     "v": 2025
    }
   ],
-  "collection": "5",
+  "collection": "5.1",
   "country": "brasil",
   "expected": 41,
   "notes": "One color per year.",
   "status": "validada",
   "subproduct": "year_last_fire",
+  "updatedAt": "from-repository"
+ },
+ "chile__1__accumulated_burned": {
+  "classes": [
+   {
+    "hex": "#e84130",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "chile",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
+  "status": "validada",
+  "subproduct": "accumulated_burned",
   "updatedAt": "from-repository"
  },
  "chile__1__annual_burned": {
@@ -995,6 +1707,204 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "chile__1__annual_burned_scar_size_range": {
+  "classes": [
+   {
+    "en": "< 10 ha",
+    "es": "< 10 ha",
+    "hex": "#d0ae35",
+    "pt": "< 10 ha",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "10 - 250 ha",
+    "es": "10 - 250 ha",
+    "hex": "#c68e2f",
+    "pt": "10 - 250 ha",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "250 - 500 ha",
+    "es": "250 - 500 ha",
+    "hex": "#b96d2b",
+    "pt": "250 - 500 ha",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "500 - 5.000 ha",
+    "es": "500 - 5.000 ha",
+    "hex": "#ac4b28",
+    "pt": "500 - 5.000 ha",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5.000 - 10.000 ha",
+    "es": "5.000 - 10.000 ha",
+    "hex": "#933328",
+    "pt": "5.000 - 10.000 ha",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "10.000 - 50.000 ha",
+    "es": "10.000 - 50.000 ha",
+    "hex": "#72251d",
+    "pt": "10.000 - 50.000 ha",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "50.000 - 100.000 ha",
+    "es": "50.000 - 100.000 ha",
+    "hex": "#4e180f",
+    "pt": "50.000 - 100.000 ha",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": ">= 100.000 ha",
+    "es": ">= 100.000 ha",
+    "hex": "#240d00",
+    "pt": ">= 100.000 ha",
+    "src": "oficial",
+    "v": 8
+   }
+  ],
+  "collection": "1",
+  "country": "chile",
+  "expected": 8,
+  "notes": "Same 8-color scar size palette as Brazil Col5. Size classes assumed equal to Brazil Col5.",
+  "status": "validada",
+  "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "chile__1__monthly_burned": {
+  "classes": [
+   {
+    "en": "January",
+    "es": "Enero",
+    "hex": "#cc00ff",
+    "pt": "Janeiro",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "February",
+    "es": "Febrero",
+    "hex": "#6600ff",
+    "pt": "Fevereiro",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "March",
+    "es": "Marzo",
+    "hex": "#0000ff",
+    "pt": "Março",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "April",
+    "es": "Abril",
+    "hex": "#00ccff",
+    "pt": "Abril",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "May",
+    "es": "Mayo",
+    "hex": "#00ffcc",
+    "pt": "Maio",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "June",
+    "es": "Junio",
+    "hex": "#ffff00",
+    "pt": "Junho",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "July",
+    "es": "Julio",
+    "hex": "#ff9900",
+    "pt": "Julho",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "August",
+    "es": "Agosto",
+    "hex": "#ff3300",
+    "pt": "Agosto",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "September",
+    "es": "Septiembre",
+    "hex": "#cc0000",
+    "pt": "Setembro",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "October",
+    "es": "Octubre",
+    "hex": "#00cc00",
+    "pt": "Outubro",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "November",
+    "es": "Noviembre",
+    "hex": "#009900",
+    "pt": "Novembro",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "December",
+    "es": "Diciembre",
+    "hex": "#66ff66",
+    "pt": "Dezembro",
+    "src": "oficial",
+    "v": 12
+   }
+  ],
+  "collection": "1",
+  "country": "chile",
+  "expected": 12,
+  "notes": "Same 12-month palette for the monthly burned area of every country.",
+  "status": "validada",
+  "subproduct": "monthly_burned",
+  "updatedAt": "from-repository"
+ },
+ "colombia__1__accumulated_burned": {
+  "classes": [
+   {
+    "hex": "#e84130",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "colombia",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
+  "status": "validada",
+  "subproduct": "accumulated_burned",
+  "updatedAt": "from-repository"
+ },
  "colombia__1__annual_burned": {
   "classes": [
    {
@@ -1011,6 +1921,345 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "colombia__1__annual_burned_scar_size_range": {
+  "classes": [
+   {
+    "en": "< 0,5 ha",
+    "es": "< 0,5 ha",
+    "hex": "#d0ae35",
+    "pt": "< 0,5 ha",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "0,5 - 1 ha",
+    "es": "0,5 - 1 ha",
+    "hex": "#c68e2f",
+    "pt": "0,5 - 1 ha",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "1 - 2 ha",
+    "es": "1 - 2 ha",
+    "hex": "#b96d2b",
+    "pt": "1 - 2 ha",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "2 - 5 ha",
+    "es": "2 - 5 ha",
+    "hex": "#ac4b28",
+    "pt": "2 - 5 ha",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5 - 20 ha",
+    "es": "5 - 20 ha",
+    "hex": "#933328",
+    "pt": "5 - 20 ha",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "20 - 200 ha",
+    "es": "20 - 200 ha",
+    "hex": "#72251d",
+    "pt": "20 - 200 ha",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "200 - 2.000 ha",
+    "es": "200 - 2.000 ha",
+    "hex": "#4e180f",
+    "pt": "200 - 2.000 ha",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": ">= 2.000 ha",
+    "es": ">= 2.000 ha",
+    "hex": "#240d00",
+    "pt": ">= 2.000 ha",
+    "src": "oficial",
+    "v": 8
+   }
+  ],
+  "collection": "1",
+  "country": "colombia",
+  "expected": 8,
+  "notes": "Same 8 colors as Brazil Col5, with Colombia's own size classes (< 0,5 ha to >= 2.000 ha).",
+  "status": "validada",
+  "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "colombia__1__monthly_burned": {
+  "classes": [
+   {
+    "en": "January",
+    "es": "Enero",
+    "hex": "#8b0000",
+    "pt": "Janeiro",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "February",
+    "es": "Febrero",
+    "hex": "#b30000",
+    "pt": "Fevereiro",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "March",
+    "es": "Marzo",
+    "hex": "#d7301f",
+    "pt": "Março",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "April",
+    "es": "Abril",
+    "hex": "#f16913",
+    "pt": "Abril",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "May",
+    "es": "Mayo",
+    "hex": "#ffb000",
+    "pt": "Maio",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "June",
+    "es": "Junio",
+    "hex": "#ff8c00",
+    "pt": "Junho",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "July",
+    "es": "Julio",
+    "hex": "#ff6d00",
+    "pt": "Julho",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "August",
+    "es": "Agosto",
+    "hex": "#ff4d00",
+    "pt": "Agosto",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "September",
+    "es": "Septiembre",
+    "hex": "#e85d04",
+    "pt": "Setembro",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "October",
+    "es": "Octubre",
+    "hex": "#dc4c00",
+    "pt": "Outubro",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "November",
+    "es": "Noviembre",
+    "hex": "#b2182b",
+    "pt": "Novembro",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "December",
+    "es": "Diciembre",
+    "hex": "#b2182b",
+    "pt": "Dezembro",
+    "src": "oficial",
+    "v": 12
+   }
+  ],
+  "collection": "1",
+  "country": "colombia",
+  "expected": 12,
+  "notes": "Colombia's own 12-month palette (red-orange), different from the other countries. November and December share the same color (#b2182b).",
+  "status": "validada",
+  "subproduct": "monthly_burned",
+  "updatedAt": "from-repository"
+ },
+ "colombia__1__year_last_fire": {
+  "classes": [
+   {
+    "hex": "#010079",
+    "src": "oficial",
+    "v": 2000
+   },
+   {
+    "hex": "#01127c",
+    "src": "oficial",
+    "v": 2001
+   },
+   {
+    "hex": "#00247e",
+    "src": "oficial",
+    "v": 2002
+   },
+   {
+    "hex": "#003681",
+    "src": "oficial",
+    "v": 2003
+   },
+   {
+    "hex": "#004685",
+    "src": "oficial",
+    "v": 2004
+   },
+   {
+    "hex": "#005688",
+    "src": "oficial",
+    "v": 2005
+   },
+   {
+    "hex": "#01678c",
+    "src": "oficial",
+    "v": 2006
+   },
+   {
+    "hex": "#007f96",
+    "src": "oficial",
+    "v": 2007
+   },
+   {
+    "hex": "#148c98",
+    "src": "oficial",
+    "v": 2008
+   },
+   {
+    "hex": "#31a5a1",
+    "src": "oficial",
+    "v": 2009
+   },
+   {
+    "hex": "#5db9ad",
+    "src": "oficial",
+    "v": 2010
+   },
+   {
+    "hex": "#89cdba",
+    "src": "oficial",
+    "v": 2011
+   },
+   {
+    "hex": "#a1b990",
+    "src": "oficial",
+    "v": 2012
+   },
+   {
+    "hex": "#b29654",
+    "src": "oficial",
+    "v": 2013
+   },
+   {
+    "hex": "#c37418",
+    "src": "oficial",
+    "v": 2014
+   },
+   {
+    "hex": "#c45905",
+    "src": "oficial",
+    "v": 2015
+   },
+   {
+    "hex": "#bb420a",
+    "src": "oficial",
+    "v": 2016
+   },
+   {
+    "hex": "#b32b10",
+    "src": "oficial",
+    "v": 2017
+   },
+   {
+    "hex": "#ab2015",
+    "src": "oficial",
+    "v": 2018
+   },
+   {
+    "hex": "#a5211c",
+    "src": "oficial",
+    "v": 2019
+   },
+   {
+    "hex": "#9f2222",
+    "src": "oficial",
+    "v": 2020
+   },
+   {
+    "hex": "#981e21",
+    "src": "oficial",
+    "v": 2021
+   },
+   {
+    "hex": "#8f1315",
+    "src": "oficial",
+    "v": 2022
+   },
+   {
+    "hex": "#860809",
+    "src": "oficial",
+    "v": 2023
+   },
+   {
+    "hex": "#7d0000",
+    "src": "oficial",
+    "v": 2024
+   },
+   {
+    "hex": "#750000",
+    "src": "oficial",
+    "v": 2025
+   }
+  ],
+  "collection": "1",
+  "country": "colombia",
+  "expected": 26,
+  "notes": "One color per year (2000-2025).",
+  "status": "validada",
+  "subproduct": "year_last_fire",
+  "updatedAt": "from-repository"
+ },
+ "indonesia__1__accumulated_burned": {
+  "classes": [
+   {
+    "hex": "#e84130",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "indonesia",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
+  "status": "validada",
+  "subproduct": "accumulated_burned",
+  "updatedAt": "from-repository"
+ },
  "indonesia__1__annual_burned": {
   "classes": [
    {
@@ -1025,6 +2274,113 @@
   "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
   "status": "validada",
   "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "indonesia__1__monthly_burned": {
+  "classes": [
+   {
+    "en": "January",
+    "es": "Enero",
+    "hex": "#cc00ff",
+    "pt": "Janeiro",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "February",
+    "es": "Febrero",
+    "hex": "#6600ff",
+    "pt": "Fevereiro",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "March",
+    "es": "Marzo",
+    "hex": "#0000ff",
+    "pt": "Março",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "April",
+    "es": "Abril",
+    "hex": "#00ccff",
+    "pt": "Abril",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "May",
+    "es": "Mayo",
+    "hex": "#00ffcc",
+    "pt": "Maio",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "June",
+    "es": "Junio",
+    "hex": "#ffff00",
+    "pt": "Junho",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "July",
+    "es": "Julio",
+    "hex": "#ff9900",
+    "pt": "Julho",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "August",
+    "es": "Agosto",
+    "hex": "#ff3300",
+    "pt": "Agosto",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "September",
+    "es": "Septiembre",
+    "hex": "#cc0000",
+    "pt": "Setembro",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "October",
+    "es": "Octubre",
+    "hex": "#00cc00",
+    "pt": "Outubro",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "November",
+    "es": "Noviembre",
+    "hex": "#009900",
+    "pt": "Novembro",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "December",
+    "es": "Diciembre",
+    "hex": "#66ff66",
+    "pt": "Dezembro",
+    "src": "oficial",
+    "v": 12
+   }
+  ],
+  "collection": "1",
+  "country": "indonesia",
+  "expected": 12,
+  "notes": "Same 12-month palette for the monthly burned area of every country.",
+  "status": "validada",
+  "subproduct": "monthly_burned",
   "updatedAt": "from-repository"
  },
  "indonesia__2__annual_burned": {
@@ -1059,6 +2415,22 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "peru__1__accumulated_burned": {
+  "classes": [
+   {
+    "hex": "#e84130",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "1",
+  "country": "peru",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
+  "status": "validada",
+  "subproduct": "accumulated_burned",
+  "updatedAt": "from-repository"
+ },
  "peru__1__annual_burned": {
   "classes": [
    {
@@ -1075,6 +2447,204 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "peru__1__annual_burned_scar_size_range": {
+  "classes": [
+   {
+    "en": "< 5 ha",
+    "es": "< 5 ha",
+    "hex": "#d0ae35",
+    "pt": "< 5 ha",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "5 - 25 ha",
+    "es": "5 - 25 ha",
+    "hex": "#c68e2f",
+    "pt": "5 - 25 ha",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "25 - 50 ha",
+    "es": "25 - 50 ha",
+    "hex": "#b96d2b",
+    "pt": "25 - 50 ha",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "50 - 250 ha",
+    "es": "50 - 250 ha",
+    "hex": "#ac4b28",
+    "pt": "50 - 250 ha",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "250 - 500 ha",
+    "es": "250 - 500 ha",
+    "hex": "#933328",
+    "pt": "250 - 500 ha",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "500 - 1.000 ha",
+    "es": "500 - 1.000 ha",
+    "hex": "#72251d",
+    "pt": "500 - 1.000 ha",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "1.000 - 5.000 ha",
+    "es": "1.000 - 5.000 ha",
+    "hex": "#4e180f",
+    "pt": "1.000 - 5.000 ha",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": ">= 5.000 ha",
+    "es": ">= 5.000 ha",
+    "hex": "#240d00",
+    "pt": ">= 5.000 ha",
+    "src": "oficial",
+    "v": 8
+   }
+  ],
+  "collection": "1",
+  "country": "peru",
+  "expected": 8,
+  "notes": "Same 8-color scar size palette as Brazil Col5. Colors follow the class order; the size classes are Peru's own. Classes: <5, 5-25, 25-50, 50-250, 250-500, 500-1000, 1000-5000, >=5000 ha (different from Brazil Col5). The GEE asset name uses 'mapbiomas_fire', not 'mapbiomas_peru_fire'.",
+  "status": "validada",
+  "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "peru__1__monthly_burned": {
+  "classes": [
+   {
+    "en": "January",
+    "es": "Enero",
+    "hex": "#cc00ff",
+    "pt": "Janeiro",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "February",
+    "es": "Febrero",
+    "hex": "#6600ff",
+    "pt": "Fevereiro",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "March",
+    "es": "Marzo",
+    "hex": "#0000ff",
+    "pt": "Março",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "April",
+    "es": "Abril",
+    "hex": "#00ccff",
+    "pt": "Abril",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "May",
+    "es": "Mayo",
+    "hex": "#00ffcc",
+    "pt": "Maio",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "June",
+    "es": "Junio",
+    "hex": "#ffff00",
+    "pt": "Junho",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "July",
+    "es": "Julio",
+    "hex": "#ff9900",
+    "pt": "Julho",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "August",
+    "es": "Agosto",
+    "hex": "#ff3300",
+    "pt": "Agosto",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "September",
+    "es": "Septiembre",
+    "hex": "#cc0000",
+    "pt": "Setembro",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "October",
+    "es": "Octubre",
+    "hex": "#00cc00",
+    "pt": "Outubro",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "November",
+    "es": "Noviembre",
+    "hex": "#009900",
+    "pt": "Novembro",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "December",
+    "es": "Diciembre",
+    "hex": "#66ff66",
+    "pt": "Dezembro",
+    "src": "oficial",
+    "v": 12
+   }
+  ],
+  "collection": "1",
+  "country": "peru",
+  "expected": 12,
+  "notes": "Same 12-month palette for the monthly burned area of every country. The official PDF publishes no colors for Peru.",
+  "status": "validada",
+  "subproduct": "monthly_burned",
+  "updatedAt": "from-repository"
+ },
+ "peru__2__accumulated_burned": {
+  "classes": [
+   {
+    "hex": "#e84130",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "2",
+  "country": "peru",
+  "expected": 1,
+  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
+  "status": "validada",
+  "subproduct": "accumulated_burned",
+  "updatedAt": "from-repository"
+ },
  "peru__2__annual_burned": {
   "classes": [
    {
@@ -1089,6 +2659,188 @@
   "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
   "status": "validada",
   "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "peru__2__annual_burned_scar_size_range": {
+  "classes": [
+   {
+    "en": "< 10 ha",
+    "es": "< 10 ha",
+    "hex": "#d0ae35",
+    "pt": "< 10 ha",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "10 - 250 ha",
+    "es": "10 - 250 ha",
+    "hex": "#c68e2f",
+    "pt": "10 - 250 ha",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "250 - 500 ha",
+    "es": "250 - 500 ha",
+    "hex": "#b96d2b",
+    "pt": "250 - 500 ha",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "500 - 5.000 ha",
+    "es": "500 - 5.000 ha",
+    "hex": "#ac4b28",
+    "pt": "500 - 5.000 ha",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5.000 - 10.000 ha",
+    "es": "5.000 - 10.000 ha",
+    "hex": "#933328",
+    "pt": "5.000 - 10.000 ha",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "10.000 - 50.000 ha",
+    "es": "10.000 - 50.000 ha",
+    "hex": "#72251d",
+    "pt": "10.000 - 50.000 ha",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "50.000 - 100.000 ha",
+    "es": "50.000 - 100.000 ha",
+    "hex": "#4e180f",
+    "pt": "50.000 - 100.000 ha",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": ">= 100.000 ha",
+    "es": ">= 100.000 ha",
+    "hex": "#240d00",
+    "pt": ">= 100.000 ha",
+    "src": "oficial",
+    "v": 8
+   }
+  ],
+  "collection": "2",
+  "country": "peru",
+  "expected": 8,
+  "notes": "Same 8-color scar size palette as Brazil Col5. Size classes assumed equal to Brazil Col5.",
+  "status": "validada",
+  "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "peru__2__monthly_burned": {
+  "classes": [
+   {
+    "en": "January",
+    "es": "Enero",
+    "hex": "#cc00ff",
+    "pt": "Janeiro",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "February",
+    "es": "Febrero",
+    "hex": "#6600ff",
+    "pt": "Fevereiro",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "March",
+    "es": "Marzo",
+    "hex": "#0000ff",
+    "pt": "Março",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "April",
+    "es": "Abril",
+    "hex": "#00ccff",
+    "pt": "Abril",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "May",
+    "es": "Mayo",
+    "hex": "#00ffcc",
+    "pt": "Maio",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "June",
+    "es": "Junio",
+    "hex": "#ffff00",
+    "pt": "Junho",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "July",
+    "es": "Julio",
+    "hex": "#ff9900",
+    "pt": "Julho",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "August",
+    "es": "Agosto",
+    "hex": "#ff3300",
+    "pt": "Agosto",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "September",
+    "es": "Septiembre",
+    "hex": "#cc0000",
+    "pt": "Setembro",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "October",
+    "es": "Octubre",
+    "hex": "#00cc00",
+    "pt": "Outubro",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "November",
+    "es": "Noviembre",
+    "hex": "#009900",
+    "pt": "Novembro",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "December",
+    "es": "Diciembre",
+    "hex": "#66ff66",
+    "pt": "Dezembro",
+    "src": "oficial",
+    "v": 12
+   }
+  ],
+  "collection": "2",
+  "country": "peru",
+  "expected": 12,
+  "notes": "Same 12-month palette for the monthly burned area of every country.",
+  "status": "validada",
+  "subproduct": "monthly_burned",
   "updatedAt": "from-repository"
  }
 }

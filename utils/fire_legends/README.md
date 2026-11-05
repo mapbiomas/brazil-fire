@@ -6,7 +6,7 @@ Consult the legends and palettes of every MapBiomas Fire collection published so
 
 | Country | Published collections |
 |---|---|
-| 🇧🇷 Brazil | 2 · 3 · 4 · 4.1 · **5** · Monitor |
+| 🇧🇷 Brazil | **5.1** · Monitor |
 | 🇦🇷 Argentina | 1 |
 | 🇧🇴 Bolivia | 1 |
 | 🇨🇱 Chile | 1 |
@@ -15,7 +15,7 @@ Consult the legends and palettes of every MapBiomas Fire collection published so
 | 🇵🇪 Peru | 1 · 2 · Monitor |
 | 🇮🇩 Indonesia | 1 · 2 · Monitor |
 
-_Inventory of 30/10/2026 (official site and `gs://mapbiomas-public`)._ Colors marked **validada** in the app come from the official legend documents registered in this folder (today: **Brazil, Collection 5**). For the other collections the app shows a generated suggestion until their colors are registered.
+_Inventory of 30/10/2026 (official site and `gs://mapbiomas-public`)._ Colors marked **validada** in the app are the ones registered in this folder (`registry.csv` with status `active`): official legend documents or palettes defined by the team. For the other collections the app shows a generated suggestion until their colors are registered.
 
 ## Folder structure
 

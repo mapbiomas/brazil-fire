@@ -466,17 +466,12 @@ const COUNTRY_NAMES = {
   paraguay:{pt:"Paraguai",es:"Paraguay",en:"Paraguay"},peru:{pt:"Peru",es:"Perú",en:"Peru"},venezuela:{pt:"Venezuela",es:"Venezuela",en:"Venezuela"},
   indonesia:{pt:"Indonésia",es:"Indonesia",en:"Indonesia"}};
 const COL3 = ["annual_burned","annual_burned_coverage","monthly_burned","annual_burned_scar_size_range","accumulated_burned","accumulated_burned_coverage","fire_frequency","year_last_fire"];
-const COL4 = [...COL3,"fire_frequency_coverage","monthly_burned_coverage","time_after_fire"];
 const COL5 = [...COL3,"fire_frequency_coverage","time_after_fire","interval_since_fire","severity_class"];
 const REG = ["annual_burned","annual_burned_coverage","monthly_burned","annual_burned_scar_size_range","accumulated_burned","accumulated_burned_coverage","fire_frequency","fire_frequency_coverage","year_last_fire"];
 const regFolder = s=>s.replace("fire_frequency","frequency_burned");
 const PUBLISHED = [
-  {country:"brasil",id:"2",start:1985,end:2022,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned","monthly_burned","accumulated_burned","fire_frequency"],layout:"folder",root:"brasil/collection_8/fire-col2/",scarN:10},
-  {country:"brasil",id:"3",start:1985,end:2023,sensor:"Landsat 30 m",origin:"bucket",subs:COL3,layout:"folder",root:"brasil/collection_8/fire-col3/",scarN:10},
-  {country:"brasil",id:"4",start:1985,end:2024,sensor:"Landsat 30 m",origin:"bucket",subs:COL4,layout:"br4",root:"brasil/collection_9/fire-col4/",scarN:10},
-  {country:"brasil",id:"4.1",start:1985,end:2024,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned_coverage"],layout:"folder",root:"brasil/collection_10/fire-col41/annual_burned_vectors_v1/",vectorsOnly:true},
-  {country:"brasil",id:"5",start:1985,end:2025,sensor:"Landsat 30 m",origin:"site",subs:COL5,layout:"br5",root:"brasil/collection_10/fire-col5/",scarN:8,
-    asset:s=>`projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_${s}_v1`},
+  {country:"brasil",id:"5.1",start:1985,end:2025,sensor:"Landsat 30 m",origin:"site",subs:COL5,layout:"br5",root:"brasil/collection_10/fire-col5/",scarN:8,
+    asset:s=>`projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_${s}_v1`},
   {country:"brasil",id:"Monitor",start:2019,end:2026,sensor:"Sentinel-2 10 m",origin:"site",subs:["fire_monitor"],layout:"none"},
   {country:"argentina",id:"1",start:1999,end:2025,sensor:"Landsat 30 m",origin:"bucket",subs:REG,layout:"reg",root:"argentina/fire/collection_01/"},
   {country:"bolivia",id:"1",start:1995,end:2025,sensor:"Landsat 30 m",origin:"bucket",subs:REG,layout:"reg",root:"bolivia/fire/collection_01/",ylfBand:"classification"},
@@ -506,7 +501,7 @@ const store = {
   get(k,d){try{const v=localStorage.getItem("mbfogo:"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem("mbfogo:"+k,JSON.stringify(v))}catch(e){}}
 };
-const S = {lang:store.get("lang","pt"),view:"consultar",country:"brasil",coll:"5",sub:"fire_frequency",y:2025,s:1985,e:2025,
+const S = {lang:store.get("lang","pt"),view:"consultar",country:"brasil",coll:"5.1",sub:"fire_frequency",y:2025,s:1985,e:2025,
   layout:"list",tab:"hex",origin:{site:true,bucket:true,dev:true},mOrigin:{site:true,bucket:true,dev:true}};
 let PAL = {};      // paletas cadastradas (db: paletas/<chave>)
 let DEV = {};      // coleções em desenvolvimento (db: colecoes/<chave>)
@@ -650,7 +645,6 @@ function gcsInfo(c,sub){
     case"chile":return{file:`${GCS}${c.root}${f}_v1/mapbiomas_fire_chile_col1_${f}_${yp}.tif`};
     case"br5":if(sub==="accumulated_burned_coverage")return{folder:`${GCS}${c.root}mapbiomas_fire_collection5_${sub}_v1/`};
       return{file:`${GCS}${c.root}mapbiomas_fire_collection5_${sub}_v1/${band}.tif`};
-    case"br4":return{file:`${GCS}${c.root}${sub==="annual_burned"?sub:sub+"_v1"}/mapbiomas_fire_col4_br_${sub}_${yp}.tif`};
     case"monitor":return{folder:`${GCS}${c.root}`,pattern:`monthly_burned-${c.country}_${S.y}_MM.tif`};
     default:return{folder:`${GCS}${c.root}`};
   }
