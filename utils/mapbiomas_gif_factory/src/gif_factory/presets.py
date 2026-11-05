@@ -79,6 +79,26 @@ LAYERS.extend([
      "status": "experimental"},
 ])
 
+# Degradação — Coleção 11 (distância até a borda). Experimental.
+_DEGRADATION_EDGE_ASSET = "projects/mapbiomas-brazil/assets/DEGRADATION/COLLECTION-11/public/degradation_edge_area_col11_v1"
+LAYERS.extend([
+    {"id": "edge_area_col11", "name": "Distância até a borda (0–7000 m)", "theme": "Degradação", "collection": "Coleção 11",
+     "asset": _DEGRADATION_EDGE_ASSET,
+     "visualization": {"min": 0, "max": 7000, "palette": ["d73027", "fc8d59", "fee08b", "ffffbf", "d9ef8b", "91cf60", "1a9850"],
+                      "cmap_type": "sequential", "nodata_value": 0, "nodata_color": "ffffff"},
+     "legend": [{"label": "0 m", "color": "d73027"}, {"label": "7000 m", "color": "1a9850"}],
+     "status": "experimental"},
+    {"id": "edge_area_1000m_col11", "name": "Distância até a borda (classes, ≤1000 m)", "theme": "Degradação", "collection": "Coleção 11",
+     "asset": _DEGRADATION_EDGE_ASSET,
+     "reclass": [(0, 30, 1), (30, 60, 2), (60, 90, 3), (90, 120, 4), (120, 150, 5), (150, 300, 6), (300, 600, 7), (600, 1000, 8)],
+     "visualization": {"min": 0, "max": 8, "palette": ["ffffff", "bc4749", "d68c8d", "fff59d", "dce0af", "a7c957", "6a994e", "386641", "0d2207"],
+                      "cmap_type": "categorical", "prefix_labels": False},
+     "legend": [{"label": "", "color": "ffffff"}, {"label": "≤ 30 m", "color": "bc4749"}, {"label": "≤ 60 m", "color": "d68c8d"},
+                {"label": "≤ 90 m", "color": "fff59d"}, {"label": "≤ 120 m", "color": "dce0af"}, {"label": "≤ 150 m", "color": "a7c957"},
+                {"label": "≤ 300 m", "color": "6a994e"}, {"label": "≤ 600 m", "color": "386641"}, {"label": "≤ 1000 m", "color": "0d2207"}],
+     "status": "experimental"},
+])
+
 for product, title, band, version in [
     ("soil_clay_fraction", "Fração de argila", "clay_fraction", "v1"),
     ("soil_sand_fraction", "Fração de areia", "sand_fraction", "v1"),

@@ -16,7 +16,7 @@ from .progress import ProgressState
 from .library import assess, fingerprint, ingest, variant_for, sync_selected
 from .territory_search import (TERRITORY_SEARCH_SOURCES, search_configured,
                                search_municipalities, territory as searched_territory)
-from .reference_catalog import INITIATIVES, build_reference_layers
+from .reference_catalog import INITIATIVES, LANGUAGES, build_reference_layers, canonical_theme, theme_label
 
 
 def _duration(seconds):
@@ -52,6 +52,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     initiative_options = ["Brasil", "Peru"] + [name for name in INITIATIVES.values() if name not in ("Brasil", "Peru")] + ["Personalizado"]
     initiative = w.ToggleButtons(options=initiative_options, value="Brasil", description="Iniciativa:", layout=w.Layout(width="100%"))
     theme_nav = w.ToggleButtons(options=[], description="Tema:")
+    collection_nav = w.ToggleButtons(options=[], description="Coleção:")
 
     inventory_path = Path(__file__).with_name("reference_inventory.json")
     records = json.loads(inventory_path.read_text(encoding="utf-8"))["records"] if inventory_path.is_file() else []
@@ -66,7 +67,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     for origin, entries in catalog:
         groups = {}
         for layer in entries:
-            theme = layer.get("theme", "Fogo" if origin == "Brasil" else "Outros")
+            theme = canonical_theme(layer.get("theme", "Fogo" if origin == "Brasil" else "Outros"))
             collection = layer.get("collection", "Coleção 5" if origin == "Brasil" else "Sem coleção")
             groups.setdefault((theme, collection), []).append(layer)
         sections = []
@@ -81,14 +82,15 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                 checks.append(check)
                 if not enabled:
                     checks.append(w.HTML(f"<small>{escape(layer.get('reason', 'Configuração pendente.'))}</small>"))
-            panel = w.VBox([w.HTML(f"<b>{escape(str(collection))}</b>"), *checks])
+            panel = w.VBox(checks)
             panel.theme = str(theme)
+            panel.collection = str(collection)
             sections.append(panel)
         if not sections:
             sections.append(w.HTML("Nenhuma camada configurada."))
         theme_panels[origin] = sections
     theme_body = w.VBox([])
-    catalog_panel = w.VBox([w.HTML("<h3>Produtos</h3>"), theme_nav, theme_body])
+    catalog_panel = w.VBox([w.HTML("<h3>Produtos</h3>"), theme_nav, collection_nav, theme_body])
 
     # Territórios personalizados continuam disponíveis em qualquer iniciativa.
     territory_checks = []
@@ -196,6 +198,8 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
 
     def render_themes(*_):
         origin = initiative.value
+        code = {name: key for key, name in INITIATIVES.items()}.get(origin, "")
+        lang = LANGUAGES.get(code, "pt")
         sections = theme_panels[origin]
         themes = []
         for panel in sections:
@@ -203,14 +207,29 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             if theme and theme not in themes:
                 themes.append(theme)
         previous = theme_nav.value
-        theme_nav.options = themes
+        theme_nav.options = [(theme_label(t, lang), t) for t in themes]
         if themes and previous not in themes:
             theme_nav.value = themes[0]
         theme_nav.layout.display = "" if len(themes) > 1 else "none"
+        # Coleções da temática selecionada.
+        selected_theme = theme_nav.value
+        collections = []
+        for panel in sections:
+            if getattr(panel, "theme", None) == selected_theme:
+                collection = getattr(panel, "collection", None)
+                if collection and collection not in collections:
+                    collections.append(collection)
+        previous = collection_nav.value
+        collection_nav.options = list(collections)
+        if collections and previous not in collections:
+            collection_nav.value = collections[0]
+        collection_nav.layout.display = "" if len(collections) > 1 else "none"
         for panel in sections:
             theme = getattr(panel, "theme", None)
-            visible = theme is None or len(themes) <= 1 or theme == theme_nav.value
-            panel.layout.display = "" if visible else "none"
+            collection = getattr(panel, "collection", None)
+            show_theme = theme is None or len(themes) <= 1 or theme == theme_nav.value
+            show_collection = collection is None or len(collections) <= 1 or collection == collection_nav.value
+            panel.layout.display = "" if (show_theme and show_collection) else "none"
         theme_body.children = [*sections]
 
     def change_initiative(change=None):
@@ -223,6 +242,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
         territory_boxes[1].layout.display = "" if active in ("Peru", "Personalizado") else "none"
         render_themes()
     theme_nav.observe(render_themes, names="value")
+    collection_nav.observe(render_themes, names="value")
     initiative.observe(change_initiative, names="value")
 
     def update_files(*_):
@@ -510,6 +530,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     ui.initiative = initiative
     ui.navigation = navigation
     ui.theme_nav = theme_nav
+    ui.collection_nav = collection_nav
     ui.product_checks = product_checks
     ui.territory_checks = territory_checks
     ui.status_html = status

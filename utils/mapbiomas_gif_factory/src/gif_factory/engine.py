@@ -223,6 +223,13 @@ def load_image(layer):
     image = ee.Image(layer["asset"])
     if layer.get("bands_slice"):
         image = image.slice(*layer["bands_slice"])
+    if layer.get("reclass"):
+        src = image.round()
+        out = src.multiply(0)
+        for gt, lte, value in layer["reclass"]:
+            condition = src.gt(gt).And(src.lte(lte)) if lte is not None else src.gt(gt)
+            out = out.where(condition, value)
+        image = out.unmask(0).int8()
     return image
 
 

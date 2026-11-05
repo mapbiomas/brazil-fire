@@ -85,23 +85,35 @@ class UIProgressTests(unittest.TestCase):
             self.assertEqual([(a, b) for a, b, _, _ in seen], [("annual_burned", "territorio_novo")])
 
     def test_theme_navigation_filters_products(self):
-        def custom(pid, name, theme):
-            return {"id": pid, "name": name, "theme": theme, "asset": f"projects/x/{pid}",
+        def custom(pid, name, theme, collection):
+            return {"id": pid, "name": name, "theme": theme, "collection": collection,
+                    "asset": f"projects/x/{pid}",
                     "visualization": {"min": 0, "max": 1, "palette": ["fff", "000"]},
                     "legend": [{"label": "a", "color": "fff"}, {"label": "b", "color": "000"}]}
         with tempfile.TemporaryDirectory() as tmp:
-            widget = self.run_ui(tmp, layers=[custom("camada_a", "Camada A", "Meu tema"),
-                                              custom("solo_teste", "Solo teste", "Solo")])
+            widget = self.run_ui(tmp, layers=[custom("camada_a", "Camada A", "Meu tema", "c1"),
+                                              custom("solo_teste", "Solo teste", "Solo", "c2")])
             widget.initiative.value = "Personalizado"
-            self.assertEqual(list(widget.theme_nav.options), ["Meu tema", "Solo"])
-            widget.theme_nav.value = "Solo"
-            visible = [panel for panel in widget.children[2].children[2].children
+            self.assertEqual([label for label, _ in widget.theme_nav.options], ["Meu Tema", "Solo"])
+            widget.theme_nav.value = "soil"
+            visible = [panel for panel in widget.children[2].children[3].children
                        if panel.layout.display != "none" and getattr(panel, "theme", None)]
-            self.assertEqual([panel.theme for panel in visible], ["Solo"])
-            widget.theme_nav.value = "Meu tema"
-            visible = [panel for panel in widget.children[2].children[2].children
+            self.assertEqual([panel.theme for panel in visible], ["soil"])
+            widget.theme_nav.value = "meu tema"
+            visible = [panel for panel in widget.children[2].children[3].children
                        if panel.layout.display != "none" and getattr(panel, "theme", None)]
-            self.assertEqual([panel.theme for panel in visible], ["Meu tema"])
+            self.assertEqual([panel.theme for panel in visible], ["meu tema"])
+
+    def test_fire_and_soil_themes_are_merged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            widget = self.run_ui(tmp)
+            labels = [label for label, _ in widget.theme_nav.options]
+            self.assertIn("Fogo", labels)
+            self.assertIn("Solo", labels)
+            self.assertNotIn("fire", labels)
+            self.assertNotIn("soil", labels)
+            # Apenas uma temática canônica por rótulo.
+            self.assertEqual(len(labels), len(set(labels)))
 
     def test_existing_complete_output_skips_regeneration(self):
         calls = []
@@ -131,7 +143,7 @@ class UIProgressTests(unittest.TestCase):
             self.assertTrue(all(layer["status"] == "experimental" for layer in reference))
             # Layers with a known style are enabled; unknown ones are not.
             annual = next(layer for layer in reference if layer["name"] == "annual_burned")
-            self.assertEqual(annual["visualization"]["palette"], ["fdfdfd", "800000"])
+            self.assertEqual(annual["visualization"]["palette"], ["ffffff", "d4271e"])
             self.assertTrue(annual.get("enabled", True))
 
     def test_reference_layer_style_is_editable(self):
@@ -146,7 +158,7 @@ class UIProgressTests(unittest.TestCase):
                     check.value = True
                     break
             self.assertEqual(widget.style_panel.layout.display, "")
-            self.assertEqual(widget.style_colors.value, "fdfdfd,800000")
+            self.assertEqual(widget.style_colors.value, "ffffff,d4271e")
             widget.style_colors.value = "ffffff,000000"
             widget.style_labels.value = "Sem fogo,Fogo"
             self.assertEqual(colombia[0]["visualization"]["palette"], ["ffffff", "000000"])

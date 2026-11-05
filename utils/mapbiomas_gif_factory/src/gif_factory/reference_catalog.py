@@ -1,157 +1,67 @@
-"""Reference records and suggested styling for the unified product catalog.
+"""Catálogo unificado de layers do inventário com paletas/legendas sugeridas.
 
-Suggested styles follow well-known MapBiomas Fire conventions. They are
-EXPERIMENTAL: the inventory alone does not verify asset access, actual bands,
-masking, pixel values or palette correctness. Every suggested layer remains
-`status: "experimental"` and must be visually confirmed before sharing.
+Delega o mapeamento produto→legenda a `legends.py`. Uma paleta presente não
+comprova acesso ao asset, bandas, máscara ou interpretação: todas as layers
+sugeridas permanecem `status: "experimental"` até validação visual no GEE.
 """
 import hashlib
 import math
 import re
 
-INITIATIVES = {
-    "brasil": "Brasil", "peru": "Peru", "paraguay": "Paraguai",
-    "argentina": "Argentina", "bolivia": "Bolívia", "chile": "Chile",
-    "colombia": "Colômbia", "ecuador": "Equador", "indonesia": "Indonésia",
-    "venezuela": "Venezuela",
-}
+from .legends import (INITIATIVES, LANGUAGES, canonical_theme, lang_for,
+                      style_for, theme_label)
 
-# Idioma dos rótulos de legenda por iniciativa.
-LANGUAGES = {
-    "brasil": "pt",
-    "peru": "es", "paraguay": "es", "argentina": "es", "bolivia": "es",
-    "chile": "es", "colombia": "es", "ecuador": "es", "venezuela": "es",
-    "indonesia": "en",
-}
-
-_MONTHS = {
-    "pt": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-           "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
-    "es": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-           "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
-    "en": ["January", "February", "March", "April", "May", "June",
-           "July", "August", "September", "October", "November", "December"],
-}
-_MONTH_COLORS = ["cc00ff", "6600ff", "0000ff", "00ccff", "00ffcc", "ffff00",
-                 "ff9900", "ff3300", "cc0000", "00cc00", "009900", "66ff66"]
-
-_SEVERITY_LABELS = {
-    "pt": ["Muito baixa", "Baixa", "Moderada", "Alta", "Muito alta", "Extrema"],
-    "es": ["Muy baja", "Baja", "Moderada", "Alta", "Muy alta", "Extrema"],
-    "en": ["Very low", "Low", "Moderate", "High", "Very high", "Extreme"],
-}
-_SEVERITY_COLORS = ["003f1b", "8ee637", "ffd426", "ed7513", "db2024", "99151d"]
-
-_NOT_OBSERVED = {"pt": "Não observado", "es": "No observado", "en": "Not Fire"}
-_FIRE = {"pt": "Fogo", "es": "Fuego", "en": "Fire"}
-
-_FREQ_COLORS = ["fdfdfd", "faf3cd", "fdf1b0", "fbe981", "fae258", "f9de44",
-                "f8d71f", "f1ca1e", "e9bc1c", "e2af1a", "daa118", "d29316",
-                "cc8715", "c57b14", "bd6c12", "b76011", "b0540f", "a8450d",
-                "9f360b", "992a0a", "921e08", "8c1307", "810004", "770105",
-                "6a0306", "600407", "5a0508", "4b0709", "450709", "3f0708",
-                "390608", "330607", "2d0506", "270506", "220505", "1c0404",
-                "170404", "120303", "0d0203", "080202", "040101"]
-
-
-def _lang(code):
-    return LANGUAGES.get(code, "pt")
-
-
-def _binary_fire(lang):
-    return {"visualization": {"min": 0, "max": 1, "palette": ["fdfdfd", "800000"]},
-            "legend": [{"label": _NOT_OBSERVED[lang], "color": "fdfdfd"},
-                       {"label": _FIRE[lang], "color": "800000"}]}
-
-
-def _monthly(lang):
-    months = _MONTHS[lang]
-    return {"visualization": {"min": 1, "max": 12, "palette": _MONTH_COLORS,
-                              "cmap_type": "categorical", "prefix_labels": False,
-                              "nodata_value": 0, "nodata_color": "ffffff"},
-            "legend": [{"label": label, "color": color} for label, color in zip(months, _MONTH_COLORS)]}
-
-
-def _severity(lang):
-    labels = _SEVERITY_LABELS[lang]
-    return {"visualization": {"min": 1, "max": 6, "palette": _SEVERITY_COLORS,
-                              "cmap_type": "categorical", "prefix_labels": False,
-                              "nodata_value": 0, "nodata_color": "ffffff"},
-            "legend": [{"label": label, "color": color} for label, color in zip(labels, _SEVERITY_COLORS)]}
-
-
-def _frequency(max_value=40):
-    return {"visualization": {"min": 0, "max": max_value, "palette": _FREQ_COLORS, "cmap_type": "sequential"},
-            "legend": [{"label": "0", "color": _FREQ_COLORS[0]}, {"label": str(max_value), "color": _FREQ_COLORS[-1]}]}
-
-
-def suggest_style(product, lang="pt"):
-    """Return a suggested {visualization, legend} for a known Fire product name.
-
-    Labels follow the country language. Returns None when no convention is known.
-    """
-    lang = lang if lang in ("pt", "es", "en") else "pt"
-    name = (product or "").lower().replace("_", " ").strip()
-    if name in {"annual burned", "annual burned area", "accumulated burned", "accumulated burned area"}:
-        return _binary_fire(lang)
-    if name in {"monthly burned", "monthly burned area"}:
-        return _monthly(lang)
-    if name in {"severity", "severity class", "potential severity"}:
-        return _severity(lang)
-    if name in {"fire frequency", "frequency burned", "frequency"}:
-        return _frequency()
-    return None
+__all__ = ["INITIATIVES", "LANGUAGES", "canonical_theme", "theme_label",
+           "build_reference_layers", "layer_for_record", "experimental_layer"]
 
 
 def layer_for_record(record):
-    """Build a unified layer from a record, with a suggested style when known.
-
-    Records without an asset or without a known style are produced disabled
-    with a reason, so the unified catalog shows them without enabling a run.
-    """
-    base = {"id": "ref_" + hashlib.sha256(
-                "|".join(str(record.get(k)) for k in ("initiative", "theme", "collection", "product", "asset")).encode("utf-8")
-            ).hexdigest()[:16],
+    """Constrói uma layer unificada a partir de um registro do inventário."""
+    key = "|".join(str(record.get(k)) for k in ("initiative", "theme", "collection", "product", "asset"))
+    base = {"id": "ref_" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:16],
             "name": record["product"],
             "initiative": INITIATIVES.get(record["initiative"], record["initiative"]),
-            "theme": record["theme"], "collection": record["collection"],
-            "asset": record.get("asset"), "status": "experimental"}
+            "theme": canonical_theme(record.get("theme")),
+            "collection": record["collection"],
+            "asset": record.get("asset"),
+            "status": "experimental"}
     if not record.get("asset"):
         base.update(enabled=False, reason="Sem asset no inventário.")
         return base
-    style = suggest_style(record["product"], _lang(record.get("initiative")))
+    lang = lang_for(record.get("initiative"))
+    style = style_for(record, lang)
     if style is None:
-        base.update(enabled=False, reason="Sem paleta/legenda validada para esta layer.")
+        base.update(enabled=False, reason="Paleta/legenda pendente de fonte.")
         return base
-    base.update(**style)
+    base.update(style)
     return base
 
 
 def build_reference_layers(records):
-    """Flatten the inventory into unified, suggested layers for the catalog."""
+    """Achata o inventário em layers sugeridas para o catálogo."""
     return [layer_for_record(record) for record in records]
 
 
 def experimental_layer(record, palette_text, labels_text, minimum, maximum):
-    """Create a selectable layer only with explicit visualization and labels.
+    """Cria uma layer selecionável com visualização e rótulos explícitos.
 
-    This does not verify GEE access, raster type, temporal bands or semantics.
+    Mantido por compatibilidade; a UI usa `layer_for_record`.
     """
     if not record.get("asset"):
         raise ValueError("Asset não disponível no inventário / Asset not available / Asset no disponible.")
     colors = [s.strip().lstrip("#") for s in palette_text.split(",") if s.strip()]
     labels = [s.strip() for s in labels_text.split(",")]
     if len(colors) < 2 or any(not re.fullmatch(r"(?:[0-9a-fA-F]{6})", c) for c in colors):
-        raise ValueError("Informe pelo menos duas cores hexadecimais de 6 dígitos / Enter at least two hex colors / Indique al menos dos colores hex.")
+        raise ValueError("Informe pelo menos duas cores hexadecimais de 6 dígitos / Enter at least two hex colors.")
     if len(labels) != len(colors) or any(not label for label in labels):
-        raise ValueError("Informe um rótulo por cor / Enter one label per color / Indique una etiqueta por color.")
+        raise ValueError("Informe um rótulo por cor / Enter one label per color.")
     if not math.isfinite(minimum) or not math.isfinite(maximum) or minimum >= maximum:
-        raise ValueError("Mínimo deve ser menor que máximo / Minimum must be less than maximum / Mínimo debe ser menor que máximo.")
+        raise ValueError("Mínimo deve ser menor que máximo / Minimum must be less than maximum.")
     key = "|".join(str(record[k]) for k in ("initiative", "theme", "collection", "product", "asset"))
     identifier = "ref_" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
     return {"id": identifier, "name": record["product"],
             "initiative": INITIATIVES.get(record["initiative"], record["initiative"]),
-            "theme": record["theme"], "collection": record["collection"],
-            "asset": record["asset"], "status": "experimental",
+            "theme": canonical_theme(record.get("theme")),
+            "collection": record["collection"], "asset": record["asset"], "status": "experimental",
             "visualization": {"min": minimum, "max": maximum, "palette": colors},
             "legend": [{"label": label, "color": color} for label, color in zip(labels, colors)]}
