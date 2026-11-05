@@ -116,6 +116,23 @@ class UIProgressTests(unittest.TestCase):
             self.assertEqual(len(calls), 1)
             self.assertIn("1 já disponível", widget.status_html.value)
 
+    def test_run_button_starts_batch_and_reports_missing_selection(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            widget = self.run_ui(tmp)
+            widget.run_button.click()
+            self.assertIn("Selecione produto, território e saída", widget.status_html.value)
+
+    def test_reference_inventory_is_browsable_without_enabling_assets(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            widget = self.run_ui(tmp)
+            self.assertTrue(any("Inventário" in option for option in widget.navigation.options))
+            widget.inventory_country.value = "brasil"
+            widget.inventory_theme.value = "fire"
+            self.assertTrue(widget.inventory_collection.options)
+            self.assertTrue(widget.inventory_product.options)
+            self.assertTrue(all(layer.get("initiative", "Brasil") in ("Brasil", "Peru")
+                                for origin, layer, _ in widget.product_checks if origin != "Personalizado"))
+
     def test_selection_panels_are_visible_without_tabs_or_accordions(self):
         import ipywidgets as widgets
         with tempfile.TemporaryDirectory() as tmp:

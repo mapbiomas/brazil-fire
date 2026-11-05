@@ -4,6 +4,7 @@ from pathlib import Path
 from threading import Thread, Event, Lock
 from html import escape
 from copy import deepcopy
+import json
 import ipywidgets as w
 from IPython.display import display
 from .engine import generate, validate, discover
@@ -12,6 +13,7 @@ from .presets import LAYERS, TERRITORIES
 from .layout import combination_path, ensure_unique_paths
 from .progress import ProgressState
 from .library import assess, fingerprint, ingest, variant_for, sync_selected
+from .territory_search import search as search_territories, territory as searched_territory
 
 
 def _duration(seconds):
@@ -23,7 +25,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     validate(layers, territories)
     validate(LAYERS, TERRITORIES)
     log = w.Output(layout=w.Layout(border="1px solid #ddd", max_height="250px", overflow="auto"))
-    status = w.HTML(value="<b>Pronto.</b> Selecione as opções e execute a próxima célula para gerar o lote.")
+    status = w.HTML(value="<b>Pronto / Ready / Listo.</b> Selecione as opções e clique em Gerar GIFs / Select options and click Generate / Seleccione opciones y pulse Generar.")
     overall = w.IntProgress(value=0, min=0, max=1, description="Lote:", layout=w.Layout(width="95%"))
     progress = w.IntProgress(value=0, min=0, max=1, description="Download:", layout=w.Layout(width="95%", display="none"))
     batch_lock = Lock()
@@ -90,6 +92,52 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             territory_checks.append((name, territory, check))
             checks.append(check)
         territory_boxes.append(w.VBox([w.HTML(f"<b>{name}</b>"), *checks]))
+
+    search_asset = w.Text(placeholder="ID da FeatureCollection", description="Asset:", layout=w.Layout(width="95%"))
+    search_name = w.Text(placeholder="Campo / Field / Campo", description="Name:")
+    search_id = w.Text(value="system:index", description="Unique ID:")
+    search_term = w.Text(description="Search:")
+    search_button = w.Button(description="Buscar / Search")
+    search_results = w.SelectMultiple(description="Results:", rows=5, layout=w.Layout(width="95%"))
+    search_add = w.Button(description="Adicionar / Add / Añadir", layout=w.Layout(width="220px"))
+    search_combine = w.Checkbox(value=False, description="Combinar / Combine / Combinar")
+    search_log = w.Output()
+    found = []
+
+    def do_search(_):
+        with search_log:
+            search_log.clear_output()
+            try:
+                import ee
+                found[:] = search_territories(ee, search_asset.value, search_name.value, search_id.value, search_term.value)
+                search_results.options = [(f"{r['name']} — {r['value']}", i) for i, r in enumerate(found)]
+                print(f"{len(found)} resultados / results / resultados (max. 30; case-sensitive).")
+            except Exception as exc:
+                found.clear()
+                search_results.options = []
+                print(f"Busca falhou / Search failed / Error de búsqueda: {exc}")
+
+    def add_search_results(_):
+        with search_log:
+            try:
+                selected = [found[i] for i in search_results.value]
+                if not selected:
+                    raise ValueError("Selecione um resultado / Select a result / Seleccione un resultado.")
+                groups = [selected] if search_combine.value else [[r] for r in selected]
+                for group in groups:
+                    item = searched_territory(group)
+                    old = next((check for _, t, check in territory_checks if t["id"] == item["id"]), None)
+                    if old is not None:
+                        old.value = True
+                        continue
+                    check = w.Checkbox(value=True, description=item["name"], indent=False)
+                    territory_checks.append(("Personalizados", item, check))
+                    territory_boxes[2].children = (*territory_boxes[2].children, check)
+                print("Adicionado em Personalizados / Added under Custom / Añadido en Personalizados. Confira os IDs / Check IDs / Verifique IDs.")
+            except Exception as exc:
+                print(f"Falha ao adicionar / Could not add / Error al añadir: {exc}")
+    search_button.on_click(do_search)
+    search_add.on_click(add_search_results)
 
     def render_themes(*_):
         origin = initiative.value
@@ -336,19 +384,74 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             sprout.layout.display = "none"
             status.value = f"<b>Erro ao iniciar o lote:</b> {escape(str(exc))}"
             log.append_stdout(f"Erro ao iniciar lote: {exc}\n")
+    run_button = w.Button(description="Gerar / Generate / Generar", button_style="success", icon="play", layout=w.Layout(width="250px"))
+    run_button.on_click(lambda _: start_batch(wait=False))
     update_files()
     change_initiative()
-    territories_panel = w.VBox([w.HTML("<h3>Territórios</h3>"), *territory_boxes])
+    search_panel = w.VBox([w.HTML("<b>Busca / Search / Búsqueda — FeatureCollection</b><p>Informe asset e campos; confirme o ID único e acesso. / Enter asset and fields; verify unique ID and access. / Indique asset y campos; compruebe ID único y acceso.</p>"),
+                           search_asset, w.HBox([search_name, search_id]), w.HBox([search_term, search_button]),
+                           search_results, search_combine, search_add, search_log])
+    territories_panel = w.VBox([w.HTML("<h3>Territórios</h3>"), *territory_boxes, search_panel])
     output_panel = w.VBox([w.HTML("<h3>Saídas e destino</h3>"), *kinds.values(), auto, drive, check_status, availability])
     delivery_panel = w.VBox([w.HTML("<h3>Arquivos gerados e envio posterior</h3>"), refresh, selection, send])
-    navigation = w.ToggleButtons(options=["Produtos", "Territórios", "Saídas e destino", "Resultados"], description="Guia:")
-    panels = [catalog_panel, territories_panel, output_panel, delivery_panel]
+    inventory_path = Path(__file__).with_name("reference_inventory.json")
+    records = json.loads(inventory_path.read_text(encoding="utf-8"))["records"] if inventory_path.is_file() else []
+    inv_country = w.Dropdown(options=sorted({r["initiative"] for r in records}), description="Initiative:")
+    inv_theme = w.Dropdown(description="Theme:")
+    inv_collection = w.Dropdown(description="Coleção:")
+    inv_product = w.Select(description="Layers:", rows=8, layout=w.Layout(width="95%"))
+    inv_details = w.Textarea(description="Detalhes:", disabled=True, layout=w.Layout(width="95%", height="130px"))
+
+    def inventory_product_changed(*_):
+        index = inv_product.value
+        if index is None:
+            inv_details.value = ""
+            return
+        record = records[index]
+        matches = [layer for layer in LAYERS if layer.get("asset") == record.get("asset")]
+        labels = ", ".join(x["id"] for x in matches) or "nenhum / none / ninguno"
+        inv_details.value = (f"Asset: {record.get('asset')}\nTipo: {record.get('dtype')} | Escala: {record.get('scale')}\n"
+                             f"Mesmo asset / Same asset / Mismo asset: {labels}\n"
+                             "Consulta apenas / Read-only / Solo consulta. Mesmo asset não comprova equivalência / Same asset does not imply equivalence / Mismo asset no implica equivalencia.")
+
+    def inventory_collection_changed(*_):
+        inv_product.options = [(str(r["product"]), i) for i, r in enumerate(records)
+                               if r["initiative"] == inv_country.value and r["theme"] == inv_theme.value
+                               and r["collection"] == inv_collection.value]
+        if inv_product.options and inv_product.value is None:
+            inv_product.value = inv_product.options[0][1]
+        inventory_product_changed()
+
+    def inventory_theme_changed(*_):
+        inv_collection.options = sorted({r["collection"] for r in records
+                                         if r["initiative"] == inv_country.value and r["theme"] == inv_theme.value})
+        if inv_collection.options and inv_collection.value is None:
+            inv_collection.value = inv_collection.options[0]
+        inventory_collection_changed()
+
+    def inventory_country_changed(*_):
+        inv_theme.options = sorted({r["theme"] for r in records if r["initiative"] == inv_country.value})
+        if inv_theme.options and inv_theme.value is None:
+            inv_theme.value = inv_theme.options[0]
+        inventory_theme_changed()
+
+    inv_country.observe(inventory_country_changed, names="value")
+    inv_theme.observe(inventory_theme_changed, names="value")
+    inv_collection.observe(inventory_collection_changed, names="value")
+    inv_product.observe(inventory_product_changed, names="value")
+    inventory_country_changed()
+    inventory_panel = w.VBox([
+        w.HTML(f"<h3>Inventário / Inventory / Inventario ({len(records)})</h3><p>Consulta apenas; validar assets, bandas e legendas. / Read-only; validate assets, bands and legends. / Solo consulta; validar assets, bandas y leyendas.</p>"),
+        inv_country, inv_theme, inv_collection, inv_product, inv_details,
+    ])
+    navigation = w.ToggleButtons(options=["Produtos", "Territórios", "Saídas e destino", "Resultados", "Inventário / Inventory / Inventario"], description="Guia:")
+    panels = [catalog_panel, territories_panel, output_panel, delivery_panel, inventory_panel]
     def change_panel(*_):
         for i, panel in enumerate(panels):
             panel.layout.display = "" if navigation.value == navigation.options[i] else "none"
     navigation.observe(change_panel, names="value")
     change_panel()
-    ui = w.VBox([initiative, navigation, *panels, sprout, status, overall, progress, log])
+    ui = w.VBox([initiative, navigation, *panels, run_button, sprout, status, overall, progress, log])
     ui.start_batch = start_batch
     ui.initiative = initiative
     ui.navigation = navigation
@@ -360,5 +463,10 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     ui.overall = overall
     ui.download_progress = progress
     ui.log_output = log
+    ui.run_button = run_button
+    ui.inventory_country = inv_country
+    ui.inventory_theme = inv_theme
+    ui.inventory_collection = inv_collection
+    ui.inventory_product = inv_product
     display(ui)
     return ui
