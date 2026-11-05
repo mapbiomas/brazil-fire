@@ -63,3 +63,10 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - A tradução é aplicada no que aparece: MutationObserver no `body` (textos e title/aria-label/placeholder/alt) e `traducaoChartPlugin` (rótulos, séries, títulos de eixo, tooltips do Chart.js). O código continua escrevendo em português.
 - Idioma: `#lang=pt|es|en|id`; padrão Brasil pt, Indonésia en, demais es; `id` só na Indonésia. Números em `LOCALE`; `ha()` usa `PALAVRAS_HA`. Nomes da API no idioma (`IDIOMA.api`). Marca e logo seguem o idioma (Fogo/Fuego/Fire), também no GIF.
 - Texto novo na interface: acrescentar a linha em `i18n.js`, senão ele aparece em português. Traduções sem revisão de falante nativo.
+
+## Ajustes de mapas e GIF (2026-11-05)
+
+- Seletores de país mostram a coleção de cada país (`COLECOES`, lida em segundo plano por `gifRegiao`); Paraguai e Indonésia: "coleção não informada".
+- Mapa por território: sem bolhas; "Comparar anos" = ano B − ano A ou ano − média do período. Clique: contorno em destaque (halo) e zoom. "Baixar mapa (PNG)" (`baixarMapaPng`): copia tiles e canvas do Leaflet (`preferCanvas`, tiles com `crossOrigin`) e acrescenta título, legenda, escala e fonte. `L.control.scale` em todos os mapas.
+- Dados brutos: "Subproduto" com grupos Anuais / Por período (`opcoesSelectHtml` com `grupo`); ano escolhível nos anuais; cortina só nos anuais, com ano da esquerda e da direita; contornos clicáveis (biomas, estados ou municípios do estado).
+- GIF: velocidades 700/350/180 ms; passo 6 "Limites no mapa" (biomas/ecorregiões ou 1º nível administrativo do país), desenhados em cinza sob o contorno do território.

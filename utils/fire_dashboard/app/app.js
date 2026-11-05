@@ -154,7 +154,7 @@ const TR = (() => {
 const tr = (s) => (TR && typeof s === "string" && s ? s.replace(TR.re, (m) => TR.mapa.get(m) ?? m) : s);
 
 // Traduz os textos e atributos visíveis de um trecho da página.
-const ATRIBUTOS_TRADUZIDOS = ["title", "aria-label", "placeholder", "alt"];
+const ATRIBUTOS_TRADUZIDOS = ["title", "aria-label", "placeholder", "alt", "label"];
 function traduzirNo(raiz) {
   if (!TR || !raiz) return;
   if (raiz.nodeType === Node.TEXT_NODE) {
@@ -2564,15 +2564,17 @@ async function loadMapa(ctx) {
 }
 
 async function loadMapaBruto({ t, ini, fim }) {
-  const camadas = MAP_LAYERS.filter((c) => state.conn.subthemes[c.subtheme]); // só as que o país tem
+  // Subprodutos que o país tem, separados em anuais (um ano) e por período.
+  const camadas = MAP_LAYERS.filter((c) => state.conn.subthemes[c.subtheme]);
   const camada = camadas.find((c) => c.id === state.mapa.camada) || camadas[0];
   const legenda = await getLegend(camada.legend);
-  const anos = camada.periodo ? [ini, fim] : fim;
   const m = state.mapa;
-  // Cortina: a mesma camada em dois anos (só camadas de um ano). Sobreposição: uma 2ª camada por cima.
-  const cortinaPedida = m.cortina === "on";
-  const cortina = cortinaPedida && !camada.periodo;
+  const anoUnico = clamp(m.ano ?? fim, ini, fim); // ano mostrado nos subprodutos anuais
+  const anos = camada.periodo ? [ini, fim] : anoUnico;
+  // Cortina (só subprodutos anuais): o mesmo subproduto em dois anos escolhidos.
+  const cortina = m.cortina === "on" && !camada.periodo;
   const anoA = clamp(m.anoA ?? Math.max(ini, fim - 10), ini, fim);
+  const anoB = clamp(m.anoB ?? fim, ini, fim);
   const camada2 = !cortina && m.camada2 ? camadas.find((c) => c.id === m.camada2 && c.id !== camada.id) : null;
   const legenda2 = camada2 ? await getLegend(camada2.legend) : null;
   const pedirTiles = (cam, lg, ano) => getMapUrl({
@@ -2580,9 +2582,9 @@ async function loadMapaBruto({ t, ini, fim }) {
   });
 
   const [tileUrl, tileUrl2, ativo, contornos] = await Promise.all([
-    pedirTiles(camada, legenda, anos),
+    pedirTiles(camada, legenda, cortina ? anoB : anos),
     cortina ? pedirTiles(camada, legenda, anoA)
-      : camada2 ? pedirTiles(camada2, legenda2, camada2.periodo ? [ini, fim] : fim) : null,
+      : camada2 ? pedirTiles(camada2, legenda2, camada2.periodo ? [ini, fim] : anoUnico) : null,
     getGeometry(t.ids, t.metodo).catch(() => null),
     referenceOutlines(m.visualizar),
   ]);
@@ -2591,47 +2593,53 @@ async function loadMapaBruto({ t, ini, fim }) {
     label: cam.id === "frequencia" ? frequencyLabel(i.name) : i.name,
     color: i.color,
   }));
+  const nomeSub = (c) => c.label.replace(/\s*\((ano fim|período)\)/, "");
   const legendItems = [
-    ...(camada2 ? [{ label: `Camada de baixo: ${camada.label}`, head: true }] : []),
+    ...(camada2 ? [{ label: `Camada de baixo: ${nomeSub(camada)}`, head: true }] : []),
     ...itensLegenda(camada, legenda),
-    ...(camada2 ? [{ label: `Camada de cima: ${camada2.label}`, head: true }, ...itensLegenda(camada2, legenda2)] : []),
+    ...(camada2 ? [{ label: `Camada de cima: ${nomeSub(camada2)}`, head: true }, ...itensLegenda(camada2, legenda2)] : []),
   ];
   const explicacao = cortina
-    ? `Arraste a barra no mapa: à esquerda ${anoA}, à direita ${fim}.`
-    : cortinaPedida ? "A cortina só funciona com camadas de um ano (ex.: Área queimada); escolha uma delas em \"Camada\"."
-      : camada2 ? "Use a barra no canto do mapa para deixar a camada de cima mais ou menos transparente." : "";
+    ? `Arraste a barra no mapa: à esquerda ${anoA}, à direita ${anoB}.`
+    : camada2 ? "Use a barra no canto do mapa para deixar a camada de cima mais ou menos transparente." : "";
+  const opcoesSub = (lista) => [...lista].sort((a, b) => Number(Boolean(a.periodo)) - Number(Boolean(b.periodo)))
+    .map((c) => ({ value: c.id, label: nomeSub(c), grupo: c.periodo ? "Por período" : "Anuais" }));
+  const anosOpc = range(ini, fim).map((a) => ({ value: String(a), label: String(a) }));
 
   return {
     toolbar: [
       mapTypeControl(),
       {
         type: "select",
-        label: "Camada",
+        label: "Subproduto",
         value: camada.id,
-        options: camadas.map((c) => ({ value: c.id, label: c.label })),
+        options: opcoesSub(camadas),
         onChange: (v) => { state.mapa.camada = v; loadCurrentTab(); },
       },
-      {
+      ...(!camada.periodo && !cortina ? [{
         type: "select",
-        label: "Sobrepor outra camada",
-        value: camada2?.id || "",
-        options: [{ value: "", label: "Nenhuma" }, ...camadas.filter((c) => c.id !== camada.id).map((c) => ({ value: c.id, label: c.label }))],
-        onChange: (v) => { state.mapa.camada2 = v; if (v) state.mapa.cortina = "off"; loadCurrentTab(); },
-      },
-      {
+        label: "Ano",
+        value: String(anoUnico),
+        options: anosOpc,
+        onChange: (v) => { state.mapa.ano = Number(v); loadCurrentTab(); },
+      }] : []),
+      ...(!camada.periodo ? [{
         type: "segmented",
         label: "Comparar dois anos (cortina)",
-        value: cortinaPedida ? "on" : "off",
+        value: cortina ? "on" : "off",
         options: [{ value: "off", label: "Não" }, { value: "on", label: "Sim" }],
         onChange: (v) => { state.mapa.cortina = v; if (v === "on") state.mapa.camada2 = ""; loadCurrentTab(); },
-      },
-      ...(cortina ? [{
-        type: "select",
-        label: "Ano da esquerda",
-        value: String(anoA),
-        options: range(ini, fim).map((a) => ({ value: String(a), label: String(a) })),
-        onChange: (v) => { state.mapa.anoA = Number(v); loadCurrentTab(); },
       }] : []),
+      ...(cortina ? [
+        { type: "select", label: "Ano da esquerda", value: String(anoA), options: anosOpc, onChange: (v) => { state.mapa.anoA = Number(v); loadCurrentTab(); } },
+        { type: "select", label: "Ano da direita", value: String(anoB), options: anosOpc, onChange: (v) => { state.mapa.anoB = Number(v); loadCurrentTab(); } },
+      ] : [{
+        type: "select",
+        label: "Sobrepor outro subproduto",
+        value: camada2?.id || "",
+        options: [{ value: "", label: "Nenhum" }, ...opcoesSub(camadas.filter((c) => c.id !== camada.id))],
+        onChange: (v) => { state.mapa.camada2 = v; loadCurrentTab(); },
+      }]),
       {
         type: "segmented",
         label: "Contornos",
@@ -2651,16 +2659,14 @@ async function loadMapaBruto({ t, ini, fim }) {
     kpis: [],
     cards: [{
       span: 12,
-      title: cortina
-        ? `${camada.label.replace(" (ano fim)", "")} · ${anoA} × ${fim}`
-        : camada.label.replace("(ano fim)", `· ${fim}`).replace("(período)", `· ${ini}–${fim}`),
-      subtitle: `Recorte: ${t.nome} · tiles oficiais do MapBiomas Fogo${explicacao ? ` · ${explicacao}` : ""}`,
+      title: cortina ? `${nomeSub(camada)} · ${anoA} × ${anoB}`
+        : `${nomeSub(camada)} · ${camada.periodo ? `${ini}–${fim}` : anoUnico}`,
+      subtitle: `Recorte: ${t.nome} · tiles oficiais do MapBiomas Fogo · clique num contorno para destacá-lo${explicacao ? ` · ${explicacao}` : ""}`,
       map: {
         tileUrl, tileUrl2, modo: cortina ? "cortina" : camada2 ? "sobrepor" : "",
-        anoA, anoB: fim, destacar: m.destaque === "on",
-        ativo, contornos: contornos.geometrias, aviso: contornos.aviso,
-      },
-      legend: legendItems,
+        anoA, anoB, destacar: m.destaque === "on",
+        ativo, contornos: contornos.feicoes, aviso: contornos.aviso,
+      },      legend: legendItems,
     }],
   };
 }
@@ -2795,22 +2801,41 @@ function quantileClasses(valores) {
   return { colorOf, legend };
 }
 
+// Contornos de referência do mapa de dados brutos, com nome (clicáveis: o clique destaca o contorno).
 async function referenceOutlines(visualizar) {
   const c = state.conn;
+  const feicao = (geometry, name) => (geometry ? { type: "Feature", geometry, properties: { name } } : null);
   if (visualizar === "biomas") {
-    return { geometrias: await Promise.all(c.biomas.map((b) => getGeometry([b.id]).catch(() => null))) };
+    const gs = await Promise.all(c.biomas.map((b) => getGeometry([b.id]).catch(() => null)));
+    return { feicoes: gs.map((g, i) => feicao(g, c.biomas[i].name)).filter(Boolean) };
   }
   if (visualizar === "estados") {
-    return { geometrias: await Promise.all(c.estados.map((e) => getGeometry([e.id]).catch(() => null))) };
+    const gs = await Promise.all(c.estados.map((e) => getGeometry([e.id]).catch(() => null)));
+    return { feicoes: gs.map((g, i) => feicao(g, c.estados[i].name)).filter(Boolean) };
   }
   if (state.municipioId) {
     // Com bioma ativo, só a parte do município dentro do bioma (interseção feita pela API).
     const geom = state.biomaId
       ? await getGeometry([state.municipioId, state.biomaId], "intersection").catch(() => null)
       : await getGeometry([state.municipioId]).catch(() => null);
-    return { geometrias: [geom] };
+    const m = state.municipiosDoEstado.find((x) => x.id === state.municipioId);
+    return { feicoes: [feicao(geom, m?.name || "")].filter(Boolean) };
   }
-  return { geometrias: [], aviso: `Escolha ${rot("estado").toLowerCase()} e ${rot("municipio").toLowerCase()} nos filtros para recortar e destacar ${rot("municipio").toLowerCase()}.` };
+  // Sem município escolhido: todos os municípios (do estado filtrado, se houver), pelos tiles vetoriais.
+  if (!c.catMunicipio) return { feicoes: [] };
+  const estado = c.estados.find((e) => e.id === state.estadoId);
+  const [shapes, doEstado] = await Promise.all([
+    getMunicipiosShapes((n, tot) => setStatus(`Geometria dos ${rot("municipio", true).toLowerCase()} (tiles): ${n}/${tot}`, true)),
+    estado ? getMunicipiosDoEstado(estado) : null,
+  ]);
+  setStatus("");
+  const ids = doEstado ? new Set(doEstado.map((m) => m.id)) : null;
+  const feicoes = [];
+  for (const m of shapes.values()) {
+    if (ids && !ids.has(m.id)) continue;
+    for (const coords of m.polygons) feicoes.push({ type: "Feature", geometry: { type: "Polygon", coordinates: coords }, properties: { name: nomeMunicipio(m.name), id: m.id } });
+  }
+  return { feicoes };
 }
 
 // ---------------------------------------------------------------------------
@@ -3024,6 +3049,16 @@ function fillLazyCard(card, root, seq, tokens) {
     });
 }
 
+// Opções de um <select>; com `grupo` nas opções, vira <optgroup> (ex.: Anuais / Por período).
+function opcoesSelectHtml(ctl) {
+  const opt = (o) => `<option value="${escapeHtml(o.value)}" ${o.value === ctl.value ? "selected" : ""}>${escapeHtml(o.label)}</option>`;
+  if (!ctl.options.some((o) => o.grupo)) return ctl.options.map(opt).join("");
+  const soltas = ctl.options.filter((o) => !o.grupo);
+  const grupos = [...new Set(ctl.options.filter((o) => o.grupo).map((o) => o.grupo))];
+  return soltas.map(opt).join("") + grupos.map((g) =>
+    `<optgroup label="${escapeHtml(g)}">${ctl.options.filter((o) => o.grupo === g).map(opt).join("")}</optgroup>`).join("");
+}
+
 function toolbarHtml(ctl, i) {
   if (ctl.type === "chips") {
     return `
@@ -3051,7 +3086,7 @@ function toolbarHtml(ctl, i) {
     <label class="field">
       <span>${escapeHtml(ctl.label)}</span>
       <select data-ctl="${i}">
-        ${ctl.options.map((o) => `<option value="${escapeHtml(o.value)}" ${o.value === ctl.value ? "selected" : ""}>${escapeHtml(o.label)}</option>`).join("")}
+        ${opcoesSelectHtml(ctl)}
       </select>
     </label>`;
 }
@@ -3256,13 +3291,16 @@ function renderMap(box, spec) {
     (document.documentElement.dataset.theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
   const tokens = themeTokens();
   // Zoom inteiro: em zoom fracionário os tiles do basemap são escalados e deixam costuras.
-  const map = L.map(box, { zoomSnap: 1, attributionControl: true });
+  // preferCanvas: vetores em canvas (podem ir para o PNG baixado); tiles com crossOrigin pelo mesmo motivo.
+  const map = L.map(box, { zoomSnap: 1, attributionControl: true, preferCanvas: true });
   state.map = map;
+  L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
 
   // Basemap sem chave de API (o da CARTO passou a exigir chave).
   const canvas = dark ? "World_Dark_Gray_Base" : "World_Light_Gray_Base";
   L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${canvas}/MapServer/tile/{z}/{y}/{x}`, {
     maxZoom: 16,
+    crossOrigin: "anonymous",
     attribution: "Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap",
   }).addTo(map);
 
@@ -3270,9 +3308,15 @@ function renderMap(box, spec) {
   if (spec.choropleth) return renderChoropleth(map, spec.choropleth, tokens);
 
   const atribuicao = `MapBiomas Fogo · Coleção ${escapeHtml(state.conn.colecao || "?")}`;
-  const principal = L.tileLayer(spec.tileUrl, { maxZoom: 18, opacity: 0.95, attribution: atribuicao }).addTo(map);
+  const principal = L.tileLayer(spec.tileUrl, { maxZoom: 18, opacity: 0.95, crossOrigin: "anonymous", attribution: atribuicao }).addTo(map);
+  controleNoMapa(map, "topright", `<button type="button" class="md-botao">⬇ Baixar mapa (PNG)</button>`, (div) => {
+    div.querySelector("button").addEventListener("click", () => {
+      const card = box.closest(".card");
+      baixarMapaPng(map, box, card?.querySelector("h2")?.textContent || "Mapa", card?.querySelector(".legend-row"));
+    });
+  });
   if (spec.modo === "sobrepor" && spec.tileUrl2) {
-    const deCima = L.tileLayer(spec.tileUrl2, { maxZoom: 18, opacity: 0.8 }).addTo(map);
+    const deCima = L.tileLayer(spec.tileUrl2, { maxZoom: 18, opacity: 0.8, crossOrigin: "anonymous" }).addTo(map);
     controleNoMapa(map, "bottomleft", `
       <label class="map-ctl-label">Camada de cima: transparência
         <input type="range" min="0" max="100" value="80" aria-label="Opacidade da camada de cima">
@@ -3282,16 +3326,32 @@ function renderMap(box, spec) {
   }
   if (spec.modo === "cortina" && spec.tileUrl2) {
     // Esquerda = ano A (tileUrl2), direita = ano final (principal), como o plugin leaflet-side-by-side.
-    const esquerda = L.tileLayer(spec.tileUrl2, { maxZoom: 18, opacity: 0.95 }).addTo(map);
+    const esquerda = L.tileLayer(spec.tileUrl2, { maxZoom: 18, opacity: 0.95, crossOrigin: "anonymous" }).addTo(map);
     montarCortina(map, box, esquerda, principal, spec.anoA, spec.anoB);
   }
 
-  const contornos = spec.contornos.filter(Boolean);
+  // Contornos clicáveis (preenchimento invisível): o clique destaca o contorno e mostra o nome.
+  const contornos = (spec.contornos || []).filter(Boolean);
   if (contornos.length) {
-    L.geoJSON(contornos, {
-      interactive: false,
-      style: { color: tokens.muted, weight: 0.8, fill: false },
+    let destaque = null;
+    const camadaContornos = L.geoJSON({ type: "FeatureCollection", features: contornos }, {
+      style: { color: tokens.muted, weight: 0.8, fill: true, fillOpacity: 0 },
+      onEachFeature: (f, layer) => {
+        if (f.properties?.name) layer.bindTooltip(escapeHtml(f.properties.name), { sticky: true });
+        layer.on("click", () => {
+          if (destaque) map.removeLayer(destaque);
+          const mesmo = f.properties?.id ? contornos.filter((g) => g.properties?.id === f.properties.id) : [f];
+          const fc = { type: "FeatureCollection", features: mesmo };
+          destaque = L.layerGroup([
+            L.geoJSON(fc, { interactive: false, style: { color: "#ffffff", weight: 6, opacity: 0.9, fill: false } }),
+            L.geoJSON(fc, { interactive: false, style: { color: tokens.text, weight: 2.5, fill: false } }),
+          ]).addTo(map);
+          const b = L.geoJSON(fc).getBounds();
+          if (b.isValid()) map.fitBounds(b, { padding: [40, 40], maxZoom: 10 });
+        });
+      },
     }).addTo(map);
+    camadaContornos.bringToBack();
   }
 
   let bounds = null;
@@ -3375,10 +3435,13 @@ function renderMapaDinamico(map, spec, tokens, box) {
   const nomeUnid = rot(unidade === "estados" ? "estado" : "municipio").toLowerCase();
   const unidPlural = rot(unidade === "estados" ? "estado" : "municipio", true).toLowerCase();
   const vazio = resolveColor("var(--surface-muted)");
+  // comp: "anos" = um ano em relação a outro; "media" = um ano em relação à média do período.
   const st = {
-    indicador: "area", periodo: "todo", estilo: "cores",
-    ano: anoN, corte: anos[Math.max(0, Math.floor(n / 2) - 1)], sel: null, timer: null,
+    indicador: "area", periodo: "todo", comp: "anos",
+    ano: anoN, anoA: anos[Math.max(0, n - 2)], anoB: anoN, anoM: anoN, sel: null, timer: null,
   };
+  const idx = (a) => a - ano0;
+  const mediaDe = (t) => somaFaixa(t.porAno, 0, n - 1) / n;
 
   const somaFaixa = (a, de, ate) => { let s = 0; for (let i = de; i <= ate; i++) s += a[i] || 0; return s; };
 
@@ -3399,8 +3462,9 @@ function renderMapaDinamico(map, spec, tokens, box) {
     const t = territorios.get(id);
     if (!t) return 0;
     if (st.indicador === "mudanca") {
-      const c = st.corte - ano0;
-      return somaFaixa(t.porAno, c + 1, n - 1) / (n - 1 - c) - somaFaixa(t.porAno, 0, c) / (c + 1);
+      return st.comp === "media"
+        ? (t.porAno[idx(st.anoM)] || 0) - mediaDe(t)
+        : (t.porAno[idx(st.anoB)] || 0) - (t.porAno[idx(st.anoA)] || 0);
     }
     const v = anoIdx == null ? somaFaixa(t.porAno, 0, n - 1) : t.porAno[anoIdx] || 0;
     if (st.indicador === "pct") {
@@ -3411,9 +3475,10 @@ function renderMapaDinamico(map, spec, tokens, box) {
   }
   const sinal = (v) => (v >= 0 ? "+" : "−");
   const fmtCurto = (v) => (st.indicador === "pct" ? pct(v)
-    : st.indicador === "mudanca" ? `${sinal(v)}${haCurto(Math.abs(v))}/ano` : haCurto(v));
+    : st.indicador === "mudanca" ? `${sinal(v)}${haCurto(Math.abs(v))}` : haCurto(v));
   const fmtLongo = (v) => (st.indicador === "pct" ? pct(v)
-    : st.indicador === "mudanca" ? `${sinal(v)}${ha(Math.abs(v))} por ano` : ha(v));
+    : st.indicador === "mudanca" ? `${sinal(v)}${ha(Math.abs(v))}` : ha(v));
+  const compRotulo = () => (st.comp === "media" ? `${st.anoM} × média ${ano0}–${anoN}` : `${st.anoB} × ${st.anoA}`);
 
   let classes = { colorOf: () => null, legend: [] };
   let maxAbs = 0;
@@ -3435,18 +3500,14 @@ function renderMapaDinamico(map, spec, tokens, box) {
   }
 
   function estilo(f) {
-    const id = f.properties.id;
-    const bolha = st.estilo === "bolhas";
-    const cor = bolha ? vazio : (cores.get(id) || vazio);
-    const borda = id === st.sel ? { color: tokens.text, weight: 3 }
-      : spec.bordas ? { color: bolha ? tokens.axis : tokens.surface, weight: bolha ? 0.6 : 1 }
-        : { color: cor, weight: 0.4 };
+    const cor = cores.get(f.properties.id) || vazio;
+    const borda = spec.bordas ? { color: tokens.surface, weight: 1 } : { color: cor, weight: 0.4 };
     return { fillColor: cor, fillOpacity: 0.9, ...borda };
   }
 
   function dica(id, nota) {
     const t = territorios.get(id);
-    const quando = st.indicador === "mudanca" ? `média ${st.corte + 1}–${anoN} menos média ${ano0}–${st.corte}`
+    const quando = st.indicador === "mudanca" ? compRotulo()
       : st.periodo === "ano" ? `em ${st.ano}` : `soma ${ano0}–${anoN}`;
     const v = t?.emCalculo ? "Calculando a área da interseção…" : `${fmtLongo(valor(id))} <small>(${quando})</small>`;
     return `<strong>${escapeHtml(t?.name || "")}</strong><br>${v}${nota ? `<br><small>${escapeHtml(nota)}</small>` : ""}<br><small>Clique para ver o detalhe</small>`;
@@ -3469,57 +3530,32 @@ function renderMapaDinamico(map, spec, tokens, box) {
     L.geoJSON(spec.contorno, { interactive: false, style: { color: tokens.text, weight: 1.5, fill: false } }).addTo(map);
   }
 
-  // Bolhas: um círculo por território, no centro do seu maior pedaço (criadas na 1ª vez).
-  let bolhas = null;
-  const circulos = new Map();
-  function garantirBolhas() {
-    if (bolhas) return;
-    const maior = new Map();
-    for (const f of spec.features) {
-      let a = 0;
-      try { a = turf.area(f); } catch { /* ignora */ }
-      const m = maior.get(f.properties.id);
-      if (!m || a > m.a) maior.set(f.properties.id, { f, a });
-    }
-    const renderer = L.canvas();
-    bolhas = L.layerGroup();
-    for (const [id, { f }] of maior) {
-      let centro;
-      try { centro = turf.centroid(f).geometry.coordinates; } catch { continue; }
-      const c = L.circleMarker([centro[1], centro[0]], { renderer, radius: 0, weight: 1 });
-      c.bindTooltip(() => dica(id), { sticky: true });
-      c.on("click", () => selecionar(id));
-      c.addTo(bolhas);
-      circulos.set(id, c);
-    }
+  // Contorno do território clicado: linha escura com halo claro, por cima de tudo.
+  let destaque = null;
+  function destacar(id) {
+    if (destaque) map.removeLayer(destaque);
+    destaque = null;
+    if (!id) return;
+    const pedacos = spec.features.filter((f) => f.properties.id === id);
+    if (!pedacos.length) return;
+    const fc = { type: "FeatureCollection", features: pedacos };
+    destaque = L.layerGroup([
+      L.geoJSON(fc, { interactive: false, style: { color: "#ffffff", weight: 6, opacity: 0.9, fill: false } }),
+      L.geoJSON(fc, { interactive: false, style: { color: tokens.text, weight: 2.5, fill: false } }),
+    ]).addTo(map);
+    const b = L.geoJSON(fc).getBounds();
+    if (b.isValid()) map.fitBounds(b, { padding: [40, 40], maxZoom: 9 });
   }
 
   function desenhar() {
     recalcular();
     poligonos.setStyle(estilo);
-    if (st.estilo === "bolhas") {
-      garantirBolhas();
-      if (!map.hasLayer(bolhas)) bolhas.addTo(map);
-      const rmax = unidade === "estados" ? 34 : 16;
-      for (const [id, c] of circulos) {
-        const v = territorios.get(id)?.emCalculo ? 0 : valor(id);
-        const r = v && maxAbs ? Math.max(2, rmax * Math.sqrt(Math.abs(v) / maxAbs)) : 0;
-        const cor = st.indicador === "mudanca" ? (v >= 0 ? DIV_RAMP[4] : DIV_RAMP[0]) : CHORO_RAMP[3];
-        c.setRadius(r);
-        c.setStyle({
-          fillColor: cor, fillOpacity: r ? 0.7 : 0, opacity: r ? 1 : 0,
-          color: id === st.sel ? tokens.text : tokens.surface, weight: id === st.sel ? 3 : 1,
-        });
-      }
-    } else if (bolhas && map.hasLayer(bolhas)) {
-      map.removeLayer(bolhas);
-    }
     atualizarTextos();
     atualizarControles();
   }
 
   function tituloIndicador() {
-    if (st.indicador === "mudanca") return `Mudança na área queimada por ano: ${ano0}–${st.corte} × ${st.corte + 1}–${anoN}`;
+    if (st.indicador === "mudanca") return `Diferença na área queimada: ${compRotulo()}`;
     const quando = st.periodo === "ano" ? `em ${st.ano}` : `${ano0}–${anoN} (soma dos anos)`;
     return st.indicador === "pct" ? `% do território que queimou ${quando}` : `Área queimada ${quando}`;
   }
@@ -3534,24 +3570,18 @@ function renderMapaDinamico(map, spec, tokens, box) {
         `para comparar ${unidPlural} pequenos e grandes.` +
         (st.periodo === "todo" ? " Na soma dos anos pode passar de 100%, porque o mesmo lugar pode queimar mais de uma vez." : "") +
         " A área do território vem do contorno do mapa (valor aproximado).";
+    } else if (st.comp === "media") {
+      s = `Compara a área queimada em ${st.anoM} com a média anual de ${ano0}–${anoN}. ` +
+        `Vermelho = ${st.anoM} queimou mais que a média; azul = queimou menos.`;
     } else {
-      s = `Compara a média de área queimada por ano antes e depois de ${st.corte}: ${ano0}–${st.corte} contra ${st.corte + 1}–${anoN}. ` +
-        "Vermelho = passou a queimar mais; azul = passou a queimar menos. Arraste a barra para mudar o ano que divide os períodos.";
+      s = `Compara a área queimada em ${st.anoB} com a de ${st.anoA} (${st.anoB} menos ${st.anoA}). ` +
+        `Vermelho = ${st.anoB} queimou mais; azul = queimou menos.`;
     }
     if (st.periodo === "ano" && st.indicador !== "mudanca") s += " Aperte ▶ para ver ano a ano: as cores usam a mesma escala em todos os anos.";
-    if (st.estilo === "bolhas") s += " Bolhas: quanto maior o círculo, maior o valor.";
-    ajuda.textContent = `${s} Clique num ${nomeUnid} para ver o detalhe.`;
+    ajuda.textContent = `${s} Clique num ${nomeUnid} para ver o contorno e o detalhe.`;
 
-    const itens = [{ label: tituloIndicador(), head: true }];
-    if (st.estilo === "bolhas") {
-      itens.push(...(st.indicador === "mudanca"
-        ? [{ label: "Queimou mais", color: DIV_RAMP[4] }, { label: "Queimou menos", color: DIV_RAMP[0] }]
-        : [{ label: st.indicador === "pct" ? "% do território" : "Área queimada", color: CHORO_RAMP[3] }]));
-      itens.push({ label: `Maior círculo = ${fmtCurto(maxAbs)}`, note: true });
-    } else {
-      itens.push(...classes.legend);
-      if (st.indicador !== "mudanca") itens.push({ label: "Sem área queimada", color: "var(--surface-muted)" });
-    }
+    const itens = [{ label: tituloIndicador(), head: true }, ...classes.legend];
+    if (st.indicador !== "mudanca") itens.push({ label: "Sem área queimada", color: "var(--surface-muted)" });
     if (spec.emCalculo) itens.push({ label: "Na divisa · área exata em cálculo", color: spec.corEmCalculo });
     legBox.innerHTML = legendRowHtml(itens);
   }
@@ -3561,7 +3591,8 @@ function renderMapaDinamico(map, spec, tokens, box) {
     <div class="segmented" role="group" data-g="${grupo}">
       ${opcoes.map(([v, r]) => `<button type="button" data-v="${v}" aria-pressed="false">${escapeHtml(r)}</button>`).join("")}
     </div>`;
-  const indicadores = [["area", "Área queimada (ha)"], ["pct", "% do território"], ...(n >= 2 ? [["mudanca", "Mudança entre períodos"]] : [])];
+  const indicadores = [["area", "Área queimada (ha)"], ["pct", "% do território"], ...(n >= 2 ? [["mudanca", "Comparar anos"]] : [])];
+  const selAno = (r, v, rotulo) => `<select class="md-select" data-r="${r}" aria-label="${rotulo}">${anos.map((a) => `<option value="${a}"${a === v ? " selected" : ""}>${a}</option>`).join("")}</select>`;
   ctlBox.innerHTML = `
     <div class="md-passo"><span class="md-num">1</span><span class="md-rotulo">O que mostrar</span>${seg("indicador", indicadores)}</div>
     <div class="md-passo" data-quando="area pct"><span class="md-num">2</span><span class="md-rotulo">Quando</span>
@@ -3572,12 +3603,13 @@ function renderMapaDinamico(map, spec, tokens, box) {
         <output class="md-valor" data-o="ano"></output>
       </span>
     </div>
-    <div class="md-passo" data-quando="mudanca"><span class="md-num">2</span><span class="md-rotulo">Dividir em</span>
-      <input type="range" min="${ano0}" max="${anoN - 1}" step="1" value="${st.corte}" data-r="corte" aria-label="Último ano do primeiro período">
-      <output class="md-valor" data-o="corte"></output>
+    <div class="md-passo" data-quando="mudanca"><span class="md-num">2</span><span class="md-rotulo">Comparar</span>
+      ${seg("comp", [["anos", "Um ano × outro ano"], ["media", "Um ano × média histórica"]])}
+      <span class="md-ano" data-quando-comp="anos">${selAno("anoB", st.anoB, "Ano")}<span>em relação a</span>${selAno("anoA", st.anoA, "Ano de referência")}</span>
+      <span class="md-ano" data-quando-comp="media">${selAno("anoM", st.anoM, "Ano")}<span>em relação à média ${ano0}–${anoN}</span></span>
     </div>
-    <div class="md-passo"><span class="md-num">3</span><span class="md-rotulo">Desenho</span>
-      ${seg("estilo", [["cores", "Cores no território"], ["bolhas", "Bolhas"]])}
+    <div class="md-passo"><span class="md-num">3</span><span class="md-rotulo">Baixar</span>
+      <button type="button" class="md-botao md-png">⬇ Baixar mapa (PNG)</button>
       <button type="button" class="md-botao md-csv" title="Planilha com o valor de cada ${nomeUnid} e a série anual">⬇ Baixar dados (CSV)</button>
     </div>`;
 
@@ -3589,7 +3621,7 @@ function renderMapaDinamico(map, spec, tokens, box) {
     ctlBox.querySelector("[data-quando-periodo]").hidden = st.periodo !== "ano";
     ctlBox.querySelector('[data-r="ano"]').value = String(st.ano);
     ctlBox.querySelector('[data-o="ano"]').textContent = String(st.ano);
-    ctlBox.querySelector('[data-o="corte"]').textContent = `${ano0}–${st.corte} × ${st.corte + 1}–${anoN}`;
+    ctlBox.querySelectorAll("[data-quando-comp]").forEach((d) => { d.hidden = d.dataset.quandoComp !== st.comp; });
     const play = ctlBox.querySelector(".md-play");
     play.textContent = st.timer ? "⏸" : "▶";
     play.setAttribute("aria-label", st.timer ? "Pausar animação" : "Animar ano a ano");
@@ -3617,6 +3649,7 @@ function renderMapaDinamico(map, spec, tokens, box) {
     if (!b) return;
     if (b.classList.contains("md-play")) return alternarPlay();
     if (b.classList.contains("md-csv")) return baixarCsv();
+    if (b.classList.contains("md-png")) return baixarMapaPng(map, box, tituloIndicador(), legBox);
     const g = b.closest("[data-g]")?.dataset.g;
     if (!g || st[g] === b.dataset.v) return;
     pararPlay();
@@ -3624,12 +3657,15 @@ function renderMapaDinamico(map, spec, tokens, box) {
     desenhar();
   });
   ctlBox.querySelector('[data-r="ano"]').addEventListener("input", (e) => { pararPlay(); st.ano = Number(e.target.value); desenhar(); });
-  ctlBox.querySelector('[data-r="corte"]').addEventListener("input", (e) => { st.corte = Number(e.target.value); desenhar(); });
+  ctlBox.querySelectorAll("select[data-r]").forEach((s) => s.addEventListener("change", () => {
+    st[s.dataset.r] = Number(s.value);
+    desenhar();
+  }));
 
-  // ----- Detalhe do território clicado -----
+  // ----- Detalhe do território clicado (contorno em destaque + quadro abaixo) -----
   function selecionar(id) {
     st.sel = id;
-    desenhar();
+    destacar(id);
     mostrarDetalhe(id);
   }
 
@@ -3675,7 +3711,7 @@ function renderMapaDinamico(map, spec, tokens, box) {
       detBox.hidden = true;
       descartarGraficos(root);
       st.sel = null;
-      desenhar();
+      destacar(null);
     } else if (acao === "filtrar" && st.sel) {
       pararPlay();
       el.estado.value = st.sel;
@@ -3686,9 +3722,9 @@ function renderMapaDinamico(map, spec, tokens, box) {
   // ----- CSV (separador ";" e vírgula decimal, abre direto no Excel em português) -----
   function baixarCsv() {
     const num = (v) => String(Math.round(v * 100) / 100).replace(".", ",");
-    const sufixo = st.indicador === "mudanca" ? `${st.corte + 1}-${anoN}_menos_${ano0}-${st.corte}`
+    const sufixo = st.indicador === "mudanca" ? (st.comp === "media" ? `${st.anoM}_menos_media_${ano0}-${anoN}` : `${st.anoB}_menos_${st.anoA}`)
       : st.periodo === "ano" ? String(st.ano) : `${ano0}-${anoN}`;
-    const nomeInd = { area: "area_queimada_ha", pct: "pct_do_territorio", mudanca: "mudanca_media_anual_ha" }[st.indicador];
+    const nomeInd = { area: "area_queimada_ha", pct: "pct_do_territorio", mudanca: "diferenca_area_queimada_ha" }[st.indicador];
     const cab = [nomeUnid, `${nomeInd}_${sufixo}`, `soma_${ano0}-${anoN}_ha`, ...anos.map((a) => `${a}_ha`)];
     const linhasCsv = [...territorios.entries()]
       .sort((a, b) => a[1].name.localeCompare(b[1].name, "pt-BR"))
@@ -3716,6 +3752,140 @@ function renderMapaDinamico(map, spec, tokens, box) {
   desenhar();
 }
 
+// ---------- Baixar o mapa (PNG) ----------
+// Copia o que está na tela: tiles (basemap e camadas, com transparência e cortina), vetores
+// (canvas do Leaflet), e acrescenta título, legenda, barra de escala e fonte.
+
+// Barra de escala: comprimento "redondo" (1, 2 ou 5 × 10^n) que caiba em ~120 px no centro do mapa.
+function escalaDoMapa(map, largura = 120) {
+  const s = map.getSize();
+  const a = map.containerPointToLatLng([s.x / 2 - 50, s.y / 2]);
+  const b = map.containerPointToLatLng([s.x / 2 + 50, s.y / 2]);
+  const mpp = map.distance(a, b) / 100;
+  const alvo = mpp * largura;
+  const pot = 10 ** Math.floor(Math.log10(alvo));
+  const metros = [1, 2, 5, 10].map((k) => k * pot).filter((v) => v <= alvo).pop() || pot;
+  return { px: metros / mpp, rotulo: metros >= 1000 ? `${fmtFull.format(metros / 1000)} km` : `${fmtFull.format(metros)} m` };
+}
+
+function itensDaLegenda(el) {
+  return [...(el?.querySelectorAll("li") || [])].map((li) => {
+    const i = li.querySelector("i");
+    const cor = i ? (i.style.getPropertyValue("--c") || i.style.background) : null;
+    return { label: li.textContent.trim(), head: li.classList.contains("legend-head"), note: li.classList.contains("legend-note"), color: cor ? resolveColor(cor.trim()) : null, linha: i?.classList.contains("ln") };
+  }).filter((x) => x.label);
+}
+
+async function baixarMapaPng(map, box, titulo, legendaEl) {
+  const W = box.clientWidth, H = box.clientHeight;
+  const pad = 16, cab = 58, esc = 2;
+  const medir = document.createElement("canvas").getContext("2d");
+  medir.font = "500 12px Montserrat, sans-serif";
+  const itens = itensDaLegenda(legendaEl);
+  // Legenda em linhas que cabem na largura.
+  let x = pad, linha = 0;
+  const pos = itens.map((it) => {
+    const w = (it.color ? 18 : 0) + medir.measureText(it.label).width;
+    if (it.head || x + w > W + pad && x > pad) { if (x > pad) linha++; x = pad; }
+    const p = { it, x, linha };
+    x = it.head ? W + pad : x + w + 16; // título da legenda ocupa a linha toda
+    return p;
+  });
+  const linhas = itens.length ? linha + 1 : 0;
+  const rodape = 14 + linhas * 20 + 26;
+  const cv = Object.assign(document.createElement("canvas"), { width: (W + 2 * pad) * esc, height: (cab + H + rodape) * esc });
+  const ctx = cv.getContext("2d");
+  ctx.scale(esc, esc);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, W + 2 * pad, cab + H + rodape);
+  ctx.fillStyle = "#1f1f1f";
+  ctx.font = "700 16px Montserrat, sans-serif";
+  ctx.fillText(tr(titulo), pad, 26, W);
+  ctx.fillStyle = "#555555";
+  ctx.font = "500 12px Montserrat, sans-serif";
+  ctx.fillText(tr(`${PAIS.marca}${state.conn?.colecao ? ` · Coleção ${state.conn.colecao}` : ""} · ${activeTerritory().nome} · ${state.ini}–${state.fim}`), pad, 46, W);
+
+  // Mapa: tiles e canvas do Leaflet nas posições da tela.
+  const mr = box.getBoundingClientRect();
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(pad, cab, W, H);
+  ctx.clip();
+  ctx.fillStyle = resolveColor("var(--surface-muted)") || "#eeeeee";
+  ctx.fillRect(pad, cab, W, H);
+  for (const img of box.querySelectorAll(".leaflet-tile-pane img")) {
+    if (!img.complete || !img.naturalWidth) continue;
+    const r = img.getBoundingClientRect();
+    const camada = img.closest(".leaflet-layer");
+    ctx.save();
+    if (camada?.style.clip) {
+      const m = camada.style.clip.match(/rect\(([-\d.]+)px,?\s*([-\d.]+)px,?\s*([-\d.]+)px,?\s*([-\d.]+)px\)/);
+      if (m) {
+        const o = camada.getBoundingClientRect();
+        const [t, d, b, e] = m.slice(1).map(Number);
+        ctx.beginPath();
+        ctx.rect(pad + o.left - mr.left + e, cab + o.top - mr.top + t, d - e, b - t);
+        ctx.clip();
+      }
+    }
+    ctx.globalAlpha = Number(getComputedStyle(camada || img).opacity) || 1;
+    ctx.drawImage(img, pad + r.left - mr.left, cab + r.top - mr.top, r.width, r.height);
+    ctx.restore();
+  }
+  for (const c of box.querySelectorAll(".leaflet-pane canvas")) {
+    const r = c.getBoundingClientRect();
+    ctx.drawImage(c, pad + r.left - mr.left, cab + r.top - mr.top, r.width, r.height);
+  }
+  const linhaCortina = box.querySelector(".cortina-linha");
+  if (linhaCortina) {
+    const r = linhaCortina.getBoundingClientRect();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(pad + r.left - mr.left, cab, 3, H);
+  }
+  ctx.restore();
+  ctx.strokeStyle = "#d0d0d0";
+  ctx.strokeRect(pad + 0.5, cab + 0.5, W - 1, H - 1);
+
+  // Barra de escala (canto inferior esquerdo do mapa).
+  const e = escalaDoMapa(map);
+  const ex = pad + 12, ey = cab + H - 16;
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.fillRect(ex - 6, ey - 20, e.px + 12 + 60, 28);
+  ctx.fillStyle = "#1f1f1f";
+  ctx.fillRect(ex, ey, e.px, 3);
+  ctx.fillRect(ex, ey - 6, 2, 9);
+  ctx.fillRect(ex + e.px - 2, ey - 6, 2, 9);
+  ctx.font = "600 11px Montserrat, sans-serif";
+  ctx.fillText(e.rotulo, ex + e.px + 6, ey + 4);
+
+  // Legenda e fonte.
+  ctx.textBaseline = "middle";
+  const y0 = cab + H + 14 + 10;
+  for (const { it, x: lx, linha: l } of pos) {
+    const yy = y0 + l * 20;
+    let tx = lx;
+    if (it.color) {
+      ctx.fillStyle = it.color;
+      if (it.linha) ctx.fillRect(lx, yy - 1, 12, 3); else ctx.fillRect(lx, yy - 6, 12, 12);
+      tx += 18;
+    }
+    ctx.fillStyle = it.head ? "#1f1f1f" : "#333333";
+    ctx.font = `${it.head ? 700 : 500} 12px Montserrat, sans-serif`;
+    ctx.fillText(it.label, tx, yy);
+  }
+  ctx.fillStyle = "#666666";
+  ctx.font = "500 10px Montserrat, sans-serif";
+  ctx.fillText(tr(`Fonte: ${PAIS.marca} · plataforma.mapbiomas.org · mapa base Esri`), pad, cab + H + rodape - 12, W);
+
+  try {
+    const blob = await new Promise((resolve, reject) => cv.toBlob((b) => (b ? resolve(b) : reject(new Error("vazio"))), "image/png"));
+    baixarArquivo(blob, `mapbiomas_fogo_mapa_${nomeSeguro(titulo).toLowerCase()}.png`);
+  } catch (err) {
+    console.error(err);
+    setStatus(tr("O navegador bloqueou a leitura das imagens do mapa. Abra o painel pelo site publicado (mapbiomas.github.io) em vez do arquivo local."));
+  }
+}
+
 // Controle HTML dentro do mapa (cliques e arrastes não movem o mapa).
 function controleNoMapa(map, posicao, html, aoMontar) {
   const ctl = L.control({ position: posicao });
@@ -3734,6 +3904,7 @@ function controleNoMapa(map, posicao, html, aoMontar) {
 // Cortina: recorta a camada da esquerda e a da direita numa linha vertical que o usuário arrasta.
 function montarCortina(map, box, esquerda, direita, anoA, anoB) {
   const linha = L.DomUtil.create("div", "cortina-linha", box);
+  L.DomEvent.disableClickPropagation(linha);
   let frac = 0.5;
   controleNoMapa(map, "bottomleft", `
     <div class="cortina-ctl">
@@ -4146,9 +4317,25 @@ function renderError(err, retry) {
 
 // Seletor de país no topo, logo, marca e textos do país. Trocar de país recarrega a página
 // (cada país tem sua própria árvore de temas, categorias e territórios na API).
+// Coleção de cada país (nota informativa do tema de fogo de cada região), mostrada nos seletores de país.
+const COLECOES = new Map();
+const rotuloPais = (p) => {
+  const c = COLECOES.get(p.region);
+  return c === undefined ? p.nome : `${p.nome} · ${c ? `Col. ${c}` : "coleção não informada"}`;
+};
+function rotularColecoes() {
+  for (const p of PAISES) {
+    gifRegiao(p.region).then((r) => {
+      COLECOES.set(p.region, r.colecao || null);
+      document.querySelectorAll(`option[data-pais="${p.region}"]`).forEach((o) => { o.textContent = rotuloPais(p); });
+    }).catch(() => {});
+  }
+}
+
 function montarPais() {
   const sel = document.getElementById("f-pais");
-  sel.innerHTML = PAISES.map((p) => `<option value="${p.region}"${p === PAIS ? " selected" : ""}>${escapeHtml(p.nome)}</option>`).join("");
+  sel.innerHTML = PAISES.map((p) => `<option value="${p.region}" data-pais="${p.region}"${p === PAIS ? " selected" : ""}>${escapeHtml(rotuloPais(p))}</option>`).join("");
+  rotularColecoes();
   sel.addEventListener("change", () => {
     const p = new URLSearchParams(sel.value === "brazil" ? "" : `pais=${sel.value}`);
     location.hash = p.toString();
@@ -4465,7 +4652,8 @@ const GIF_TEXTOS = {
   "id-ID": { marca: "MapBiomas Fire", fonte: "Sumber: MapBiomas Fire", colecao: "Koleksi", anual: "Area terbakar tahunan" },
 };
 
-const GIF_VELOCIDADES = [["lento", "Lento", 1200], ["normal", "Normal", 700], ["rapido", "Rápido", 350]];
+// ms por quadro: lento = antigo normal, normal = antigo rápido, rápido ainda mais rápido.
+const GIF_VELOCIDADES = [["lento", "Lento", 700], ["normal", "Normal", 350], ["rapido", "Rápido", 180]];
 const GIF_TAMANHOS = [["p", "Pequeno", 640], ["m", "Médio", 900], ["g", "Grande", 1200]];
 const GIF_FUNDOS = [["mapa", "Mapa base cinza"], ["branco", "Fundo branco"]];
 const GIFENC_URL = "https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js";
@@ -4473,7 +4661,7 @@ const GIF_BASEMAP = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas
 
 const gifState = {
   region: "brazil", produto: "", legenda: "", categoria: "", territorio: "", ini: null, fim: null,
-  velocidade: "normal", tamanho: "m", fundo: "mapa", resultado: null, gerando: false,
+  velocidade: "normal", tamanho: "m", fundo: "mapa", limites: "nenhum", resultado: null, gerando: false,
 };
 
 const gifEnv = () => ENVIRONMENTS[0]; // produção
@@ -4562,7 +4750,7 @@ function montarGif(body) {
   body.innerHTML = `
     <div class="gif-form">
       <div class="md-passo"><span class="md-num">1</span><span class="md-rotulo">País</span>
-        <select data-f="region" aria-label="País">${GIF_PAISES.map((p) => `<option value="${p.region}"${p.region === gifState.region ? " selected" : ""}>${escapeHtml(p.nome)}</option>`).join("")}</select>
+        <select data-f="region" aria-label="País">${GIF_PAISES.map((p) => `<option value="${p.region}" data-pais="${p.region}"${p.region === gifState.region ? " selected" : ""}>${escapeHtml(rotuloPais(p))}</option>`).join("")}</select>
       </div>
       <div class="md-passo"><span class="md-num">2</span><span class="md-rotulo">Produto</span>
         <select data-f="produto" aria-label="Produto"></select>
@@ -4580,6 +4768,9 @@ function montarGif(body) {
         ${seg("velocidade", GIF_VELOCIDADES)}
         ${seg("tamanho", GIF_TAMANHOS.map(([v, r, px]) => [v, `${r} (${px} px)`]))}
         ${seg("fundo", GIF_FUNDOS)}
+      </div>
+      <div class="md-passo"><span class="md-num">6</span><span class="md-rotulo">Limites no mapa</span>
+        <div class="segmented" role="group" data-g="limites"></div>
       </div>
       <div class="gif-acoes">
         <button type="button" class="md-botao gif-gerar">▶ Gerar GIF</button>
@@ -4619,6 +4810,12 @@ function montarGif(body) {
     try {
       reg = await gifRegiao(gifState.region);
       const p = pais();
+      // Limites que o país tem (biomas/ecorregiões e o 1º nível administrativo).
+      const cfg = PAISES.find((x) => x.region === p.region);
+      const limOpc = [["nenhum", "Nenhum"],
+        ...["bioma", "estado"].filter((k) => cfg?.cats?.[k] && reg.categorias.some((c) => cfg.cats[k].test(c.key))).map((k) => [k, cfg.rotulos[k][1]])];
+      if (!limOpc.some(([v]) => v === gifState.limites)) gifState.limites = "nenhum";
+      q('[data-g="limites"]').innerHTML = limOpc.map(([v, r]) => `<button type="button" data-v="${v}" aria-pressed="${gifState.limites === v}">${escapeHtml(r)}</button>`).join("");
       gifState.produto = opcoes(sel("produto"), reg.produtos.map((s) => ({
         value: s.key,
         label: nomeEm(s.name, IDIOMA.gif) + (s.dataType === "year_interval" || s.analysis ? " (acumulado ano a ano)" : ""),
@@ -4866,9 +5063,9 @@ async function gerarGif(body, reg, status) {
       });
       imgs.forEach((img, i) => { if (img) ctx.drawImage(img, telaX(tiles[i].tx), telaY(tiles[i].ty), tile + 0.5, tile + 0.5); });
     };
-    const caminho = (ctx) => {
+    const caminho = (ctx, lista = aneis) => {
       ctx.beginPath();
-      for (const anel of aneis) anel.forEach(([lon, lat], i) => {
+      for (const anel of lista) anel.forEach(([lon, lat], i) => {
         const px = MW / 2 + (lonParaX(lon) * mundo - cx) * k, py = MH / 2 + (latParaY(lat) * mundo - cy) * k;
         if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
       });
@@ -4884,6 +5081,20 @@ async function gerarGif(body, reg, status) {
     else { caminho(fctx); fctx.fillStyle = "#f1f1f1"; fctx.fill("evenodd"); }
     const contorno = novoCanvas(MW, MH);
     const cctx = contorno.getContext("2d");
+    // Limites de referência (ex.: biomas do Brasil) em cinza, por baixo do contorno do território.
+    const cfgPais = PAISES.find((x) => x.region === p.region);
+    const reLim = gifState.limites !== "nenhum" ? cfgPais?.cats?.[gifState.limites] : null;
+    const catLim = reLim ? reg.categorias.find((c) => reLim.test(c.key)) : null;
+    if (catLim) {
+      status("Desenhando os limites…");
+      const terrs = (await gifTerritorios(p.region, catLim.id)).filter((x) => !/\s-\s(costa|mar)$/i.test(x.name));
+      const geoms = await mapLimit(terrs, 6, (x) => gifApi(p.region, "/territories/geometry", { territoryId: [x.id], spatialMethod: "union", simplify: "true" })
+        .then((g) => g.geometry || g).catch(() => null));
+      cctx.strokeStyle = "rgba(85,85,85,0.95)";
+      cctx.lineWidth = Math.max(1.2, 1.2 * s);
+      cctx.lineJoin = "round";
+      for (const g of geoms) { const a = aneisDe(g); if (a.length) { caminho(cctx, a); cctx.stroke(); } }
+    }
     caminho(cctx);
     cctx.strokeStyle = "#2b2b2b";
     cctx.lineWidth = Math.max(1, 1.3 * s);

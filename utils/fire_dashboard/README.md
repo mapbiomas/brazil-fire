@@ -20,8 +20,8 @@ Highlights:
 - Annual and accumulated burned area can be stacked **by biome** (Brazil: two earthy palettes; other countries: categorical colors per biome or ecoregion).
 - Accumulated tab: share of each biome (or state/municipality) that burned at least once.
 - Municipality × biome: the map and the statistics use only the part of the municipality inside the biome.
-- Interactive maps: burned area, share of the territory or change between two periods, with a year timeline (play), bubbles, click-to-detail and CSV export; raw tiles with an overlay layer, a two-year swipe and a highlight of the selected area.
-- **GIF factory** tab: one frame per year from the official Platform map tiles, with title, territory, year, legend, source and logo (as in [`mapbiomas_gif_factory`](../mapbiomas_gif_factory/)), built in the browser and downloadable as GIF (or the last frame as PNG); **Generate and download GIF** saves it in one click. Frame texts and logo follow the chosen language. Use the published site: opened as a local file, the browser may block reading the map images.
+- Interactive maps: burned area, share of the territory, or one year compared with another year or with the historical mean, with a year timeline (play), click-to-outline and detail, CSV export and **PNG download (title, legend, scale bar and source)**; raw subproducts grouped as annual or by period, with an overlay, a two-year swipe for annual subproducts (both years selectable), clickable outlines and a highlight of the selected area.
+- **GIF factory** tab: one frame per year from the official Platform map tiles, with title, territory, year, legend, source and logo (as in [`mapbiomas_gif_factory`](../mapbiomas_gif_factory/)), built in the browser and downloadable as GIF (or the last frame as PNG); **Generate and download GIF** saves it in one click. Optional boundaries on the frames (e.g. biomes or states over Brazil); speeds of 700, 350 or 180 ms per frame. Frame texts and logo follow the chosen language. Use the published site: opened as a local file, the browser may block reading the map images.
 
 ## 🗂️ Folder structure
 
