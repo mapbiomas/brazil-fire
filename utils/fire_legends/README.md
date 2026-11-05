@@ -2,7 +2,7 @@
 
 ## 🔗 Open the app: **[https://mapbiomas.github.io/brazil-fire/legends/](https://mapbiomas.github.io/brazil-fire/legends/)**
 
-Consult the legends and palettes of every MapBiomas Fire collection published so far (per country, collection and product) and export them as GEE code, QGIS colormap, SLD, SVG/PNG or plain HEX lists.
+Consult the legends and palettes of every MapBiomas Fire collection published so far (per country, collection and product) and export them as GEE code, CSV, JSON, SVG/PNG or HEX lists (with pixel values, or comma-separated).
 
 | Country | Published collections |
 |---|---|
@@ -15,14 +15,14 @@ Consult the legends and palettes of every MapBiomas Fire collection published so
 | 🇵🇪 Peru | 1 · 2 · Monitor |
 | 🇮🇩 Indonesia | 1 · 2 · Monitor |
 
-_Inventory of 30/10/2026 (official site and `gs://mapbiomas-public`)._ Colors marked **validada** in the app are the ones registered in this folder (`registry.csv` with status `active`): official legend documents or palettes defined by the team. For the other collections the app shows a generated suggestion until their colors are registered.
+Colors marked **validada** in the app are the ones registered in this folder (`registry.csv` with status `active`). For the other collections the app shows a generated suggestion until their colors are registered.
 
 ## Folder structure
 
 ```
 utils/fire_legends/
 ├── README.md
-├── registry.csv          # one row per legend: status, years, GEE asset, source
+├── registry.csv          # one row per legend: status, years, GEE asset
 ├── legends/              # one CSV per legend: pixel_value, name_pt/en/es, hex
 ├── LEGENDS.md            # all registered legends as tables (generated)
 ├── preview.html          # the same with color swatches (generated)
@@ -60,8 +60,3 @@ Only the Python standard library is needed.
 ## Other countries
 
 Legends are stored per country, collection and product. To add one, follow the steps above; leave `status` as `pending_colors` or `not_found` when colors or documents are missing, instead of copying Brazil's values. Shared logos and texts: [`utils/_base/`](../_base/). Technical notes: [CLAUDE.md](CLAUDE.md).
-
-## Sources
-
-- Brazil Collection 5: [legend code PDF](https://brasil.mapbiomas.org/wp-content/uploads/sites/3/2026/09/Codigo-Legenda-MapBiomas-Fogo-Brazil-Col5.pdf)
-- Peru Collection 1: [legend code PDF](https://peru.mapbiomas.org/wp-content/uploads/sites/14/2025/10/CODIGO-DE-LEGENDA-FUEGO-COL-1-Peru.pdf) (pixel values only, no colors published)

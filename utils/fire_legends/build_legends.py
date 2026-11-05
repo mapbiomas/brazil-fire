@@ -19,7 +19,7 @@ REGISTRY = os.path.join(HERE, "registry.csv")
 LEGENDS_DIR = os.path.join(HERE, "legends")
 
 REGISTRY_COLUMNS = ["legend_id", "country", "collection", "product", "status", "years",
-                    "pixel_meaning", "file", "gee_asset", "source_url", "notes",
+                    "pixel_meaning", "file", "gee_asset",
                     "app_country", "app_collection", "app_product"]
 LEGEND_COLUMNS = ["pixel_value", "name_pt", "name_en", "name_es", "hex"]
 STATUSES = {"active", "review", "pending_colors", "deprecated", "not_found"}
@@ -100,13 +100,9 @@ def markdown(rows, legends):
             continue
         out += ["", f"## {r['country'].title()} · Collection {r['collection']} · {r['product']}", "",
                 f"Pixel value: {r['pixel_meaning']}.", ""]
-        if r["notes"]:
-            out += [f"> {r['notes']}", ""]
         out += ["| Pixel | Português | English | Español | HEX |", "|---:|---|---|---|---|"]
         for i in items:
             out.append(f"| {i['pixel_value']} | {i['name_pt']} | {i['name_en']} | {i['name_es']} | `{i['hex']}` |")
-        if r["source_url"]:
-            out += ["", f"Source: <{r['source_url']}>"]
     return "\n".join(out) + "\n"
 
 
@@ -130,7 +126,7 @@ def palettes(rows, legends):
         out[key] = {"country": r["app_country"], "collection": r["app_collection"], "subproduct": r["app_product"],
                     "classes": classes, "expected": len(classes),
                     "status": "validada" if r["status"] == "active" else "revisao",
-                    "notes": r["notes"], "updatedAt": "from-repository"}
+                    "updatedAt": "from-repository"}
     return json.dumps(out, ensure_ascii=False, indent=1, sort_keys=True) + "\n"
 
 
@@ -146,7 +142,7 @@ def preview(rows, legends):
         if not items:
             continue
         parts.append(f"<h2>{esc(r['country'].title())} · Collection {esc(r['collection'])} · {esc(r['product'])}</h2>")
-        parts.append(f"<p class='note'>Pixel value: {esc(r['pixel_meaning'])}. {esc(r['notes'])}</p>")
+        parts.append(f"<p class='note'>Pixel value: {esc(r['pixel_meaning'])}.</p>")
         parts.append("<table><tr><th>Pixel</th><th>PT</th><th>EN</th><th>ES</th><th>HEX</th><th>Color</th></tr>")
         for i in items:
             parts.append(f"<tr><td>{esc(i['pixel_value'])}</td><td>{esc(i['name_pt'])}</td><td>{esc(i['name_en'])}</td>"

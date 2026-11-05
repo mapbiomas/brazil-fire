@@ -10,7 +10,6 @@
   "collection": "1",
   "country": "argentina",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
   "status": "validada",
   "subproduct": "accumulated_burned",
   "updatedAt": "from-repository"
@@ -26,7 +25,6 @@
   "collection": "1",
   "country": "argentina",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
   "status": "validada",
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
@@ -101,7 +99,6 @@
   "collection": "1",
   "country": "argentina",
   "expected": 8,
-  "notes": "Same 8-color scar size palette as Brazil Col5. Size classes assumed equal to Brazil Col5.",
   "status": "validada",
   "subproduct": "annual_burned_scar_size_range",
   "updatedAt": "from-repository"
@@ -208,7 +205,6 @@
   "collection": "1",
   "country": "argentina",
   "expected": 12,
-  "notes": "Same 12-month palette for the monthly burned area of every country.",
   "status": "validada",
   "subproduct": "monthly_burned",
   "updatedAt": "from-repository"
@@ -224,7 +220,6 @@
   "collection": "1",
   "country": "bolivia",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
   "status": "validada",
   "subproduct": "accumulated_burned",
   "updatedAt": "from-repository"
@@ -240,7 +235,6 @@
   "collection": "1",
   "country": "bolivia",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
   "status": "validada",
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
@@ -315,7 +309,6 @@
   "collection": "1",
   "country": "bolivia",
   "expected": 8,
-  "notes": "Same 8 colors and size classes as Brazil Col5 (confirmed for Bolivia).",
   "status": "validada",
   "subproduct": "annual_burned_scar_size_range",
   "updatedAt": "from-repository"
@@ -481,7 +474,6 @@
   "collection": "1",
   "country": "bolivia",
   "expected": 31,
-  "notes": "One color per number of fires (1-31).",
   "status": "validada",
   "subproduct": "fire_frequency",
   "updatedAt": "from-repository"
@@ -588,7 +580,6 @@
   "collection": "1",
   "country": "bolivia",
   "expected": 12,
-  "notes": "Same 12-month palette for the monthly burned area of every country.",
   "status": "validada",
   "subproduct": "monthly_burned",
   "updatedAt": "from-repository"
@@ -754,7 +745,6 @@
   "collection": "1",
   "country": "bolivia",
   "expected": 31,
-  "notes": "One color per year (1995-2025).",
   "status": "validada",
   "subproduct": "year_last_fire",
   "updatedAt": "from-repository"
@@ -770,7 +760,6 @@
   "collection": "5.1",
   "country": "brasil",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
   "status": "validada",
   "subproduct": "accumulated_burned",
   "updatedAt": "from-repository"
@@ -786,7 +775,6 @@
   "collection": "5.1",
   "country": "brasil",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country). The site also lists class 0 'Ausencia de fogo' as #fffff (5 digits, invalid); class 0 is not registered.",
   "status": "validada",
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
@@ -861,7 +849,6 @@
   "collection": "5.1",
   "country": "brasil",
   "expected": 8,
-  "notes": "Size classes differ from Peru Col1 (see peru_col1_fire_scar_size).",
   "status": "validada",
   "subproduct": "annual_burned_scar_size_range",
   "updatedAt": "from-repository"
@@ -1077,7 +1064,6 @@
   "collection": "5.1",
   "country": "brasil",
   "expected": 41,
-  "notes": "",
   "status": "validada",
   "subproduct": "fire_frequency",
   "updatedAt": "from-repository"
@@ -1288,7 +1274,6 @@
   "collection": "5.1",
   "country": "brasil",
   "expected": 40,
-  "notes": "In the official PDF the Portuguese column is shifted by one from pixel 20 on (shows '21 anos' for pixel 20) and ends with '40 anos' twice. Here the Portuguese names follow the pixel value.",
   "status": "validada",
   "subproduct": "interval_since_fire",
   "updatedAt": "from-repository"
@@ -1395,7 +1380,6 @@
   "collection": "5.1",
   "country": "brasil",
   "expected": 12,
-  "notes": "Same 12-month palette for the monthly burned area of every country. These colors replace the ones in the official Col5 legend PDF.",
   "status": "validada",
   "subproduct": "monthly_burned",
   "updatedAt": "from-repository"
@@ -1454,7 +1438,6 @@
   "collection": "5.1",
   "country": "brasil",
   "expected": 6,
-  "notes": "Beta (potential severity from delta NBR).",
   "status": "validada",
   "subproduct": "severity_class",
   "updatedAt": "from-repository"
@@ -1670,9 +1653,23 @@
   "collection": "5.1",
   "country": "brasil",
   "expected": 41,
-  "notes": "One color per year.",
   "status": "validada",
   "subproduct": "year_last_fire",
+  "updatedAt": "from-repository"
+ },
+ "brasil__Monitor__fire_monitor": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "Monitor",
+  "country": "brasil",
+  "expected": 1,
+  "status": "validada",
+  "subproduct": "fire_monitor",
   "updatedAt": "from-repository"
  },
  "chile__1__accumulated_burned": {
@@ -1686,7 +1683,6 @@
   "collection": "1",
   "country": "chile",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
   "status": "validada",
   "subproduct": "accumulated_burned",
   "updatedAt": "from-repository"
@@ -1702,7 +1698,6 @@
   "collection": "1",
   "country": "chile",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
   "status": "validada",
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
@@ -1734,7 +1729,7 @@
     "v": 3
    },
    {
-    "en": "500 - 5.000 ha",
+    "en": "500 - 5,000 ha",
     "es": "500 - 5.000 ha",
     "hex": "#ac4b28",
     "pt": "500 - 5.000 ha",
@@ -1742,7 +1737,7 @@
     "v": 4
    },
    {
-    "en": "5.000 - 10.000 ha",
+    "en": "5,000 - 10,000 ha",
     "es": "5.000 - 10.000 ha",
     "hex": "#933328",
     "pt": "5.000 - 10.000 ha",
@@ -1750,7 +1745,7 @@
     "v": 5
    },
    {
-    "en": "10.000 - 50.000 ha",
+    "en": "10,000 - 50,000 ha",
     "es": "10.000 - 50.000 ha",
     "hex": "#72251d",
     "pt": "10.000 - 50.000 ha",
@@ -1758,7 +1753,7 @@
     "v": 6
    },
    {
-    "en": "50.000 - 100.000 ha",
+    "en": "50,000 - 100,000 ha",
     "es": "50.000 - 100.000 ha",
     "hex": "#4e180f",
     "pt": "50.000 - 100.000 ha",
@@ -1766,7 +1761,7 @@
     "v": 7
    },
    {
-    "en": ">= 100.000 ha",
+    "en": ">= 100,000 ha",
     "es": ">= 100.000 ha",
     "hex": "#240d00",
     "pt": ">= 100.000 ha",
@@ -1777,9 +1772,48 @@
   "collection": "1",
   "country": "chile",
   "expected": 8,
-  "notes": "Same 8-color scar size palette as Brazil Col5. Size classes assumed equal to Brazil Col5.",
   "status": "validada",
   "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "chile__1__fire_frequency": {
+  "classes": [
+   {
+    "hex": "#faf3cd",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "hex": "#e2af1a",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "hex": "#b76011",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "hex": "#600407",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "hex": "#220505",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "hex": "#020000",
+    "src": "oficial",
+    "v": 6
+   }
+  ],
+  "collection": "1",
+  "country": "chile",
+  "expected": 6,
+  "status": "validada",
+  "subproduct": "fire_frequency",
   "updatedAt": "from-repository"
  },
  "chile__1__monthly_burned": {
@@ -1884,9 +1918,83 @@
   "collection": "1",
   "country": "chile",
   "expected": 12,
-  "notes": "Same 12-month palette for the monthly burned area of every country.",
   "status": "validada",
   "subproduct": "monthly_burned",
+  "updatedAt": "from-repository"
+ },
+ "chile__1__year_last_fire": {
+  "classes": [
+   {
+    "hex": "#010079",
+    "src": "oficial",
+    "v": 2013
+   },
+   {
+    "hex": "#01177c",
+    "src": "oficial",
+    "v": 2014
+   },
+   {
+    "hex": "#005688",
+    "src": "oficial",
+    "v": 2015
+   },
+   {
+    "hex": "#026b8d",
+    "src": "oficial",
+    "v": 2016
+   },
+   {
+    "hex": "#198d98",
+    "src": "oficial",
+    "v": 2017
+   },
+   {
+    "hex": "#78c5b5",
+    "src": "oficial",
+    "v": 2018
+   },
+   {
+    "hex": "#aaa772",
+    "src": "oficial",
+    "v": 2019
+   },
+   {
+    "hex": "#ca6702",
+    "src": "oficial",
+    "v": 2020
+   },
+   {
+    "hex": "#b42e0f",
+    "src": "oficial",
+    "v": 2021
+   },
+   {
+    "hex": "#a6211a",
+    "src": "oficial",
+    "v": 2022
+   },
+   {
+    "hex": "#9b2226",
+    "src": "oficial",
+    "v": 2023
+   },
+   {
+    "hex": "#850708",
+    "src": "oficial",
+    "v": 2024
+   },
+   {
+    "hex": "#750000",
+    "src": "oficial",
+    "v": 2025
+   }
+  ],
+  "collection": "1",
+  "country": "chile",
+  "expected": 13,
+  "status": "validada",
+  "subproduct": "year_last_fire",
   "updatedAt": "from-repository"
  },
  "colombia__1__accumulated_burned": {
@@ -1900,7 +2008,6 @@
   "collection": "1",
   "country": "colombia",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
   "status": "validada",
   "subproduct": "accumulated_burned",
   "updatedAt": "from-repository"
@@ -1916,7 +2023,6 @@
   "collection": "1",
   "country": "colombia",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
   "status": "validada",
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
@@ -1991,7 +2097,6 @@
   "collection": "1",
   "country": "colombia",
   "expected": 8,
-  "notes": "Same 8 colors as Brazil Col5, with Colombia's own size classes (< 0,5 ha to >= 2.000 ha).",
   "status": "validada",
   "subproduct": "annual_burned_scar_size_range",
   "updatedAt": "from-repository"
@@ -2098,7 +2203,6 @@
   "collection": "1",
   "country": "colombia",
   "expected": 12,
-  "notes": "Colombia's own 12-month palette (red-orange), different from the other countries. November and December share the same color (#b2182b).",
   "status": "validada",
   "subproduct": "monthly_burned",
   "updatedAt": "from-repository"
@@ -2239,7 +2343,6 @@
   "collection": "1",
   "country": "colombia",
   "expected": 26,
-  "notes": "One color per year (2000-2025).",
   "status": "validada",
   "subproduct": "year_last_fire",
   "updatedAt": "from-repository"
@@ -2255,7 +2358,6 @@
   "collection": "1",
   "country": "indonesia",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
   "status": "validada",
   "subproduct": "accumulated_burned",
   "updatedAt": "from-repository"
@@ -2271,7 +2373,6 @@
   "collection": "1",
   "country": "indonesia",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
   "status": "validada",
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
@@ -2378,7 +2479,6 @@
   "collection": "1",
   "country": "indonesia",
   "expected": 12,
-  "notes": "Same 12-month palette for the monthly burned area of every country.",
   "status": "validada",
   "subproduct": "monthly_burned",
   "updatedAt": "from-repository"
@@ -2394,9 +2494,23 @@
   "collection": "2",
   "country": "indonesia",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
   "status": "validada",
   "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "indonesia__Monitor__fire_monitor": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "Monitor",
+  "country": "indonesia",
+  "expected": 1,
+  "status": "validada",
+  "subproduct": "fire_monitor",
   "updatedAt": "from-repository"
  },
  "paraguay__1__annual_burned": {
@@ -2410,7 +2524,6 @@
   "collection": "1",
   "country": "paraguay",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
   "status": "validada",
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
@@ -2426,7 +2539,6 @@
   "collection": "1",
   "country": "peru",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
   "status": "validada",
   "subproduct": "accumulated_burned",
   "updatedAt": "from-repository"
@@ -2442,7 +2554,6 @@
   "collection": "1",
   "country": "peru",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country). The official PDF lists pixel values only; the color follows the other countries.",
   "status": "validada",
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
@@ -2517,7 +2628,6 @@
   "collection": "1",
   "country": "peru",
   "expected": 8,
-  "notes": "Same 8-color scar size palette as Brazil Col5. Colors follow the class order; the size classes are Peru's own. Classes: <5, 5-25, 25-50, 50-250, 250-500, 500-1000, 1000-5000, >=5000 ha (different from Brazil Col5). The GEE asset name uses 'mapbiomas_fire', not 'mapbiomas_peru_fire'.",
   "status": "validada",
   "subproduct": "annual_burned_scar_size_range",
   "updatedAt": "from-repository"
@@ -2624,7 +2734,6 @@
   "collection": "1",
   "country": "peru",
   "expected": 12,
-  "notes": "Same 12-month palette for the monthly burned area of every country. The official PDF publishes no colors for Peru.",
   "status": "validada",
   "subproduct": "monthly_burned",
   "updatedAt": "from-repository"
@@ -2640,7 +2749,6 @@
   "collection": "2",
   "country": "peru",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #e84130 (same color for the accumulated burned area of every country).",
   "status": "validada",
   "subproduct": "accumulated_burned",
   "updatedAt": "from-repository"
@@ -2656,7 +2764,6 @@
   "collection": "2",
   "country": "peru",
   "expected": 1,
-  "notes": "Single class: 1 = burned area, #d4271e (same color for the annual burned area of every country).",
   "status": "validada",
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
@@ -2731,7 +2838,6 @@
   "collection": "2",
   "country": "peru",
   "expected": 8,
-  "notes": "Same 8-color scar size palette as Brazil Col5. Size classes assumed equal to Brazil Col5.",
   "status": "validada",
   "subproduct": "annual_burned_scar_size_range",
   "updatedAt": "from-repository"
@@ -2838,9 +2944,23 @@
   "collection": "2",
   "country": "peru",
   "expected": 12,
-  "notes": "Same 12-month palette for the monthly burned area of every country.",
   "status": "validada",
   "subproduct": "monthly_burned",
+  "updatedAt": "from-repository"
+ },
+ "peru__Monitor__fire_monitor": {
+  "classes": [
+   {
+    "hex": "#d4271e",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "Monitor",
+  "country": "peru",
+  "expected": 1,
+  "status": "validada",
+  "subproduct": "fire_monitor",
   "updatedAt": "from-repository"
  }
 }

@@ -76,6 +76,16 @@ textarea{font-family:var(--f-mono);font-size:12.5px;resize:vertical}
 .lg-bar{height:18px;border-radius:2px;border:1px solid rgba(0,0,0,.18)}
 .lg-ticks{display:flex;justify-content:space-between;font:11.5px var(--f-mono);color:#444;margin-top:4px;font-variant-numeric:tabular-nums}
 .lg-foot{font-size:10.5px;color:#7a7a7a;margin-top:14px}
+.lg-table-wrap{border:1px solid #dfe9e2;border-radius:8px;overflow-x:auto}
+.lg-table{width:100%;border-collapse:collapse;font-size:14px;color:#2b2b2b}
+.lg-table th{background:#eef6f1;color:#3f7d52;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:left;padding:12px 16px;border-bottom:1px solid #dfe9e2;white-space:nowrap}
+.lg-table td{padding:11px 16px;border-bottom:1px solid #ececec;vertical-align:middle}
+.lg-table tr:last-child td{border-bottom:0}
+.lg-table td:first-child{font-weight:600}
+.lg-table td.code{font-variant-numeric:tabular-nums}
+.lg-table td.hex{white-space:nowrap}
+.lg-table td.hex i{display:inline-block;width:14px;height:14px;border-radius:2px;border:1px solid rgba(0,0,0,.12);vertical-align:-2px;margin-right:6px}
+.lg-table td.hex i.missing{background:repeating-linear-gradient(45deg,#ddd 0 3px,#fff 3px 6px)!important}
 .card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .card-h h3{font-weight:600;font-size:1rem;margin:0}
 .strip{display:flex;height:38px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
@@ -180,7 +190,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
           <div class="card-h">
             <h3 id="t-legend"></h3>
             <div class="seg" role="group" id="layout-seg">
-              <button data-layout="list" id="lay-list"></button><button data-layout="bar" id="lay-bar"></button>
+              <button data-layout="table" id="lay-table"></button><button data-layout="list" id="lay-list"></button><button data-layout="bar" id="lay-bar"></button>
             </div>
           </div>
           <div class="legend" id="legend"></div>
@@ -203,7 +213,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
           <button class="btn" id="btn-copyhex" type="button"></button>
         </div>
         <div class="strip" id="strip"></div>
-        <div class="twrap tall"><table><thead><tr><th id="th-v"></th><th id="th-c"></th><th>HEX</th><th id="th-l"></th><th id="th-s"></th></tr></thead><tbody id="ptable"></tbody></table></div>
+        <div class="twrap tall"><table><thead><tr><th id="th-v"></th><th id="th-c"></th><th>HEX</th><th id="th-l"></th></tr></thead><tbody id="ptable"></tbody></table></div>
       </section>
 
       <section class="panel">
@@ -239,10 +249,6 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
     <section class="panel" id="newcoll" hidden></section>
     <section class="panel" id="editor" hidden></section>
 
-    <section class="panel">
-      <div class="card-h"><h3 id="t-sources"></h3></div>
-      <div class="sources" id="sources"></div>
-    </section>
   </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -253,7 +259,7 @@ const T = {
   pt:{title:"Legendas e paletas",sub:"Consulte os dados publicados e cadastre as paletas de cada país, coleção e subproduto.",
     v_consult:"Consultar",v_reg:"Cadastro",
     country:"País",colls:"Coleção",subprod:"Subproduto",year:"Ano",start:"Ano inicial",end:"Ano final",refYear:"Ano de referência",period:"Período",
-    legend:"Legenda",list:"Lista",bar:"Barra",meta:"Dados e visualização",palette:"Paleta",copyHex:"Copiar HEX",
+    legend:"Legenda",table:"Tabela",th_class:"Classe",th_code:"Código",th_hex:"Cor (HEX)",list:"Lista",bar:"Barra",meta:"Dados e visualização",palette:"Paleta",copyHex:"Copiar HEX",
     value:"Valor",color:"Cor",label:"Rótulo",src:"Fonte",export:"Exportar",copy:"Copiar",download:"Baixar arquivo",sources:"Fontes",
     o_site:"Site oficial",o_bucket:"Bucket oficial",o_dev:"Em desenvolvimento",
     src_oficial:"oficial",src_interp:"interpolada",src_proposta:"proposta",
@@ -281,7 +287,7 @@ const T = {
     nc_country:"País",nc_newcountry:"Outro país (nome)",nc_id:"Coleção (ex.: 2.0)",nc_sensor:"Sensor",nc_subs:"Subprodutos previstos",nc_notes:"Observações",
     save:"Salvar",cancel:"Cancelar",del:"Excluir",confirmDel:"Excluir de vez? Esta ação não pode ser desfeita.",yesDel:"Sim, excluir",
     ed_expected:"{n} classes esperadas ({r})",ed_variable:"Classes definidas pela legenda de cobertura do país",
-    ed_status:"Status",ed_notes:"Observações e fonte",ed_saved:"Paleta salva",ed_savedColl:"Coleção salva",ed_unsaved:"Alterações não salvas",
+    ed_status:"Status",ed_notes:"Observações",ed_saved:"Paleta salva",ed_savedColl:"Coleção salva",ed_unsaved:"Alterações não salvas",
     ed_updated:"Atualizada por {who} em {when}",ed_remote:"Outra pessoa salvou esta paleta enquanto você editava.",ed_reload:"Recarregar versão salva",
     ed_tools:"Ferramentas",ed_fromSite:"Usar cores do site (Brasil)",ed_ramp:"Gerar por escala",ed_copy:"Copiar de outro país/coleção",ed_paste:"Colar lista HEX",
     ed_apply:"Aplicar",ed_reverse:"Inverter",ed_resample:"Os HEX são reamostrados para {n} classes quando a quantidade for diferente.",
@@ -294,7 +300,7 @@ const T = {
   es:{title:"Leyendas y paletas",sub:"Consulte los datos publicados y registre las paletas de cada país, colección y subproducto.",
     v_consult:"Consultar",v_reg:"Registro",
     country:"País",colls:"Colección",subprod:"Subproducto",year:"Año",start:"Año inicial",end:"Año final",refYear:"Año de referencia",period:"Período",
-    legend:"Leyenda",list:"Lista",bar:"Barra",meta:"Datos y visualización",palette:"Paleta",copyHex:"Copiar HEX",
+    legend:"Leyenda",table:"Tabla",th_class:"Clase",th_code:"Código",th_hex:"Color (HEX)",list:"Lista",bar:"Barra",meta:"Datos y visualización",palette:"Paleta",copyHex:"Copiar HEX",
     value:"Valor",color:"Color",label:"Etiqueta",src:"Fuente",export:"Exportar",copy:"Copiar",download:"Descargar archivo",sources:"Fuentes",
     o_site:"Sitio oficial",o_bucket:"Bucket oficial",o_dev:"En desarrollo",
     src_oficial:"oficial",src_interp:"interpolada",src_proposta:"propuesta",
@@ -322,7 +328,7 @@ const T = {
     nc_country:"País",nc_newcountry:"Otro país (nombre)",nc_id:"Colección (ej.: 2.0)",nc_sensor:"Sensor",nc_subs:"Subproductos previstos",nc_notes:"Observaciones",
     save:"Guardar",cancel:"Cancelar",del:"Eliminar",confirmDel:"¿Eliminar definitivamente? No se puede deshacer.",yesDel:"Sí, eliminar",
     ed_expected:"{n} clases esperadas ({r})",ed_variable:"Clases definidas por la leyenda de cobertura del país",
-    ed_status:"Estado",ed_notes:"Observaciones y fuente",ed_saved:"Paleta guardada",ed_savedColl:"Colección guardada",ed_unsaved:"Cambios sin guardar",
+    ed_status:"Estado",ed_notes:"Observaciones",ed_saved:"Paleta guardada",ed_savedColl:"Colección guardada",ed_unsaved:"Cambios sin guardar",
     ed_updated:"Actualizada por {who} el {when}",ed_remote:"Otra persona guardó esta paleta mientras usted editaba.",ed_reload:"Recargar versión guardada",
     ed_tools:"Herramientas",ed_fromSite:"Usar colores del sitio (Brasil)",ed_ramp:"Generar por escala",ed_copy:"Copiar de otro país/colección",ed_paste:"Pegar lista HEX",
     ed_apply:"Aplicar",ed_reverse:"Invertir",ed_resample:"Los HEX se remuestrean a {n} clases cuando la cantidad es distinta.",
@@ -335,7 +341,7 @@ const T = {
   en:{title:"Legends and palettes",sub:"Look up published data and register the palette for each country, collection and subproduct.",
     v_consult:"Look up",v_reg:"Register",
     country:"Country",colls:"Collection",subprod:"Subproduct",year:"Year",start:"Start year",end:"End year",refYear:"Reference year",period:"Period",
-    legend:"Legend",list:"List",bar:"Bar",meta:"Data and visualization",palette:"Palette",copyHex:"Copy HEX",
+    legend:"Legend",table:"Table",th_class:"Class",th_code:"Code",th_hex:"Color (HEX)",list:"List",bar:"Bar",meta:"Data and visualization",palette:"Palette",copyHex:"Copy HEX",
     value:"Value",color:"Color",label:"Label",src:"Source",export:"Export",copy:"Copy",download:"Download file",sources:"Sources",
     o_site:"Official website",o_bucket:"Official bucket",o_dev:"In development",
     src_oficial:"official",src_interp:"interpolated",src_proposta:"proposed",
@@ -363,7 +369,7 @@ const T = {
     nc_country:"Country",nc_newcountry:"Other country (name)",nc_id:"Collection (e.g. 2.0)",nc_sensor:"Sensor",nc_subs:"Planned subproducts",nc_notes:"Notes",
     save:"Save",cancel:"Cancel",del:"Delete",confirmDel:"Delete for good? This cannot be undone.",yesDel:"Yes, delete",
     ed_expected:"{n} classes expected ({r})",ed_variable:"Classes set by the country land cover legend",
-    ed_status:"Status",ed_notes:"Notes and source",ed_saved:"Palette saved",ed_savedColl:"Collection saved",ed_unsaved:"Unsaved changes",
+    ed_status:"Status",ed_notes:"Notes",ed_saved:"Palette saved",ed_savedColl:"Collection saved",ed_unsaved:"Unsaved changes",
     ed_updated:"Updated by {who} on {when}",ed_remote:"Someone else saved this palette while you were editing.",ed_reload:"Reload saved version",
     ed_tools:"Tools",ed_fromSite:"Use website colors (Brazil)",ed_ramp:"Generate from scale",ed_copy:"Copy from another country/collection",ed_paste:"Paste HEX list",
     ed_apply:"Apply",ed_reverse:"Reverse",ed_resample:"HEX values are resampled to {n} classes when the count differs.",
@@ -389,8 +395,6 @@ const SUBS = {
     name:{pt:"Cobertura queimada anual",es:"Cobertura quemada anual",en:"Annual burned coverage"}},
   monthly_burned:{kind:"monthly",period:"year",band:"burned_monthly_{y}",short:{pt:"Mensal",es:"Mensual",en:"Monthly"},
     name:{pt:"Área queimada mensal",es:"Área quemada mensual",en:"Monthly burned area"}},
-  monthly_burned_coverage:{kind:"monthly",period:"year",band:"burned_coverage_{y}",decode:"div100",short:{pt:"Cob. mensal",es:"Cob. mensual",en:"Mon. cover"},
-    name:{pt:"Cobertura queimada mensal",es:"Cobertura quemada mensual",en:"Monthly burned coverage"}},
   annual_burned_scar_size_range:{kind:"scar",period:"year",band:"scar_area_ha_{y}",short:{pt:"Cicatriz",es:"Cicatriz",en:"Scar size"},
     name:{pt:"Tamanho de cicatriz",es:"Tamaño de cicatriz",en:"Burned scar size"}},
   accumulated_burned:{kind:"single",period:"range",band:"fire_accumulated_{s}_{e}",short:{pt:"Acumulada",es:"Acumulada",en:"Accum."},
@@ -399,12 +403,8 @@ const SUBS = {
     name:{pt:"Cobertura queimada acumulada",es:"Cobertura quemada acumulada",en:"Accumulated burned coverage"}},
   fire_frequency:{kind:"frequency",period:"range",band:"fire_frequency_{s}_{e}",short:{pt:"Frequência",es:"Frecuencia",en:"Frequency"},
     name:{pt:"Frequência de fogo",es:"Frecuencia de fuego",en:"Fire frequency"}},
-  fire_frequency_coverage:{kind:"lulc",period:"range",band:"fire_frequency_{s}_{e}",decode:"mod100",short:{pt:"Freq. cob.",es:"Frec. cob.",en:"Freq. cover"},
-    name:{pt:"Frequência de fogo por cobertura",es:"Frecuencia de fuego por cobertura",en:"Fire frequency by coverage"}},
   year_last_fire:{kind:"yearlast",period:"ref",band:"classification_{y}",short:{pt:"Últ. fogo",es:"Últ. fuego",en:"Last fire"},
     name:{pt:"Ano do último fogo",es:"Año del último fuego",en:"Year of last fire"}},
-  time_after_fire:{kind:"years",period:"ref",band:"time_after_fire_{y}",short:{pt:"Tempo após",es:"Tiempo desde",en:"Time since"},
-    name:{pt:"Tempo após o fogo",es:"Tiempo desde el último fuego",en:"Time since last fire"}},
   interval_since_fire:{kind:"interval",period:"year",band:"interval_since_fire_{y}",short:{pt:"Retorno",es:"Retorno",en:"Return"},
     name:{pt:"Tempo de retorno",es:"Tiempo de retorno",en:"Fire return interval"}},
   severity_class:{kind:"severity",period:"year",band:"severity_class_{y}",short:{pt:"Severidade",es:"Severidad",en:"Severity"},
@@ -466,8 +466,8 @@ const COUNTRY_NAMES = {
   paraguay:{pt:"Paraguai",es:"Paraguay",en:"Paraguay"},peru:{pt:"Peru",es:"Perú",en:"Peru"},venezuela:{pt:"Venezuela",es:"Venezuela",en:"Venezuela"},
   indonesia:{pt:"Indonésia",es:"Indonesia",en:"Indonesia"}};
 const COL3 = ["annual_burned","annual_burned_coverage","monthly_burned","annual_burned_scar_size_range","accumulated_burned","accumulated_burned_coverage","fire_frequency","year_last_fire"];
-const COL5 = [...COL3,"fire_frequency_coverage","time_after_fire","interval_since_fire","severity_class"];
-const REG = ["annual_burned","annual_burned_coverage","monthly_burned","annual_burned_scar_size_range","accumulated_burned","accumulated_burned_coverage","fire_frequency","fire_frequency_coverage","year_last_fire"];
+const COL5 = [...COL3,"interval_since_fire","severity_class"];
+const REG = ["annual_burned","annual_burned_coverage","monthly_burned","annual_burned_scar_size_range","accumulated_burned","accumulated_burned_coverage","fire_frequency","year_last_fire"];
 const regFolder = s=>s.replace("fire_frequency","frequency_burned");
 const PUBLISHED = [
   {country:"brasil",id:"5.1",start:1985,end:2025,sensor:"Landsat 30 m",origin:"site",subs:COL5,layout:"br5",root:"brasil/collection_10/fire-col5/",scarN:8,
@@ -501,8 +501,8 @@ const store = {
   get(k,d){try{const v=localStorage.getItem("mbfogo:"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem("mbfogo:"+k,JSON.stringify(v))}catch(e){}}
 };
-const S = {lang:store.get("lang","pt"),view:"consultar",country:"brasil",coll:"5.1",sub:"fire_frequency",y:2025,s:1985,e:2025,
-  layout:"list",tab:"hex",origin:{site:true,bucket:true,dev:true},mOrigin:{site:true,bucket:true,dev:true}};
+const S = {lang:store.get("lang","pt"),view:"consultar",country:"brasil",coll:"5.1",sub:"annual_burned",y:2025,s:1985,e:2025,
+  layout:"table",tab:"hex",origin:{site:true,bucket:true,dev:true},mOrigin:{site:true,bucket:true,dev:true}};
 let PAL = {};      // paletas cadastradas (db: paletas/<chave>)
 let DEV = {};      // coleções em desenvolvimento (db: colecoes/<chave>)
 let db = null, user = null, myId = null, canWrite = null, downloads = null, dbState = "loading";
@@ -659,16 +659,13 @@ function renderStatic(){
   $("logo").src="logos/"+LG[1]+".png";
   $("t-matrix-note").textContent=t("matrixNote");
   $("view-consult").textContent=t("v_consult");$("view-reg").textContent=t("v_reg");
-  $("lay-list").textContent=t("list");$("lay-bar").textContent=t("bar");
+  $("lay-table").textContent=t("table");$("lay-list").textContent=t("list");$("lay-bar").textContent=t("bar");
   $("btn-copyhex").textContent=t("copyHex");$("go-edit").textContent=t("editHere");
   $("btn-copy").textContent=t("copy");$("btn-dl").textContent=t("download");$("btn-newcoll").textContent="+ "+t("newColl");
-  $("th-v").textContent=t("value");$("th-c").textContent=t("color");$("th-l").textContent=t("label");$("th-s").textContent=t("src");
+  $("th-v").textContent=t("value");$("th-c").textContent=t("color");$("th-l").textContent=t("label");
   document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===S.lang));
-  $("sources").innerHTML=SOURCES.map(([l,u])=>`<a href="${u}" target="_blank" rel="noopener">${esc(l)}</a>`).join("");
 }
-function originFilters(id,state,prefix){
-  $(id).innerHTML=["site","bucket","dev"].map(o=>`<label><input type="checkbox" id="${prefix}-${o}" data-${prefix}="${o}" ${state[o]?"checked":""}><span class="dot ${o}"></span>${t("o_"+o)}</label>`).join("");
-}
+function originFilters(id){$(id).innerHTML="";$(id).hidden=true}
 function renderView(){
   $("v-consultar").hidden=S.view!=="consultar";$("v-cadastro").hidden=S.view!=="cadastro";
   $("view-consult").setAttribute("aria-selected",S.view==="consultar");$("view-reg").setAttribute("aria-selected",S.view==="cadastro");
@@ -680,11 +677,11 @@ function renderControls(){
   originFilters("status-filters",S.origin,"of");
   const colls=collectionsOf(S.country,S.origin);
   if(!colls.find(c=>c.id===S.coll)&&colls.length)pickColl(defaultColl(colls));
-  $("coll-chips").innerHTML=colls.length?colls.map(c=>`<button class="chip" data-coll="${esc(c.id)}" aria-pressed="${c.id===S.coll}"><span class="dot ${c.origin}"></span>${esc(c.id)}</button>`).join("")
+  $("coll-chips").innerHTML=colls.length?colls.map(c=>`<button class="chip" data-coll="${esc(c.id)}" aria-pressed="${c.id===S.coll}">${esc(c.id)}</button>`).join("")
     :`<span class="note">${t("selectColl")}</span>`;
   const c=collObj();if(!c||!S.origin[c.origin]||!colls.length){["coll-info","period-box","pal-state"].forEach(i=>$(i).innerHTML="");return false}
-  $("coll-info").innerHTML=`<span class="badge ${c.origin}">${t("o_"+c.origin)}</span> <span class="note" style="border:0;padding:0;display:inline">${c.start}–${c.end} · ${esc(c.sensor||"")}</span>`;
-  if(!c.subs.includes(S.sub))S.sub=c.subs.includes("fire_frequency")?"fire_frequency":c.subs[0];
+  $("coll-info").innerHTML=`<span class="note" style="border:0;padding:0;display:inline">${c.start}–${c.end} · ${esc(c.sensor||"")}</span>`;
+  if(!c.subs.includes(S.sub))S.sub=c.subs.includes("annual_burned")?"annual_burned":c.subs[0];
   $("sel-sub").innerHTML=c.subs.map(s=>`<option value="${s}">${SUBS[s].name[S.lang]}</option>`).join("");$("sel-sub").value=S.sub;
   const sub=SUBS[S.sub],yrs=yearOptions(c,sub),opt=(arr,v)=>arr.map(y=>`<option ${y===v?"selected":""}>${y}</option>`).join("");
   S.y=Math.min(Math.max(S.y,yrs[0]),yrs[yrs.length-1]);S.s=Math.min(Math.max(S.s,c.start),c.end);S.e=Math.min(Math.max(S.e,S.s),c.end);
@@ -692,7 +689,7 @@ function renderControls(){
     ?`<span class="lab">${t("period")}</span><div class="row2"><div class="field"><label class="lab" for="sel-s">${t("start")}</label><select id="sel-s">${opt(yrs,S.s)}</select></div>
       <div class="field"><label class="lab" for="sel-e">${t("end")}</label><select id="sel-e">${opt(yrs.filter(y=>y>=S.s),S.e)}</select></div></div>`
     :`<label class="lab" for="sel-y">${sub.period==="ref"?t("refYear"):t("year")}</label><select id="sel-y">${opt(yrs,S.y)}</select>`;
-  $("layout-seg").hidden=!hasBar();
+  $("lay-bar").hidden=!hasBar();
   return true;
 }
 function legendTitle(){return SUBS[S.sub].name[S.lang]}
@@ -703,9 +700,10 @@ function renderLegend(it){
   if(useBar){const ticks=it.length<=12?it:[it[0],it[Math.floor((it.length-1)/2)],it[it.length-1]];
     body=`<div class="lg-bar" style="background:linear-gradient(90deg,${it.map((o,i)=>`${o.hex} ${i/it.length*100}% ${(i+1)/it.length*100}%`).join(",")})"></div>
       <div class="lg-ticks">${ticks.map(o=>`<span>${esc(SUBS[S.sub].kind==="monthly"?o.label.slice(0,3):o.v)}</span>`).join("")}</div>`;
-  }else body=`<div class="lg-list">${it.map(o=>`<div class="lg-item"><i class="${o.missing?"missing":""}" style="background:${o.hex}"></i><span>${esc(o.label)}</span></div>`).join("")}</div>`;
+  }else if(S.layout==="table")body=`<div class="lg-table-wrap"><table class="lg-table"><thead><tr><th>${esc(t("th_class"))}</th><th>${esc(t("th_code"))}</th><th>${esc(t("th_hex"))}</th></tr></thead><tbody>${it.map(o=>`<tr><td>${esc(o.label)}</td><td class="code">${esc(o.v)}</td><td class="hex"><i class="${o.missing?"missing":""}" style="background:${o.hex}"></i>${esc(o.missing?"—":o.hex)}</td></tr>`).join("")}</tbody></table></div>`;
+  else body=`<div class="lg-list">${it.map(o=>`<div class="lg-item"><i class="${o.missing?"missing":""}" style="background:${o.hex}"></i><span>${esc(o.label)}</span></div>`).join("")}</div>`;
   $("legend").innerHTML=`<h2>${esc(legendTitle())}</h2><div class="meta">${esc(legendMeta())}</div>${body}<div class="lg-foot">${esc(cite())}</div>`;
-  ["lay-list","lay-bar"].forEach(id=>$(id).setAttribute("aria-pressed",$(id).dataset.layout===S.layout));
+  ["lay-table","lay-list","lay-bar"].forEach(id=>$(id).setAttribute("aria-pressed",$(id).dataset.layout===S.layout));
 }
 function renderMeta(it,pal){
   const c=collObj(),asset=c.asset?c.asset(S.sub):null,vp=visParams(it),g=gcsInfo(c,S.sub);
@@ -714,15 +712,11 @@ function renderMeta(it,pal){
   const notes=[];
   if(c.origin==="dev")notes.push(["warn",t("devColl")]);
   else if(c.vectorsOnly)notes.push(["warn",t("vectorsOnly")]);
-  else if(asset)notes.push(["",t("assetSite")]);
-  else if(g)notes.push(["",t("noAsset")]);
   if(g&&g.folder&&!g.pattern&&!c.vectorsOnly)notes.push(["",t("folderOnly")]);
   if(SUBS[S.sub].period==="range"&&c.origin!=="dev")notes.push(isPre(c)?["",t("pre")]:["warn",t("notPre")]);
   if(!pal.registered)notes.push(["warn",t("notRegistered")]);
   const miss=it.filter(o=>o.missing).length;if(miss)notes.push(["warn",t("missingVals",{n:miss})]);
-  if(S.sub==="year_last_fire"||S.sub==="time_after_fire")notes.push(["",t("yearLastNote")]);
-  if(S.sub==="monthly_burned_coverage")notes.push(["",t("monthCovNote")]);
-  if(S.sub==="fire_frequency_coverage")notes.push(["",t("freqCovNote")]);
+  if(S.sub==="year_last_fire")notes.push(["",t("yearLastNote")]);
   if(S.sub==="fire_monitor")notes.push(["",t("monitorNote")]);
   $("meta-note").innerHTML=notes.map(n=>`<p class="note ${n[0]}">${esc(n[1])}</p>`).join("");
   $("pal-state").innerHTML=`<span class="badge ${pal.registered?pal.status:"faltando"}">${t("st_"+(pal.registered?pal.status:"faltando"))}</span>`;
@@ -730,8 +724,7 @@ function renderMeta(it,pal){
 function renderPalette(it){
   $("strip").innerHTML=it.map(o=>`<button type="button" style="background:${o.hex}" title="${o.v} · ${o.hex} · ${esc(o.label)}" data-copy="${o.hex}" aria-label="${o.hex}"></button>`).join("");
   $("ptable").innerHTML=it.map(o=>`<tr><td class="v">${o.v}</td><td><span class="sw" style="background:${o.hex}"></span></td>
-    <td><button class="btn ghost" data-copy="${o.hex}" style="font-family:var(--f-mono)">${o.hex}</button></td><td>${esc(o.label)}</td>
-    <td><span class="src ${o.src||"proposta"}">${t("src_"+(o.src||"proposta"))}</span></td></tr>`).join("");
+    <td><button class="btn ghost" data-copy="${o.hex}" style="font-family:var(--f-mono)">${o.hex}</button></td><td>${esc(o.label)}</td></tr>`).join("");
 }
 
 /* ----- exportação ----- */
@@ -742,19 +735,11 @@ function codeFor(tab,it){
   const decode=sub.decode==="div100"?".divide(100).int()":sub.decode==="mod100"?".mod(100)":"";
   const head=`MapBiomas Fogo · ${countryName(c.country)} · Col. ${c.id} · ${legendTitle()} · ${periodLabel()}`;
   switch(tab){
-    case"hex":return it.map(o=>o.hex).join("\n");
-    case"csv":return "value,label,hex,source\n"+it.map(o=>`${o.v},"${o.label.replace(/"/g,'""')}",${o.hex},${o.src||""}`).join("\n");
+    case"hex":return it.map(o=>`${o.v}\t${o.hex}`).join("\n");
+    case"hexc":return it.map(o=>`"${o.hex}"`).join(", ");
+    case"csv":return "value,label,hex\n"+it.map(o=>`${o.v},"${o.label.replace(/"/g,'""')}",${o.hex}`).join("\n");
     case"json":return JSON.stringify({product:"MapBiomas Fogo",country:c.country,collection:c.id,subproduct:S.sub,period:periodLabel(),
-      asset,gcs:g?(g.file||g.folder):null,vis:{min:vp.min,max:vp.max},citation:cite(),classes:it.map(o=>({value:o.v,label:o.label,hex:o.hex,source:o.src}))},null,2);
-    case"qgis":return "# QGIS Generated Color Map Export File\nINTERPOLATION:EXACT\n"+it.map(o=>`${o.v},${hex2rgb(o.hex).join(",")},255,${o.label}`).join("\n");
-    case"sld":return `<?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc">
-  <NamedLayer><Name>${esc(name)}</Name><UserStyle><Title>${esc(legendTitle())} · ${esc(legendMeta())}</Title>
-    <FeatureTypeStyle><Rule><RasterSymbolizer><ColorMap type="values">
-${it.map(o=>`      <ColorMapEntry color="${o.hex}" quantity="${o.v}" label="${esc(o.label)}"/>`).join("\n")}
-    </ColorMap></RasterSymbolizer></Rule></FeatureTypeStyle>
-  </UserStyle></NamedLayer>
-</StyledLayerDescriptor>`;
+      asset,gcs:g?(g.file||g.folder):null,vis:{min:vp.min,max:vp.max},citation:cite(),classes:it.map(o=>({value:o.v,label:o.label,hex:o.hex}))},null,2);
     case"gee":case"py":{
       const py=tab==="py";let src;
       if(asset&&S.sub==="fire_frequency"&&!isPre(c))src=py
@@ -768,7 +753,7 @@ ${it.map(o=>`      <ColorMapEntry color="${o.hex}" quantity="${o.v}" label="${es
         :`// ${head}\n${src}\n\nvar vis = {\n  min: ${vp.min},\n  max: ${vp.max},\n  palette: ${palArr}\n};\nMap.addLayer(img, vis, '${name}');`;}
   }
 }
-const TABS=[["hex","HEX","txt"],["gee","GEE JS","txt"],["py","GEE Python","txt"],["csv","CSV","csv"],["json","JSON","json"],["qgis","QGIS colormap","txt"],["sld","SLD","txt"]];
+const TABS=[["hex","HEX","txt"],["hexc","HEX (,)","txt"],["gee","GEE JS","txt"],["py","GEE Python","txt"],["csv","CSV","csv"],["json","JSON","json"]];
 function renderExport(it){
   $("tabs").innerHTML=TABS.map(([k,l])=>`<button role="tab" data-tab="${k}" aria-selected="${k===S.tab}">${l}</button>`).join("");
   $("code").textContent=codeFor(S.tab,it);
@@ -799,7 +784,7 @@ function renderMatrix(){
   originFilters("m-filters",S.mOrigin,"mf");
   const colls=allCollections().filter(c=>S.mOrigin[c.origin]);
   const head=`<thead><tr><th class="rowh">${t("country")} · ${t("colls")}</th>${SUB_ORDER.map(s=>`<th title="${esc(SUBS[s].name[S.lang])}">${esc(SUBS[s].short[S.lang])}</th>`).join("")}</tr></thead>`;
-  const body=colls.map(c=>`<tr><td class="rowh"><strong>${esc(countryName(c.country))}</strong> · ${esc(c.id)}<br><span class="note" style="border:0;padding:0">${c.start}–${c.end}</span> <span class="badge ${c.origin}">${t("o_"+c.origin)}</span></td>`+
+  const body=colls.map(c=>`<tr><td class="rowh"><strong>${esc(countryName(c.country))}</strong> · ${esc(c.id)}<br><span class="note" style="border:0;padding:0">${c.start}–${c.end}</span></td>`+
     SUB_ORDER.map(s=>{
       if(!c.subs.includes(s))return`<td class="na">—</td>`;
       const vals=expectedValues(c,s),doc=PAL[pkey(c,s)],st=doc?.classes?.length?(doc.status||"rascunho"):"faltando";
@@ -857,7 +842,6 @@ function renderEditor(){
     <td><input type="text" class="hex" id="eh-${i}" data-eh="${i}" value="${esc(o.hex||"")}" ${ro?"disabled":""} aria-label="HEX ${o.v}"></td>
     ${cat?LANGS.map(L=>`<td><input type="text" id="el-${L}-${i}" data-el="${L}" data-i="${i}" value="${esc(o[L]||"")}" placeholder="${esc(autoLabel(sub,o.v,L))}" ${ro?"disabled":""} aria-label="${t("label")} ${L} ${o.v}"></td>`).join("")
       :`<td style="color:var(--muted)">${esc(autoLabel(sub,o.v,S.lang))}</td>`}
-    <td><select id="es-${i}" data-es="${i}" ${ro?"disabled":""} aria-label="${t("src")} ${o.v}">${["oficial","interp","proposta"].map(s=>`<option value="${s}" ${o.src===s?"selected":""}>${t("src_"+s)}</option>`).join("")}</select></td>
     ${k==="lulc"&&!ro?`<td><button class="btn ghost" data-rm="${i}" type="button">${t("ed_remove")}</button></td>`:""}</tr>`).join("");
   box.innerHTML=`
     <div class="editor-h">
@@ -873,8 +857,6 @@ function renderEditor(){
     <div class="row3">
       <div class="field"><label class="lab" for="ed-status">${t("ed_status")}</label>
         <select id="ed-status" ${ro?"disabled":""}>${["rascunho","revisao","validada"].map(s=>`<option value="${s}" ${ED.status===s?"selected":""}>${t("st_"+s)}</option>`).join("")}</select></div>
-      <div class="field" style="grid-column:span 2"><label class="lab" for="ed-notes">${t("ed_notes")}</label>
-        <input type="text" id="ed-notes" value="${esc(ED.notes)}" ${ro?"disabled":""}></div>
     </div>
     <div class="strip">${ED.classes.map(o=>`<button type="button" style="background:${okHex(o.hex)?o.hex:"#d9d9d9"}" data-copy="${esc(o.hex)}" title="${o.v} · ${esc(o.hex)}" aria-label="${esc(o.hex)}"></button>`).join("")}</div>
     ${ro?"":`<div class="tools">
@@ -892,7 +874,7 @@ function renderEditor(){
         <button class="btn" id="tool-paste-apply" type="button">${t("ed_apply")}</button></div>
     </div>
     <p class="note">${esc(t("ed_resample",{n:total}))}</p>`}
-    <div class="twrap tall"><table><thead><tr><th>${t("value")}</th><th>${t("color")}</th><th>HEX</th>${labelCols}<th>${t("src")}</th>${k==="lulc"&&!ro?"<th></th>":""}</tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="twrap tall"><table><thead><tr><th>${t("value")}</th><th>${t("color")}</th><th>HEX</th>${labelCols}${k==="lulc"&&!ro?"<th></th>":""}</tr></thead><tbody>${rows}</tbody></table></div>
     <div class="btns">
       ${k==="lulc"&&!ro?`<button class="btn" id="ed-add" type="button">+ ${t("ed_addRow")}</button>`:""}
       ${doc&&!ro?(ED.confirmDel?`<span class="confirm">${t("confirmDel")} <button class="btn danger" id="ed-del-yes" type="button">${t("yesDel")}</button><button class="btn" id="ed-del-no" type="button">${t("cancel")}</button></span>`
@@ -967,7 +949,7 @@ document.addEventListener("click",e=>{
   else switch(b.id){
     case"btn-copyhex":copy(items().items.map(o=>o.hex).join("\n"));break;
     case"btn-copy":copy($("code").textContent);break;
-    case"btn-dl":{const ext=TABS.find(x=>x[0]===S.tab)[2],suf={gee:"_gee.js",py:"_gee.py",qgis:"_qgis_colormap",sld:".sld",hex:"_hex"}[S.tab]||"";save(`${baseName()}${suf}.${ext}`,$("code").textContent);break}
+    case"btn-dl":{const ext=TABS.find(x=>x[0]===S.tab)[2],suf={gee:"_gee.js",py:"_gee.py",hex:"_hex",hexc:"_hex"}[S.tab]||"";save(`${baseName()}${suf}.${ext}`,$("code").textContent);break}
     case"dl-svg":save(baseName()+"_legenda.svg",legendSVG(items().items));break;
     case"dl-png":svgToPng(legendSVG(items().items)).then(bl=>save(baseName()+"_legenda.png",bl)).catch(()=>toast(t("noDl")));break;
     case"go-edit":{const c=collObj();setView("cadastro");openEditor(pkey(c,S.sub));break}
@@ -1005,7 +987,6 @@ document.addEventListener("change",e=>{
   else if(el.dataset.es!==undefined){ED.classes[+el.dataset.es].src=el.value;ED.dirty=true}
   else if(el.dataset.ev!==undefined){ED.classes[+el.dataset.ev].v=+el.value;ED.dirty=true}
   else if(el.id==="ed-status"){ED.status=el.value;ED.dirty=true;renderEditor()}
-  else if(el.id==="ed-notes"){ED.notes=el.value;ED.dirty=true}
   else if(el.id==="tool-ramp"){ED.tool.ramp=el.value}
   else if(el.id==="tool-rev"){ED.tool.rev=el.checked}
   else if(el.id==="tool-copy"){ED.tool.copyFrom=el.value}
