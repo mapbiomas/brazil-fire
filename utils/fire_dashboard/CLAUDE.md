@@ -35,7 +35,7 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 
 ## Mapas Interativos (blocos)
 
-- **Ranking por território** (`renderMapaDinamico`): tudo roda no navegador com o ranking anual já carregado (sem novas consultas). Passo 1 indicador (área · % do território · comparar anos), passo 2 período todo / um ano com ▶ (escala de cores fixa entre anos) ou a comparação, passo 3 busca por nome, passo 4 PNG e CSV (`;`, vírgula decimal). Clique (ou busca) abre a série anual com tendência; em estados e biomas, atalho para filtrar o painel.
+- **Ranking por território** (`renderMapaDinamico`): tudo roda no navegador com o ranking anual já carregado (sem novas consultas). Passo 1 indicador (área · % do território · comparar anos), passo 2 período todo / um ano com ▶ (escala de cores fixa entre anos) ou a comparação, passo 3 busca por nome (só com mais de 20 territórios), passo seguinte PNG e CSV (`;`, vírgula decimal). Clique (ou busca) abre a série anual; em estados e biomas, atalho para filtrar o painel.
 - A área do território para "% do território" vem do contorno (`turf.area`), portanto é aproximada; em municípios os pedaços dos tiles se sobrepõem um pouco na borda.
 - **Dados brutos**: sobrepor uma 2ª camada (com transparência), cortina entre dois anos (só camadas de um ano; recorte com `style.clip`, como o leaflet-side-by-side) e "Destacar o recorte" (`turf.mask`).
 - Não feito: limites de TIs/UCs sobre o mapa (a API só entrega geometria por território, não por categoria inteira) e hotspots (estatística espacial).
@@ -93,11 +93,12 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - Mensal reorganizado: 1) média mensal com chips de anos no card; 2) distribuição mensal (soma de todos os anos, barras com % ou rosca); 3) soma e média por mês; 4) área por ano e mês; 5) proporção mensal por território com escolha biomas/estados (`state.mensalNivel`; estados: os 8 com mais área).
 - Frequência: cards em largura total; `rotulos: "pct"` no spec escreve a % sobre as barras (`rotulosBarrasPlugin`).
 
-## Explicações, recordes, tendência, link e busca (2026-11-05)
+## Explicações, link, busca e unidade dos eixos (2026-11-05)
 
 - Botão ⓘ ao lado do título de cada card: abre uma explicação curta. Os textos ficam em `INFO_CARDS` (regex no título em português; `card.info` tem prioridade) e precisam de linha em `i18n.js`.
-- Anual: KPI "Posição de <ano> na série" (`recordeDoAno`: ordinal, recorde, "maior/menor área desde <ano>" quando o ano mais recente que o superou tem 3 ou mais anos de distância) e KPI "Tendência" (`tendenciaSen`: inclinação de Sen e teste de Mann-Kendall com correção de empates, p bilateral pela normal; significativa se p < 0,05; mínimo 5 anos). Linha de tendência azul (`spec.trendLine`, `COR_TENDENCIA`) no gráfico anual e no detalhe do mapa. Card "Média anual por década".
-- Frases com números no meio são montadas por idioma (`porIdioma`, `ordinal`), porque o `i18n.js` só troca trechos fixos.
+- Recordes ("posição do ano na série") e tendência (Sen + Mann-Kendall, média por década) foram feitos e retirados a pedido (commit 16d4d4f, se precisar recuperar).
+- Eixos em `unit: "Mha"`: `chartConfig` passa para mil ha (`unit: "mil"`, título "(mil ha)") quando `maiorValorDoGrafico` (nos empilhados, o maior total) é menor que 1 milhão de ha. A nota "Mha = milhões de hectares" só aparece quando há milhões.
+- Frases com números no meio são montadas por idioma (`porIdioma`), porque o `i18n.js` só troca trechos fixos.
 - "🔗 Copiar link desta análise" (`copiarLink`): copia o endereço com o hash. O hash agora guarda também temporada, paleta e "por" do Mensal, unidade da Frequência e faixa da Cicatriz.
-- Mapa por território: passo "Buscar" com lista de nomes (`datalist`); aceita nome sem acento ou só o começo; seleciona, contorna e dá zoom.
-- Testado sem interface: Anual no Brasil (pt) e no Peru (en); mapa por estados no Brasil, com a busca "sao paulo" abrindo o detalhe.
+- Mapa por território: passo "Buscar" com lista de nomes (`datalist`), só com mais de 20 territórios; aceita nome sem acento ou só o começo; seleciona, contorna e dá zoom.
+- Testado sem interface: Anual no Brasil (Mha) e no Peru (mil ha); Acumulado no Peru; mapa por estados (com busca, "sao paulo" abre o detalhe) e por biomas (sem busca).
