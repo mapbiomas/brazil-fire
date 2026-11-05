@@ -126,26 +126,31 @@ class UIProgressTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             widget = self.run_ui(tmp)
             self.assertFalse(any("Inventário" in option for option in widget.navigation.options))
-            self.assertTrue(widget.reference_collection.options)
-            self.assertTrue(widget.reference_product.options)
-            self.assertTrue(all(layer.get("initiative", "Brasil") in ("Brasil", "Peru")
-                                for origin, layer, _ in widget.product_checks if origin != "Personalizado"))
+            reference = [layer for _, layer, _ in widget.product_checks if str(layer["id"]).startswith("ref_")]
+            self.assertTrue(reference)
+            self.assertTrue(all(layer["status"] == "experimental" for layer in reference))
+            # Layers with a known style are enabled; unknown ones are not.
+            annual = next(layer for layer in reference if layer["name"] == "annual_burned")
+            self.assertEqual(annual["visualization"]["palette"], ["fdfdfd", "800000"])
+            self.assertTrue(annual.get("enabled", True))
 
-    def test_reference_layer_can_be_explicitly_configured_for_another_country(self):
+    def test_reference_layer_style_is_editable(self):
         with tempfile.TemporaryDirectory() as tmp:
             widget = self.run_ui(tmp)
-            self.assertIn("Colômbia", widget.initiative.options)
+            colombia = [layer for origin, layer, check in widget.product_checks
+                        if origin == "Colômbia" and layer["name"] == "annual_burned"]
+            self.assertEqual(len(colombia), 1)
             widget.initiative.value = "Colômbia"
-            self.assertTrue(widget.reference_product.options)
-            widget.reference_colors.value = "ffffff,800000"
-            widget.reference_labels.value = "Sem fogo,Fogo"
-            widget.reference_confirm.value = True
-            widget.reference_add.click()
-            matches = [(layer, check) for origin, layer, check in widget.product_checks
-                       if origin == "Colômbia" and layer["id"].startswith("ref_")]
-            self.assertEqual(len(matches), 1)
-            self.assertTrue(matches[0][1].value)
-            self.assertEqual(matches[0][0]["status"], "experimental")
+            for _, layer, check in widget.product_checks:
+                if layer["id"] == colombia[0]["id"]:
+                    check.value = True
+                    break
+            self.assertEqual(widget.style_panel.layout.display, "")
+            self.assertEqual(widget.style_colors.value, "fdfdfd,800000")
+            widget.style_colors.value = "ffffff,000000"
+            widget.style_labels.value = "Sem fogo,Fogo"
+            self.assertEqual(colombia[0]["visualization"]["palette"], ["ffffff", "000000"])
+            self.assertEqual(colombia[0]["legend"][1]["label"], "Fogo")
 
     def test_municipality_search_adds_selection(self):
         from gif_factory import ui as module
@@ -154,8 +159,9 @@ class UIProgressTests(unittest.TestCase):
             widget = self.run_ui(tmp)
             with patch.object(module, "search_municipalities", return_value=[record]):
                 widget.municipality_text.value = "Petro"
-                widget.municipality_button.click()
-                widget.municipality_results.value = (0,)
+                widget.municipality_search()
+                self.assertEqual(len(widget.municipality_results.children), 1)
+                widget.municipality_results.children[0].click()
                 widget.municipality_add.click()
             selected = [t for _, t, check in widget.territory_checks if check.value]
             self.assertEqual(selected[0]["name"], "Petrolina (PE)")

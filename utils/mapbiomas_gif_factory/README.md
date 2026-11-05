@@ -10,8 +10,10 @@ Protótipo para produzir GIFs cartográficos de imagens multibanda do Earth Engi
 2. Execute as células em ordem. Edite `LAYERS` e `TERRITORIES` se quiser acrescentar itens personalizados; as bandas de imagens multibanda são descobertas automaticamente.
 3. Na interface, escolha **uma iniciativa** (Brasil, Peru ou Personalizado) e navegue pelas guias **Produtos**, **Territórios**, **Saídas e destino** e **Resultados**. Em Produtos, o seletor de **Tema** filtra os produtos da iniciativa ativa. Um lote nunca mistura iniciativas: trocar de iniciativa limpa as seleções.
 4. Selecione pelo menos um produto, um território e os tipos de arquivo. Países inteiros e biomas individuais estão disponíveis para Brasil e Peru. **Territórios personalizados ficam disponíveis em qualquer iniciativa**, para rodar um produto já preparado sobre um limite não previsto. Na iniciativa **Personalizado**, aparecem apenas as suas camadas, e todos os grupos de território ficam acessíveis.
-5. Escolha se a biblioteca principal será local ou, marcando envio automático, o Drive. Use **Verificar disponibilidade** para consultar o estado das combinações selecionadas. Execute a célula `ui.start_batch()` para iniciar.
+5. Escolha se a biblioteca principal será local ou, marcando envio automático, o Drive. Use **Verificar disponibilidade** para consultar o estado das combinações selecionadas e clique em **Gerar GIFs**. Alternativamente, execute a célula `ui.start_batch()`.
 6. Se a biblioteca principal já tiver resultados completos e compatíveis, eles não serão reprocessados. Caso haja conflito, o processo avisa e não sobrescreve. Para enviar arquivos locais mais tarde, selecione-os na seção de envio; os metadados necessários são copiados junto.
+
+A guia **Produtos** inclui as iniciativas e os registros de referência por temática e coleção. Os presets habilitados aparecem diretamente; outras layers exigem configuração explícita e confirmação de que asset, bandas e legenda são adequados. A configuração manual não substitui a validação no Earth Engine.
 
 O armazenamento `/content` desaparece quando a sessão Colab termina. Os dados temporários não são enviados ao Drive automaticamente.
 
@@ -98,14 +100,18 @@ TERRITORIES = [{
 
 Para apenas um valor, pode usar `"value": "Cerrado"` no lugar de `values`. Omita `filter` para usar toda a coleção. Confirme acesso ao asset e os valores do atributo. O projeto ainda não verifica automaticamente se o território intersecta os dados.
 
+Na guia **Territórios**, digite o nome do município para ver os resultados em tempo real; selecione e adicione um ou vários. A busca usa FAO GAUL 2025; não é a malha oficial IBGE. As opções de UC e TI aparecem na mesma busca, mas ainda aguardam fontes conectadas e validadas. A busca diferencia maiúsculas e retorna até 30 resultados. É possível combinar feições da mesma fonte em uma só FeatureCollection; os limites internos não são dissolvidos. A conta precisa ter acesso ao asset.
+
+O catálogo de produtos é unificado: presets e o inventário de referência aparecem juntos, agrupados por temática e coleção. Layers de Fogo com convenção conhecida (anual, mensal, severidade, frequência e acumulado) já trazem paleta e legenda sugeridas, marcadas como experimentais. Ao selecionar uma dessas layers, um painel **Ajustar paleta e legenda** permite revisar ou trocar cores e rótulos. Layers de outros temas sem paleta/legenda validada permanecem desabilitadas até que a fonte seja conferida.
+
 ## Limitações e próximos passos
 
-- O adaptador suporta `ee.Image` multibanda em eixo de tempo e coleções de Solo em eixo de profundidade. ImageCollection anual (como Atmosfera), mosaicos, RGB e produtos que exigem processadores específicos ainda requerem adaptação. Peru, Frequência de fogo e Solo são experimentais e devem ser conferidos no Colab.
+- O adaptador suporta `ee.Image` multibanda, coleções temporais simples e estruturas conhecidas de Solo em profundidade. Coleções com várias variáveis multibanda permitem selecionar a variável; períodos duplicados, coleções com mais de 500 imagens, mosaicos, RGB e produtos que exigem processadores específicos ainda requerem adaptação. Peru, Frequência de fogo e Solo são experimentais e devem ser conferidos no Colab.
 - Bandas com ano ou intervalo identificável são ordenadas temporalmente; seleção ambígua é interrompida, em vez de produzir uma sequência presumida.
 - A biblioteca não importa automaticamente os resultados gerados pela versão anterior; arquivos antigos sem metadados compatíveis aparecem como `Verificar` se ocuparem o novo caminho.
 - A estimativa de tempo cobre apenas o download atual; a barra de lote conta combinações processadas, inclusive falhas.
 - A verificação de disponibilidade consulta metadados e arquivos; ela não valida ausência de interseção entre território e cobertura dos dados.
-- Próximas expansões: legendas verificadas de uso e cobertura 10/10.1, produtos com processadores próprios, produtos de profundidade de Solo e ImageCollection anual, incluindo Atmosfera.
+- Próximas expansões: legendas verificadas de uso e cobertura 10/10.1, produtos com processadores próprios e validação visual das coleções de Solo e Atmosfera.
 
 ## Desenvolvimento
 

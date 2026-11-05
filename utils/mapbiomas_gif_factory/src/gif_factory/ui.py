@@ -1,13 +1,14 @@
 """Seleção hierárquica e progresso do lote no Colab."""
 from datetime import datetime
 from pathlib import Path
-from threading import Thread, Event, Lock
+from threading import Thread, Event, Lock, Timer
 from html import escape
 from copy import deepcopy
 import json
+import re
 import ipywidgets as w
 from IPython.display import display
-from .engine import generate, validate, discover, collection_variables
+from .engine import generate, validate, discover
 from .storage import list_artifacts
 from .presets import LAYERS, TERRITORIES
 from .layout import combination_path, ensure_unique_paths
@@ -15,7 +16,7 @@ from .progress import ProgressState
 from .library import assess, fingerprint, ingest, variant_for, sync_selected
 from .territory_search import (TERRITORY_SEARCH_SOURCES, search_configured,
                                search_municipalities, territory as searched_territory)
-from .reference_catalog import INITIATIVES, experimental_layer
+from .reference_catalog import INITIATIVES, build_reference_layers
 
 
 def _duration(seconds):
@@ -48,11 +49,17 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     drive = w.Text(value="/content/drive/MyDrive/mapbiomas_gif_factory", description="Drive:", layout=w.Layout(width="95%"))
     auto = w.Checkbox(value=False, description="Usar biblioteca no Drive e enviar automaticamente")
     kinds = {k: w.Checkbox(value=(k == "gif"), description=label) for k, label in [("gif", "GIFs"), ("colagem", "Colagens"), ("brutos", "Frames: mapa básico"), ("preparados", "Frames: mapa com ano e escala"), ("finais", "Frames: mapa completo")]}
-    initiative = w.Dropdown(options=["Brasil", "Peru"] + [name for name in INITIATIVES.values() if name not in ("Brasil", "Peru")] + ["Personalizado"], value="Brasil", description="Iniciativa:")
+    initiative_options = ["Brasil", "Peru"] + [name for name in INITIATIVES.values() if name not in ("Brasil", "Peru")] + ["Personalizado"]
+    initiative = w.ToggleButtons(options=initiative_options, value="Brasil", description="Iniciativa:", layout=w.Layout(width="100%"))
     theme_nav = w.ToggleButtons(options=[], description="Tema:")
 
+    inventory_path = Path(__file__).with_name("reference_inventory.json")
+    records = json.loads(inventory_path.read_text(encoding="utf-8"))["records"] if inventory_path.is_file() else []
+    reference_layers = build_reference_layers(records)
+
     # Catálogo de presets e camadas do usuário ficam separados por iniciativa.
-    catalog = [(country, [x for x in LAYERS if x.get("initiative", "Brasil") == country])
+    catalog = [(country, [x for x in LAYERS if x.get("initiative", "Brasil") == country]
+                + [x for x in reference_layers if x["initiative"] == country])
                for country in initiative.options if country != "Personalizado"] + [("Personalizado", layers)]
     product_checks = []
     theme_panels = {}
@@ -69,6 +76,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                 enabled = layer.get("enabled", True)
                 label = layer["name"] + (" [pendente]" if not enabled else " [experimental]" if layer.get("status") == "experimental" else "")
                 check = w.Checkbox(value=False, description=label, disabled=not enabled, indent=False, layout=w.Layout(width="95%"))
+                check._reference = str(layer.get("id", "")).startswith("ref_")
                 product_checks.append((origin, layer, check))
                 checks.append(check)
                 if not enabled:
@@ -95,34 +103,68 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             checks.append(check)
         territory_boxes.append(w.VBox([w.HTML(f"<b>{name}</b>"), *checks]))
 
-    territory_type = w.Dropdown(description="Tipo:", options=list(TERRITORY_SEARCH_SOURCES))
-    municipality_text = w.Text(description="Município:", placeholder="Ex.: Petrolina", layout=w.Layout(width="60%"))
-    municipality_button = w.Button(description="Buscar", icon="search")
-    municipality_results = w.SelectMultiple(description="Encontrados:", rows=5, layout=w.Layout(width="95%"))
+    territory_type = w.ToggleButtons(options=list(TERRITORY_SEARCH_SOURCES), value="Município", description="Tipo:")
+    municipality_text = w.Text(description="Município:", placeholder="Digite o nome", continuous_update=True, layout=w.Layout(width="60%"))
+    municipality_results = w.VBox([])
     municipality_combine = w.Checkbox(value=False, description="Combinar selecionados em um recorte")
-    municipality_add = w.Button(description="Adicionar", button_style="primary")
+    municipality_add = w.Button(description="Adicionar selecionados", button_style="primary")
     municipality_log = w.Output()
     municipality_found = []
+    _search_timer = [None]
 
-    def find_municipalities(_):
+    def run_municipality_search():
         with municipality_log:
             municipality_log.clear_output()
+            term = municipality_text.value.strip()
+            if len(term) < 2:
+                municipality_found.clear()
+                _render_municipality_results()
+                return
             try:
                 import ee
-                municipality_found[:] = (search_municipalities(ee, municipality_text.value)
+                municipality_found[:] = (search_municipalities(ee, term)
                                          if territory_type.value == "Município"
-                                         else search_configured(ee, territory_type.value, municipality_text.value))
-                municipality_results.options = [(r["name"], i) for i, r in enumerate(municipality_found)]
-                print(f"{len(municipality_found)} resultado(s). A busca diferencia maiúsculas; limite de 30.")
+                                         else search_configured(ee, territory_type.value, term))
+                if not municipality_found:
+                    print("Nenhum resultado / No results / Sin resultados.")
             except Exception as exc:
                 municipality_found.clear()
-                municipality_results.options = []
-                print(f"Não foi possível buscar municípios: {exc}")
+                print(f"Não foi possível buscar: {exc}")
+            _render_municipality_results()
+
+    def _render_municipality_results():
+        buttons = []
+        for i, record in enumerate(municipality_found):
+            button = w.Button(description=record["name"], layout=w.Layout(width="95%"), icon="plus")
+            button.style.button_color = "#e0e0e0"
+            button.on_click(lambda _b, i=i: _toggle_result(i))
+            buttons.append(button)
+        municipality_results.children = buttons
+
+    def _toggle_result(index):
+        record = municipality_found[index]
+        if record in _selected_municipalities:
+            _selected_municipalities.remove(record)
+            municipality_results.children[index].style.button_color = "#e0e0e0"
+            municipality_results.children[index].icon = "plus"
+        else:
+            _selected_municipalities.append(record)
+            municipality_results.children[index].style.button_color = "#cfe8d0"
+            municipality_results.children[index].icon = "check"
+
+    _selected_municipalities = []
+
+    def schedule_search(change=None):
+        if _search_timer[0] is not None:
+            _search_timer[0].cancel()
+        _search_timer[0] = Timer(0.4, run_municipality_search)
+        _search_timer[0].daemon = True
+        _search_timer[0].start()
 
     def add_municipalities(_):
         with municipality_log:
             try:
-                selected = [municipality_found[i] for i in municipality_results.value]
+                selected = list(_selected_municipalities)
                 if not selected:
                     raise ValueError("Selecione pelo menos um município.")
                 groups = [selected] if municipality_combine.value else [[r] for r in selected]
@@ -135,18 +177,21 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                     check = w.Checkbox(value=True, description=item["name"], indent=False, layout=w.Layout(width="95%"))
                     territory_checks.append(("Personalizados", item, check))
                     territory_boxes[2].children = (*territory_boxes[2].children, check)
+                _selected_municipalities.clear()
+                _render_municipality_results()
                 print("Adicionado em Personalizados; desmarque para remover da seleção.")
             except Exception as exc:
                 print(f"Não foi possível adicionar: {exc}")
 
-    municipality_button.on_click(find_municipalities)
+    municipality_text.observe(schedule_search, names="value")
     municipality_add.on_click(add_municipalities)
     def territory_type_changed(change):
         municipality_found.clear()
-        municipality_results.options = []
+        _selected_municipalities.clear()
+        municipality_results.children = []
         municipality_text.value = ""
-        municipality_text.description = "Nome:"
-        municipality_text.placeholder = "Ex.: Petrolina" if change["new"] == "Município" else "Digite o nome"
+        municipality_text.description = "Nome:" if change["new"] == "Município" else "Nome:"
+        municipality_text.placeholder = "Digite o nome" if change["new"] == "Município" else "Digite o nome"
     territory_type.observe(territory_type_changed, names="value")
 
     def render_themes(*_):
@@ -398,115 +443,61 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     run_button.on_click(lambda _: start_batch(wait=False))
     update_files()
     change_initiative()
-    municipality_panel = w.VBox([w.HTML("<b>Buscar território</b><p>Municípios: FAO GAUL 2025 (não é a malha oficial IBGE). UC e TI aguardam conexão das fontes.</p>"),
-                                territory_type, w.HBox([municipality_text, municipality_button]), municipality_results,
+    municipality_panel = w.VBox([w.HTML("<b>Buscar território</b><p>Digite o nome para ver resultados. Municípios: FAO GAUL 2025 (não é a malha oficial IBGE). UC e TI aguardam conexão das fontes.</p>"),
+                                territory_type, municipality_text, municipality_results,
                                 municipality_combine, municipality_add, municipality_log])
     territories_panel = w.VBox([w.HTML("<h3>Territórios</h3>"), municipality_panel, *territory_boxes])
     output_panel = w.VBox([w.HTML("<h3>Saídas e destino</h3>"), *kinds.values(), auto, drive, check_status, availability])
     delivery_panel = w.VBox([w.HTML("<h3>Arquivos gerados e envio posterior</h3>"), refresh, selection, send])
-    inventory_path = Path(__file__).with_name("reference_inventory.json")
-    records = json.loads(inventory_path.read_text(encoding="utf-8"))["records"] if inventory_path.is_file() else []
-    ref_theme = w.Dropdown(description="Theme:")
-    ref_collection = w.Dropdown(description="Collection:")
-    ref_product = w.Select(description="Layer:", rows=6, layout=w.Layout(width="95%"))
-    ref_asset = w.Textarea(description="Asset:", disabled=True, layout=w.Layout(width="95%", height="65px"))
-    ref_min = w.FloatText(value=0, description="Min:")
-    ref_max = w.FloatText(value=1, description="Max:")
-    ref_colors = w.Text(description="Colors:", placeholder="ffffff,800000", layout=w.Layout(width="95%"))
-    ref_labels = w.Text(description="Labels:", placeholder="classe 0,classe 1", layout=w.Layout(width="95%"))
-    ref_confirm = w.Checkbox(value=False, description="Confirmei asset, bandas, legenda e tipo de imagem / I verified asset, bands, legend and image type / Confirmé asset, bandas, leyenda y tipo")
-    ref_check = w.Button(description="Verificar opções", layout=w.Layout(width="160px"))
-    ref_variable = w.Dropdown(description="Variável:", options=[], layout=w.Layout(display="none"))
-    ref_add = w.Button(description="Adicionar / Add / Añadir", layout=w.Layout(width="220px"))
-    ref_log = w.Output()
-    ref_checks = w.VBox([])
-    code_by_country = {name: code for code, name in INITIATIVES.items()}
+    style_title = w.HTML(value="<i>Selecione uma layer para ajustar paleta/legenda.</i>")
+    style_colors = w.Text(description="Cores:", placeholder="hex separadas por vírgula", continuous_update=True, layout=w.Layout(width="95%"))
+    style_labels = w.Text(description="Rótulos:", placeholder="um rótulo por cor", continuous_update=True, layout=w.Layout(width="95%"))
+    style_min = w.FloatText(value=0, description="Mín:")
+    style_max = w.FloatText(value=1, description="Máx:")
+    style_panel = w.VBox([w.HTML("<h4>Ajustar paleta e legenda</h4><p>Selecione uma layer do inventário para revisar ou ajustar detalhes.</p>"),
+                          style_title, style_colors, style_labels, w.HBox([style_min, style_max])],
+                         layout=w.Layout(display="none"))
 
-    def ref_product_changed(*_):
-        index = ref_product.value
-        ref_asset.value = str(records[index].get("asset") or "Asset indisponível / unavailable / no disponible") if index is not None else ""
-        ref_confirm.value = False
-        ref_variable.options = []
-        ref_variable.layout.display = "none"
+    def _active_reference_layer():
+        for _, layer, check in product_checks:
+            if check.value and getattr(check, "_reference", False):
+                return layer
+        return None
 
-    def check_reference_options(_):
-        with ref_log:
-            ref_log.clear_output()
-            try:
-                if ref_product.value is None or not records[ref_product.value].get("asset"):
-                    raise ValueError("Asset indisponível para verificação.")
-                options = collection_variables(records[ref_product.value]["asset"])
-                ref_variable.options = [("Selecione / Select / Seleccione", None), *options] if options else []
-                ref_variable.value = None
-                ref_variable.layout.display = "" if options else "none"
-                print("Escolha uma variável." if options else "Nenhuma variável adicional precisa ser escolhida.")
-            except Exception as exc:
-                ref_variable.options = []
-                ref_variable.layout.display = "none"
-                print(f"Não foi possível verificar a layer: {exc}")
+    def _refresh_style_panel(*_):
+        layer = _active_reference_layer()
+        if layer is None:
+            style_panel.layout.display = "none"
+            return
+        viz = layer.get("visualization") or {}
+        legend = layer.get("legend") or []
+        style_title.value = f"<b>{escape(layer['name'])}</b> — {layer.get('theme', '')} · {layer.get('collection', '')}"
+        style_colors.value = ",".join(viz.get("palette", []))
+        style_labels.value = ",".join(str(x.get("label", "")) for x in legend)
+        style_min.value = viz.get("min", 0)
+        style_max.value = viz.get("max", 1)
+        style_panel.layout.display = ""
 
-    def ref_collection_changed(*_):
-        code = code_by_country.get(initiative.value)
-        ref_product.options = [(str(r["product"]), i) for i, r in enumerate(records)
-                               if r["initiative"] == code and r["theme"] == ref_theme.value
-                               and r["collection"] == ref_collection.value]
-        if ref_product.options and ref_product.value is None:
-            ref_product.value = ref_product.options[0][1]
-        ref_product_changed()
+    def _apply_style_fields(*_):
+        layer = _active_reference_layer()
+        if layer is None:
+            return
+        colors = [s.strip().lstrip("#") for s in style_colors.value.split(",") if s.strip()]
+        labels = [s.strip() for s in style_labels.value.split(",")]
+        if len(colors) >= 2 and len(labels) == len(colors) and all(re.fullmatch(r"(?:[0-9a-fA-F]{6})", c) for c in colors):
+            viz = layer.setdefault("visualization", {})
+            viz["palette"] = colors
+            viz["min"] = style_min.value
+            viz["max"] = style_max.value
+            layer["legend"] = [{"label": label, "color": color} for label, color in zip(labels, colors)]
 
-    def ref_theme_changed(*_):
-        code = code_by_country.get(initiative.value)
-        ref_collection.options = sorted({r["collection"] for r in records if r["initiative"] == code and r["theme"] == ref_theme.value})
-        if ref_collection.options and ref_collection.value is None:
-            ref_collection.value = ref_collection.options[0]
-        ref_collection_changed()
-
-    def ref_initiative_changed(*_):
-        code = code_by_country.get(initiative.value)
-        ref_theme.options = sorted({r["theme"] for r in records if r["initiative"] == code})
-        if ref_theme.options and ref_theme.value is None:
-            ref_theme.value = ref_theme.options[0]
-        ref_theme_changed()
-        for origin, _, check in product_checks:
-            if getattr(check, "_reference", False):
-                check.layout.display = "" if origin == initiative.value else "none"
-
-    def add_reference_layer(_):
-        with ref_log:
-            ref_log.clear_output()
-            try:
-                if ref_product.value is None or not ref_confirm.value:
-                    raise ValueError("Selecione a layer e confirme os dados / Select and confirm / Seleccione y confirme.")
-                if ref_variable.options and ref_variable.value is None:
-                    raise ValueError("Selecione a variável / Select a variable / Seleccione una variable.")
-                layer = experimental_layer(records[ref_product.value], ref_colors.value, ref_labels.value, ref_min.value, ref_max.value)
-                if ref_variable.value is not None:
-                    layer["collection_member"] = ref_variable.value
-                validate([layer], [])
-                previous = next((check for origin, item, check in product_checks if origin == initiative.value and item["id"] == layer["id"]), None)
-                if previous is not None:
-                    raise ValueError("Layer já adicionada; reabra a interface para alterar a configuração / Already added; reopen UI to change / Ya añadida; reabra la interfaz.")
-                check = w.Checkbox(value=True, description=layer["name"] + " [experimental]", indent=False, layout=w.Layout(width="95%"))
-                check._reference = True
-                product_checks.append((initiative.value, layer, check))
-                ref_checks.children = (*ref_checks.children, check)
-                print("Layer adicionada como experimental / Added as experimental / Añadida como experimental.")
-            except Exception as exc:
-                print(str(exc))
-
-    ref_theme.observe(ref_theme_changed, names="value")
-    ref_collection.observe(ref_collection_changed, names="value")
-    ref_product.observe(ref_product_changed, names="value")
-    initiative.observe(ref_initiative_changed, names="value")
-    ref_add.on_click(add_reference_layer)
-    ref_check.on_click(check_reference_options)
-    ref_initiative_changed()
-    ref_panel = w.VBox([
-        w.HTML("<h4>Outras layers / More layers / Más capas</h4><p>Layers sem visualização configurada podem ser adicionadas com legenda própria após conferência. Imagens e coleções temporais simples são reconhecidas automaticamente; classes não consecutivas ou produtos com processor podem precisar de adaptação. / Configure and verify the legend. / Configure y verifique la leyenda.</p>"),
-        ref_theme, ref_collection, ref_product, ref_asset, ref_check, ref_variable, w.HBox([ref_min, ref_max]), ref_colors, ref_labels,
-        ref_confirm, ref_add, ref_log, ref_checks,
-    ])
-    catalog_panel.children = (*catalog_panel.children, ref_panel)
+    for _, _, check in product_checks:
+        check.observe(_refresh_style_panel, names="value")
+    style_colors.observe(_apply_style_fields, names="value")
+    style_labels.observe(_apply_style_fields, names="value")
+    style_min.observe(_apply_style_fields, names="value")
+    style_max.observe(_apply_style_fields, names="value")
+    catalog_panel.children = (*catalog_panel.children, style_panel)
     navigation = w.ToggleButtons(options=["Produtos", "Territórios", "Saídas e destino", "Resultados"], description="Guia:")
     panels = [catalog_panel, territories_panel, output_panel, delivery_panel]
     def change_panel(*_):
@@ -527,20 +518,16 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     ui.download_progress = progress
     ui.log_output = log
     ui.run_button = run_button
-    ui.reference_theme = ref_theme
-    ui.reference_collection = ref_collection
-    ui.reference_product = ref_product
-    ui.reference_colors = ref_colors
-    ui.reference_labels = ref_labels
-    ui.reference_confirm = ref_confirm
-    ui.reference_add = ref_add
-    ui.reference_check = ref_check
-    ui.reference_variable = ref_variable
+    ui.style_panel = style_panel
+    ui.style_colors = style_colors
+    ui.style_labels = style_labels
+    ui.style_min = style_min
+    ui.style_max = style_max
     ui.municipality_text = municipality_text
-    ui.municipality_button = municipality_button
     ui.municipality_results = municipality_results
     ui.municipality_add = municipality_add
     ui.municipality_combine = municipality_combine
     ui.territory_type = territory_type
+    ui.municipality_search = run_municipality_search
     display(ui)
     return ui
