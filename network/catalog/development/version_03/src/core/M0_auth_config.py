@@ -165,11 +165,11 @@ def _user_credentials():
 
 
 def authenticate(project=None):
-    """Autenticar com Google Earth Engine e GCS via conta de serviço.
+    """Autentica GEE (conta do usuário) e GCS (conta de serviço).
 
-    Autentica a pessoa (pop-up no Colab / ADC no local) e então *impersona* a
-    conta de serviço compartilhada, de modo que toda operação GEE/GCS rode sob
-    uma única identidade.
+    GEE usa a conta da pessoa (pop-up no Colab / ADC local), que já tem
+    ``earthengine.writer`` nos projetos dos países. GCS usa a conta de serviço
+    (impersonation), que tem acesso ao bucket.
     """
     global _AUTHENTICATED, _GCS_CREDENTIALS
 
@@ -187,50 +187,54 @@ def authenticate(project=None):
         # 1) Autentica a pessoa (credenciais de origem).
         source_credentials = _user_credentials()
 
-        # 2) Impersona a conta de serviço compartilhada.
+        # 2) GEE — usa a CONTA DA PESSOA (ela já tem earthengine.writer nos países).
+        try:
+            ee.Initialize(project=project)
+            print(f"[GEE] Inicializado com a conta do usuário (projeto: {project}).")
+        except Exception as exc:
+            raise RuntimeError(
+                f"Falha ao inicializar o Earth Engine com a conta do usuário.\n"
+                f"Projeto: {project}\n"
+                "Verifique se sua conta tem acesso (earthengine.viewer/writer) "
+                "a este projeto.\n"
+                f"Erro original: {exc}"
+            ) from exc
+
+        # 3) GCS — impersona a CONTA DE SERVIÇO (acesso ao bucket).
         try:
             from google.auth import impersonated_credentials
-            target_credentials = impersonated_credentials.Credentials(
+            _GCS_CREDENTIALS = impersonated_credentials.Credentials(
                 source_credentials=source_credentials,
                 target_principal=sa_email,
                 target_scopes=SERVICE_ACCOUNT_SCOPES,
             )
-            _GCS_CREDENTIALS = target_credentials
-            ee.Initialize(credentials=target_credentials, project=project)
-            print(f"[GEE] Inicializado como conta de serviço: {sa_email}")
+            print(f"[GCS] Conta de serviço pronta para o bucket: {sa_email}")
         except Exception as exc:
             detail = str(exc)
             if 'iam.serviceAccounts.getAccessToken' in detail:
-                remedy = (
-                    "Causa: falta a permissão 'iam.serviceAccounts.getAccessToken'.\n"
-                    "Conceda o papel 'Service Account Token Creator' ao Google "
-                    "Group da equipe:\n\n"
+                print(
+                    "[GCS][WARN] Impersonation da conta de serviço falhou "
+                    "(falta 'Service Account Token Creator').\n"
+                    f"  Conceda ao grupo {SERVICE_ACCOUNT_GROUP} sobre "
+                    f"{sa_email}:\n"
                     "  gcloud iam service-accounts add-iam-policy-binding \\\n"
                     f"      {sa_email} \\\n"
                     f"      --member=\"group:{SERVICE_ACCOUNT_GROUP}\" \\\n"
                     "      --role=\"roles/iam.serviceAccountTokenCreator\" \\\n"
-                    f"      --project={SERVICE_ACCOUNT_PROJECT}\n"
+                    f"      --project={SERVICE_ACCOUNT_PROJECT}"
                 )
             else:
-                remedy = (
-                    "Verifique:\n"
-                    "  1) sua conta pertence ao Google Group com o papel "
-                    "'Service Account Token Creator' sobre a conta de serviço;\n"
-                    "  2) a conta de serviço está registrada no Earth Engine e "
-                    "tem acesso aos projetos/bucket.\n"
-                )
-            raise RuntimeError(
-                f"Falha ao autenticar via conta de serviço '{sa_email}'.\n"
-                f"{remedy}\n"
-                f"Erro original: {exc}"
-            ) from exc
+                print(f"[GCS][WARN] Falha ao impersonar a conta de serviço: {exc}")
+            print("[GCS][WARN] Usando a conta do usuário para o bucket "
+                  "(pode falhar se ela não tiver acesso).")
+            _GCS_CREDENTIALS = source_credentials
     else:
         ee.Initialize(project=project)
         print("[GEE] Reusing credentials for configured project.")
 
     from M_gcs import authenticate as _mgcs_auth
     _mgcs_auth()
-    print("[GCS] GCS authentication configured (service account).")
+    print("[GCS] GCS authentication configured.")
 
     # Deferred cache sync — credenciais já prontas aqui
     try:
@@ -263,7 +267,7 @@ def verify_auth():
     ok_gcs = False
 
     print("\n" + "=" * 64)
-    print("VERIFICAÇÃO DE ACESSO (conta de serviço)")
+    print("VERIFICAÇÃO DE ACESSO (GEE: usuário | GCS: conta de serviço)")
     print("=" * 64)
 
     # Earth Engine
