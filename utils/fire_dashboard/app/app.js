@@ -384,6 +384,7 @@ const state = {
   mesIni: 1, // temporada do fogo no Mensal: mês de início e de fim (1 = janeiro)
   mesFim: 12,
   paletaMes: "oficial", // "oficial" (legenda da API) ou "fogo" (tons de fogo)
+  mensalNivel: "bioma", // Mensal: proporção mensal por "bioma" ou "estado"
   // camada2: camada sobreposta; cortina: compara dois anos; anoA: ano da esquerda; destaque: escurece fora do recorte.
   mapa: { tipo: "bruto", unidade: "estados", camada: "acumulado", visualizar: "biomas", camada2: "", cortina: "off", anoA: null, destaque: "off" },
   freqGrupo: "todas", // Frequência: "todas" (1 a N vezes), "15" (1 a 15 e 16+), "9" (1 a 9 e 10+)
@@ -1736,6 +1737,7 @@ async function loadMensal({ t, ini, fim }) {
   const picoFimJ = tempFim ? tempFim.vals.indexOf(Math.max(...tempFim.vals)) : -1;
   const semFiltroLocal = !state.estadoId && !state.municipioId;
   const opcoesMes = meses.map((m, k) => ({ value: String(k + 1), label: m.name }));
+  const nivelMensal = state.mensalNivel === "estado" || !state.conn.biomas.length ? "estado" : "bioma";
 
   return {
     toolbar: [
@@ -1753,7 +1755,16 @@ async function loadMensal({ t, ini, fim }) {
         onChange: (v) => { state.paletaMes = v; loadCurrentTab(); },
       },
       {
+        type: "segmented",
+        card: 4,
+        label: "Territórios",
+        value: nivelMensal,
+        options: [...(state.conn.biomas.length ? [{ value: "bioma", label: rot("bioma", true) }] : []), { value: "estado", label: rot("estado", true) }],
+        onChange: (v) => { state.mensalNivel = v; loadCurrentTab(); },
+      },
+      {
         type: "chips",
+        card: 0,
         label: `Anos em destaque (até ${SERIES_COLORS.length})`,
         options: temporadas.map((s) => {
           const slot = SERIES_COLORS[state.mensalAnos.indexOf(s.ano)];
@@ -1782,14 +1793,16 @@ async function loadMensal({ t, ini, fim }) {
       },
     ],
     cards: [
+      // 1. Média mensal com os anos em destaque (os chips ficam neste card).
       {
-        span: 8,
+        span: 12,
         title: `Média mensal da área queimada ${ini}–${fim} · temporada ${rotuloJanela}`,
         subtitle: n > 1
           ? `Área cinza = média (n = ${n} anos) · faixa clara = ± 1 desvio padrão · linhas = anos em destaque${cruza ? " · temporadas atravessam o ano (ex.: 2020/21)" : ""}`
           : "Escolha um período com mais de um ano para a média e o desvio padrão",
         chart: {
           kind: "band",
+          height: 320,
           labels: curtos,
           tooltipTitles: mesesJ.map((m) => m.name),
           mean: { label: `Média ${ini}–${fim}`, color: "var(--text-muted)", values: medias },
@@ -1803,10 +1816,27 @@ async function loadMensal({ t, ini, fim }) {
           ...selecionados.map((s) => ({ label: `Área queimada mensal em ${s.label}`, color: s.color, line: true, dash: !!s.dash })),
         ],
       },
+      // 2. Distribuição mensal: soma de todos os anos, em barras ou rosca.
       {
-        span: 4,
-        title: "Distribuição mensal",
-        subtitle: "Soma no período · % do total · média ± DP",
+        span: 12,
+        title: `Distribuição mensal · soma ${ini}–${fim}`,
+        subtitle: "Área queimada em cada mês somando todos os anos do período · % do total",
+        alterna: "rosca",
+        chart: {
+          kind: "bar",
+          axisTitle: "Área queimada (ha)",
+          labels: mesesJ.map((m) => m.name),
+          tooltipTitles: mesesJ.map((m, i) => `${m.name} · ${pct(safeDiv(somas[i], totalPeriodo))}`),
+          values: somas,
+          colors: janela.map((k) => corMes(k)),
+          rotulos: "pct",
+        },
+      },
+      // 3. Soma do período e média de cada mês.
+      {
+        span: 12,
+        title: "Soma do período e média por mês",
+        subtitle: "Soma no período · % do total · média ± desvio padrão por ano",
         ranking: {
           plain: true,
           total: totalPeriodo,
@@ -1818,6 +1848,7 @@ async function loadMensal({ t, ini, fim }) {
           })),
         },
       },
+      // 4. Área queimada por ano e mês.
       {
         span: 12,
         title: `Área queimada por ano e mês · temporada ${rotuloJanela}`,
@@ -1830,28 +1861,33 @@ async function loadMensal({ t, ini, fim }) {
         },
         legend: mesesJ.map((m, j) => ({ label: m.name, color: corMes(janela[j]) })),
       },
+      // 5. Proporção mensal por território (biomas ou estados, escolhido no card).
       {
         span: 12,
-        title: `Proporção mensal da área queimada por ${rot("bioma").toLowerCase()} · ${ini}–${fim}`,
-        subtitle: semFiltroLocal
-          ? "Para cada bioma, % da sua área queimada no período que ocorreu em cada mês (como a Figura 14 do RAF)"
-          : `${rot("bioma", true)} inteiros (este gráfico não aplica o filtro de ${rot("estado").toLowerCase()}/${rot("municipio").toLowerCase()})`,
+        title: `Proporção mensal da área queimada por ${rot(nivelMensal).toLowerCase()} · ${ini}–${fim}`,
+        subtitle: nivelMensal === "bioma" && !semFiltroLocal
+          ? `${rot("bioma", true)} inteiros (este gráfico não aplica o filtro de ${rot("estado").toLowerCase()}/${rot("municipio").toLowerCase()})`
+          : `Para cada ${rot(nivelMensal).toLowerCase()}, % da sua área queimada no período que ocorreu em cada mês`,
         lazy: async (progress) => {
           let feitos = 0;
-          const biomas = state.conn.biomas;
-          const series = await mapLimit(biomas, 3, async (b) => {
+          const lista = nivelMensal === "bioma" ? state.conn.biomas : state.conn.estados;
+          const series = await mapLimit(lista, 3, async (b, i) => {
             const r = await getStats({
               subthemeKey: sub("mensal"), legendKey: legenda.key, pixelValue: pixelValues(meses),
               year: range(ini, fim), territoryId: [b.id], spatialMethod: "union",
             });
-            progress(`Calculando biomas… ${++feitos}/${biomas.length}`);
+            progress(`Calculando ${rot(nivelMensal, true).toLowerCase()}… ${++feitos}/${lista.length}`);
             const somaMes = janela.map((k) => sum(byYear(r).map((a) => a.valores.get(meses[k].pixelValue) || 0)));
             const tot = sum(somaMes);
-            return { label: b.name, color: corBioma(b.name), values: somaMes.map((v) => safeDiv(v, tot)) };
+            const cor = nivelMensal === "bioma" ? corBioma(b.name) : CORES_REGIOES[i % CORES_REGIOES.length];
+            return { label: b.name, color: cor, values: somaMes.map((v) => safeDiv(v, tot)), tot };
           });
+          // Estados: só os 8 com mais área queimada, para o gráfico continuar legível.
+          const visiveis = nivelMensal === "bioma" ? series : [...series].sort((a, b) => b.tot - a.tot).slice(0, 8);
           return {
-            chart: { kind: "grouped", percent: true, labels: mesesJ.map((m) => m.name.toLowerCase()), series },
-            legend: series.map((s) => ({ label: s.label, color: s.color })),
+            chart: { kind: "grouped", percent: true, labels: mesesJ.map((m) => m.name.toLowerCase()), series: visiveis },
+            legend: visiveis.map((s) => ({ label: s.label, color: s.color })),
+            note: nivelMensal === "bioma" ? "" : `Os 8 ${rot("estado", true).toLowerCase()} com mais área queimada no período`,
           };
         },
       },
@@ -1935,7 +1971,7 @@ async function loadFrequencia({ t, ini, fim }) {
     ],
     cards: [
       {
-        span: 5,
+        span: 12,
         title: "Faixas de frequência",
         subtitle: "Área e participação na área queimada do período",
         alterna: "rosca",
@@ -1948,7 +1984,7 @@ async function loadFrequencia({ t, ini, fim }) {
         },
       },
       {
-        span: 7,
+        span: 12,
         title: "Área queimada por classe de frequência",
         subtitle: `${ini}–${fim} · classes ${rotuloGrupo[state.freqGrupo]}`,
         alterna: "rosca",
@@ -1961,6 +1997,8 @@ async function loadFrequencia({ t, ini, fim }) {
           tooltipTitles: barras.map((c) => `${c.label} · ${ha(c.value)} · ${pct(safeDiv(c.value, total))}`),
           values: barras.map((c) => (emPct ? safeDiv(c.value, total) : c.value)),
           colors: barras.map((c) => c.color),
+          rotulos: emPct ? "pct" : "",
+          height: 340,
         },
         rosca: [{ slices: barras.filter((b) => b.value > 0).map((b) => ({ label: b.label, value: b.value, color: b.color })) }],
         legend: [
@@ -4260,6 +4298,8 @@ function baseOptions(t) {
 function chartConfig(spec, t) {
   const options = baseOptions(t);
   options.plugins.tabela = { percent: !!spec.percent }; // lido pela tabela sob demanda
+  options.plugins.rotulosBarras = { formato: spec.rotulos || "" }; // "pct": % de cada barra escrita sobre ela
+  if (spec.rotulos) options.layout = { padding: { top: 18, right: spec.kind === "hbar" ? 44 : 8 } }; // espaço para os rótulos
   const horizontal = spec.kind === "hbar";
   const stacked = spec.kind === "stacked" || spec.kind === "combo";
   const multi = stacked || spec.kind === "grouped";
@@ -4526,6 +4566,33 @@ function doughnutConfig({ slices }, t) {
     options,
   };
 }
+
+// % de cada barra sobre ela (gráficos com `rotulos: "pct"`; barras abaixo de 0,5% ficam sem rótulo).
+const rotulosBarrasPlugin = {
+  id: "rotulosBarras",
+  afterDatasetsDraw(chart, _args, opts) {
+    if (opts?.formato !== "pct" || chart.config.type !== "bar") return;
+    const ds = chart.data.datasets[0];
+    if (!ds) return;
+    const vals = ds.data.map((v) => Number(v) || 0);
+    const tot = sum(vals);
+    const horizontal = chart.options.indexAxis === "y";
+    const { ctx } = chart;
+    ctx.save();
+    ctx.font = "600 11px Montserrat, sans-serif";
+    ctx.fillStyle = resolveColor("var(--text-2)") || "#333";
+    ctx.textAlign = horizontal ? "left" : "center";
+    ctx.textBaseline = horizontal ? "middle" : "bottom";
+    chart.getDatasetMeta(0).data.forEach((barra, i) => {
+      const p = safeDiv(vals[i], tot);
+      if (p < 0.005) return;
+      const txt = pct(p);
+      if (horizontal) ctx.fillText(txt, barra.x + 4, barra.y);
+      else ctx.fillText(txt, barra.x, barra.y - 3);
+    });
+    ctx.restore();
+  },
+};
 
 // % de cada fatia escrita dentro da rosca (fatias com 4% ou mais, para não sobrepor).
 const rotulosRoscaPlugin = {
@@ -4852,7 +4919,7 @@ async function start() {
 
 function init() {
   Chart.defaults.font.family = "'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif";
-  Chart.register(crosshairPlugin, traducaoChartPlugin, rotulosRoscaPlugin);
+  Chart.register(crosshairPlugin, traducaoChartPlugin, rotulosRoscaPlugin, rotulosBarrasPlugin);
   el.panel.addEventListener("click", acaoDoCard);
   readHash();
   montarPais();

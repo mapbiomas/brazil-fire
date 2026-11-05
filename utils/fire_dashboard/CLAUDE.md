@@ -87,3 +87,5 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - Mapa por território: também por biomas; subtítulo "Ranking de ini–fim".
 - Coleção padrão quando a nota não cita: Paraguai 1, Indonésia 2 (`colecaoPadrao`).
 - GIF: ordem país, território, produto.
+- Mensal reorganizado: 1) média mensal com chips de anos no card; 2) distribuição mensal (soma de todos os anos, barras com % ou rosca); 3) soma e média por mês; 4) área por ano e mês; 5) proporção mensal por território com escolha biomas/estados (`state.mensalNivel`; estados: os 8 com mais área).
+- Frequência: cards em largura total; `rotulos: "pct"` no spec escreve a % sobre as barras (`rotulosBarrasPlugin`).
