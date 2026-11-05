@@ -1201,3 +1201,23 @@ body {
   background: var(--surface); box-shadow: 0 0 0 1px var(--text-2); pointer-events: none;
 }
 .map-box { position: relative; }
+
+/* ---------- Fábrica de GIFs ---------- */
+.gif-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+.gif-form select {
+  min-width: 180px; max-width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 9px;
+  background: var(--surface); color: var(--text); font: inherit; font-size: .85rem;
+}
+.gif-form select[data-f="territorio"], .gif-form select[data-f="produto"] { min-width: 260px; }
+.gif-form select[hidden] { display: none; }
+.gif-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.gif-gerar { padding: 9px 18px; border-color: var(--brand); background: var(--brand); color: #fff; font-size: .9rem; }
+.gif-gerar:hover { filter: brightness(.95); border-color: var(--brand); }
+.gif-gerar:disabled { opacity: .55; cursor: progress; }
+.gif-status { font-size: .85rem; color: var(--text-2); }
+.gif-prog { width: 100%; height: 8px; accent-color: var(--brand); }
+.gif-prog[hidden] { display: none; }
+.gif-preview { margin: 0 0 12px; }
+.gif-preview img { display: block; max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 8px; }
+.gif-preview figcaption { margin-top: 6px; font-size: .8rem; color: var(--text-muted); }
+a.md-botao { display: inline-block; text-decoration: none; }
