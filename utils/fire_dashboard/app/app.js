@@ -3387,7 +3387,8 @@ function updateSourceInfo() {
   el.badge.textContent = `API: ${conn.env.label}${fallback ? " (fallback)" : ""}`;
   el.badge.dataset.state = conn.colecaoOk ? "ok" : "warn";
   el.badge.title = conn.failures.length ? conn.failures.join("\n") : conn.env.baseUrl;
-  el.subtitle.textContent = `Coleção ${conn.colecao || "?"} · ${conn.anoMin}–${conn.anoMax}`;
+  document.getElementById("colecao-titulo").textContent = `Col. ${conn.colecao || "?"}`;
+  el.subtitle.textContent = `Estatísticas de área queimada · ${conn.anoMin}–${conn.anoMax}`;
   el.footerEnv.textContent = `Ambiente: ${conn.env.baseUrl}.`;
 
   el.banner.hidden = conn.colecaoOk;
