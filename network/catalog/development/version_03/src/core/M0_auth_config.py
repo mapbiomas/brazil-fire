@@ -135,6 +135,8 @@ _MODEL_SCALE_CACHE = {}
 # ---------------------------------------------------------------------------
 
 SERVICE_ACCOUNT_EMAIL = 'mapbiomas-fire@mapbiomas.iam.gserviceaccount.com'
+SERVICE_ACCOUNT_GROUP = 'mapbiomas-net-fire@googlegroups.com'
+SERVICE_ACCOUNT_PROJECT = 'mapbiomas'
 
 SERVICE_ACCOUNT_SCOPES = [
     'https://www.googleapis.com/auth/earthengine',
@@ -205,9 +207,9 @@ def authenticate(project=None):
                     "Group da equipe:\n\n"
                     "  gcloud iam service-accounts add-iam-policy-binding \\\n"
                     f"      {sa_email} \\\n"
-                    "      --member=\"group:SEU_GRUPO@googlegroups.com\" \\\n"
+                    f"      --member=\"group:{SERVICE_ACCOUNT_GROUP}\" \\\n"
                     "      --role=\"roles/iam.serviceAccountTokenCreator\" \\\n"
-                    "      --project=SEU_PROJECT_ID\n"
+                    f"      --project={SERVICE_ACCOUNT_PROJECT}\n"
                 )
             else:
                 remedy = (
