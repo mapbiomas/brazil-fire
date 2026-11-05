@@ -14,13 +14,19 @@
   <header class="topbar">
     <div class="wrap topbar-inner">
       <div class="brand">
-        <img class="logo" src="logos/MapBiomas_Fogo_PT.png" alt="MapBiomas Fogo">
+        <img class="logo" id="logo" src="logos/MapBiomas_Fogo_PT.png" alt="MapBiomas Fogo">
         <div>
-          <h1>MapBiomas Fogo <span id="colecao-titulo">Col. 5.1</span> · <span class="pais">Brasil</span></h1>
+          <h1><span id="marca">MapBiomas Fogo</span><span id="colecao-titulo"> Col. 5.1</span> · <span class="pais" id="pais-titulo">Brasil</span></h1>
           <p class="subtitle" id="subtitle">Estatísticas de área queimada</p>
         </div>
       </div>
-      <span id="source-badge" class="badge" data-state="pending">Conectando…</span>
+      <div class="topbar-acoes">
+        <label class="pais-select">
+          <span>País</span>
+          <select id="f-pais" aria-label="País"></select>
+        </label>
+        <span id="source-badge" class="badge" data-state="pending">Conectando…</span>
+      </div>
     </div>
   </header>
 
@@ -29,15 +35,15 @@
 
     <section class="filters" aria-label="Filtros globais">
       <label class="field">
-        <span>Bioma</span>
+        <span id="rot-bioma">Bioma</span>
         <select id="f-bioma" disabled></select>
       </label>
       <label class="field">
-        <span>Estado</span>
+        <span id="rot-estado">Estado</span>
         <select id="f-estado" disabled></select>
       </label>
       <label class="field">
-        <span>Município</span>
+        <span id="rot-municipio">Município</span>
         <select id="f-municipio" disabled></select>
       </label>
       <div class="field field-period">
@@ -58,7 +64,7 @@
   </main>
 
   <footer class="wrap footer">
-    Dados do Brasil: MapBiomas Fogo, via API pública da Plataforma MapBiomas. Áreas em hectares (ha).
+    <span id="footer-fonte">Dados: MapBiomas Fogo, via API pública da Plataforma MapBiomas.</span> Áreas em hectares (ha).
     Código e documentação: <a href="https://github.com/mapbiomas/brazil-fire/tree/main/utils/fire_dashboard">github.com/mapbiomas/brazil-fire</a>.
     <span id="footer-env"></span>
   </footer>

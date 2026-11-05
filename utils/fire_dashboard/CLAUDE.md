@@ -45,3 +45,14 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - Não usa `state.conn` nem os filtros do topo; conexão própria por país em `gifRegiao` (cache `gif:<região>`).
 - Aberto como `file://`, o logo pode "sujar" o canvas; `carregarLogo` testa e omite o logo nesse caso.
 - Testado (navegador sem interface): Chile 2018–2025, 8 quadros, 0,3 MB.
+
+## Vários países
+
+- `PAISES` (topo de `app.js`): região da API, idioma, logo, marca, coleção exigida (só Brasil, 5.1), staging (só Brasil), categorias dos filtros (regex na chave) e rótulos em português (`rot("estado")` → "Departamento"). O país vem de `#pais=<região>`; trocar no seletor recarrega a página.
+- Subtemas por regex nos nomes pt/es/en ou pela análise (`SUBTHEMES`); só "anual" é obrigatório. `TABS[].requer` esconde as abas sem dados; `soBrasil` (fundiário).
+- Municípios de um estado: Brasil pela UF no nome; outros países pelo centróide do município (tiles MVT, caixa do país pela geometria) dentro do contorno do estado (`getMunicipiosDoEstado`).
+- Ranking: a API aceita um só `pixelValue` e, fora do Brasil, muitas vezes devolve `taskID` (1º cálculo leva minutos); `getRankingAno` espera e repete (até 2 falhas).
+- Anos: da nota informativa; Paraguai e Indonésia não informam, então `anosComDados` lê os anos com área no país.
+- Coleção: `colecaoDaNota` ignora a coleção de uso e cobertura citada na mesma nota.
+- Colômbia: a legenda anual traz "Quemado MODIS MCD64A1" (referência): fica fora do total e do GIF.
+- Testado (navegador sem interface, 2026-11-05): aba Anual nos 8 países; Territórios em Peru, Chile, Indonésia e Paraguai; Acumulado, Mensal, Frequência e Último fogo no Peru; Mapas e GIF no Chile. Colômbia, Argentina e Bolívia: Territórios ainda em cálculo no servidor na 1ª vez.

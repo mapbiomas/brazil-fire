@@ -1,19 +1,27 @@
-# MapBiomas Fire · Dashboard (Brazil)
+# MapBiomas Fire · Dashboard
 
 ## 🔗 Open the app: **[https://mapbiomas.github.io/brazil-fire/dashboard/](https://mapbiomas.github.io/brazil-fire/dashboard/)**
 
-> 🇧🇷 **Brazil only**, except the **GIF factory** tab. The statistics tabs cover Brazilian data (Collection 5.1, 1985–2025) and the interface is in Portuguese. The GIF factory tab also works for Argentina, Bolivia, Chile, Colombia, Paraguay, Peru and Indonesia. See [Adapt it to another country](#️-adapt-it-to-another-country-or-collection).
+> 🌎 **Eight countries:** Brazil, Argentina, Bolivia, Chile, Colombia, Paraguay, Peru and Indonesia. Pick the country at the top of the page (or open a link such as `.../dashboard/#pais=peru`). The interface is in Portuguese; territory and legend names come from the API in the country language.
 
-Interactive dashboard of MapBiomas Fire **Collection 5.1** for Brazil (1985–2025), with the MapBiomas Fogo logo. It reads the statistics straight from the public MapBiomas Platform API, so there is nothing to build or install. Filter by biome, state, municipality and period, and explore the products in tabs: annual, accumulated, monthly, frequency, last fire year, scar size, severity, return interval, land tenure, territories rankings and maps.
+Interactive dashboard of MapBiomas Fire, with the official logo of each country (Fogo, Fuego or Fire). It reads the statistics straight from the public MapBiomas Platform API, so there is nothing to build or install. Filter by biome (or ecoregion), first and second administrative level (state/municipality, department/district, region/commune…) and period, and explore the products in tabs: annual, accumulated, monthly, frequency, last fire year, scar size, severity, return interval, land tenure, territories rankings, maps and a GIF factory.
+
+Brazil uses Collection 5.1 (1985–2025) and falls back to staging only if production fails. Other countries use the collection the Platform serves (read from the informative note). **Only the tabs a country has data for are shown:**
+
+| Product | Countries |
+|---|---|
+| Annual, accumulated, monthly, frequency, territories, maps, GIF factory | All eight |
+| Last fire year, scar size | All except Paraguay and Indonesia |
+| Severity, return interval, land tenure categories | Brazil only |
 
 Highlights:
 
 - Charts can be switched between bars and lines, or bars and doughnut (small toggle at the top right of each card).
-- Annual and accumulated burned area can be stacked **by biome**, with two earthy palettes.
+- Annual and accumulated burned area can be stacked **by biome** (Brazil: two earthy palettes; other countries: categorical colors per biome or ecoregion).
 - Accumulated tab: share of each biome (or state/municipality) that burned at least once.
 - Municipality × biome: the map and the statistics use only the part of the municipality inside the biome.
 - Interactive maps: burned area, share of the territory or change between two periods, with a year timeline (play), bubbles, click-to-detail and CSV export; raw tiles with an overlay layer, a two-year swipe and a highlight of the selected area.
-- **GIF factory** tab: one frame per year from the official Platform map tiles, with title, territory, year, legend, source and logo (as in [`mapbiomas_gif_factory`](../mapbiomas_gif_factory/)), built in the browser and downloadable as GIF (or the last frame as PNG). Pick the country at the top of the tab; frame texts follow the country language (pt, es or en). Use the published site: opened as a local file, the browser may block reading the map images.
+- **GIF factory** tab: one frame per year from the official Platform map tiles, with title, territory, year, legend, source and logo (as in [`mapbiomas_gif_factory`](../mapbiomas_gif_factory/)), built in the browser and downloadable as GIF (or the last frame as PNG). Frame texts follow the country language (pt, es or en). Use the published site: opened as a local file, the browser may block reading the map images.
 
 ## 🗂️ Folder structure
 
@@ -32,23 +40,22 @@ utils/fire_dashboard/
 |---|---|
 | `app/index.html` | Page shell; loads Chart.js, Leaflet and Turf.js from cdnjs (the GIF encoder, gifenc, is loaded from jsDelivr on demand) |
 | `app/style.css` | Styles (light/dark through CSS tokens) |
-| `app/app.js` | API client, one loader per tab, charts, maps |
+| `app/app.js` | Country list (`PAISES`), API client, one loader per tab, charts, maps |
 
 ## ▶️ Run locally
 
 1. Open `app/index.html` in a browser (internet access is required: API, map tiles and libraries).
-2. The filters and the active tab are kept in the URL hash, so a view can be shared as a link.
+2. The country, filters and active tab are kept in the URL hash, so a view can be shared as a link.
 
-## ➕ Adapt it to another country or collection
+## ➕ Add a country
 
-The dashboard is **Brazil only and Portuguese only today** (no Spanish or English interface yet, and no other country is configured). To adapt it:
-
-1. In `app/app.js`, change `CONFIG` (`region`, `colecaoExigida`, default years) and the `SUBTHEMES` / `LEGENDS` lookups if the country uses different subtheme names.
-2. Biome colors (`BIOMA_CORES`, `PALETAS_BIOMA`) are the Brazilian ones; define the country's own.
-3. Translate the interface texts (pt, en, es, as in `utils/_base/i18n/`) before publishing it for another country.
+1. Check that the country has the fire theme on the Platform API (`/{region}/themes`).
+2. Add an entry to `PAISES` in `app/app.js`: API region, name, language, logo, the territory categories used by the filters (regex on the category key: country, biome or ecoregion, first and second administrative levels) and their Portuguese labels.
+3. Open `#pais=<region>` and go through the tabs. Subthemes are matched by name (pt, es, en) or analysis type; tabs without data stay hidden.
+4. Missing today: interface in Spanish and English (`utils/_base/i18n/`), official biome colors outside Brazil, and land tenure categories outside Brazil.
 
 ## 📚 Official data sources
 
-- [MapBiomas Platform API](https://plataforma.mapbiomas.org/api/v1) (statistics, territories, geometries and map tiles; other countries through the region in the path, e.g. `/peru/...`)
+- [MapBiomas Platform API](https://plataforma.mapbiomas.org/api/v1) (statistics, rankings, territories, geometries and map tiles; each country through the region in the path, e.g. `/peru/...`)
 - Basemap: Esri World Light Gray Canvas
 - [MapBiomas Fire](https://fogo.mapbiomas.org/)

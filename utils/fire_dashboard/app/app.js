@@ -58,9 +58,71 @@
 // Configuração
 // ---------------------------------------------------------------------------
 
+// Países com o tema de fogo na API da Plataforma MapBiomas (verificado em 2026-11).
+// Por país: região da API, idioma dos nomes, logo, coleção exigida (só Brasil), se pode
+// cair para o staging (só Brasil) e as categorias de território dos filtros (regex na
+// chave da categoria) com os rótulos em português. bioma: null = país sem esse filtro.
+const LOGO_ES = "logos/MapBiomas_Fuego_ES.png";
+const PAISES = [
+  {
+    region: "brazil", nome: "Brasil", de: "do Brasil", em: "no Brasil", lang: "pt-BR", logo: "logos/MapBiomas_Fogo_PT.png", marca: "MapBiomas Fogo",
+    colecaoExigida: "5.1", staging: true,
+    cats: { pais: /^BRASIL|^POLITICAL_LEVEL_1$/, bioma: /^BIOMES$/, estado: /^ESTADOS|^POLITICAL_LEVEL_3$/, municipio: /^MUNICIPIOS_IBGE|^POLITICAL_LEVEL_4$/ },
+    rotulos: { bioma: ["Bioma", "Biomas"], estado: ["Estado", "Estados"], municipio: ["Município", "Municípios"] },
+  },
+  {
+    region: "argentina", nome: "Argentina", de: "da Argentina", em: "na Argentina", lang: "es-ES", logo: LOGO_ES, marca: "MapBiomas Fuego",
+    cats: { pais: /^PAIS_/, bioma: /^ECORREGIONES_ADMINISTRACION/, estado: /^PROVINCIAS_/, municipio: /^DEPARTAMENTO_/ },
+    rotulos: { bioma: ["Ecorregião", "Ecorregiões"], estado: ["Província", "Províncias"], municipio: ["Departamento", "Departamentos"] },
+  },
+  {
+    region: "bolivia", nome: "Bolívia", de: "da Bolívia", em: "na Bolívia", lang: "es-ES", logo: LOGO_ES, marca: "MapBiomas Fuego",
+    cats: { pais: /^PAIS_/, bioma: /^ECORREGIONES_/, estado: /^DEPARTAMENTO_/, municipio: /^MUNICIPIO_/ },
+    rotulos: { bioma: ["Ecorregião", "Ecorregiões"], estado: ["Departamento", "Departamentos"], municipio: ["Município", "Municípios"] },
+  },
+  {
+    region: "chile", nome: "Chile", de: "do Chile", em: "no Chile", lang: "es-ES", logo: LOGO_ES, marca: "MapBiomas Fuego",
+    cats: { pais: /^POLITICAL_LEVEL_1$/, bioma: /^ECORREGION$/, estado: /^POLITICAL_LEVEL_2$/, municipio: /^POLITICAL_LEVEL_4$/ },
+    rotulos: { bioma: ["Ecorregião", "Ecorregiões"], estado: ["Região", "Regiões"], municipio: ["Comuna", "Comunas"] },
+  },
+  {
+    region: "colombia", nome: "Colômbia", de: "da Colômbia", em: "na Colômbia", lang: "es-ES", logo: LOGO_ES, marca: "MapBiomas Fuego",
+    cats: { pais: /^NIVEL_POLITICO_1/, bioma: /^BIOMES$/, estado: /^POLITICAL_LEVEL_2$/, municipio: /^POLITICAL_LEVEL_3$/ },
+    rotulos: { bioma: ["Bioma", "Biomas"], estado: ["Departamento", "Departamentos"], municipio: ["Município", "Municípios"] },
+  },
+  {
+    region: "paraguay", nome: "Paraguai", de: "do Paraguai", em: "no Paraguai", lang: "es-ES", logo: LOGO_ES, marca: "MapBiomas Fuego",
+    cats: { pais: /^NIVEL_POLITICO_1/, bioma: /^ECORREGIONES_DINERSTEIN/, estado: /^NIVEL_POLITICO_2/, municipio: /^NIVEL_POLITICO_3/ },
+    rotulos: { bioma: ["Ecorregião", "Ecorregiões"], estado: ["Departamento", "Departamentos"], municipio: ["Distrito", "Distritos"] },
+  },
+  {
+    region: "peru", nome: "Peru", de: "do Peru", em: "no Peru", lang: "es-ES", logo: LOGO_ES, marca: "MapBiomas Fuego",
+    cats: { pais: /^POLITICAL_LEVEL_1$/, bioma: /^BIOMES$/, estado: /^POLITICAL_LEVEL_2$/, municipio: /^POLITICAL_LEVEL_4$/ },
+    rotulos: { bioma: ["Bioma", "Biomas"], estado: ["Departamento", "Departamentos"], municipio: ["Distrito", "Distritos"] },
+  },
+  {
+    region: "indonesia", nome: "Indonésia", de: "da Indonésia", em: "na Indonésia", lang: "en-US", logo: "logos/MapBiomas_Fire_EN.png", marca: "MapBiomas Fire",
+    cats: { pais: /^POLITICAL_LEVEL_1$/, bioma: /^POLITICAL_LEVEL_2$/, estado: /^POLITICAL_LEVEL_3$/, municipio: /^POLITICAL_LEVEL_4$/ },
+    rotulos: { bioma: ["Grupo de ilhas", "Grupos de ilhas"], estado: ["Província", "Províncias"], municipio: ["Distrito", "Distritos"] },
+  },
+];
+
+// País da página: vem do link (#pais=peru); trocar de país recarrega a página.
+const PAIS = (() => {
+  try {
+    const r = new URLSearchParams(location.hash.slice(1)).get("pais");
+    return PAISES.find((p) => p.region === r) || PAISES[0];
+  } catch {
+    return PAISES[0];
+  }
+})();
+const ehBrasil = PAIS.region === "brazil";
+// Rótulos dos filtros: rot("estado") = "Departamento"; rot("estado", true) = "Departamentos".
+const rot = (k, plural = false) => PAIS.rotulos[k][plural ? 1 : 0];
+
 const CONFIG = {
-  colecaoExigida: "5.1",
-  region: "brazil",
+  colecaoExigida: PAIS.colecaoExigida || null, // null = aceita a coleção que a produção servir
+  region: PAIS.region,
   anoMinPadrao: 1985, // usados só se a nota informativa não trouxer o intervalo
   anoMaxPadrao: 2025,
   requestTimeoutMs: 60000,
@@ -76,17 +138,19 @@ const ENVIRONMENTS = [
   { id: "stg", label: "Staging", baseUrl: "https://stg.plataforma.mapbiomas.org/api/v1", query: {} },
 ];
 
-// Como achar cada subtema na árvore do tema de fogo (válido em prd e stg).
+// Como achar cada subtema na árvore do tema de fogo (válido em prd e stg e nos outros países):
+// pela análise ou por regex nos nomes (pt, es, en, sem acento). Só "anual" é obrigatório;
+// as abas dos outros subtemas só aparecem quando o país os tem.
 const SUBTHEMES = {
-  anual: { name: "Anual" },
-  mensal: { name: "Mensal" },
-  cicatriz: { name: "Tamanho da cicatriz" },
-  retorno: { name: "Retorno do último fogo" },
+  anual: { re: /^(queimado |quemado )?anual$|^annual( burned)?$/ },
+  mensal: { re: /^(queimado |quemado )?(mensal|mensual)$|^monthly( burned)?$/ },
+  cicatriz: { re: /cicatriz|scar size/ },
+  retorno: { re: /retorno do ultimo fogo|fire return/ },
   acumulado: { analysis: "accumulated" },
   frequencia: { analysis: "frequency" },
   mediaRetorno: { analysis: "mean_interval" },
   ultimoFogo: { analysis: "last_year" },
-  severidade: { name: "Severidade" },
+  severidade: { re: /^severidad[e]?$|^severity$/ },
 };
 
 // Legendas oficiais usadas (cores + pixelValues). Sem `match`, usa a primeira por `order`.
@@ -123,7 +187,13 @@ const BIOMA_CORES = {
   "pantanal": "#6b6b16",
   "pampa": "#d4b23c",
 };
-const corBioma = (nome) => BIOMA_CORES[norm(nome)] || "#9aa0a6";
+// Outros países: cores categóricas na ordem da lista de biomas/ecorregiões do país.
+const CORES_REGIOES = ["#3f5e3a", "#b5652b", "#d9a441", "#2a78d6", "#7a5c43", "#93b06f", "#c0392b", "#6b6b16", "#8e6bb8", "#1baf7a", "#c4b49a", "#5c0a14"];
+const corBioma = (nome) => {
+  if (BIOMA_CORES[norm(nome)]) return BIOMA_CORES[norm(nome)];
+  const i = (state.conn?.biomas || []).findIndex((b) => b.name === nome);
+  return i < 0 ? "#9aa0a6" : CORES_REGIOES[i % CORES_REGIOES.length];
+};
 
 // Paletas da vista "Por bioma" (anual e acumulado). Ordem de empilhamento, de baixo para cima:
 const BIOMA_ORDEM = ["amazonia", "cerrado", "caatinga", "mata atlantica", "pantanal", "pampa"];
@@ -135,7 +205,7 @@ const ordemBioma = (nome) => {
   const i = BIOMA_ORDEM.indexOf(norm(nome));
   return i < 0 ? 99 : i;
 };
-const corPaleta = (nome) => PALETAS_BIOMA[state.paletaBioma]?.cores[ordemBioma(nome)] || corBioma(nome);
+const corPaleta = (nome) => (ehBrasil && PALETAS_BIOMA[state.paletaBioma]?.cores[ordemBioma(nome)]) || corBioma(nome);
 
 // Rampa sequencial (um matiz, claro -> escuro) para os mapas coropléticos.
 const CHORO_RAMP = ["#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15"];
@@ -173,20 +243,25 @@ const MAP_VIEWS = [
   { id: "municipios", label: "Municípios" },
 ];
 
+// requer: subtemas que o país precisa ter para a aba aparecer; soBrasil: categorias só do Brasil.
 const TABS = [
-  { id: "anual", label: "Fogo Anual", load: loadAnual },
-  { id: "acumulado", label: "Fogo Acumulado", load: loadAcumulado },
-  { id: "mensal", label: "Fogo Mensal", load: loadMensal },
-  { id: "frequencia", label: "Frequência do Fogo", load: loadFrequencia },
-  { id: "ultimoFogo", label: "Ano do Último Fogo", load: loadUltimoFogo },
-  { id: "cicatriz", label: "Tamanho de Cicatriz", load: loadCicatriz },
-  { id: "severidade", label: "Severidade", load: loadSeveridade },
-  { id: "retorno", label: "Intervalo de Retorno", load: loadRetorno },
-  { id: "fundiario", label: "Categorias Fundiárias", load: loadFundiario },
-  { id: "territorios", label: "Territórios", load: loadTerritorios },
-  { id: "mapa", label: "Mapas Interativos", load: loadMapa },
-  { id: "gif", label: "Fábrica de GIFs", load: loadGif },
+  { id: "anual", label: "Fogo Anual", load: loadAnual, requer: ["anual"] },
+  { id: "acumulado", label: "Fogo Acumulado", load: loadAcumulado, requer: ["acumulado"] },
+  { id: "mensal", label: "Fogo Mensal", load: loadMensal, requer: ["mensal"] },
+  { id: "frequencia", label: "Frequência do Fogo", load: loadFrequencia, requer: ["frequencia"] },
+  { id: "ultimoFogo", label: "Ano do Último Fogo", load: loadUltimoFogo, requer: ["ultimoFogo"] },
+  { id: "cicatriz", label: "Tamanho de Cicatriz", load: loadCicatriz, requer: ["cicatriz"] },
+  { id: "severidade", label: "Severidade", load: loadSeveridade, requer: ["severidade"] },
+  { id: "retorno", label: "Intervalo de Retorno", load: loadRetorno, requer: ["retorno", "mediaRetorno"] },
+  { id: "fundiario", label: "Categorias Fundiárias", load: loadFundiario, requer: ["anual"], soBrasil: true },
+  { id: "territorios", label: "Territórios", load: loadTerritorios, requer: ["anual"] },
+  { id: "mapa", label: "Mapas Interativos", load: loadMapa, requer: ["anual"] },
+  { id: "gif", label: "Fábrica de GIFs", load: loadGif, requer: [] },
 ];
+
+// Abas que o país atual tem (antes de conectar, todas).
+const abasDisponiveis = () => TABS.filter((t) => !state.conn
+  || ((!t.soBrasil || ehBrasil) && t.requer.every((s) => state.conn.subthemes[s])));
 
 const state = {
   conn: null,
@@ -327,7 +402,7 @@ async function fetchAreaStatistics(env, params, onWaiting) {
       throw new ApiError(
         `O servidor ainda está calculando esta combinação (mais de ${CONFIG.taskTimeoutMs / 60000} min). ` +
         "O cálculo continua lá e o resultado fica em cache: tente novamente em alguns minutos, " +
-        "ou reduza o período/recorte. Séries longas para o Brasil inteiro podem levar mais de 10 min."
+        "ou reduza o período/recorte. Séries longas para o país inteiro podem levar mais de 10 min."
       );
     }
     await waitForTask(env, payload.taskID, started, onWaiting);
@@ -363,16 +438,25 @@ async function waitForTask(env, taskId, started, onWaiting) {
 // Descoberta do ambiente e validação da coleção
 // ---------------------------------------------------------------------------
 
+// Coleção do MapBiomas Fogo citada na nota ("Coleção 5.1 do MapBiomas Fogo", "MapBiomas Fire Chile
+// Collection 1"). Não pega a coleção de uso e cobertura que a nota também cita ("MapBiomas Chile Collection 2").
+function colecaoDaNota(text) {
+  const m = text.match(/(?:Colecci[oó]n|Cole[cç][aã]o|Collection)\s+(\d+(?:\.\d+)?)(?:\s*-\s*Beta)?\s+(?:de|do|da|-)\s+MapBiomas\s+(?:Fuego|Fogo|Fire)/i)
+    || text.match(/MapBiomas\s+(?:Fire|Fuego|Fogo)(?:\s+[^\s,.;:]+)?\s+(?:Collection|Colecci[oó]n|Cole[cç][aã]o)\s+(\d+(?:\.\d+)?)/i);
+  return m ? m[1] : null;
+}
+
 function readInformativeNote(fire) {
-  const text = JSON.stringify([fire.description, fire.informativeNote]);
-  const colecao =
-    (text.match(/Cole[cç][aã]o\s+(\d+(?:\.\d+)?)\s+do\s+MapBiomas\s+Fogo/i) ||
-      text.match(/(?:Fire|Fogo)\s+Collection\s+(\d+(?:\.\d+)?)/i) || [])[1] || null;
-  const anos = text.match(/(?:entre|between|from)\s+(\d{4})\s+(?:e|and|to)\s+(\d{4})/i);
+  const text = JSON.stringify([fire.description, fire.informativeNote]).replace(/<[^>]+>/g, " ");
+  const colecao = colecaoDaNota(text);
+  const anos = text.match(/(?:entre|between|from)\s+(\d{4})\s+(?:e|and|to|y|a)\s+(\d{4})/i)
+    || text.match(/\b((?:19|20)\d{2})\s*[–-]\s*((?:19|20)\d{2})\b/);
+  const ok = anos && Number(anos[1]) >= 1980 && Number(anos[2]) >= Number(anos[1]) && Number(anos[2]) <= new Date().getFullYear();
   return {
     colecao,
-    anoMin: anos ? Number(anos[1]) : CONFIG.anoMinPadrao,
-    anoMax: anos ? Number(anos[2]) : CONFIG.anoMaxPadrao,
+    anosDaNota: Boolean(ok),
+    anoMin: ok ? Number(anos[1]) : CONFIG.anoMinPadrao,
+    anoMax: ok ? Number(anos[2]) : CONFIG.anoMaxPadrao,
   };
 }
 
@@ -380,58 +464,97 @@ async function discoverEnvironment(env) {
   const [themes, categories] = await Promise.all([fetchThemes(env), fetchTerritoryCategories(env)]);
 
   const fire = (themes.themes || []).find(
-    (t) => /^(fire|fogo)/i.test(t.key) || norm(t.name?.["pt-BR"]) === "fogo"
+    (t) => /^(fire|fogo|fuego)/i.test(t.key) || /^(fogo|fuego|fire)$/.test(norm(t.name?.["pt-BR"] || t.name?.["es-ES"] || t.name?.["en-US"]))
   );
   if (!fire) throw new Error("tema de fogo não encontrado");
 
-  // prd aninha subtemas em `children`; stg em `subthemes`.
-  const leaves = (fire.subthemes || []).flatMap((group) => group.children || group.subthemes || []);
+  // prd aninha subtemas em `children` (às vezes em dois níveis); stg em `subthemes`; alguns países os deixam soltos.
+  const folhas = (arr) => (arr || []).flatMap((s) => (s.children?.length ? folhas(s.children)
+    : s.subthemes?.length ? folhas(s.subthemes) : [s]));
+  const leaves = folhas(fire.subthemes);
+  const nomes = (s) => Object.values(s.name || {}).map(norm);
   const subthemes = {};
   for (const [id, rule] of Object.entries(SUBTHEMES)) {
-    const found = leaves.find((s) =>
-      rule.analysis ? s.analysis === rule.analysis : norm(s.name?.["pt-BR"]) === norm(rule.name)
-    );
-    if (!found) throw new Error(`subtema "${rule.name || rule.analysis}" não encontrado`);
-    subthemes[id] = found.key;
+    const found = leaves.find((s) => (rule.analysis ? s.analysis === rule.analysis
+      : !s.analysis && nomes(s).some((n) => rule.re.test(n))));
+    if (found) subthemes[id] = found.key;
   }
+  if (!subthemes.anual) throw new Error("subtema anual de fogo não encontrado");
 
   const cats = categories.categories || [];
-  const findCat = (re) => cats.find((c) => re.test(c.key));
-  const catBrasil = findCat(/^BRASIL|^POLITICAL_LEVEL_1$/);
-  const catBioma = findCat(/^BIOMES$/);
-  const catEstado = findCat(/^ESTADOS|^POLITICAL_LEVEL_3$/);
-  const catMunicipio = findCat(/^MUNICIPIOS_IBGE|^POLITICAL_LEVEL_4$/);
-  if (!catBrasil || !catBioma || !catEstado || !catMunicipio) throw new Error("categorias de território não encontradas");
+  const findCat = (re) => (re ? cats.find((c) => re.test(c.key)) : null);
+  const catPais = findCat(PAIS.cats.pais);
+  const catBioma = findCat(PAIS.cats.bioma);
+  const catEstado = findCat(PAIS.cats.estado);
+  const catMunicipio = findCat(PAIS.cats.municipio);
+  if (!catPais || !catEstado) throw new Error("categorias de território não encontradas");
 
-  const [brasil, biomas, estados] = await Promise.all([
-    fetchTerritories(env, catBrasil.id),
-    fetchTerritories(env, catBioma.id),
-    fetchTerritories(env, catEstado.id),
-  ]);
-  const territoryBrasil = (brasil.territories || [])[0];
-  if (!territoryBrasil) throw new Error("território Brasil não encontrado");
+  const todas = async (catId) => {
+    if (!catId) return [];
+    const first = await fetchTerritories(env, catId, 1, CONFIG.territoriosPorPagina);
+    const rest = await Promise.all(range(2, first.numberOfPages || 1).map((p) => fetchTerritories(env, catId, p, CONFIG.territoriosPorPagina)));
+    return [first, ...rest].flatMap((r) => r.territories || []);
+  };
+  const [paises, biomas, estados] = await Promise.all([todas(catPais.id), todas(catBioma?.id), todas(catEstado.id)]);
+  // Colômbia tem "Colombia" e "Colombia - Costa": prefere o nome sem sufixo.
+  const territorioPais = paises.find((t) => !/\s-\s/.test(t.name)) || paises[0];
+  if (!territorioPais) throw new Error(`território ${PAIS.nome} não encontrado`);
 
+  const nota = readInformativeNote(fire);
   const byName = (a, b) => a.name.localeCompare(b.name, "pt-BR");
-  return {
+  const conn = {
     env,
     subthemes,
-    ...readInformativeNote(fire),
-    brasil: { id: territoryBrasil.id, name: "Brasil" },
-    biomas: (biomas.territories || []).map((t) => ({ id: t.id, name: t.name })).sort(byName),
-    estados: (estados.territories || [])
-      .map((t) => ({ id: t.id, name: t.name, uf: UF_POR_ESTADO[norm(t.name)] }))
+    ...nota,
+    brasil: { id: territorioPais.id, name: PAIS.nome }, // território do país inteiro (nome mantido do Brasil)
+    biomas: biomas.map((t) => ({ id: t.id, name: nomeLimpo(t.name) })).sort(byName),
+    estados: estados
+      .filter((t) => !/\s-\s(costa|mar)$/i.test(t.name)) // partes marítimas (Colômbia)
+      .map((t) => ({ id: t.id, name: nomeLimpo(t.name), uf: ehBrasil ? UF_POR_ESTADO[norm(t.name)] : undefined }))
       .sort(byName),
-    catMunicipio: catMunicipio.id,
+    catPais: catPais.id,
+    catBioma: catBioma?.id || null,
+    catEstado: catEstado.id,
+    catMunicipio: catMunicipio?.id || null,
   };
+  if (!nota.anosDaNota) Object.assign(conn, await anosComDados(env, conn));
+  return conn;
+}
+
+// Nomes de território sem sufixos de código ("Buenos Aires - 06", "Amazonas - Perú", "Aceh - Sumatera - 11").
+function nomeLimpo(nome) {
+  let n = String(nome || "").replace(/\s-\s\d+$/, "");
+  n = n.replace(new RegExp(`\\s-\\s(${PAIS.nome}|Perú|Peru)$`, "i"), "");
+  return n;
+}
+
+// Países sem o período na nota informativa: lê os anos com área queimada no país inteiro.
+async function anosComDados(env, conn) {
+  try {
+    const lista = await fetchLegendList(env, conn.subthemes.anual);
+    const lg = [...(lista.legends || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))[0];
+    const det = await fetchLegendDetail(env, lg.id);
+    const itens = flattenLegend((det.legend || det).items);
+    const res = await fetchAreaStatistics(env, {
+      subthemeKey: conn.subthemes.anual, legendKey: (det.legend || det).key, pixelValue: pixelValues(levelItems({ items: itens }, 0)),
+      year: range(1985, new Date().getFullYear()), territoryId: [conn.brasil.id],
+    });
+    const anos = byYear(res).filter((a) => a.area > 0).map((a) => a.ano);
+    if (anos.length) return { anoMin: Math.min(...anos), anoMax: Math.max(...anos) };
+  } catch (err) {
+    console.warn("[API] não foi possível descobrir os anos com dados:", err);
+  }
+  return {};
 }
 
 async function connect() {
   const failures = [];
   let alternativa = null;
-  for (const env of ENVIRONMENTS) {
+  // O staging só serve o Brasil; nos outros países vale a coleção que a produção servir.
+  for (const env of ENVIRONMENTS.filter((e) => PAIS.staging || e.id !== "stg")) {
     try {
       const conn = await discoverEnvironment(env);
-      if (conn.colecao === CONFIG.colecaoExigida) return { ...conn, failures, colecaoOk: true };
+      if (!CONFIG.colecaoExigida || conn.colecao === CONFIG.colecaoExigida) return { ...conn, failures, colecaoOk: true };
       failures.push(`${env.label}: serve a Coleção ${conn.colecao || "?"}`);
       alternativa = alternativa || conn;
     } catch (err) {
@@ -468,11 +591,15 @@ function getLegend(id) {
     const subthemeKey = sub(def.subtheme);
     const list = await cached(`${env.id}:legends:${subthemeKey}`, () => fetchLegendList(env, subthemeKey));
     const ordered = [...(list.legends || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    const chosen = def.match ? ordered.find(def.match) : ordered[0];
+    // A legenda "total" de outros países nem sempre tem "total" na chave: usa a primeira.
+    const chosen = def.match ? (ordered.find(def.match) || (id === "anualTotal" ? ordered[0] : null)) : ordered[0];
     if (!chosen) throw new Error(`Legenda "${id}" não encontrada no subtema ${subthemeKey}.`);
     const detail = await fetchLegendDetail(env, chosen.id);
     const legend = detail.legend || detail;
-    return { key: legend.key, items: flattenLegend(legend.items) };
+    let items = flattenLegend(legend.items);
+    // A legenda anual da Colômbia traz também "Quemado MODIS MCD64A1" (referência externa): fica de fora do total.
+    if (id === "anualTotal") items = items.filter((i) => !/modis/i.test(i.name));
+    return { key: legend.key, items };
   });
 }
 
@@ -528,11 +655,25 @@ function getMunicipiosPorUf() {
 function getRankingAno(categoryId, ano) {
   return cached(`${envId()}:ranking:${categoryId}:${ano}`, async () => {
     const total = await getLegend("anualTotal");
-    const resp = await fetchRanking(state.conn.env, {
-      subthemeKey: sub("anual"), legendKey: total.key, pixelValue: pixelValues(levelItems(total, 0)),
+    const params = {
+      subthemeKey: sub("anual"), legendKey: total.key, pixelValue: levelItems(total, 0)[0].pixelValue, // o ranking aceita um valor só
       year: ano, territoryCategoryId: categoryId, pageSize: 6000,
-    });
-    return new Map((resp.ranking || []).map((r) => [r.territory.id, { name: r.territory.name, value: r.value || 0 }]));
+    };
+    // Rankings ainda não calculados (comuns fora do Brasil) voltam como tarefa: espera e pede de novo.
+    const inicio = Date.now();
+    let resp = await fetchRanking(state.conn.env, params);
+    let falhas = 0;
+    while (!Array.isArray(resp.ranking) && resp.taskID && Date.now() - inicio < CONFIG.taskTimeoutMs) {
+      try {
+        await waitForTask(state.conn.env, resp.taskID, inicio, (status, ms) =>
+          setStatus(`Calculando o ranking no servidor (${status}) · ${Math.round(ms / 1000)} s`, true));
+      } catch (err) {
+        if (++falhas > 2) throw err; // tarefa "failed" costuma ser passageira: pede de novo até 2 vezes
+      }
+      resp = await fetchRanking(state.conn.env, params);
+    }
+    if (!Array.isArray(resp.ranking) && resp.taskID) throw new ApiError("O servidor ainda está calculando este ranking. Tente de novo em alguns minutos.");
+    return new Map((resp.ranking || []).map((r) => [r.territory.id, { name: ehBrasil ? r.territory.name : nomeLimpo(r.territory.name), value: r.value || 0 }]));
   });
 }
 
@@ -577,6 +718,35 @@ async function mapLimit(items, limit, fn) {
 // ---------------------------------------------------------------------------
 
 const BRASIL_BBOX = [-74.5, -34.5, -28.5, 5.5]; // [oeste, sul, leste, norte]
+
+// Caixa [oeste, sul, leste, norte] do país, pelo contorno da API (outros países).
+async function caixaDoPais() {
+  const g = await getGeometry([state.conn.brasil.id]);
+  const polys = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+  const c = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const rings of polys) for (const [x, y] of rings[0]) {
+    if (x < c[0]) c[0] = x; if (y < c[1]) c[1] = y; if (x > c[2]) c[2] = x; if (y > c[3]) c[3] = y;
+  }
+  return c;
+}
+
+// Municípios (ou o 2º nível do país) dentro de um estado. Brasil: pela UF no nome;
+// outros países: centróide do município (tiles vetoriais) dentro do contorno do estado.
+function getMunicipiosDoEstado(estado) {
+  if (estado.uf) return getMunicipiosPorUf().then((m) => m.get(estado.uf) || []);
+  return cached(`${envId()}:munsDe:${estado.id}`, async () => {
+    if (!state.conn.catMunicipio) return [];
+    const [shapes, geom] = await Promise.all([getMunicipiosShapes(), getGeometry([estado.id])]);
+    const lista = [];
+    for (const m of shapes.values()) {
+      if (m.centroide && pointInGeometry(m.centroide, geom)) lista.push({ id: m.id, name: nomeMunicipio(m.name), nome: nomeMunicipio(m.name) });
+    }
+    return lista.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  });
+}
+
+// "Abancay - Abancay - Apurimac - Perú" -> "Abancay": só a primeira parte, sem códigos.
+const nomeMunicipio = (nome) => (ehBrasil ? nome : String(nome || "").split(" - ")[0]);
 const MVT_ZOOM_MUNICIPIOS = 5;
 
 const lon2tile = (lon, z) => Math.floor(((lon + 180) / 360) * 2 ** z);
@@ -716,7 +886,7 @@ function getMunicipiosShapes(onProgress) {
   const { env, catMunicipio } = state.conn;
   const z = MVT_ZOOM_MUNICIPIOS;
   return cached(`${env.id}:mvt:${catMunicipio}:${z}`, async () => {
-    const [w, s, e, n] = BRASIL_BBOX;
+    const [w, s, e, n] = ehBrasil ? BRASIL_BBOX : await caixaDoPais();
     const tiles = [];
     for (let x = lon2tile(w, z); x <= lon2tile(e, z); x++)
       for (let y = lat2tile(n, z); y <= lat2tile(s, z); y++) tiles.push([x, y]);
@@ -1010,7 +1180,7 @@ function activeTerritory() {
   const estado = c.estados.find((t) => t.id === state.estadoId);
   const municipio = state.municipiosDoEstado.find((t) => t.id === state.municipioId);
   const partes = [bioma, municipio || estado].filter(Boolean);
-  if (!partes.length) return { ids: [c.brasil.id], nome: "Brasil", metodo: "union" };
+  if (!partes.length) return { ids: [c.brasil.id], nome: PAIS.nome, metodo: "union" };
   return {
     ids: partes.map((p) => p.id),
     nome: partes.map((p) => p.name).join(" ∩ "),
@@ -1093,7 +1263,7 @@ function proporcaoQueimadaCard({ t, ini, fim, final, areaTerritorio, acumuladoPo
     subtitle = "Primeira rosca: o território todo · demais: parte do território dentro de cada bioma, sobre a área dessa parte";
   } else {
     title = `Quanto de cada bioma queimou ao menos uma vez · ${ini}–${fim}`;
-    subtitle = "Área queimada acumulada no período ÷ área total do bioma · primeira rosca: o Brasil todo";
+    subtitle = `Área queimada acumulada no período ÷ área total do ${rot("bioma").toLowerCase()} · primeira rosca: o país inteiro`;
   }
 
   return {
@@ -1154,22 +1324,25 @@ function paletaToggleHtml() {
 }
 
 async function loadAnual({ t, ini, fim }) {
+  // Alguns países não têm a legenda natural x antrópico (ou a de cobertura): as seções somem.
   const [total, cobertura, natural] = await Promise.all([
-    getLegend("anualTotal"), getLegend("anualCobertura"), getLegend("anualNatural"),
+    getLegend("anualTotal"), getLegend("anualCobertura").catch(() => null), getLegend("anualNatural").catch(() => null),
   ]);
-  const niveis = range(0, maxDepth(cobertura) + 1);
-  if (!niveis.includes(state.nivel)) state.nivel = 1;
+  const niveis = [...(natural ? [0] : []), ...(cobertura ? range(1, maxDepth(cobertura) + 1) : [])];
+  if (!niveis.includes(state.nivel)) state.nivel = niveis.includes(1) ? 1 : (niveis[0] ?? 0);
+  const semCobertura = !niveis.length;
   const legenda = state.nivel === 0 ? natural : cobertura;
-  const classes = state.nivel === 0 ? levelItems(natural, 0) : cutLevel(cobertura, state.nivel - 1);
+  const classes = semCobertura ? [] : state.nivel === 0 ? levelItems(natural, 0) : cutLevel(cobertura, state.nivel - 1);
   const totalItems = levelItems(total, 0);
-  const naturalItems = levelItems(natural, 0);
+  const naturalItems = natural ? levelItems(natural, 0) : [];
   const anosPeriodo = range(ini, fim);
   const pedir = (lg, itens) => getStats({
     subthemeKey: sub("anual"), legendKey: lg.key, pixelValue: pixelValues(itens), year: anosPeriodo, ...territoryParams(t),
   });
+  const vazio = Promise.resolve({ statistic: [] });
 
   const [resTotal, resClasses, resNatural] = await Promise.all([
-    pedir(total, totalItems), pedir(legenda, classes), pedir(natural, naturalItems),
+    pedir(total, totalItems), semCobertura ? vazio : pedir(legenda, classes), natural ? pedir(natural, naturalItems) : vazio,
   ]);
 
   // Tom um pouco mais escuro que o vermelho oficial "Total queimado", para as barras anuais.
@@ -1192,7 +1365,7 @@ async function loadAnual({ t, ini, fim }) {
   }));
   const rotuloNivel = state.nivel === 0 ? "Nível 0 · natural e antrópico" : `Nível ${state.nivel} da legenda oficial de uso e cobertura`;
 
-  return {
+  const view = {
     toolbar: [{
       type: "segmented",
       inSection: true,
@@ -1278,14 +1451,14 @@ async function loadAnual({ t, ini, fim }) {
         subtitle: `${rotuloNivel} · classe "Indefinido" removida da barra natural x antrópico`,
         propbars: {
           rows: [
-            { label: "Natural x antrópico", segments: naturalAntropico, nomes: true },
+            ...(naturalAntropico.length ? [{ label: "Natural x antrópico", segments: naturalAntropico, nomes: true }] : []),
             ...(state.nivel === 0 ? [] : [{ label: "Por classe", segments: ordenarPorGrupo(porClasse) }]),
           ],
           legend: state.nivel === 0 ? naturalAntropico : ordenarPorGrupo(porClasse),
         },
         alterna: "rosca",
         rosca: [
-          { titulo: "Natural x antrópico", slices: naturalAntropico, centerLabel: "queimados" },
+          ...(naturalAntropico.length ? [{ titulo: "Natural x antrópico", slices: naturalAntropico, centerLabel: "queimados" }] : []),
           ...(state.nivel === 0 ? [] : [{ titulo: "Por classe", slices: ordenarPorGrupo(porClasse), centerLabel: "queimados" }]),
         ],
       },
@@ -1299,6 +1472,8 @@ async function loadAnual({ t, ini, fim }) {
       },
     ],
   };
+  // Sem legenda de cobertura no país: só os 3 primeiros cards (anual, anos que mais queimaram, tabela).
+  return semCobertura ? { ...view, toolbar: [], cards: view.cards.slice(0, 3) } : view;
 }
 
 async function loadAcumulado({ t, ini, fim }) {
@@ -1501,10 +1676,10 @@ async function loadMensal({ t, ini, fim }) {
       },
       {
         span: 12,
-        title: `Proporção mensal da área queimada por bioma · ${ini}–${fim}`,
+        title: `Proporção mensal da área queimada por ${rot("bioma").toLowerCase()} · ${ini}–${fim}`,
         subtitle: semFiltroLocal
           ? "Para cada bioma, % da sua área queimada no período que ocorreu em cada mês (como a Figura 14 do RAF)"
-          : "Biomas inteiros (este gráfico não aplica o filtro de estado/município)",
+          : `${rot("bioma", true)} inteiros (este gráfico não aplica o filtro de ${rot("estado").toLowerCase()}/${rot("municipio").toLowerCase()})`,
         lazy: async (progress) => {
           let feitos = 0;
           const biomas = state.conn.biomas;
@@ -1530,8 +1705,10 @@ async function loadMensal({ t, ini, fim }) {
 
 async function loadFrequencia({ t, ini, fim }) {
   const legenda = await getLegend("frequencia");
-  const classes = levelItems(legenda, 1); // "1 vez", "2 vezes", …
-  const faixas = levelItems(legenda, 0);
+  // Brasil: faixas ("1 a 2 anos") com as classes "1 vez", "2 vezes"… dentro; outros países: só as classes.
+  const hierarquica = levelItems(legenda, 1).length > 0;
+  const classes = hierarquica ? levelItems(legenda, 1) : levelItems(legenda, 0);
+  const faixas = hierarquica ? levelItems(legenda, 0) : [];
   const res = await getStats({
     subthemeKey: sub("frequencia"), legendKey: legenda.key, pixelValue: pixelValues(classes),
     year: [ini, fim], ...territoryParams(t),
@@ -1543,11 +1720,15 @@ async function loadFrequencia({ t, ini, fim }) {
   const total = sum(porClasse.map((c) => c.value));
   const umaVez = porClasse[0]?.value || 0;
   const faixasComDados = faixas.filter((f) => porClasse.some((c) => c.item.parent === f.pixelValue));
-  const porFaixa = faixasComDados.map((f, i) => ({
-    label: frequencyLabel(f.name),
-    color: rampColor(FREQ_RAMP, safeDiv(i, faixasComDados.length - 1)),
-    value: sum(porClasse.filter((c) => c.item.parent === f.pixelValue).map((c) => c.value)),
-  }));
+  const porFaixa = hierarquica
+    ? faixasComDados.map((f, i) => ({
+      label: frequencyLabel(f.name),
+      color: rampColor(FREQ_RAMP, safeDiv(i, faixasComDados.length - 1)),
+      value: sum(porClasse.filter((c) => c.item.parent === f.pixelValue).map((c) => c.value)),
+    }))
+    : porClasse.slice(0, ultimo + 1).map((c, i, arr) => ({
+      label: c.label, color: rampColor(FREQ_RAMP, safeDiv(i, arr.length - 1)), value: c.value,
+    }));
 
   // Intervalo dinâmico: 1 a N vezes (N = maior frequência observada) ou classes agrupadas
   // com a última aberta (1 a 15 e 16+; 1 a 9 e 10+). O degradê cobre as barras exibidas.
@@ -1962,14 +2143,15 @@ async function municipiosNoEscopo(progress) {
     progress?.("Recortando os municípios pelo bioma…");
     recorte = await getRecorteBioma(bioma.id, (n, tot) => progress?.(`Lendo geometria dos municípios… ${n}/${tot} tiles`));
   }
-  const filtro = (l) => (!recorte || recorte.has(l.id)) && (!estado || l.name.endsWith(` - ${estado.uf}`));
-  const partes = [estado && `de ${estado.name}`, bioma && `no ${bioma.name}`].filter(Boolean);
+  const doEstado = estado ? new Set((await getMunicipiosDoEstado(estado)).map((m) => m.id)) : null;
+  const filtro = (l) => (!recorte || recorte.has(l.id)) && (!doEstado || doEstado.has(l.id));
+  const partes = [estado && `de ${estado.name}`, bioma && `em ${bioma.name}`].filter(Boolean);
   return {
     filtro,
     recorte,
     biomaId: bioma?.id,
     biomaNome: bioma?.name,
-    rotulo: partes.length ? `Municípios ${partes.join(" ")}` : "Municípios do Brasil",
+    rotulo: partes.length ? `${rot("municipio", true)} ${partes.join(" ")}` : `${rot("municipio", true)} ${PAIS.de}`,
   };
 }
 
@@ -1989,19 +2171,20 @@ async function loadTerritorios({ ini, fim }) {
   const vermelho = levelItems(total, 0)[0].color;
   const estado = c.estados.find((e) => e.id === state.estadoId);
   const bioma = c.biomas.find((b) => b.id === state.biomaId);
-  const catEstado = await categoriaDe(c.estados[0].id);
-  const catBioma = await categoriaDe(c.biomas[0].id);
+  const catEstado = c.catEstado;
+  const catBioma = c.catBioma;
 
   const progresso = (rotulo) => (n, tot) => setStatus(`${rotulo}: ${n}/${tot} anos`, true);
   const [estados, biomas] = await Promise.all([
-    rankingPeriodo(catEstado, ini, fim, progresso("Ranking de estados")),
-    rankingPeriodo(catBioma, ini, fim, progresso("Ranking de biomas")),
+    rankingPeriodo(catEstado, ini, fim, progresso(`Ranking de ${rot("estado", true).toLowerCase()}`)),
+    catBioma ? rankingPeriodo(catBioma, ini, fim, progresso(`Ranking de ${rot("bioma", true).toLowerCase()}`)) : { anos: range(ini, fim), linhas: [] },
   ]);
-  const totalBrasil = sum(biomas.linhas.map((l) => l.value));
+  // Total do país: soma dos biomas (cobrem o país) ou, sem biomas, dos estados.
+  const totalBrasil = sum((biomas.linhas.length ? biomas : estados).linhas.map((l) => l.value));
   const top3 = estados.linhas.slice(0, 3);
-  const avisoBioma = bioma ? " · estados inteiros (a API de ranking não recorta por bioma)" : "";
+  const avisoBioma = bioma ? ` · ${rot("estado", true).toLowerCase()} inteiros (a API de ranking não recorta por ${rot("bioma").toLowerCase()})` : "";
   const ultimo = estados.anos.length - 1;
-  const totalFimBrasil = sum(biomas.linhas.map((l) => l.porAno[ultimo] || 0));
+  const totalFimBrasil = sum((biomas.linhas.length ? biomas : estados).linhas.map((l) => l.porAno[ultimo] || 0));
 
   // Variação do ano final em relação à média dos anos anteriores do período (RAF 3.10.2).
   const variacao = estados.anos.length > 1
@@ -2017,7 +2200,7 @@ async function loadTerritorios({ ini, fim }) {
   // Municípios: ranking do período e do ano final, no recorte de estado/bioma.
   const municipios = (async () => {
     const escopo = await municipiosNoEscopo((msg) => setStatus(msg, true));
-    const mun = await rankingPeriodo(c.catMunicipio, ini, fim, progresso("Ranking de municípios"));
+    const mun = await rankingPeriodo(c.catMunicipio, ini, fim, progresso(`Ranking de ${rot("municipio", true).toLowerCase()}`));
     setStatus("");
     const r = aplicarRecorte(mun.linhas.filter(escopo.filtro), escopo, ini, fim);
     return { escopo, linhas: r.linhas, ultimo: mun.anos.length - 1, aviso: avisoRecorte(escopo, r) };
@@ -2027,46 +2210,46 @@ async function loadTerritorios({ ini, fim }) {
   return {
     kpis: [
       {
-        label: "Estado com mais área queimada",
+        label: `${rot("estado")} com mais área queimada`,
         value: estados.linhas[0]?.name || "—",
-        note: estados.linhas[0] ? `${ha(estados.linhas[0].value)} · ${pct(safeDiv(estados.linhas[0].value, totalBrasil))} do Brasil` : "",
+        note: estados.linhas[0] ? `${ha(estados.linhas[0].value)} · ${pct(safeDiv(estados.linhas[0].value, totalBrasil))} ${PAIS.de}` : "",
       },
       {
-        label: "Concentração nos 3 maiores estados",
+        label: `Concentração nos 3 maiores (${rot("estado", true).toLowerCase()})`,
         value: pct(safeDiv(sum(top3.map((l) => l.value)), totalBrasil)),
         note: top3.map((l) => l.name).join(", "),
       },
       {
-        label: "Bioma com mais área queimada",
+        label: `${rot("bioma")} com mais área queimada`,
         value: biomas.linhas[0]?.name || "—",
-        note: biomas.linhas[0] ? `${pct(safeDiv(biomas.linhas[0].value, totalBrasil))} do Brasil` : "",
+        note: biomas.linhas[0] ? `${pct(safeDiv(biomas.linhas[0].value, totalBrasil))} ${PAIS.de}` : "",
       },
     ],
     cards: [
       {
         span: 6,
-        title: "Estados que mais queimaram",
+        title: `${rot("estado", true)} que mais queimaram`,
         subtitle: `Soma das áreas anuais ${ini}–${fim} · top 10${avisoBioma}`,
         chart: hbarRanking(estados.linhas.slice(0, 10), vermelho, totalBrasil, state.estadoId),
       },
       {
         span: 6,
-        title: "Municípios que mais queimaram no período",
+        title: `${rot("municipio", true)} que mais queimaram no período`,
         subtitle: `Soma das áreas anuais ${ini}–${fim} · top 10`,
         lazy: async (progress) => {
-          progress("Baixando ranking de municípios…");
+          progress(`Baixando ranking de ${rot("municipio", true).toLowerCase()}…`);
           const m = await municipios;
           const base = sum(m.linhas.map((l) => l.value));
           return {
             chart: hbarRanking(m.linhas.slice(0, 10), vermelho, base, state.municipioId),
-            note: `${m.escopo.rotulo} · % sobre o total desses municípios. ${m.aviso}`,
+            note: `${m.escopo.rotulo} · % sobre o total desses ${rot("municipio", true).toLowerCase()}. ${m.aviso}`,
           };
         },
       },
       {
         span: 6,
         title: `Variação em ${fim} em relação à média ${ini}–${fim - 1}`,
-        subtitle: "Estados com ao menos 1% da área queimada do Brasil no ano · vermelho = acima da média, azul = abaixo",
+        subtitle: `${rot("estado", true)} com ao menos 1% da área queimada ${PAIS.de} no ano · vermelho = acima da média, azul = abaixo`,
         chart: variacao.length
           ? {
             kind: "hbar",
@@ -2081,10 +2264,10 @@ async function loadTerritorios({ ini, fim }) {
       },
       {
         span: 6,
-        title: `Municípios que mais queimaram em ${fim}`,
+        title: `${rot("municipio", true)} que mais queimaram em ${fim}`,
         subtitle: `Área queimada no ano final do período · top 10`,
         lazy: async (progress) => {
-          progress("Baixando ranking de municípios…");
+          progress(`Baixando ranking de ${rot("municipio", true).toLowerCase()}…`);
           const m = await municipios;
           const doAno = [...m.linhas].map((l) => ({ ...l, value: l.porAno[m.ultimo] || 0 }))
             .filter((l) => l.value > 0).sort((a, b) => b.value - a.value);
@@ -2096,8 +2279,8 @@ async function loadTerritorios({ ini, fim }) {
       },
       {
         span: 12,
-        title: "Evolução anual dos 3 estados com mais área queimada",
-        subtitle: `${ini}–${fim} · cores categóricas (não há cor oficial por estado)`,
+        title: `Evolução anual: os 3 maiores em área queimada (${rot("estado", true).toLowerCase()})`,
+        subtitle: `${ini}–${fim} · cores categóricas (não há cor oficial por ${rot("estado").toLowerCase()})`,
         chart: {
           kind: "multiline",
           labels: estados.anos.map(String),
@@ -2107,8 +2290,8 @@ async function loadTerritorios({ ini, fim }) {
       },
       {
         span: 8,
-        title: "Participação dos biomas na área queimada, por ano",
-        subtitle: `${ini}–${fim} · cada ano soma 100% da área queimada do Brasil`,
+        title: `Participação na área queimada por ${rot("bioma").toLowerCase()}, ano a ano`,
+        subtitle: `${ini}–${fim} · cada ano soma 100% da área queimada ${PAIS.de}`,
         alterna: "linhas",
         chart: {
           kind: "stacked",
@@ -2125,8 +2308,8 @@ async function loadTerritorios({ ini, fim }) {
       },
       {
         span: 4,
-        title: "Biomas: área queimada no período",
-        subtitle: "Soma das áreas anuais e participação no Brasil",
+        title: `${rot("bioma", true)}: área queimada no período`,
+        subtitle: `Soma das áreas anuais e participação ${PAIS.em}`,
         ranking: {
           rows: biomas.linhas.map((l) => ({ label: l.name, value: l.value, color: corBioma(l.name) })),
           total: totalBrasil,
@@ -2149,9 +2332,7 @@ function hbarRanking(linhas, cor, base, destaqueId) {
 // Descobre o id de categoria de um território (os ids diferem entre prd e stg).
 async function categoriaDe(territoryId) {
   const c = state.conn;
-  const cats = await cached(`${envId()}:cats`, () => fetchTerritoryCategories(c.env));
-  const re = c.biomas.some((b) => b.id === territoryId) ? /^BIOMES$/ : /^ESTADOS|^POLITICAL_LEVEL_3$/;
-  return cats.categories.find((x) => re.test(x.key)).id;
+  return c.biomas.some((b) => b.id === territoryId) ? c.catBioma : c.catEstado;
 }
 
 // Categorias fundiárias disponíveis na API (a malha fundiária do RAF, com imóveis
@@ -2278,7 +2459,8 @@ async function loadMapa(ctx) {
 }
 
 async function loadMapaBruto({ t, ini, fim }) {
-  const camada = MAP_LAYERS.find((c) => c.id === state.mapa.camada) || MAP_LAYERS[0];
+  const camadas = MAP_LAYERS.filter((c) => state.conn.subthemes[c.subtheme]); // só as que o país tem
+  const camada = camadas.find((c) => c.id === state.mapa.camada) || camadas[0];
   const legenda = await getLegend(camada.legend);
   const anos = camada.periodo ? [ini, fim] : fim;
   const m = state.mapa;
@@ -2286,7 +2468,7 @@ async function loadMapaBruto({ t, ini, fim }) {
   const cortinaPedida = m.cortina === "on";
   const cortina = cortinaPedida && !camada.periodo;
   const anoA = clamp(m.anoA ?? Math.max(ini, fim - 10), ini, fim);
-  const camada2 = !cortina && m.camada2 ? MAP_LAYERS.find((c) => c.id === m.camada2 && c.id !== camada.id) : null;
+  const camada2 = !cortina && m.camada2 ? camadas.find((c) => c.id === m.camada2 && c.id !== camada.id) : null;
   const legenda2 = camada2 ? await getLegend(camada2.legend) : null;
   const pedirTiles = (cam, lg, ano) => getMapUrl({
     subthemeKey: sub(cam.subtheme), legendKey: lg.key, pixelValue: pixelValues(lg.items), year: ano, ...territoryParams(t),
@@ -2321,14 +2503,14 @@ async function loadMapaBruto({ t, ini, fim }) {
         type: "select",
         label: "Camada",
         value: camada.id,
-        options: MAP_LAYERS.map((c) => ({ value: c.id, label: c.label })),
+        options: camadas.map((c) => ({ value: c.id, label: c.label })),
         onChange: (v) => { state.mapa.camada = v; loadCurrentTab(); },
       },
       {
         type: "select",
         label: "Sobrepor outra camada",
         value: camada2?.id || "",
-        options: [{ value: "", label: "Nenhuma" }, ...MAP_LAYERS.filter((c) => c.id !== camada.id).map((c) => ({ value: c.id, label: c.label }))],
+        options: [{ value: "", label: "Nenhuma" }, ...camadas.filter((c) => c.id !== camada.id).map((c) => ({ value: c.id, label: c.label }))],
         onChange: (v) => { state.mapa.camada2 = v; if (v) state.mapa.cortina = "off"; loadCurrentTab(); },
       },
       {
@@ -2349,7 +2531,8 @@ async function loadMapaBruto({ t, ini, fim }) {
         type: "segmented",
         label: "Contornos",
         value: m.visualizar,
-        options: MAP_VIEWS.map((v) => ({ value: v.id, label: v.label })),
+        options: MAP_VIEWS.filter((v) => v.id !== "biomas" || state.conn.biomas.length)
+          .map((v) => ({ value: v.id, label: rot({ biomas: "bioma", estados: "estado", municipios: "municipio" }[v.id], true) })),
         onChange: (v) => { state.mapa.visualizar = v; loadCurrentTab(); },
       },
       {
@@ -2389,7 +2572,7 @@ async function loadMapaRanking({ t, ini, fim }) {
   if (unidade === "estados") {
     const catEstado = await categoriaDe(c.estados[0].id);
     const [rk, geoms] = await Promise.all([
-      rankingPeriodo(catEstado, ini, fim, progresso("Ranking de estados (anos)")),
+      rankingPeriodo(catEstado, ini, fim, progresso(`Ranking de ${rot("estado", true).toLowerCase()} (anos)`)),
       mapLimit(c.estados, 6, (e) => getGeometry([e.id]).catch(() => null)),
     ]);
     linhas = rk.linhas;
@@ -2398,13 +2581,13 @@ async function loadMapaRanking({ t, ini, fim }) {
     features = c.estados.map((e, i) => ({
       type: "Feature", geometry: geoms[i], properties: { id: e.id, name: e.name, value: valor.get(e.id) || 0 },
     })).filter((f) => f.geometry);
-    escopoRotulo = "Estados do Brasil";
-    if (state.biomaId) aviso = "Estados inteiros: a API de ranking não recorta por bioma.";
+    escopoRotulo = `${rot("estado", true)} ${PAIS.de}`;
+    if (state.biomaId) aviso = `${rot("estado", true)} inteiros: a API de ranking não recorta por ${rot("bioma").toLowerCase()}.`;
   } else {
     const [escopo, rk, shapes] = await Promise.all([
       municipiosNoEscopo((msg) => setStatus(msg, true)),
-      rankingPeriodo(c.catMunicipio, ini, fim, progresso("Ranking de municípios (anos)")),
-      getMunicipiosShapes(progresso("Geometria dos municípios (tiles)")),
+      rankingPeriodo(c.catMunicipio, ini, fim, progresso(`Ranking de ${rot("municipio", true).toLowerCase()} (anos)`)),
+      getMunicipiosShapes(progresso(`Geometria dos ${rot("municipio", true).toLowerCase()} (tiles)`)),
     ]);
     const r = aplicarRecorte(rk.linhas.filter(escopo.filtro), escopo, ini, fim);
     linhas = r.linhas;
@@ -2416,6 +2599,7 @@ async function loadMapaRanking({ t, ini, fim }) {
     // buffer e, num mesmo MultiPolygon, o preenchimento even-odd do canvas abriria faixas vazias.
     features = geometrias
       .filter((m) => escopo.filtro({ id: m.id, name: m.name }))
+      .map((m) => (ehBrasil ? m : { ...m, name: nomeMunicipio(m.name) }))
       .flatMap((m) => {
         const emCalculo = m.situacao === "divisa" && !r.valores?.has(m.id);
         return m.polygons.map((coords) => ({
@@ -2456,7 +2640,7 @@ async function loadMapaRanking({ t, ini, fim }) {
         type: "segmented",
         label: "Pintar por",
         value: unidade,
-        options: [{ value: "estados", label: "Estados" }, { value: "municipios", label: "Municípios" }],
+        options: [{ value: "estados", label: rot("estado", true) }, ...(state.conn.catMunicipio ? [{ value: "municipios", label: rot("municipio", true) }] : [])],
         onChange: (v) => { state.mapa.unidade = v; loadCurrentTab(); },
       },
     ],
@@ -2465,7 +2649,7 @@ async function loadMapaRanking({ t, ini, fim }) {
       {
         span: 12,
         title: `${escopoRotulo}: explore o fogo no mapa`,
-        subtitle: `Ranking oficial da API, ${ini}–${fim} · escolha o que mostrar nos passos abaixo e clique num território para ver o detalhe${unidade === "municipios" && !state.biomaId && !state.estadoId ? " · escolha um bioma ou estado no filtro para recortar" : ""}`,
+        subtitle: `Ranking oficial da API, ${ini}–${fim} · escolha o que mostrar nos passos abaixo e clique num território para ver o detalhe${unidade === "municipios" && !state.biomaId && !state.estadoId ? ` · escolha ${rot("bioma").toLowerCase()} ou ${rot("estado").toLowerCase()} no filtro para recortar` : ""}`,
         map: {
           dinamico: {
             features, territorios, anos: anosRk, unidade, contorno: recorte, bordas: unidade === "estados",
@@ -2476,7 +2660,7 @@ async function loadMapaRanking({ t, ini, fim }) {
       },
       {
         span: 12,
-        title: unidade === "estados" ? "Estados que mais queimaram" : "Municípios que mais queimaram",
+        title: `${rot(unidade === "estados" ? "estado" : "municipio", true)} que mais queimaram`,
         subtitle: `Top 10 · soma ${ini}–${fim} · cor = classe da área queimada no período`,
         ranking: {
           rows: top.map((l) => ({ label: l.name, value: l.value, color: classes.colorOf(l.value) || vermelho })),
@@ -2521,7 +2705,7 @@ async function referenceOutlines(visualizar) {
       : await getGeometry([state.municipioId]).catch(() => null);
     return { geometrias: [geom] };
   }
-  return { geometrias: [], aviso: "Escolha um estado e um município nos filtros para recortar e destacar o município." };
+  return { geometrias: [], aviso: `Escolha ${rot("estado").toLowerCase()} e ${rot("municipio").toLowerCase()} nos filtros para recortar e destacar ${rot("municipio").toLowerCase()}.` };
 }
 
 // ---------------------------------------------------------------------------
@@ -2560,7 +2744,7 @@ function renderView(view) {
 const VISTAS = {
   linhas: [["barras", "Barras"], ["linhas", "Linhas"]],
   rosca: [["barras", "Barras"], ["rosca", "Rosca"]],
-  anual: [["barras", "Barras"], ["linhas", "Linhas"], ["biomas", "Por bioma"]],
+  anual: [["barras", "Barras"], ["linhas", "Linhas"], ["biomas", `Por ${rot("bioma").toLowerCase()}`]],
 };
 
 // Vistas que trocam o corpo do card inteiro (não dá para só mudar o tipo do Chart.js).
@@ -2667,9 +2851,9 @@ function montarGraficos(card, root, vista, tokens) {
           const spec = { ...res.chart, series: res.chart.series.map((s) => ({ ...s, color: corPaleta(s.label) })) };
           body.innerHTML = chartBoxHtml(spec, card.title) +
             legendRowHtml([...spec.series.map((s) => ({ label: s.label, color: s.color })), { label: res.nota, note: true }]) +
-            paletaToggleHtml();
+            (ehBrasil ? paletaToggleHtml() : ""); // as paletas terrosa/vermelhos são dos biomas do Brasil
           registrarGrafico(root, new Chart(body.querySelector("canvas"), chartConfig(spec, tokens)));
-          body.querySelector(".paleta-toggle").addEventListener("click", (e) => {
+          body.querySelector(".paleta-toggle")?.addEventListener("click", (e) => {
             const btn = e.target.closest("button[data-paleta]");
             if (!btn || btn.dataset.paleta === state.paletaBioma) return;
             state.paletaBioma = btn.dataset.paleta;
@@ -2827,7 +3011,7 @@ function cardHtml(card, i, view) {
 
 // Corpo do card na vista atual, com a legenda do card (a vista por bioma traz a sua ao carregar).
 function cardBodyHtml(card, vista) {
-  if (vista === "biomas") return `<p class="empty busy-text">Calculando biomas…</p>`;
+  if (vista === "biomas") return `<p class="empty busy-text">Calculando ${rot("bioma", true).toLowerCase()}…</p>`;
   return conteudoHtml(card, vista) + (card.legend?.length ? legendRowHtml(card.legend) : "");
 }
 
@@ -3083,8 +3267,8 @@ function renderMapaDinamico(map, spec, tokens, box) {
   const { anos, territorios, unidade } = spec;
   const n = anos.length;
   const ano0 = anos[0], anoN = anos[n - 1];
-  const nomeUnid = unidade === "estados" ? "estado" : "município";
-  const unidPlural = unidade === "estados" ? "estados" : "municípios";
+  const nomeUnid = rot(unidade === "estados" ? "estado" : "municipio").toLowerCase();
+  const unidPlural = rot(unidade === "estados" ? "estado" : "municipio", true).toLowerCase();
   const vazio = resolveColor("var(--surface-muted)");
   const st = {
     indicador: "area", periodo: "todo", estilo: "cores",
@@ -3357,7 +3541,7 @@ function renderMapaDinamico(map, spec, tokens, box) {
       <div class="md-det-cab">
         <h3>${escapeHtml(t.name)}</h3>
         <div class="md-det-acoes">
-          ${podeFiltrar ? `<button type="button" class="md-botao" data-a="filtrar">Filtrar o painel por este estado</button>` : ""}
+          ${podeFiltrar ? `<button type="button" class="md-botao" data-a="filtrar">Filtrar o painel por ${escapeHtml(nomeUnid)}</button>` : ""}
           <button type="button" class="md-botao" data-a="fechar" aria-label="Fechar detalhe">✕ Fechar</button>
         </div>
       </div>
@@ -3366,7 +3550,7 @@ function renderMapaDinamico(map, spec, tokens, box) {
         <li><span>Média por ano</span><strong>${ha(total / n)}</strong></li>
         <li><span>Ano que mais queimou</span><strong>${total ? `${anos[pico]} · ${ha(t.porAno[pico])}` : "—"}</strong></li>
         <li><span>Anos com fogo</span><strong>${comFogo} de ${n}</strong></li>
-        ${areaT ? `<li><span>Área do estado (aprox.)</span><strong>${ha(areaT)}</strong></li>` : ""}
+        ${areaT ? `<li><span>Área (aprox.)</span><strong>${ha(areaT)}</strong></li>` : ""}
       </ul>
       <div class="chart-box" style="height:240px"><canvas role="img" aria-label="Área queimada por ano em ${escapeHtml(t.name)}"></canvas></div>
       <ul class="legend-row">
@@ -3855,8 +4039,29 @@ function renderError(err, retry) {
 // Interface: filtros, abas, status
 // ---------------------------------------------------------------------------
 
+// Seletor de país no topo, logo, marca e textos do país. Trocar de país recarrega a página
+// (cada país tem sua própria árvore de temas, categorias e territórios na API).
+function montarPais() {
+  const sel = document.getElementById("f-pais");
+  sel.innerHTML = PAISES.map((p) => `<option value="${p.region}"${p === PAIS ? " selected" : ""}>${escapeHtml(p.nome)}</option>`).join("");
+  sel.addEventListener("change", () => {
+    const p = new URLSearchParams(sel.value === "brazil" ? "" : `pais=${sel.value}`);
+    location.hash = p.toString();
+    location.reload();
+  });
+  document.getElementById("logo").src = PAIS.logo;
+  document.getElementById("logo").alt = PAIS.marca;
+  document.getElementById("marca").textContent = PAIS.marca;
+  document.getElementById("pais-titulo").textContent = PAIS.nome;
+  document.getElementById("footer-fonte").textContent = `Dados ${PAIS.de}: ${PAIS.marca}, via API pública da Plataforma MapBiomas.`;
+  document.title = `${PAIS.marca} · ${PAIS.nome}`;
+  document.documentElement.lang = "pt-BR";
+  if (!ehBrasil) gifState.region = PAIS.region;
+}
+
 function renderTabs() {
-  el.tabs.innerHTML = TABS.map((t) => `
+  if (!abasDisponiveis().some((t) => t.id === state.tab)) state.tab = "anual";
+  el.tabs.innerHTML = abasDisponiveis().map((t) => `
     <button type="button" role="tab" id="tab-${t.id}" data-tab="${t.id}" aria-controls="panel"
       aria-selected="${t.id === state.tab}" tabindex="${t.id === state.tab ? 0 : -1}">${t.label}</button>`).join("");
   el.panel.setAttribute("aria-labelledby", `tab-${state.tab}`);
@@ -3884,9 +4089,14 @@ const optionsHtml = (items, emptyLabel) =>
 
 function fillFilters() {
   const c = state.conn;
-  el.bioma.innerHTML = optionsHtml(c.biomas, "Todos (Brasil)");
-  el.estado.innerHTML = optionsHtml(c.estados, "Todos os estados");
-  el.municipio.innerHTML = optionsHtml([], "Todos os municípios");
+  document.getElementById("rot-bioma").textContent = rot("bioma");
+  document.getElementById("rot-estado").textContent = rot("estado");
+  document.getElementById("rot-municipio").textContent = rot("municipio");
+  el.bioma.closest(".field").hidden = !c.biomas.length;
+  el.municipio.closest(".field").hidden = !c.catMunicipio;
+  el.bioma.innerHTML = optionsHtml(c.biomas, `Todos (${PAIS.nome})`);
+  el.estado.innerHTML = optionsHtml(c.estados, `Todos (${rot("estado", true).toLowerCase()})`);
+  el.municipio.innerHTML = optionsHtml([], `Todos (${rot("municipio", true).toLowerCase()})`);
 
   for (const input of [el.ini, el.fim]) {
     input.min = String(c.anoMin);
@@ -3924,23 +4134,22 @@ async function fillMunicipios() {
   const estado = state.conn.estados.find((e) => e.id === state.estadoId);
   if (!estado) {
     state.municipioId = "";
-    el.municipio.innerHTML = optionsHtml([], "Todos os municípios");
+    el.municipio.innerHTML = optionsHtml([], `Todos (${rot("municipio", true).toLowerCase()})`);
     el.municipio.disabled = true;
     return;
   }
   el.municipio.disabled = true;
-  el.municipio.innerHTML = `<option value="">Carregando municípios…</option>`;
+  el.municipio.innerHTML = `<option value="">Carregando ${rot("municipio", true).toLowerCase()}…</option>`;
   try {
-    const porUf = await getMunicipiosPorUf();
-    state.municipiosDoEstado = porUf.get(estado.uf) || [];
-    el.municipio.innerHTML = optionsHtml(state.municipiosDoEstado, `Todos os municípios (${state.municipiosDoEstado.length})`);
+    state.municipiosDoEstado = await getMunicipiosDoEstado(estado);
+    el.municipio.innerHTML = optionsHtml(state.municipiosDoEstado, `Todos (${state.municipiosDoEstado.length} ${rot("municipio", true).toLowerCase()})`);
     if (!state.municipiosDoEstado.some((m) => m.id === state.municipioId)) state.municipioId = "";
     el.municipio.value = state.municipioId;
     el.municipio.disabled = false;
   } catch (err) {
     console.error(err);
     state.municipioId = "";
-    el.municipio.innerHTML = `<option value="">Falha ao carregar municípios</option>`;
+    el.municipio.innerHTML = `<option value="">Falha ao carregar ${rot("municipio", true).toLowerCase()}</option>`;
   }
 }
 
@@ -3960,7 +4169,8 @@ function updateSourceInfo() {
   el.badge.textContent = `API: ${conn.env.label}${fallback ? " (fallback)" : ""}`;
   el.badge.dataset.state = conn.colecaoOk ? "ok" : "warn";
   el.badge.title = conn.failures.length ? conn.failures.join("\n") : conn.env.baseUrl;
-  document.getElementById("colecao-titulo").textContent = `Col. ${conn.colecao || "?"}`;
+  document.getElementById("colecao-titulo").textContent = conn.colecao ? ` Col. ${conn.colecao}` : "";
+  document.title = `${PAIS.marca}${conn.colecao ? ` Col. ${conn.colecao}` : ""} · ${PAIS.nome}`;
   el.subtitle.textContent = `Estatísticas de área queimada · ${conn.anoMin}–${conn.anoMax}`;
   el.footerEnv.textContent = `Ambiente: ${conn.env.baseUrl}.`;
 
@@ -3995,6 +4205,7 @@ function readHash() {
 
 function writeHash() {
   const p = new URLSearchParams({ aba: state.tab, ini: state.ini, fim: state.fim });
+  if (!ehBrasil) p.set("pais", PAIS.region);
   if (state.biomaId) p.set("bioma", state.biomaId);
   if (state.estadoId) p.set("estado", state.estadoId);
   if (state.municipioId) p.set("municipio", state.municipioId);
@@ -4044,6 +4255,7 @@ async function start() {
     return;
   }
   updateSourceInfo();
+  renderTabs(); // esconde as abas de produtos que o país não tem
   fillFilters();
   await fillMunicipios();
   for (const s of [el.bioma, el.estado, el.ini, el.fim]) s.disabled = false;
@@ -4055,6 +4267,7 @@ function init() {
   Chart.defaults.font.family = "'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif";
   Chart.register(crosshairPlugin);
   readHash();
+  montarPais();
   renderTabs();
 
   el.tabs.addEventListener("click", (e) => {
@@ -4063,9 +4276,10 @@ function init() {
   });
   el.tabs.addEventListener("keydown", (e) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-    const i = TABS.findIndex((t) => t.id === state.tab);
-    const next = (i + (e.key === "ArrowRight" ? 1 : -1) + TABS.length) % TABS.length;
-    selectTab(TABS[next].id, true);
+    const abas = abasDisponiveis();
+    const i = abas.findIndex((t) => t.id === state.tab);
+    const next = (i + (e.key === "ArrowRight" ? 1 : -1) + abas.length) % abas.length;
+    selectTab(abas[next].id, true);
   });
 
   el.bioma.addEventListener("change", () => {
@@ -4118,13 +4332,13 @@ function init() {
 
 const GIF_PAISES = [
   { region: "brazil", nome: "Brasil", lang: "pt-BR", logo: "logos/MapBiomas_Fogo_PT.png" },
-  { region: "argentina", nome: "Argentina", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
-  { region: "bolivia", nome: "Bolívia", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
-  { region: "chile", nome: "Chile", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
-  { region: "colombia", nome: "Colômbia", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
-  { region: "paraguay", nome: "Paraguai", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
-  { region: "peru", nome: "Peru", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
-  { region: "indonesia", nome: "Indonésia", lang: "en-US", logo: "logos/MapBiomas_Fire_EN.png" },
+  { region: "argentina", nome: "Argentina", de: "da Argentina", em: "na Argentina", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
+  { region: "bolivia", nome: "Bolívia", de: "da Bolívia", em: "na Bolívia", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
+  { region: "chile", nome: "Chile", de: "do Chile", em: "no Chile", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
+  { region: "colombia", nome: "Colômbia", de: "da Colômbia", em: "na Colômbia", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
+  { region: "paraguay", nome: "Paraguai", de: "do Paraguai", em: "no Paraguai", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
+  { region: "peru", nome: "Peru", de: "do Peru", em: "no Peru", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
+  { region: "indonesia", nome: "Indonésia", de: "da Indonésia", em: "na Indonésia", lang: "en-US", logo: "logos/MapBiomas_Fire_EN.png" },
 ];
 
 // Textos gravados no GIF, no idioma do país.
@@ -4173,7 +4387,7 @@ function gifRegiao(region) {
     const anoOk = (a) => a >= 1980 && a <= new Date().getFullYear();
     const anoMin = m && anoOk(Number(m[1])) ? Number(m[1]) : null;
     const anoMax = m && anoOk(Number(m[2])) && Number(m[2]) >= anoMin ? Number(m[2]) : null;
-    const colecao = (nota.match(/(?:Collection|Colecci[oó]n|Cole[cç][aã]o)\s+(\d+(?:\.\d+)?)/i) || [])[1] || null;
+    const colecao = colecaoDaNota(nota);
     return { produtos, categorias: cats.categories || [], colecao, anoMin: anoMax ? anoMin : null, anoMax };
   });
 }
@@ -4191,7 +4405,7 @@ function gifLegenda(region, id, lang) {
     const lg = d.legend || d;
     const itens = [];
     const andar = (arr, depth) => (arr || []).forEach((i) => {
-      itens.push({ pixelValue: i.pixelValue, name: nomeEm(i.name, lang) || i.key, color: safeColor(i.color), depth });
+      if (!/modis/i.test(nomeEm(i.name, lang))) itens.push({ pixelValue: i.pixelValue, name: nomeEm(i.name, lang) || i.key, color: safeColor(i.color), depth });
       andar(i.children, depth + 1);
     });
     andar(lg.items, 0);
@@ -4670,7 +4884,7 @@ const fmtPct = new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractio
 const ha = (v) => {
   const n = v || 0;
   const f = (x) => new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(x);
-  if (Math.abs(n) >= 1e6) return `${f(n / 1e6)} ${Math.round(n / 1e5) / 10 === 1 ? "milhão" : "milhões"} de ha`;
+  if (Math.abs(n) >= 1e6) return `${f(n / 1e6)} ${Math.abs(n) < 2e6 ? "milhão" : "milhões"} de ha`; // "1,8 milhão", "2 milhões"
   if (Math.abs(n) >= 1e3) return `${f(n / 1e3)} mil ha`;
   return `${f(n)} ha`;
 };

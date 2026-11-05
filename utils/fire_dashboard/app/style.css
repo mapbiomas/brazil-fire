@@ -1221,3 +1221,12 @@ body {
 .gif-preview img { display: block; max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 8px; }
 .gif-preview figcaption { margin-top: 6px; font-size: .8rem; color: var(--text-muted); }
 a.md-botao { display: inline-block; text-decoration: none; }
+
+/* ---------- Seletor de país (topo) ---------- */
+.topbar-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.pais-select { display: inline-flex; align-items: center; gap: 8px; font-size: .8rem; font-weight: 600; color: var(--text-2); }
+.pais-select select {
+  padding: 6px 10px; border: 1px solid var(--border); border-radius: 9px;
+  background: var(--surface); color: var(--text); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer;
+}
+.filters .field[hidden] { display: none; }

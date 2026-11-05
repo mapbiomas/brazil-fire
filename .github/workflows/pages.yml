@@ -63,7 +63,7 @@ jobs:
           <ul>
             <li><a href="fire_monitor_highlights/">Boletim mensal / Boletín mensual</a></li>
             <li><a href="legends/">Legendas e paletas / Legends and palettes</a></li>
-            <li><a href="dashboard/">MapBiomas Fogo Col. 5.1 · Brasil (painel) / MapBiomas Fire Col. 5.1 · Brazil (dashboard)</a></li>
+            <li><a href="dashboard/">Painel MapBiomas Fogo (8 países) / MapBiomas Fire dashboard (8 countries)</a></li>
           </ul>
           EOF
       - uses: actions/configure-pages@v5
