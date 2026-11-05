@@ -193,17 +193,19 @@ class AssemblyChunkCleanupTests(unittest.TestCase):
 
 class RemoveFilesTests(unittest.TestCase):
     def test_removes_objects_in_batches(self):
-        with patch.object(M_gcs, '_call') as call:
+        client = MagicMock()
+        bucket = MagicMock()
+        client.bucket.return_value = bucket
+        with patch.object(M_gcs, '_storage_client', return_value=client):
             M_gcs.rm_files(['gs://bucket/a.tif', 'gs://bucket/b.tif'], batch_size=1)
 
-        self.assertEqual(call.call_count, 2)
-        call.assert_any_call(['rm', '-f', 'gs://bucket/a.tif'])
-        call.assert_any_call(['rm', '-f', 'gs://bucket/b.tif'])
+        self.assertEqual(bucket.delete_blobs.call_count, 2)
 
     def test_empty_list_is_a_noop(self):
-        with patch.object(M_gcs, '_call') as call:
+        client = MagicMock()
+        with patch.object(M_gcs, '_storage_client', return_value=client):
             M_gcs.rm_files([])
-        call.assert_not_called()
+        client.bucket.assert_not_called()
 
 
 if __name__ == '__main__':
