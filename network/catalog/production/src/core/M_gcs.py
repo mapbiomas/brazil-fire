@@ -3,19 +3,15 @@ M_gcs - Unified GCS Gateway
 MapBiomas Fire Monitor
 
 Single module for all Google Cloud Storage operations.
-Writes use gsutil subprocess (stable, avoids gcsfs 2026.2.0 bugs).
-Reads use gcsfs lazy singleton for convenience.
+Reads use a gcsfs lazy singleton; writes use the google-cloud-storage client.
+Both are bound to the impersonated service-account credentials from M0.
 """
 
-import os
 import json
-import subprocess
 import logging
 from functools import lru_cache
 
 _log = logging.getLogger(__name__)
-
-_GSUTIL = 'gsutil.cmd' if os.name == 'nt' else 'gsutil'
 
 
 # ─── helpers ────────────────────────────────────────────────────────
@@ -43,13 +39,27 @@ def _gcs_rel(path):
     return p[5:]  # strip 'gs://'
 
 
-def _call(args, check=True, capture_output=True):
-    """Run a gsutil command. Returns subprocess.CompletedProcess."""
-    cmd = [_GSUTIL] + args
-    _log.debug('Running: %s', ' '.join(cmd))
-    return subprocess.run(
-        cmd, check=check, capture_output=capture_output, text=True
-    )
+def _split(path):
+    """Split a GCS path into (bucket, object_name)."""
+    rel = _gcs_rel(path)
+    bucket, _, name = rel.partition('/')
+    return bucket, name
+
+
+# ─── storage client (writes, lazy) ─────────────────────────────────
+
+@lru_cache(maxsize=1)
+def _storage_client():
+    """Return a google-cloud-storage client bound to the SA credentials."""
+    from google.cloud import storage
+    from M0_auth_config import _GCS_CREDENTIALS, CONFIG
+    kwargs = {}
+    if _GCS_CREDENTIALS is not None:
+        kwargs['credentials'] = _GCS_CREDENTIALS
+    project = (CONFIG or {}).get('gee_project')
+    if project:
+        kwargs['project'] = project
+    return storage.Client(**kwargs)
 
 
 # ─── fs (read-only, lazy) ───────────────────────────────────────────
@@ -74,8 +84,19 @@ def _get_fs():
 
 
 def authenticate():
-    """Ensure gsutil is authenticated via ADC."""
-    _call(['version'], check=False)  # quick smoke test
+    """Ensure the GCS credentials are valid (surfaces actAs errors early)."""
+    from M0_auth_config import _GCS_CREDENTIALS
+    creds = _GCS_CREDENTIALS
+    if creds is not None and not getattr(creds, 'valid', False):
+        from google.auth.transport.requests import Request
+        creds.refresh(Request())
+    _log.debug('GCS authentication ready.')
+
+
+def blob_exists(path):
+    """Check GCS object existence (google-cloud-storage, no listing cache)."""
+    bucket, name = _split(path)
+    return _storage_client().bucket(bucket).blob(name).exists()
 
 
 def exists(path):
@@ -147,35 +168,31 @@ def read_json(path):
 
 
 def download(remote, local):
-    """Download a file from GCS to local filesystem via gsutil.
+    """Download a file from GCS to local filesystem.
 
     Replaces fs.get().
     """
-    _call(['cp', _gcs_path(remote), local])
+    bucket, name = _split(remote)
+    _storage_client().bucket(bucket).blob(name).download_to_filename(local)
 
 
 def upload(local_path, remote_path):
-    """Upload a local file to GCS via gsutil.
+    """Upload a local file to GCS.
 
     Replaces fs.put().
     """
-    _call(['cp', local_path, _gcs_path(remote_path)])
+    bucket, name = _split(remote_path)
+    _storage_client().bucket(bucket).blob(name).upload_from_filename(local_path)
 
 
 def write_text(path, text):
-    """Write text content to a GCS file via gsutil (temp local file)."""
-    import tempfile
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.tmp', delete=False) as f:
-        f.write(text)
-        tmp = f.name
-    try:
-        upload(tmp, path)
-    finally:
-        os.unlink(tmp)
+    """Write text content to a GCS file."""
+    bucket, name = _split(path)
+    _storage_client().bucket(bucket).blob(name).upload_from_string(text)
 
 
 def write_json(path, data):
-    """Write a JSON-serializable object to a GCS file via gsutil."""
+    """Write a JSON-serializable object to a GCS file."""
     write_text(path, json.dumps(data, indent=2, default=str))
 
 
@@ -184,47 +201,61 @@ def rm(path, recursive=False):
 
     Replaces fs.rm().
     """
-    args = ['rm']
+    client = _storage_client()
+    bucket, name = _split(path)
+    b = client.bucket(bucket)
     if recursive:
-        args.append('-r')
-    args.append(_gcs_path(path))
-    _call(args)
+        prefix = name.rstrip('/') + '/'
+        blobs = list(b.list_blobs(prefix=prefix))
+        if blobs:
+            b.delete_blobs(blobs, on_error=lambda _blob: None)
+    else:
+        b.blob(name).delete()
 
 
 def rm_files(paths, batch_size=100):
-    """Remove several GCS objects using batched gsutil calls.
+    """Remove several GCS objects using batched delete_blobs calls.
 
-    gsutil rm does not expand wildcards, so callers pass the exact object
-    list. Batching keeps the command line under the Windows limit.
+    Callers pass the exact object list; missing objects are ignored.
+    Batching keeps each request under a manageable size.
     """
-    urls = [_gcs_path(path) for path in paths if path]
-    for start in range(0, len(urls), batch_size):
-        _call(['rm', '-f'] + urls[start:start + batch_size])
+    from collections import defaultdict
+    client = _storage_client()
+    by_bucket = defaultdict(list)
+    for path in paths:
+        if not path:
+            continue
+        bucket, name = _split(path)
+        by_bucket[bucket].append(name)
+
+    for bucket, names in by_bucket.items():
+        b = client.bucket(bucket)
+        for start in range(0, len(names), batch_size):
+            chunk = names[start:start + batch_size]
+            b.delete_blobs([b.blob(n) for n in chunk], on_error=lambda _blob: None)
 
 
 def mkdir(path):
     """Create a directory placeholder in GCS.
 
-    GCS doesn't have real directories, but gsutil cp of an empty
-    string to the path creates a zero-byte object as a marker.
+    GCS doesn't have real directories; a zero-byte marker object is created.
     Equivalent to fs.mkdir().
     """
-    rel = _gcs_rel(path).rstrip('/') + '/'
-    if not rel.endswith('/'):
-        rel += '/'
-    try:
-        _ = _call(['ls', f'gs://{rel}'], check=False, capture_output=True)
-        if _.returncode == 0:
-            return  # already exists
-    except Exception:
-        pass
-    _call(['cp', '/dev/null' if os.name != 'nt' else 'NUL',
-           _gcs_path(path).rstrip('/') + '/'])
+    bucket, name = _split(path)
+    name = name.rstrip('/') + '/'
+    _storage_client().bucket(bucket).blob(name).upload_from_string('')
 
 
 def copy(src, dest):
     """Copy a file within GCS. Replaces fs.copy()."""
-    _call(['cp', _gcs_path(src), _gcs_path(dest)])
+    client = _storage_client()
+    src_bucket, src_name = _split(src)
+    dst_bucket, dst_name = _split(dest)
+    client.bucket(dst_bucket).copy_blob(
+        client.bucket(src_bucket).blob(src_name),
+        client.bucket(dst_bucket),
+        dst_name,
+    )
 
 
 # ─── module-level convenience for step-wise migration ───────────────
@@ -232,6 +263,7 @@ def copy(src, dest):
 class GCS:
     """Wrapper that allows M_gcs.method() calls during transition."""
     authenticate = staticmethod(authenticate)
+    blob_exists = staticmethod(blob_exists)
     exists = staticmethod(exists)
     list_files = staticmethod(list_files)
     ls = staticmethod(ls)

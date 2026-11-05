@@ -130,48 +130,107 @@ _AUTHENTICATED = False
 _GCS_CREDENTIALS = None
 _MODEL_SCALE_CACHE = {}
 
+# ---------------------------------------------------------------------------
+# Service account (single shared identity for the whole network)
+# ---------------------------------------------------------------------------
+
+SERVICE_ACCOUNT_EMAIL = 'mapbiomas-fire@mapbiomas.iam.gserviceaccount.com'
+
+SERVICE_ACCOUNT_SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/devstorage.full_control',
+    'https://www.googleapis.com/auth/cloud-platform',
+]
+
+
+def _user_credentials():
+    """Return the human user's credentials (the source for impersonation).
+
+    In Colab this triggers the browser pop-up (``auth.authenticate_user()``);
+    on a local machine it falls back to Application Default Credentials (ADC).
+    """
+    try:
+        import google.colab
+        from google.colab import auth
+        print("[AUTH] Google Colab detectado. Abrindo login (pop-up)...")
+        auth.authenticate_user()
+    except ImportError:
+        pass  # local: usa ADC
+
+    import google.auth
+    credentials, _ = google.auth.default()
+    return credentials
+
 
 def authenticate(project=None):
-    """Autenticar com Google Earth Engine e GCS. Se project for None, usa CONFIG['gee_project']."""
+    """Autenticar com Google Earth Engine e GCS via conta de serviço.
+
+    Autentica a pessoa (pop-up no Colab / ADC no local) e então *impersona* a
+    conta de serviço compartilhada, de modo que toda operação GEE/GCS rode sob
+    uma única identidade.
+    """
     global _AUTHENTICATED, _GCS_CREDENTIALS
-    
+
     if _AUTHENTICATED:
         return
-    
+
     if project is None:
         project = (CONFIG or {}).get('gee_project', 'mapbiomas-peru')
-    
+
+    sa_email = (CONFIG or {}).get('service_account_email') or SERVICE_ACCOUNT_EMAIL
+
     import ee
 
     if not getattr(ee.data, '_credentials', None):
-        # Deteccao de ambiente Colab para autenticacao GCS
-        try:
-            import google.colab
-            print("[COLAB] Detected Google Colab environment. Authenticating user...")
-            from google.colab import auth
-            auth.authenticate_user()
-            import google.auth
-            _GCS_CREDENTIALS, _ = google.auth.default()
-        except ImportError:
-            pass  # Ambiente local, assume Application Default Credentials (ADC)
+        # 1) Autentica a pessoa (credenciais de origem).
+        source_credentials = _user_credentials()
 
+        # 2) Impersona a conta de serviço compartilhada.
         try:
-            ee.Initialize(project=project)
-            print("[GEE] Inicializado.")
-        except Exception:
-            print("GEE session expired or null. Starting authentication...")
-            ee.Authenticate()
-            ee.Initialize(project=project)
-            print("[GEE] Authenticated successfully.")
+            from google.auth import impersonated_credentials
+            target_credentials = impersonated_credentials.Credentials(
+                source_credentials=source_credentials,
+                target_principal=sa_email,
+                target_scopes=SERVICE_ACCOUNT_SCOPES,
+            )
+            _GCS_CREDENTIALS = target_credentials
+            ee.Initialize(credentials=target_credentials, project=project)
+            print(f"[GEE] Inicializado como conta de serviço: {sa_email}")
+        except Exception as exc:
+            detail = str(exc)
+            if 'iam.serviceAccounts.getAccessToken' in detail:
+                remedy = (
+                    "Causa: falta a permissão 'iam.serviceAccounts.getAccessToken'.\n"
+                    "Conceda o papel 'Service Account Token Creator' ao Google "
+                    "Group da equipe:\n\n"
+                    "  gcloud iam service-accounts add-iam-policy-binding \\\n"
+                    f"      {sa_email} \\\n"
+                    "      --member=\"group:SEU_GRUPO@googlegroups.com\" \\\n"
+                    "      --role=\"roles/iam.serviceAccountTokenCreator\" \\\n"
+                    "      --project=SEU_PROJECT_ID\n"
+                )
+            else:
+                remedy = (
+                    "Verifique:\n"
+                    "  1) sua conta pertence ao Google Group com o papel "
+                    "'Service Account Token Creator' sobre a conta de serviço;\n"
+                    "  2) a conta de serviço está registrada no Earth Engine e "
+                    "tem acesso aos projetos/bucket.\n"
+                )
+            raise RuntimeError(
+                f"Falha ao autenticar via conta de serviço '{sa_email}'.\n"
+                f"{remedy}\n"
+                f"Erro original: {exc}"
+            ) from exc
     else:
         ee.Initialize(project=project)
         print("[GEE] Reusing credentials for configured project.")
-    
+
     from M_gcs import authenticate as _mgcs_auth
     _mgcs_auth()
-    print("[GCS] GCS/ADC authentication configured.")
+    print("[GCS] GCS authentication configured (service account).")
 
-    # Deferred cache sync — gsutil auth já está pronto aqui
+    # Deferred cache sync — credenciais já prontas aqui
     try:
         from M_cache import CacheManager
         state = CacheManager.get_state()
@@ -196,7 +255,7 @@ def _get_fs():
 
 
 # ---------------------------------------------------------------------------
-# GCS (gsutil) helpers
+# GCS helpers
 # ---------------------------------------------------------------------------
 
 def _gcs_download(gcs_rel_path, local_path):
@@ -231,6 +290,7 @@ def set_global_opts(
     mosaic_methods=None,
     personal_task_flag='MONITOR',
     language='en',
+    service_account_email=None,
     clean_cache=False,
 ):
     """Configure global processing options and project paths.
@@ -306,6 +366,8 @@ def set_global_opts(
     else:
         CONFIG.clear()
         CONFIG.update(new_config)
+
+    CONFIG['service_account_email'] = service_account_email or SERVICE_ACCOUNT_EMAIL
 
     GLOBAL_OPTS['SENSOR'] = requested_sensors
     GLOBAL_OPTS['PERIODICITY'] = requested_periods
@@ -773,6 +835,7 @@ def print_config():
     period_str = ', '.join(GLOBAL_OPTS['PERIODICITY']) if isinstance(GLOBAL_OPTS['PERIODICITY'], list) else str(GLOBAL_OPTS['PERIODICITY'])
     print(f"Country: {CONFIG['country'].upper()}")
     print(f"GEE Project: {CONFIG['gee_project']}")
+    print(f"Service Account: {CONFIG.get('service_account_email')}")
     print(f"GCS Bucket: {CONFIG['bucket']}")
     print(f"GCS Images: {CONFIG['gcs_library_images_prefix']}")
     print(f"GCS Campaigns: {CONFIG['gcs_campaigns_prefix']}")
