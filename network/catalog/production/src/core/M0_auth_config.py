@@ -203,30 +203,36 @@ def authenticate(project=None):
         # 3) GCS — impersona a CONTA DE SERVIÇO (acesso ao bucket).
         try:
             from google.auth import impersonated_credentials
+            from google.auth.transport.requests import Request
             _GCS_CREDENTIALS = impersonated_credentials.Credentials(
                 source_credentials=source_credentials,
                 target_principal=sa_email,
                 target_scopes=SERVICE_ACCOUNT_SCOPES,
             )
+            # Dispara a aquisição do token agora — pega erro de permissão já aqui.
+            _GCS_CREDENTIALS.refresh(Request())
             print(f"[GCS] Conta de serviço pronta para o bucket: {sa_email}")
         except Exception as exc:
             detail = str(exc)
             if 'iam.serviceAccounts.getAccessToken' in detail:
                 print(
-                    "[GCS][WARN] Impersonation da conta de serviço falhou "
-                    "(falta 'Service Account Token Creator').\n"
-                    f"  Conceda ao grupo {SERVICE_ACCOUNT_GROUP} sobre "
-                    f"{sa_email}:\n"
-                    "  gcloud iam service-accounts add-iam-policy-binding \\\n"
-                    f"      {sa_email} \\\n"
-                    f"      --member=\"group:{SERVICE_ACCOUNT_GROUP}\" \\\n"
-                    "      --role=\"roles/iam.serviceAccountTokenCreator\" \\\n"
-                    f"      --project={SERVICE_ACCOUNT_PROJECT}"
+                    "\n" + "=" * 64 + "\n"
+                    "⚠️  CONTA DE SERVIÇO INDISPONÍVEL (bucket)\n"
+                    "=" * 64 + "\n"
+                    "Sua conta não está no grupo que pode usar a conta de serviço.\n\n"
+                    "Para acessar o bucket, escolha UMA opção:\n"
+                    f"  1) Entrar no grupo de emails: {SERVICE_ACCOUNT_GROUP}\n"
+                    "     (peça ao administrador do grupo para te adicionar)\n"
+                    "  OU\n"
+                    f"  2) Pedir acesso direto ao bucket gs://{CONFIG['bucket']}\n"
+                    "     (papel 'Storage Object User' na sua conta)\n\n"
+                    "O Earth Engine continua funcionando com a sua conta.\n"
+                    "=" * 64
                 )
             else:
-                print(f"[GCS][WARN] Falha ao impersonar a conta de serviço: {exc}")
-            print("[GCS][WARN] Usando a conta do usuário para o bucket "
-                  "(pode falhar se ela não tiver acesso).")
+                print(f"[GCS][WARN] Falha ao usar a conta de serviço: {exc}")
+            print("[GCS] Usando a sua conta no bucket por enquanto "
+                  "(se ela não tiver acesso, o bucket vai falhar).")
             _GCS_CREDENTIALS = source_credentials
     else:
         ee.Initialize(project=project)
