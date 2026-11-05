@@ -63,8 +63,18 @@ import gcsfs
 bucket_name = 'mapbiomas-fire'
 base_folder = 'mapbiomas-fire/sudamerica/'
 
+# Service account (GCS via conta de serviço compartilhada)
+import google.auth
+from google.auth import impersonated_credentials
+_src_credentials, _ = google.auth.default()
+sa_credentials = impersonated_credentials.Credentials(
+    source_credentials=_src_credentials,
+    target_principal='mapbiomas-fire@mapbiomas.iam.gserviceaccount.com',
+    target_scopes=['https://www.googleapis.com/auth/cloud-platform'],
+)
+
 # Initialize the Google Cloud Storage file system
-fs = gcsfs.GCSFileSystem(project=bucket_name)
+fs = gcsfs.GCSFileSystem(token=sa_credentials, project=bucket_name)
 
 # ====================================
 # 🧠 CORE CLASSES (ModelTrainer, ImageProcessor, FileManager)
@@ -75,7 +85,7 @@ class ModelRepository:
         self.bucket = bucket_name
         self.country = country
         self.base_folder = f'mapbiomas-fire/sudamerica/{country}'
-        self.fs = gcsfs.GCSFileSystem(project=bucket_name)
+        self.fs = gcsfs.GCSFileSystem(token=sa_credentials, project=bucket_name)
 
     def list_models(self):
         training_folder = f"{self.base_folder}/models_col1/"

@@ -24,8 +24,18 @@ tf.disable_v2_behavior()
 bucket_name = 'mapbiomas-fire'
 base_path = 'mapbiomas-fire/sudamerica/'
 
+# Service account (GCS via conta de serviço compartilhada)
+import google.auth
+from google.auth import impersonated_credentials
+_src_credentials, _ = google.auth.default()
+sa_credentials = impersonated_credentials.Credentials(
+    source_credentials=_src_credentials,
+    target_principal='mapbiomas-fire@mapbiomas.iam.gserviceaccount.com',
+    target_scopes=['https://www.googleapis.com/auth/cloud-platform'],
+)
+
 # Initialize Google Cloud Storage file system
-fs = gcsfs.GCSFileSystem(project=bucket_name)
+fs = gcsfs.GCSFileSystem(token=sa_credentials, project=bucket_name)
 
 # ====================================
 # 🎛️ INTERFACE CLASS

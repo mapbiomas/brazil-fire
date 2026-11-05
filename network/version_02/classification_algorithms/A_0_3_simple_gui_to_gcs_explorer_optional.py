@@ -15,7 +15,17 @@ from IPython.display import display, clear_output
 # ----------------------------
 # Config / FS
 # ----------------------------
-fs = gcsfs.GCSFileSystem(project=bucket_name)
+# Service account (GCS via conta de serviço compartilhada)
+import google.auth
+from google.auth import impersonated_credentials
+_src_credentials, _ = google.auth.default()
+sa_credentials = impersonated_credentials.Credentials(
+    source_credentials=_src_credentials,
+    target_principal='mapbiomas-fire@mapbiomas.iam.gserviceaccount.com',
+    target_scopes=['https://www.googleapis.com/auth/cloud-platform'],
+)
+
+fs = gcsfs.GCSFileSystem(token=sa_credentials, project=bucket_name)
 
 base_folder = "mapbiomas-fire/sudamerica/"  # your country "root"
 

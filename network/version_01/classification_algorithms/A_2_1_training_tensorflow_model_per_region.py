@@ -54,6 +54,9 @@ if tf.__version__.startswith('2'):
 import gcsfs
 from google.cloud import storage
 from tqdm import tqdm
+
+# Service account (GCS via conta de serviço compartilhada)
+SERVICE_ACCOUNT_EMAIL = 'mapbiomas-fire@mapbiomas.iam.gserviceaccount.com'
 import ipywidgets as widgets
 from IPython.display import display, HTML, clear_output
 
@@ -203,7 +206,7 @@ class ModelTrainer:
 
             bucket_model_path = f'gs://{self.bucket_name}/sudamerica/{self.country}/models_col1/'
             try:
-                subprocess.check_call(f'gsutil cp {model_path}.* {json_path} {bucket_model_path}', shell=True)
+                subprocess.check_call(f'gsutil -i {SERVICE_ACCOUNT_EMAIL} cp {model_path}.* {json_path} {bucket_model_path}', shell=True)
                 log_message(f'[INFO] Model uploaded to GCS at: {bucket_model_path}')
                 time.sleep(2)
                 fs.invalidate_cache()
@@ -254,7 +257,7 @@ class FileManager:
 
     def download_image(self, image):
         self.log_message(f"[INFO] Starting download of: {image}")
-        download_command = f'gsutil -m cp gs://{self.bucket_name}/sudamerica/{self.country}/training_samples/{image} {self.folder_samples}/'
+        download_command = f'gsutil -i {SERVICE_ACCOUNT_EMAIL} -m cp gs://{self.bucket_name}/sudamerica/{self.country}/training_samples/{image} {self.folder_samples}/'
         process = subprocess.Popen(download_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.wait()
 

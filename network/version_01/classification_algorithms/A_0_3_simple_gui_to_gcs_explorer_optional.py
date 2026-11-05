@@ -8,7 +8,17 @@ from IPython.display import display, HTML, clear_output  # Utilitários para exi
 from ipywidgets import VBox, HBox  # Containers para organizar widgets em caixas verticais ou horizontais
 
 # 3.1 Interface to explore files in Google Cloud Storage (optional)
-fs = gcsfs.GCSFileSystem(project=bucket_name)
+# Service account (GCS via conta de serviço compartilhada)
+import google.auth
+from google.auth import impersonated_credentials
+_src_credentials, _ = google.auth.default()
+sa_credentials = impersonated_credentials.Credentials(
+    source_credentials=_src_credentials,
+    target_principal='mapbiomas-fire@mapbiomas.iam.gserviceaccount.com',
+    target_scopes=['https://www.googleapis.com/auth/cloud-platform'],
+)
+
+fs = gcsfs.GCSFileSystem(token=sa_credentials, project=bucket_name)
 
 # Set the initial path for the countries
 base_folder = 'mapbiomas-fire/sudamerica/'
