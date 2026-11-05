@@ -41,11 +41,10 @@ def _period_export_metadata(period):
 
 
 def _gcs_exists(path, timeout=15):
-    """Check GCS existence via gsutil stat com timeout. Fallback fs.exists()."""
+    """Check GCS existence via blob.exists(). Fallback fs.exists()."""
     try:
-        ret = subprocess.run(['gsutil', '-q', 'stat', f"gs://{path}"],
-                             capture_output=True, timeout=timeout)
-        return ret.returncode == 0
+        from M_gcs import blob_exists
+        return blob_exists(path)
     except Exception:
         fs = _get_fs()
         try:
@@ -213,9 +212,9 @@ def upload_to_gee(model_id, region, period, fs=None, logger=None, campaign=None,
     mosaic_gcs = gcs_full(region_path(model_id, region, period, campaign))
     gcs_uri = f"gs://{mosaic_gcs}"
 
-    # Usa gsutil stat (nao gcsfs.exists) para evitar cache stale
-    ret = subprocess.run(['gsutil', '-q', 'stat', gcs_uri], capture_output=True)
-    if ret.returncode != 0:
+    # Usa blob.exists() (google-cloud-storage) para evitar cache stale
+    from M_gcs import blob_exists
+    if not blob_exists(mosaic_gcs):
         if logger:
             logger(f"    [WARN] Mosaic not found for GEE upload")
         return False
