@@ -197,15 +197,29 @@ def authenticate(project=None):
             ee.Initialize(credentials=target_credentials, project=project)
             print(f"[GEE] Inicializado como conta de serviço: {sa_email}")
         except Exception as exc:
+            detail = str(exc)
+            if 'iam.serviceAccounts.getAccessToken' in detail:
+                remedy = (
+                    "Causa: falta a permissão 'iam.serviceAccounts.getAccessToken'.\n"
+                    "Conceda o papel 'Service Account Token Creator' ao Google "
+                    "Group da equipe:\n\n"
+                    "  gcloud iam service-accounts add-iam-policy-binding \\\n"
+                    f"      {sa_email} \\\n"
+                    "      --member=\"group:SEU_GRUPO@googlegroups.com\" \\\n"
+                    "      --role=\"roles/iam.serviceAccountTokenCreator\" \\\n"
+                    "      --project=SEU_PROJECT_ID\n"
+                )
+            else:
+                remedy = (
+                    "Verifique:\n"
+                    "  1) sua conta pertence ao Google Group com o papel "
+                    "'Service Account Token Creator' sobre a conta de serviço;\n"
+                    "  2) a conta de serviço está registrada no Earth Engine e "
+                    "tem acesso aos projetos/bucket.\n"
+                )
             raise RuntimeError(
-                "Falha ao autenticar via conta de serviço "
-                f"'{sa_email}'.\n"
-                "Verifique:\n"
-                "  1) sua conta pertence ao Google Group com a permissão "
-                "'Service Account Token Creator' (ou 'ActAs') sobre a conta "
-                "de serviço;\n"
-                "  2) a conta de serviço está registrada no Earth Engine e tem "
-                "acesso aos projetos/bucket.\n"
+                f"Falha ao autenticar via conta de serviço '{sa_email}'.\n"
+                f"{remedy}\n"
                 f"Erro original: {exc}"
             ) from exc
     else:
