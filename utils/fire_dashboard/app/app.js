@@ -1685,6 +1685,7 @@ async function loadCicatriz({ t, ini, fim }) {
         chart: {
           kind: "line",
           percent: true,
+          axisTitle: "Proporção da área queimada no ano (%)",
           labels: anosComFogo.map((a) => String(a.ano)),
           values: anosComFogo.map((a) => safeDiv(somaGrandes(a.valores), a.area)),
           color: grandes[grandes.length - 1]?.color,
@@ -1938,6 +1939,7 @@ async function loadSeveridade({ t, ini, fim }) {
         chart: {
           kind: "line",
           percent: true,
+          axisTitle: "Proporção da área afetada no ano (%)",
           labels: comDados.map((a) => String(a.ano)),
           values: comDados.map((a) => safeDiv(somaAltas(a.valores), a.area)),
           color: vermelho,
@@ -2067,6 +2069,7 @@ async function loadTerritorios({ ini, fim }) {
           ? {
             kind: "hbar",
             percent: true,
+            axisTitle: "Variação em relação à média (%)",
             labels: variacao.map((l) => l.name),
             tooltipTitles: variacao.map((l) => `${l.name}: ${ha(l.porAno[ultimo])} em ${fim} · média ${ha(l.media)}`),
             values: variacao.map((l) => l.delta),
@@ -2108,6 +2111,7 @@ async function loadTerritorios({ ini, fim }) {
         chart: {
           kind: "stacked",
           percent: true,
+          axisTitle: "Participação na área queimada (%)",
           labels: biomas.anos.map(String),
           series: biomas.linhas.map((l) => ({
             label: l.name,
@@ -3027,8 +3031,10 @@ function chartConfig(spec, t) {
   if (spec.unit === "Mha") {
     valueAxis.ticks.callback = (v) => fmtMhaEixo.format(v / 1e6);
   }
-  if (spec.axisTitle) {
-    valueAxis.title = { display: true, text: spec.axisTitle, color: t.text2, font: { size: fonte + 1, weight: "600" } };
+  // Título padrão do eixo de valores quando o gráfico não define um.
+  const tituloEixo = spec.axisTitle || (spec.percent ? "Participação (%)" : "Área queimada (ha)");
+  if (tituloEixo) {
+    valueAxis.title = { display: true, text: tituloEixo, color: t.text2, font: { size: fonte + 1, weight: "600" } };
   }
   if (spec.categoryTitle) {
     categoryAxis.title = { display: true, text: spec.categoryTitle, color: t.text2, font: { size: fonte + 1, weight: "600" } };
