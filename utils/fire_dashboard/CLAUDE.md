@@ -29,3 +29,10 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - Só português e só Brasil (ver README, seção de adaptação).
 - A primeira consulta de um estado ou município com bioma pode levar minutos; a página mostra o progresso.
 - O recorte exato dos 524 municípios na divisa do Cerrado leva dezenas de minutos na primeira vez.
+
+## Mapas Interativos (blocos)
+
+- **Ranking por território** (`renderMapaDinamico`): tudo roda no navegador com o ranking anual já carregado (sem novas consultas). Passo 1 indicador (área · % do território · mudança entre períodos), passo 2 período todo / um ano com ▶ (escala de cores fixa entre anos) ou ano de corte, passo 3 cores ou bolhas e CSV (`;`, vírgula decimal). Clique abre série anual; em estados, atalho para filtrar o painel.
+- A área do território para "% do território" vem do contorno (`turf.area`), portanto é aproximada; em municípios os pedaços dos tiles se sobrepõem um pouco na borda.
+- **Dados brutos**: sobrepor uma 2ª camada (com transparência), cortina entre dois anos (só camadas de um ano; recorte com `style.clip`, como o leaflet-side-by-side) e "Destacar o recorte" (`turf.mask`).
+- Não feito: limites de TIs/UCs sobre o mapa (a API só entrega geometria por território, não por categoria inteira) e hotspots (estatística espacial).

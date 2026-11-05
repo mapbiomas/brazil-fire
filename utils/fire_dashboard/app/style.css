@@ -1149,3 +1149,55 @@ body {
 .tabela .num { text-align: right; font-variant-numeric: tabular-nums; }
 .tabela thead th { position: sticky; top: 0; background: var(--surface, #fff); font-weight: 700; }
 .tabela tfoot td { position: sticky; bottom: 0; background: var(--surface, #fff); font-weight: 700; }
+
+/* ---------- Mapa dinâmico (passos 1-2-3, ajuda, detalhe) ---------- */
+.md-wrap [hidden] { display: none !important; }
+.md-controles { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+.md-passo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.md-num {
+  display: inline-grid; place-items: center; width: 24px; height: 24px; flex: none;
+  border-radius: 50%; background: var(--brand); color: #fff; font-size: .8rem; font-weight: 700;
+}
+.md-rotulo { min-width: 110px; font-size: .85rem; font-weight: 700; color: var(--text); }
+.md-ano { display: inline-flex; align-items: center; gap: 8px; }
+.md-ano input[type="range"], .md-passo > input[type="range"] { width: min(320px, 60vw); accent-color: var(--brand); }
+.md-valor { min-width: 48px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+.md-play, .md-botao {
+  padding: 6px 12px; border: 1px solid var(--border); border-radius: 9px;
+  background: var(--surface); color: var(--text); font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+}
+.md-play { min-width: 40px; font-size: .95rem; }
+.md-play:hover, .md-botao:hover { border-color: var(--text-2); }
+.md-play:focus-visible, .md-botao:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
+.md-csv { margin-left: auto; }
+.md-ajuda {
+  margin: 0 0 12px; padding: 10px 12px; border-left: 3px solid var(--brand); border-radius: 6px;
+  background: var(--surface-muted); font-size: .85rem; color: var(--text-2); line-height: 1.45;
+}
+.md-detalhe-box { margin-top: 16px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; }
+.md-det-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.md-det-cab h3 { margin: 0; font-size: 1.05rem; }
+.md-det-acoes { display: flex; gap: 8px; }
+.md-det-kpis {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;
+  margin: 0 0 12px; padding: 0; list-style: none;
+}
+.md-det-kpis li { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 8px; background: var(--surface-muted); }
+.md-det-kpis span { font-size: .75rem; color: var(--text-muted); }
+.md-det-kpis strong { font-size: .95rem; color: var(--text); }
+.legend-row .legend-head { flex-basis: 100%; font-weight: 700; color: var(--text); }
+
+/* Controles dentro do mapa (transparência e cortina) */
+.map-ctl {
+  padding: 8px 10px; border-radius: 8px; background: var(--surface); color: var(--text);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.25)); font-size: .8rem; font-weight: 600;
+}
+.map-ctl-label { display: flex; flex-direction: column; gap: 4px; }
+.map-ctl input[type="range"] { width: 200px; accent-color: var(--brand); }
+.cortina-ctl { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.cortina-ctl input[type="range"] { width: min(360px, 55vw); }
+.cortina-linha {
+  position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; z-index: 450;
+  background: var(--surface); box-shadow: 0 0 0 1px var(--text-2); pointer-events: none;
+}
+.map-box { position: relative; }
