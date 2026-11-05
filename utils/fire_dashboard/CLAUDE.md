@@ -44,3 +44,4 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - Produtos: folhas do tema de fogo, sem mensal, `last_year` e `mean_interval`. Acumulado e frequência (`year_interval`) usam `year=[ini, ano]` em cada quadro.
 - Não usa `state.conn` nem os filtros do topo; conexão própria por país em `gifRegiao` (cache `gif:<região>`).
 - Aberto como `file://`, o logo pode "sujar" o canvas; `carregarLogo` testa e omite o logo nesse caso.
+- Testado (navegador sem interface): Chile 2018–2025, 8 quadros, 0,3 MB.
