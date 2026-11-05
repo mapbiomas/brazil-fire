@@ -76,3 +76,14 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - `cardHtml` põe "⬇ PNG" e "▦ Tabela" em todo card com dados; `acaoDoCard` (delegado em `el.panel`). A tabela vem de `tabelaDoCard`: dos gráficos Chart.js desenhados (`Chart.getChart`; `options.plugins.tabela.percent`), ou de `ranking`/`propbars`/`topcards` (cards lazy guardam `root._res`). CSV com `;`.
 - A tabela fixa da aba Anual saiu (agora é o botão Tabela do gráfico anual).
 - Mensal: `state.mesIni`/`mesFim` definem a temporada; atravessando o ano, a temporada Y = meses ≥ início em Y + meses < início em Y+1 (rótulo "2020/21"; a última sem o ano seguinte fica de fora). `state.paletaMes`: legenda oficial da API ou `PALETA_MESES_FOGO`. Novo card empilhado por ano e mês. A legenda mensal usa só os 12 primeiros itens (Colômbia traz 24).
+
+## Revisão das abas (2026-11-05, tarde)
+
+- Controles dentro de um card: item de `toolbar` com `card: <índice>` (renderizado no card, não no topo).
+- Frequência: KPIs "frequência predominante" e "queimou 2 vezes ou mais"; card "Área queimada por classe de frequência" com classes e "Mostrar" ha/% (`state.freqUnid`).
+- Cicatriz: faixa da proporção por ano escolhível (`state.cicatrizClasse`). Último fogo, Cicatriz, Severidade: KPIs de área total removidos.
+- Roscas: anel mais largo (`cutout` 56%), maiores (260 px) e % dentro das fatias ≥ 4% (`rotulosRoscaPlugin`).
+- Retorno: duas abas, "Retorno do Último Fogo" (`loadRetornoUltimo`) e "Intervalo Médio de Retorno" (`loadMediaRetorno`).
+- Mapa por território: também por biomas; subtítulo "Ranking de ini–fim".
+- Coleção padrão quando a nota não cita: Paraguai 1, Indonésia 2 (`colecaoPadrao`).
+- GIF: ordem país, território, produto.

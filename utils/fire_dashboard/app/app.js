@@ -91,7 +91,7 @@ const PAISES = [
     rotulos: { bioma: ["Bioma", "Biomas"], estado: ["Departamento", "Departamentos"], municipio: ["Município", "Municípios"] },
   },
   {
-    region: "paraguay", nome: "Paraguai", de: "do Paraguai", em: "no Paraguai", lang: "es-ES", logo: LOGO_ES, marca: "MapBiomas Fuego",
+    region: "paraguay", nome: "Paraguai", colecaoPadrao: "1", de: "do Paraguai", em: "no Paraguai", lang: "es-ES", logo: LOGO_ES, marca: "MapBiomas Fuego",
     cats: { pais: /^NIVEL_POLITICO_1/, bioma: /^ECORREGIONES_DINERSTEIN/, estado: /^NIVEL_POLITICO_2/, municipio: /^NIVEL_POLITICO_3/ },
     rotulos: { bioma: ["Ecorregião", "Ecorregiões"], estado: ["Departamento", "Departamentos"], municipio: ["Distrito", "Distritos"] },
   },
@@ -101,7 +101,7 @@ const PAISES = [
     rotulos: { bioma: ["Bioma", "Biomas"], estado: ["Departamento", "Departamentos"], municipio: ["Distrito", "Distritos"] },
   },
   {
-    region: "indonesia", nome: "Indonésia", de: "da Indonésia", em: "na Indonésia", lang: "en-US", logo: "logos/MapBiomas_Fire_EN.png", marca: "MapBiomas Fire",
+    region: "indonesia", nome: "Indonésia", colecaoPadrao: "2", de: "da Indonésia", em: "na Indonésia", lang: "en-US", logo: "logos/MapBiomas_Fire_EN.png", marca: "MapBiomas Fire",
     cats: { pais: /^POLITICAL_LEVEL_1$/, bioma: /^POLITICAL_LEVEL_2$/, estado: /^POLITICAL_LEVEL_3$/, municipio: /^POLITICAL_LEVEL_4$/ },
     rotulos: { bioma: ["Grupo de ilhas", "Grupos de ilhas"], estado: ["Província", "Províncias"], municipio: ["Distrito", "Distritos"] },
   },
@@ -357,7 +357,8 @@ const TABS = [
   { id: "ultimoFogo", label: "Ano do Último Fogo", load: loadUltimoFogo, requer: ["ultimoFogo"] },
   { id: "cicatriz", label: "Tamanho de Cicatriz", load: loadCicatriz, requer: ["cicatriz"] },
   { id: "severidade", label: "Severidade", load: loadSeveridade, requer: ["severidade"] },
-  { id: "retorno", label: "Intervalo de Retorno", load: loadRetorno, requer: ["retorno", "mediaRetorno"] },
+  { id: "retorno", label: "Retorno do Último Fogo", load: loadRetornoUltimo, requer: ["retorno"] },
+  { id: "mediaRetorno", label: "Intervalo Médio de Retorno", load: loadMediaRetorno, requer: ["mediaRetorno"] },
   { id: "fundiario", label: "Categorias Fundiárias", load: loadFundiario, requer: ["anual"], soBrasil: true },
   { id: "territorios", label: "Territórios", load: loadTerritorios, requer: ["anual"] },
   { id: "mapa", label: "Mapas Interativos", load: loadMapa, requer: ["anual"] },
@@ -386,6 +387,8 @@ const state = {
   // camada2: camada sobreposta; cortina: compara dois anos; anoA: ano da esquerda; destaque: escurece fora do recorte.
   mapa: { tipo: "bruto", unidade: "estados", camada: "acumulado", visualizar: "biomas", camada2: "", cortina: "off", anoA: null, destaque: "off" },
   freqGrupo: "todas", // Frequência: "todas" (1 a N vezes), "15" (1 a 15 e 16+), "9" (1 a 9 e 10+)
+  freqUnid: "ha", // Frequência: barras em hectares ou em % da área queimada
+  cicatrizClasse: "grandes", // Cicatriz: faixa da "proporção por ano" (índice da faixa ou "grandes")
   paletaBioma: "terrosa", // paleta da vista "Por bioma" (ver PALETAS_BIOMA)
   vistas: {}, // tipo escolhido em cada card com alternância ("aba:índice" -> "barras" | "linhas" | "rosca")
   hash: {},
@@ -609,6 +612,7 @@ async function discoverEnvironment(env) {
   if (!territorioPais) throw new Error(`território ${PAIS.nome} não encontrado`);
 
   const nota = readInformativeNote(fire);
+  if (!nota.colecao) nota.colecao = PAIS.colecaoPadrao || null; // Paraguai (1) e Indonésia (2) não citam a coleção na nota
   const byName = (a, b) => a.name.localeCompare(b.name, "pt-BR");
   const conn = {
     env,
@@ -1898,22 +1902,36 @@ async function loadFrequencia({ t, ini, fim }) {
   barras.forEach((b, i) => { b.color = rampColor(FREQ_RAMP, safeDiv(i, barras.length - 1)); });
   const rotuloGrupo = { todas: `1 a ${nMax || "N"}`, 15: "1 a 15 e 16+", 9: "1 a 9 e 10+" };
 
+  const predominante = maxBy(porClasse, (c) => c.value);
+  const emPct = state.freqUnid === "pct";
+
   return {
-    toolbar: [{
-      type: "segmented",
-      label: "Classes de frequência",
-      value: state.freqGrupo,
-      options: ["todas", "15", "9"].map((v) => ({ value: v, label: rotuloGrupo[v] })),
-      onChange: (v) => { state.freqGrupo = v; loadCurrentTab(); },
-    }],
-    kpis: [
-      { label: `Área queimada ao menos 1 vez (${ini}–${fim})`, value: ha(total), note: "Soma de todas as classes de frequência" },
-      { label: "Queimou 2 vezes ou mais", value: ha(total - umaVez), note: `${pct(safeDiv(total - umaVez, total))} da área queimada` },
+    // Controles do card "Área queimada por classe de frequência" (índice 1), ao lado do gráfico.
+    toolbar: [
       {
-        label: "Maior frequência observada",
-        value: visiveis.length ? `${visiveis[visiveis.length - 1].short} vez(es)` : "—",
-        note: `em ${fim - ini + 1} ano(s) de período`,
+        type: "segmented",
+        card: 1,
+        label: "Classes de frequência",
+        value: state.freqGrupo,
+        options: ["todas", "15", "9"].map((v) => ({ value: v, label: rotuloGrupo[v] })),
+        onChange: (v) => { state.freqGrupo = v; loadCurrentTab(); },
       },
+      {
+        type: "segmented",
+        card: 1,
+        label: "Mostrar",
+        value: emPct ? "pct" : "ha",
+        options: [{ value: "ha", label: "Área (ha)" }, { value: "pct", label: "% da área queimada" }],
+        onChange: (v) => { state.freqUnid = v; loadCurrentTab(); },
+      },
+    ],
+    kpis: [
+      {
+        label: "Frequência predominante",
+        value: predominante?.value ? predominante.label : "—",
+        note: predominante?.value ? `${pct(safeDiv(predominante.value, total))} da área queimada · ${ha(predominante.value)}` : "",
+      },
+      { label: "Queimou 2 vezes ou mais", value: ha(total - umaVez), note: `${pct(safeDiv(total - umaVez, total))} da área queimada` },
     ],
     cards: [
       {
@@ -1931,18 +1949,20 @@ async function loadFrequencia({ t, ini, fim }) {
       },
       {
         span: 7,
-        title: "Área por número de vezes que queimou",
+        title: "Área queimada por classe de frequência",
         subtitle: `${ini}–${fim} · classes ${rotuloGrupo[state.freqGrupo]}`,
         alterna: "rosca",
         chart: {
           kind: "bar",
-          axisTitle: "Área queimada (ha)",
+          percent: emPct,
+          axisTitle: emPct ? "Participação na área queimada (%)" : "Área queimada (ha)",
           categoryTitle: "Número de vezes que queimou",
           labels: barras.map((c) => c.short),
-          tooltipTitles: barras.map((c) => c.label),
-          values: barras.map((c) => c.value),
+          tooltipTitles: barras.map((c) => `${c.label} · ${ha(c.value)} · ${pct(safeDiv(c.value, total))}`),
+          values: barras.map((c) => (emPct ? safeDiv(c.value, total) : c.value)),
           colors: barras.map((c) => c.color),
         },
+        rosca: [{ slices: barras.filter((b) => b.value > 0).map((b) => ({ label: b.label, value: b.value, color: b.color })) }],
         legend: [
           { label: "Menos frequente", color: FREQ_RAMP[0] },
           { label: "Mais frequente", color: FREQ_RAMP[FREQ_RAMP.length - 1] },
@@ -1952,7 +1972,6 @@ async function loadFrequencia({ t, ini, fim }) {
     ],
   };
 }
-
 async function loadCicatriz({ t, ini, fim }) {
   const legenda = await getLegend("cicatriz");
   const subclasses = levelItems(legenda, 1);
@@ -1972,12 +1991,15 @@ async function loadCicatriz({ t, ini, fim }) {
   const porFaixa = faixas.map((g) => ({ label: g.label, color: g.color, value: sum(anos.map((a) => somaGrupo(g, a.valores))) }));
   const predominante = maxBy(porFaixa, (g) => g.value);
   const grandes = faixas.slice(-2); // ≥ 10 mil ha
-  const somaGrandes = (valores) => sum(grandes.map((g) => somaGrupo(g, valores)));
+  // Faixa(s) da "proporção por ano": as duas maiores (padrão) ou uma faixa escolhida.
+  const escolha = state.cicatrizClasse === "grandes" ? grandes : [faixas[Number(state.cicatrizClasse)]].filter(Boolean);
+  const alvo = escolha.length ? escolha : grandes;
+  const rotuloAlvo = state.cicatrizClasse === "grandes" ? `${grandes[0]?.label.replace(/ a .*/, "")} ha ou mais` : alvo.map((g) => g.label).join(" e ");
+  const somaGrandes = (valores) => sum(alvo.map((g) => somaGrupo(g, valores)));
   const anosComFogo = anos.filter((a) => a.area > 0);
 
   return {
     kpis: [
-      { label: `Área queimada ${ini}–${fim}`, value: ha(total), note: "Soma das áreas anuais em todas as faixas de tamanho" },
       { label: "Faixa de tamanho predominante", value: predominante?.label || "—", note: predominante ? `${pct(safeDiv(predominante.value, total))} da área` : "" },
       {
         label: `Em cicatrizes de ${grandes[0]?.label.replace(/ a .*/, "") || "10 mil"} ha ou mais`,
@@ -2013,8 +2035,8 @@ async function loadCicatriz({ t, ini, fim }) {
       },
       {
         span: 6,
-        title: "Proporção em cicatrizes grandes por ano",
-        subtitle: `Faixas ${grandes.map((g) => g.label).join(" e ")}, sobre a área queimada no ano`,
+        title: `Proporção por ano em cicatrizes de ${rotuloAlvo}`,
+        subtitle: `Área em cicatrizes de ${rotuloAlvo} ÷ área queimada no ano`,
         alterna: "linhas",
         chart: {
           kind: "line",
@@ -2022,10 +2044,18 @@ async function loadCicatriz({ t, ini, fim }) {
           axisTitle: "Proporção da área queimada no ano (%)",
           labels: anosComFogo.map((a) => String(a.ano)),
           values: anosComFogo.map((a) => safeDiv(somaGrandes(a.valores), a.area)),
-          color: grandes[grandes.length - 1]?.color,
+          color: alvo[alvo.length - 1]?.color,
         },
       },
     ],
+    toolbar: [{
+      type: "select",
+      card: 2,
+      label: "Faixa de tamanho",
+      value: state.cicatrizClasse,
+      options: [{ value: "grandes", label: `${grandes[0]?.label.replace(/ a .*/, "")} ha ou mais` }, ...faixas.map((g, i) => ({ value: String(i), label: g.label }))],
+      onChange: (v) => { state.cicatrizClasse = v; loadCurrentTab(); },
+    }],
   };
 }
 
@@ -2050,41 +2080,27 @@ function rafScarLabel(name) {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
-async function loadRetorno({ t, ini, fim }) {
-  const [lgRetorno, lgMedia] = await Promise.all([getLegend("retorno"), getLegend("mediaRetorno")]);
-  const faixasRetorno = levelItems(lgRetorno, 0);
-  const faixasMedia = levelItems(lgMedia, 0);
-
-  const [retorno, media] = await Promise.all([
-    getStats({
-      subthemeKey: sub("retorno"), legendKey: lgRetorno.key, pixelValue: pixelValues(faixasRetorno),
-      year: fim, ...territoryParams(t),
-    }),
-    getStats({
-      subthemeKey: sub("mediaRetorno"), legendKey: lgMedia.key, pixelValue: pixelValues(faixasMedia),
-      year: [ini, fim], ...territoryParams(t),
-    }),
-  ]);
-
-  const dRetorno = totalsByClass(faixasRetorno, retorno);
-  const dMedia = totalsByClass(faixasMedia, media);
-  const totRetorno = sum(dRetorno.map((d) => d.value));
-  const totMedia = sum(dMedia.map((d) => d.value));
-  const curto = dRetorno[0];
-  const predominante = maxBy(dMedia, (d) => d.value);
-
+// Retorno do último fogo: nas áreas queimadas no ano final que já tinham queimado antes,
+// quantos anos se passaram desde o fogo anterior.
+async function loadRetornoUltimo({ t, fim }) {
+  const legenda = await getLegend("retorno");
+  const faixas = levelItems(legenda, 0);
+  const res = await getStats({
+    subthemeKey: sub("retorno"), legendKey: legenda.key, pixelValue: pixelValues(faixas), year: fim, ...territoryParams(t),
+  });
+  const dados = totalsByClass(faixas, res);
+  const total = sum(dados.map((d) => d.value));
+  const curto = dados[0];
+  const predominante = maxBy(dados, (d) => d.value);
   return {
     kpis: [
       {
         label: `Retorno em ${curto ? curto.label : "—"} (${fim})`,
-        value: pct(safeDiv(curto?.value || 0, totRetorno)),
-        note: `${ha(curto?.value || 0)} de ${ha(totRetorno)} queimados com fogo anterior`,
+        value: pct(safeDiv(curto?.value || 0, total)),
+        note: `${ha(curto?.value || 0)} de ${ha(total)} queimados com fogo anterior`,
       },
-      {
-        label: `Intervalo médio predominante (${ini}–${fim})`,
-        value: predominante?.label || "—",
-        note: predominante ? `${pct(safeDiv(predominante.value, totMedia))} da área com recorrência` : "",
-      },
+      { label: "Classe predominante", value: predominante?.value ? predominante.label : "—", note: predominante?.value ? `${pct(safeDiv(predominante.value, total))} · ${ha(predominante.value)}` : "" },
+      { label: `Área queimada em ${fim} com fogo anterior`, value: ha(total), note: "Base das proporções desta aba" },
     ],
     cards: [
       {
@@ -2094,21 +2110,64 @@ async function loadRetorno({ t, ini, fim }) {
         alterna: "rosca",
         chart: {
           kind: "bar",
-          labels: dRetorno.map((d) => d.label),
-          values: dRetorno.map((d) => d.value),
-          colors: dRetorno.map((d) => d.color),
+          axisTitle: "Área queimada (ha)",
+          labels: dados.map((d) => d.label),
+          values: dados.map((d) => d.value),
+          colors: dados.map((d) => d.color),
         },
       },
       {
         span: 5,
-        title: `Intervalo médio de retorno · ${ini}–${fim}`,
-        subtitle: "Média de anos entre queimadas sucessivas",
-        ranking: { rows: dMedia, total: totMedia, plain: true },
+        title: "Distribuição por tempo de retorno",
+        subtitle: `${fim} · % da área queimada com fogo anterior`,
+        ranking: { rows: dados.filter((d) => d.value > 0), total, plain: true },
       },
     ],
   };
 }
 
+// Intervalo médio de retorno: média de anos entre queimadas sucessivas no período.
+async function loadMediaRetorno({ t, ini, fim }) {
+  const legenda = await getLegend("mediaRetorno");
+  const faixas = levelItems(legenda, 0);
+  const res = await getStats({
+    subthemeKey: sub("mediaRetorno"), legendKey: legenda.key, pixelValue: pixelValues(faixas), year: [ini, fim], ...territoryParams(t),
+  });
+  const dados = totalsByClass(faixas, res);
+  const total = sum(dados.map((d) => d.value));
+  const predominante = maxBy(dados, (d) => d.value);
+  return {
+    kpis: [
+      {
+        label: `Intervalo médio predominante (${ini}–${fim})`,
+        value: predominante?.value ? predominante.label : "—",
+        note: predominante?.value ? `${pct(safeDiv(predominante.value, total))} da área com recorrência · ${ha(predominante.value)}` : "",
+      },
+      { label: "Área com recorrência no período", value: ha(total), note: "Áreas que queimaram mais de uma vez" },
+    ],
+    cards: [
+      {
+        span: 7,
+        title: `Intervalo médio de retorno · ${ini}–${fim}`,
+        subtitle: "Média de anos entre queimadas sucessivas",
+        alterna: "rosca",
+        chart: {
+          kind: "bar",
+          axisTitle: "Área queimada (ha)",
+          labels: dados.map((d) => d.label),
+          values: dados.map((d) => d.value),
+          colors: dados.map((d) => d.color),
+        },
+      },
+      {
+        span: 5,
+        title: "Distribuição por intervalo médio",
+        subtitle: `${ini}–${fim} · % da área com recorrência`,
+        ranking: { rows: dados.filter((d) => d.value > 0), total, plain: true },
+      },
+    ],
+  };
+}
 async function loadUltimoFogo({ t, ini, fim }) {
   const legenda = await getLegend("ultimoFogo");
   // Folhas da legenda = um item por ano ("2025", "2024"…); no staging há grupos de décadas acima delas.
@@ -2146,8 +2205,7 @@ async function loadUltimoFogo({ t, ini, fim }) {
 
   return {
     kpis: [
-      { label: `Área com fogo entre ${ini} e ${fim}`, value: ha(total), note: "Cada área conta uma vez, no ano do último fogo" },
-      { label: `Último fogo nos últimos 5 anos (${Math.max(ini, fim - 4)}–${fim})`, value: pct(safeDiv(recentes, total)), note: ha(recentes) },
+      { label: `Área queimada pela última vez nos últimos 5 anos (${Math.max(ini, fim - 4)}–${fim})`, value: pct(safeDiv(recentes, total)), note: ha(recentes) },
       { label: "Ano mediano do último fogo", value: mediano ? String(mediano.ano) : "—", note: "Metade da área queimou pela última vez até este ano" },
     ],
     cards: [
@@ -2217,13 +2275,12 @@ async function loadSeveridade({ t, ini, fim }) {
 
   return {
     kpis: [
-      { label: `Área afetada ${ini}–${fim}`, value: ha(total), note: "Soma anual das classes de severidade potencial (beta)" },
       {
         label: `Severidade ${altas[0]?.name || "alta"} ou maior`,
         value: pct(safeDiv(sum(comDados.map((a) => somaAltas(a.valores))), total)),
         note: altas.map((c) => c.name).join(" · "),
       },
-      { label: "Classe predominante", value: predominante?.label || "—", note: predominante ? pct(safeDiv(predominante.value, total)) : "" },
+      { label: "Classe predominante", value: predominante?.label || "—", note: predominante ? `${pct(safeDiv(predominante.value, total))} · ${ha(predominante.value)} em ${ini}–${fim}` : "" },
     ],
     cards: [
       {
@@ -2726,20 +2783,24 @@ async function loadMapaRanking({ t, ini, fim }) {
   const progresso = (rotulo) => (n, tot) => setStatus(`${rotulo}: ${n}/${tot}`, true);
 
   let linhas, features, escopoRotulo, anosRk, aviso = "", emCalculo = false;
-  if (unidade === "estados") {
-    const catEstado = await categoriaDe(c.estados[0].id);
+  if (unidade === "estados" || unidade === "biomas") {
+    // Estados ou biomas inteiros: um ranking por ano da categoria + contorno de cada território.
+    const ehBioma = unidade === "biomas";
+    const lista = ehBioma ? c.biomas : c.estados;
+    const nivel = ehBioma ? "bioma" : "estado";
     const [rk, geoms] = await Promise.all([
-      rankingPeriodo(catEstado, ini, fim, progresso(`Ranking de ${rot("estado", true).toLowerCase()} (anos)`)),
-      mapLimit(c.estados, 6, (e) => getGeometry([e.id]).catch(() => null)),
+      rankingPeriodo(ehBioma ? c.catBioma : c.catEstado, ini, fim, progresso(`Ranking de ${rot(nivel, true).toLowerCase()} (anos)`)),
+      mapLimit(lista, 6, (e) => getGeometry([e.id]).catch(() => null)),
     ]);
     linhas = rk.linhas;
     anosRk = rk.anos;
     const valor = new Map(linhas.map((l) => [l.id, l.value]));
-    features = c.estados.map((e, i) => ({
+    features = lista.map((e, i) => ({
       type: "Feature", geometry: geoms[i], properties: { id: e.id, name: e.name, value: valor.get(e.id) || 0 },
     })).filter((f) => f.geometry);
-    escopoRotulo = `${rot("estado", true)} ${PAIS.de}`;
-    if (state.biomaId) aviso = `${rot("estado", true)} inteiros: a API de ranking não recorta por ${rot("bioma").toLowerCase()}.`;
+    escopoRotulo = `${rot(nivel, true)} ${PAIS.de}`;
+    if (state.biomaId && !ehBioma) aviso = `${rot("estado", true)} inteiros: a API de ranking não recorta por ${rot("bioma").toLowerCase()}.`;
+    if (state.estadoId && ehBioma) aviso = `${rot("bioma", true)} inteiros: a API de ranking não recorta por ${rot("estado").toLowerCase()}.`;
   } else {
     const [escopo, rk, shapes] = await Promise.all([
       municipiosNoEscopo((msg) => setStatus(msg, true)),
@@ -2797,7 +2858,11 @@ async function loadMapaRanking({ t, ini, fim }) {
         type: "segmented",
         label: "Pintar por",
         value: unidade,
-        options: [{ value: "estados", label: rot("estado", true) }, ...(state.conn.catMunicipio ? [{ value: "municipios", label: rot("municipio", true) }] : [])],
+        options: [
+          ...(state.conn.biomas.length ? [{ value: "biomas", label: rot("bioma", true) }] : []),
+          { value: "estados", label: rot("estado", true) },
+          ...(state.conn.catMunicipio ? [{ value: "municipios", label: rot("municipio", true) }] : []),
+        ],
         onChange: (v) => { state.mapa.unidade = v; loadCurrentTab(); },
       },
     ],
@@ -2806,10 +2871,10 @@ async function loadMapaRanking({ t, ini, fim }) {
       {
         span: 12,
         title: `${escopoRotulo}: explore o fogo no mapa`,
-        subtitle: `Ranking oficial da API, ${ini}–${fim} · escolha o que mostrar nos passos abaixo e clique num território para ver o detalhe${unidade === "municipios" && !state.biomaId && !state.estadoId ? ` · escolha ${rot("bioma").toLowerCase()} ou ${rot("estado").toLowerCase()} no filtro para recortar` : ""}`,
+        subtitle: `Ranking de ${ini}–${fim} · escolha o que mostrar nos passos abaixo e clique num território para ver o detalhe${unidade === "municipios" && !state.biomaId && !state.estadoId ? ` · escolha ${rot("bioma").toLowerCase()} ou ${rot("estado").toLowerCase()} no filtro para recortar` : ""}`,
         map: {
           dinamico: {
-            features, territorios, anos: anosRk, unidade, contorno: recorte, bordas: unidade === "estados",
+            features, territorios, anos: anosRk, unidade, contorno: recorte, bordas: unidade !== "municipios",
             emCalculo, corEmCalculo, recorteBioma: Boolean(state.biomaId),
           },
           aviso,
@@ -2817,7 +2882,7 @@ async function loadMapaRanking({ t, ini, fim }) {
       },
       {
         span: 12,
-        title: `${rot(unidade === "estados" ? "estado" : "municipio", true)} que mais queimaram`,
+        title: `${rot({ biomas: "bioma", estados: "estado" }[unidade] || "municipio", true)} que mais queimaram`,
         subtitle: `Top 10 · soma ${ini}–${fim} · cor = classe da área queimada no período`,
         ranking: {
           rows: top.map((l) => ({ label: l.name, value: l.value, color: classes.colorOf(l.value) || vermelho })),
@@ -3166,7 +3231,7 @@ function kpiHtml(kpi) {
 
 // Controles da barra superior da aba (os marcados `inSection` vão para o card de seção).
 function headControls(view) {
-  const itens = (view.toolbar || []).map((ctl, i) => (ctl.inSection ? "" : toolbarHtml(ctl, i))).join("");
+  const itens = (view.toolbar || []).map((ctl, i) => (ctl.inSection || ctl.card != null ? "" : toolbarHtml(ctl, i))).join("");
   return itens.trim() ? `<div class="toolbar">${itens}</div>` : "";
 }
 
@@ -3200,6 +3265,7 @@ function cardHtml(card, i, view) {
         </div>
         <div class="card-topo">${toggle}${acoes}</div>
       </header>
+      ${(view.toolbar || []).some((c) => c.card === i) ? `<div class="toolbar card-controles">${(view.toolbar || []).map((c, j) => (c.card === i ? toolbarHtml(c, j) : "")).join("")}</div>` : ""}
       <div class="card-body">${cardBodyHtml(card, vistaDe(card, i))}</div>
     </article>`;
 }
@@ -3618,8 +3684,9 @@ function renderMapaDinamico(map, spec, tokens, box) {
   const { anos, territorios, unidade } = spec;
   const n = anos.length;
   const ano0 = anos[0], anoN = anos[n - 1];
-  const nomeUnid = rot(unidade === "estados" ? "estado" : "municipio").toLowerCase();
-  const unidPlural = rot(unidade === "estados" ? "estado" : "municipio", true).toLowerCase();
+  const nivelUnid = { biomas: "bioma", estados: "estado" }[unidade] || "municipio";
+  const nomeUnid = rot(nivelUnid).toLowerCase();
+  const unidPlural = rot(nivelUnid, true).toLowerCase();
   const vazio = resolveColor("var(--surface-muted)");
   // comp: "anos" = um ano em relação a outro; "media" = um ano em relação à média do período.
   const st = {
@@ -3861,8 +3928,9 @@ function renderMapaDinamico(map, spec, tokens, box) {
     const total = somaFaixa(t.porAno, 0, n - 1);
     const pico = t.porAno.reduce((best, v, i) => (v > t.porAno[best] ? i : best), 0);
     const comFogo = t.porAno.filter((v) => v > 0).length;
-    const areaT = unidade === "estados" ? areaDe(id) : 0;
-    const podeFiltrar = unidade === "estados" && state.estadoId !== id && [...el.estado.options].some((o) => o.value === id);
+    const areaT = unidade !== "municipios" ? areaDe(id) : 0;
+    const filtroEl = unidade === "biomas" ? el.bioma : el.estado;
+    const podeFiltrar = unidade !== "municipios" && filtroEl.value !== id && [...filtroEl.options].some((o) => o.value === id);
     detBox.hidden = false;
     detBox.innerHTML = `
       <div class="md-det-cab">
@@ -3900,8 +3968,9 @@ function renderMapaDinamico(map, spec, tokens, box) {
       destacar(null);
     } else if (acao === "filtrar" && st.sel) {
       pararPlay();
-      el.estado.value = st.sel;
-      el.estado.dispatchEvent(new Event("change"));
+      const alvo = unidade === "biomas" ? el.bioma : el.estado;
+      alvo.value = st.sel;
+      alvo.dispatchEvent(new Event("change"));
     }
   });
 
@@ -4437,7 +4506,8 @@ function doughnutConfig({ slices }, t) {
   const options = baseOptions(t);
   const total = sum(slices.map((s) => s.value));
   options.interaction = { mode: "nearest", intersect: true };
-  options.cutout = "70%";
+  options.cutout = "56%"; // anel mais largo, com espaço para a % dentro de cada fatia
+  options.plugins.rotulosRosca = { total };
   options.plugins.tooltip.callbacks = {
     label: (ctx) => ` ${fmtFull.format(ctx.parsed)} ha (${pct(safeDiv(ctx.parsed, total))})`,
   };
@@ -4456,6 +4526,34 @@ function doughnutConfig({ slices }, t) {
     options,
   };
 }
+
+// % de cada fatia escrita dentro da rosca (fatias com 4% ou mais, para não sobrepor).
+const rotulosRoscaPlugin = {
+  id: "rotulosRosca",
+  afterDatasetsDraw(chart, _args, opts) {
+    if (chart.config.type !== "doughnut" || !opts?.total) return;
+    const { ctx } = chart;
+    const meta = chart.getDatasetMeta(0);
+    ctx.save();
+    ctx.font = "700 12px Montserrat, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    meta.data.forEach((arco, i) => {
+      const v = chart.data.datasets[0].data[i];
+      const p = safeDiv(v, opts.total);
+      if (p < 0.04 || arco.hidden) return;
+      const { x, y } = arco.tooltipPosition();
+      const txt = pct(p);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(0,0,0,0.45)";
+      ctx.strokeText(txt, x, y);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(txt, x, y);
+    });
+    ctx.restore();
+  },
+};
 
 // Linha vertical acompanhando o tooltip nos gráficos de linha. Registrado globalmente
 // (a troca barras -> linhas reaproveita a instância); só desenha com `plugins.crosshair.color`.
@@ -4685,7 +4783,7 @@ function readHash() {
     state.mensalAnosTocados = true;
   }
   if (["bruto", "ranking"].includes(p.get("mapa"))) state.mapa.tipo = p.get("mapa");
-  if (["estados", "municipios"].includes(p.get("unidade"))) state.mapa.unidade = p.get("unidade");
+  if (["biomas", "estados", "municipios"].includes(p.get("unidade"))) state.mapa.unidade = p.get("unidade");
   if (MAP_LAYERS.some((c) => c.id === p.get("camada"))) state.mapa.camada = p.get("camada");
   if (MAP_VIEWS.some((v) => v.id === p.get("vis"))) state.mapa.visualizar = p.get("vis");
   if (["todas", "15", "9"].includes(p.get("freq"))) state.freqGrupo = p.get("freq");
@@ -4754,7 +4852,7 @@ async function start() {
 
 function init() {
   Chart.defaults.font.family = "'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif";
-  Chart.register(crosshairPlugin, traducaoChartPlugin);
+  Chart.register(crosshairPlugin, traducaoChartPlugin, rotulosRoscaPlugin);
   el.panel.addEventListener("click", acaoDoCard);
   readHash();
   montarPais();
@@ -4827,9 +4925,9 @@ const GIF_PAISES = [
   { region: "bolivia", nome: "Bolívia", de: "da Bolívia", em: "na Bolívia", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
   { region: "chile", nome: "Chile", de: "do Chile", em: "no Chile", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
   { region: "colombia", nome: "Colômbia", de: "da Colômbia", em: "na Colômbia", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
-  { region: "paraguay", nome: "Paraguai", de: "do Paraguai", em: "no Paraguai", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
+  { region: "paraguay", nome: "Paraguai", colecaoPadrao: "1", de: "do Paraguai", em: "no Paraguai", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
   { region: "peru", nome: "Peru", de: "do Peru", em: "no Peru", lang: "es-ES", logo: "logos/MapBiomas_Fuego_ES.png" },
-  { region: "indonesia", nome: "Indonésia", de: "da Indonésia", em: "na Indonésia", lang: "en-US", logo: "logos/MapBiomas_Fire_EN.png" },
+  { region: "indonesia", nome: "Indonésia", colecaoPadrao: "2", de: "da Indonésia", em: "na Indonésia", lang: "en-US", logo: "logos/MapBiomas_Fire_EN.png" },
 ];
 
 // Textos gravados no GIF, no idioma do país.
@@ -4881,7 +4979,8 @@ function gifRegiao(region) {
     const anoMin = m && anoOk(Number(m[1])) ? Number(m[1]) : null;
     const anoMax = m && anoOk(Number(m[2])) && Number(m[2]) >= anoMin ? Number(m[2]) : null;
     const colecao = colecaoDaNota(nota);
-    return { produtos, categorias: cats.categories || [], colecao, anoMin: anoMax ? anoMin : null, anoMax };
+    const colecaoFinal = colecao || PAISES.find((p) => p.region === region)?.colecaoPadrao || null;
+    return { produtos, categorias: cats.categories || [], colecao: colecaoFinal, anoMin: anoMax ? anoMin : null, anoMax };
   });
 }
 
@@ -4940,13 +5039,13 @@ function montarGif(body) {
       <div class="md-passo"><span class="md-num">1</span><span class="md-rotulo">País</span>
         <select data-f="region" aria-label="País">${GIF_PAISES.map((p) => `<option value="${p.region}" data-pais="${p.region}"${p.region === gifState.region ? " selected" : ""}>${escapeHtml(rotuloPais(p))}</option>`).join("")}</select>
       </div>
-      <div class="md-passo"><span class="md-num">2</span><span class="md-rotulo">Produto</span>
-        <select data-f="produto" aria-label="Produto"></select>
-        <select data-f="legenda" aria-label="Legenda" hidden></select>
-      </div>
-      <div class="md-passo"><span class="md-num">3</span><span class="md-rotulo">Território</span>
+      <div class="md-passo"><span class="md-num">2</span><span class="md-rotulo">Território</span>
         <select data-f="categoria" aria-label="Tipo de território"></select>
         <select data-f="territorio" aria-label="Território"></select>
+      </div>
+      <div class="md-passo"><span class="md-num">3</span><span class="md-rotulo">Produto</span>
+        <select data-f="produto" aria-label="Produto"></select>
+        <select data-f="legenda" aria-label="Legenda" hidden></select>
       </div>
       <div class="md-passo"><span class="md-num">4</span><span class="md-rotulo">Anos</span>
         <select data-f="ini" aria-label="Ano inicial"></select><span>até</span>

@@ -1249,3 +1249,13 @@ a.md-botao { display: inline-block; text-decoration: none; }
 .card-acoes button:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
 .card-tabela { margin-top: 14px; }
 .card-tabela-acoes { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+/* Controles dentro do card (ex.: classes de frequência, faixa de tamanho) */
+.card-controles { margin: -4px 0 12px; gap: 10px 16px; }
+.card-controles .field select { min-width: 200px; }
+
+/* Roscas maiores (com a % dentro das fatias) */
+.donut { grid-template-columns: 260px minmax(0, 1fr); }
+.donut-chart { width: 260px; height: 260px; }
+.donut-center strong { font-size: 1.3rem; }
+@media (max-width: 520px) { .donut { grid-template-columns: minmax(0, 1fr); } }
