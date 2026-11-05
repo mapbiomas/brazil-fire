@@ -2,7 +2,7 @@
 
 ## 🔗 Open the app: **[https://mapbiomas.github.io/brazil-fire/dashboard/](https://mapbiomas.github.io/brazil-fire/dashboard/)**
 
-> 🌎 **Eight countries:** Brazil, Argentina, Bolivia, Chile, Colombia, Paraguay, Peru and Indonesia. Pick the country at the top of the page (or open a link such as `.../dashboard/#pais=peru`). The interface is in Portuguese; territory and legend names come from the API in the country language.
+> 🌎 **Eight countries:** Brazil, Argentina, Bolivia, Chile, Colombia, Paraguay, Peru and Indonesia. Pick the country and the language at the top of the page (or open a link such as `.../dashboard/#pais=peru&lang=en`). **Languages:** Portuguese, Spanish and English for every country, plus Bahasa Indonesia for Indonesia. Default: Portuguese for Brazil, Spanish for the South American countries, English for Indonesia. Territory and legend names come from the API in the chosen language when available.
 
 Interactive dashboard of MapBiomas Fire, with the official logo of each country (Fogo, Fuego or Fire). It reads the statistics straight from the public MapBiomas Platform API, so there is nothing to build or install. Filter by biome (or ecoregion), first and second administrative level (state/municipality, department/district, region/commune…) and period, and explore the products in tabs: annual, accumulated, monthly, frequency, last fire year, scar size, severity, return interval, land tenure, territories rankings, maps and a GIF factory.
 
@@ -21,7 +21,7 @@ Highlights:
 - Accumulated tab: share of each biome (or state/municipality) that burned at least once.
 - Municipality × biome: the map and the statistics use only the part of the municipality inside the biome.
 - Interactive maps: burned area, share of the territory or change between two periods, with a year timeline (play), bubbles, click-to-detail and CSV export; raw tiles with an overlay layer, a two-year swipe and a highlight of the selected area.
-- **GIF factory** tab: one frame per year from the official Platform map tiles, with title, territory, year, legend, source and logo (as in [`mapbiomas_gif_factory`](../mapbiomas_gif_factory/)), built in the browser and downloadable as GIF (or the last frame as PNG). Frame texts follow the country language (pt, es or en). Use the published site: opened as a local file, the browser may block reading the map images.
+- **GIF factory** tab: one frame per year from the official Platform map tiles, with title, territory, year, legend, source and logo (as in [`mapbiomas_gif_factory`](../mapbiomas_gif_factory/)), built in the browser and downloadable as GIF (or the last frame as PNG); **Generate and download GIF** saves it in one click. Frame texts and logo follow the chosen language. Use the published site: opened as a local file, the browser may block reading the map images.
 
 ## 🗂️ Folder structure
 
@@ -32,6 +32,7 @@ utils/fire_dashboard/
 └── app/
     ├── index.html
     ├── style.css
+    ├── i18n.js        # translations (pt → es, en, id)
     ├── app.js
     └── logos/                        # copies of utils/_base/logos (PT, ES, EN; the page must open standalone)
 ```
@@ -40,6 +41,7 @@ utils/fire_dashboard/
 |---|---|
 | `app/index.html` | Page shell; loads Chart.js, Leaflet and Turf.js from cdnjs (the GIF encoder, gifenc, is loaded from jsDelivr on demand) |
 | `app/style.css` | Styles (light/dark through CSS tokens) |
+| `app/i18n.js` | Interface translations: one line per Portuguese text with its Spanish, English and Bahasa Indonesia versions |
 | `app/app.js` | Country list (`PAISES`), API client, one loader per tab, charts, maps |
 
 ## ▶️ Run locally
@@ -52,7 +54,11 @@ utils/fire_dashboard/
 1. Check that the country has the fire theme on the Platform API (`/{region}/themes`).
 2. Add an entry to `PAISES` in `app/app.js`: API region, name, language, logo, the territory categories used by the filters (regex on the category key: country, biome or ecoregion, first and second administrative levels) and their Portuguese labels.
 3. Open `#pais=<region>` and go through the tabs. Subthemes are matched by name (pt, es, en) or analysis type; tabs without data stay hidden.
-4. Missing today: interface in Spanish and English (`utils/_base/i18n/`), official biome colors outside Brazil, and land tenure categories outside Brazil.
+4. Missing today: official biome colors outside Brazil and land tenure categories outside Brazil. Translations were written without native-speaker review; please review `app/i18n.js` before official use.
+
+## 🌐 Translations
+
+The code is written in Portuguese and `app/i18n.js` maps each Portuguese text to Spanish, English and Bahasa Indonesia. The page translates whatever it shows (cards, charts, map tooltips, GIF frames). To fix a translation, edit its column; to translate a new text, add a line. Numbers follow the language format (`8,7 millones de ha`, `8.7 million ha`).
 
 ## 📚 Official data sources
 

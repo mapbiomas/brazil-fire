@@ -16,7 +16,7 @@ There is no single build system. Each folder runs on its own (Google Earth Engin
 - Catalog tests: `python -I -m unittest discover -s network/catalog/tests`
 - Legends registry: `python utils/fire_legends/build_legends.py` (validate and regenerate), tests with `python -m unittest discover -s utils/fire_legends/tests`
 - `utils/fire_monitor_highlights`: static HTML, open `src/<country>/*.html` in a browser (no build).
-- `utils/fire_dashboard` (eight countries, Portuguese interface; country list in `PAISES`): static HTML, open `app/index.html` in a browser (no build); syntax check with `node --check utils/fire_dashboard/app/app.js`.
+- `utils/fire_dashboard` (eight countries, pt/es/en interface plus Bahasa for Indonesia; country list in `PAISES`, translations in `app/i18n.js`): static HTML, open `app/index.html` in a browser (no build); syntax check with `node --check utils/fire_dashboard/app/app.js`.
 - `utils/mapbiomas_gif_factory`: see its `README.md` (Colab notebook, `pyproject.toml`).
 
 ## Coding Style & Naming Conventions

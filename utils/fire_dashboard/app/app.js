@@ -117,6 +117,111 @@ const PAIS = (() => {
   }
 })();
 const ehBrasil = PAIS.region === "brazil";
+
+// Idioma da interface (i18n.js): #lang=pt|es|en|id; padrão pelo país (Brasil pt, Indonésia en,
+// demais es). Bahasa indonésio só aparece para a Indonésia.
+const IDIOMAS_DO_PAIS = IDIOMAS.filter((i) => !i.soPais || i.soPais === PAIS.region);
+const IDIOMA = (() => {
+  let pedido = null;
+  try { pedido = new URLSearchParams(location.hash.slice(1)).get("lang"); } catch { /* sem hash */ }
+  const padrao = ehBrasil ? "pt" : PAIS.region === "indonesia" ? "en" : "es";
+  return IDIOMAS_DO_PAIS.find((i) => i.id === pedido) || IDIOMAS.find((i) => i.id === padrao);
+})();
+const IDIOMA_PADRAO = ehBrasil ? "pt" : PAIS.region === "indonesia" ? "en" : "es";
+const LOCALE = IDIOMA.locale;
+// Marca e logo seguem o idioma: MapBiomas Fogo (pt), Fuego (es), Fire (en e bahasa).
+const MARCA = { pt: ["MapBiomas Fogo", "logos/MapBiomas_Fogo_PT.png"], es: ["MapBiomas Fuego", "logos/MapBiomas_Fuego_ES.png"],
+  en: ["MapBiomas Fire", "logos/MapBiomas_Fire_EN.png"], id: ["MapBiomas Fire", "logos/MapBiomas_Fire_EN.png"] }[IDIOMA.id];
+PAIS.marca = MARCA[0];
+PAIS.logo = MARCA[1];
+
+// Tradução por trechos: o texto em português é a chave (I18N_LINHAS). Uma regex única com
+// todas as chaves (as maiores primeiro), palavra inteira quando a chave começa/termina com letra.
+const TR = (() => {
+  const col = { es: 1, en: 2, id: 3 }[IDIOMA.id];
+  if (!col) return null;
+  const mapa = new Map();
+  for (const linha of I18N_LINHAS) if (linha[col]) mapa.set(linha[0], linha[col]);
+  for (const r of I18N_ROTULOS) {
+    const t = mapa.get(r);
+    if (t && !mapa.has(r.toLowerCase())) mapa.set(r.toLowerCase(), t.toLowerCase());
+  }
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const partes = [...mapa.keys()].sort((a, b) => b.length - a.length)
+    .map((k) => `${/^\p{L}/u.test(k) ? "(?<!\\p{L})" : ""}${esc(k)}${/\p{L}$/u.test(k) ? "(?!\\p{L})" : ""}`);
+  return { mapa, re: new RegExp(partes.join("|"), "gu") };
+})();
+const tr = (s) => (TR && typeof s === "string" && s ? s.replace(TR.re, (m) => TR.mapa.get(m) ?? m) : s);
+
+// Traduz os textos e atributos visíveis de um trecho da página.
+const ATRIBUTOS_TRADUZIDOS = ["title", "aria-label", "placeholder", "alt"];
+function traduzirNo(raiz) {
+  if (!TR || !raiz) return;
+  if (raiz.nodeType === Node.TEXT_NODE) {
+    const novo = tr(raiz.nodeValue);
+    if (novo !== raiz.nodeValue) raiz.nodeValue = novo;
+    return;
+  }
+  if (raiz.nodeType !== Node.ELEMENT_NODE || /^(SCRIPT|STYLE|CANVAS|svg)$/i.test(raiz.nodeName)) return;
+  const andar = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+  for (let n = andar.currentNode; n; n = andar.nextNode()) {
+    if (n.nodeType === Node.TEXT_NODE) {
+      if (/^(SCRIPT|STYLE)$/.test(n.parentNode?.nodeName)) continue;
+      const novo = tr(n.nodeValue);
+      if (novo !== n.nodeValue) n.nodeValue = novo;
+    } else {
+      for (const a of ATRIBUTOS_TRADUZIDOS) {
+        const v = n.getAttribute?.(a);
+        if (v) { const novo = tr(v); if (novo !== v) n.setAttribute(a, novo); }
+      }
+    }
+  }
+}
+
+// Tudo o que entra na página passa pela tradução (abas, cards, tooltips do mapa, selects).
+function iniciarTraducao() {
+  if (!TR) return;
+  traduzirNo(document.body);
+  document.title = tr(document.title);
+  new MutationObserver((mudancas) => {
+    for (const m of mudancas) {
+      if (m.type === "childList") m.addedNodes.forEach(traduzirNo);
+      else if (m.type === "characterData") traduzirNo(m.target);
+      else if (m.type === "attributes") {
+        const v = m.target.getAttribute(m.attributeName);
+        const novo = tr(v);
+        if (v && novo !== v) m.target.setAttribute(m.attributeName, novo);
+      }
+    }
+  }).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATRIBUTOS_TRADUZIDOS });
+}
+
+// Textos desenhados no canvas do Chart.js (rótulos, séries, títulos de eixo, tooltips).
+const traducaoChartPlugin = {
+  id: "traducao",
+  beforeInit(chart) {
+    if (!TR) return;
+    const cb = chart.config.options?.plugins?.tooltip?.callbacks;
+    if (cb) {
+      for (const [k, fn] of Object.entries(cb)) {
+        if (typeof fn !== "function") continue;
+        cb[k] = function (...args) {
+          const r = fn.apply(this, args);
+          return Array.isArray(r) ? r.map(tr) : tr(r);
+        };
+      }
+    }
+  },
+  beforeUpdate(chart) {
+    if (!TR) return;
+    const d = chart.data;
+    if (Array.isArray(d.labels)) d.labels = d.labels.map((x) => (typeof x === "string" ? tr(x) : x));
+    for (const ds of d.datasets || []) if (typeof ds.label === "string") ds.label = tr(ds.label);
+    for (const sc of Object.values(chart.config.options?.scales || {})) {
+      if (sc?.title?.text) sc.title.text = tr(sc.title.text);
+    }
+  },
+};
 // Rótulos dos filtros: rot("estado") = "Departamento"; rot("estado", true) = "Departamentos".
 const rot = (k, plural = false) => PAIS.rotulos[k][plural ? 1 : 0];
 
@@ -1124,7 +1229,7 @@ function flattenLegend(items, depth = 0, parent = null, out = []) {
   for (const item of items || []) {
     out.push({
       pixelValue: item.pixelValue,
-      name: item.name?.["pt-BR"] || item.name?.["en-US"] || item.key,
+      name: item.name?.[IDIOMA.api] || (IDIOMA.id === "id" && item.name?.["en-US"]) || item.name?.["pt-BR"] || item.name?.["es-ES"] || item.name?.["en-US"] || item.key,
       color: safeColor(item.color),
       depth,
       parent,
@@ -4055,8 +4160,17 @@ function montarPais() {
   document.getElementById("pais-titulo").textContent = PAIS.nome;
   document.getElementById("footer-fonte").textContent = `Dados ${PAIS.de}: ${PAIS.marca}, via API pública da Plataforma MapBiomas.`;
   document.title = `${PAIS.marca} · ${PAIS.nome}`;
-  document.documentElement.lang = "pt-BR";
+  document.documentElement.lang = IDIOMA.locale;
   if (!ehBrasil) gifState.region = PAIS.region;
+  // Idioma: pt, es, en (e bahasa indonésio para a Indonésia). Trocar recarrega a página.
+  const selIdioma = document.getElementById("f-idioma");
+  selIdioma.innerHTML = IDIOMAS_DO_PAIS.map((i) => `<option value="${i.id}"${i === IDIOMA ? " selected" : ""}>${escapeHtml(i.nome)}</option>`).join("");
+  selIdioma.addEventListener("change", () => {
+    const p = new URLSearchParams(location.hash.slice(1));
+    if (selIdioma.value === IDIOMA_PADRAO) p.delete("lang"); else p.set("lang", selIdioma.value);
+    location.hash = p.toString();
+    location.reload();
+  });
 }
 
 function renderTabs() {
@@ -4206,6 +4320,7 @@ function readHash() {
 function writeHash() {
   const p = new URLSearchParams({ aba: state.tab, ini: state.ini, fim: state.fim });
   if (!ehBrasil) p.set("pais", PAIS.region);
+  if (IDIOMA.id !== IDIOMA_PADRAO) p.set("lang", IDIOMA.id);
   if (state.biomaId) p.set("bioma", state.biomaId);
   if (state.estadoId) p.set("estado", state.estadoId);
   if (state.municipioId) p.set("municipio", state.municipioId);
@@ -4265,9 +4380,10 @@ async function start() {
 
 function init() {
   Chart.defaults.font.family = "'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif";
-  Chart.register(crosshairPlugin);
+  Chart.register(crosshairPlugin, traducaoChartPlugin);
   readHash();
   montarPais();
+  iniciarTraducao();
   renderTabs();
 
   el.tabs.addEventListener("click", (e) => {
@@ -4346,6 +4462,7 @@ const GIF_TEXTOS = {
   "pt-BR": { marca: "MapBiomas Fogo", fonte: "Fonte: MapBiomas Fogo", colecao: "Coleção", anual: "Área queimada anual" },
   "es-ES": { marca: "MapBiomas Fuego", fonte: "Fuente: MapBiomas Fuego", colecao: "Colección", anual: "Área quemada anual" },
   "en-US": { marca: "MapBiomas Fire", fonte: "Source: MapBiomas Fire", colecao: "Collection", anual: "Annual burned area" },
+  "id-ID": { marca: "MapBiomas Fire", fonte: "Sumber: MapBiomas Fire", colecao: "Koleksi", anual: "Area terbakar tahunan" },
 };
 
 const GIF_VELOCIDADES = [["lento", "Lento", 1200], ["normal", "Normal", 700], ["rapido", "Rápido", 350]];
@@ -4362,7 +4479,7 @@ const gifState = {
 const gifEnv = () => ENVIRONMENTS[0]; // produção
 const gifApi = (region, path, params) => apiGet(gifEnv(), `/${region}${path}`, params);
 const nomeEm = (n, lang) => (typeof n === "string" ? n
-  : n?.[lang] || n?.["pt-BR"] || n?.["es-ES"] || n?.["en-US"] || Object.values(n || {})[0] || "");
+  : n?.[lang] || (lang === "id-ID" && n?.["en-US"]) || n?.["pt-BR"] || n?.["es-ES"] || n?.["en-US"] || Object.values(n || {})[0] || "");
 // Nome de arquivo seguro, como safe_name() do gif_factory.
 const nomeSeguro = (v) => String(v || "").normalize("NFKD").replace(/[̀-ͯ]/g, "")
   .replace(/[^A-Za-z0-9_-]+/g, "_").replace(/^[_-]+|[_-]+$/g, "").slice(0, 80) || "sem_nome";
@@ -4466,6 +4583,7 @@ function montarGif(body) {
       </div>
       <div class="gif-acoes">
         <button type="button" class="md-botao gif-gerar">▶ Gerar GIF</button>
+        <button type="button" class="md-botao gif-gerar gif-baixar">⬇ Gerar e baixar GIF</button>
         <span class="gif-status" aria-live="polite"></span>
       </div>
       <progress class="gif-prog" max="1" value="0" hidden></progress>
@@ -4491,31 +4609,31 @@ function montarGif(body) {
     const anos = gifState.ini && gifState.fim ? gifState.fim - gifState.ini + 1 : 0;
     q(".gif-ajuda").textContent =
       `O GIF terá ${anos} quadro(s), um por ano${acumula ? `, somando desde ${gifState.ini} (cada quadro mostra o acumulado até aquele ano)` : ""}. ` +
-      `Cada quadro traz título, território, ano, legenda e fonte em ${p.lang === "pt-BR" ? "português" : p.lang === "es-ES" ? "espanhol" : "inglês"}. ` +
+      `Cada quadro traz título, território, ano, legenda e fonte em ${{ pt: "português", es: "espanhol", en: "inglês", id: "bahasa indonésio" }[IDIOMA.id]}. ` +
       "Os mapas vêm da Plataforma MapBiomas; territórios pequenos ficam mais nítidos. Gerar leva de alguns segundos a poucos minutos.";
   }
 
   async function carregarPais() {
     status("Carregando o país…");
-    q(".gif-gerar").disabled = true;
+    body.querySelectorAll(".gif-gerar").forEach((x) => { x.disabled = true; });
     try {
       reg = await gifRegiao(gifState.region);
       const p = pais();
       gifState.produto = opcoes(sel("produto"), reg.produtos.map((s) => ({
         value: s.key,
-        label: nomeEm(s.name, p.lang) + (s.dataType === "year_interval" || s.analysis ? " (acumulado ano a ano)" : ""),
+        label: nomeEm(s.name, IDIOMA.gif) + (s.dataType === "year_interval" || s.analysis ? " (acumulado ano a ano)" : ""),
       })), gifState.produto);
       const preferida = reg.categorias.find((c) => /^POLITICAL_LEVEL_1$|^NIVEL_POLITICO_1|^BRASIL_|^PAIS_/i.test(c.key)) || reg.categorias[0];
-      gifState.categoria = opcoes(sel("categoria"), reg.categorias.map((c) => ({ value: c.id, label: nomeEm(c.name, p.lang) || c.key })),
+      gifState.categoria = opcoes(sel("categoria"), reg.categorias.map((c) => ({ value: c.id, label: nomeEm(c.name, IDIOMA.gif) || c.key })),
         reg.categorias.some((c) => String(c.id) === String(gifState.categoria)) ? gifState.categoria : preferida?.id);
       const min = reg.anoMin || 1985, max = reg.anoMax || new Date().getFullYear() - 1;
       const anos = range(min, max).map((a) => ({ value: a, label: String(a) }));
       gifState.ini = Number(opcoes(sel("ini"), anos, clamp(gifState.ini ?? min, min, max)));
       gifState.fim = Number(opcoes(sel("fim"), anos, clamp(gifState.fim ?? max, gifState.ini, max)));
       await Promise.all([carregarLegendas(), carregarTerritorios()]);
-      status(reg.anoMax ? `Dados de ${reg.anoMin} a ${reg.anoMax}${reg.colecao ? ` · Coleção ${reg.colecao}` : ""}`
+      status(reg.anoMax ? `${reg.anoMin}–${reg.anoMax}${reg.colecao ? ` · Coleção ${reg.colecao}` : ""}`
         : "A Plataforma não informa o período deste país: confira se os anos escolhidos têm dados.");
-      q(".gif-gerar").disabled = false;
+      body.querySelectorAll(".gif-gerar").forEach((x) => { x.disabled = false; });
     } catch (err) {
       console.error(err);
       status(`Não foi possível carregar: ${err.message}`);
@@ -4526,7 +4644,7 @@ function montarGif(body) {
   async function carregarLegendas() {
     const lista = await gifLegendas(gifState.region, gifState.produto);
     const el = sel("legenda");
-    gifState.legenda = opcoes(el, lista.map((l) => ({ value: l.id, label: `Legenda: ${nomeEm(l.name, pais().lang) || l.key}` })), gifState.legenda);
+    gifState.legenda = opcoes(el, lista.map((l) => ({ value: l.id, label: `Legenda: ${nomeEm(l.name, IDIOMA.gif) || l.key}` })), gifState.legenda);
     el.hidden = lista.length < 2;
   }
 
@@ -4566,7 +4684,18 @@ function montarGif(body) {
       b.parentElement.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
       return;
     }
-    if (b.classList.contains("gif-gerar")) gerarGif(body, reg, status).finally(() => { q(".gif-gerar").disabled = false; });
+    if (b.classList.contains("gif-gerar")) {
+      // "Gerar e baixar": ao terminar, o download começa sozinho (a prévia continua abaixo).
+      const baixar = b.classList.contains("gif-baixar");
+      const antes = gifState.resultado?.url;
+      gerarGif(body, reg, status).then(() => {
+        const r = gifState.resultado;
+        if (baixar && r?.url && r.url !== antes) {
+          baixarArquivo(r.url, r.nome);
+          status("Pronto! O download do GIF começou.");
+        }
+      }).finally(() => { body.querySelectorAll(".gif-gerar").forEach((x) => { x.disabled = false; }); });
+    }
     if (b.dataset.a === "png" && gifState.resultado?.png) baixarArquivo(gifState.resultado.png, gifState.resultado.nome.replace(/\.gif$/, "_ultimo_quadro.png"));
   });
 
@@ -4590,7 +4719,7 @@ function mostrarResultadoGif(body) {
   body.querySelector(".gif-resultado").innerHTML = `
     <figure class="gif-preview">
       <img src="${r.url}" alt="${escapeHtml(r.titulo)}">
-      <figcaption>${escapeHtml(r.titulo)} · ${r.quadros} quadros · ${(r.bytes / 1e6).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} MB</figcaption>
+      <figcaption>${escapeHtml(r.titulo)} · ${r.quadros} quadros · ${(r.bytes / 1e6).toLocaleString(LOCALE, { maximumFractionDigits: 1 })} MB</figcaption>
     </figure>
     <div class="gif-acoes">
       <a class="md-botao" href="${r.url}" download="${escapeHtml(r.nome)}">⬇ Baixar GIF</a>
@@ -4653,16 +4782,17 @@ async function gerarGif(body, reg, status) {
   const prog = q(".gif-prog");
   const vivo = () => body.isConnected;
   gifState.gerando = true;
-  q(".gif-gerar").disabled = true;
+  body.querySelectorAll(".gif-gerar").forEach((x) => { x.disabled = true; });
   prog.hidden = false;
   prog.value = 0;
   try {
     const p = GIF_PAISES.find((x) => x.region === gifState.region);
-    const tx = GIF_TEXTOS[p.lang];
+    const lang = IDIOMA.gif; // textos do quadro no idioma escolhido na página
+    const tx = GIF_TEXTOS[lang];
     const produto = reg.produtos.find((s) => s.key === gifState.produto);
     const lista = await gifLegendas(p.region, produto.key);
     const ref = lista.find((l) => String(l.id) === String(gifState.legenda)) || lista[0];
-    const legenda = await gifLegenda(p.region, ref.id, p.lang);
+    const legenda = await gifLegenda(p.region, ref.id, lang);
     const territorio = (await gifTerritorios(p.region, gifState.categoria)).find((t) => String(t.id) === String(gifState.territorio));
     if (!territorio) throw new Error("Escolha um território.");
     const anos = range(gifState.ini, gifState.fim);
@@ -4759,7 +4889,7 @@ async function gerarGif(body, reg, status) {
     cctx.lineWidth = Math.max(1, 1.3 * s);
     cctx.lineJoin = "round";
     cctx.stroke();
-    const logo = await carregarLogo(p.logo);
+    const logo = await carregarLogo(MARCA[1]); // logo no idioma do quadro
 
     const { GIFEncoder, quantize, applyPalette } = await import(GIFENC_URL);
     const gif = GIFEncoder();
@@ -4768,7 +4898,7 @@ async function gerarGif(body, reg, status) {
     const dados = novoCanvas(MW, MH);
     const dctx = dados.getContext("2d");
     // Subtemas chamados só "Anual" viram "Área queimada anual" no título do GIF.
-    const nomeProduto = /^(anual|annual|tahunan)$/i.test(nomeEm(produto.name, p.lang).trim()) ? tx.anual : nomeEm(produto.name, p.lang);
+    const nomeProduto = /^(anual|annual|tahunan)$/i.test(nomeEm(produto.name, lang).trim()) ? tx.anual : nomeEm(produto.name, lang);
     const titulo = `${tx.marca} · ${nomeProduto}`;
     const subtitulo = `${territorio.name}${legenda.nome ? ` · ${legenda.nome}` : ""}`;
     const fonte = `${tx.fonte}${reg.colecao ? ` · ${tx.colecao} ${reg.colecao}` : ""} · plataforma.mapbiomas.org`;
@@ -4876,22 +5006,29 @@ async function gerarGif(body, reg, status) {
 // Utilitários
 // ---------------------------------------------------------------------------
 
-const fmtFull = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
-const fmtCompact = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
-const fmtPct = new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 });
+const fmtFull = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 });
+const fmtCompact = new Intl.NumberFormat(LOCALE, { notation: "compact", maximumFractionDigits: 1 });
+const fmtPct = new Intl.NumberFormat(LOCALE, { style: "percent", maximumFractionDigits: 1 });
 
-// Hectares por extenso: 8.700.000 -> "8,7 milhões de ha"; 450.000 -> "450 mil ha".
+// Hectares por extenso no idioma da página: "8,7 milhões de ha", "8,7 millones de ha", "8.7 million ha", "8,7 juta ha".
+const PALAVRAS_HA = {
+  pt: { um: "milhão", varios: "milhões", mil: "mil", de: " de" },
+  es: { um: "millón", varios: "millones", mil: "mil", de: " de" },
+  en: { um: "million", varios: "million", mil: "thousand", de: "" },
+  id: { um: "juta", varios: "juta", mil: "ribu", de: "" },
+};
 const ha = (v) => {
   const n = v || 0;
-  const f = (x) => new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(x);
-  if (Math.abs(n) >= 1e6) return `${f(n / 1e6)} ${Math.abs(n) < 2e6 ? "milhão" : "milhões"} de ha`; // "1,8 milhão", "2 milhões"
-  if (Math.abs(n) >= 1e3) return `${f(n / 1e3)} mil ha`;
+  const p = PALAVRAS_HA[IDIOMA.id];
+  const f = (x) => new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 }).format(x);
+  if (Math.abs(n) >= 1e6) return `${f(n / 1e6)} ${Math.abs(n) < 2e6 ? p.um : p.varios}${p.de} ha`;
+  if (Math.abs(n) >= 1e3) return `${f(n / 1e3)} ${p.mil} ha`;
   return `${f(n)} ha`;
 };
-const fmtMhaEixo = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+const fmtMhaEixo = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
 // Milhões de hectares: 18.410.000 -> "18,4 Mha".
 const mha = (v, casas = 1) =>
-  `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: casas }).format((v || 0) / 1e6)} Mha`;
+  `${new Intl.NumberFormat(LOCALE, { maximumFractionDigits: casas }).format((v || 0) / 1e6)} Mha`;
 const pct = (v) => fmtPct.format(Number.isFinite(v) ? v : 0);
 const sum = (arr) => arr.reduce((s, v) => s + v, 0);
 const mean = (arr) => (arr.length ? sum(arr) / arr.length : 0);

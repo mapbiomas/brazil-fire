@@ -1230,3 +1230,5 @@ a.md-botao { display: inline-block; text-decoration: none; }
   background: var(--surface); color: var(--text); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer;
 }
 .filters .field[hidden] { display: none; }
+.gif-baixar { background: var(--surface); color: var(--brand); }
+.gif-baixar:hover { background: var(--surface-muted); }

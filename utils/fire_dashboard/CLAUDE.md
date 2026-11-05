@@ -56,3 +56,10 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - Coleção: `colecaoDaNota` ignora a coleção de uso e cobertura citada na mesma nota.
 - Colômbia: a legenda anual traz "Quemado MODIS MCD64A1" (referência): fica fora do total e do GIF.
 - Testado (navegador sem interface, 2026-11-05): aba Anual nos 8 países; Territórios em Peru, Chile, Indonésia e Paraguai; Acumulado, Mensal, Frequência e Último fogo no Peru; Mapas e GIF no Chile. Colômbia, Argentina e Bolívia: Territórios ainda em cálculo no servidor na 1ª vez.
+
+## Idiomas (i18n.js)
+
+- `I18N_LINHAS`: [pt, es, en, id] por texto; o pt é a chave. `tr()` troca trechos (regex única, maiores primeiro, palavra inteira quando a chave começa/termina com letra). `I18N_ROTULOS` vale também em minúsculas.
+- A tradução é aplicada no que aparece: MutationObserver no `body` (textos e title/aria-label/placeholder/alt) e `traducaoChartPlugin` (rótulos, séries, títulos de eixo, tooltips do Chart.js). O código continua escrevendo em português.
+- Idioma: `#lang=pt|es|en|id`; padrão Brasil pt, Indonésia en, demais es; `id` só na Indonésia. Números em `LOCALE`; `ha()` usa `PALAVRAS_HA`. Nomes da API no idioma (`IDIOMA.api`). Marca e logo seguem o idioma (Fogo/Fuego/Fire), também no GIF.
+- Texto novo na interface: acrescentar a linha em `i18n.js`, senão ele aparece em português. Traduções sem revisão de falante nativo.
