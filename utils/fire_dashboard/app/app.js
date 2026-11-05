@@ -1253,6 +1253,19 @@ async function loadAnual({ t, ini, fim }) {
       },
       {
         span: 12,
+        title: "Tabela da área queimada anual",
+        subtitle: `${ini}–${fim} · valores exatos da API da Plataforma MapBiomas (Coleção ${CONFIG.colecaoExigida}), em hectares`,
+        tabela: {
+          colunas: ["Ano", "Área queimada (ha)", "Variação em relação à média"],
+          linhas: [...anos].reverse().map((a) => {
+            const v = safeDiv(a.area, media) - 1;
+            return [String(a.ano), fmtFull.format(Math.round(a.area)), `${v >= 0 ? "+" : "−"}${pct(Math.abs(v))}`];
+          }),
+          total: ["Total do período", fmtFull.format(Math.round(totalPeriodo)), ""],
+        },
+      },
+      {
+        span: 12,
         section: true,
         title: "Uso e cobertura da terra nas áreas queimadas",
         subtitle: `Soma das áreas anuais ${ini}–${fim}`,
@@ -2750,6 +2763,7 @@ function cardBodyHtml(card, vista) {
 function conteudoHtml(card, vista) {
   if (vista === "rosca") return roscasHtml(roscasDe(card));
   if (card.topcards) return topcardsHtml(card.topcards);
+  if (card.tabela) return tabelaHtml(card.tabela);
   if (card.map) return `${card.map.aviso ? `<p class="map-notice">${escapeHtml(card.map.aviso)}</p>` : ""}<div class="map-box"></div>`;
   if (card.lazy) return `<div class="lazy-body"><p class="empty busy-text">Calculando…</p></div>`;
   if (card.chart) return chartBoxHtml(card.chart, card.title);
@@ -2762,6 +2776,16 @@ function roscasHtml(roscas) {
   if (roscas.length <= 1) return doughnutHtml(roscas[0] || { slices: [] });
   return `<div class="donut-grid">${roscas.map((r) => `
     <div>${r.titulo ? `<p class="propbar-label">${escapeHtml(r.titulo)}</p>` : ""}${doughnutHtml(r)}</div>`).join("")}</div>`;
+}
+
+function tabelaHtml(t) {
+  if (!t.linhas.length) return `<p class="empty">Sem dados para o período selecionado.</p>`;
+  const cel = (tag, v, i) => `<${tag}${i ? ` class="num"` : ""}>${escapeHtml(v)}</${tag}>`;
+  return `<div class="tabela-wrap"><table class="tabela">
+    <thead><tr>${t.colunas.map((c, i) => cel("th", c, i)).join("")}</tr></thead>
+    <tbody>${t.linhas.map((l) => `<tr>${l.map((c, i) => cel("td", c, i)).join("")}</tr>`).join("")}</tbody>
+    ${t.total ? `<tfoot><tr>${t.total.map((c, i) => cel("td", c, i)).join("")}</tr></tfoot>` : ""}
+  </table></div>`;
 }
 
 function topcardsHtml(items) {
@@ -3544,7 +3568,14 @@ const fmtFull = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 const fmtCompact = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
 const fmtPct = new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 });
 
-const ha = (v) => `${fmtCompact.format(v || 0)} ha`;
+// Hectares por extenso: 8.700.000 -> "8,7 milhões de ha"; 450.000 -> "450 mil ha".
+const ha = (v) => {
+  const n = v || 0;
+  const f = (x) => new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(x);
+  if (Math.abs(n) >= 1e6) return `${f(n / 1e6)} ${Math.round(n / 1e5) / 10 === 1 ? "milhão" : "milhões"} de ha`;
+  if (Math.abs(n) >= 1e3) return `${f(n / 1e3)} mil ha`;
+  return `${f(n)} ha`;
+};
 const fmtMhaEixo = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 // Milhões de hectares: 18.410.000 -> "18,4 Mha".
 const mha = (v, casas = 1) =>

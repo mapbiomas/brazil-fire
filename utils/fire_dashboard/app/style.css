@@ -1141,3 +1141,11 @@ body {
   .status.busy::before { animation: none; }
   .panel, .tabs button { transition: none; }
 }
+
+/* Tabela da área queimada anual */
+.tabela-wrap { max-height: 420px; overflow: auto; border: 1px solid var(--border, #ddd); border-radius: 8px; }
+.tabela { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.tabela th, .tabela td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border, #e3e3e3); }
+.tabela .num { text-align: right; font-variant-numeric: tabular-nums; }
+.tabela thead th { position: sticky; top: 0; background: var(--surface, #fff); font-weight: 700; }
+.tabela tfoot td { position: sticky; bottom: 0; background: var(--surface, #fff); font-weight: 700; }
