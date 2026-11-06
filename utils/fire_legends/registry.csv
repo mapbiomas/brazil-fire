@@ -8,6 +8,7 @@ brazil_col5_fire_return_interval,brazil,5.1,Fire return interval,active,1985-202
 brazil_col5_last_fire_year,brazil,5.1,Year of last fire,active,1985-2025,the pixel value is the year,brazil_col5_last_fire_year.csv,projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_year_last_fire_v1,brasil,5.1,year_last_fire
 brazil_col5_accumulated_burned_area,brazil,5.1,Accumulated burned area,active,1985-2025,1 = fire,brazil_col5_accumulated_burned_area.csv,projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_accumulated_burned_v1,brasil,5.1,accumulated_burned
 brazil_monitor_burned_area,brazil,Monitor,Fire Monitor,active,2019-2026,1 = fire,brazil_monitor_burned_area.csv,,brasil,Monitor,fire_monitor
+brazil_col5_annual_burned_coverage,brazil,5.1,Annual burned coverage,active,1985-2025,land cover class of the burned pixel,brazil_col5_annual_burned_coverage.csv,projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_annual_burned_coverage_v1,brasil,5.1,annual_burned_coverage
 peru_col2_annual_burned_area,peru,2,Annual burned area,active,1990-2025,1 = fire,peru_col2_annual_burned_area.csv,,peru,2,annual_burned
 peru_col2_monthly_burned_area,peru,2,Monthly burned area,active,1990-2025,month of the fire (1-12),peru_col2_monthly_burned_area.csv,,peru,2,monthly_burned
 peru_col2_fire_scar_size,peru,2,Fire scar size,active,1990-2025,scar size class (1-8),peru_col2_fire_scar_size.csv,,peru,2,annual_burned_scar_size_range
@@ -34,6 +35,7 @@ bolivia_col1_fire_scar_size,bolivia,1,Fire scar size,active,1995-2025,scar size 
 bolivia_col1_accumulated_burned_area,bolivia,1,Accumulated burned area,active,1995-2025,1 = fire,bolivia_col1_accumulated_burned_area.csv,,bolivia,1,accumulated_burned
 bolivia_col1_last_fire_year,bolivia,1,Year of last fire,active,1995-2025,the pixel value is the year,bolivia_col1_last_fire_year.csv,,bolivia,1,year_last_fire
 bolivia_col1_fire_frequency,bolivia,1,Fire frequency,active,1995-2025,number of fires (1-31),bolivia_col1_fire_frequency.csv,,bolivia,1,fire_frequency
+bolivia_col1_annual_burned_coverage,bolivia,1,Annual burned coverage,active,1995-2025,land cover class of the burned pixel,bolivia_col1_annual_burned_coverage.csv,,bolivia,1,annual_burned_coverage
 colombia_col1_annual_burned_area,colombia,1,Annual burned area,active,2000-2025,1 = fire,colombia_col1_annual_burned_area.csv,,colombia,1,annual_burned
 colombia_col1_monthly_burned_area,colombia,1,Monthly burned area,active,2000-2025,month of the fire (1-12),colombia_col1_monthly_burned_area.csv,,colombia,1,monthly_burned
 colombia_col1_fire_scar_size,colombia,1,Fire scar size,active,2000-2025,scar size class (1-8),colombia_col1_fire_scar_size.csv,,colombia,1,annual_burned_scar_size_range

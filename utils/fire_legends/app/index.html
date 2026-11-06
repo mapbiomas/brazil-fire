@@ -288,7 +288,7 @@ const T = {
     ed_tools:"Ferramentas",ed_fromSite:"Usar cores do site (Brasil)",ed_ramp:"Gerar por escala",ed_copy:"Copiar de outro país/coleção",ed_paste:"Colar lista HEX",
     ed_apply:"Aplicar",ed_reverse:"Inverter",ed_resample:"Os HEX são reamostrados para {n} classes quando a quantidade for diferente.",
     ed_addRow:"Adicionar classe",ed_remove:"Remover",ed_close:"Fechar",ed_none:"Nenhuma outra paleta cadastrada para este subproduto.",
-    ed_count:"{n} de {m} classes com cor",ed_noDb:"Esta versão pública é só de consulta. O cadastro de paletas é feito no repositório (registry.csv e legends/*.csv) e na versão do claude.ai.",
+    ed_count:"{n} de {m} classes com cor",
     ed_readOnly:"Seu acesso a esta página é de leitura. Peça acesso de Contribuidor para cadastrar paletas.",
     ed_empty:"Selecione uma célula da matriz para cadastrar ou revisar a paleta.",
     ed_siteNone:"O site não publica cores para este subproduto.",someone:"Alguém",
@@ -327,7 +327,7 @@ const T = {
     ed_tools:"Herramientas",ed_fromSite:"Usar colores del sitio (Brasil)",ed_ramp:"Generar por escala",ed_copy:"Copiar de otro país/colección",ed_paste:"Pegar lista HEX",
     ed_apply:"Aplicar",ed_reverse:"Invertir",ed_resample:"Los HEX se remuestrean a {n} clases cuando la cantidad es distinta.",
     ed_addRow:"Agregar clase",ed_remove:"Quitar",ed_close:"Cerrar",ed_none:"No hay otra paleta registrada para este subproducto.",
-    ed_count:"{n} de {m} clases con color",ed_noDb:"Esta versión pública es solo de consulta. El registro de paletas se hace en el repositorio (registry.csv y legends/*.csv) y en la versión de claude.ai.",
+    ed_count:"{n} de {m} clases con color",
     ed_readOnly:"Su acceso a esta página es de lectura. Solicite acceso de Colaborador para registrar paletas.",
     ed_empty:"Seleccione una celda de la matriz para registrar o revisar la paleta.",
     ed_siteNone:"El sitio no publica colores para este subproducto.",someone:"Alguien",
@@ -366,7 +366,7 @@ const T = {
     ed_tools:"Tools",ed_fromSite:"Use website colors (Brazil)",ed_ramp:"Generate from scale",ed_copy:"Copy from another country/collection",ed_paste:"Paste HEX list",
     ed_apply:"Apply",ed_reverse:"Reverse",ed_resample:"HEX values are resampled to {n} classes when the count differs.",
     ed_addRow:"Add class",ed_remove:"Remove",ed_close:"Close",ed_none:"No other palette registered for this subproduct.",
-    ed_count:"{n} of {m} classes have a color",ed_noDb:"This public version is lookup-only. Palettes are registered in the repository (registry.csv and legends/*.csv) and in the claude.ai version.",
+    ed_count:"{n} of {m} classes have a color",
     ed_readOnly:"You have read-only access to this page. Ask for Contributor access to register palettes.",
     ed_empty:"Pick a cell in the matrix to register or review its palette.",
     ed_siteNone:"The website publishes no colors for this subproduct.",someone:"Someone",
@@ -391,8 +391,6 @@ const SUBS = {
     name:{pt:"Tamanho de cicatriz",es:"Tamaño de cicatriz",en:"Burned scar size"}},
   accumulated_burned:{kind:"single",period:"range",band:"fire_accumulated_{s}_{e}",short:{pt:"Acumulada",es:"Acumulada",en:"Accum."},
     name:{pt:"Área queimada acumulada",es:"Área quemada acumulada",en:"Accumulated burned area"},cls:{pt:"Queimada ao menos uma vez",es:"Quemada al menos una vez",en:"Burned at least once"}},
-  accumulated_burned_coverage:{kind:"lulc",period:"range",band:"fire_accumulated_{s}_{e}",short:{pt:"Cob. acum.",es:"Cob. acum.",en:"Acc. cover"},
-    name:{pt:"Cobertura queimada acumulada",es:"Cobertura quemada acumulada",en:"Accumulated burned coverage"}},
   fire_frequency:{kind:"frequency",period:"range",band:"fire_frequency_{s}_{e}",short:{pt:"Frequência",es:"Frecuencia",en:"Frequency"},
     name:{pt:"Frequência de fogo",es:"Frecuencia de fuego",en:"Fire frequency"}},
   year_last_fire:{kind:"yearlast",period:"ref",band:"classification_{y}",short:{pt:"Últ. fogo",es:"Últ. fuego",en:"Last fire"},
@@ -457,9 +455,9 @@ const COUNTRY_NAMES = {
   chile:{pt:"Chile",es:"Chile",en:"Chile"},colombia:{pt:"Colômbia",es:"Colombia",en:"Colombia"},ecuador:{pt:"Equador",es:"Ecuador",en:"Ecuador"},
   paraguay:{pt:"Paraguai",es:"Paraguay",en:"Paraguay"},peru:{pt:"Peru",es:"Perú",en:"Peru"},venezuela:{pt:"Venezuela",es:"Venezuela",en:"Venezuela"},
   indonesia:{pt:"Indonésia",es:"Indonesia",en:"Indonesia"}};
-const COL3 = ["annual_burned","annual_burned_coverage","monthly_burned","annual_burned_scar_size_range","accumulated_burned","accumulated_burned_coverage","fire_frequency","year_last_fire"];
+const COL3 = ["annual_burned","annual_burned_coverage","monthly_burned","annual_burned_scar_size_range","accumulated_burned","fire_frequency","year_last_fire"];
 const COL5 = [...COL3,"interval_since_fire","severity_class"];
-const REG = ["annual_burned","annual_burned_coverage","monthly_burned","annual_burned_scar_size_range","accumulated_burned","accumulated_burned_coverage","fire_frequency","year_last_fire"];
+const REG = ["annual_burned","annual_burned_coverage","monthly_burned","annual_burned_scar_size_range","accumulated_burned","fire_frequency","year_last_fire"];
 const regFolder = s=>s.replace("fire_frequency","frequency_burned");
 const PUBLISHED = [
   {country:"brasil",id:"5.1",start:1985,end:2025,sensor:"Landsat 30 m",origin:"site",subs:COL5,layout:"br5",root:"brasil/collection_10/fire-col5/",scarN:8,
@@ -472,7 +470,7 @@ const PUBLISHED = [
   {country:"paraguay",id:"1",start:1999,end:2024,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned"],layout:"reg",root:"paraguay/fire/collection_1/"},
   {country:"peru",id:"2",start:1990,end:2025,sensor:"Landsat 30 m",origin:"bucket",subs:REG,layout:"reg",root:"peru/fire/collection_2/"},
   {country:"peru",id:"Monitor",start:2025,end:2026,sensor:"Sentinel-2 10 m",origin:"bucket",subs:["fire_monitor"],layout:"monitor",root:"peru/fire/monitor/mapbiomas_fire_monthly_burned_v1/"},
-  {country:"indonesia",id:"1",start:2013,end:2023,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned","annual_burned_coverage","monthly_burned","accumulated_burned","accumulated_burned_coverage","fire_frequency"],layout:"folder",root:"indonesia/collection_2/fire-col1/"},
+  {country:"indonesia",id:"1",start:2013,end:2023,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned","annual_burned_coverage","monthly_burned","accumulated_burned","fire_frequency"],layout:"folder",root:"indonesia/collection_2/fire-col1/"},
   {country:"indonesia",id:"2",start:2000,end:2024,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned","fire_frequency"],layout:"reg",root:"indonesia/fire/collection_02/"},
   {country:"indonesia",id:"Monitor",start:2026,end:2026,sensor:"Sentinel-2 10 m",origin:"bucket",subs:["fire_monitor"],layout:"monitor",root:"indonesia/fire/monitor/mapbiomas_fire_monthly_burned_v1/"}
 ];
@@ -634,8 +632,7 @@ function gcsInfo(c,sub){
   switch(c.layout){
     case"reg":return{file:`${GCS}${c.root}${f}/${f}-${c.country}_${band}.tif`};
     case"chile":return{file:`${GCS}${c.root}${f}_v1/mapbiomas_fire_chile_col1_${f}_${yp}.tif`};
-    case"br5":if(sub==="accumulated_burned_coverage")return{folder:`${GCS}${c.root}mapbiomas_fire_collection5_${sub}_v1/`};
-      return{file:`${GCS}${c.root}mapbiomas_fire_collection5_${sub}_v1/${band}.tif`};
+    case"br5":return{file:`${GCS}${c.root}mapbiomas_fire_collection5_${sub}_v1/${band}.tif`};
     case"monitor":return{folder:`${GCS}${c.root}`,pattern:`monthly_burned-${c.country}_${S.y}_MM.tif`};
     default:return{folder:`${GCS}${c.root}`};
   }
@@ -785,7 +782,7 @@ function renderMatrix(){
         <span class="mini">${mini.map(h=>`<i style="background:${h}"></i>`).join("")}</span><span class="badge ${st}">${t("st_"+st)}</span></button></td>`}).join("")+`</tr>`).join("");
   $("matrix").innerHTML=head+`<tbody>${body}</tbody>`;
   $("m-legend").innerHTML=["validada","revisao","rascunho","faltando"].map(s=>`<span class="badge ${s}">${t("st_"+s)}</span>`).join("");
-  const banner=dbState==="none"?t("ed_noDb"):canWrite===false?t("ed_readOnly"):"";
+  const banner=dbState==="none"?"":canWrite===false?t("ed_readOnly"):"";
   $("db-banner").innerHTML=banner?`<div class="banner">${esc(banner)}</div>`:"";
 }
 function writable(){return dbState==="ready"&&canWrite!==false}

@@ -703,6 +703,256 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "bolivia__1__annual_burned_coverage": {
+  "classes": [
+   {
+    "en": "Forest Formation",
+    "es": "Formación boscosa",
+    "hex": "#1f8d49",
+    "pt": "Formação Florestal",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "Forest",
+    "es": "Bosque",
+    "hex": "#1f8d49",
+    "pt": "Floresta",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "Open Forest",
+    "es": "Bosque abierto",
+    "hex": "#7dc975",
+    "pt": "Floresta Aberta",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "Flooded Forest",
+    "es": "Bosque inundable",
+    "hex": "#026975",
+    "pt": "Floresta Alagável",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "Grassland and shrubland",
+    "es": "Pastizal y matorral",
+    "hex": "#d6bc74",
+    "pt": "Campo e Arbustal",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "Flooded grassland/shrubland",
+    "es": "Pastizal/matorral inundable",
+    "hex": "#519799",
+    "pt": "Campo e Arbustal Alagado",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "Grassland/shrubland",
+    "es": "Pastizal/matorral",
+    "hex": "#d6bc74",
+    "pt": "Campo/Arbustal",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "Other non-forest natural formation",
+    "es": "Otra formación natural no boscosa",
+    "hex": "#d89f5c",
+    "pt": "Outra Formação Natural não Florestal",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "en": "Farming",
+    "es": "Agropecuaria",
+    "hex": "#ffefc3",
+    "pt": "Agropecuária",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "en": "Pasture",
+    "es": "Pasto",
+    "hex": "#edde8e",
+    "pt": "Pastagem",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "en": "Agriculture",
+    "es": "Agricultura",
+    "hex": "#e974ed",
+    "pt": "Agricultura",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "en": "Mosaic of Uses",
+    "es": "Mosaico de usos",
+    "hex": "#ffefc3",
+    "pt": "Mosaico de Usos",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "en": "Non-vegetated area",
+    "es": "Área sin vegetación",
+    "hex": "#d4271e",
+    "pt": "Área não Vegetada",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "en": "Beach, dune and sandbank",
+    "es": "Playa, duna y arenal",
+    "hex": "#ffa07a",
+    "pt": "Praia, Duna e Areal",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "en": "Urban Infrastructure",
+    "es": "Infraestructura urbana",
+    "hex": "#d4271e",
+    "pt": "Infraestrutura Urbana",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "Other non-vegetated anthropic area",
+    "es": "Otra área antrópica sin vegetación",
+    "hex": "#db4d4f",
+    "pt": "Outra Área Antrópica não Vegetada",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "Water",
+    "es": "Cuerpo de agua",
+    "hex": "#2532e4",
+    "pt": "Corpo D'água",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "en": "Not observed",
+    "es": "No observado",
+    "hex": "#ffffff",
+    "pt": "Não Observado",
+    "src": "oficial",
+    "v": 27
+   },
+   {
+    "en": "Rocky outcrop",
+    "es": "Afloramiento rocoso",
+    "hex": "#ffaa5f",
+    "pt": "Afloramento Rochoso",
+    "src": "oficial",
+    "v": 29
+   },
+   {
+    "en": "Mining",
+    "es": "Minería",
+    "hex": "#9c0027",
+    "pt": "Mineração",
+    "src": "oficial",
+    "v": 30
+   },
+   {
+    "en": "Aquaculture",
+    "es": "Acuicultura",
+    "hex": "#091077",
+    "pt": "Aquicultura",
+    "src": "oficial",
+    "v": 31
+   },
+   {
+    "en": "River and lake",
+    "es": "Río y lago",
+    "hex": "#2532e4",
+    "pt": "Rio e Lago",
+    "src": "oficial",
+    "v": 33
+   },
+   {
+    "en": "Glacier",
+    "es": "Glaciar",
+    "hex": "#93dfe6",
+    "pt": "Geleira",
+    "src": "oficial",
+    "v": 34
+   },
+   {
+    "en": "Soybean",
+    "es": "Soya",
+    "hex": "#f5b3c8",
+    "pt": "Soja",
+    "src": "oficial",
+    "v": 39
+   },
+   {
+    "en": "Salt flat",
+    "es": "Salar",
+    "hex": "#f5d5d5",
+    "pt": "Salar",
+    "src": "oficial",
+    "v": 61
+   },
+   {
+    "en": "Scrubland",
+    "es": "Matorral",
+    "hex": "#a89358",
+    "pt": "Matagal",
+    "src": "oficial",
+    "v": 66
+   },
+   {
+    "en": "Other non-vegetated natural area",
+    "es": "Otra área natural sin vegetación",
+    "hex": "#e97a7a",
+    "pt": "Outra Área Natural não Vegetada",
+    "src": "oficial",
+    "v": 68
+   },
+   {
+    "en": "Other crops",
+    "es": "Otros cultivos",
+    "hex": "#c1799c",
+    "pt": "Outras Lavouras",
+    "src": "oficial",
+    "v": 72
+   },
+   {
+    "en": "Andean grassland and shrubland",
+    "es": "Pastizal y matorral andino",
+    "hex": "#c8c099",
+    "pt": "Campo e Arbustal Andino",
+    "src": "oficial",
+    "v": 81
+   },
+   {
+    "en": "Flooded Andean grassland and shrubland",
+    "es": "Pastizal y matorral andino inundable",
+    "hex": "#66b2a3",
+    "pt": "Campo e Arbustal Andino Alagado",
+    "src": "oficial",
+    "v": 82
+   }
+  ],
+  "collection": "1",
+  "country": "bolivia",
+  "expected": 30,
+  "status": "validada",
+  "subproduct": "annual_burned_coverage",
+  "updatedAt": "from-repository"
+ },
  "bolivia__1__annual_burned_scar_size_range": {
   "classes": [
    {
@@ -1433,6 +1683,312 @@
   "expected": 1,
   "status": "validada",
   "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "brasil__5.1__annual_burned_coverage": {
+  "classes": [
+   {
+    "en": "Forest",
+    "es": "Bosque",
+    "hex": "#1f8d49",
+    "pt": "Floresta",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "Forest Formation",
+    "es": "Formación Boscosa",
+    "hex": "#1f8d49",
+    "pt": "Formação Florestal",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "Savanna Formation",
+    "es": "Formación Sabánica",
+    "hex": "#7dc975",
+    "pt": "Formação Savânica",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "Mangrove",
+    "es": "Manglar",
+    "hex": "#04381d",
+    "pt": "Mangue",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "Floodable Forest",
+    "es": "Bosque Inundable",
+    "hex": "#007785",
+    "pt": "Floresta Alagável",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "Forest Plantation",
+    "es": "Plantación Forestal",
+    "hex": "#7a5900",
+    "pt": "Silvicultura",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "Herbaceous and Shrubby Vegetation",
+    "es": "Vegetación Herbácea y Arbustiva",
+    "hex": "#d6bc74",
+    "pt": "Vegetação Herbácea e Arbustiva",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "Wetland",
+    "es": "Humedal",
+    "hex": "#519799",
+    "pt": "Campo Alagado e Área Pantanosa",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "Grassland",
+    "es": "Formación Campestre",
+    "hex": "#d6bc74",
+    "pt": "Formação Campestre",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "Farming",
+    "es": "Agropecuaria",
+    "hex": "#ffefc3",
+    "pt": "Agropecuária",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "en": "Pasture",
+    "es": "Pasto",
+    "hex": "#edde8e",
+    "pt": "Pastagem",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "en": "Agriculture",
+    "es": "Agricultura",
+    "hex": "#e974ed",
+    "pt": "Agricultura",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "en": "Temporary Crop",
+    "es": "Cultivo Temporal",
+    "hex": "#c27ba0",
+    "pt": "Lavoura Temporária",
+    "src": "oficial",
+    "v": 19
+   },
+   {
+    "en": "Sugar Cane",
+    "es": "Caña",
+    "hex": "#db7093",
+    "pt": "Cana",
+    "src": "oficial",
+    "v": 20
+   },
+   {
+    "en": "Mosaic of Uses",
+    "es": "Mosaico de Usos",
+    "hex": "#ffefc3",
+    "pt": "Mosaico de Usos",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "en": "Non Vegetated Area",
+    "es": "Área sin Vegetación",
+    "hex": "#d4271e",
+    "pt": "Área não Vegetada",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "en": "Beach, Dune and Sand Spot",
+    "es": "Playa, Duna y Arenal",
+    "hex": "#ffa07a",
+    "pt": "Praia, Duna e Areal",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "en": "Urban Area",
+    "es": "Infraestructura Urbana",
+    "hex": "#d4271e",
+    "pt": "Área Urbanizada",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "Other Non Vegetated Areas",
+    "es": "Otras Áreas sin Vegetación",
+    "hex": "#db4d4f",
+    "pt": "Outras Áreas não Vegetadas",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "Water",
+    "es": "Cuerpo de Agua",
+    "hex": "#2532e4",
+    "pt": "Corpo D'água",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "en": "Rocky Outcrop",
+    "es": "Afloramiento Rocoso",
+    "hex": "#ffaa5f",
+    "pt": "Afloramento Rochoso",
+    "src": "oficial",
+    "v": 29
+   },
+   {
+    "en": "Mining",
+    "es": "Minería",
+    "hex": "#9c0027",
+    "pt": "Mineração",
+    "src": "oficial",
+    "v": 30
+   },
+   {
+    "en": "Aquaculture",
+    "es": "Acuicultura",
+    "hex": "#091077",
+    "pt": "Aquicultura",
+    "src": "oficial",
+    "v": 31
+   },
+   {
+    "en": "Hypersaline Tidal Flat",
+    "es": "Salitral",
+    "hex": "#fc8114",
+    "pt": "Apicum",
+    "src": "oficial",
+    "v": 32
+   },
+   {
+    "en": "River, Lake and Ocean",
+    "es": "Río, Lago y Océano",
+    "hex": "#2532e4",
+    "pt": "Rio, Lago e Oceano",
+    "src": "oficial",
+    "v": 33
+   },
+   {
+    "en": "Palm Oil",
+    "es": "Palma Aceitera",
+    "hex": "#9065d0",
+    "pt": "Dendê",
+    "src": "oficial",
+    "v": 35
+   },
+   {
+    "en": "Perennial Crop",
+    "es": "Cultivo Perenne",
+    "hex": "#d082de",
+    "pt": "Lavoura Perene",
+    "src": "oficial",
+    "v": 36
+   },
+   {
+    "en": "Soybean",
+    "es": "Soja",
+    "hex": "#f5b3c8",
+    "pt": "Soja",
+    "src": "oficial",
+    "v": 39
+   },
+   {
+    "en": "Rice",
+    "es": "Arroz",
+    "hex": "#c71585",
+    "pt": "Arroz",
+    "src": "oficial",
+    "v": 40
+   },
+   {
+    "en": "Other Temporary Crops",
+    "es": "Otros Cultivos Temporales",
+    "hex": "#f54ca9",
+    "pt": "Outras Lavouras Temporárias",
+    "src": "oficial",
+    "v": 41
+   },
+   {
+    "en": "Coffee",
+    "es": "Café",
+    "hex": "#d68fe2",
+    "pt": "Café",
+    "src": "oficial",
+    "v": 46
+   },
+   {
+    "en": "Citrus",
+    "es": "Cítricos",
+    "hex": "#9932cc",
+    "pt": "Citrus",
+    "src": "oficial",
+    "v": 47
+   },
+   {
+    "en": "Other Perennial Crops",
+    "es": "Otros Cultivos Perennes",
+    "hex": "#e6ccff",
+    "pt": "Outras Lavouras Perenes",
+    "src": "oficial",
+    "v": 48
+   },
+   {
+    "en": "Wooded Sandbank Vegetation",
+    "es": "Restinga Arbórea",
+    "hex": "#02d659",
+    "pt": "Restinga Arbórea",
+    "src": "oficial",
+    "v": 49
+   },
+   {
+    "en": "Herbaceous Sandbank Vegetation",
+    "es": "Restinga Herbácea",
+    "hex": "#ad5100",
+    "pt": "Restinga Herbácea",
+    "src": "oficial",
+    "v": 50
+   },
+   {
+    "en": "Cotton (beta)",
+    "es": "Algodón (beta)",
+    "hex": "#ff69b4",
+    "pt": "Algodão (beta)",
+    "src": "oficial",
+    "v": 62
+   },
+   {
+    "en": "Photovoltaic Power Plant (beta)",
+    "es": "Planta Fotovoltaica (beta)",
+    "hex": "#c12100",
+    "pt": "Usina Fotovoltaica (beta)",
+    "src": "oficial",
+    "v": 75
+   }
+  ],
+  "collection": "5.1",
+  "country": "brasil",
+  "expected": 37,
+  "status": "validada",
+  "subproduct": "annual_burned_coverage",
   "updatedAt": "from-repository"
  },
  "brasil__5.1__annual_burned_scar_size_range": {

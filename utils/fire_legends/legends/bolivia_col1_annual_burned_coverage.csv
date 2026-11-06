@@ -1,0 +1,31 @@
+pixel_value,name_pt,name_en,name_es,hex
+1,Formação Florestal,Forest Formation,Formación boscosa,#1f8d49
+3,Floresta,Forest,Bosque,#1f8d49
+4,Floresta Aberta,Open Forest,Bosque abierto,#7dc975
+6,Floresta Alagável,Flooded Forest,Bosque inundable,#026975
+10,Campo e Arbustal,Grassland and shrubland,Pastizal y matorral,#d6bc74
+11,Campo e Arbustal Alagado,Flooded grassland/shrubland,Pastizal/matorral inundable,#519799
+12,Campo/Arbustal,Grassland/shrubland,Pastizal/matorral,#d6bc74
+13,Outra Formação Natural não Florestal,Other non-forest natural formation,Otra formación natural no boscosa,#d89f5c
+14,Agropecuária,Farming,Agropecuaria,#ffefc3
+15,Pastagem,Pasture,Pasto,#edde8e
+18,Agricultura,Agriculture,Agricultura,#e974ed
+21,Mosaico de Usos,Mosaic of Uses,Mosaico de usos,#ffefc3
+22,Área não Vegetada,Non-vegetated area,Área sin vegetación,#d4271e
+23,"Praia, Duna e Areal","Beach, dune and sandbank","Playa, duna y arenal",#ffa07a
+24,Infraestrutura Urbana,Urban Infrastructure,Infraestructura urbana,#d4271e
+25,Outra Área Antrópica não Vegetada,Other non-vegetated anthropic area,Otra área antrópica sin vegetación,#db4d4f
+26,Corpo D'água,Water,Cuerpo de agua,#2532e4
+27,Não Observado,Not observed,No observado,#ffffff
+29,Afloramento Rochoso,Rocky outcrop,Afloramiento rocoso,#ffaa5f
+30,Mineração,Mining,Minería,#9c0027
+31,Aquicultura,Aquaculture,Acuicultura,#091077
+33,Rio e Lago,River and lake,Río y lago,#2532e4
+34,Geleira,Glacier,Glaciar,#93dfe6
+39,Soja,Soybean,Soya,#f5b3c8
+61,Salar,Salt flat,Salar,#f5d5d5
+66,Matagal,Scrubland,Matorral,#a89358
+68,Outra Área Natural não Vegetada,Other non-vegetated natural area,Otra área natural sin vegetación,#e97a7a
+72,Outras Lavouras,Other crops,Otros cultivos,#c1799c
+81,Campo e Arbustal Andino,Andean grassland and shrubland,Pastizal y matorral andino,#c8c099
+82,Campo e Arbustal Andino Alagado,Flooded Andean grassland and shrubland,Pastizal y matorral andino inundable,#66b2a3
