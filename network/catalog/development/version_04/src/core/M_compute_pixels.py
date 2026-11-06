@@ -1,15 +1,97 @@
 """Experimental, isolated High Volume computePixels transport.
 
-This transport is not wired into M1. It never changes ee.Initialize's global
-endpoint and does not access GCS. Credentials and expressions are supplied by
+This transport never changes ee.Initialize's global endpoint and does not
+access GCS. Credentials and expressions are supplied by
 the caller so the GEE user identity cannot be replaced by the GCS identity.
 """
 import random
 import time
+import copy
 
 MAX_UNCOMPRESSED_BYTES = 48 * 1024 * 1024
 MAX_DIMENSION = 32768
 RETRYABLE_STATUS = frozenset((429, 500, 502, 503, 504))
+
+
+def download_adaptive_tile(project, credentials, request, destination, fetch=None,
+                           min_pixels=256, on_split=None, dtype='uint8',
+                           request_max_pixels=None):
+    """Fetch one manifest tile, subdividing only EE memory-limit failures.
+
+    The saved parent GeoTIFF retains its original grid/name, so existing
+    manifests and previously uploaded tiles remain usable. Subtiles are local
+    and are uploaded only after the entire parent tile has succeeded.
+    """
+    import rasterio
+    from rasterio.io import MemoryFile
+    from rasterio.transform import Affine
+    from rasterio.windows import Window
+    fetch = fetch or compute_pixels
+    grid = request['grid']
+    width = grid['dimensions']['width']
+    height = grid['dimensions']['height']
+    if width != height or width <= 0 or min_pixels <= 0:
+        raise ValueError('Adaptive export requires a positive square grid')
+
+    limit = request_max_pixels or width
+    if limit <= 0 or width % limit or (limit < width and limit < min_pixels):
+        raise ValueError('Request limit must divide the parent tile')
+    if width <= limit:
+        try:
+            payload = fetch(project, credentials, request)
+        except RuntimeError as exc:
+            if 'user memory limit exceeded' not in str(exc).lower() or width <= min_pixels:
+                raise
+            if width % 2 or width // 2 < min_pixels:
+                raise ValueError('Tile cannot be evenly subdivided to the minimum size') from exc
+            limit = width // 2
+            if on_split:
+                on_split(width, limit)
+        else:
+            with open(destination, 'wb') as handle:
+                handle.write(payload)
+            return
+
+    transform = grid['affineTransform']
+    affine = Affine(transform['scaleX'], transform.get('shearX', 0), transform['translateX'],
+                    transform.get('shearY', 0), transform['scaleY'], transform['translateY'])
+    if affine.b != 0 or affine.d != 0:
+        raise ValueError('Adaptive export requires a north-up grid')
+    if dtype not in ('uint8', 'int16'):
+        raise ValueError('Unsupported output dtype')
+    def write_child(output, x, y, size):
+        child = copy.deepcopy(request)
+        child_grid = child['grid']
+        child_grid['dimensions'] = {'width': size, 'height': size}
+        child_grid['affineTransform']['translateX'] = affine.c + x * affine.a
+        child_grid['affineTransform']['translateY'] = affine.f + y * affine.e
+        try:
+            data = fetch(project, credentials, child)
+        except RuntimeError as exc:
+            if 'user memory limit exceeded' not in str(exc).lower() or size <= min_pixels:
+                raise
+            half = size // 2
+            if size % 2 or half < min_pixels:
+                raise
+            if on_split:
+                on_split(size, half)
+            for dy in (0, half):
+                for dx in (0, half):
+                    write_child(output, x + dx, y + dy, half)
+            return
+        with MemoryFile(data) as memory:
+            with memory.open() as source:
+                if source.count != 1 or source.width != size or source.height != size:
+                    raise ValueError('Unexpected computePixels tile dimensions')
+                output.write(source.read(1, masked=False), 1, window=Window(x, y, size, size))
+
+    with rasterio.open(destination, 'w', driver='GTiff', width=width, height=height,
+                       count=1, dtype=dtype, crs=grid['crsCode'], transform=affine,
+                       nodata=0, tiled=True, blockxsize=256, blockysize=256,
+                       compress='LZW') as output:
+        for y in range(0, height, limit):
+            for x in range(0, width, limit):
+                write_child(output, x, y, limit)
 
 
 def make_tile_request(expression, tile, pixel_size, tile_pixels, crs, band_bytes):

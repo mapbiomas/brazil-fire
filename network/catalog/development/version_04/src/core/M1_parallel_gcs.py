@@ -5,10 +5,11 @@ import json
 import os
 import tempfile
 import time
+import threading
 
 import ee
 
-from M_compute_pixels import compute_pixels, make_tile_request
+from M_compute_pixels import compute_pixels, make_tile_request, download_adaptive_tile
 from M_export_grid import tiles_for_bounds
 from M_export_manifest import completed_tiles
 from M_lang import L
@@ -81,15 +82,30 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
     if credentials is None:
         raise RuntimeError('Earth Engine user credentials are not initialized')
 
+    request_limit = {'pixels': tile_pixels}
+    limit_lock = threading.Lock()
+
     def fetch(item):
         tile, dest = item
         request = make_tile_request(expression, tile, resolution, tile_pixels,
                                     'EPSG:4326', [2 if band == 'dayOfYear' else 1])
-        payload = compute_pixels(config['gee_project'], credentials, request)
         with tempfile.TemporaryDirectory(prefix='m1_tile_') as tmp:
             local = os.path.join(tmp, 'tile.tif')
-            with open(local, 'wb') as handle:
-                handle.write(payload)
+            with limit_lock:
+                max_pixels = request_limit['pixels']
+
+            def on_split(_old, size):
+                with limit_lock:
+                    changed = size < request_limit['pixels']
+                    request_limit['pixels'] = min(size, request_limit['pixels'])
+                if changed:
+                    logger(L.ETA_TILE_SPLIT.format(tile=tile.id, size=size))
+
+            download_adaptive_tile(
+                config['gee_project'], credentials, request, local, fetch=compute_pixels,
+                dtype='int16' if band == 'dayOfYear' else 'uint8',
+                on_split=on_split, request_max_pixels=max_pixels,
+            )
             upload(local, dest)
         return dest
 

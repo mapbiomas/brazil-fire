@@ -1,15 +1,82 @@
 """Offline checks of High Volume transport; no GEE credentials required."""
 import pathlib
 import sys
+import tempfile
 import unittest
 from unittest.mock import Mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / 'src' / 'core'))
-from M_compute_pixels import compute_pixels, validate_request_size, make_tile_request
+from M_compute_pixels import compute_pixels, validate_request_size, make_tile_request, download_adaptive_tile
 from M_export_grid import Tile
 
 
 class ComputePixelsTests(unittest.TestCase):
+    def test_memory_error_subdivides_and_reconstructs_parent_grid(self):
+        import numpy as np
+        import rasterio
+        from rasterio.io import MemoryFile
+        from rasterio.transform import from_origin
+
+        request = make_tile_request({'expression': 'mock'}, Tile(0, 0, 0, 0, 4, 4),
+                                    1, 4, 'EPSG:4326', [2])
+        calls = []
+
+        def fake_fetch(_project, _credentials, req):
+            grid = req['grid']
+            size = grid['dimensions']['width']
+            x = grid['affineTransform']['translateX']
+            y = grid['affineTransform']['translateY']
+            calls.append((size, x, y))
+            if size > 2:
+                raise RuntimeError('HTTP 400: User memory limit exceeded.')
+            with MemoryFile() as memory:
+                with memory.open(driver='GTiff', width=size, height=size, count=1,
+                                 dtype='int16', crs='EPSG:4326', nodata=0,
+                                 transform=from_origin(x, y, 1, 1)) as ds:
+                    ds.write(np.full((size, size), int(x + y * 10), dtype='int16'), 1)
+                return memory.read()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = str(pathlib.Path(tmp) / 'parent.tif')
+            download_adaptive_tile('project', object(), request, path, fetch=fake_fetch,
+                                   min_pixels=2, dtype='int16')
+            with rasterio.open(path) as ds:
+                self.assertEqual(ds.read(1).tolist(), [[40, 40, 42, 42], [40, 40, 42, 42],
+                                                      [20, 20, 22, 22], [20, 20, 22, 22]])
+                self.assertEqual(ds.transform, from_origin(0, 4, 1, 1))
+                self.assertEqual(ds.dtypes[0], 'int16')
+        self.assertEqual(len(calls), 5)
+
+    def test_non_memory_failure_is_not_subdivided(self):
+        request = make_tile_request({}, Tile(0, 0, 0, 0, 4, 4), 1, 4, 'EPSG:4326', [1])
+        fetch = Mock(side_effect=RuntimeError('HTTP 403: denied'))
+        with tempfile.TemporaryDirectory() as tmp, self.assertRaisesRegex(RuntimeError, '403'):
+            download_adaptive_tile('project', object(), request, str(pathlib.Path(tmp) / 'x.tif'),
+                                   fetch=fetch, min_pixels=2)
+        fetch.assert_called_once()
+
+    def test_known_request_limit_skips_the_too_large_parent(self):
+        import numpy as np
+        from rasterio.io import MemoryFile
+        from rasterio.transform import from_origin
+        request = make_tile_request({}, Tile(0, 0, 0, 0, 4, 4), 1, 4, 'EPSG:4326', [1])
+        sizes = []
+        def fake_fetch(_project, _credentials, req):
+            g = req['grid']
+            size = g['dimensions']['width']
+            sizes.append(size)
+            with MemoryFile() as mem:
+                with mem.open(driver='GTiff', width=size, height=size, count=1, dtype='uint8',
+                              crs='EPSG:4326', transform=from_origin(
+                                  g['affineTransform']['translateX'],
+                                  g['affineTransform']['translateY'], 1, 1)) as ds:
+                    ds.write(np.ones((size, size), dtype='uint8'), 1)
+                return mem.read()
+        with tempfile.TemporaryDirectory() as tmp:
+            download_adaptive_tile('p', object(), request, str(pathlib.Path(tmp) / 'x.tif'),
+                                   fetch=fake_fetch, min_pixels=2, request_max_pixels=2)
+        self.assertEqual(sizes, [2, 2, 2, 2])
+
     def test_request_uses_north_up_aligned_tile(self):
         request = make_tile_request({'expression': 'mock'}, Tile(1, 2, 100, 200, 140, 240),
                                     10, 4, 'EPSG:3857', [1])
