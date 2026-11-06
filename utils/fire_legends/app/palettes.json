@@ -4351,6 +4351,304 @@
   "subproduct": "annual_burned_scar_size_range",
   "updatedAt": "from-repository"
  },
+ "peru__2__fire_frequency": {
+  "classes": [
+   {
+    "en": "1 time",
+    "es": "1 vez",
+    "hex": "#faf3cd",
+    "pt": "1 vez",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "2 times",
+    "es": "2 veces",
+    "hex": "#faefb2",
+    "pt": "2 vezes",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "3 times",
+    "es": "3 veces",
+    "hex": "#faeb96",
+    "pt": "3 vezes",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "4 times",
+    "es": "4 veces",
+    "hex": "#f9e67b",
+    "pt": "4 vezes",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5 times",
+    "es": "5 veces",
+    "hex": "#f9e25f",
+    "pt": "5 vezes",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "6 times",
+    "es": "6 veces",
+    "hex": "#f9de44",
+    "pt": "6 vezes",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "7 times",
+    "es": "7 veces",
+    "hex": "#f3d23b",
+    "pt": "7 vezes",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "8 times",
+    "es": "8 veces",
+    "hex": "#edc632",
+    "pt": "8 vezes",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "9 times",
+    "es": "9 veces",
+    "hex": "#e6b92a",
+    "pt": "9 vezes",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "10 times",
+    "es": "10 veces",
+    "hex": "#e0ad21",
+    "pt": "10 vezes",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "11 times",
+    "es": "11 veces",
+    "hex": "#daa118",
+    "pt": "11 vezes",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "12 times",
+    "es": "12 veces",
+    "hex": "#d39417",
+    "pt": "12 vezes",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "13 times",
+    "es": "13 veces",
+    "hex": "#cc8715",
+    "pt": "13 vezes",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "en": "14 times",
+    "es": "14 veces",
+    "hex": "#c57a14",
+    "pt": "14 vezes",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "en": "15 times",
+    "es": "15 veces",
+    "hex": "#be6d12",
+    "pt": "15 vezes",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "en": "16 times",
+    "es": "16 veces",
+    "hex": "#b76011",
+    "pt": "16 vezes",
+    "src": "oficial",
+    "v": 16
+   },
+   {
+    "en": "17 times",
+    "es": "17 veces",
+    "hex": "#b0530f",
+    "pt": "17 vezes",
+    "src": "oficial",
+    "v": 17
+   },
+   {
+    "en": "18 times",
+    "es": "18 veces",
+    "hex": "#a8460d",
+    "pt": "18 vezes",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "en": "19 times",
+    "es": "19 veces",
+    "hex": "#a1380c",
+    "pt": "19 vezes",
+    "src": "oficial",
+    "v": 19
+   },
+   {
+    "en": "20 times",
+    "es": "20 veces",
+    "hex": "#992b0a",
+    "pt": "20 vezes",
+    "src": "oficial",
+    "v": 20
+   },
+   {
+    "en": "21 times",
+    "es": "21 veces",
+    "hex": "#921e08",
+    "pt": "21 vezes",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "en": "22 times",
+    "es": "22 veces",
+    "hex": "#881908",
+    "pt": "22 vezes",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "en": "23 times",
+    "es": "23 veces",
+    "hex": "#7e1408",
+    "pt": "23 vezes",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "en": "24 times",
+    "es": "24 veces",
+    "hex": "#740e07",
+    "pt": "24 vezes",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "25 times",
+    "es": "25 veces",
+    "hex": "#6a0907",
+    "pt": "25 vezes",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "26 times",
+    "es": "26 veces",
+    "hex": "#600407",
+    "pt": "26 vezes",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "en": "27 times",
+    "es": "27 veces",
+    "hex": "#580407",
+    "pt": "27 vezes",
+    "src": "oficial",
+    "v": 27
+   },
+   {
+    "en": "28 times",
+    "es": "28 veces",
+    "hex": "#500507",
+    "pt": "28 vezes",
+    "src": "oficial",
+    "v": 28
+   },
+   {
+    "en": "29 times",
+    "es": "29 veces",
+    "hex": "#490508",
+    "pt": "29 vezes",
+    "src": "oficial",
+    "v": 29
+   },
+   {
+    "en": "30 times",
+    "es": "30 veces",
+    "hex": "#410608",
+    "pt": "30 vezes",
+    "src": "oficial",
+    "v": 30
+   },
+   {
+    "en": "31 times",
+    "es": "31 veces",
+    "hex": "#390608",
+    "pt": "31 vezes",
+    "src": "oficial",
+    "v": 31
+   },
+   {
+    "en": "32 times",
+    "es": "32 veces",
+    "hex": "#2e0507",
+    "pt": "32 vezes",
+    "src": "oficial",
+    "v": 32
+   },
+   {
+    "en": "33 times",
+    "es": "33 veces",
+    "hex": "#240405",
+    "pt": "33 vezes",
+    "src": "oficial",
+    "v": 33
+   },
+   {
+    "en": "34 times",
+    "es": "34 veces",
+    "hex": "#190304",
+    "pt": "34 vezes",
+    "src": "oficial",
+    "v": 34
+   },
+   {
+    "en": "35 times",
+    "es": "35 veces",
+    "hex": "#0f0202",
+    "pt": "35 vezes",
+    "src": "oficial",
+    "v": 35
+   },
+   {
+    "en": "36 or more times",
+    "es": "36 veces o más",
+    "hex": "#040101",
+    "pt": "36 vezes ou mais",
+    "src": "oficial",
+    "v": 36
+   }
+  ],
+  "collection": "2",
+  "country": "peru",
+  "expected": 36,
+  "status": "validada",
+  "subproduct": "fire_frequency",
+  "updatedAt": "from-repository"
+ },
  "peru__2__monthly_burned": {
   "classes": [
    {

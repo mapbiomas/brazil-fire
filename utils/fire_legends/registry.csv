@@ -13,6 +13,7 @@ peru_col2_monthly_burned_area,peru,2,Monthly burned area,active,1990-2025,month 
 peru_col2_fire_scar_size,peru,2,Fire scar size,active,1990-2025,scar size class (1-8),peru_col2_fire_scar_size.csv,,peru,2,annual_burned_scar_size_range
 peru_col2_accumulated_burned_area,peru,2,Accumulated burned area,active,1990-2025,1 = fire,peru_col2_accumulated_burned_area.csv,,peru,2,accumulated_burned
 peru_col2_last_fire_year,peru,2,Year of last fire,active,1990-2025,the pixel value is the year,peru_col2_last_fire_year.csv,,peru,2,year_last_fire
+peru_col2_fire_frequency,peru,2,Fire frequency,active,1990-2025,number of fires (1-36; 36 = 36 or more),peru_col2_fire_frequency.csv,,peru,2,fire_frequency
 peru_monitor_burned_area,peru,Monitor,Fire Monitor,active,2025-2026,1 = fire,peru_monitor_burned_area.csv,,peru,Monitor,fire_monitor
 chile_col1_fire,chile,1,MapBiomas Fuego Chile Collection 1,not_found,,,,,,,
 chile_col1_annual_burned_area,chile,1,Annual burned area,active,2013-2025,1 = fire,chile_col1_annual_burned_area.csv,,chile,1,annual_burned
