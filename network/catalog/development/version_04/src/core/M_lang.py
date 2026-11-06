@@ -52,6 +52,9 @@ class L:
     STATUS = "Status"
     PROGRESS = "Progress"
     ETA_PENDING = "estimating"
+    ETA_RETRY = "unavailable: failed tiles require retry"
+    ETA_TILE_FAILED = "[GCS] Tile {tile} failed: {error}"
+    ETA_EXPORT_PAUSED = "[GCS] Pausing after {count} failed tiles; completed tiles are retained."
     ETA_PROGRESS = "[{phase}] {done}/{total} | elapsed {elapsed} | estimated remaining {eta}"
     ETA_M1_PHASE = "GEE to GCS tiles"
     ETA_M2_DOWNLOAD = "GCS tile download"
@@ -679,6 +682,9 @@ class L:
 
 STRINGS_ES = {
     "ETA_PENDING": "calculando",
+    "ETA_RETRY": "no disponible: hay tiles fallidos para reintentar",
+    "ETA_TILE_FAILED": "[GCS] Falló el tile {tile}: {error}",
+    "ETA_EXPORT_PAUSED": "[GCS] Pausa tras {count} tiles fallidos; se conservan los tiles completados.",
     "ETA_PROGRESS": "[{phase}] {done}/{total} | transcurrido {elapsed} | restante estimado {eta}",
     "ETA_M1_PHASE": "Tiles de GEE a GCS",
     "ETA_M2_DOWNLOAD": "Descarga de tiles desde GCS",
@@ -1282,6 +1288,9 @@ STRINGS_ES = {
 
 STRINGS_PT = {
     "ETA_PENDING": "calculando",
+    "ETA_RETRY": "indisponível: há tiles com falha para tentar novamente",
+    "ETA_TILE_FAILED": "[GCS] Falha no tile {tile}: {error}",
+    "ETA_EXPORT_PAUSED": "[GCS] Pausado após {count} falhas; os tiles concluídos foram preservados.",
     "ETA_PROGRESS": "[{phase}] {done}/{total} | decorrido {elapsed} | restante estimado {eta}",
     "ETA_M1_PHASE": "Tiles do GEE para GCS",
     "ETA_M2_DOWNLOAD": "Download dos tiles do GCS",

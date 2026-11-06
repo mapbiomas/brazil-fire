@@ -19,7 +19,7 @@ class ProgressEtaTests(unittest.TestCase):
         self.assertEqual(msg, '103/110 00:00:30 00:01:10')
 
     def test_estimate_waits_for_samples_and_does_not_hide_failures(self):
-        with patch.object(L, 'ETA_PENDING', 'pending'), \
+        with patch.object(L, 'ETA_PENDING', 'pending'), patch.object(L, 'ETA_RETRY', 'retry'), \
              patch.object(L, 'ETA_PROGRESS', '{eta}'):
             self.assertEqual(progress_message('phase', 2, 10, 10, 2, 10), 'pending')
-            self.assertEqual(progress_message('phase', 4, 10, 10, 4, 10, 1), 'pending')
+            self.assertEqual(progress_message('phase', 4, 10, 10, 4, 10, 1), 'retry')

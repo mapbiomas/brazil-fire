@@ -51,3 +51,13 @@ class ComputePixelsTests(unittest.TestCase):
             compute_pixels('project', object(), {}, session_factory=lambda _: session)
         session.post.assert_called_once()
         session.close.assert_called_once()
+
+    def test_server_error_detail_is_reported(self):
+        from requests.exceptions import HTTPError
+        session = Mock()
+        response = Mock(status_code=400)
+        response.raise_for_status.side_effect = HTTPError('bad request')
+        response.json.return_value = {'error': {'message': 'Computation timed out'}}
+        session.post.return_value = response
+        with self.assertRaisesRegex(RuntimeError, 'Computation timed out'):
+            compute_pixels('project', object(), {}, session_factory=lambda _: session)

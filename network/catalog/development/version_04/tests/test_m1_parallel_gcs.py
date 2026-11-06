@@ -11,6 +11,25 @@ import M_gcs
 
 
 class ParallelResumeTests(unittest.TestCase):
+    def test_repeated_failures_stop_early_and_are_reported(self):
+        geometry, logs = MagicMock(), []
+        geometry.bounds.return_value.coordinates.return_value.getInfo.return_value = [
+            [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+        storage = MagicMock()
+        storage.list_blobs.return_value = []
+        with patch.object(logic.ee.serializer, 'encode', return_value={'constant': 1}), \
+             patch.object(logic.ee.data, '_get_state', return_value=MagicMock(credentials=object())), \
+             patch.object(logic, 'compute_pixels', side_effect=RuntimeError('EE timeout')) as pixels, \
+             patch.object(M_gcs, 'blob_exists', return_value=False), \
+             patch.object(M_gcs, 'write_json'), \
+             patch.object(M_gcs, '_storage_client', return_value=storage):
+            with self.assertRaises(RuntimeError):
+                logic.export_band(MagicMock(), geometry, 'blue', 'base', 'folder/CHUNKS',
+                                  {'bucket': 'bucket', 'gee_project': 'project'},
+                                  111319.49079327358, workers=1, tile_pixels=2, logger=logs.append)
+        self.assertEqual(pixels.call_count, 3)
+        self.assertTrue(any('EE timeout' in line for line in logs))
+
     def test_interrupted_export_reuses_uploaded_tiles(self):
         state, objects, failures = {}, set(), [True]
         geometry = MagicMock()

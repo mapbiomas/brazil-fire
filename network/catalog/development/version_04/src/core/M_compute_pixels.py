@@ -64,7 +64,7 @@ def compute_pixels(project, credentials, request, max_attempts=5, timeout=120,
     if session_factory is None:
         from google.auth.transport.requests import AuthorizedSession
         session_factory = AuthorizedSession
-    from requests.exceptions import ConnectionError, Timeout
+    from requests.exceptions import ConnectionError, Timeout, HTTPError
     url = f'https://earthengine-highvolume.googleapis.com/v1/projects/{project}/image:computePixels'
     session = session_factory(credentials)
     try:
@@ -73,7 +73,14 @@ def compute_pixels(project, credentials, request, max_attempts=5, timeout=120,
                 response = session.post(url, json=request, timeout=timeout,
                                         headers={'X-Goog-User-Project': project})
                 if response.status_code not in RETRYABLE_STATUS or attempt == max_attempts - 1:
-                    response.raise_for_status()
+                    try:
+                        response.raise_for_status()
+                    except HTTPError as exc:
+                        try:
+                            detail = response.json().get('error', {}).get('message', '')
+                        except (ValueError, AttributeError):
+                            detail = ''
+                        raise RuntimeError(f'HTTP {response.status_code}: {detail or str(exc)}') from exc
                     return response.content
             except (ConnectionError, Timeout):
                 if attempt == max_attempts - 1:

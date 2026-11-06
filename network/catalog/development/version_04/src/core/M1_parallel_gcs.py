@@ -94,6 +94,7 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
         return dest
 
     failures = []
+    max_failures = 3
     pool = concurrent.futures.ThreadPoolExecutor(max_workers=workers)
     iterator = iter(pending)
     futures = {}
@@ -113,6 +114,9 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
                     existing.add(future.result())
                 except Exception as exc:
                     failures.append((item[0].id, str(exc)))
+                    logger(L.ETA_TILE_FAILED.format(tile=item[0].id, error=str(exc)))
+                    if len(failures) == max_failures:
+                        logger(L.ETA_EXPORT_PAUSED.format(count=max_failures))
                 index += 1
                 now = time.monotonic()
                 if index == 1 or index % 10 == 0 or index == len(pending) or now - last_report >= 30:
@@ -120,7 +124,8 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
                         L.ETA_M1_PHASE, len(existing), len(tiles), now - start,
                         index - len(failures), len(pending), len(failures)))
                     last_report = now
-                submit_next()
+                if len(failures) < max_failures:
+                    submit_next()
     except BaseException:
         # Do not enqueue the rest of the country after a Colab interruption.
         # In-flight requests may still finish and can be reused on resume.
