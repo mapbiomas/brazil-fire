@@ -6,10 +6,11 @@ import os
 import tempfile
 import time
 import threading
+from collections import deque
 
 import ee
 
-from M_compute_pixels import compute_pixels, make_tile_request, download_adaptive_tile
+from M_compute_pixels import compute_pixels, make_tile_request, download_adaptive_tile, RestrictedModeError
 from M_export_grid import tiles_for_bounds
 from M_export_manifest import completed_tiles
 from M_lang import L
@@ -82,7 +83,12 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
     if credentials is None:
         raise RuntimeError('Earth Engine user credentials are not initialized')
 
-    request_limit = {'pixels': tile_pixels}
+    # Parent objects remain aligned to the manifest, but large computePixels
+    # requests can exceed EE's memory. Start with smaller requests directly.
+    initial_request_size = tile_pixels
+    while initial_request_size > 1024 and initial_request_size % 2 == 0:
+        initial_request_size //= 2
+    request_limit = {'pixels': initial_request_size}
     limit_lock = threading.Lock()
 
     def fetch(item):
@@ -101,10 +107,17 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
                 if changed:
                     logger(L.ETA_TILE_SPLIT.format(tile=tile.id, size=size))
 
+            piece_last_report = [time.monotonic()]
+            def on_piece(done, total):
+                now = time.monotonic()
+                if done == 1 or now - piece_last_report[0] >= 60:
+                    logger(L.ETA_TILE_PART.format(tile=tile.id, done=done, total=total))
+                    piece_last_report[0] = now
+
             download_adaptive_tile(
                 config['gee_project'], credentials, request, local, fetch=compute_pixels,
                 dtype='int16' if band == 'dayOfYear' else 'uint8',
-                on_split=on_split, request_max_pixels=max_pixels,
+                on_split=on_split, request_max_pixels=max_pixels, on_piece=on_piece,
             )
             upload(local, dest)
         return dest
@@ -112,22 +125,46 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
     failures = []
     max_failures = 3
     pool = concurrent.futures.ThreadPoolExecutor(max_workers=workers)
-    iterator = iter(pending)
+    queue = deque(pending)
     futures = {}
+    restricted_attempts = {}
+    active_limit = workers
+    restricted_seen = False
+    rate_initial = len(existing)
+    rate_total = len(pending)
     try:
-        def submit_next():
-            item = next(iterator, None)
-            if item is not None:
-                futures[pool.submit(fetch, item)] = item
-        for _ in range(min(len(pending), workers)):
-            submit_next()
         index = 0
-        while futures:
+        while futures or (queue and len(failures) < max_failures):
+            while queue and len(futures) < active_limit and len(failures) < max_failures:
+                item = queue.popleft()
+                futures[pool.submit(fetch, item)] = item
+            if not futures:
+                break
             done, _ = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
             for future in done:
                 item = futures.pop(future)
                 try:
                     existing.add(future.result())
+                except RestrictedModeError as exc:
+                    if not restricted_seen:
+                        restricted_seen = True
+                        active_limit = 1
+                        logger(L.ETA_RESTRICTED)
+                        start = time.monotonic()
+                        last_report = start
+                        rate_initial = len(existing)
+                        rate_total = len(tiles) - rate_initial
+                    attempts = restricted_attempts.get(item[0].id, 0) + 1
+                    restricted_attempts[item[0].id] = attempts
+                    if attempts <= 2:
+                        queue.append(item)
+                        # Give other in-flight/project requests time to clear.
+                        time.sleep(5)
+                        continue
+                    failures.append((item[0].id, str(exc)))
+                    logger(L.ETA_TILE_FAILED.format(tile=item[0].id, error=str(exc)))
+                    if len(failures) == max_failures:
+                        logger(L.ETA_EXPORT_PAUSED.format(count=max_failures))
                 except Exception as exc:
                     failures.append((item[0].id, str(exc)))
                     logger(L.ETA_TILE_FAILED.format(tile=item[0].id, error=str(exc)))
@@ -138,10 +175,8 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
                 if index == 1 or index % 10 == 0 or index == len(pending) or now - last_report >= 30:
                     logger(f'{band_name} ' + progress_message(
                         L.ETA_M1_PHASE, len(existing), len(tiles), now - start,
-                        index - len(failures), len(pending), len(failures)))
+                        len(existing) - rate_initial, rate_total, len(failures)))
                     last_report = now
-                if len(failures) < max_failures:
-                    submit_next()
     except BaseException:
         # Do not enqueue the rest of the country after a Colab interruption.
         # In-flight requests may still finish and can be reused on resume.

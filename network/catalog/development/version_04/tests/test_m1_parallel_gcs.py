@@ -11,6 +11,37 @@ import M_gcs
 
 
 class ParallelResumeTests(unittest.TestCase):
+    def test_restricted_mode_retries_the_tile_with_lower_concurrency(self):
+        state, objects, logs, attempts = {}, set(), [], []
+        geometry = MagicMock()
+        geometry.bounds.return_value.coordinates.return_value.getInfo.return_value = [
+            [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]]
+        storage = MagicMock()
+        storage.list_blobs.return_value = []
+
+        def fetch(*_args, **_kwargs):
+            attempts.append(1)
+            if len(attempts) == 1:
+                raise logic.RestrictedModeError('Restricted Mode')
+            return b'tile'
+
+        with patch.object(logic.ee.serializer, 'encode', return_value={'constant': 1}), \
+             patch.object(logic.ee.data, '_get_state', return_value=MagicMock(credentials=object())), \
+             patch.object(logic.L, 'ETA_RESTRICTED', 'restricted mode: concurrency one'), \
+             patch.object(logic, 'compute_pixels', side_effect=fetch), \
+             patch.object(logic.time, 'sleep'), \
+             patch.object(M_gcs, 'blob_exists', side_effect=lambda path: path in state), \
+             patch.object(M_gcs, 'read_json', side_effect=lambda path: state[path]), \
+             patch.object(M_gcs, 'write_json', side_effect=lambda path, value: state.update({path: value.copy()})), \
+             patch.object(M_gcs, 'upload', side_effect=lambda local, dest: objects.add(dest)), \
+             patch.object(M_gcs, '_storage_client', return_value=storage):
+            result = logic.export_band(MagicMock(), geometry, 'blue', 'base', 'folder/CHUNKS',
+                {'bucket': 'bucket', 'gee_project': 'project'}, 111319.49079327358,
+                workers=2, tile_pixels=2, logger=logs.append)
+        self.assertEqual(result['status'], 'complete')
+        self.assertEqual(len(attempts), 2)
+        self.assertTrue(any('concurrency' in line.lower() or 'concurr' in line.lower() for line in logs))
+
     def test_repeated_failures_stop_early_and_are_reported(self):
         geometry, logs = MagicMock(), []
         geometry.bounds.return_value.coordinates.return_value.getInfo.return_value = [

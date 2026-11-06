@@ -13,9 +13,13 @@ MAX_DIMENSION = 32768
 RETRYABLE_STATUS = frozenset((429, 500, 502, 503, 504))
 
 
+class RestrictedModeError(RuntimeError):
+    """Earth Engine explicitly reported a restricted-mode concurrency limit."""
+
+
 def download_adaptive_tile(project, credentials, request, destination, fetch=None,
                            min_pixels=256, on_split=None, dtype='uint8',
-                           request_max_pixels=None):
+                           request_max_pixels=None, on_piece=None):
     """Fetch one manifest tile, subdividing only EE memory-limit failures.
 
     The saved parent GeoTIFF retains its original grid/name, so existing
@@ -59,6 +63,7 @@ def download_adaptive_tile(project, credentials, request, destination, fetch=Non
         raise ValueError('Adaptive export requires a north-up grid')
     if dtype not in ('uint8', 'int16'):
         raise ValueError('Unsupported output dtype')
+    piece_counts = {'done': 0, 'total': (width // limit) ** 2}
     def write_child(output, x, y, size):
         child = copy.deepcopy(request)
         child_grid = child['grid']
@@ -73,6 +78,7 @@ def download_adaptive_tile(project, credentials, request, destination, fetch=Non
             half = size // 2
             if size % 2 or half < min_pixels:
                 raise
+            piece_counts['total'] += 3
             if on_split:
                 on_split(size, half)
             for dy in (0, half):
@@ -84,6 +90,9 @@ def download_adaptive_tile(project, credentials, request, destination, fetch=Non
                 if source.count != 1 or source.width != size or source.height != size:
                     raise ValueError('Unexpected computePixels tile dimensions')
                 output.write(source.read(1, masked=False), 1, window=Window(x, y, size, size))
+        piece_counts['done'] += 1
+        if on_piece:
+            on_piece(piece_counts['done'], piece_counts['total'])
 
     with rasterio.open(destination, 'w', driver='GTiff', width=width, height=height,
                        count=1, dtype=dtype, crs=grid['crsCode'], transform=affine,
@@ -154,6 +163,13 @@ def compute_pixels(project, credentials, request, max_attempts=5, timeout=120,
             try:
                 response = session.post(url, json=request, timeout=timeout,
                                         headers={'X-Goog-User-Project': project})
+                if response.status_code == 429:
+                    try:
+                        message = response.json().get('error', {}).get('message', '')
+                    except (ValueError, AttributeError):
+                        message = ''
+                    if isinstance(message, str) and 'restricted mode' in message.lower():
+                        raise RestrictedModeError(f'HTTP 429: {message}')
                 if response.status_code not in RETRYABLE_STATUS or attempt == max_attempts - 1:
                     try:
                         response.raise_for_status()

@@ -6,7 +6,8 @@ import unittest
 from unittest.mock import Mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / 'src' / 'core'))
-from M_compute_pixels import compute_pixels, validate_request_size, make_tile_request, download_adaptive_tile
+from M_compute_pixels import (compute_pixels, validate_request_size, make_tile_request,
+                              download_adaptive_tile, RestrictedModeError)
 from M_export_grid import Tile
 
 
@@ -128,3 +129,14 @@ class ComputePixelsTests(unittest.TestCase):
         session.post.return_value = response
         with self.assertRaisesRegex(RuntimeError, 'Computation timed out'):
             compute_pixels('project', object(), {}, session_factory=lambda _: session)
+
+    def test_restricted_mode_is_signaled_without_repeated_parallel_retries(self):
+        session = Mock()
+        response = Mock(status_code=429)
+        response.json.return_value = {'error': {'message': 'Your project is in Restricted Mode'}}
+        session.post.return_value = response
+        sleep = Mock()
+        with self.assertRaises(RestrictedModeError):
+            compute_pixels('project', object(), {}, session_factory=lambda _: session, sleep=sleep)
+        session.post.assert_called_once()
+        sleep.assert_not_called()
