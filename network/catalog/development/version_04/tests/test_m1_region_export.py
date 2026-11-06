@@ -15,6 +15,15 @@ class RegionalAssetTests(unittest.TestCase):
         self.assertEqual(regional.region_asset_suffix('Ação'), regional.region_asset_suffix('Ação'))
         self.assertNotEqual(regional.region_asset_suffix('Ação'), regional.region_asset_suffix('Acao'))
 
+    def test_task_description_meets_gee_limit_and_is_unique(self):
+        prefix = regional.regional_task_prefix('MONITOR TEST', 'image_' + 'colombia_' * 20)
+        descriptions = [prefix + '_' + regional.region_asset_suffix(n)[-12:]
+                        for n in ('Região norte', 'Região sul')]
+        for description in descriptions:
+            self.assertLessEqual(len(description), 100)
+            self.assertRegex(description, r'^[a-zA-Z0-9.,:;_-]+$')
+        self.assertNotEqual(*descriptions)
+
     def test_invalid_region_names_rejected(self):
         for names in ([], ['a', 'a'], ['a', None], [' a']):
             with self.subTest(names=names), self.assertRaises(ValueError):
@@ -35,6 +44,8 @@ class RegionalAssetTests(unittest.TestCase):
         self.assertEqual(export.call_count, 2)
         image.clip.assert_not_called()
         self.assertNotIn('overwrite', export.call_args.kwargs)
+        for call in export.call_args_list:
+            self.assertLessEqual(len(call.kwargs['description']), 100)
         self.assertEqual(image.select.return_value.set.call_args.kwargs, {})
         self.assertEqual(image.select.return_value.set.call_args.args[0]['expected_region_count'], 2)
 

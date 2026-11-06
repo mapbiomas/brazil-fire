@@ -1,8 +1,7 @@
 """Regional asset export primitives for the experimental M1.
 
-This module is not yet called by the UI. It never changes the national asset
-export path and does not clip the image. Existing assets and active tasks are
-not overwritten or submitted again.
+The national asset path is unchanged and the image is not clipped. Existing
+assets and active tasks are not overwritten or submitted again.
 """
 import hashlib
 import re
@@ -20,6 +19,17 @@ def region_asset_suffix(region_name):
     slug = re.sub(r'[^a-z0-9]+', '_', ascii_name.lower()).strip('_')[:40] or 'region'
     digest = hashlib.sha256(name.encode('utf-8')).hexdigest()[:12]
     return f'region_{slug}_{digest}'
+
+
+def regional_task_prefix(task_flag, base_name):
+    """Return an EE-safe, deterministic prefix with room for a region hash."""
+    raw = f'{task_flag}_ASSET_{base_name}'
+    ascii_text = unicodedata.normalize('NFKD', raw).encode('ascii', 'ignore').decode('ascii')
+    safe = re.sub(r'[^a-zA-Z0-9.,:;_-]', '_', ascii_text)
+    if len(safe) > 86:
+        digest = hashlib.sha256(raw.encode('utf-8')).hexdigest()[:8]
+        safe = safe[:77] + '_' + digest
+    return safe
 
 
 def validate_region_names(values):
@@ -83,8 +93,9 @@ def submit_region_exports(image, collection, collection_id, base_name, band,
     for region_name, suffix in zip(names, suffixes):
         name = f'{base_name}_{suffix}'
         asset_id = f'{collection_id}/{name}'
-        description = f'{task_flag}_ASSET_{name}'
-        if asset_id in existing or description in active:
+        description = f'{regional_task_prefix(task_flag, base_name)}_{suffix[-12:]}'
+        legacy_description = f'{task_flag}_ASSET_{name}'
+        if asset_id in existing or description in active or legacy_description in active:
             skipped.append(asset_id)
             continue
         region = collection.filter(ee.Filter.eq(region_property, region_name)).geometry()

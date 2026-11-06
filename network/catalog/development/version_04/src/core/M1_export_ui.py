@@ -236,6 +236,9 @@ class ExportDispatcherUI(PipelineStepUI):
                     m_name_lower = m_name.lower()
                     # Busca precisa usando a flag pessoal: FLAG_TIPO_NOME
                     task_id = f"{GLOBAL_OPTS['PERSONAL_TASK_FLAG']}_{row_type}_{m_name_lower}".lower()
+                    if row_type == 'ASSET' and GLOBAL_OPTS.get('ASSET_EXPORT_BY_REGION', False):
+                        from M1_region_export import regional_task_prefix
+                        task_id = regional_task_prefix(GLOBAL_OPTS['PERSONAL_TASK_FLAG'], m_name).lower()
                     is_active = any(task_id in t.lower() for t in active_tasks)
 
                     chk = widgets.Checkbox(value=False, indent=False, layout=L(width='18px', height='18px', margin='0'))

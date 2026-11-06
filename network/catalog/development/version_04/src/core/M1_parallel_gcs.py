@@ -13,7 +13,7 @@ from M_export_manifest import completed_tiles
 
 
 def export_band(image, geometry, band, band_name, folder, config, scale,
-                workers=4, tile_pixels=1024, logger=print):
+                workers=4, tile_pixels=4096, logger=print):
     """Export tiles for one band; reuse existing objects after interruption.
 
     A manifest is written before any tile. An incompatible existing manifest
@@ -24,6 +24,11 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
         raise ValueError('workers and tile_pixels must be positive')
     bucket = config['bucket']
     manifest_path = f'{bucket}/{folder}/{band_name}.manifest.json'
+    current = read_json(manifest_path) if blob_exists(manifest_path) else None
+    if current is not None:
+        # The first experimental release used 1024 pixels without recording
+        # the size. Keep that grid to resume it without deleting any tiles.
+        tile_pixels = current.get('tile_pixels', 1024)
     # EPSG:4326 matches the geographic output convention; EE nominal metre
     # scale is expressed in degrees at the equator. This is versioned in the
     # manifest and must be compared with existing products before production.
@@ -39,9 +44,9 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
     fingerprint = hashlib.sha256(json.dumps(spec, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     objects = [{'id': t.id, 'object': f'gs://{bucket}/{folder}/{band_name}_{t.id}.tif'} for t in tiles]
     planned = {'version': 1, 'status': 'running', 'fingerprint': fingerprint,
-               'crs': 'EPSG:4326', 'resolution': resolution, 'tiles': objects}
-    if blob_exists(manifest_path):
-        current = read_json(manifest_path)
+               'crs': 'EPSG:4326', 'resolution': resolution,
+               'tile_pixels': tile_pixels, 'tiles': objects}
+    if current is not None:
         if current.get('fingerprint') != fingerprint or current.get('tiles') != objects:
             raise RuntimeError('Existing manifest has different parameters; refusing to overwrite it')
         if current.get('status') == 'consumed':
@@ -84,15 +89,36 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
         return dest
 
     failures = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {pool.submit(fetch, item): item for item in pending}
-        for index, future in enumerate(concurrent.futures.as_completed(futures), 1):
-            try:
-                existing.add(future.result())
-            except Exception as exc:
-                failures.append((futures[future][0].id, str(exc)))
-            if index % 25 == 0 or index == len(pending):
-                logger(f'[GCS] {band_name}: {len(existing)}/{len(tiles)} tiles available')
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=workers)
+    iterator = iter(pending)
+    futures = {}
+    try:
+        def submit_next():
+            item = next(iterator, None)
+            if item is not None:
+                futures[pool.submit(fetch, item)] = item
+        for _ in range(min(len(pending), workers)):
+            submit_next()
+        index = 0
+        while futures:
+            done, _ = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
+            for future in done:
+                item = futures.pop(future)
+                try:
+                    existing.add(future.result())
+                except Exception as exc:
+                    failures.append((item[0].id, str(exc)))
+                index += 1
+                if index % 25 == 0 or index == len(pending):
+                    logger(f'[GCS] {band_name}: {len(existing)}/{len(tiles)} tiles available')
+                submit_next()
+    except BaseException:
+        # Do not enqueue the rest of the country after a Colab interruption.
+        # In-flight requests may still finish and can be reused on resume.
+        pool.shutdown(wait=False, cancel_futures=True)
+        raise
+    else:
+        pool.shutdown(wait=True)
     if failures:
         raise RuntimeError(f'{len(failures)} tiles failed; rerun M1 to resume: {failures[0]}')
     planned['status'] = 'complete'
