@@ -102,3 +102,11 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - "🔗 Copiar link desta análise" (`copiarLink`): copia o endereço com o hash. O hash agora guarda também temporada, paleta e "por" do Mensal, unidade da Frequência e faixa da Cicatriz.
 - Mapa por território: passo "Buscar" com lista de nomes (`datalist`), só com mais de 20 territórios; aceita nome sem acento ou só o começo; seleciona, contorna e dá zoom.
 - Testado sem interface: Anual no Brasil (Mha) e no Peru (mil ha); Acumulado no Peru; mapa por estados (com busca, "sao paulo" abre o detalhe) e por biomas (sem busca).
+
+## Mensal: mapa de calor e boxplot (2026-11-05)
+
+- Card "Soma do período e média por mês" com `alterna: "mensal"` (Mapa de calor | Boxplot | Lista, padrão `vistaPadrao: "calor"`). `card.legendaVista` troca a legenda por vista.
+- Mapa de calor (`desenharCalor`): canvas próprio, sem Chart.js; cor pela raiz quadrada da área em `CALOR_RAMP` (0 = cinza), escala desenhada no canvas (entra no PNG), dica no `mousemove`, redesenha com `ResizeObserver` quando a largura muda.
+- Boxplot (`boxplotConfig`, `estatBox`): barra flutuante [Q1, Q3] + plugin para mediana, hastes (Tukey, 1,5 × IQR) e pontos dos anos fora do comum; quartis por interpolação linear. Sem animação, para as hastes não descolarem das caixas.
+- Tabela sob demanda: ano × mês no mapa de calor; mínimo, quartis, máximo e média no boxplot.
+- Testado sem interface: Brasil 1985–2025 (pt) e Peru com temporada jul–jun (en), nas três vistas, com tabela.

@@ -1842,7 +1842,26 @@ async function loadMensal({ t, ini, fim }) {
       {
         span: 12,
         title: "Soma do período e média por mês",
-        subtitle: "Soma no período · % do total · média ± desvio padrão por ano",
+        subtitle: "Cada mês ao longo dos anos: mapa de calor (ano × mês), boxplot (variação entre os anos) ou lista (soma, % do total e média ± desvio padrão)",
+        alterna: "mensal",
+        vistaPadrao: "calor",
+        calor: {
+          linhas: temporadas.map((s) => s.rotulo),
+          colunas: curtos,
+          nomes: mesesJ.map((m) => m.name),
+          valores: temporadas.map((s) => s.vals),
+        },
+        boxplot: {
+          labels: curtos,
+          nomes: mesesJ.map((m) => m.name),
+          cores: janela.map((k) => corMes(k)),
+          porMes,
+          anos: temporadas.map((s) => s.rotulo),
+        },
+        legendaVista: {
+          calor: [{ label: "Cada linha é um ano (ou temporada) e cada coluna, um mês · quanto mais escuro, mais área queimada · cinza = sem área queimada", note: true }],
+          boxplot: [{ label: "Caixa = metade central dos anos (do 1º ao 3º quartil) · traço = mediana · hastes = menor e maior valor típicos · pontos = anos fora do comum (além de 1,5 vez a altura da caixa)", note: true }],
+        },
         ranking: {
           plain: true,
           total: totalPeriodo,
@@ -3057,23 +3076,27 @@ const VISTAS = {
   linhas: [["barras", "Barras"], ["linhas", "Linhas"]],
   rosca: [["barras", "Barras"], ["rosca", "Rosca"]],
   anual: [["barras", "Barras"], ["linhas", "Linhas"], ["biomas", `Por ${rot("bioma").toLowerCase()}`]],
+  mensal: [["calor", "Mapa de calor"], ["boxplot", "Boxplot"], ["lista", "Lista"]],
 };
 
 // Vistas que trocam o corpo do card inteiro (não dá para só mudar o tipo do Chart.js).
-const VISTAS_DE_CORPO = ["rosca", "biomas"];
+const VISTAS_DE_CORPO = ["rosca", "biomas", "calor", "boxplot", "lista"];
 
 const ICONE_VISTA = {
   barras: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 14V8.5a1 1 0 0 1 1-1h1.5a1 1 0 0 1 1 1V14zm4.75 0V3a1 1 0 0 1 1-1h1.5a1 1 0 0 1 1 1v11zm4.75 0V6.5a1 1 0 0 1 1-1H14a1 1 0 0 1 1 1V14z"/></svg>`,
   linhas: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M1.5 12.5c2-1 2.6-5 4.5-5s2.2 2.5 4 2.5 2.5-4.5 4.5-7"/></svg>`,
   biomas: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 14v-3h3.5v3zm0-4V7.5h3.5V10zm4.75 4V9h3.5v5zm0-6V4h3.5v4zm4.75 6v-2.5H15V14zm0-3.5V6H15v4.5z"/></svg>`,
   rosca: `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.25" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="3"/><path fill="none" stroke="currentColor" stroke-width="3" d="M8 2.75A5.25 5.25 0 0 1 13.25 8"/></svg>`,
+  calor: `<svg viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><rect x="1.5" y="1.5" width="3.8" height="3.8" opacity=".35"/><rect x="6.1" y="1.5" width="3.8" height="3.8"/><rect x="10.7" y="1.5" width="3.8" height="3.8" opacity=".6"/><rect x="1.5" y="6.1" width="3.8" height="3.8"/><rect x="6.1" y="6.1" width="3.8" height="3.8" opacity=".6"/><rect x="10.7" y="6.1" width="3.8" height="3.8" opacity=".35"/><rect x="1.5" y="10.7" width="3.8" height="3.8" opacity=".6"/><rect x="6.1" y="10.7" width="3.8" height="3.8" opacity=".35"/><rect x="10.7" y="10.7" width="3.8" height="3.8"/></g></svg>`,
+  boxplot: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M4 1.5v3M4 11.5v3M2.5 1.5h3M2.5 14.5h3M12 3v2.5M12 10v3.5M10.5 3h3M10.5 13.5h3"/><rect x="2" y="4.5" width="4" height="7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="5.5" width="4" height="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path stroke="currentColor" stroke-width="1.5" d="M2 8h4M10 7.5h4"/></svg>`,
+  lista: `<svg viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><rect x="1.5" y="2" width="13" height="2.4" rx="1"/><rect x="1.5" y="6.8" width="9" height="2.4" rx="1"/><rect x="1.5" y="11.6" width="5" height="2.4" rx="1"/></g></svg>`,
 };
 
 const chaveVista = (i) => `${state.tab}:${i}`;
 
 function vistaDe(card, i) {
   if (!card.alterna) return null;
-  return state.vistas[chaveVista(i)] || (card.chart?.kind === "line" ? "linhas" : "barras");
+  return state.vistas[chaveVista(i)] || card.vistaPadrao || (card.chart?.kind === "line" ? "linhas" : "barras");
 }
 
 // Spec do gráfico na vista escolhida (o spec original descreve a vista padrão).
@@ -3180,6 +3203,12 @@ function montarGraficos(card, root, vista, tokens) {
       });
     return;
   }
+  if (vista === "calor") return desenharCalor(root.querySelector(".calor-box canvas"), card.calor, tokens);
+  if (vista === "boxplot") {
+    const cv = root.querySelector(".card-body canvas");
+    if (cv) registrarGrafico(root, new Chart(cv, boxplotConfig(card.boxplot, tokens)));
+    return;
+  }
   if (vista === "rosca") {
     const canvases = root.querySelectorAll(".donut canvas");
     roscasDe(card).forEach((r, k) => {
@@ -3191,6 +3220,173 @@ function montarGraficos(card, root, vista, tokens) {
   if (!canvas) return;
   const config = card.chart ? chartConfig(specNaVista(card.chart, vista), tokens) : doughnutConfig(card.doughnut, tokens);
   registrarGrafico(root, new Chart(canvas, config));
+}
+
+// ---------- Mapa de calor ano × mês (canvas próprio; entra no PNG do card) ----------
+// Escala de cor pela raiz quadrada da área (os meses de pico não apagam o resto); 0 = cinza.
+const CALOR_RAMP = ["#fff3cf", "#fdd27a", "#f99a3e", "#e3502b", "#b3171f", "#5e0b1d"];
+
+function desenharCalor(canvas, d, tokens) {
+  if (!canvas) return;
+  const box = canvas.parentElement;
+  const dica = box.querySelector(".calor-dica");
+  const nL = d.linhas.length, nC = d.colunas.length;
+  const max = Math.max(0, ...d.valores.flat());
+  const vazio = resolveColor("var(--surface-muted)");
+  const cor = (v) => (v > 0 && max > 0 ? rampColor(CALOR_RAMP, Math.sqrt(v / max)) : vazio);
+  const fonte = "500 11px Montserrat, sans-serif";
+  const cellH = nL > 30 ? 14 : nL > 15 ? 18 : 24;
+  const topo = 22, base = 46;
+  const H = topo + nL * cellH + base;
+  const medir = document.createElement("canvas").getContext("2d");
+  medir.font = fonte;
+  const rotW = Math.ceil(Math.max(...d.linhas.map((l) => medir.measureText(l).width))) + 10;
+  let geo = null, larguraFeita = 0;
+
+  function desenhar() {
+    if (!canvas.isConnected) return ro.disconnect();
+    const W = box.clientWidth;
+    if (!W || W === larguraFeita) return;
+    larguraFeita = W;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width = `${W}px`;
+    canvas.style.height = `${H}px`;
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const cellW = (W - rotW - 4) / nC;
+    ctx.font = fonte;
+    ctx.fillStyle = tokens.text2;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    d.colunas.forEach((c, j) => ctx.fillText(tr(c), rotW + (j + 0.5) * cellW, topo / 2));
+    ctx.textAlign = "right";
+    // Com muitas linhas e células baixas, rotula um ano sim, outro não.
+    const passo = cellH < 12 ? 2 : 1;
+    d.linhas.forEach((l, i) => { if (i % passo === 0) ctx.fillText(l, rotW - 8, topo + (i + 0.5) * cellH); });
+    for (let i = 0; i < nL; i++) {
+      for (let j = 0; j < nC; j++) {
+        ctx.fillStyle = cor(d.valores[i][j]);
+        ctx.fillRect(rotW + j * cellW + 0.5, topo + i * cellH + 0.5, cellW - 1, cellH - 1);
+      }
+    }
+    // Legenda da escala: degradê com 0, ¼ do máximo, máximo (posições pela raiz quadrada).
+    const lx = rotW, ly = topo + nL * cellH + 14, lw = Math.min(320, W - rotW - 8), lh = 10;
+    const grad = ctx.createLinearGradient(lx, 0, lx + lw, 0);
+    CALOR_RAMP.forEach((c, k) => grad.addColorStop(k / (CALOR_RAMP.length - 1), c));
+    ctx.fillStyle = grad;
+    ctx.fillRect(lx, ly, lw, lh);
+    ctx.fillStyle = tokens.text2;
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+    ctx.fillText("0", lx, ly + lh + 4);
+    ctx.textAlign = "center";
+    ctx.fillText(haCurto(max / 4), lx + lw / 2, ly + lh + 4);
+    ctx.textAlign = "right";
+    ctx.fillText(haCurto(max), lx + lw, ly + lh + 4);
+    ctx.textAlign = "left";
+    if (lx + lw + 12 < W - 120) ctx.fillText(tr("Área queimada no mês"), lx + lw + 12, ly - 1);
+    geo = { cellW };
+  }
+
+  canvas.addEventListener("mousemove", (e) => {
+    if (!geo) return;
+    const r = canvas.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    const j = Math.floor((x - rotW) / geo.cellW), i = Math.floor((y - topo) / cellH);
+    if (i < 0 || i >= nL || j < 0 || j >= nC) { dica.hidden = true; return; }
+    dica.textContent = `${d.linhas[i]} · ${tr(d.nomes[j])}: ${ha(d.valores[i][j])}`;
+    dica.hidden = false;
+    dica.style.left = `${Math.min(x + 12, r.width - dica.offsetWidth - 4)}px`;
+    dica.style.top = `${y + 14}px`;
+  });
+  canvas.addEventListener("mouseleave", () => { dica.hidden = true; });
+  const ro = new ResizeObserver(desenhar);
+  ro.observe(box);
+  desenhar();
+}
+
+// ---------- Boxplot por mês (Chart.js: caixa = barra flutuante; mediana, hastes e pontos no plugin) ----------
+function estatBox(vals, rotulos) {
+  const s = vals.map((v, k) => ({ v: Number(v) || 0, r: rotulos?.[k] })).sort((a, b) => a.v - b.v);
+  const q = (p) => {
+    if (!s.length) return 0;
+    const x = (s.length - 1) * p, lo = Math.floor(x), hi = Math.ceil(x);
+    return s[lo].v + (s[hi].v - s[lo].v) * (x - lo);
+  };
+  const q1 = q(0.25), med = q(0.5), q3 = q(0.75), iqr = q3 - q1;
+  const dentro = s.filter((x) => x.v >= q1 - 1.5 * iqr && x.v <= q3 + 1.5 * iqr);
+  return {
+    q1, med, q3,
+    min: s.length ? s[0].v : 0, max: s.length ? s[s.length - 1].v : 0,
+    lo: dentro.length ? dentro[0].v : q1, hi: dentro.length ? dentro[dentro.length - 1].v : q3,
+    fora: s.filter((x) => x.v < q1 - 1.5 * iqr || x.v > q3 + 1.5 * iqr),
+  };
+}
+
+function boxplotConfig(b, t) {
+  const est = b.porMes.map((vals) => estatBox(vals, b.anos));
+  const cfg = chartConfig({
+    kind: "bar", labels: b.labels, tooltipTitles: b.nomes, values: est.map((e) => e.max), colors: b.cores, // max: só para escolher Mha ou mil ha (os dados são trocados abaixo)
+    unit: "Mha", axisTitle: "Área queimada no mês (Mha)",
+  }, t);
+  const ds = cfg.data.datasets[0];
+  ds.data = est.map((e) => [e.q1, e.q3]);
+  ds.label = "Boxplot";
+  ds.backgroundColor = b.cores.map((c) => { const h = resolveColor(c, t); return /^#[0-9a-f]{6}$/i.test(h) ? `${h}99` : h; });
+  ds.borderColor = b.cores.map((c) => resolveColor(c, t));
+  ds.borderWidth = 1.5;
+  ds.borderRadius = 2;
+  ds.borderSkipped = false;
+  ds.barPercentage = 0.6;
+  cfg.options.scales.y.suggestedMax = Math.max(0, ...est.map((e) => e.max)) * 1.04;
+  // Sem animação: as hastes (plugin) são desenhadas já na posição final; caixas animadas ficariam descoladas.
+  cfg.options.animation = false;
+  const fmt = (v) => ha(v);
+  cfg.options.plugins.tooltip.callbacks.label = (ctx) => {
+    const e = est[ctx.dataIndex];
+    return [` ${tr("Máximo")}: ${fmt(e.max)}`, ` ${tr("3º quartil")}: ${fmt(e.q3)}`, ` ${tr("Mediana")}: ${fmt(e.med)}`,
+      ` ${tr("1º quartil")}: ${fmt(e.q1)}`, ` ${tr("Mínimo")}: ${fmt(e.min)}`];
+  };
+  cfg.options.plugins.tooltip.callbacks.afterLabel = (ctx) => {
+    const fora = est[ctx.dataIndex].fora;
+    return fora.length ? ` ${tr("Anos fora do comum")}: ${fora.slice(-4).reverse().map((x) => `${x.r} (${haCurto(x.v)})`).join(", ")}` : "";
+  };
+  cfg.plugins = [...(cfg.plugins || []), {
+    id: "boxplotMarcas",
+    afterDatasetsDraw(chart) {
+      const meta = chart.getDatasetMeta(0);
+      const y = chart.scales.y;
+      const ctx = chart.ctx;
+      ctx.save();
+      meta.data.forEach((bar, k) => {
+        const e = est[k];
+        const w = bar.width, x = bar.x, cap = w * 0.35;
+        ctx.strokeStyle = t.text;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x, y.getPixelForValue(e.q3)); ctx.lineTo(x, y.getPixelForValue(e.hi));
+        ctx.moveTo(x - cap / 2, y.getPixelForValue(e.hi)); ctx.lineTo(x + cap / 2, y.getPixelForValue(e.hi));
+        ctx.moveTo(x, y.getPixelForValue(e.q1)); ctx.lineTo(x, y.getPixelForValue(e.lo));
+        ctx.moveTo(x - cap / 2, y.getPixelForValue(e.lo)); ctx.lineTo(x + cap / 2, y.getPixelForValue(e.lo));
+        ctx.stroke();
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(x - w / 2, y.getPixelForValue(e.med)); ctx.lineTo(x + w / 2, y.getPixelForValue(e.med));
+        ctx.stroke();
+        ctx.lineWidth = 1.2;
+        for (const o of e.fora) {
+          ctx.beginPath();
+          ctx.arc(x, y.getPixelForValue(o.v), 3, 0, 2 * Math.PI);
+          ctx.stroke();
+        }
+      });
+      ctx.restore();
+    },
+  }];
+  return cfg;
 }
 
 // Padrões globais do Chart.js: fonte maior e cinza escuro do tema (rótulos, legendas, tooltips).
@@ -3319,7 +3515,7 @@ const INFO_CARDS = [
   [/^Anos que mais adicionaram área inédita$/, "Anos em que o fogo mais chegou a áreas que ainda não tinham queimado no período."],
   [/^Média mensal da área queimada/, "Área queimada média em cada mês, considerando todos os anos do período. Escolha anos de destaque para comparar com a média."],
   [/^Distribuição mensal/, "Soma de todos os anos do período, mês a mês: mostra em que meses se concentra a temporada de fogo."],
-  [/^Soma do período e média por mês$/, "Resumo de cada mês: área total no período, parte do total e média por ano com desvio padrão."],
+  [/^Soma do período e média por mês$/, "Três formas de ver cada mês. Mapa de calor: a área queimada em cada mês de cada ano, para ver anos e meses fora do comum e se a temporada adiantou ou atrasou. Boxplot: quanto cada mês varia entre os anos (a caixa reúne a metade central dos anos). Lista: soma no período, parte do total e média por ano com desvio padrão."],
   [/^Área queimada por ano e mês/, "Cada barra é um ano (ou temporada), dividida pelos meses em que o fogo ocorreu."],
   [/^Proporção mensal da área queimada por/, "Para cada território, que parte da área queimada no período ocorreu em cada mês. Permite comparar o calendário do fogo entre territórios."],
   [/^Faixas de frequência$/, "Quantas vezes cada lugar queimou no período, agrupado em faixas. Áreas que queimam muitas vezes indicam uso repetido do fogo ou vegetação que convive com o fogo."],
@@ -3396,11 +3592,17 @@ function cardHtml(card, i, view) {
 // Corpo do card na vista atual, com a legenda do card (a vista por bioma traz a sua ao carregar).
 function cardBodyHtml(card, vista) {
   if (vista === "biomas") return `<p class="empty busy-text">Calculando ${rot("bioma", true).toLowerCase()}…</p>`;
-  return conteudoHtml(card, vista) + (card.legend?.length ? legendRowHtml(card.legend) : "");
+  const legenda = card.legendaVista?.[vista] ?? card.legend;
+  return conteudoHtml(card, vista) + (legenda?.length ? legendRowHtml(legenda) : "");
 }
 
 function conteudoHtml(card, vista) {
   if (vista === "rosca") return roscasHtml(roscasDe(card));
+  if (vista === "calor") {
+    if (!card.calor.linhas.length) return `<p class="empty">Sem dados para o período selecionado.</p>`;
+    return `<div class="calor-box"><canvas role="img" aria-label="${escapeHtml(card.title)}"></canvas><div class="calor-dica" hidden></div></div>`;
+  }
+  if (vista === "boxplot") return chartBoxHtml({ labels: card.boxplot.labels, height: 340 }, card.title);
   if (card.topcards) return topcardsHtml(card.topcards);
   if (card.tabela) return tabelaHtml(card.tabela);
   if (card.custom) return `<div class="custom-body"></div>`;
@@ -3467,6 +3669,19 @@ function acaoDoCard(e) {
 function tabelaDoCard(root, card) {
   const fmtV = (v, pctc) => (v == null || Number.isNaN(v) ? "—" : pctc ? pct(v) : fmtFull.format(Math.round(v)));
   const res = root._res || {};
+  // Mapa de calor: ano × mês. Boxplot: estatísticas de cada mês.
+  if (root._vista === "calor" && card.calor) {
+    return { colunas: ["", ...card.calor.nomes.map((m) => `${m} (ha)`)], linhas: card.calor.linhas.map((l, i) => [l, ...card.calor.valores[i].map((v) => fmtV(v))]) };
+  }
+  if (root._vista === "boxplot" && card.boxplot) {
+    return {
+      colunas: ["", "Mínimo (ha)", "1º quartil (ha)", "Mediana (ha)", "3º quartil (ha)", "Máximo (ha)", "Média (ha)"],
+      linhas: card.boxplot.porMes.map((vals, j) => {
+        const e = estatBox(vals, card.boxplot.anos);
+        return [card.boxplot.nomes[j], ...[e.min, e.q1, e.med, e.q3, e.max, mean(vals)].map((v) => fmtV(v))];
+      }),
+    };
+  }
   const charts = [...root.querySelectorAll(".card-body canvas")].map((c) => Chart.getChart(c)).filter(Boolean);
   const titulo = (ch) => ch.canvas.closest(".donut-grid > div")?.querySelector(".propbar-label")?.textContent?.trim()
     || ch.canvas.closest("li")?.querySelector(".md-nome")?.textContent?.trim() || "";

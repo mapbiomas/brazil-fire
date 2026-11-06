@@ -21,7 +21,7 @@ Highlights:
 - Every card has an **ⓘ** button next to its title with a short plain-language explanation of what it shows.
 - **🔗 Copy link to this analysis** copies a link that reopens the dashboard on the same country, language, tab, filters and options.
 - Area axes are in Mha (million hectares) and switch to thousand ha when the largest value is below 1 million ha.
-- Monthly tab: choose the fire season (start and end month, e.g. July–June, labelled 2020/21) and the month palette (official legend or fire tones); burned area by year and month, stacked.
+- Monthly tab: choose the fire season (start and end month, e.g. July–June, labelled 2020/21) and the month palette (official legend or fire tones); burned area by year and month, stacked; each month over the years as a **heat map** (year × month), a **box plot** (variation between years, unusual years as dots) or a list.
 - Annual and accumulated burned area can be stacked **by biome** (Brazil: two earthy palettes; other countries: categorical colors per biome or ecoregion).
 - Accumulated tab: share of each biome (or state/municipality) that burned at least once.
 - Municipality × biome: the map and the statistics use only the part of the municipality inside the biome.
