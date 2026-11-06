@@ -1,0 +1,58 @@
+"""Offline interruption and resumption of the local GCS tile exporter."""
+import pathlib
+import sys
+import unittest
+from unittest.mock import MagicMock, patch
+from types import SimpleNamespace
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / 'src' / 'core'))
+import M1_parallel_gcs as logic
+import M_gcs
+
+
+class ParallelResumeTests(unittest.TestCase):
+    def test_interrupted_export_reuses_uploaded_tiles(self):
+        state, objects, failures = {}, set(), [True]
+        geometry = MagicMock()
+        geometry.bounds.return_value.coordinates.return_value.getInfo.return_value = [
+            [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
+        storage = MagicMock()
+        storage.list_blobs.side_effect = lambda bucket, prefix: [
+            SimpleNamespace(name=path) for path in objects]
+
+        def exists(path):
+            return path in state
+
+        def write(path, value):
+            import copy
+            state[path] = copy.deepcopy(value)
+
+        def upload(local, dest):
+            objects.add(dest.split('gs://bucket/', 1)[1])
+
+        def fetch(*args, **kwargs):
+            if failures[0]:
+                failures[0] = False
+                raise RuntimeError('temporary failure')
+            return b'tile'
+
+        credentials = MagicMock()
+        creds_state = MagicMock(credentials=credentials)
+        args = (MagicMock(), geometry, 'blue', 'image_test_blue_2025',
+                'folder/CHUNKS', {'bucket': 'bucket', 'gee_project': 'project'},
+                111319.49079327358)
+        with patch.object(logic.ee.serializer, 'encode', return_value={'constant': 1}), \
+             patch.object(logic.ee.data, '_get_state', return_value=creds_state), \
+             patch.object(logic, 'compute_pixels', side_effect=fetch) as pixels, \
+             patch.object(M_gcs, 'blob_exists', side_effect=exists), \
+             patch.object(M_gcs, 'read_json', side_effect=lambda path: state[path]), \
+             patch.object(M_gcs, 'write_json', side_effect=write), \
+             patch.object(M_gcs, 'upload', side_effect=upload), \
+             patch.object(M_gcs, '_storage_client', return_value=storage):
+            with self.assertRaises(RuntimeError):
+                logic.export_band(*args, workers=1, tile_pixels=2, logger=lambda _: None)
+            self.assertEqual(len(objects), 3)
+            result = logic.export_band(*args, workers=1, tile_pixels=2, logger=lambda _: None)
+        self.assertEqual(result['status'], 'complete')
+        self.assertEqual(len(objects), 4)
+        self.assertEqual(pixels.call_count, 5)

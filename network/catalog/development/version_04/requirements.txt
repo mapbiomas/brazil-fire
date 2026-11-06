@@ -1,0 +1,38 @@
+# MapBiomas Fire Monitor — Sentinel-2
+# Requirements for local execution
+# Python 3.10+
+#
+# Install:
+#   pip install -r requirements.txt
+#
+# Note: GDAL must be installed separately at system level:
+#   Ubuntu/Debian : sudo apt install gdal-bin libgdal-dev
+#   macOS         : brew install gdal
+#   Windows       : use conda or Docker (recommended)
+
+# ── Google Cloud / Earth Engine
+earthengine-api>=0.1.390
+google-cloud-storage>=2.10.0
+gcsfs>=2023.9.0
+
+# ── Geospatial
+rasterio>=1.3.8
+# GDAL: system dependency — do NOT install via pip on Linux/Mac
+# On Windows: pip install GDAL==$(gdal-config --version) (if gdal-config available)
+# Recommended: use conda or Docker instead
+
+# ── Machine Learning
+tensorflow>=2.13.0          # TF2 con compatibilidad TF1 vía compat.v1
+numpy>=1.24.0,<2.0.0
+scipy>=1.11.0
+
+# ── Notebook / UI
+jupyter>=1.0.0
+notebook>=7.0.0
+ipywidgets>=8.0.0
+jupyterlab>=4.0.0
+
+# ── Utilities
+tqdm>=4.65.0
+matplotlib>=3.7.0
+python-dotenv>=1.0.0
