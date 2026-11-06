@@ -261,7 +261,6 @@ const T = {
     country:"País",colls:"Coleção",subprod:"Subproduto",year:"Ano",start:"Ano inicial",end:"Ano final",refYear:"Ano de referência",period:"Período",
     legend:"Legenda",table:"Tabela",th_class:"Classe",th_code:"Código",th_hex:"Cor (HEX)",list:"Lista",bar:"Barra",meta:"Dados e visualização",palette:"Paleta",copyHex:"Copiar HEX",
     value:"Valor",color:"Cor",label:"Rótulo",src:"Fonte",export:"Exportar",copy:"Copiar",download:"Baixar arquivo",sources:"Fontes",
-    o_site:"Site oficial",o_bucket:"Bucket oficial",o_dev:"Em desenvolvimento",
     src_oficial:"oficial",src_interp:"interpolada",src_proposta:"proposta",
     st_validada:"Validada",st_revisao:"Em revisão",st_rascunho:"Rascunho",st_faltando:"Não cadastrada",
     sensor:"Sensor",asset:"Asset GEE",gcs:"GeoTIFF (GCS)",band:"Banda",vis:"Visualização",classes:"Classes",
@@ -302,7 +301,6 @@ const T = {
     country:"País",colls:"Colección",subprod:"Subproducto",year:"Año",start:"Año inicial",end:"Año final",refYear:"Año de referencia",period:"Período",
     legend:"Leyenda",table:"Tabla",th_class:"Clase",th_code:"Código",th_hex:"Color (HEX)",list:"Lista",bar:"Barra",meta:"Datos y visualización",palette:"Paleta",copyHex:"Copiar HEX",
     value:"Valor",color:"Color",label:"Etiqueta",src:"Fuente",export:"Exportar",copy:"Copiar",download:"Descargar archivo",sources:"Fuentes",
-    o_site:"Sitio oficial",o_bucket:"Bucket oficial",o_dev:"En desarrollo",
     src_oficial:"oficial",src_interp:"interpolada",src_proposta:"propuesta",
     st_validada:"Validada",st_revisao:"En revisión",st_rascunho:"Borrador",st_faltando:"Sin registrar",
     sensor:"Sensor",asset:"Asset GEE",gcs:"GeoTIFF (GCS)",band:"Banda",vis:"Visualización",classes:"Clases",
@@ -343,7 +341,6 @@ const T = {
     country:"Country",colls:"Collection",subprod:"Subproduct",year:"Year",start:"Start year",end:"End year",refYear:"Reference year",period:"Period",
     legend:"Legend",table:"Table",th_class:"Class",th_code:"Code",th_hex:"Color (HEX)",list:"List",bar:"Bar",meta:"Data and visualization",palette:"Palette",copyHex:"Copy HEX",
     value:"Value",color:"Color",label:"Label",src:"Source",export:"Export",copy:"Copy",download:"Download file",sources:"Sources",
-    o_site:"Official website",o_bucket:"Official bucket",o_dev:"In development",
     src_oficial:"official",src_interp:"interpolated",src_proposta:"proposed",
     st_validada:"Validated",st_revisao:"In review",st_rascunho:"Draft",st_faltando:"Not registered",
     sensor:"Sensor",asset:"GEE asset",gcs:"GeoTIFF (GCS)",band:"Band",vis:"Visualization",classes:"Classes",
@@ -482,7 +479,7 @@ const PUBLISHED = [
   {country:"peru",id:"2",start:1990,end:2025,sensor:"Landsat 30 m",origin:"bucket",subs:REG,layout:"reg",root:"peru/fire/collection_2/"},
   {country:"peru",id:"Monitor",start:2025,end:2026,sensor:"Sentinel-2 10 m",origin:"bucket",subs:["fire_monitor"],layout:"monitor",root:"peru/fire/monitor/mapbiomas_fire_monthly_burned_v1/"},
   {country:"indonesia",id:"1",start:2013,end:2023,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned","annual_burned_coverage","monthly_burned","accumulated_burned","accumulated_burned_coverage","fire_frequency"],layout:"folder",root:"indonesia/collection_2/fire-col1/"},
-  {country:"indonesia",id:"2",start:2000,end:2024,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned"],layout:"reg",root:"indonesia/fire/collection_02/"},
+  {country:"indonesia",id:"2",start:2000,end:2024,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned","fire_frequency"],layout:"reg",root:"indonesia/fire/collection_02/"},
   {country:"indonesia",id:"Monitor",start:2026,end:2026,sensor:"Sentinel-2 10 m",origin:"bucket",subs:["fire_monitor"],layout:"monitor",root:"indonesia/fire/monitor/mapbiomas_fire_monthly_burned_v1/"}
 ];
 const SOURCES = [
@@ -616,7 +613,7 @@ function labelOf(sub,o,L){return(o[L]&&String(o[L]).trim())||autoLabel(sub,o.v,L
 function yearOptions(c,sub){const a=[],lo=sub.period==="ref"?c.start+1:c.start,hi=sub.period==="ref"?c.end+1:c.end;for(let y=lo;y<=hi;y++)a.push(y);return a}
 function periodValues(c,sub){
   const k=SUBS[sub].kind,seq=(a,n)=>Array.from({length:Math.max(n,1)},(_,i)=>a+i);
-  if(k==="frequency")return seq(1,S.e-S.s+1);
+  if(k==="frequency"){const pal=paletteOf(c,sub),mx=pal.registered?Math.max(...pal.classes.map(o=>o.v)):Infinity;return seq(1,Math.min(S.e-S.s+1,mx))}
   if(k==="yearlast")return seq(c.start,S.y-c.start);
   if(k==="years")return seq(1,S.y-c.start);
   return null; // demais: todas as classes cadastradas
@@ -949,7 +946,7 @@ document.addEventListener("click",e=>{
   else switch(b.id){
     case"btn-copyhex":copy(items().items.map(o=>o.hex).join("\n"));break;
     case"btn-copy":copy($("code").textContent);break;
-    case"btn-dl":{const ext=TABS.find(x=>x[0]===S.tab)[2],suf={gee:"_gee.js",py:"_gee.py",hex:"_hex",hexc:"_hex"}[S.tab]||"";save(`${baseName()}${suf}.${ext}`,$("code").textContent);break}
+    case"btn-dl":{const ext=TABS.find(x=>x[0]===S.tab)[2],suf={gee:"_gee.js",py:"_gee.py",hex:"_hex",hexc:"_hex"}[S.tab]||"";save(`${baseName()}${suf}.${ext}`,(ext==="csv"?"﻿":"")+$("code").textContent);break}
     case"dl-svg":save(baseName()+"_legenda.svg",legendSVG(items().items));break;
     case"dl-png":svgToPng(legendSVG(items().items)).then(bl=>save(baseName()+"_legenda.png",bl)).catch(()=>toast(t("noDl")));break;
     case"go-edit":{const c=collObj();setView("cadastro");openEditor(pkey(c,S.sub));break}

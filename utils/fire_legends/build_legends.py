@@ -106,9 +106,6 @@ def markdown(rows, legends):
     return "\n".join(out) + "\n"
 
 
-LABELLED_PRODUCTS = {"monthly_burned", "annual_burned_scar_size_range", "severity_class"}
-
-
 def palettes(rows, legends):
     """palettes.json for the web app: {country__collection__product: palette}."""
     out = {}
@@ -119,8 +116,7 @@ def palettes(rows, legends):
         classes = []
         for i in items:
             c = {"v": int(i["pixel_value"]), "hex": i["hex"], "src": "oficial"}
-            if r["app_product"] in LABELLED_PRODUCTS:
-                c.update({"pt": i["name_pt"], "en": i["name_en"], "es": i["name_es"]})
+            c.update({"pt": i["name_pt"], "en": i["name_en"], "es": i["name_es"]})
             classes.append(c)
         key = f"{r['app_country']}__{r['app_collection']}__{r['app_product']}"
         out[key] = {"country": r["app_country"], "collection": r["app_collection"], "subproduct": r["app_product"],

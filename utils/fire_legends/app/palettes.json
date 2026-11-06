@@ -2,7 +2,10 @@
  "argentina__1__accumulated_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#e84130",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -17,7 +20,10 @@
  "argentina__1__annual_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -101,6 +107,232 @@
   "expected": 8,
   "status": "validada",
   "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "argentina__1__fire_frequency": {
+  "classes": [
+   {
+    "en": "1 time",
+    "es": "1 vez",
+    "hex": "#faf3cd",
+    "pt": "1 vez",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "2 times",
+    "es": "2 veces",
+    "hex": "#faeda8",
+    "pt": "2 vezes",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "3 times",
+    "es": "3 veces",
+    "hex": "#f9e883",
+    "pt": "3 vezes",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "4 times",
+    "es": "4 veces",
+    "hex": "#f9e25e",
+    "pt": "4 vezes",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5 times",
+    "es": "5 veces",
+    "hex": "#f7d941",
+    "pt": "5 vezes",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "6 times",
+    "es": "6 veces",
+    "hex": "#eec935",
+    "pt": "6 vezes",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "7 times",
+    "es": "7 veces",
+    "hex": "#e6b829",
+    "pt": "7 vezes",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "8 times",
+    "es": "8 veces",
+    "hex": "#dea81d",
+    "pt": "8 vezes",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "9 times",
+    "es": "9 veces",
+    "hex": "#d59717",
+    "pt": "9 vezes",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "10 times",
+    "es": "10 veces",
+    "hex": "#cb8615",
+    "pt": "10 vezes",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "11 times",
+    "es": "11 veces",
+    "hex": "#c27413",
+    "pt": "11 vezes",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "12 times",
+    "es": "12 veces",
+    "hex": "#b86311",
+    "pt": "12 vezes",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "13 times",
+    "es": "13 veces",
+    "hex": "#ae510f",
+    "pt": "13 vezes",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "en": "14 times",
+    "es": "14 veces",
+    "hex": "#a53f0d",
+    "pt": "14 vezes",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "en": "15 times",
+    "es": "15 veces",
+    "hex": "#9b2d0a",
+    "pt": "15 vezes",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "en": "16 times",
+    "es": "16 veces",
+    "hex": "#901d08",
+    "pt": "16 vezes",
+    "src": "oficial",
+    "v": 16
+   },
+   {
+    "en": "17 times",
+    "es": "17 veces",
+    "hex": "#831608",
+    "pt": "17 vezes",
+    "src": "oficial",
+    "v": 17
+   },
+   {
+    "en": "18 times",
+    "es": "18 veces",
+    "hex": "#750f07",
+    "pt": "18 vezes",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "en": "19 times",
+    "es": "19 veces",
+    "hex": "#680807",
+    "pt": "19 vezes",
+    "src": "oficial",
+    "v": 19
+   },
+   {
+    "en": "20 times",
+    "es": "20 veces",
+    "hex": "#5c0407",
+    "pt": "20 vezes",
+    "src": "oficial",
+    "v": 20
+   },
+   {
+    "en": "21 times",
+    "es": "21 veces",
+    "hex": "#510507",
+    "pt": "21 vezes",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "en": "22 times",
+    "es": "22 veces",
+    "hex": "#470508",
+    "pt": "22 vezes",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "en": "23 times",
+    "es": "23 veces",
+    "hex": "#3c0608",
+    "pt": "23 vezes",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "en": "24 times",
+    "es": "24 veces",
+    "hex": "#2f0507",
+    "pt": "24 vezes",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "25 times",
+    "es": "25 veces",
+    "hex": "#210405",
+    "pt": "25 vezes",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "26 times",
+    "es": "26 veces",
+    "hex": "#120203",
+    "pt": "26 vezes",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "en": "27 or more times",
+    "es": "27 veces o más",
+    "hex": "#040101",
+    "pt": "27 vezes ou mais",
+    "src": "oficial",
+    "v": 27
+   }
+  ],
+  "collection": "1",
+  "country": "argentina",
+  "expected": 27,
+  "status": "validada",
+  "subproduct": "fire_frequency",
   "updatedAt": "from-repository"
  },
  "argentina__1__monthly_burned": {
@@ -212,7 +444,10 @@
  "bolivia__1__accumulated_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#e84130",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -227,7 +462,10 @@
  "bolivia__1__annual_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -316,157 +554,250 @@
  "bolivia__1__fire_frequency": {
   "classes": [
    {
+    "en": "1 time",
+    "es": "1 vez",
     "hex": "#faf3cd",
+    "pt": "1 vez",
     "src": "oficial",
     "v": 1
    },
    {
+    "en": "2 times",
+    "es": "2 veces",
     "hex": "#fcefa2",
+    "pt": "2 vezes",
     "src": "oficial",
     "v": 2
    },
    {
+    "en": "3 times",
+    "es": "3 veces",
     "hex": "#fae569",
+    "pt": "3 vezes",
     "src": "oficial",
     "v": 3
    },
    {
+    "en": "4 times",
+    "es": "4 veces",
     "hex": "#f9df47",
+    "pt": "4 vezes",
     "src": "oficial",
     "v": 4
    },
    {
+    "en": "5 times",
+    "es": "5 veces",
     "hex": "#f7d51f",
+    "pt": "5 vezes",
     "src": "oficial",
     "v": 5
    },
    {
+    "en": "6 times",
+    "es": "6 veces",
     "hex": "#edc41d",
+    "pt": "6 vezes",
     "src": "oficial",
     "v": 6
    },
    {
+    "en": "7 times",
+    "es": "7 veces",
     "hex": "#e4b21b",
+    "pt": "7 vezes",
     "src": "oficial",
     "v": 7
    },
    {
+    "en": "8 times",
+    "es": "8 veces",
     "hex": "#daa118",
+    "pt": "8 vezes",
     "src": "oficial",
     "v": 8
    },
    {
+    "en": "9 times",
+    "es": "9 veces",
     "hex": "#d08f16",
+    "pt": "9 vezes",
     "src": "oficial",
     "v": 9
    },
    {
+    "en": "10 times",
+    "es": "10 veces",
     "hex": "#c88014",
+    "pt": "10 vezes",
     "src": "oficial",
     "v": 10
    },
    {
+    "en": "11 times",
+    "es": "11 veces",
     "hex": "#be6d12",
+    "pt": "11 vezes",
     "src": "oficial",
     "v": 11
    },
    {
+    "en": "12 times",
+    "es": "12 veces",
     "hex": "#b65e11",
+    "pt": "12 vezes",
     "src": "oficial",
     "v": 12
    },
    {
+    "en": "13 times",
+    "es": "13 veces",
     "hex": "#ac4d0e",
+    "pt": "13 vezes",
     "src": "oficial",
     "v": 13
    },
    {
+    "en": "14 times",
+    "es": "14 veces",
     "hex": "#a1390b",
+    "pt": "14 vezes",
     "src": "oficial",
     "v": 14
    },
    {
+    "en": "15 times",
+    "es": "15 veces",
     "hex": "#99290a",
+    "pt": "15 vezes",
     "src": "oficial",
     "v": 15
    },
    {
+    "en": "16 times",
+    "es": "16 veces",
     "hex": "#901a08",
+    "pt": "16 vezes",
     "src": "oficial",
     "v": 16
    },
    {
+    "en": "17 times",
+    "es": "17 veces",
     "hex": "#850705",
+    "pt": "17 vezes",
     "src": "oficial",
     "v": 17
    },
    {
+    "en": "18 times",
+    "es": "18 veces",
     "hex": "#780105",
+    "pt": "18 vezes",
     "src": "oficial",
     "v": 18
    },
    {
+    "en": "19 times",
+    "es": "19 veces",
     "hex": "#680306",
+    "pt": "19 vezes",
     "src": "oficial",
     "v": 19
    },
    {
+    "en": "20 times",
+    "es": "20 veces",
     "hex": "#5d0508",
+    "pt": "20 vezes",
     "src": "oficial",
     "v": 20
    },
    {
+    "en": "21 times",
+    "es": "21 veces",
     "hex": "#4e0709",
+    "pt": "21 vezes",
     "src": "oficial",
     "v": 21
    },
    {
+    "en": "22 times",
+    "es": "22 veces",
     "hex": "#440709",
+    "pt": "22 vezes",
     "src": "oficial",
     "v": 22
    },
    {
+    "en": "23 times",
+    "es": "23 veces",
     "hex": "#3d0708",
+    "pt": "23 vezes",
     "src": "oficial",
     "v": 23
    },
    {
+    "en": "24 times",
+    "es": "24 veces",
     "hex": "#350607",
+    "pt": "24 vezes",
     "src": "oficial",
     "v": 24
    },
    {
+    "en": "25 times",
+    "es": "25 veces",
     "hex": "#2d0506",
+    "pt": "25 vezes",
     "src": "oficial",
     "v": 25
    },
    {
+    "en": "26 times",
+    "es": "26 veces",
     "hex": "#260506",
+    "pt": "26 vezes",
     "src": "oficial",
     "v": 26
    },
    {
+    "en": "27 times",
+    "es": "27 veces",
     "hex": "#1f0404",
+    "pt": "27 vezes",
     "src": "oficial",
     "v": 27
    },
    {
+    "en": "28 times",
+    "es": "28 veces",
     "hex": "#180404",
+    "pt": "28 vezes",
     "src": "oficial",
     "v": 28
    },
    {
+    "en": "29 times",
+    "es": "29 veces",
     "hex": "#110303",
+    "pt": "29 vezes",
     "src": "oficial",
     "v": 29
    },
    {
+    "en": "30 times",
+    "es": "30 veces",
     "hex": "#0b0203",
+    "pt": "30 vezes",
     "src": "oficial",
     "v": 30
    },
    {
+    "en": "31 times",
+    "es": "31 veces",
     "hex": "#050101",
+    "pt": "31 vezes",
     "src": "oficial",
     "v": 31
    }
@@ -587,157 +918,250 @@
  "bolivia__1__year_last_fire": {
   "classes": [
    {
+    "en": "1995",
+    "es": "1995",
     "hex": "#010079",
+    "pt": "1995",
     "src": "oficial",
     "v": 1995
    },
    {
+    "en": "1996",
+    "es": "1996",
     "hex": "#010f7b",
+    "pt": "1996",
     "src": "oficial",
     "v": 1996
    },
    {
+    "en": "1997",
+    "es": "1997",
     "hex": "#001e7d",
+    "pt": "1997",
     "src": "oficial",
     "v": 1997
    },
    {
+    "en": "1998",
+    "es": "1998",
     "hex": "#002d80",
+    "pt": "1998",
     "src": "oficial",
     "v": 1998
    },
    {
+    "en": "1999",
+    "es": "1999",
     "hex": "#003b82",
+    "pt": "1999",
     "src": "oficial",
     "v": 1999
    },
    {
+    "en": "2000",
+    "es": "2000",
     "hex": "#004985",
+    "pt": "2000",
     "src": "oficial",
     "v": 2000
    },
    {
+    "en": "2001",
+    "es": "2001",
     "hex": "#005688",
+    "pt": "2001",
     "src": "oficial",
     "v": 2001
    },
    {
+    "en": "2002",
+    "es": "2002",
     "hex": "#01648b",
+    "pt": "2002",
     "src": "oficial",
     "v": 2002
    },
    {
+    "en": "2003",
+    "es": "2003",
     "hex": "#017793",
+    "pt": "2003",
     "src": "oficial",
     "v": 2003
    },
    {
+    "en": "2004",
+    "es": "2004",
     "hex": "#008998",
+    "pt": "2004",
     "src": "oficial",
     "v": 2004
    },
    {
+    "en": "2005",
+    "es": "2005",
     "hex": "#1d939a",
+    "pt": "2005",
     "src": "oficial",
     "v": 2005
    },
    {
+    "en": "2006",
+    "es": "2006",
     "hex": "#38a8a3",
+    "pt": "2006",
     "src": "oficial",
     "v": 2006
    },
    {
+    "en": "2007",
+    "es": "2007",
     "hex": "#5db9ad",
+    "pt": "2007",
     "src": "oficial",
     "v": 2007
    },
    {
+    "en": "2008",
+    "es": "2008",
     "hex": "#81c9b8",
+    "pt": "2008",
     "src": "oficial",
     "v": 2008
    },
    {
+    "en": "2009",
+    "es": "2009",
     "hex": "#9bc4a4",
+    "pt": "2009",
     "src": "oficial",
     "v": 2009
    },
    {
+    "en": "2010",
+    "es": "2010",
     "hex": "#aaa772",
+    "pt": "2010",
     "src": "oficial",
     "v": 2010
    },
    {
+    "en": "2011",
+    "es": "2011",
     "hex": "#b88b40",
+    "pt": "2011",
     "src": "oficial",
     "v": 2011
    },
    {
+    "en": "2012",
+    "es": "2012",
     "hex": "#c66e0e",
+    "pt": "2012",
     "src": "oficial",
     "v": 2012
    },
    {
+    "en": "2013",
+    "es": "2013",
     "hex": "#c45905",
+    "pt": "2013",
     "src": "oficial",
     "v": 2013
    },
    {
+    "en": "2014",
+    "es": "2014",
     "hex": "#bd4609",
+    "pt": "2014",
     "src": "oficial",
     "v": 2014
    },
    {
+    "en": "2015",
+    "es": "2015",
     "hex": "#b6330e",
+    "pt": "2015",
     "src": "oficial",
     "v": 2015
    },
    {
+    "en": "2016",
+    "es": "2016",
     "hex": "#ae2012",
+    "pt": "2016",
     "src": "oficial",
     "v": 2016
    },
    {
+    "en": "2017",
+    "es": "2017",
     "hex": "#a92017",
+    "pt": "2017",
     "src": "oficial",
     "v": 2017
    },
    {
+    "en": "2018",
+    "es": "2018",
     "hex": "#a4211d",
+    "pt": "2018",
     "src": "oficial",
     "v": 2018
    },
    {
+    "en": "2019",
+    "es": "2019",
     "hex": "#9f2222",
+    "pt": "2019",
     "src": "oficial",
     "v": 2019
    },
    {
+    "en": "2020",
+    "es": "2020",
     "hex": "#992023",
+    "pt": "2020",
     "src": "oficial",
     "v": 2020
    },
    {
+    "en": "2021",
+    "es": "2021",
     "hex": "#921619",
+    "pt": "2021",
     "src": "oficial",
     "v": 2021
    },
    {
+    "en": "2022",
+    "es": "2022",
     "hex": "#8b0e0f",
+    "pt": "2022",
     "src": "oficial",
     "v": 2022
    },
    {
+    "en": "2023",
+    "es": "2023",
     "hex": "#840505",
+    "pt": "2023",
     "src": "oficial",
     "v": 2023
    },
    {
+    "en": "2024",
+    "es": "2024",
     "hex": "#7b0000",
+    "pt": "2024",
     "src": "oficial",
     "v": 2024
    },
    {
+    "en": "2025",
+    "es": "2025",
     "hex": "#750000",
+    "pt": "2025",
     "src": "oficial",
     "v": 2025
    }
@@ -752,7 +1176,10 @@
  "brasil__5.1__accumulated_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#e84130",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -767,7 +1194,10 @@
  "brasil__5.1__annual_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -856,207 +1286,330 @@
  "brasil__5.1__fire_frequency": {
   "classes": [
    {
+    "en": "1 time",
+    "es": "1 vez",
     "hex": "#faf3cd",
+    "pt": "1 vez",
     "src": "oficial",
     "v": 1
    },
    {
+    "en": "2 times",
+    "es": "2 veces",
     "hex": "#fdf1b0",
+    "pt": "2 vezes",
     "src": "oficial",
     "v": 2
    },
    {
+    "en": "3 times",
+    "es": "3 veces",
     "hex": "#fbe981",
+    "pt": "3 vezes",
     "src": "oficial",
     "v": 3
    },
    {
+    "en": "4 times",
+    "es": "4 veces",
     "hex": "#fae258",
+    "pt": "4 vezes",
     "src": "oficial",
     "v": 4
    },
    {
+    "en": "5 times",
+    "es": "5 veces",
     "hex": "#f9de44",
+    "pt": "5 vezes",
     "src": "oficial",
     "v": 5
    },
    {
+    "en": "6 times",
+    "es": "6 veces",
     "hex": "#f8d71f",
+    "pt": "6 vezes",
     "src": "oficial",
     "v": 6
    },
    {
+    "en": "7 times",
+    "es": "7 veces",
     "hex": "#f1ca1e",
+    "pt": "7 vezes",
     "src": "oficial",
     "v": 7
    },
    {
+    "en": "8 times",
+    "es": "8 veces",
     "hex": "#e9bc1c",
+    "pt": "8 vezes",
     "src": "oficial",
     "v": 8
    },
    {
+    "en": "9 times",
+    "es": "9 veces",
     "hex": "#e2af1a",
+    "pt": "9 vezes",
     "src": "oficial",
     "v": 9
    },
    {
+    "en": "10 times",
+    "es": "10 veces",
     "hex": "#daa118",
+    "pt": "10 vezes",
     "src": "oficial",
     "v": 10
    },
    {
+    "en": "11 times",
+    "es": "11 veces",
     "hex": "#d29316",
+    "pt": "11 vezes",
     "src": "oficial",
     "v": 11
    },
    {
+    "en": "12 times",
+    "es": "12 veces",
     "hex": "#cc8715",
+    "pt": "12 vezes",
     "src": "oficial",
     "v": 12
    },
    {
+    "en": "13 times",
+    "es": "13 veces",
     "hex": "#c57b14",
+    "pt": "13 vezes",
     "src": "oficial",
     "v": 13
    },
    {
+    "en": "14 times",
+    "es": "14 veces",
     "hex": "#bd6c12",
+    "pt": "14 vezes",
     "src": "oficial",
     "v": 14
    },
    {
+    "en": "15 times",
+    "es": "15 veces",
     "hex": "#b76011",
+    "pt": "15 vezes",
     "src": "oficial",
     "v": 15
    },
    {
+    "en": "16 times",
+    "es": "16 veces",
     "hex": "#b0540f",
+    "pt": "16 vezes",
     "src": "oficial",
     "v": 16
    },
    {
+    "en": "17 times",
+    "es": "17 veces",
     "hex": "#a8450d",
+    "pt": "17 vezes",
     "src": "oficial",
     "v": 17
    },
    {
+    "en": "18 times",
+    "es": "18 veces",
     "hex": "#9f360b",
+    "pt": "18 vezes",
     "src": "oficial",
     "v": 18
    },
    {
+    "en": "19 times",
+    "es": "19 veces",
     "hex": "#992a0a",
+    "pt": "19 vezes",
     "src": "oficial",
     "v": 19
    },
    {
+    "en": "20 times",
+    "es": "20 veces",
     "hex": "#921e08",
+    "pt": "20 vezes",
     "src": "oficial",
     "v": 20
    },
    {
+    "en": "21 times",
+    "es": "21 veces",
     "hex": "#8c1307",
+    "pt": "21 vezes",
     "src": "oficial",
     "v": 21
    },
    {
+    "en": "22 times",
+    "es": "22 veces",
     "hex": "#810004",
+    "pt": "22 vezes",
     "src": "oficial",
     "v": 22
    },
    {
+    "en": "23 times",
+    "es": "23 veces",
     "hex": "#770105",
+    "pt": "23 vezes",
     "src": "oficial",
     "v": 23
    },
    {
+    "en": "24 times",
+    "es": "24 veces",
     "hex": "#6a0306",
+    "pt": "24 vezes",
     "src": "oficial",
     "v": 24
    },
    {
+    "en": "25 times",
+    "es": "25 veces",
     "hex": "#600407",
+    "pt": "25 vezes",
     "src": "oficial",
     "v": 25
    },
    {
+    "en": "26 times",
+    "es": "26 veces",
     "hex": "#5a0508",
+    "pt": "26 vezes",
     "src": "oficial",
     "v": 26
    },
    {
+    "en": "27 times",
+    "es": "27 veces",
     "hex": "#4b0709",
+    "pt": "27 vezes",
     "src": "oficial",
     "v": 27
    },
    {
+    "en": "28 times",
+    "es": "28 veces",
     "hex": "#450709",
+    "pt": "28 vezes",
     "src": "oficial",
     "v": 28
    },
    {
+    "en": "29 times",
+    "es": "29 veces",
     "hex": "#3f0708",
+    "pt": "29 vezes",
     "src": "oficial",
     "v": 29
    },
    {
+    "en": "30 times",
+    "es": "30 veces",
     "hex": "#390608",
+    "pt": "30 vezes",
     "src": "oficial",
     "v": 30
    },
    {
+    "en": "31 times",
+    "es": "31 veces",
     "hex": "#330607",
+    "pt": "31 vezes",
     "src": "oficial",
     "v": 31
    },
    {
+    "en": "32 times",
+    "es": "32 veces",
     "hex": "#2d0506",
+    "pt": "32 vezes",
     "src": "oficial",
     "v": 32
    },
    {
+    "en": "33 times",
+    "es": "33 veces",
     "hex": "#270506",
+    "pt": "33 vezes",
     "src": "oficial",
     "v": 33
    },
    {
+    "en": "34 times",
+    "es": "34 veces",
     "hex": "#220505",
+    "pt": "34 vezes",
     "src": "oficial",
     "v": 34
    },
    {
+    "en": "35 times",
+    "es": "35 veces",
     "hex": "#1c0404",
+    "pt": "35 vezes",
     "src": "oficial",
     "v": 35
    },
    {
+    "en": "36 times",
+    "es": "36 veces",
     "hex": "#170404",
+    "pt": "36 vezes",
     "src": "oficial",
     "v": 36
    },
    {
+    "en": "37 times",
+    "es": "37 veces",
     "hex": "#120303",
+    "pt": "37 vezes",
     "src": "oficial",
     "v": 37
    },
    {
+    "en": "38 times",
+    "es": "38 veces",
     "hex": "#0d0203",
+    "pt": "38 vezes",
     "src": "oficial",
     "v": 38
    },
    {
+    "en": "39 times",
+    "es": "39 veces",
     "hex": "#080202",
+    "pt": "39 vezes",
     "src": "oficial",
     "v": 39
    },
    {
+    "en": "40 times",
+    "es": "40 veces",
     "hex": "#040101",
+    "pt": "40 vezes",
     "src": "oficial",
     "v": 40
    },
    {
+    "en": "41 times",
+    "es": "41 veces",
     "hex": "#020000",
+    "pt": "41 vezes",
     "src": "oficial",
     "v": 41
    }
@@ -1071,202 +1624,322 @@
  "brasil__5.1__interval_since_fire": {
   "classes": [
    {
+    "en": "1 year",
+    "es": "1 año",
     "hex": "#940000",
+    "pt": "1 ano",
     "src": "oficial",
     "v": 1
    },
    {
+    "en": "2 years",
+    "es": "2 años",
     "hex": "#b51f16",
+    "pt": "2 anos",
     "src": "oficial",
     "v": 2
    },
    {
+    "en": "3 years",
+    "es": "3 años",
     "hex": "#d63b24",
+    "pt": "3 anos",
     "src": "oficial",
     "v": 3
    },
    {
+    "en": "4 years",
+    "es": "4 años",
     "hex": "#f05a28",
+    "pt": "4 anos",
     "src": "oficial",
     "v": 4
    },
    {
+    "en": "5 years",
+    "es": "5 años",
     "hex": "#f47a20",
+    "pt": "5 anos",
     "src": "oficial",
     "v": 5
    },
    {
+    "en": "6 years",
+    "es": "6 años",
     "hex": "#f7951d",
+    "pt": "6 anos",
     "src": "oficial",
     "v": 6
    },
    {
+    "en": "7 years",
+    "es": "7 años",
     "hex": "#f7b21a",
+    "pt": "7 anos",
     "src": "oficial",
     "v": 7
    },
    {
+    "en": "8 years",
+    "es": "8 años",
     "hex": "#f4cc1e",
+    "pt": "8 anos",
     "src": "oficial",
     "v": 8
    },
    {
+    "en": "9 years",
+    "es": "9 años",
     "hex": "#e6df2a",
+    "pt": "9 anos",
     "src": "oficial",
     "v": 9
    },
    {
+    "en": "10 years",
+    "es": "10 años",
     "hex": "#cde33a",
+    "pt": "10 anos",
     "src": "oficial",
     "v": 10
    },
    {
+    "en": "11 years",
+    "es": "11 años",
     "hex": "#aee044",
+    "pt": "11 anos",
     "src": "oficial",
     "v": 11
    },
    {
+    "en": "12 years",
+    "es": "12 años",
     "hex": "#8bd84f",
+    "pt": "12 anos",
     "src": "oficial",
     "v": 12
    },
    {
+    "en": "13 years",
+    "es": "13 años",
     "hex": "#65cd5b",
+    "pt": "13 anos",
     "src": "oficial",
     "v": 13
    },
    {
+    "en": "14 years",
+    "es": "14 años",
     "hex": "#42bf68",
+    "pt": "14 anos",
     "src": "oficial",
     "v": 14
    },
    {
+    "en": "15 years",
+    "es": "15 años",
     "hex": "#2fb47a",
+    "pt": "15 anos",
     "src": "oficial",
     "v": 15
    },
    {
+    "en": "16 years",
+    "es": "16 años",
     "hex": "#2aa98b",
+    "pt": "16 anos",
     "src": "oficial",
     "v": 16
    },
    {
+    "en": "17 years",
+    "es": "17 años",
     "hex": "#35a4a0",
+    "pt": "17 anos",
     "src": "oficial",
     "v": 17
    },
    {
+    "en": "18 years",
+    "es": "18 años",
     "hex": "#3aa0b8",
+    "pt": "18 anos",
     "src": "oficial",
     "v": 18
    },
    {
+    "en": "19 years",
+    "es": "19 años",
     "hex": "#3696ca",
+    "pt": "19 anos",
     "src": "oficial",
     "v": 19
    },
    {
+    "en": "20 years",
+    "es": "20 años",
     "hex": "#2f84c5",
+    "pt": "20 anos",
     "src": "oficial",
     "v": 20
    },
    {
+    "en": "21 years",
+    "es": "21 años",
     "hex": "#2d6db7",
+    "pt": "21 anos",
     "src": "oficial",
     "v": 21
    },
    {
+    "en": "22 years",
+    "es": "22 años",
     "hex": "#3159a8",
+    "pt": "22 anos",
     "src": "oficial",
     "v": 22
    },
    {
+    "en": "23 years",
+    "es": "23 años",
     "hex": "#3d4d9d",
+    "pt": "23 anos",
     "src": "oficial",
     "v": 23
    },
    {
+    "en": "24 years",
+    "es": "24 años",
     "hex": "#4b4597",
+    "pt": "24 anos",
     "src": "oficial",
     "v": 24
    },
    {
+    "en": "25 years",
+    "es": "25 años",
     "hex": "#5b3f93",
+    "pt": "25 anos",
     "src": "oficial",
     "v": 25
    },
    {
+    "en": "26 years",
+    "es": "26 años",
     "hex": "#6b3a91",
+    "pt": "26 anos",
     "src": "oficial",
     "v": 26
    },
    {
+    "en": "27 years",
+    "es": "27 años",
     "hex": "#7b3590",
+    "pt": "27 anos",
     "src": "oficial",
     "v": 27
    },
    {
+    "en": "28 years",
+    "es": "28 años",
     "hex": "#8b318f",
+    "pt": "28 anos",
     "src": "oficial",
     "v": 28
    },
    {
+    "en": "29 years",
+    "es": "29 años",
     "hex": "#9b2f8e",
+    "pt": "29 anos",
     "src": "oficial",
     "v": 29
    },
    {
+    "en": "30 years",
+    "es": "30 años",
     "hex": "#aa318d",
+    "pt": "30 anos",
     "src": "oficial",
     "v": 30
    },
    {
+    "en": "31 years",
+    "es": "31 años",
     "hex": "#b83b93",
+    "pt": "31 anos",
     "src": "oficial",
     "v": 31
    },
    {
+    "en": "32 years",
+    "es": "32 años",
     "hex": "#c5489c",
+    "pt": "32 anos",
     "src": "oficial",
     "v": 32
    },
    {
+    "en": "33 years",
+    "es": "33 años",
     "hex": "#d158a8",
+    "pt": "33 anos",
     "src": "oficial",
     "v": 33
    },
    {
+    "en": "34 years",
+    "es": "34 años",
     "hex": "#dc6ab5",
+    "pt": "34 anos",
     "src": "oficial",
     "v": 34
    },
    {
+    "en": "35 years",
+    "es": "35 años",
     "hex": "#e47bc0",
+    "pt": "35 anos",
     "src": "oficial",
     "v": 35
    },
    {
+    "en": "36 years",
+    "es": "36 años",
     "hex": "#ea8ccb",
+    "pt": "36 anos",
     "src": "oficial",
     "v": 36
    },
    {
+    "en": "37 years",
+    "es": "37 años",
     "hex": "#efa0d5",
+    "pt": "37 anos",
     "src": "oficial",
     "v": 37
    },
    {
+    "en": "38 years",
+    "es": "38 años",
     "hex": "#f3b5df",
+    "pt": "38 anos",
     "src": "oficial",
     "v": 38
    },
    {
+    "en": "39 years",
+    "es": "39 años",
     "hex": "#d9d9d9",
+    "pt": "39 anos",
     "src": "oficial",
     "v": 39
    },
    {
+    "en": "40 years",
+    "es": "40 años",
     "hex": "#8c8c8c",
+    "pt": "40 anos",
     "src": "oficial",
     "v": 40
    }
@@ -1445,207 +2118,330 @@
  "brasil__5.1__year_last_fire": {
   "classes": [
    {
+    "en": "1985",
+    "es": "1985",
     "hex": "#010079",
+    "pt": "1985",
     "src": "oficial",
     "v": 1985
    },
    {
+    "en": "1986",
+    "es": "1986",
     "hex": "#010b7b",
+    "pt": "1986",
     "src": "oficial",
     "v": 1986
    },
    {
+    "en": "1987",
+    "es": "1987",
     "hex": "#01177c",
+    "pt": "1987",
     "src": "oficial",
     "v": 1987
    },
    {
+    "en": "1988",
+    "es": "1988",
     "hex": "#00227e",
+    "pt": "1988",
     "src": "oficial",
     "v": 1988
    },
    {
+    "en": "1989",
+    "es": "1989",
     "hex": "#002d80",
+    "pt": "1989",
     "src": "oficial",
     "v": 1989
    },
    {
+    "en": "1990",
+    "es": "1990",
     "hex": "#003881",
+    "pt": "1990",
     "src": "oficial",
     "v": 1990
    },
    {
+    "en": "1991",
+    "es": "1991",
     "hex": "#004284",
+    "pt": "1991",
     "src": "oficial",
     "v": 1991
    },
    {
+    "en": "1992",
+    "es": "1992",
     "hex": "#004c86",
+    "pt": "1992",
     "src": "oficial",
     "v": 1992
    },
    {
+    "en": "1993",
+    "es": "1993",
     "hex": "#005688",
+    "pt": "1993",
     "src": "oficial",
     "v": 1993
    },
    {
+    "en": "1994",
+    "es": "1994",
     "hex": "#00608a",
+    "pt": "1994",
     "src": "oficial",
     "v": 1994
    },
    {
+    "en": "1995",
+    "es": "1995",
     "hex": "#026b8d",
+    "pt": "1995",
     "src": "oficial",
     "v": 1995
    },
    {
+    "en": "1996",
+    "es": "1996",
     "hex": "#007d96",
+    "pt": "1996",
     "src": "oficial",
     "v": 1996
    },
    {
+    "en": "1997",
+    "es": "1997",
     "hex": "#008998",
+    "pt": "1997",
     "src": "oficial",
     "v": 1997
    },
    {
+    "en": "1998",
+    "es": "1998",
     "hex": "#198d98",
+    "pt": "1998",
     "src": "oficial",
     "v": 1998
    },
    {
+    "en": "1999",
+    "es": "1999",
     "hex": "#26a09e",
+    "pt": "1999",
     "src": "oficial",
     "v": 1999
    },
    {
+    "en": "2000",
+    "es": "2000",
     "hex": "#41aca6",
+    "pt": "2000",
     "src": "oficial",
     "v": 2000
    },
    {
+    "en": "2001",
+    "es": "2001",
     "hex": "#5db9ad",
+    "pt": "2001",
     "src": "oficial",
     "v": 2001
    },
    {
+    "en": "2002",
+    "es": "2002",
     "hex": "#78c5b5",
+    "pt": "2002",
     "src": "oficial",
     "v": 2002
    },
    {
+    "en": "2003",
+    "es": "2003",
     "hex": "#94d2bd",
+    "pt": "2003",
     "src": "oficial",
     "v": 2003
    },
    {
+    "en": "2004",
+    "es": "2004",
     "hex": "#9fbd98",
+    "pt": "2004",
     "src": "oficial",
     "v": 2004
    },
    {
+    "en": "2005",
+    "es": "2005",
     "hex": "#aaa772",
+    "pt": "2005",
     "src": "oficial",
     "v": 2005
    },
    {
+    "en": "2006",
+    "es": "2006",
     "hex": "#b4924d",
+    "pt": "2006",
     "src": "oficial",
     "v": 2006
    },
    {
+    "en": "2007",
+    "es": "2007",
     "hex": "#bf7c27",
+    "pt": "2007",
     "src": "oficial",
     "v": 2007
    },
    {
+    "en": "2008",
+    "es": "2008",
     "hex": "#ca6702",
+    "pt": "2008",
     "src": "oficial",
     "v": 2008
    },
    {
+    "en": "2009",
+    "es": "2009",
     "hex": "#c45905",
+    "pt": "2009",
     "src": "oficial",
     "v": 2009
    },
    {
+    "en": "2010",
+    "es": "2010",
     "hex": "#bf4b08",
+    "pt": "2010",
     "src": "oficial",
     "v": 2010
    },
    {
+    "en": "2011",
+    "es": "2011",
     "hex": "#b93c0c",
+    "pt": "2011",
     "src": "oficial",
     "v": 2011
    },
    {
+    "en": "2012",
+    "es": "2012",
     "hex": "#b42e0f",
+    "pt": "2012",
     "src": "oficial",
     "v": 2012
    },
    {
+    "en": "2013",
+    "es": "2013",
     "hex": "#ae2012",
+    "pt": "2013",
     "src": "oficial",
     "v": 2013
    },
    {
+    "en": "2014",
+    "es": "2014",
     "hex": "#aa2016",
+    "pt": "2014",
     "src": "oficial",
     "v": 2014
    },
    {
+    "en": "2015",
+    "es": "2015",
     "hex": "#a6211a",
+    "pt": "2015",
     "src": "oficial",
     "v": 2015
    },
    {
+    "en": "2016",
+    "es": "2016",
     "hex": "#a3211e",
+    "pt": "2016",
     "src": "oficial",
     "v": 2016
    },
    {
+    "en": "2017",
+    "es": "2017",
     "hex": "#9f2222",
+    "pt": "2017",
     "src": "oficial",
     "v": 2017
    },
    {
+    "en": "2018",
+    "es": "2018",
     "hex": "#9b2226",
+    "pt": "2018",
     "src": "oficial",
     "v": 2018
    },
    {
+    "en": "2019",
+    "es": "2019",
     "hex": "#961b1e",
+    "pt": "2019",
     "src": "oficial",
     "v": 2019
    },
    {
+    "en": "2020",
+    "es": "2020",
     "hex": "#901417",
+    "pt": "2020",
     "src": "oficial",
     "v": 2020
    },
    {
+    "en": "2021",
+    "es": "2021",
     "hex": "#8b0e0f",
+    "pt": "2021",
     "src": "oficial",
     "v": 2021
    },
    {
+    "en": "2022",
+    "es": "2022",
     "hex": "#850708",
+    "pt": "2022",
     "src": "oficial",
     "v": 2022
    },
    {
+    "en": "2023",
+    "es": "2023",
     "hex": "#810000",
+    "pt": "2023",
     "src": "oficial",
     "v": 2023
    },
    {
+    "en": "2024",
+    "es": "2024",
     "hex": "#780000",
+    "pt": "2024",
     "src": "oficial",
     "v": 2024
    },
    {
+    "en": "2025",
+    "es": "2025",
     "hex": "#750000",
+    "pt": "2025",
     "src": "oficial",
     "v": 2025
    }
@@ -1660,7 +2456,10 @@
  "brasil__Monitor__fire_monitor": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -1675,7 +2474,10 @@
  "chile__1__accumulated_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#e84130",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -1690,7 +2492,10 @@
  "chile__1__annual_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -1779,32 +2584,50 @@
  "chile__1__fire_frequency": {
   "classes": [
    {
+    "en": "1 time",
+    "es": "1 vez",
     "hex": "#faf3cd",
+    "pt": "1 vez",
     "src": "oficial",
     "v": 1
    },
    {
+    "en": "2 times",
+    "es": "2 veces",
     "hex": "#e2af1a",
+    "pt": "2 vezes",
     "src": "oficial",
     "v": 2
    },
    {
+    "en": "3 times",
+    "es": "3 veces",
     "hex": "#b76011",
+    "pt": "3 vezes",
     "src": "oficial",
     "v": 3
    },
    {
+    "en": "4 times",
+    "es": "4 veces",
     "hex": "#600407",
+    "pt": "4 vezes",
     "src": "oficial",
     "v": 4
    },
    {
+    "en": "5 times",
+    "es": "5 veces",
     "hex": "#220505",
+    "pt": "5 vezes",
     "src": "oficial",
     "v": 5
    },
    {
+    "en": "6 or more times",
+    "es": "6 veces o más",
     "hex": "#020000",
+    "pt": "6 vezes ou mais",
     "src": "oficial",
     "v": 6
    }
@@ -1925,67 +2748,106 @@
  "chile__1__year_last_fire": {
   "classes": [
    {
+    "en": "2013",
+    "es": "2013",
     "hex": "#010079",
+    "pt": "2013",
     "src": "oficial",
     "v": 2013
    },
    {
+    "en": "2014",
+    "es": "2014",
     "hex": "#01177c",
+    "pt": "2014",
     "src": "oficial",
     "v": 2014
    },
    {
+    "en": "2015",
+    "es": "2015",
     "hex": "#005688",
+    "pt": "2015",
     "src": "oficial",
     "v": 2015
    },
    {
+    "en": "2016",
+    "es": "2016",
     "hex": "#026b8d",
+    "pt": "2016",
     "src": "oficial",
     "v": 2016
    },
    {
+    "en": "2017",
+    "es": "2017",
     "hex": "#198d98",
+    "pt": "2017",
     "src": "oficial",
     "v": 2017
    },
    {
+    "en": "2018",
+    "es": "2018",
     "hex": "#78c5b5",
+    "pt": "2018",
     "src": "oficial",
     "v": 2018
    },
    {
+    "en": "2019",
+    "es": "2019",
     "hex": "#aaa772",
+    "pt": "2019",
     "src": "oficial",
     "v": 2019
    },
    {
+    "en": "2020",
+    "es": "2020",
     "hex": "#ca6702",
+    "pt": "2020",
     "src": "oficial",
     "v": 2020
    },
    {
+    "en": "2021",
+    "es": "2021",
     "hex": "#b42e0f",
+    "pt": "2021",
     "src": "oficial",
     "v": 2021
    },
    {
+    "en": "2022",
+    "es": "2022",
     "hex": "#a6211a",
+    "pt": "2022",
     "src": "oficial",
     "v": 2022
    },
    {
+    "en": "2023",
+    "es": "2023",
     "hex": "#9b2226",
+    "pt": "2023",
     "src": "oficial",
     "v": 2023
    },
    {
+    "en": "2024",
+    "es": "2024",
     "hex": "#850708",
+    "pt": "2024",
     "src": "oficial",
     "v": 2024
    },
    {
+    "en": "2025",
+    "es": "2025",
     "hex": "#750000",
+    "pt": "2025",
     "src": "oficial",
     "v": 2025
    }
@@ -2000,7 +2862,10 @@
  "colombia__1__accumulated_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#e84130",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2015,7 +2880,10 @@
  "colombia__1__annual_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2099,6 +2967,224 @@
   "expected": 8,
   "status": "validada",
   "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "colombia__1__fire_frequency": {
+  "classes": [
+   {
+    "en": "1 time",
+    "es": "1 vez",
+    "hex": "#faf3cd",
+    "pt": "1 vez",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "2 times",
+    "es": "2 veces",
+    "hex": "#faeda7",
+    "pt": "2 vezes",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "3 times",
+    "es": "3 veces",
+    "hex": "#f9e780",
+    "pt": "3 vezes",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "4 times",
+    "es": "4 veces",
+    "hex": "#f9e15a",
+    "pt": "4 vezes",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5 times",
+    "es": "5 veces",
+    "hex": "#f5d73f",
+    "pt": "5 vezes",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "6 times",
+    "es": "6 veces",
+    "hex": "#edc632",
+    "pt": "6 vezes",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "7 times",
+    "es": "7 veces",
+    "hex": "#e4b526",
+    "pt": "7 vezes",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "8 times",
+    "es": "8 veces",
+    "hex": "#dba31a",
+    "pt": "8 vezes",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "9 times",
+    "es": "9 veces",
+    "hex": "#d29116",
+    "pt": "9 vezes",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "10 times",
+    "es": "10 veces",
+    "hex": "#c87f14",
+    "pt": "10 vezes",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "11 times",
+    "es": "11 veces",
+    "hex": "#be6d12",
+    "pt": "11 vezes",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "12 times",
+    "es": "12 veces",
+    "hex": "#b45b10",
+    "pt": "12 vezes",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "13 times",
+    "es": "13 veces",
+    "hex": "#aa480e",
+    "pt": "13 vezes",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "en": "14 times",
+    "es": "14 veces",
+    "hex": "#9f360b",
+    "pt": "14 vezes",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "en": "15 times",
+    "es": "15 veces",
+    "hex": "#952309",
+    "pt": "15 vezes",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "en": "16 times",
+    "es": "16 veces",
+    "hex": "#881908",
+    "pt": "16 vezes",
+    "src": "oficial",
+    "v": 16
+   },
+   {
+    "en": "17 times",
+    "es": "17 veces",
+    "hex": "#7a1208",
+    "pt": "17 vezes",
+    "src": "oficial",
+    "v": 17
+   },
+   {
+    "en": "18 times",
+    "es": "18 veces",
+    "hex": "#6c0a07",
+    "pt": "18 vezes",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "en": "19 times",
+    "es": "19 veces",
+    "hex": "#5e0407",
+    "pt": "19 vezes",
+    "src": "oficial",
+    "v": 19
+   },
+   {
+    "en": "20 times",
+    "es": "20 veces",
+    "hex": "#540507",
+    "pt": "20 vezes",
+    "src": "oficial",
+    "v": 20
+   },
+   {
+    "en": "21 times",
+    "es": "21 veces",
+    "hex": "#490508",
+    "pt": "21 vezes",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "en": "22 times",
+    "es": "22 veces",
+    "hex": "#3e0608",
+    "pt": "22 vezes",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "en": "23 times",
+    "es": "23 veces",
+    "hex": "#310507",
+    "pt": "23 vezes",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "en": "24 times",
+    "es": "24 veces",
+    "hex": "#220405",
+    "pt": "24 vezes",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "25 times",
+    "es": "25 veces",
+    "hex": "#130203",
+    "pt": "25 vezes",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "26 or more times",
+    "es": "26 veces o más",
+    "hex": "#040101",
+    "pt": "26 vezes ou mais",
+    "src": "oficial",
+    "v": 26
+   }
+  ],
+  "collection": "1",
+  "country": "colombia",
+  "expected": 26,
+  "status": "validada",
+  "subproduct": "fire_frequency",
   "updatedAt": "from-repository"
  },
  "colombia__1__monthly_burned": {
@@ -2210,132 +3296,210 @@
  "colombia__1__year_last_fire": {
   "classes": [
    {
+    "en": "2000",
+    "es": "2000",
     "hex": "#010079",
+    "pt": "2000",
     "src": "oficial",
     "v": 2000
    },
    {
+    "en": "2001",
+    "es": "2001",
     "hex": "#01127c",
+    "pt": "2001",
     "src": "oficial",
     "v": 2001
    },
    {
+    "en": "2002",
+    "es": "2002",
     "hex": "#00247e",
+    "pt": "2002",
     "src": "oficial",
     "v": 2002
    },
    {
+    "en": "2003",
+    "es": "2003",
     "hex": "#003681",
+    "pt": "2003",
     "src": "oficial",
     "v": 2003
    },
    {
+    "en": "2004",
+    "es": "2004",
     "hex": "#004685",
+    "pt": "2004",
     "src": "oficial",
     "v": 2004
    },
    {
+    "en": "2005",
+    "es": "2005",
     "hex": "#005688",
+    "pt": "2005",
     "src": "oficial",
     "v": 2005
    },
    {
+    "en": "2006",
+    "es": "2006",
     "hex": "#01678c",
+    "pt": "2006",
     "src": "oficial",
     "v": 2006
    },
    {
+    "en": "2007",
+    "es": "2007",
     "hex": "#007f96",
+    "pt": "2007",
     "src": "oficial",
     "v": 2007
    },
    {
+    "en": "2008",
+    "es": "2008",
     "hex": "#148c98",
+    "pt": "2008",
     "src": "oficial",
     "v": 2008
    },
    {
+    "en": "2009",
+    "es": "2009",
     "hex": "#31a5a1",
+    "pt": "2009",
     "src": "oficial",
     "v": 2009
    },
    {
+    "en": "2010",
+    "es": "2010",
     "hex": "#5db9ad",
+    "pt": "2010",
     "src": "oficial",
     "v": 2010
    },
    {
+    "en": "2011",
+    "es": "2011",
     "hex": "#89cdba",
+    "pt": "2011",
     "src": "oficial",
     "v": 2011
    },
    {
+    "en": "2012",
+    "es": "2012",
     "hex": "#a1b990",
+    "pt": "2012",
     "src": "oficial",
     "v": 2012
    },
    {
+    "en": "2013",
+    "es": "2013",
     "hex": "#b29654",
+    "pt": "2013",
     "src": "oficial",
     "v": 2013
    },
    {
+    "en": "2014",
+    "es": "2014",
     "hex": "#c37418",
+    "pt": "2014",
     "src": "oficial",
     "v": 2014
    },
    {
+    "en": "2015",
+    "es": "2015",
     "hex": "#c45905",
+    "pt": "2015",
     "src": "oficial",
     "v": 2015
    },
    {
+    "en": "2016",
+    "es": "2016",
     "hex": "#bb420a",
+    "pt": "2016",
     "src": "oficial",
     "v": 2016
    },
    {
+    "en": "2017",
+    "es": "2017",
     "hex": "#b32b10",
+    "pt": "2017",
     "src": "oficial",
     "v": 2017
    },
    {
+    "en": "2018",
+    "es": "2018",
     "hex": "#ab2015",
+    "pt": "2018",
     "src": "oficial",
     "v": 2018
    },
    {
+    "en": "2019",
+    "es": "2019",
     "hex": "#a5211c",
+    "pt": "2019",
     "src": "oficial",
     "v": 2019
    },
    {
+    "en": "2020",
+    "es": "2020",
     "hex": "#9f2222",
+    "pt": "2020",
     "src": "oficial",
     "v": 2020
    },
    {
+    "en": "2021",
+    "es": "2021",
     "hex": "#981e21",
+    "pt": "2021",
     "src": "oficial",
     "v": 2021
    },
    {
+    "en": "2022",
+    "es": "2022",
     "hex": "#8f1315",
+    "pt": "2022",
     "src": "oficial",
     "v": 2022
    },
    {
+    "en": "2023",
+    "es": "2023",
     "hex": "#860809",
+    "pt": "2023",
     "src": "oficial",
     "v": 2023
    },
    {
+    "en": "2024",
+    "es": "2024",
     "hex": "#7d0000",
+    "pt": "2024",
     "src": "oficial",
     "v": 2024
    },
    {
+    "en": "2025",
+    "es": "2025",
     "hex": "#750000",
+    "pt": "2025",
     "src": "oficial",
     "v": 2025
    }
@@ -2350,7 +3514,10 @@
  "indonesia__1__accumulated_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#e84130",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2365,7 +3532,10 @@
  "indonesia__1__annual_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2486,7 +3656,10 @@
  "indonesia__2__annual_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2498,10 +3671,223 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "indonesia__2__fire_frequency": {
+  "classes": [
+   {
+    "en": "1 time",
+    "es": "1 vez",
+    "hex": "#faf3cd",
+    "pt": "1 vez",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "2 times",
+    "es": "2 veces",
+    "hex": "#faeda5",
+    "pt": "2 vezes",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "3 times",
+    "es": "3 veces",
+    "hex": "#f9e77d",
+    "pt": "3 vezes",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "4 times",
+    "es": "4 veces",
+    "hex": "#f9e155",
+    "pt": "4 vezes",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5 times",
+    "es": "5 veces",
+    "hex": "#f4d43d",
+    "pt": "5 vezes",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "6 times",
+    "es": "6 veces",
+    "hex": "#ebc230",
+    "pt": "6 vezes",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "7 times",
+    "es": "7 veces",
+    "hex": "#e2b023",
+    "pt": "7 vezes",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "8 times",
+    "es": "8 veces",
+    "hex": "#d99e18",
+    "pt": "8 vezes",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "9 times",
+    "es": "9 veces",
+    "hex": "#ce8b16",
+    "pt": "9 vezes",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "10 times",
+    "es": "10 veces",
+    "hex": "#c47814",
+    "pt": "10 vezes",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "11 times",
+    "es": "11 veces",
+    "hex": "#ba6512",
+    "pt": "11 vezes",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "12 times",
+    "es": "12 veces",
+    "hex": "#af520f",
+    "pt": "12 vezes",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "13 times",
+    "es": "13 veces",
+    "hex": "#a53f0d",
+    "pt": "13 vezes",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "en": "14 times",
+    "es": "14 veces",
+    "hex": "#9a2c0a",
+    "pt": "14 vezes",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "en": "15 times",
+    "es": "15 veces",
+    "hex": "#8e1c08",
+    "pt": "15 vezes",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "en": "16 times",
+    "es": "16 veces",
+    "hex": "#7f1408",
+    "pt": "16 vezes",
+    "src": "oficial",
+    "v": 16
+   },
+   {
+    "en": "17 times",
+    "es": "17 veces",
+    "hex": "#710d07",
+    "pt": "17 vezes",
+    "src": "oficial",
+    "v": 17
+   },
+   {
+    "en": "18 times",
+    "es": "18 veces",
+    "hex": "#620507",
+    "pt": "18 vezes",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "en": "19 times",
+    "es": "19 veces",
+    "hex": "#560507",
+    "pt": "19 vezes",
+    "src": "oficial",
+    "v": 19
+   },
+   {
+    "en": "20 times",
+    "es": "20 veces",
+    "hex": "#4b0508",
+    "pt": "20 vezes",
+    "src": "oficial",
+    "v": 20
+   },
+   {
+    "en": "21 times",
+    "es": "21 veces",
+    "hex": "#3f0608",
+    "pt": "21 vezes",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "en": "22 times",
+    "es": "22 veces",
+    "hex": "#320507",
+    "pt": "22 vezes",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "en": "23 times",
+    "es": "23 veces",
+    "hex": "#230405",
+    "pt": "23 vezes",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "en": "24 times",
+    "es": "24 veces",
+    "hex": "#130203",
+    "pt": "24 vezes",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "25 or more times",
+    "es": "25 veces o más",
+    "hex": "#040101",
+    "pt": "25 vezes ou mais",
+    "src": "oficial",
+    "v": 25
+   }
+  ],
+  "collection": "2",
+  "country": "indonesia",
+  "expected": 25,
+  "status": "validada",
+  "subproduct": "fire_frequency",
+  "updatedAt": "from-repository"
+ },
  "indonesia__Monitor__fire_monitor": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2516,7 +3902,10 @@
  "paraguay__1__annual_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2531,7 +3920,10 @@
  "peru__1__accumulated_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#e84130",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2546,7 +3938,10 @@
  "peru__1__annual_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2741,7 +4136,10 @@
  "peru__2__accumulated_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#e84130",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2756,7 +4154,10 @@
  "peru__2__annual_burned": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
@@ -2951,7 +4352,10 @@
  "peru__Monitor__fire_monitor": {
   "classes": [
    {
+    "en": "Burned area",
+    "es": "Área quemada",
     "hex": "#d4271e",
+    "pt": "Área queimada",
     "src": "oficial",
     "v": 1
    }
