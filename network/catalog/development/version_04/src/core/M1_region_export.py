@@ -11,7 +11,16 @@ import ee
 
 
 def region_asset_suffix(region_name):
-    """Stable, EE-safe suffix, including a hash to avoid slug collisions."""
+    """Compact stable suffix, leaving room in EE's 100-character asset ID."""
+    if not isinstance(region_name, str) or not region_name.strip():
+        raise ValueError('Region names must be non-empty strings')
+    name = region_name.strip()
+    digest = hashlib.sha256(name.encode('utf-8')).hexdigest()[:12]
+    return f'region_{digest}'
+
+
+def legacy_region_asset_suffix(region_name):
+    """Recognize names sent by the first experimental version."""
     if not isinstance(region_name, str) or not region_name.strip():
         raise ValueError('Region names must be non-empty strings')
     name = region_name.strip()
@@ -86,6 +95,10 @@ def submit_region_exports(image, collection, collection_id, base_name, band,
     if not isinstance(names, list) or len(names) != size:
         raise ValueError(f'Every region must have {region_property!r}')
     suffixes = validate_region_names(names)
+    asset_names = [f'{base_name}_{suffix}' for suffix in suffixes]
+    if any(len(name) > 100 or not re.fullmatch(r'[a-zA-Z0-9_-]+', name)
+           for name in asset_names):
+        raise ValueError('Asset name exceeds the Earth Engine limit or has invalid characters')
     existing = list_collection_asset_names(collection_id)
     active = {task.get('description') for task in ee.data.getTaskList()
               if task.get('state') in ('READY', 'PENDING', 'RUNNING')}
@@ -93,9 +106,12 @@ def submit_region_exports(image, collection, collection_id, base_name, band,
     for region_name, suffix in zip(names, suffixes):
         name = f'{base_name}_{suffix}'
         asset_id = f'{collection_id}/{name}'
+        legacy_name = f'{base_name}_{legacy_region_asset_suffix(region_name)}'
+        legacy_asset_id = f'{collection_id}/{legacy_name}'
         description = f'{regional_task_prefix(task_flag, base_name)}_{suffix[-12:]}'
-        legacy_description = f'{task_flag}_ASSET_{name}'
-        if asset_id in existing or description in active or legacy_description in active:
+        legacy_description = f'{task_flag}_ASSET_{legacy_name}'
+        if (asset_id in existing or legacy_asset_id in existing or description in active
+                or legacy_description in active):
             skipped.append(asset_id)
             continue
         region = collection.filter(ee.Filter.eq(region_property, region_name)).geometry()

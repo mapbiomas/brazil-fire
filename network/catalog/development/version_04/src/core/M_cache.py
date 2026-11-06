@@ -223,12 +223,15 @@ class CacheManager:
         regional_suffixes = []
         if __import__('M0_auth_config').GLOBAL_OPTS.get('ASSET_EXPORT_BY_REGION', False):
             try:
-                from M1_region_export import validate_region_names
+                from M1_region_export import validate_region_names, legacy_region_asset_suffix
                 regions = ee.FeatureCollection(CONFIG['asset_regions'])
                 names = regions.aggregate_array('region_nam').getInfo()
                 if len(names) != regions.size().getInfo():
                     raise ValueError('Some regions have no region_nam')
-                regional_suffixes = validate_region_names(names)
+                regional_suffixes = [
+                    (new_suffix, legacy_region_asset_suffix(name))
+                    for name, new_suffix in zip(names, validate_region_names(names))
+                ]
             except Exception as exc:
                 if logger:
                     logger(f'Regional asset completeness unavailable: {exc}', 'warning')
@@ -304,11 +307,16 @@ class CacheManager:
                     name_lower = asset_name.lower()
                     if name_lower not in state[target_key]:
                         state[target_key].append(name_lower)
-                    for suffix in regional_suffixes:
-                        marker = '_' + suffix.lower()
-                        if name_lower.endswith(marker):
-                            base = name_lower[:-len(marker)]
-                            regional_groups.setdefault((period_type, base), set()).add(suffix.lower())
+                    for new_suffix, old_suffix in regional_suffixes:
+                        matched = False
+                        for suffix in (new_suffix, old_suffix):
+                            marker = '_' + suffix.lower()
+                            if name_lower.endswith(marker):
+                                base = name_lower[:-len(marker)]
+                                regional_groups.setdefault((period_type, base), set()).add(new_suffix.lower())
+                                matched = True
+                                break
+                        if matched:
                             break
                 
                 completed += 1
@@ -318,7 +326,7 @@ class CacheManager:
                     remaining = (elapsed / completed) * (total_steps - completed) if completed > 0 else 0
                     logger(f"Estimated remaining: {int(remaining):02d}s || [{completed}/{total_steps}]")
         
-        expected = {suffix.lower() for suffix in regional_suffixes}
+        expected = {suffix.lower() for suffix, _ in regional_suffixes}
         if expected:
             for (period_type, base), found in regional_groups.items():
                 if found == expected:

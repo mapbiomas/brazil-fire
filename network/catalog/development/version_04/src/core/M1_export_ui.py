@@ -248,10 +248,14 @@ class ExportDispatcherUI(PipelineStepUI):
                         row_type, has_chunks, has_cog, has_asset, is_active,
                     )
                     chk._meta['exists'] = exists
-                    chk._meta['active'] = is_active
+                    # Regional submissions can be partial: leave the cell
+                    # selectable while some tasks run so a retry can dispatch
+                    # missing regions. The dispatcher skips active tasks.
+                    regional_asset = row_type == 'ASSET' and GLOBAL_OPTS.get('ASSET_EXPORT_BY_REGION', False)
+                    chk._meta['active'] = is_active and not regional_asset
                     css = {'RUN': 'mfm-run', 'OK': 'mfm-ok', 'MISS': 'mfm-null'}[status]
 
-                    chk.disabled = is_active or (exists and not is_edit_mode())
+                    chk.disabled = chk._meta['active'] or (exists and not is_edit_mode())
 
                     link = None
                     if status == 'OK':

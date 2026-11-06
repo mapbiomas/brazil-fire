@@ -46,6 +46,7 @@ class RegionalAssetTests(unittest.TestCase):
         self.assertNotIn('overwrite', export.call_args.kwargs)
         for call in export.call_args_list:
             self.assertLessEqual(len(call.kwargs['description']), 100)
+            self.assertLessEqual(len(call.kwargs['assetId'].split('/')[-1]), 100)
         self.assertEqual(image.select.return_value.set.call_args.kwargs, {})
         self.assertEqual(image.select.return_value.set.call_args.args[0]['expected_region_count'], 2)
 
@@ -86,10 +87,11 @@ class RegionalAssetTests(unittest.TestCase):
         collection = MagicMock()
         collection.size.return_value.getInfo.return_value = 2
         collection.aggregate_array.return_value.getInfo.return_value = ['Norte', 'Sul']
-        first, second = [f'base_{regional.region_asset_suffix(n)}' for n in ['Norte', 'Sul']]
+        first = 'base_' + regional.legacy_region_asset_suffix('Norte')
+        active_name = regional.regional_task_prefix('TEST', 'base') + '_' + regional.region_asset_suffix('Sul')[-12:]
         with patch.object(regional, 'list_collection_asset_names', return_value={'c/' + first}), \
              patch.object(regional.ee.data, 'getTaskList', return_value=[
-                 {'description': 'TEST_ASSET_' + second, 'state': 'RUNNING'}]), \
+                 {'description': active_name, 'state': 'RUNNING'}]), \
              patch.object(regional.ee.batch.Export.image, 'toAsset') as export:
             result = regional.submit_region_exports(MagicMock(), collection, 'c', 'base',
                                                     'blue', '2025', {}, 30, 'TEST')
