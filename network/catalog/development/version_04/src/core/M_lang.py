@@ -51,6 +51,14 @@ class L:
     TASK_NAME = "Task Name"
     STATUS = "Status"
     PROGRESS = "Progress"
+    ETA_PENDING = "estimating"
+    ETA_PROGRESS = "[{phase}] {done}/{total} | elapsed {elapsed} | estimated remaining {eta}"
+    ETA_M1_PHASE = "GEE to GCS tiles"
+    ETA_M2_DOWNLOAD = "GCS tile download"
+    ETA_M2_CONVERT = "Building COG"
+    ETA_M2_UPLOAD = "Uploading COG"
+    ETA_PHASE_START = "[{phase}] started; duration not yet available"
+    ETA_PHASE_DONE = "[{phase}] completed in {elapsed}"
     DESCRIPTION = "Description"
     NAME = "Name"
     DATE = "Date"
@@ -670,6 +678,14 @@ class L:
 # ── Locale dictionaries ────────────────────────────────────
 
 STRINGS_ES = {
+    "ETA_PENDING": "calculando",
+    "ETA_PROGRESS": "[{phase}] {done}/{total} | transcurrido {elapsed} | restante estimado {eta}",
+    "ETA_M1_PHASE": "Tiles de GEE a GCS",
+    "ETA_M2_DOWNLOAD": "Descarga de tiles desde GCS",
+    "ETA_M2_CONVERT": "Generación del COG",
+    "ETA_M2_UPLOAD": "Subida del COG",
+    "ETA_PHASE_START": "[{phase}] iniciado; duración aún no disponible",
+    "ETA_PHASE_DONE": "[{phase}] finalizado en {elapsed}",
     # General
     "LOADING": "Cargando...",
     "PROCESSING": "Procesando...",
@@ -1265,6 +1281,14 @@ STRINGS_ES = {
 }
 
 STRINGS_PT = {
+    "ETA_PENDING": "calculando",
+    "ETA_PROGRESS": "[{phase}] {done}/{total} | decorrido {elapsed} | restante estimado {eta}",
+    "ETA_M1_PHASE": "Tiles do GEE para GCS",
+    "ETA_M2_DOWNLOAD": "Download dos tiles do GCS",
+    "ETA_M2_CONVERT": "Montagem do COG",
+    "ETA_M2_UPLOAD": "Envio do COG",
+    "ETA_PHASE_START": "[{phase}] iniciado; duração ainda indisponível",
+    "ETA_PHASE_DONE": "[{phase}] concluído em {elapsed}",
     # General
     "LOADING": "Carregando...",
     "PROCESSING": "Processando...",

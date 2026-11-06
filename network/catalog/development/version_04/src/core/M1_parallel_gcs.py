@@ -4,12 +4,15 @@ import hashlib
 import json
 import os
 import tempfile
+import time
 
 import ee
 
 from M_compute_pixels import compute_pixels, make_tile_request
 from M_export_grid import tiles_for_bounds
 from M_export_manifest import completed_tiles
+from M_lang import L
+from M_progress_eta import progress_message
 
 
 def export_band(image, geometry, band, band_name, folder, config, scale,
@@ -68,7 +71,9 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
     existing = {entry['object'] for entry in objects if entry['object'] in existing_paths}
     pending = [(tile, entry['object']) for tile, entry in zip(tiles, objects)
                if entry['object'] not in existing]
-    logger(f'[GCS] {band_name}: {len(existing)}/{len(tiles)} tiles available')
+    start = time.monotonic()
+    last_report = start
+    logger(f'{band_name} ' + progress_message(L.ETA_M1_PHASE, len(existing), len(tiles), 0, 0, len(pending)))
     try:
         credentials = ee.data._get_state().credentials
     except AttributeError as exc:
@@ -109,8 +114,12 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
                 except Exception as exc:
                     failures.append((item[0].id, str(exc)))
                 index += 1
-                if index % 25 == 0 or index == len(pending):
-                    logger(f'[GCS] {band_name}: {len(existing)}/{len(tiles)} tiles available')
+                now = time.monotonic()
+                if index == 1 or index % 10 == 0 or index == len(pending) or now - last_report >= 30:
+                    logger(f'{band_name} ' + progress_message(
+                        L.ETA_M1_PHASE, len(existing), len(tiles), now - start,
+                        index - len(failures), len(pending), len(failures)))
+                    last_report = now
                 submit_next()
     except BaseException:
         # Do not enqueue the rest of the country after a Colab interruption.

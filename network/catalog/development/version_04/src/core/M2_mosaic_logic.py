@@ -17,6 +17,8 @@ from M0_auth_config import (
 from M_periods import parse_period
 from M_gcs import upload, download, rm_files
 from M_export_manifest import completed_tiles
+from M_lang import L
+from M_progress_eta import format_duration, progress_message
 
 # M2 output is 8-bit for every band except dayOfYear, which needs Int16.
 BAND_DATATYPES = {
@@ -191,14 +193,26 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
             os.makedirs(band_tmp, exist_ok=True)
 
             try:
-                for shard_url in remote_shards:
+                download_start = time.monotonic()
+                last_report = download_start
+                if logger:
+                    logger(progress_message(L.ETA_M2_DOWNLOAD, 0, len(remote_shards), 0, 0, len(remote_shards)), 'info')
+                for index, shard_url in enumerate(remote_shards, 1):
                     local_shard = os.path.join(band_tmp, os.path.basename(shard_url))
                     download(shard_url, local_shard)
+                    now = time.monotonic()
+                    if logger and (index == 1 or index % 10 == 0 or index == len(remote_shards)
+                                   or now - last_report >= 30):
+                        logger(progress_message(L.ETA_M2_DOWNLOAD, index, len(remote_shards),
+                                                now - download_start, index, len(remote_shards)), 'info')
+                        last_report = now
 
                 local_shards = glob.glob(os.path.join(band_tmp, '*.tif'))
                 if not local_shards: continue
 
                 vrt_path = os.path.join(tmp_path, f"{base_name}_{b_name}.vrt")
+                if logger: logger(L.ETA_PHASE_START.format(phase=L.ETA_M2_CONVERT), 'info')
+                convert_start = time.monotonic()
                 run_cmd(['gdalbuildvrt', vrt_path] + local_shards, label=f"VRT ({b_name})")
 
                 cog_remote_name = f"{cog_base}_cog.tif"
@@ -212,9 +226,17 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
                     '-co', 'NUM_THREADS=2', '-co', 'BIGTIFF=YES',
                     '-co', 'OVERVIEWS=NONE', vrt_path, cog_local_path
                 ], label=f"COG Conversion ({clean_b_name})")
+                if logger:
+                    logger(L.ETA_PHASE_DONE.format(phase=L.ETA_M2_CONVERT,
+                           elapsed=format_duration(time.monotonic() - convert_start)), 'info')
 
                 dest = f"{CONFIG['bucket']}/{mosaic_prefix}/{cog_remote_name}"
+                if logger: logger(L.ETA_PHASE_START.format(phase=L.ETA_M2_UPLOAD), 'info')
+                upload_start = time.monotonic()
                 upload(cog_local_path, dest)
+                if logger:
+                    logger(L.ETA_PHASE_DONE.format(phase=L.ETA_M2_UPLOAD,
+                           elapsed=format_duration(time.monotonic() - upload_start)), 'info')
                 
                 if logger: logger(f" Success: {cog_remote_name}", "success")
                 if DELETE_CHUNKS_AFTER_COG:
