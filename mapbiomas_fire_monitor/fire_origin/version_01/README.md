@@ -18,7 +18,7 @@ mapbiomas_fire_monitor/fire_origin/version_01/
 
 | Step | What it does | Runs on | Output |
 |---|---|---|---|
-| 1 | Exports monthly hotspots from GEE to CSV, standardizing the date/time field | GEE batch tasks | `gs://mapbiomas-fire/monitor/product_fire_origin/01_FOCOS_MENSAIS_ORIGINAL/focos_YYYY_MM.csv` |
+| 1 | Exports monthly hotspots (South America, all satellites) from GEE to CSV, standardizing the date/time field and adding a unique `foco_id`; waits for the tasks to finish | GEE batch tasks | `gs://mapbiomas-fire/monitor/product_fire_origin/01_FOCOS_MENSAIS_ORIGINAL/focos_YYYY_MM.csv` |
 | 2 | ST-DBSCAN per month, carrying the previous month to inherit `CLUSTER_ID`; computes `Lapsetime` and `R_lapsetime`; retroactively updates the 6 previous months | Colab (pandas, scikit-learn) | `.../02_st-dbscan-output_v1/DBSCAN_YYYY_MM.csv` |
 | 2.1 | Ingests the clustered CSVs as GEE tables | GEE | `.../FOGO/MONITORAMENTO/focos-st-dbscan-output/DBSCAN_YYYY_MM` |
 | 3 | Rasterizes clustered hotspots (0.001°), nearest-neighbour fill (15 px) and per-cluster linear interpolation of `R_lapsetime` | Colab (rasterio, SciPy) | `.../03_STFireOrigins-output_v1/STFIreOrigins_YYYY_MM.tif` |
@@ -59,6 +59,7 @@ To save changes made in Colab back to this repository: **File → Save a copy in
 
 - **v1.0.0 (2026-11-06)** – notebook added as used to produce the `_v1` assets.
 - **v1.0.1 (2026-11-06)** – rewritten overview; parameters grouped (period first) with comments explaining the ST-DBSCAN limits and what counts as a fire event; unused imports removed and `rasterio` installed. No parameter values changed.
+- **v1.0.2 (2026-11-06)** – processing window set to 2026-10 (test base). Step 1: skips months whose hotspot asset does not exist, optional `SOBRESCREVER_ETAPA1` to skip existing CSVs, waits for the export tasks to finish, and adds a unique `foco_id` (`YYYY_MM_<GEE id>`) column. Still South America and all satellites.
 
 ## 📚 Data sources
 
