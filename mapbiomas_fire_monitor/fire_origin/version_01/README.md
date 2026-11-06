@@ -58,6 +58,7 @@ To save changes made in Colab back to this repository: **File → Save a copy in
 ## 🕒 Version history
 
 - **v1.0.0 (2026-11-06)** – notebook added as used to produce the `_v1` assets.
+- **v1.0.1 (2026-11-06)** – rewritten overview; parameters grouped (period first) with comments explaining the ST-DBSCAN limits and what counts as a fire event; unused imports removed and `rasterio` installed. No parameter values changed.
 
 ## 📚 Data sources
 
