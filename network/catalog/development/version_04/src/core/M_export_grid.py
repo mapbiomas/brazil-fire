@@ -49,3 +49,25 @@ def tiles_for_bounds(bounds, pixel_size, tile_pixels, origin=(0, 0)):
         for col in range(first_col, last_col):
             left, bottom = ox + col * width, oy + row * width
             yield Tile(col, row, left, bottom, left + width, bottom + width)
+
+
+def filter_intersecting_tiles(tiles, geojson):
+    """Drop tiles far outside a country, keeping a conservative boundary buffer.
+
+    Coordinates must use the same geographic CRS as the tile grid. A full tile
+    of padding reduces the chance of dropping boundary pixels when translating
+    Earth Engine's geodesic geometry into planar geometry. Never repairs an
+    invalid geometry silently.
+    """
+    from shapely.geometry import shape, box
+    from shapely.prepared import prep
+    tiles = list(tiles)
+    if not tiles:
+        return []
+    area = shape(geojson)
+    if area.is_empty or not area.is_valid or area.geom_type not in ('Polygon', 'MultiPolygon', 'GeometryCollection'):
+        raise ValueError('Country geometry must be a valid polygon or geometry collection')
+    padding = max(tiles[0].xmax - tiles[0].xmin, tiles[0].ymax - tiles[0].ymin)
+    buffered = prep(area.buffer(padding))
+    return [tile for tile in tiles
+            if buffered.intersects(box(tile.xmin, tile.ymin, tile.xmax, tile.ymax))]

@@ -397,7 +397,8 @@ def export_to_gcs(mosaic_obj, name, year, month=None, period='monthly', bands=No
     # updateMask does not shrink image.geometry(); the former clip(bounds)
     # did. Keep the previous bounded export region instead of accidentally
     # requesting an unbounded/global image after removing clip.
-    geometry = config_module.get_country_geometry() if config_module else get_country_geometry().bounds()
+    country_geometry = config_module.get_country_geometry() if config_module else get_country_geometry()
+    geometry = country_geometry if config_module else country_geometry.bounds()
     
     m_method = mosaic or GLOBAL_OPTS.get('MOSAIC_METHOD', 'minnbr').lower()
     s = sensor or GLOBAL_OPTS.get('SENSOR', 'sentinel2')
@@ -423,4 +424,4 @@ def export_to_gcs(mosaic_obj, name, year, month=None, period='monthly', bands=No
         )
         from M1_parallel_gcs import export_band
         export_band(mask_to_geometry(mosaic_obj, geometry), geometry, clean_band,
-                    band_name, folder, CONFIG, get_sensor_scale(s))
+                    band_name, folder, CONFIG, get_sensor_scale(s), area_geometry=country_geometry)

@@ -11,6 +11,37 @@ import M_gcs
 
 
 class ParallelResumeTests(unittest.TestCase):
+    def test_filtered_plan_and_snapshot_are_reused_on_resume(self):
+        from shapely.geometry import box, mapping
+        state, objects = {}, set()
+        geometry, area = MagicMock(), MagicMock()
+        geometry.bounds.return_value.coordinates.return_value.getInfo.return_value = [
+            [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+        area.getInfo.return_value = mapping(box(0.2, 0.2, 0.8, 0.8))
+        storage = MagicMock()
+        storage.list_blobs.side_effect = lambda bucket, prefix: [SimpleNamespace(name=path) for path in objects]
+
+        def upload(_local, dest):
+            objects.add(dest.split('gs://bucket/', 1)[1])
+
+        args = (MagicMock(), geometry, 'blue', 'base', 'folder/CHUNKS',
+                {'bucket': 'bucket', 'gee_project': 'project'}, 111319.49079327358)
+        with patch.object(logic.ee.serializer, 'encode', return_value={'constant': 1}), \
+             patch.object(logic.ee.data, '_get_state', return_value=MagicMock(credentials=object())), \
+             patch.object(logic, 'compute_pixels', return_value=b'tile') as fetch, \
+             patch.object(M_gcs, 'blob_exists', side_effect=lambda path: path in state), \
+             patch.object(M_gcs, 'read_json', side_effect=lambda path: state[path]), \
+             patch.object(M_gcs, 'write_json', side_effect=lambda path, value: state.update({path: value.copy()})), \
+             patch.object(M_gcs, 'upload', side_effect=upload), \
+             patch.object(M_gcs, '_storage_client', return_value=storage):
+            first = logic.export_band(*args, workers=1, tile_pixels=2, area_geometry=area, logger=lambda _: None)
+            calls = fetch.call_count
+            area.getInfo.side_effect = AssertionError('must reuse manifest on resume')
+            second = logic.export_band(*args, workers=1, tile_pixels=2, area_geometry=area, logger=lambda _: None)
+        self.assertLess(len(first['tiles']), 25)
+        self.assertEqual(first['snapshot_time_us'], second['snapshot_time_us'])
+        self.assertEqual(fetch.call_count, calls)
+
     def test_restricted_mode_retries_the_tile_with_lower_concurrency(self):
         state, objects, logs, attempts = {}, set(), [], []
         geometry = MagicMock()

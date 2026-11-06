@@ -7,11 +7,17 @@ from unittest.mock import Mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / 'src' / 'core'))
 from M_compute_pixels import (compute_pixels, validate_request_size, make_tile_request,
-                              download_adaptive_tile, RestrictedModeError)
+                              download_adaptive_tile, RestrictedModeError, _requires_subdivision)
 from M_export_grid import Tile
 
 
 class ComputePixelsTests(unittest.TestCase):
+    def test_memory_and_ee_computation_timeouts_are_subdivided(self):
+        self.assertTrue(_requires_subdivision('HTTP 400: User memory limit exceeded'))
+        self.assertTrue(_requires_subdivision('HTTP 400: Computation timed out'))
+        self.assertFalse(_requires_subdivision('HTTP 429: Too Many Requests'))
+        self.assertFalse(_requires_subdivision('HTTP 503: timeout'))
+
     def test_memory_error_subdivides_and_reconstructs_parent_grid(self):
         import numpy as np
         import rasterio

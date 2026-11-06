@@ -17,6 +17,12 @@ class RestrictedModeError(RuntimeError):
     """Earth Engine explicitly reported a restricted-mode concurrency limit."""
 
 
+def _requires_subdivision(error):
+    message = str(error).lower()
+    return ('user memory limit exceeded' in message
+            or ('http 400' in message and 'computation timed out' in message))
+
+
 def download_adaptive_tile(project, credentials, request, destination, fetch=None,
                            min_pixels=256, on_split=None, dtype='uint8',
                            request_max_pixels=None, on_piece=None):
@@ -44,7 +50,7 @@ def download_adaptive_tile(project, credentials, request, destination, fetch=Non
         try:
             payload = fetch(project, credentials, request)
         except RuntimeError as exc:
-            if 'user memory limit exceeded' not in str(exc).lower() or width <= min_pixels:
+            if not _requires_subdivision(exc) or width <= min_pixels:
                 raise
             if width % 2 or width // 2 < min_pixels:
                 raise ValueError('Tile cannot be evenly subdivided to the minimum size') from exc
@@ -73,7 +79,7 @@ def download_adaptive_tile(project, credentials, request, destination, fetch=Non
         try:
             data = fetch(project, credentials, child)
         except RuntimeError as exc:
-            if 'user memory limit exceeded' not in str(exc).lower() or size <= min_pixels:
+            if not _requires_subdivision(exc) or size <= min_pixels:
                 raise
             half = size // 2
             if size % 2 or half < min_pixels:

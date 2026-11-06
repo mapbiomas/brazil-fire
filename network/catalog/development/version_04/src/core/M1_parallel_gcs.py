@@ -11,14 +11,15 @@ from collections import deque
 import ee
 
 from M_compute_pixels import compute_pixels, make_tile_request, download_adaptive_tile, RestrictedModeError
-from M_export_grid import tiles_for_bounds
+from M_export_grid import tiles_for_bounds, filter_intersecting_tiles
 from M_export_manifest import completed_tiles
+from M_export_snapshot import pin_expression
 from M_lang import L
 from M_progress_eta import progress_message
 
 
 def export_band(image, geometry, band, band_name, folder, config, scale,
-                workers=4, tile_pixels=4096, logger=print):
+                workers=4, tile_pixels=4096, logger=print, area_geometry=None):
     """Export tiles for one band; reuse existing objects after interruption.
 
     A manifest is written before any tile. An incompatible existing manifest
@@ -42,7 +43,32 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
     xs, ys = [p[0] for p in coords], [p[1] for p in coords]
     tiles = list(tiles_for_bounds((min(xs), min(ys), max(xs), max(ys)),
                                   resolution, tile_pixels))
+    if current is not None:
+        # Resume the exact previous tile plan, including older rectangular
+        # plans. Never reinterpret or discard an existing manifest.
+        expected_ids = {entry['id'] for entry in current.get('tiles', [])}
+        tiles = [tile for tile in tiles if tile.id in expected_ids]
+    elif area_geometry is not None:
+        original_count = len(tiles)
+        country_geojson = area_geometry.getInfo()
+        try:
+            selected = filter_intersecting_tiles(tiles, country_geojson)
+            if not selected:
+                raise ValueError('Country geometry did not intersect the export grid')
+        except (ValueError, ImportError) as exc:
+            # Never silently discard pixels if the local geometry is invalid
+            # or the optional spatial library is unavailable.
+            logger(f'[GCS][WARN] Country grid filter unavailable ({exc}); using all {original_count} tiles')
+        else:
+            tiles = selected
+            logger(f'[GCS] Country grid: {len(tiles)}/{original_count} tiles intersect the buffered geometry')
     expression = ee.serializer.encode(image.select(band), for_cloud_api=True)
+    # Legacy manifests used unpinned expressions. Preserve them exactly on
+    # resume; new exports keep the same snapshot for every tile/retry.
+    snapshot_us = (current.get('snapshot_time_us') if current is not None
+                   else int(time.time() * 1_000_000))
+    if snapshot_us is not None:
+        expression = pin_expression(expression, snapshot_us)
     spec = {'expression': expression, 'band': band, 'scale': scale,
             'crs': 'EPSG:4326', 'resolution': resolution, 'tile_pixels': tile_pixels,
             'project': config['gee_project']}
@@ -51,6 +77,8 @@ def export_band(image, geometry, band, band_name, folder, config, scale,
     planned = {'version': 1, 'status': 'running', 'fingerprint': fingerprint,
                'crs': 'EPSG:4326', 'resolution': resolution,
                'tile_pixels': tile_pixels, 'tiles': objects}
+    if snapshot_us is not None:
+        planned['snapshot_time_us'] = snapshot_us
     if current is not None:
         if current.get('fingerprint') != fingerprint or current.get('tiles') != objects:
             raise RuntimeError('Existing manifest has different parameters; refusing to overwrite it')
