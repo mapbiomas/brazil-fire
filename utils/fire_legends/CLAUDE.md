@@ -21,9 +21,8 @@ Notas técnicas. O uso está no `README.md`.
 
 - Classe 0 de `brazil_col5_annual_burned_area`: o site lista `#fffff` (5 dígitos); confirmar.
 - PDF do Brasil Col5, intervalo de retorno: coluna PT deslocada a partir do pixel 20 (corrigido nos CSVs).
-- Peru Col1: PDF sem cores.
 
 ## Próximas etapas
 
-- [ ] Registrar cores do Peru e outras coleções do inventário.
+- [ ] Registrar cores das coleções que ainda faltam.
 - [ ] Gerar QML (QGIS) e código GEE a partir dos CSVs.

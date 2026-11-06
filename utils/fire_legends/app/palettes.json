@@ -441,6 +441,232 @@
   "subproduct": "monthly_burned",
   "updatedAt": "from-repository"
  },
+ "argentina__1__year_last_fire": {
+  "classes": [
+   {
+    "en": "1999",
+    "es": "1999",
+    "hex": "#010079",
+    "pt": "1999",
+    "src": "oficial",
+    "v": 1999
+   },
+   {
+    "en": "2000",
+    "es": "2000",
+    "hex": "#01117b",
+    "pt": "2000",
+    "src": "oficial",
+    "v": 2000
+   },
+   {
+    "en": "2001",
+    "es": "2001",
+    "hex": "#00227e",
+    "pt": "2001",
+    "src": "oficial",
+    "v": 2001
+   },
+   {
+    "en": "2002",
+    "es": "2002",
+    "hex": "#003380",
+    "pt": "2002",
+    "src": "oficial",
+    "v": 2002
+   },
+   {
+    "en": "2003",
+    "es": "2003",
+    "hex": "#004284",
+    "pt": "2003",
+    "src": "oficial",
+    "v": 2003
+   },
+   {
+    "en": "2004",
+    "es": "2004",
+    "hex": "#005187",
+    "pt": "2004",
+    "src": "oficial",
+    "v": 2004
+   },
+   {
+    "en": "2005",
+    "es": "2005",
+    "hex": "#00608a",
+    "pt": "2005",
+    "src": "oficial",
+    "v": 2005
+   },
+   {
+    "en": "2006",
+    "es": "2006",
+    "hex": "#06718f",
+    "pt": "2006",
+    "src": "oficial",
+    "v": 2006
+   },
+   {
+    "en": "2007",
+    "es": "2007",
+    "hex": "#128294",
+    "pt": "2007",
+    "src": "oficial",
+    "v": 2007
+   },
+   {
+    "en": "2008",
+    "es": "2008",
+    "hex": "#1d939a",
+    "pt": "2008",
+    "src": "oficial",
+    "v": 2008
+   },
+   {
+    "en": "2009",
+    "es": "2009",
+    "hex": "#2fa29e",
+    "pt": "2009",
+    "src": "oficial",
+    "v": 2009
+   },
+   {
+    "en": "2010",
+    "es": "2010",
+    "hex": "#55ab9c",
+    "pt": "2010",
+    "src": "oficial",
+    "v": 2010
+   },
+   {
+    "en": "2011",
+    "es": "2011",
+    "hex": "#7ab49a",
+    "pt": "2011",
+    "src": "oficial",
+    "v": 2011
+   },
+   {
+    "en": "2012",
+    "es": "2012",
+    "hex": "#a0bd98",
+    "pt": "2012",
+    "src": "oficial",
+    "v": 2012
+   },
+   {
+    "en": "2013",
+    "es": "2013",
+    "hex": "#ab9e6b",
+    "pt": "2013",
+    "src": "oficial",
+    "v": 2013
+   },
+   {
+    "en": "2014",
+    "es": "2014",
+    "hex": "#b67f3e",
+    "pt": "2014",
+    "src": "oficial",
+    "v": 2014
+   },
+   {
+    "en": "2015",
+    "es": "2015",
+    "hex": "#c16110",
+    "pt": "2015",
+    "src": "oficial",
+    "v": 2015
+   },
+   {
+    "en": "2016",
+    "es": "2016",
+    "hex": "#be4c09",
+    "pt": "2016",
+    "src": "oficial",
+    "v": 2016
+   },
+   {
+    "en": "2017",
+    "es": "2017",
+    "hex": "#b63a0e",
+    "pt": "2017",
+    "src": "oficial",
+    "v": 2017
+   },
+   {
+    "en": "2018",
+    "es": "2018",
+    "hex": "#ae2913",
+    "pt": "2018",
+    "src": "oficial",
+    "v": 2018
+   },
+   {
+    "en": "2019",
+    "es": "2019",
+    "hex": "#a71f17",
+    "pt": "2019",
+    "src": "oficial",
+    "v": 2019
+   },
+   {
+    "en": "2020",
+    "es": "2020",
+    "hex": "#a11e1a",
+    "pt": "2020",
+    "src": "oficial",
+    "v": 2020
+   },
+   {
+    "en": "2021",
+    "es": "2021",
+    "hex": "#9b1c1c",
+    "pt": "2021",
+    "src": "oficial",
+    "v": 2021
+   },
+   {
+    "en": "2022",
+    "es": "2022",
+    "hex": "#95191c",
+    "pt": "2022",
+    "src": "oficial",
+    "v": 2022
+   },
+   {
+    "en": "2023",
+    "es": "2023",
+    "hex": "#8f1112",
+    "pt": "2023",
+    "src": "oficial",
+    "v": 2023
+   },
+   {
+    "en": "2024",
+    "es": "2024",
+    "hex": "#880809",
+    "pt": "2024",
+    "src": "oficial",
+    "v": 2024
+   },
+   {
+    "en": "2025",
+    "es": "2025",
+    "hex": "#810000",
+    "pt": "2025",
+    "src": "oficial",
+    "v": 2025
+   }
+  ],
+  "collection": "1",
+  "country": "argentina",
+  "expected": 27,
+  "status": "validada",
+  "subproduct": "year_last_fire",
+  "updatedAt": "from-repository"
+ },
  "bolivia__1__accumulated_burned": {
   "classes": [
    {
@@ -3547,6 +3773,104 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "indonesia__1__fire_frequency": {
+  "classes": [
+   {
+    "en": "1 time",
+    "es": "1 vez",
+    "hex": "#faf3cd",
+    "pt": "1 vez",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "2 times",
+    "es": "2 veces",
+    "hex": "#eed174",
+    "pt": "2 vezes",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "3 times",
+    "es": "3 veces",
+    "hex": "#e2af1a",
+    "pt": "3 vezes",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "4 times",
+    "es": "4 veces",
+    "hex": "#cc8816",
+    "pt": "4 vezes",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5 times",
+    "es": "5 veces",
+    "hex": "#b76011",
+    "pt": "5 vezes",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "6 times",
+    "es": "6 veces",
+    "hex": "#8c320c",
+    "pt": "6 vezes",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "7 times",
+    "es": "7 veces",
+    "hex": "#600407",
+    "pt": "7 vezes",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "8 times",
+    "es": "8 veces",
+    "hex": "#410406",
+    "pt": "8 vezes",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "9 times",
+    "es": "9 veces",
+    "hex": "#220505",
+    "pt": "9 vezes",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "10 times",
+    "es": "10 veces",
+    "hex": "#120202",
+    "pt": "10 vezes",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "11 times",
+    "es": "11 veces",
+    "hex": "#020000",
+    "pt": "11 vezes",
+    "src": "oficial",
+    "v": 11
+   }
+  ],
+  "collection": "1",
+  "country": "indonesia",
+  "expected": 11,
+  "status": "validada",
+  "subproduct": "fire_frequency",
+  "updatedAt": "from-repository"
+ },
  "indonesia__1__monthly_burned": {
   "classes": [
    {
@@ -3917,222 +4241,6 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
- "peru__1__accumulated_burned": {
-  "classes": [
-   {
-    "en": "Burned area",
-    "es": "Área quemada",
-    "hex": "#e84130",
-    "pt": "Área queimada",
-    "src": "oficial",
-    "v": 1
-   }
-  ],
-  "collection": "1",
-  "country": "peru",
-  "expected": 1,
-  "status": "validada",
-  "subproduct": "accumulated_burned",
-  "updatedAt": "from-repository"
- },
- "peru__1__annual_burned": {
-  "classes": [
-   {
-    "en": "Burned area",
-    "es": "Área quemada",
-    "hex": "#d4271e",
-    "pt": "Área queimada",
-    "src": "oficial",
-    "v": 1
-   }
-  ],
-  "collection": "1",
-  "country": "peru",
-  "expected": 1,
-  "status": "validada",
-  "subproduct": "annual_burned",
-  "updatedAt": "from-repository"
- },
- "peru__1__annual_burned_scar_size_range": {
-  "classes": [
-   {
-    "en": "< 5 ha",
-    "es": "< 5 ha",
-    "hex": "#d0ae35",
-    "pt": "< 5 ha",
-    "src": "oficial",
-    "v": 1
-   },
-   {
-    "en": "5 - 25 ha",
-    "es": "5 - 25 ha",
-    "hex": "#c68e2f",
-    "pt": "5 - 25 ha",
-    "src": "oficial",
-    "v": 2
-   },
-   {
-    "en": "25 - 50 ha",
-    "es": "25 - 50 ha",
-    "hex": "#b96d2b",
-    "pt": "25 - 50 ha",
-    "src": "oficial",
-    "v": 3
-   },
-   {
-    "en": "50 - 250 ha",
-    "es": "50 - 250 ha",
-    "hex": "#ac4b28",
-    "pt": "50 - 250 ha",
-    "src": "oficial",
-    "v": 4
-   },
-   {
-    "en": "250 - 500 ha",
-    "es": "250 - 500 ha",
-    "hex": "#933328",
-    "pt": "250 - 500 ha",
-    "src": "oficial",
-    "v": 5
-   },
-   {
-    "en": "500 - 1.000 ha",
-    "es": "500 - 1.000 ha",
-    "hex": "#72251d",
-    "pt": "500 - 1.000 ha",
-    "src": "oficial",
-    "v": 6
-   },
-   {
-    "en": "1.000 - 5.000 ha",
-    "es": "1.000 - 5.000 ha",
-    "hex": "#4e180f",
-    "pt": "1.000 - 5.000 ha",
-    "src": "oficial",
-    "v": 7
-   },
-   {
-    "en": ">= 5.000 ha",
-    "es": ">= 5.000 ha",
-    "hex": "#240d00",
-    "pt": ">= 5.000 ha",
-    "src": "oficial",
-    "v": 8
-   }
-  ],
-  "collection": "1",
-  "country": "peru",
-  "expected": 8,
-  "status": "validada",
-  "subproduct": "annual_burned_scar_size_range",
-  "updatedAt": "from-repository"
- },
- "peru__1__monthly_burned": {
-  "classes": [
-   {
-    "en": "January",
-    "es": "Enero",
-    "hex": "#cc00ff",
-    "pt": "Janeiro",
-    "src": "oficial",
-    "v": 1
-   },
-   {
-    "en": "February",
-    "es": "Febrero",
-    "hex": "#6600ff",
-    "pt": "Fevereiro",
-    "src": "oficial",
-    "v": 2
-   },
-   {
-    "en": "March",
-    "es": "Marzo",
-    "hex": "#0000ff",
-    "pt": "Março",
-    "src": "oficial",
-    "v": 3
-   },
-   {
-    "en": "April",
-    "es": "Abril",
-    "hex": "#00ccff",
-    "pt": "Abril",
-    "src": "oficial",
-    "v": 4
-   },
-   {
-    "en": "May",
-    "es": "Mayo",
-    "hex": "#00ffcc",
-    "pt": "Maio",
-    "src": "oficial",
-    "v": 5
-   },
-   {
-    "en": "June",
-    "es": "Junio",
-    "hex": "#ffff00",
-    "pt": "Junho",
-    "src": "oficial",
-    "v": 6
-   },
-   {
-    "en": "July",
-    "es": "Julio",
-    "hex": "#ff9900",
-    "pt": "Julho",
-    "src": "oficial",
-    "v": 7
-   },
-   {
-    "en": "August",
-    "es": "Agosto",
-    "hex": "#ff3300",
-    "pt": "Agosto",
-    "src": "oficial",
-    "v": 8
-   },
-   {
-    "en": "September",
-    "es": "Septiembre",
-    "hex": "#cc0000",
-    "pt": "Setembro",
-    "src": "oficial",
-    "v": 9
-   },
-   {
-    "en": "October",
-    "es": "Octubre",
-    "hex": "#00cc00",
-    "pt": "Outubro",
-    "src": "oficial",
-    "v": 10
-   },
-   {
-    "en": "November",
-    "es": "Noviembre",
-    "hex": "#009900",
-    "pt": "Novembro",
-    "src": "oficial",
-    "v": 11
-   },
-   {
-    "en": "December",
-    "es": "Diciembre",
-    "hex": "#66ff66",
-    "pt": "Dezembro",
-    "src": "oficial",
-    "v": 12
-   }
-  ],
-  "collection": "1",
-  "country": "peru",
-  "expected": 12,
-  "status": "validada",
-  "subproduct": "monthly_burned",
-  "updatedAt": "from-repository"
- },
  "peru__2__accumulated_burned": {
   "classes": [
    {
@@ -4347,6 +4455,304 @@
   "expected": 12,
   "status": "validada",
   "subproduct": "monthly_burned",
+  "updatedAt": "from-repository"
+ },
+ "peru__2__year_last_fire": {
+  "classes": [
+   {
+    "en": "1990",
+    "es": "1990",
+    "hex": "#010079",
+    "pt": "1990",
+    "src": "oficial",
+    "v": 1990
+   },
+   {
+    "en": "1991",
+    "es": "1991",
+    "hex": "#010d7b",
+    "pt": "1991",
+    "src": "oficial",
+    "v": 1991
+   },
+   {
+    "en": "1992",
+    "es": "1992",
+    "hex": "#01197d",
+    "pt": "1992",
+    "src": "oficial",
+    "v": 1992
+   },
+   {
+    "en": "1993",
+    "es": "1993",
+    "hex": "#00267e",
+    "pt": "1993",
+    "src": "oficial",
+    "v": 1993
+   },
+   {
+    "en": "1994",
+    "es": "1994",
+    "hex": "#003280",
+    "pt": "1994",
+    "src": "oficial",
+    "v": 1994
+   },
+   {
+    "en": "1995",
+    "es": "1995",
+    "hex": "#003e83",
+    "pt": "1995",
+    "src": "oficial",
+    "v": 1995
+   },
+   {
+    "en": "1996",
+    "es": "1996",
+    "hex": "#004985",
+    "pt": "1996",
+    "src": "oficial",
+    "v": 1996
+   },
+   {
+    "en": "1997",
+    "es": "1997",
+    "hex": "#005488",
+    "pt": "1997",
+    "src": "oficial",
+    "v": 1997
+   },
+   {
+    "en": "1998",
+    "es": "1998",
+    "hex": "#00608a",
+    "pt": "1998",
+    "src": "oficial",
+    "v": 1998
+   },
+   {
+    "en": "1999",
+    "es": "1999",
+    "hex": "#026b8d",
+    "pt": "1999",
+    "src": "oficial",
+    "v": 1999
+   },
+   {
+    "en": "2000",
+    "es": "2000",
+    "hex": "#0b7891",
+    "pt": "2000",
+    "src": "oficial",
+    "v": 2000
+   },
+   {
+    "en": "2001",
+    "es": "2001",
+    "hex": "#148595",
+    "pt": "2001",
+    "src": "oficial",
+    "v": 2001
+   },
+   {
+    "en": "2002",
+    "es": "2002",
+    "hex": "#1c9299",
+    "pt": "2002",
+    "src": "oficial",
+    "v": 2002
+   },
+   {
+    "en": "2003",
+    "es": "2003",
+    "hex": "#259e9d",
+    "pt": "2003",
+    "src": "oficial",
+    "v": 2003
+   },
+   {
+    "en": "2004",
+    "es": "2004",
+    "hex": "#3ea69d",
+    "pt": "2004",
+    "src": "oficial",
+    "v": 2004
+   },
+   {
+    "en": "2005",
+    "es": "2005",
+    "hex": "#5aac9b",
+    "pt": "2005",
+    "src": "oficial",
+    "v": 2005
+   },
+   {
+    "en": "2006",
+    "es": "2006",
+    "hex": "#76b39a",
+    "pt": "2006",
+    "src": "oficial",
+    "v": 2006
+   },
+   {
+    "en": "2007",
+    "es": "2007",
+    "hex": "#92ba99",
+    "pt": "2007",
+    "src": "oficial",
+    "v": 2007
+   },
+   {
+    "en": "2008",
+    "es": "2008",
+    "hex": "#a4b287",
+    "pt": "2008",
+    "src": "oficial",
+    "v": 2008
+   },
+   {
+    "en": "2009",
+    "es": "2009",
+    "hex": "#ac9b66",
+    "pt": "2009",
+    "src": "oficial",
+    "v": 2009
+   },
+   {
+    "en": "2010",
+    "es": "2010",
+    "hex": "#b58444",
+    "pt": "2010",
+    "src": "oficial",
+    "v": 2010
+   },
+   {
+    "en": "2011",
+    "es": "2011",
+    "hex": "#bd6d22",
+    "pt": "2011",
+    "src": "oficial",
+    "v": 2011
+   },
+   {
+    "en": "2012",
+    "es": "2012",
+    "hex": "#c35705",
+    "pt": "2012",
+    "src": "oficial",
+    "v": 2012
+   },
+   {
+    "en": "2013",
+    "es": "2013",
+    "hex": "#bd4a09",
+    "pt": "2013",
+    "src": "oficial",
+    "v": 2013
+   },
+   {
+    "en": "2014",
+    "es": "2014",
+    "hex": "#b73d0d",
+    "pt": "2014",
+    "src": "oficial",
+    "v": 2014
+   },
+   {
+    "en": "2015",
+    "es": "2015",
+    "hex": "#b13011",
+    "pt": "2015",
+    "src": "oficial",
+    "v": 2015
+   },
+   {
+    "en": "2016",
+    "es": "2016",
+    "hex": "#ab2315",
+    "pt": "2016",
+    "src": "oficial",
+    "v": 2016
+   },
+   {
+    "en": "2017",
+    "es": "2017",
+    "hex": "#a71f17",
+    "pt": "2017",
+    "src": "oficial",
+    "v": 2017
+   },
+   {
+    "en": "2018",
+    "es": "2018",
+    "hex": "#a21e19",
+    "pt": "2018",
+    "src": "oficial",
+    "v": 2018
+   },
+   {
+    "en": "2019",
+    "es": "2019",
+    "hex": "#9e1d1b",
+    "pt": "2019",
+    "src": "oficial",
+    "v": 2019
+   },
+   {
+    "en": "2020",
+    "es": "2020",
+    "hex": "#9a1c1d",
+    "pt": "2020",
+    "src": "oficial",
+    "v": 2020
+   },
+   {
+    "en": "2021",
+    "es": "2021",
+    "hex": "#95191b",
+    "pt": "2021",
+    "src": "oficial",
+    "v": 2021
+   },
+   {
+    "en": "2022",
+    "es": "2022",
+    "hex": "#901315",
+    "pt": "2022",
+    "src": "oficial",
+    "v": 2022
+   },
+   {
+    "en": "2023",
+    "es": "2023",
+    "hex": "#8b0c0e",
+    "pt": "2023",
+    "src": "oficial",
+    "v": 2023
+   },
+   {
+    "en": "2024",
+    "es": "2024",
+    "hex": "#860607",
+    "pt": "2024",
+    "src": "oficial",
+    "v": 2024
+   },
+   {
+    "en": "2025",
+    "es": "2025",
+    "hex": "#810000",
+    "pt": "2025",
+    "src": "oficial",
+    "v": 2025
+   }
+  ],
+  "collection": "2",
+  "country": "peru",
+  "expected": 36,
+  "status": "validada",
+  "subproduct": "year_last_fire",
   "updatedAt": "from-repository"
  },
  "peru__Monitor__fire_monitor": {

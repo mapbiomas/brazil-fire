@@ -190,14 +190,13 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
           <div class="card-h">
             <h3 id="t-legend"></h3>
             <div class="seg" role="group" id="layout-seg">
-              <button data-layout="table" id="lay-table"></button><button data-layout="list" id="lay-list"></button><button data-layout="bar" id="lay-bar"></button>
+              <button data-layout="list" id="lay-list"></button><button data-layout="table" id="lay-table"></button><button data-layout="bar" id="lay-bar"></button>
             </div>
           </div>
           <div class="legend" id="legend"></div>
           <div class="btns">
             <button class="btn" id="dl-svg" type="button">SVG</button>
             <button class="btn" id="dl-png" type="button">PNG</button>
-            <button class="btn" id="go-edit" type="button"></button>
           </div>
         </section>
         <section class="panel">
@@ -238,7 +237,6 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
         <h3 id="t-matrix"></h3>
         <div class="btns">
           <div class="filters" id="m-filters"></div>
-          <button class="btn acc" id="btn-newcoll" type="button"></button>
         </div>
       </div>
       <p class="note" id="t-matrix-note"></p>
@@ -256,8 +254,8 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
 <script>
 /* ===================== Dicionários ===================== */
 const T = {
-  pt:{title:"Legendas e paletas",sub:"Consulte os dados publicados e cadastre as paletas de cada país, coleção e subproduto.",
-    v_consult:"Consultar",v_reg:"Cadastro",
+  pt:{title:"Legendas e paletas",sub:"Consulte os dados publicados de cada país, coleção e subproduto.",
+    v_consult:"Consultar",v_reg:"Visão geral",
     country:"País",colls:"Coleção",subprod:"Subproduto",year:"Ano",start:"Ano inicial",end:"Ano final",refYear:"Ano de referência",period:"Período",
     legend:"Legenda",table:"Tabela",th_class:"Classe",th_code:"Código",th_hex:"Cor (HEX)",list:"Lista",bar:"Barra",meta:"Dados e visualização",palette:"Paleta",copyHex:"Copiar HEX",
     value:"Valor",color:"Cor",label:"Rótulo",src:"Fonte",export:"Exportar",copy:"Copiar",download:"Baixar arquivo",sources:"Fontes",
@@ -279,9 +277,8 @@ const T = {
     monitorNote:"Série mensal (Sentinel-2, 10 m). Filtre por ano e mês antes de adicionar ao mapa.",
     yearLastNote:"A banda do ano N guarda o último ano com fogo até N−1.",
     copied:"Copiado",saved:"Arquivo salvo",declined:"Download cancelado",noDl:"Download indisponível aqui. Use Copiar.",
-    selectColl:"Nenhuma coleção com esse filtro.",cite:"Projeto MapBiomas – Coleção {c} do MapBiomas Fogo",
-    editHere:"Editar no cadastro",
-    matrix:"Paletas por país e coleção",matrixNote:"Cada célula mostra o número de classes esperado para o período da coleção e o status da paleta. A frequência, o ano do último fogo e os tempos dependem dos anos da série de cada país. Clique para editar.",
+    selectColl:"Nenhuma coleção com esse filtro.",cite:"Coleção {c} do MapBiomas Fogo",
+    matrix:"Paletas por país e coleção",matrixNote:"Cada célula mostra o número de classes esperado para o período da coleção e o status da paleta. A frequência e o ano do último fogo dependem dos anos da série de cada país.",
     newColl:"Cadastrar coleção",newCollTitle:"Nova coleção em desenvolvimento",
     nc_country:"País",nc_newcountry:"Outro país (nome)",nc_id:"Coleção (ex.: 2.0)",nc_sensor:"Sensor",nc_subs:"Subprodutos previstos",nc_notes:"Observações",
     save:"Salvar",cancel:"Cancelar",del:"Excluir",confirmDel:"Excluir de vez? Esta ação não pode ser desfeita.",yesDel:"Sim, excluir",
@@ -296,8 +293,8 @@ const T = {
     ed_empty:"Selecione uma célula da matriz para cadastrar ou revisar a paleta.",
     ed_siteNone:"O site não publica cores para este subproduto.",someone:"Alguém",
     m_show:"Mostrar"},
-  es:{title:"Leyendas y paletas",sub:"Consulte los datos publicados y registre las paletas de cada país, colección y subproducto.",
-    v_consult:"Consultar",v_reg:"Registro",
+  es:{title:"Leyendas y paletas",sub:"Consulte los datos publicados de cada país, colección y subproducto.",
+    v_consult:"Consultar",v_reg:"Vista general",
     country:"País",colls:"Colección",subprod:"Subproducto",year:"Año",start:"Año inicial",end:"Año final",refYear:"Año de referencia",period:"Período",
     legend:"Leyenda",table:"Tabla",th_class:"Clase",th_code:"Código",th_hex:"Color (HEX)",list:"Lista",bar:"Barra",meta:"Datos y visualización",palette:"Paleta",copyHex:"Copiar HEX",
     value:"Valor",color:"Color",label:"Etiqueta",src:"Fuente",export:"Exportar",copy:"Copiar",download:"Descargar archivo",sources:"Fuentes",
@@ -319,9 +316,8 @@ const T = {
     monitorNote:"Serie mensual (Sentinel-2, 10 m). Filtre por año y mes antes de agregar al mapa.",
     yearLastNote:"La banda del año N guarda el último año con fuego hasta N−1.",
     copied:"Copiado",saved:"Archivo guardado",declined:"Descarga cancelada",noDl:"Descarga no disponible aquí. Use Copiar.",
-    selectColl:"Ninguna colección con este filtro.",cite:"Proyecto MapBiomas – Colección {c} de MapBiomas Fuego",
-    editHere:"Editar en el registro",
-    matrix:"Paletas por país y colección",matrixNote:"Cada celda muestra el número de clases esperado para el período de la colección y el estado de la paleta. La frecuencia, el año del último fuego y los tiempos dependen de los años de la serie de cada país. Haga clic para editar.",
+    selectColl:"Ninguna colección con este filtro.",cite:"Colección {c} de MapBiomas Fuego",
+    matrix:"Paletas por país y colección",matrixNote:"Cada celda muestra el número de clases esperado para el período de la colección y el estado de la paleta. La frecuencia y el año del último fuego dependen de los años de la serie de cada país.",
     newColl:"Registrar colección",newCollTitle:"Nueva colección en desarrollo",
     nc_country:"País",nc_newcountry:"Otro país (nombre)",nc_id:"Colección (ej.: 2.0)",nc_sensor:"Sensor",nc_subs:"Subproductos previstos",nc_notes:"Observaciones",
     save:"Guardar",cancel:"Cancelar",del:"Eliminar",confirmDel:"¿Eliminar definitivamente? No se puede deshacer.",yesDel:"Sí, eliminar",
@@ -336,8 +332,8 @@ const T = {
     ed_empty:"Seleccione una celda de la matriz para registrar o revisar la paleta.",
     ed_siteNone:"El sitio no publica colores para este subproducto.",someone:"Alguien",
     m_show:"Mostrar"},
-  en:{title:"Legends and palettes",sub:"Look up published data and register the palette for each country, collection and subproduct.",
-    v_consult:"Look up",v_reg:"Register",
+  en:{title:"Legends and palettes",sub:"Look up published data for each country, collection and subproduct.",
+    v_consult:"Look up",v_reg:"Overview",
     country:"Country",colls:"Collection",subprod:"Subproduct",year:"Year",start:"Start year",end:"End year",refYear:"Reference year",period:"Period",
     legend:"Legend",table:"Table",th_class:"Class",th_code:"Code",th_hex:"Color (HEX)",list:"List",bar:"Bar",meta:"Data and visualization",palette:"Palette",copyHex:"Copy HEX",
     value:"Value",color:"Color",label:"Label",src:"Source",export:"Export",copy:"Copy",download:"Download file",sources:"Sources",
@@ -359,9 +355,8 @@ const T = {
     monitorNote:"Monthly series (Sentinel-2, 10 m). Filter by year and month before adding to the map.",
     yearLastNote:"The band for year N holds the last burned year up to N−1.",
     copied:"Copied",saved:"File saved",declined:"Download cancelled",noDl:"Download unavailable here. Use Copy.",
-    selectColl:"No collection matches this filter.",cite:"MapBiomas Project – Collection {c} of MapBiomas Fire",
-    editHere:"Edit in Register",
-    matrix:"Palettes by country and collection",matrixNote:"Each cell shows the number of classes expected for the collection period and the palette status. Frequency, year of last fire and the time products depend on each country's series length. Click to edit.",
+    selectColl:"No collection matches this filter.",cite:"Collection {c} of MapBiomas Fire",
+    matrix:"Palettes by country and collection",matrixNote:"Each cell shows the number of classes expected for the collection period and the palette status. Frequency and year of last fire depend on each country's series length.",
     newColl:"Register collection",newCollTitle:"New collection in development",
     nc_country:"Country",nc_newcountry:"Other country (name)",nc_id:"Collection (e.g. 2.0)",nc_sensor:"Sensor",nc_subs:"Planned subproducts",nc_notes:"Notes",
     save:"Save",cancel:"Cancel",del:"Delete",confirmDel:"Delete for good? This cannot be undone.",yesDel:"Yes, delete",
@@ -475,7 +470,6 @@ const PUBLISHED = [
   {country:"chile",id:"1",start:2013,end:2025,sensor:"Landsat 30 m",origin:"bucket",subs:REG,layout:"chile",root:"chile/fire/collection1/"},
   {country:"colombia",id:"1",start:2000,end:2025,sensor:"Landsat 30 m",origin:"bucket",subs:REG,layout:"reg",root:"colombia/fire/collection_01/"},
   {country:"paraguay",id:"1",start:1999,end:2024,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned"],layout:"reg",root:"paraguay/fire/collection_1/"},
-  {country:"peru",id:"1",start:2013,end:2024,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned"],layout:"reg",root:"peru/fire/collection_1/"},
   {country:"peru",id:"2",start:1990,end:2025,sensor:"Landsat 30 m",origin:"bucket",subs:REG,layout:"reg",root:"peru/fire/collection_2/"},
   {country:"peru",id:"Monitor",start:2025,end:2026,sensor:"Sentinel-2 10 m",origin:"bucket",subs:["fire_monitor"],layout:"monitor",root:"peru/fire/monitor/mapbiomas_fire_monthly_burned_v1/"},
   {country:"indonesia",id:"1",start:2013,end:2023,sensor:"Landsat 30 m",origin:"bucket",subs:["annual_burned","annual_burned_coverage","monthly_burned","accumulated_burned","accumulated_burned_coverage","fire_frequency"],layout:"folder",root:"indonesia/collection_2/fire-col1/"},
@@ -499,7 +493,7 @@ const store = {
   set(k,v){try{localStorage.setItem("mbfogo:"+k,JSON.stringify(v))}catch(e){}}
 };
 const S = {lang:store.get("lang","pt"),view:"consultar",country:"brasil",coll:"5.1",sub:"annual_burned",y:2025,s:1985,e:2025,
-  layout:"table",tab:"hex",origin:{site:true,bucket:true,dev:true},mOrigin:{site:true,bucket:true,dev:true}};
+  layout:"list",tab:"hex",origin:{site:true,bucket:true,dev:true},mOrigin:{site:true,bucket:true,dev:true}};
 let PAL = {};      // paletas cadastradas (db: paletas/<chave>)
 let DEV = {};      // coleções em desenvolvimento (db: colecoes/<chave>)
 let db = null, user = null, myId = null, canWrite = null, downloads = null, dbState = "loading";
@@ -657,8 +651,8 @@ function renderStatic(){
   $("t-matrix-note").textContent=t("matrixNote");
   $("view-consult").textContent=t("v_consult");$("view-reg").textContent=t("v_reg");
   $("lay-table").textContent=t("table");$("lay-list").textContent=t("list");$("lay-bar").textContent=t("bar");
-  $("btn-copyhex").textContent=t("copyHex");$("go-edit").textContent=t("editHere");
-  $("btn-copy").textContent=t("copy");$("btn-dl").textContent=t("download");$("btn-newcoll").textContent="+ "+t("newColl");
+  $("btn-copyhex").textContent=t("copyHex");
+  $("btn-copy").textContent=t("copy");$("btn-dl").textContent=t("download");
   $("th-v").textContent=t("value");$("th-c").textContent=t("color");$("th-l").textContent=t("label");
   document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===S.lang));
 }
@@ -793,7 +787,6 @@ function renderMatrix(){
   $("m-legend").innerHTML=["validada","revisao","rascunho","faltando"].map(s=>`<span class="badge ${s}">${t("st_"+s)}</span>`).join("");
   const banner=dbState==="none"?t("ed_noDb"):canWrite===false?t("ed_readOnly"):"";
   $("db-banner").innerHTML=banner?`<div class="banner">${esc(banner)}</div>`:"";
-  $("btn-newcoll").disabled=!writable();
 }
 function writable(){return dbState==="ready"&&canWrite!==false}
 
@@ -949,8 +942,6 @@ document.addEventListener("click",e=>{
     case"btn-dl":{const ext=TABS.find(x=>x[0]===S.tab)[2],suf={gee:"_gee.js",py:"_gee.py",hex:"_hex",hexc:"_hex"}[S.tab]||"";save(`${baseName()}${suf}.${ext}`,(ext==="csv"?"﻿":"")+$("code").textContent);break}
     case"dl-svg":save(baseName()+"_legenda.svg",legendSVG(items().items));break;
     case"dl-png":svgToPng(legendSVG(items().items)).then(bl=>save(baseName()+"_legenda.png",bl)).catch(()=>toast(t("noDl")));break;
-    case"go-edit":{const c=collObj();setView("cadastro");openEditor(pkey(c,S.sub));break}
-    case"btn-newcoll":NC={country:S.country,cname:"",id:"",start:1985,end:new Date().getFullYear()-1,sensor:"Landsat 30 m",subs:[...REG]};renderNewColl();break;
     case"nc-cancel":NC=null;renderNewColl();break;
     case"nc-save":saveNewColl();break;
     case"ed-close":ED=null;$("editor").hidden=true;renderMatrix();break;

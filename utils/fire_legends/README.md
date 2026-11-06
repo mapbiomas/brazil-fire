@@ -12,7 +12,7 @@ Consult the legends and palettes of every MapBiomas Fire collection published so
 | 🇨🇱 Chile | 1 |
 | 🇨🇴 Colombia | 1 |
 | 🇵🇾 Paraguay | 1 |
-| 🇵🇪 Peru | 1 · 2 · Monitor |
+| 🇵🇪 Peru | 2 · Monitor |
 | 🇮🇩 Indonesia | 1 · 2 · Monitor |
 
 Colors marked **validada** in the app are the ones registered in this folder (`registry.csv` with status `active`). For the other collections the app shows a generated suggestion until their colors are registered.
