@@ -486,7 +486,7 @@ body {
 .card-head h2 {
   margin: 0;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700; /* único texto do card em negrito; o resto dos gráficos usa seminegrito (600) */
 }
 
 /* Sem subtítulo, o título ganha o espaço que o subtítulo daria. */
@@ -616,7 +616,7 @@ body {
   justify-content: center;
   color: #d93a26;
   font-size: 1.3rem;
-  font-weight: 700;
+  font-weight: 600;
   pointer-events: none;
 }
 
@@ -829,7 +829,7 @@ body {
 
 .donut-center strong {
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .donut-center span {
@@ -1003,7 +1003,7 @@ body {
   padding: 0;
   list-style: none;
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
 }
 
@@ -1187,7 +1187,7 @@ body {
 .md-det-kpis li { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 8px; background: var(--surface-muted); }
 .md-det-kpis span { font-size: .75rem; color: var(--text-muted); }
 .md-det-kpis strong { font-size: .95rem; color: var(--text); }
-.legend-row .legend-head { flex-basis: 100%; font-weight: 700; color: var(--text); }
+.legend-row .legend-head { flex-basis: 100%; font-weight: 600; color: var(--text); }
 
 /* Controles dentro do mapa (transparência e cortina) */
 .map-ctl {

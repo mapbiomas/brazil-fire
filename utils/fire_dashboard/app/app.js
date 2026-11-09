@@ -3855,7 +3855,7 @@ async function baixarGraficoPng(root, card) {
   const altura = Math.max(...canvases.map((c) => c.getBoundingClientRect().bottom)) - br.top;
   const itens = itensDaLegenda(root.querySelector(".legend-row"));
   // Legenda da imagem igual à da tela: quase preta e em negrito (notas sem negrito).
-  const fonteLegenda = (it) => (it.note ? "500 12px Montserrat, sans-serif" : "700 13px Montserrat, sans-serif");
+  const fonteLegenda = (it) => (it.note ? "500 12px Montserrat, sans-serif" : "600 13px Montserrat, sans-serif");
   const medir = document.createElement("canvas").getContext("2d");
   let x = pad, linha = 0;
   const pos = itens.map((it) => {
@@ -4630,7 +4630,7 @@ async function baixarMapaPng(map, box, titulo, legendaEl) {
       tx += 18;
     }
     ctx.fillStyle = it.head ? "#1f1f1f" : "#333333";
-    ctx.font = `${it.head ? 700 : 500} 12px Montserrat, sans-serif`;
+    ctx.font = `${it.head ? 600 : 500} 12px Montserrat, sans-serif`;
     ctx.fillText(it.label, tx, yy);
   }
   ctx.fillStyle = "#666666";
@@ -4795,7 +4795,7 @@ function chartConfig(spec, t) {
     : spec.unit === "mil" ? (v) => ha(v)
     : (v) => `${fmtFull.format(v)} ha`;
   const fonte = spec.big ? 14 : 13;
-  const pesoEixo = spec.big ? "700" : "600"; // anual e acumulado (destaque): anos e valores em negrito
+  const pesoEixo = "600"; // seminegrito; negrito (700) só no título do card
   if (spec.big) {
     options.plugins.tooltip.titleFont = { size: 15, weight: "600" };
     options.plugins.tooltip.bodyFont = { size: 14 };
@@ -4823,10 +4823,10 @@ function chartConfig(spec, t) {
   // Título padrão do eixo de valores quando o gráfico não define um.
   const tituloEixo = spec.axisTitle || (spec.percent ? "Participação (%)" : "Área queimada (ha)");
   if (tituloEixo) {
-    valueAxis.title = { display: true, text: tituloEixo, color: t.text, font: { size: fonte + 1, weight: "700" } };
+    valueAxis.title = { display: true, text: tituloEixo, color: t.text, font: { size: fonte + 1, weight: "600" } };
   }
   if (spec.categoryTitle) {
-    categoryAxis.title = { display: true, text: spec.categoryTitle, color: t.text, font: { size: fonte + 1, weight: "700" } };
+    categoryAxis.title = { display: true, text: spec.categoryTitle, color: t.text, font: { size: fonte + 1, weight: "600" } };
   }
   options.scales = horizontal ? { y: categoryAxis, x: valueAxis } : { x: categoryAxis, y: valueAxis };
   if (horizontal) {
@@ -5092,7 +5092,7 @@ const rotulosRoscaPlugin = {
     const { ctx } = chart;
     const meta = chart.getDatasetMeta(0);
     ctx.save();
-    ctx.font = "700 12px Montserrat, sans-serif";
+    ctx.font = "600 12px Montserrat, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.lineJoin = "round";
