@@ -1308,7 +1308,14 @@ a.md-botao { display: inline-block; text-decoration: none; }
   border: 1px solid var(--border); border-radius: 10px; background: var(--surface); box-shadow: 0 4px 16px rgba(0,0,0,.18);
 }
 .cor-pop-titulo { display: block; margin-bottom: 8px; font-size: .72rem; font-weight: 700; color: var(--text-2); }
-.cor-amostras { display: grid; grid-template-columns: repeat(5, 24px); gap: 8px; }
+.cor-amostras { display: flex; gap: 8px; }
+.cor-outra { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.cor-hex {
+  width: 92px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 7px;
+  background: var(--surface); color: var(--text); font: inherit; font-size: .78rem; font-family: ui-monospace, Consolas, monospace;
+}
+.cor-hex:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
+.cor-hex.invalido { border-color: #c62828; }
 .cor-amostras button, .cor-livre {
   width: 24px; height: 24px; padding: 0; border: 2px solid var(--surface); border-radius: 50%;
   background: var(--c); box-shadow: 0 0 0 1px var(--border); cursor: pointer;

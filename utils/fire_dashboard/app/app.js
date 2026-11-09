@@ -3047,10 +3047,15 @@ async function copiarLink(btn) {
 
 // ---------- Cor das séries anuais (o usuário pode trocar o vermelho) ----------
 // Cards com `corTrocavel: "<cor original>"` trocam essa cor (no gráfico e na legenda) pela escolhida.
-const CORES_ANUAIS = [
-  ["#7c1d1d", "Vinho"], ["#e0662b", "Laranja"], ["#8c6239", "Terra"], ["#4a4a4a", "Cinza escuro"],
-  ["#2f74b5", "Azul"], ["#1f7a6d", "Verde-petróleo"], ["#6a3d9a", "Roxo"],
-];
+const CORES_ANUAIS = [["#6d1a1f", "Vinho"], ["#7a4a2a", "Marrom"], ["#1f1f1f", "Preto"]];
+
+// "#abc" ou "#aabbcc" (com ou sem #) -> "#aabbcc"; inválido -> null.
+function normalizarHex(txt) {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(txt || "").trim());
+  if (!m) return null;
+  const h = m[1].length === 3 ? [...m[1]].map((c) => c + c).join("") : m[1];
+  return `#${h.toLowerCase()}`;
+}
 
 function lerCorSalva() {
   try {
@@ -3087,7 +3092,10 @@ function corHtml(card) {
         <div class="cor-amostras">
           ${amostra(card.corTrocavel, "Vermelho (padrão)")}
           ${CORES_ANUAIS.map(([c, nome]) => amostra(c, nome)).join("")}
-          <label class="cor-livre" title="Outra cor"><input type="color" data-acao="cor-livre" value="${atual}" aria-label="Outra cor"></label>
+        </div>
+        <div class="cor-outra">
+          <label class="cor-livre" title="Outra cor"><input type="color" data-acao="cor-livre" value="${normalizarHex(atual) || "#000000"}" aria-label="Outra cor"></label>
+          <input type="text" class="cor-hex" data-acao="cor-hex" value="${escapeHtml(normalizarHex(atual) || "")}" placeholder="#rrggbb" maxlength="7" spellcheck="false" aria-label="Código HEX da cor" title="Digite o código HEX e aperte Enter">
         </div>
         ${state.corAnual ? `<button type="button" class="cor-volta" data-acao="cor-escolher" data-cor="">Voltar ao vermelho</button>` : ""}
       </div>
@@ -5378,11 +5386,31 @@ function init() {
   Chart.register(crosshairPlugin, traducaoChartPlugin, rotulosRoscaPlugin, rotulosBarrasPlugin);
   el.panel.addEventListener("click", acaoDoCard);
   // Cor livre (seletor de cor do navegador): aplica quando a pessoa confirma a cor.
+  // Código HEX digitado: aplica no Enter ou ao sair do campo; inválido fica marcado em vermelho.
+  const aplicarCorDigitada = (campo) => {
+    const cor = normalizarHex(campo.value);
+    campo.classList.toggle("invalido", !cor);
+    if (!cor || cor === state.corAnual) return;
+    salvarCor(cor);
+    writeHash();
+    renderView(state.lastView);
+  };
   el.panel.addEventListener("change", (e) => {
+    if (e.target.matches('[data-acao="cor-hex"]')) return aplicarCorDigitada(e.target);
     if (!e.target.matches('[data-acao="cor-livre"]')) return;
     salvarCor(e.target.value);
     writeHash();
     renderView(state.lastView);
+  });
+  el.panel.addEventListener("input", (e) => {
+    // Enquanto escolhe no seletor, o campo HEX acompanha.
+    if (e.target.matches('[data-acao="cor-livre"]')) {
+      const hex = e.target.closest(".cor-outra")?.querySelector(".cor-hex");
+      if (hex) { hex.value = e.target.value; hex.classList.remove("invalido"); }
+    }
+  });
+  el.panel.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.matches('[data-acao="cor-hex"]')) { e.preventDefault(); aplicarCorDigitada(e.target); }
   });
   readHash();
   montarPais();

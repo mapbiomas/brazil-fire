@@ -113,6 +113,6 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 
 ## Cor das séries anuais (2026-11-09)
 
-- Cards com `corTrocavel: "<cor original>"` (Área queimada anual, Área queimada acumulada, Composição do acumulado) mostram um círculo discreto no topo; a paleta tem a cor original, `CORES_ANUAIS` e um seletor livre (`input type=color`).
+- Cards com `corTrocavel: "<cor original>"` (Área queimada anual, Área queimada acumulada, Composição do acumulado) mostram um círculo discreto no topo; a paleta tem a cor original, `CORES_ANUAIS` (vinho, marrom, preto), um seletor livre (`input type=color`) e um campo HEX (`normalizarHex` aceita `#abc`, `#aabbcc`, com ou sem `#`; aplica no Enter ou ao sair do campo).
 - `comCorEscolhida` troca a cor original pela escolhida no `chart` e na `legend` só na hora de desenhar (`renderView`), sem mudar `state.lastView`. Trocar a cor redesenha a aba com os dados já carregados.
 - `state.corAnual` fica no `localStorage` (`fogo:corAnual`) e no hash (`cor=<hex sem #>`, abas Anual e Acumulado). Na vista "Por bioma" o círculo some (paletas próprias).
