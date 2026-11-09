@@ -4755,6 +4755,7 @@ function chartConfig(spec, t) {
     : spec.unit === "mil" ? (v) => ha(v)
     : (v) => `${fmtFull.format(v)} ha`;
   const fonte = spec.big ? 14 : 13;
+  const pesoEixo = spec.big ? "700" : "600"; // anual e acumulado (destaque): anos e valores em negrito
   if (spec.big) {
     options.plugins.tooltip.titleFont = { size: 15, weight: "600" };
     options.plugins.tooltip.bodyFont = { size: 14 };
@@ -4764,14 +4765,14 @@ function chartConfig(spec, t) {
     stacked,
     grid: { display: false },
     border: { display: true, color: t.text },
-    ticks: { color: t.text, maxRotation: 0, autoSkip: !horizontal, autoSkipPadding: 12, font: { size: fonte, weight: "600" } },
+    ticks: { color: t.text, maxRotation: 0, autoSkip: !horizontal, autoSkipPadding: 12, font: { size: fonte, weight: pesoEixo } },
   };
   const valueAxis = {
     stacked,
     beginAtZero: true,
     grid: { display: false },
     border: { display: true, color: t.text },
-    ticks: { color: t.text, maxTicksLimit: 6, font: { size: fonte, weight: "600" }, callback: (v) => (spec.percent ? pct(v) : fmtCompact.format(v)) },
+    ticks: { color: t.text, maxTicksLimit: 6, font: { size: fonte, weight: pesoEixo }, callback: (v) => (spec.percent ? pct(v) : fmtCompact.format(v)) },
   };
   if (spec.percent && stacked) valueAxis.max = 1;
   if (spec.unit === "Mha") {
