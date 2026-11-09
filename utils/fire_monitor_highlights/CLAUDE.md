@@ -271,7 +271,7 @@ Para checar erros sem abrir o navegador: `--dump-dom` e procurar `class="st err"
 
 Fonte dos dados (query string, antes do hash):
 - Sem parâmetro, usa a API pública (`https://plataforma.monitorfogo.mapbiomas.org`).
-- `?api=dev` usa a API dev (`https://dev-fogo.geodatin.com`, mesmo formato). O seletor "API pública / API dev" na barra do topo troca o parâmetro e recarrega mantendo o hash. No modo dev aparecem uma faixa de aviso (fora do PDF), uma nota no rodapé do painel e a fonte trocada no PNG.
+- `?api=dev` usa a API dev (`https://dev-fogo.geodatin.com`, mesmo formato). O seletor "API pública / API dev" na barra do topo troca o parâmetro e recarrega mantendo o hash. No modo dev aparecem uma faixa de aviso (fora do PDF) e a fonte trocada no PNG.
 
 Hashtags:
 - Sem hash, abre na aba **Boletim do mês**.

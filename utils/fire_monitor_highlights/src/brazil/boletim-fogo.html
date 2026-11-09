@@ -840,8 +840,6 @@ document.documentElement.classList.toggle('api-dev', API_MODO === 'dev');
     if (sel.value === 'dev') u.searchParams.set('api', 'dev'); else u.searchParams.delete('api');
     location.href = u.toString();   // mantém o hash (#explorer?…) e recarrega com a outra API
   });
-  if (API_MODO === 'dev') document.querySelectorAll('.foot').forEach(p =>
-    p.insertAdjacentHTML('beforeend', ' <strong>Dados da API dev (dev-fogo.geodatin.com), de teste.</strong>'));
 }
 const GEO_URL = 'https://cdn.jsdelivr.net/gh/codeforamerica/click_that_hood@master/public/data/brazil-states.geojson';
 // Basemap usado apenas no painel interativo; o boletim usa fundo branco.
