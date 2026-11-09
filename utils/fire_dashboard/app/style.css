@@ -494,8 +494,8 @@ body {
 
 /* Gráficos de destaque (área anual / acumulada): título e legenda maiores. */
 .card.card-big .card-head h2 { font-size: 1.15rem; }
-.card.card-big .legend-row { font-size: 0.9rem; }
-.card.card-big .legend-row .legend-note { font-size: 0.85rem; }
+.card.card-big .legend-row { font-size: 1rem; }
+.card.card-big .legend-row .legend-note { font-size: 0.9rem; }
 
 .card-head p {
   margin: 4px 0 16px;
@@ -1002,8 +1002,9 @@ body {
   margin: 14px 0 0;
   padding: 0;
   list-style: none;
-  font-size: 0.78rem;
-  color: var(--text-2);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .legend-row li {
@@ -1021,7 +1022,8 @@ body {
 
 .legend-row .legend-note {
   margin-left: auto;
-  color: var(--text-muted);
+  font-weight: 400;
+  color: var(--text-2);
 }
 
 .legend-row .ln.dash {
