@@ -17,6 +17,7 @@ Brazil uses Collection 5.1 (1985–2025) and falls back to staging only if produ
 Highlights:
 
 - Charts can be switched between bars and lines, or bars and doughnut (small toggle at the top right of each card).
+- The red annual and accumulated charts have a small color dot at the top right: pick another color (presets or any color). The choice is remembered in the browser and kept in the shared link.
 - Every card has **⬇ PNG** (chart with title, legend and source) and **▦ Table** (values on demand, downloadable as CSV).
 - Every card has an **ⓘ** button next to its title with a short plain-language explanation of what it shows.
 - **🔗 Copy link to this analysis** copies a link that reopens the dashboard on the same country, language, tab, filters and options.

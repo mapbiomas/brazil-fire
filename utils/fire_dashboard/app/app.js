@@ -385,6 +385,7 @@ const state = {
   mesFim: 12,
   paletaMes: "oficial", // "oficial" (legenda da API) ou "fogo" (tons de fogo)
   mensalNivel: "bioma", // Mensal: proporção mensal por "bioma" ou "estado"
+  corAnual: lerCorSalva(), // cor escolhida pelo usuário para as séries anuais vermelhas (null = cor oficial)
   // camada2: camada sobreposta; cortina: compara dois anos; anoA: ano da esquerda; destaque: escurece fora do recorte.
   mapa: { tipo: "bruto", unidade: "estados", camada: "acumulado", visualizar: "biomas", camada2: "", cortina: "off", anoA: null, destaque: "off" },
   freqGrupo: "todas", // Frequência: "todas" (1 a N vezes), "15" (1 a 15 e 16+), "9" (1 a 9 e 10+)
@@ -1513,6 +1514,7 @@ async function loadAnual({ t, ini, fim }) {
         base: true,
         title: "Área queimada anual",
         alterna: "anual",
+        corTrocavel: vermelhoEscuro,
         // Vista "Por bioma": barras empilhadas com a área de cada bioma no recorte (interseção
         // com estado/município quando houver filtro).
         porBioma: (progress) => porBiomaAnual(t, {
@@ -1628,6 +1630,7 @@ async function loadAcumulado({ t, ini, fim }) {
         span: 12,
         title: "Área queimada acumulada",
         alterna: "anual",
+        corTrocavel: shade(cor, 0.18),
         porBioma: acumuladoPorBioma,
         chart: {
           kind: "line",
@@ -1648,6 +1651,7 @@ async function loadAcumulado({ t, ini, fim }) {
       {
         span: 12,
         title: "Composição do acumulado por ano",
+        corTrocavel: cor,
         subtitle: "Barra inferior = acumulado até o ano anterior · barra superior = área queimada pela 1ª vez no ano · total = novo acumulado",
         chart: {
           kind: "stacked",
@@ -3041,7 +3045,66 @@ async function copiarLink(btn) {
   setTimeout(() => { if (btn.isConnected) btn.textContent = original; }, 2500);
 }
 
+// ---------- Cor das séries anuais (o usuário pode trocar o vermelho) ----------
+// Cards com `corTrocavel: "<cor original>"` trocam essa cor (no gráfico e na legenda) pela escolhida.
+const CORES_ANUAIS = [
+  ["#7c1d1d", "Vinho"], ["#e0662b", "Laranja"], ["#8c6239", "Terra"], ["#4a4a4a", "Cinza escuro"],
+  ["#2f74b5", "Azul"], ["#1f7a6d", "Verde-petróleo"], ["#6a3d9a", "Roxo"],
+];
+
+function lerCorSalva() {
+  try {
+    const c = localStorage.getItem("fogo:corAnual");
+    return /^#[0-9a-f]{6}$/i.test(c || "") ? c : null;
+  } catch { return null; }
+}
+
+function salvarCor(cor) {
+  state.corAnual = cor;
+  try { if (cor) localStorage.setItem("fogo:corAnual", cor); else localStorage.removeItem("fogo:corAnual"); } catch { /* sem armazenamento */ }
+}
+
+function comCorEscolhida(card) {
+  const nova = state.corAnual, orig = card.corTrocavel;
+  if (!nova || !orig) return card;
+  const r = (c) => (c === orig ? nova : c);
+  return {
+    ...card,
+    chart: card.chart && { ...card.chart, color: r(card.chart.color), series: card.chart.series?.map((s) => ({ ...s, color: r(s.color) })) },
+    legend: card.legend?.map((it) => ({ ...it, color: r(it.color) })),
+  };
+}
+
+function corHtml(card) {
+  if (!card.corTrocavel) return "";
+  const atual = state.corAnual || card.corTrocavel;
+  const amostra = (c, nome) => `<button type="button" data-acao="cor-escolher" data-cor="${c}" style="--c:${c}" title="${escapeHtml(nome)}" aria-label="${escapeHtml(nome)}" aria-pressed="${c === atual}"></button>`;
+  return `
+    <div class="cor-troca">
+      <button type="button" class="cor-btn" data-acao="cor" style="--c:${atual}" title="Trocar a cor do gráfico" aria-label="Trocar a cor do gráfico" aria-expanded="false"></button>
+      <div class="cor-pop" hidden>
+        <span class="cor-pop-titulo">Cor do gráfico</span>
+        <div class="cor-amostras">
+          ${amostra(card.corTrocavel, "Vermelho (padrão)")}
+          ${CORES_ANUAIS.map(([c, nome]) => amostra(c, nome)).join("")}
+          <label class="cor-livre" title="Outra cor"><input type="color" data-acao="cor-livre" value="${atual}" aria-label="Outra cor"></label>
+        </div>
+        ${state.corAnual ? `<button type="button" class="cor-volta" data-acao="cor-escolher" data-cor="">Voltar ao vermelho</button>` : ""}
+      </div>
+    </div>`;
+}
+
+// Fecha a paleta ao clicar fora dela.
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".cor-troca")) return;
+  document.querySelectorAll(".cor-pop:not([hidden])").forEach((p) => {
+    p.hidden = true;
+    p.parentElement.querySelector(".cor-btn")?.setAttribute("aria-expanded", "false");
+  });
+});
+
 function renderView(view) {
+  view = { ...view, cards: view.cards.map(comCorEscolhida) };
   destroyCharts();
   const tokens = themeTokens();
   aplicarPadroesChart(tokens);
@@ -3175,6 +3238,8 @@ function descartarGraficos(root) {
 
 function montarGraficos(card, root, vista, tokens) {
   root._vista = vista;
+  const troca = root.querySelector(".cor-troca");
+  if (troca) troca.hidden = vista === "biomas"; // a vista por bioma tem paletas próprias
   if (vista === "biomas") {
     const body = root.querySelector(".card-body");
     const vivo = () => root.isConnected && root._vista === "biomas";
@@ -3581,7 +3646,7 @@ function cardHtml(card, i, view) {
           <h2>${escapeHtml(card.title)}${info ? ` <button type="button" class="card-info" data-acao="info" aria-expanded="false" title="O que este gráfico mostra?" aria-label="O que este gráfico mostra?">ⓘ</button>` : ""}</h2>
           ${card.subtitle ? `<p>${escapeHtml(card.subtitle)}</p>` : ""}
         </div>
-        <div class="card-topo">${toggle}${acoes}</div>
+        <div class="card-topo">${toggle}${corHtml(card)}${acoes}</div>
       </header>
       ${info ? `<p class="card-info-texto" hidden>${escapeHtml(info)}</p>` : ""}
       ${(view.toolbar || []).some((c) => c.card === i) ? `<div class="toolbar card-controles">${(view.toolbar || []).map((c, j) => (c.card === i ? toolbarHtml(c, j) : "")).join("")}</div>` : ""}
@@ -3638,6 +3703,17 @@ function acaoDoCard(e) {
   const root = btn.closest("[data-card]");
   const card = state.lastView?.cards?.[Number(root?.dataset.card)];
   if (!root || !card) return;
+  if (btn.dataset.acao === "cor") {
+    const pop = root.querySelector(".cor-pop");
+    pop.hidden = !pop.hidden;
+    btn.setAttribute("aria-expanded", String(!pop.hidden));
+    return;
+  }
+  if (btn.dataset.acao === "cor-escolher") {
+    salvarCor(btn.dataset.cor || null);
+    writeHash();
+    return renderView(state.lastView);
+  }
   if (btn.dataset.acao === "info") {
     const texto = root.querySelector(".card-info-texto");
     if (!texto) return;
@@ -5222,6 +5298,7 @@ function readHash() {
   if (["oficial", "fogo"].includes(p.get("paleta"))) state.paletaMes = p.get("paleta");
   if (["bioma", "estado"].includes(p.get("por"))) state.mensalNivel = p.get("por");
   if (["ha", "pct"].includes(p.get("unid"))) state.freqUnid = p.get("unid");
+  if (/^[0-9a-f]{6}$/i.test(p.get("cor") || "")) salvarCor(`#${p.get("cor")}`);
   if (p.get("cicatriz")) state.cicatrizClasse = p.get("cicatriz");
 }
 
@@ -5244,6 +5321,7 @@ function writeHash() {
     if (state.freqUnid !== "ha") p.set("unid", state.freqUnid);
   }
   if (state.tab === "cicatriz" && state.cicatrizClasse !== "grandes") p.set("cicatriz", state.cicatrizClasse);
+  if (state.corAnual && ["anual", "acumulado"].includes(state.tab)) p.set("cor", state.corAnual.slice(1));
   if (state.tab === "mapa") {
     p.set("mapa", state.mapa.tipo);
     if (state.mapa.tipo === "ranking") p.set("unidade", state.mapa.unidade);
@@ -5299,6 +5377,13 @@ function init() {
   Chart.defaults.font.family = "'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif";
   Chart.register(crosshairPlugin, traducaoChartPlugin, rotulosRoscaPlugin, rotulosBarrasPlugin);
   el.panel.addEventListener("click", acaoDoCard);
+  // Cor livre (seletor de cor do navegador): aplica quando a pessoa confirma a cor.
+  el.panel.addEventListener("change", (e) => {
+    if (!e.target.matches('[data-acao="cor-livre"]')) return;
+    salvarCor(e.target.value);
+    writeHash();
+    renderView(state.lastView);
+  });
   readHash();
   montarPais();
   iniciarTraducao();

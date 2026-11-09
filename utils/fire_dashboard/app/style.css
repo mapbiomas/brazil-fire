@@ -1293,3 +1293,33 @@ a.md-botao { display: inline-block; text-decoration: none; }
   background: var(--surface); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,.25);
   font-size: .8rem; font-weight: 600; white-space: nowrap;
 }
+
+/* ---------- Troca discreta da cor das séries anuais ---------- */
+.cor-troca { position: relative; display: inline-flex; align-items: center; }
+.cor-troca[hidden] { display: none; }
+.cor-btn {
+  width: 16px; height: 16px; margin: 4px 2px; padding: 0; border: 2px solid var(--surface); border-radius: 50%;
+  background: var(--c); box-shadow: 0 0 0 1px var(--border); cursor: pointer; opacity: .55; transition: opacity .15s;
+}
+.cor-btn:hover, .cor-btn[aria-expanded="true"], .cor-btn:focus-visible { opacity: 1; }
+.cor-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.cor-pop {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 20; width: 196px; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface); box-shadow: 0 4px 16px rgba(0,0,0,.18);
+}
+.cor-pop-titulo { display: block; margin-bottom: 8px; font-size: .72rem; font-weight: 700; color: var(--text-2); }
+.cor-amostras { display: grid; grid-template-columns: repeat(5, 24px); gap: 8px; }
+.cor-amostras button, .cor-livre {
+  width: 24px; height: 24px; padding: 0; border: 2px solid var(--surface); border-radius: 50%;
+  background: var(--c); box-shadow: 0 0 0 1px var(--border); cursor: pointer;
+}
+.cor-amostras button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--text); }
+.cor-livre {
+  position: relative; overflow: hidden;
+  background: conic-gradient(#e53935, #fdd835, #43a047, #1e88e5, #8e24aa, #e53935);
+}
+.cor-livre input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+.cor-volta {
+  margin-top: 10px; padding: 0; border: 0; background: none; color: var(--text-2);
+  font: inherit; font-size: .72rem; font-weight: 600; text-decoration: underline; cursor: pointer;
+}

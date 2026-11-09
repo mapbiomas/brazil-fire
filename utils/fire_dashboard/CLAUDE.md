@@ -110,3 +110,9 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - Boxplot (`boxplotConfig`, `estatBox`): barra flutuante [Q1, Q3] + plugin para mediana, hastes (Tukey, 1,5 × IQR) e pontos dos anos fora do comum; quartis por interpolação linear. Sem animação, para as hastes não descolarem das caixas.
 - Tabela sob demanda: ano × mês no mapa de calor; mínimo, quartis, máximo e média no boxplot.
 - Testado sem interface: Brasil 1985–2025 (pt) e Peru com temporada jul–jun (en), nas três vistas, com tabela.
+
+## Cor das séries anuais (2026-11-09)
+
+- Cards com `corTrocavel: "<cor original>"` (Área queimada anual, Área queimada acumulada, Composição do acumulado) mostram um círculo discreto no topo; a paleta tem a cor original, `CORES_ANUAIS` e um seletor livre (`input type=color`).
+- `comCorEscolhida` troca a cor original pela escolhida no `chart` e na `legend` só na hora de desenhar (`renderView`), sem mudar `state.lastView`. Trocar a cor redesenha a aba com os dados já carregados.
+- `state.corAnual` fica no `localStorage` (`fogo:corAnual`) e no hash (`cor=<hex sem #>`, abas Anual e Acumulado). Na vista "Por bioma" o círculo some (paletas próprias).
