@@ -3811,6 +3811,41 @@ function tabelaDoCard(root, card) {
 }
 
 // PNG do card: os canvas do gráfico nas posições da tela + título, subtítulo e legenda.
+function temaEscuro() {
+  const d = document.documentElement.dataset.theme;
+  return d === "dark" || (d !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+}
+
+// Pinta números, títulos e linhas dos eixos de quase preto (para o PNG de fundo branco)
+// e devolve uma função que restaura as cores originais.
+function eixosEscurosParaPng(canvases) {
+  const PRETO = "#15171c";
+  const salvos = [];
+  for (const c of canvases) {
+    const ch = Chart.getChart(c);
+    if (!ch) continue;
+    const antes = Object.values(ch.config.options?.scales || {}).map((s) => {
+      const a = [s, s.ticks?.color, s.title?.color, s.border?.color];
+      if (s.ticks) s.ticks.color = PRETO;
+      if (s.title) s.title.color = PRETO;
+      if (s.border) s.border.color = PRETO;
+      return a;
+    });
+    ch.update("none"); ch.draw(); // desenha já, sem esperar a animação
+    salvos.push([ch, antes]);
+  }
+  return () => {
+    for (const [ch, antes] of salvos) {
+      for (const [s, tk, ti, bo] of antes) {
+        if (s.ticks) s.ticks.color = tk;
+        if (s.title) s.title.color = ti;
+        if (s.border) s.border.color = bo;
+      }
+      ch.update("none"); ch.draw(); // desenha já, sem esperar a animação
+    }
+  };
+}
+
 async function baixarGraficoPng(root, card) {
   const body = root.querySelector(".card-body");
   const canvases = [...body.querySelectorAll("canvas")].filter((c) => c.offsetWidth);
@@ -3843,10 +3878,15 @@ async function baixarGraficoPng(root, card) {
   ctx.fillStyle = "#555555";
   ctx.font = "500 11px Montserrat, sans-serif";
   ctx.fillText(tr(`${activeTerritory().nome} · ${state.ini}–${state.fim}${card.subtitle ? ` · ${card.subtitle}` : ""}`), pad, 42, W);
-  for (const c of canvases) {
-    const r = c.getBoundingClientRect();
-    ctx.drawImage(c, pad + r.left - br.left, cab + r.top - br.top, r.width, r.height);
-  }
+  // No tema escuro os eixos ficam claros na tela e sumiriam no fundo branco do PNG:
+  // escurece os eixos só durante a cópia e depois devolve as cores do tema.
+  const restaurar = temaEscuro() ? eixosEscurosParaPng(canvases) : () => {};
+  try {
+    for (const c of canvases) {
+      const r = c.getBoundingClientRect();
+      ctx.drawImage(c, pad + r.left - br.left, cab + r.top - br.top, r.width, r.height);
+    }
+  } finally { restaurar(); }
   ctx.textBaseline = "middle";
   for (const { it, x: lx, linha: l } of pos) {
     const yy = cab + altura + 14 + l * 20;
