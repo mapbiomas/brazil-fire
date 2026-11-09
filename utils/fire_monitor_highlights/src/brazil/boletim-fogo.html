@@ -987,9 +987,11 @@ function jenks(v, k) {
 function classes(values, n = 5) {
   const v = values.filter(x => x > 0).sort((a, b) => a - b);
   if (!v.length) return { cor: () => SEM_DADO, idx: () => -1, leg: [] };
-  // Quebras naturais; com poucos valores distintos (ex.: 6 biomas) volta aos quantis.
+  // Quebras naturais sobre a raiz cúbica: meio-termo entre quantis (classes com o mesmo número de
+  // territórios) e Jenks direto (quase tudo na primeira classe, porque poucos territórios concentram a área).
+  // Com poucos valores distintos (ex.: 6 biomas) volta aos quantis.
   const br = new Set(v).size > n
-    ? [...new Set(jenks(v, n))]
+    ? [...new Set(jenks(v.map(Math.cbrt), n).map(x => v.find(y => Math.cbrt(y) === x)))]
     : [...new Set(range(1, n - 1).map(i => v[Math.floor(i * v.length / n)]))];
   const pal = RAMP5.slice(RAMP5.length - (br.length + 1));
   const idx = x => { let i = 0; while (i < br.length && x > br[i]) i++; return i; };

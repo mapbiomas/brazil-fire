@@ -158,7 +158,7 @@ esc(s)          // HTML escape
 |---|---|
 | `mkChart(key, canvasId, cfg)` | Cria Chart.js com `devicePixelRatio: 3` e sem animação |
 | `yearChart(id, anos, vals, Y)` | Barras por ano: anos anteriores em cinza, ano corrente em vermelho-fogo e linha da média tracejada |
-| `classes(values, n=5)` | Classes para colorir mapas: quebras naturais (`jenks(v, k)`, Fisher-Jenks); com até `n` valores distintos (ex.: 6 biomas) usa quantis |
+| `classes(values, n=5)` | Classes para colorir mapas: quebras naturais (`jenks(v, k)`, Fisher-Jenks) sobre a raiz cúbica dos valores; com até `n` valores distintos (ex.: 6 biomas) usa quantis |
 | `topLabels`, `linhaMedia`, `faixasNormal`, `rotulos` | Plugins de rótulos, média, faixas de normalidade e valores no fim das barras |
 | `opLinha(yT, xT, st, extra)` | Opções padrão dos gráficos de linha do painel |
 | `pintarCalendario(cv, M, ano, ini, fim, o)` | Calendário do fogo em canvas (painel) |
@@ -413,7 +413,7 @@ html.pm { /* Ativado por modoImpressao(true) */ }
 - Fundo branco absoluto (`#FFFFFF`), sem basemap Esri.
 - Divisas estaduais finas em cinza-claro (`#D9D9D9`).
 - Limite de biomas em preto (`#212121`).
-- Escala de fogo em 5 classes de quebras naturais (Jenks, `RAMP5`). Trocado de quantis em 2026-11-09: com quantis, os municípios grandes da última classe dominavam o mapa (ex.: Pará, out/2026).
+- Escala de fogo em 5 classes (`RAMP5`) de quebras naturais (Jenks) sobre a raiz cúbica da área. Trocado de quantis em 2026-11-09: com quantis, os municípios grandes da última classe dominavam o mapa; com Jenks direto, quase todos caíam na primeira classe. Pará, out/2026, municípios por classe: quantis 29·28·28·28·27; Jenks 118·11·6·4·1; Jenks na raiz cúbica 45·45·28·15·7.
 - Legendas dos mapas coropléticos sem fundo nem borda.
 
 ### Destaque dinâmico (explorer)
