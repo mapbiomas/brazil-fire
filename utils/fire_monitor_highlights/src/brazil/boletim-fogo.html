@@ -959,10 +959,38 @@ const MINUSC = new Set(['da', 'de', 'do', 'das', 'dos', 'e', 'em']);
 const limparNome = s => s.replace(/\s*\(\d{4}\.\d{2}\.\d{4}\)\s*$/, '').toLowerCase().split(' ')
   .map((w, i) => i > 0 && MINUSC.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
+// Quebras naturais (Fisher-Jenks): limites superiores das k-1 primeiras classes, minimizando a variância
+// dentro de cada classe. v precisa estar em ordem crescente e ter mais de k valores distintos.
+function jenks(v, k) {
+  const n = v.length;
+  const lim = Array.from({ length: n + 1 }, () => new Int32Array(k + 1));
+  const vr = Array.from({ length: n + 1 }, () => new Float64Array(k + 1).fill(Infinity));
+  for (let j = 1; j <= k; j++) { lim[1][j] = 1; vr[1][j] = 0; }
+  for (let l = 2; l <= n; l++) {
+    let s = 0, s2 = 0, w = 0, var_ = 0;
+    for (let m = 1; m <= l; m++) {
+      const i3 = l - m + 1, x = v[i3 - 1];
+      s2 += x * x; s += x; w++;
+      var_ = s2 - s * s / w;
+      const i4 = i3 - 1;
+      if (i4 !== 0) for (let j = 2; j <= k; j++) {
+        if (vr[l][j] >= var_ + vr[i4][j - 1]) { lim[l][j] = i3; vr[l][j] = var_ + vr[i4][j - 1]; }
+      }
+    }
+    lim[l][1] = 1; vr[l][1] = var_;
+  }
+  const br = [];
+  let kk = n;
+  for (let j = k; j >= 2; j--) { const id = lim[kk][j] - 2; br.unshift(v[id]); kk = lim[kk][j] - 1; }
+  return br;
+}
 function classes(values, n = 5) {
   const v = values.filter(x => x > 0).sort((a, b) => a - b);
   if (!v.length) return { cor: () => SEM_DADO, idx: () => -1, leg: [] };
-  const br = [...new Set(range(1, n - 1).map(i => v[Math.floor(i * v.length / n)]))];
+  // Quebras naturais; com poucos valores distintos (ex.: 6 biomas) volta aos quantis.
+  const br = new Set(v).size > n
+    ? [...new Set(jenks(v, n))]
+    : [...new Set(range(1, n - 1).map(i => v[Math.floor(i * v.length / n)]))];
   const pal = RAMP5.slice(RAMP5.length - (br.length + 1));
   const idx = x => { let i = 0; while (i < br.length && x > br[i]) i++; return i; };
   const leg = pal.map((c, i) => ({ c, de: i === 0 ? v[0] : br[i - 1], ate: i < br.length ? br[i] : v[v.length - 1] }));

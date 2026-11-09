@@ -158,7 +158,7 @@ esc(s)          // HTML escape
 |---|---|
 | `mkChart(key, canvasId, cfg)` | Cria Chart.js com `devicePixelRatio: 3` e sem animação |
 | `yearChart(id, anos, vals, Y)` | Barras por ano: anos anteriores em cinza, ano corrente em vermelho-fogo e linha da média tracejada |
-| `classes(values, n=5)` | Quantis para colorir mapas |
+| `classes(values, n=5)` | Classes para colorir mapas: quebras naturais (`jenks(v, k)`, Fisher-Jenks); com até `n` valores distintos (ex.: 6 biomas) usa quantis |
 | `topLabels`, `linhaMedia`, `faixasNormal`, `rotulos` | Plugins de rótulos, média, faixas de normalidade e valores no fim das barras |
 | `opLinha(yT, xT, st, extra)` | Opções padrão dos gráficos de linha do painel |
 | `pintarCalendario(cv, M, ano, ini, fim, o)` | Calendário do fogo em canvas (painel) |
@@ -188,7 +188,7 @@ esc(s)          // HTML escape
 | `kpiSlide`, `caixaVar(v, ref, pilula)` | Número grande; variação em caixa ou em pílula "▼ −55% vs. … (−3,2 mi ha)" |
 | `anosSlide(id, ts, acum)` | Barras por ano: só o mês ou, com `acum = true`, janeiro até o mês |
 | `lulcResumo(lc)`, `lulcHTML(lc, titulo, min)` | Classes da paleta com área e grupo; barra em dois níveis (natural × antrópico e classes de nível 2). Classes < 0,5% viram "Outras" (cinza, dentro de cada lado). Texto na fatia: % inteira, só se a fatia tiver ≥ `min`% (6 nas colunas largas, 9 nas estreitas). Toda fatia tem `title` com classe, % com uma casa e área em ha |
-| `barrasH(id, nomes, vals, cls, total)` | Barras horizontais coloridas pelo quantil do mapa; com `total`, rótulo "515.254 ha · 20%" |
+| `barrasH(id, nomes, vals, cls, total)` | Barras horizontais coloridas pela classe do mapa; com `total`, rótulo "515.254 ha · 20%" |
 | `d2Mapa`, `d2Rank`, `d3Mapa`, `d4Mapa`, `d4Rank`, `d5Mapa` | Blocos das folhas 2 a 5 |
 
 ### Destaque dinâmico
@@ -413,7 +413,7 @@ html.pm { /* Ativado por modoImpressao(true) */ }
 - Fundo branco absoluto (`#FFFFFF`), sem basemap Esri.
 - Divisas estaduais finas em cinza-claro (`#D9D9D9`).
 - Limite de biomas em preto (`#212121`).
-- Escala de fogo em 5 quantis (`RAMP5`).
+- Escala de fogo em 5 classes de quebras naturais (Jenks, `RAMP5`). Trocado de quantis em 2026-11-09: com quantis, os municípios grandes da última classe dominavam o mapa (ex.: Pará, out/2026).
 - Legendas dos mapas coropléticos sem fundo nem borda.
 
 ### Destaque dinâmico (explorer)
