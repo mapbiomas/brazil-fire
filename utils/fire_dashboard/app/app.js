@@ -3307,7 +3307,7 @@ function desenharCalor(canvas, d, tokens) {
   const max = Math.max(0, ...d.valores.flat());
   const vazio = resolveColor("var(--surface-muted)");
   const cor = (v) => (v > 0 && max > 0 ? rampColor(CALOR_RAMP, Math.sqrt(v / max)) : vazio);
-  const fonte = "500 11px Montserrat, sans-serif";
+  const fonte = "600 11px Montserrat, sans-serif";
   const cellH = nL > 30 ? 14 : nL > 15 ? 18 : 24;
   const topo = 22, base = 46;
   const H = topo + nL * cellH + base;
@@ -3331,7 +3331,7 @@ function desenharCalor(canvas, d, tokens) {
     ctx.clearRect(0, 0, W, H);
     const cellW = (W - rotW - 4) / nC;
     ctx.font = fonte;
-    ctx.fillStyle = tokens.text2;
+    ctx.fillStyle = tokens.text;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
     d.colunas.forEach((c, j) => ctx.fillText(tr(c), rotW + (j + 0.5) * cellW, topo / 2));
@@ -3351,7 +3351,7 @@ function desenharCalor(canvas, d, tokens) {
     CALOR_RAMP.forEach((c, k) => grad.addColorStop(k / (CALOR_RAMP.length - 1), c));
     ctx.fillStyle = grad;
     ctx.fillRect(lx, ly, lw, lh);
-    ctx.fillStyle = tokens.text2;
+    ctx.fillStyle = tokens.text;
     ctx.textBaseline = "top";
     ctx.textAlign = "left";
     ctx.fillText("0", lx, ly + lh + 4);
@@ -3819,10 +3819,12 @@ async function baixarGraficoPng(root, card) {
   const W = Math.ceil(br.width), pad = 16, cab = 52, esc = 2;
   const altura = Math.max(...canvases.map((c) => c.getBoundingClientRect().bottom)) - br.top;
   const itens = itensDaLegenda(root.querySelector(".legend-row"));
+  // Legenda da imagem igual à da tela: quase preta e em negrito (notas sem negrito).
+  const fonteLegenda = (it) => (it.note ? "500 12px Montserrat, sans-serif" : "700 13px Montserrat, sans-serif");
   const medir = document.createElement("canvas").getContext("2d");
-  medir.font = "500 12px Montserrat, sans-serif";
   let x = pad, linha = 0;
   const pos = itens.map((it) => {
+    medir.font = fonteLegenda(it);
     const w = (it.color ? 18 : 0) + medir.measureText(it.label).width;
     if (x + w > W + pad && x > pad) { linha++; x = pad; }
     const p = { it, x, linha };
@@ -3854,8 +3856,8 @@ async function baixarGraficoPng(root, card) {
       if (it.linha) ctx.fillRect(lx, yy - 1, 12, 3); else ctx.fillRect(lx, yy - 6, 12, 12);
       tx += 18;
     }
-    ctx.fillStyle = "#333333";
-    ctx.font = "500 12px Montserrat, sans-serif";
+    ctx.fillStyle = it.note ? "#333333" : "#15171c";
+    ctx.font = fonteLegenda(it);
     ctx.fillText(it.label, tx, yy);
   }
   ctx.fillStyle = "#666666";
@@ -4761,15 +4763,15 @@ function chartConfig(spec, t) {
   const categoryAxis = {
     stacked,
     grid: { display: false },
-    border: { display: true, color: t.axis },
-    ticks: { color: t.text2, maxRotation: 0, autoSkip: !horizontal, autoSkipPadding: 12, font: { size: fonte } },
+    border: { display: true, color: t.text },
+    ticks: { color: t.text, maxRotation: 0, autoSkip: !horizontal, autoSkipPadding: 12, font: { size: fonte, weight: "600" } },
   };
   const valueAxis = {
     stacked,
     beginAtZero: true,
     grid: { display: false },
-    border: { display: true, color: t.axis },
-    ticks: { color: t.text2, maxTicksLimit: 6, font: { size: fonte }, callback: (v) => (spec.percent ? pct(v) : fmtCompact.format(v)) },
+    border: { display: true, color: t.text },
+    ticks: { color: t.text, maxTicksLimit: 6, font: { size: fonte, weight: "600" }, callback: (v) => (spec.percent ? pct(v) : fmtCompact.format(v)) },
   };
   if (spec.percent && stacked) valueAxis.max = 1;
   if (spec.unit === "Mha") {
@@ -4780,10 +4782,10 @@ function chartConfig(spec, t) {
   // Título padrão do eixo de valores quando o gráfico não define um.
   const tituloEixo = spec.axisTitle || (spec.percent ? "Participação (%)" : "Área queimada (ha)");
   if (tituloEixo) {
-    valueAxis.title = { display: true, text: tituloEixo, color: t.text2, font: { size: fonte + 1, weight: "600" } };
+    valueAxis.title = { display: true, text: tituloEixo, color: t.text, font: { size: fonte + 1, weight: "700" } };
   }
   if (spec.categoryTitle) {
-    categoryAxis.title = { display: true, text: spec.categoryTitle, color: t.text2, font: { size: fonte + 1, weight: "600" } };
+    categoryAxis.title = { display: true, text: spec.categoryTitle, color: t.text, font: { size: fonte + 1, weight: "700" } };
   }
   options.scales = horizontal ? { y: categoryAxis, x: valueAxis } : { x: categoryAxis, y: valueAxis };
   if (horizontal) {
