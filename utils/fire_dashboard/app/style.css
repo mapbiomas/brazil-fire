@@ -1257,10 +1257,16 @@ a.md-botao { display: inline-block; text-decoration: none; }
 .card-controles .field select { min-width: 200px; }
 
 /* Roscas maiores (com a % dentro das fatias) */
-.donut { grid-template-columns: 260px minmax(0, 1fr); }
 .donut-chart { width: 260px; height: 260px; }
 .donut-center strong { font-size: 1.3rem; }
-@media (max-width: 520px) { .donut { grid-template-columns: minmax(0, 1fr); } }
+
+/* Rosca + legenda: lado a lado quando cabe; se a legenda ficar com menos de 330px
+   (duas roscas no mesmo card), ela desce para baixo da rosca em vez de sobrepor os textos. */
+.donut { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; }
+.donut-chart { flex: 0 0 auto; }
+.donut .legend-list { flex: 1 1 330px; min-width: 0; }
+.legend-list li { grid-template-columns: 10px minmax(7em, 1fr) auto auto; column-gap: 10px; }
+.legend-list li > span:nth-child(2) { line-height: 1.3; }
 
 /* ---------- Botão ⓘ (explicação do card) ---------- */
 .card-info {
