@@ -58,6 +58,13 @@
   .btn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: var(--red); color: #fff; border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 700; }
   .btn:hover { background: var(--red-d); }
 
+  /* Fonte dos dados: API pública ou API dev (?api=dev na URL) */
+  .api-sel { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; font: inherit; font-size: 12px; font-weight: 600; color: var(--ink2); background: #fff; cursor: pointer; }
+  html.api-dev .api-sel { border-color: #B26A00; color: #8A5200; background: #FFF4E0; }
+  .api-aviso { display: none; padding: 6px 20px; background: #FFF4E0; border-bottom: 1px solid #F0C27A; color: #8A5200; font-size: 12px; font-weight: 600; text-align: center; }
+  html.api-dev .api-aviso { display: block; }
+  html.api-dev .sheet::after { content: 'API dev · dados de teste'; position: absolute; top: 3mm; right: 10mm; font-size: 8px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #B26A00; }
+
   /* ===== Boletim: folhas A4 ===== */
   .doc { padding: 24px 12px 40px; }
   .doc[hidden] { display: none; }
@@ -452,11 +459,16 @@
     <button class="tab" role="tab" aria-selected="false" data-tab="explorer">Destaque dinâmico</button>
   </nav>
   <span class="pill" id="periodo">Carregando…</span>
+  <select class="api-sel" id="api-sel" title="Fonte dos dados" aria-label="Fonte dos dados">
+    <option value="pub">API pública</option>
+    <option value="dev">API dev</option>
+  </select>
   <button class="btn" id="btn-print" title="Gera o PDF do boletim do mês">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
     Exportar PDF
   </button>
 </header>
+<div class="api-aviso no-print" id="api-aviso">Usando a API dev (dev-fogo.geodatin.com): dados de teste, não use para divulgação.</div>
 
 <!-- ================= DESTAQUES (5 folhas A4 paisagem) ================= -->
 <main class="doc" id="tab-boletim">
@@ -813,7 +825,25 @@
 <script>
 'use strict';
 
-const API = 'https://plataforma.monitorfogo.mapbiomas.org';
+// Fonte dos dados: ?api=dev na URL usa a API de desenvolvimento (mesmo formato da pública).
+const APIS = {
+  pub: 'https://plataforma.monitorfogo.mapbiomas.org',
+  dev: 'https://dev-fogo.geodatin.com'
+};
+const API_MODO = new URLSearchParams(location.search).get('api') === 'dev' ? 'dev' : 'pub';
+const API = APIS[API_MODO];
+document.documentElement.classList.toggle('api-dev', API_MODO === 'dev');
+{
+  const sel = document.getElementById('api-sel');
+  sel.value = API_MODO;
+  sel.addEventListener('change', () => {
+    const u = new URL(location.href);
+    if (sel.value === 'dev') u.searchParams.set('api', 'dev'); else u.searchParams.delete('api');
+    location.href = u.toString();   // mantém o hash (#explorer?…) e recarrega com a outra API
+  });
+  if (API_MODO === 'dev') document.querySelectorAll('.foot').forEach(p =>
+    p.insertAdjacentHTML('beforeend', ' <strong>Dados da API dev (dev-fogo.geodatin.com), de teste.</strong>'));
+}
 const GEO_URL = 'https://cdn.jsdelivr.net/gh/codeforamerica/click_that_hood@master/public/data/brazil-states.geojson';
 // Basemap usado apenas no painel interativo; o boletim usa fundo branco.
 const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
@@ -2861,7 +2891,9 @@ function baixarPNG(id) {
   }
   c.fillStyle = C.muted;
   c.font = `500 ${9.5 * s}px Montserrat, sans-serif`;
-  c.fillText('Fonte: MapBiomas Monitor do Fogo (plataforma.monitorfogo.mapbiomas.org). Área queimada, não focos de calor.', pad, out.height - 11 * s);
+  c.fillText(API_MODO === 'dev'
+    ? 'Fonte: API dev do Monitor do Fogo (dev-fogo.geodatin.com), dados de teste. Área queimada, não focos de calor.'
+    : 'Fonte: MapBiomas Monitor do Fogo (plataforma.monitorfogo.mapbiomas.org). Área queimada, não focos de calor.', pad, out.height - 11 * s);
   out.toBlob(b => b && baixar(`${arquivo(X.dl[id].nome)}.png`, b), 'image/png');
 }
 async function copiarLink() {
