@@ -3846,13 +3846,69 @@ function eixosEscurosParaPng(canvases) {
   };
 }
 
+// Redesenha no canvas do PNG, na mesma posição da tela, as partes do card feitas em HTML:
+// rótulos das barras, segmentos das barras 100% (com o % dentro) e as linhas das legendas
+// com valores. Textos em cores escuras fixas, porque o PNG tem fundo branco.
+function desenharHtmlNoPng(ctx, els, dx, dy) {
+  const fonte = (cs) => `${cs.fontWeight} ${cs.fontSize} Montserrat, sans-serif`;
+  // Escreve o texto quebrando em linhas na largura da caixa, centralizado na altura dela.
+  const escrever = (txt, r, cs, cor, alinhar = "left") => {
+    if (!txt) return;
+    ctx.font = fonte(cs);
+    const palavras = txt.split(/\s+/);
+    const linhas = [];
+    let atual = "";
+    for (const p of palavras) {
+      const teste = atual ? `${atual} ${p}` : p;
+      if (atual && ctx.measureText(teste).width > r.width + 1) { linhas.push(atual); atual = p; } else atual = teste;
+    }
+    linhas.push(atual);
+    const lh = parseFloat(cs.fontSize) * 1.3;
+    const y0 = r.top + dy + r.height / 2 - ((linhas.length - 1) * lh) / 2;
+    ctx.fillStyle = cor;
+    ctx.textAlign = alinhar;
+    const x = alinhar === "center" ? r.left + dx + r.width / 2 : alinhar === "right" ? r.right + dx : r.left + dx;
+    linhas.forEach((l, k) => ctx.fillText(l, x, y0 + k * lh));
+  };
+  ctx.save();
+  ctx.textBaseline = "middle";
+  for (const el of els) {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    if (el.parentElement.classList.contains("donut-center")) {
+      escrever(el.textContent.trim(), r, cs, el.tagName === "STRONG" ? "#15171c" : "#555555", "center");
+    } else if (el.classList.contains("propbar-label")) {
+      escrever(el.textContent.trim(), r, cs, "#333333");
+    } else if (el.parentElement.classList.contains("propbar")) {
+      ctx.fillStyle = cs.backgroundColor;
+      ctx.fillRect(r.left + dx, r.top + dy, r.width, r.height);
+      escrever(el.textContent.trim(), r, cs, cs.color, "center");
+    } else {
+      for (const filho of el.children) {
+        const rf = filho.getBoundingClientRect();
+        const cf = getComputedStyle(filho);
+        if (filho.tagName === "I") {
+          ctx.fillStyle = resolveColor(filho.style.getPropertyValue("--c").trim()) || cf.backgroundColor;
+          ctx.fillRect(rf.left + dx, rf.top + dy, rf.width, rf.height);
+        } else {
+          const cor = filho.classList.contains("l-share") ? "#555555" : filho.classList.contains("l-value") ? "#333333" : "#15171c";
+          escrever(filho.textContent.trim(), rf, cf, cor, cf.textAlign === "right" || cf.textAlign === "end" ? "right" : "left");
+        }
+      }
+    }
+  }
+  ctx.restore();
+}
+
 async function baixarGraficoPng(root, card) {
   const body = root.querySelector(".card-body");
   const canvases = [...body.querySelectorAll("canvas")].filter((c) => c.offsetWidth);
-  if (!canvases.length) return setStatus(tr("Este card não tem gráfico para baixar; use a tabela."));
+  // Partes feitas em HTML (barras 100%, rótulos e legendas com valores) também vão para a imagem.
+  const htmls = [...body.querySelectorAll(".propbar-label, .propbar > span, .legend-list li, .donut-center > *")].filter((el) => el.offsetWidth);
+  if (!canvases.length && !htmls.length) return setStatus(tr("Este card não tem gráfico para baixar; use a tabela."));
   const br = body.getBoundingClientRect();
   const W = Math.ceil(br.width), pad = 16, cab = 52, esc = 2;
-  const altura = Math.max(...canvases.map((c) => c.getBoundingClientRect().bottom)) - br.top;
+  const altura = Math.max(...[...canvases, ...htmls].map((c) => c.getBoundingClientRect().bottom)) - br.top + 4;
   const itens = itensDaLegenda(root.querySelector(".legend-row"));
   // Legenda da imagem igual à da tela: quase preta e em negrito (notas sem negrito).
   const fonteLegenda = (it) => (it.note ? "500 12px Montserrat, sans-serif" : "600 13px Montserrat, sans-serif");
@@ -3887,6 +3943,7 @@ async function baixarGraficoPng(root, card) {
       ctx.drawImage(c, pad + r.left - br.left, cab + r.top - br.top, r.width, r.height);
     }
   } finally { restaurar(); }
+  desenharHtmlNoPng(ctx, htmls, pad - br.left, cab - br.top);
   ctx.textBaseline = "middle";
   for (const { it, x: lx, linha: l } of pos) {
     const yy = cab + altura + 14 + l * 20;
