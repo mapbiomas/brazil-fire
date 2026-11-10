@@ -432,6 +432,11 @@ html.pm { /* Ativado por modoImpressao(true) */ }
 - **Ordem do Top 15**: `Maior área` / `Maior aumento` grava `f.ordem` (`'area'`/`'alta'`). "Maior aumento" usa a diferença em ha contra a referência (não a %, que favoreceria territórios pequenos) e só lista quem aumentou.
 - **Top 15 clicável**: quando a subdivisão é um tipo navegável (mesma regra do clique no mapa), cada linha (`li.nav[data-code]`) abre o território com clique, Enter ou espaço; o `title` da linha traz área e diferença.
 - **Nível da legenda**: `sincronizarNivel()` mantém a classe `.on` e o `aria-pressed` no botão clicado, e o `nv` no hash acompanha a escolha.
+- **"Todos os …" no Território** (2026-11-10): a lista de um recorte (Estado, Bioma, Município, Terra Indígena…) começa com "Todos os estados" etc. (`TODOS_NOME`, `fonteTerr`). Escolher abre o Brasil dividido por esse tipo (`f.div = tipo`, camada "Por subdivisão"): mapa pintando todos e Top 15 completo.
+- **Título com o território**: Sazonalidade, Acumulado e Série anual terminam em "· Pará", "· Brasil" etc. (`noTerr`); vale também no PNG.
+- **Mapa de calor recolorido** (`camadaCalor`): o Earth Engine manda uma cor só (rosa) com a intensidade na transparência, o que deixava o mapa apagado. Cada tile é lido num canvas e recolorido por `CALOR_RAMPA` (amarelo → vinho) conforme a transparência (`CALOR_ALFA_MAX` = 150 já é o máximo); legenda de 5 classes (`legCalor`).
+- **PNG do mapa** (`baixarMapaPNG`, botão PNG no card do mapa): copia fundo Esri, tiles (com `crossOrigin`) e tiles vetoriais SVG (`svgParaImg` fixa largura/altura, senão o SVG vira 300 × 150), na ordem das camadas; acrescenta título, legenda da tela, barra de escala, seta do norte e fonte.
+- **Calendário do fogo**: abaixo de 1 milhão de ha, os números das células ficam em mil ha (antes, hectares inteiros que não cabiam); a legenda diz a unidade.
 - **Fora do normal?**: no fim do painel, segue território, período e filtro de cobertura: gráfico de faixas do território (PNG/CSV), tabela das subdivisões (`.ztab`, CSV) e o quadro do método (`.como`). Não carrega nada a mais no boletim.
 
 ---

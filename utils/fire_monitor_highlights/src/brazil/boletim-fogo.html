@@ -652,7 +652,7 @@
   <section class="card" id="x-saz">
     <div class="st"></div>
     <div class="c-h">
-      <div><p class="eyebrow">Sazonalidade</p><h2>Área queimada mês a mês, por ano</h2><p class="sub" id="x-saz-s"></p></div>
+      <div><p class="eyebrow">Sazonalidade</p><h2 id="x-saz-t">Área queimada mês a mês, por ano</h2><p class="sub" id="x-saz-s"></p></div>
       <div class="c-a"><button class="mini" data-png="x-saz">PNG</button><button class="mini" data-csv="x-saz">CSV</button></div>
     </div>
     <div class="chips x-anos" id="x-anos-cmp"></div>
@@ -735,7 +735,7 @@
     <div class="st"></div>
     <div class="c-h">
       <div><p class="eyebrow">Mapa</p><h2 id="x-mapa-t">Onde queimou</h2><p class="sub" id="x-mapa-s"></p></div>
-      <div class="c-a"><button class="mini" data-csv="x-mapa" title="Baixar os valores do mapa por subdivisão">CSV</button></div>
+      <div class="c-a"><button class="mini" data-mapa-png title="Baixar o mapa (PNG) com legenda, escala e norte">PNG</button><button class="mini" data-csv="x-mapa" title="Baixar os valores do mapa por subdivisão">CSV</button></div>
     </div>
     <div class="x-mopts">
       <div class="x-campo"><span>Camada</span>
@@ -1768,11 +1768,21 @@ function listaTerr(tipo) {
     })
     .catch(e => { delete LT[tipo]; throw e; });
 }
+// Opção "Todos os …" no topo da lista: abre o Brasil dividido por esse tipo, com o mapa
+// pintando todos os territórios e o Top 15 com o ranking completo.
+const TODOS_NOME = {
+  state: 'Todos os estados', biome: 'Todos os biomas', city: 'Todos os municípios', region: 'Todas as regiões',
+  indigenousLand: 'Todas as terras indígenas', uc: 'Todas as unidades de conservação', quilombo: 'Todos os quilombos',
+  ugrh: 'Todas as bacias (UGRH)', macrohr: 'Todas as macrorregiões hidrográficas', mesohr: 'Todas as mesorregiões hidrográficas',
+  microhr: 'Todas as microrregiões hidrográficas', biosphereReserve: 'Todas as reservas da biosfera', geopark: 'Todos os geoparques'
+};
 async function fonteTerr(term) {
   const l = await listaTerr(X.f.tipo), q = norm(term.trim());
-  if (!q) return l.slice(0, 80);
+  const todos = TODOS_NOME[X.f.tipo] && l.length > 1
+    ? [{ code: '__todos', label: TODOS_NOME[X.f.tipo], sub: 'mapa e ranking de todos', n: norm(TODOS_NOME[X.f.tipo]) }] : [];
+  if (!q) return todos.concat(l.slice(0, 80));
   const a = [], b = [];
-  for (const t of l) { const i = t.n.indexOf(q); if (i === 0) a.push(t); else if (i > 0) b.push(t); }
+  for (const t of todos.concat(l)) { const i = t.n.indexOf(q); if (i === 0) a.push(t); else if (i > 0) b.push(t); }
   return a.concat(b).slice(0, 80);
 }
 // Campo de busca com lista de sugestões, navegável pelo teclado.
@@ -1879,7 +1889,17 @@ function ligarEventos() {
   const f = () => X.f;
   $('x-tipo').addEventListener('change', () => { f().modo = ''; definirTerritorio($('x-tipo').value, null); });
   combo($('x-terr'), $('x-terr-lista'), fonteTerr,
-    t => { if (t.code !== f().code) { f().modo = ''; definirTerritorio(f().tipo, t.code); } },
+    t => {
+      if (t.code === '__todos') {
+        // Brasil inteiro, dividido pelo tipo que estava no recorte (ex.: todos os estados).
+        const x = f();
+        x.div = x.tipo;
+        x.modo = 'sub';
+        definirTerritorio('country', 0, true).then(() => $('x-sec-ter')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        return;
+      }
+      if (t.code !== f().code) { f().modo = ''; definirTerritorio(f().tipo, t.code); }
+    },
     () => { $('x-terr').value = f().label; });
   $('x-div').addEventListener('change', () => { f().div = $('x-div').value; f().modo = ''; xRun(); });
   $('x-cob').addEventListener('change', () => { f().cob = $('x-cob').value; xRun(); });
@@ -1987,6 +2007,7 @@ function ligarEventos() {
   $('tab-explorer').addEventListener('click', e => {
     const p = e.target.closest('[data-png]'), c = e.target.closest('[data-csv]');
     if (p) baixarPNG(p.dataset.png);
+    if (e.target.closest('[data-mapa-png]')) baixarMapaPNG();
     if (c) baixarCSV(c.dataset.csv);
   });
   const cal = $('xc-cal');
@@ -2332,11 +2353,15 @@ function chipsAnos(f) {
   }).join('') + `<span class="fn">Até 3 anos. Em vermelho, ${f.ano}.</span>`;
 }
 
+// Título do gráfico com o território (Brasil, Mato Grosso, Cerrado…), na tela e no PNG.
+const noTerr = (t, f) => f.label ? `${t} · ${f.label}` : t;
+
 function xSaz(M, f) {
   chipsAnos(f);
   const st = estat(M, f);
   const ds = [...dsReferencia(st), ...linhasCmp(f, M), linhaAno(String(f.ano), M[f.ano], SER[0], 3)];
   const outros = P.anos.filter(y => y !== f.ano);
+  $('x-saz-t').textContent = noTerr('Área queimada mês a mês, por ano', f);
   $('x-saz-s').textContent = `Cada linha é um ano. A faixa cinza vai do menor ao maior valor de cada mês nos demais anos (${outros[0]}–${outros[outros.length - 1]}).`;
   mkChart('x-saz', 'xc-saz', {
     type: 'line', data: { labels: MES.map(cap), datasets: ds }, plugins: [faixaPeriodo],
@@ -2355,7 +2380,7 @@ function xAcu(M, f) {
   const S = Object.fromEntries(P.anos.map(y => [y, acum(M[y])]));
   const st = estat(S, f);
   const labels = range(a, b).map(m => cap(MES[m - 1]));
-  $('x-acu-t').textContent = a === b ? `Área queimada em ${MES_L[a - 1]}` : `Área queimada acumulada de ${MES_L[a - 1]} a ${MES_L[b - 1]}`;
+  $('x-acu-t').textContent = noTerr(a === b ? `Área queimada em ${MES_L[a - 1]}` : `Área queimada acumulada de ${MES_L[a - 1]} a ${MES_L[b - 1]}`, f);
   const k = S[f.ano].reduce((u, v, i) => v != null ? i : u, -1);
   if (k >= 0 && st[k]) {
     const d = pct(S[f.ano][k], st[k].avg);
@@ -2373,8 +2398,8 @@ function xAcu(M, f) {
 function xAnual(M, f) {
   const anos = P.anos, vals = anos.map(y => somaP(M[y], f.ini, f.fim));
   const parcial = y => y === P.Y && f.fim > P.M;
-  $('x-anual-t').textContent = f.ini === 1 && f.fim === 12 ? 'Área queimada no ano' : `Área queimada de ${MES_L[f.ini - 1]} a ${MES_L[f.fim - 1]}, por ano`;
-  if (f.ini === f.fim) $('x-anual-t').textContent = `Área queimada em ${MES_L[f.ini - 1]}, por ano`;
+  $('x-anual-t').textContent = noTerr(f.ini === f.fim ? `Área queimada em ${MES_L[f.ini - 1]}, por ano`
+    : f.ini === 1 && f.fim === 12 ? 'Área queimada no ano' : `Área queimada de ${MES_L[f.ini - 1]} a ${MES_L[f.fim - 1]}, por ano`, f);
   const media = vals.filter((_, i) => anos[i] !== f.ano && !parcial(anos[i]));
   const med = media.length ? media.reduce((s, x) => s + x, 0) / media.length : null;
   $('x-anual-s').textContent = (med ? `Média dos demais anos: ${haC(med)}.` : '') + (anos.some(parcial) ? ` ${P.Y} ainda está incompleto (dados até ${MES_L[P.M - 1]}).` : '');
@@ -2400,7 +2425,8 @@ function xCal(M, f) {
   const r = pintarCalendario($('xc-cal'), M, f.ano, f.ini, f.fim);
   if (!r) return;
   X.calGeo = r.geo;
-  $('x-cal-leg').innerHTML = `<span>0</span><span class="g"></span><span>${haC(r.max, 1)}</span><span class="fn">· “—” = mês ainda sem dado · contorno = ${f.ano}</span>`;
+  const unCel = r.U.u === 'mil ha' ? 'mil ha' : 'milhões de ha';
+  $('x-cal-leg').innerHTML = `<span>0</span><span class="g"></span><span>${haC(r.max, 1)}</span><span class="fn">· números nas células em ${unCel} · “—” = mês ainda sem dado · contorno = ${f.ano}</span>`;
   setDl('x-cal', { nome: 'calendario', cols: ['ano', ...MES_L], rows: P.anos.map(y => [y, ...M[y].map(v => v ?? '')]) });
 }
 // Grade ano × mês colorida pela área queimada (painel e página 6 do boletim).
@@ -2418,7 +2444,10 @@ function pintarCalendario(cv, M, anoDest, ini, fim, o = {}) {
   c.clearRect(0, 0, W, H);
   const max = Math.max(1, ...anos.flatMap(y => M[y]).filter(v => v != null));
   const cor = d3.scaleSequentialSqrt([0, max], d3.interpolateRgbBasis(CAL_RAMP));
-  const U = unid(max);   // números das células na unidade da legenda (ha ou mil ha)
+  // Números das células: em milhões de ha (a partir de 1 milhão) ou em mil ha (abaixo disso),
+  // para caberem na célula ("566" em vez de "566.000").
+  const nMil = v => { const n = v / 1e3; return v > 0 && n < .1 ? '<0,1' : n.toLocaleString('pt-BR', { maximumFractionDigits: n < 10 ? 1 : 0 }); };
+  const U = max >= 1e6 ? unid(max) : { u: 'mil ha', n: nMil };
   const cw = (W - left) / 12;
   c.textBaseline = 'middle';
   MES.forEach((m, i) => {
@@ -2451,7 +2480,7 @@ function pintarCalendario(cv, M, anoDest, ini, fim, o = {}) {
 function novoMapa(id) {
   const m = L.map(id, { zoomSnap: .25, zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false });
   m.attributionControl.setPrefix(false);
-  L.tileLayer(ESRI, { attribution: 'Mapa base © Esri', maxZoom: 16 }).addTo(m);
+  L.tileLayer(ESRI, { attribution: 'Mapa base © Esri', maxZoom: 16, crossOrigin: 'anonymous' }).addTo(m);
   m._cam = [];
   return m;
 }
@@ -2468,6 +2497,48 @@ function legVar(base) {
   const sem = base === 'media' ? 'sem fogo na média histórica' : 'sem fogo nos dois anos';
   return DIV_CORES.map((c, i) => `<span><i style="background:${c}"></i>${t[i]}</span>`).join('')
     + `<span><i style="background:${SEM_DADO}"></i>${sem}</span>`;
+}
+// Mapa de calor: o servidor (Earth Engine) manda uma cor só (rosa) e a intensidade vem na transparência,
+// o que deixa o mapa apagado. Cada pedaço é redesenhado num canvas com a escala CALOR_RAMPA
+// (amarelo → vinho) pela intensidade, mais opaco nas áreas de maior concentração.
+const CALOR_RAMPA = ['#FFE58A', '#FDB04B', '#F2672E', '#D32F2F', '#7A1010'];
+const CALOR_ALFA_MAX = 150;   // transparência do servidor que já conta como intensidade máxima
+let CALOR_LUT_ = null;
+const calorLut = () => CALOR_LUT_ ||= (() => {
+  const cor = d3.interpolateRgbBasis(CALOR_RAMPA), lut = new Uint8ClampedArray(256 * 4);
+  for (let a = 0; a < 256; a++) {
+    const t = Math.min(1, a / CALOR_ALFA_MAX), c = d3.rgb(cor(t));
+    lut.set([c.r, c.g, c.b, a < 6 ? 0 : Math.round(255 * (.45 + .5 * t))], a * 4);
+  }
+  return lut;
+})();
+function camadaCalor(url) {
+  const Camada = L.GridLayer.extend({
+    createTile(coords, done) {
+      const sz = this.getTileSize(), tile = document.createElement('canvas');
+      tile.width = sz.x; tile.height = sz.y;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const c = tile.getContext('2d');
+        c.drawImage(img, 0, 0, sz.x, sz.y);
+        try {
+          const d = c.getImageData(0, 0, sz.x, sz.y), p = d.data, lut = calorLut();
+          for (let i = 0; i < p.length; i += 4) { const k = p[i + 3] * 4; p[i] = lut[k]; p[i + 1] = lut[k + 1]; p[i + 2] = lut[k + 2]; p[i + 3] = lut[k + 3]; }
+          c.putImageData(d, 0, 0);
+        } catch { /* sem permissão para ler os pixels: fica a imagem original */ }
+        done(null, tile);
+      };
+      img.onerror = () => done(null, tile);
+      img.src = url.replace('{z}', coords.z).replace('{x}', coords.x).replace('{y}', coords.y);
+      return tile;
+    }
+  });
+  return new Camada({ zIndex: 3, maxZoom: 16 });
+}
+function legCalor() {
+  return CALOR_RAMPA.map((c, i) => `<span><i style="background:${c}"></i>${['muito baixa', 'baixa', 'média', 'alta', 'muito alta'][i]}</span>`).join('')
+    + '<span>concentração de área queimada (mapa de calor)</span>';
 }
 function camadas(m, f, d) {
   limparMapa(m);
@@ -2486,7 +2557,8 @@ function camadas(m, f, d) {
     poe(m, l);
   } else {
     poe(m, mvt(`/api/territories/shape/tiles/${sub}`, { fill: true, fillColor: '#FFFFFF', fillOpacity: .55, stroke: false }, 2));
-    poe(m, L.tileLayer(d.url, { zIndex: 3, maxZoom: 16 }));
+    // crossOrigin: as imagens podem ir para o PNG do mapa. O mapa de calor é recolorido (camadaCalor).
+    poe(m, d.modo === 'calor' ? camadaCalor(d.url) : L.tileLayer(d.url, { zIndex: 3, maxZoom: 16, crossOrigin: 'anonymous' }));
   }
   poe(m, mvt(`/api/territories/shape/tiles/${sub}`, { fill: false, color: C.redD, weight: 1.6 }, 5));
 }
@@ -2552,7 +2624,7 @@ async function xMapa(f, vivo, rankP) {
   } else {
     d1 = { modo: modoOk, url: dados.url };
     leg = modoOk === 'calor'
-      ? '<span>Mapa de calor: quanto mais intensa a cor, maior a concentração de área queimada.</span>'
+      ? legCalor()
       : '<span><i style="background:transparent;box-shadow:inset 0 0 0 2px #B42A1C"></i>limite do recorte</span><span>Cicatrizes de fogo no período, na cor da plataforma Monitor do Fogo.</span>';
   }
   setDl('x-mapa', csv);
@@ -2901,6 +2973,137 @@ function baixarCSV(id) {
   baixar(`${arquivo(d.nome)}.csv`, new Blob([`﻿${linhas.join('\r\n')}`], { type: 'text/csv;charset=utf-8' }));
 }
 // PNG do gráfico com título, recorte e fonte, no tamanho em que foi desenhado (3x a tela).
+// PNG do mapa do painel: copia o que está na tela (fundo, camadas e limites), na ordem das camadas,
+// e acrescenta título, legenda, barra de escala, seta do norte e fonte.
+function svgParaImg(svg) {
+  return new Promise(res => {
+    // Sem largura/altura explícitas, a imagem de um SVG sai com 300 × 150 e corta o desenho.
+    const cl = svg.cloneNode(true), w = parseFloat(svg.style.width) || svg.width?.baseVal?.value || 256, h = parseFloat(svg.style.height) || svg.height?.baseVal?.value || 256;
+    cl.setAttribute('width', w);
+    cl.setAttribute('height', h);
+    if (!cl.getAttribute('viewBox')) cl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    cl.style.transform = '';
+    const txt = new XMLSerializer().serializeToString(cl);
+    const url = URL.createObjectURL(new Blob([txt], { type: 'image/svg+xml' }));
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); res(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); res(null); };
+    img.src = url;
+  });
+}
+async function baixarMapaPNG() {
+  const m = X.m1;
+  if (!m) return;
+  const box = m.getContainer(), br = box.getBoundingClientRect();
+  const W = Math.round(br.width), H = Math.round(br.height), s = 2;
+  const dentro = r => r.width && r.right > br.left && r.left < br.right && r.bottom > br.top && r.top < br.bottom;
+  const els = [...box.querySelectorAll('.leaflet-pane img.leaflet-tile, .leaflet-pane svg.leaflet-tile, .leaflet-pane canvas')]
+    .filter(el => dentro(el.getBoundingClientRect()) && (el.tagName !== 'IMG' || (el.complete && el.naturalWidth)));
+  // Ordem de desenho: z-index de cada nível (painel do Leaflet, camada), depois a ordem no documento.
+  const chave = el => { const z = []; for (let a = el; a && a !== box; a = a.parentElement) z.unshift(parseInt(getComputedStyle(a).zIndex, 10) || 0); return z; };
+  const cmpZ = (a, b) => { for (let i = 0; i < Math.max(a.length, b.length); i++) { const d = (a[i] || 0) - (b[i] || 0); if (d) return d; } return 0; };
+  const itens = els.map(el => ({ el, z: chave(el) })).sort((a, b) => cmpZ(a.z, b.z));
+  const imgs = await Promise.all(itens.map(({ el }) => el.tagName.toLowerCase() === 'svg' ? svgParaImg(el) : el));
+
+  const mc = document.createElement('canvas');
+  mc.width = W * s; mc.height = H * s;
+  const c = mc.getContext('2d');
+  c.scale(s, s);
+  c.fillStyle = '#F2F2F2';
+  c.fillRect(0, 0, W, H);
+  try {
+    itens.forEach(({ el }, i) => {
+      const img = imgs[i];
+      if (!img) return;
+      const r = el.getBoundingClientRect();
+      let op = 1;
+      for (let a = el; a && a !== box; a = a.parentElement) op *= +getComputedStyle(a).opacity;
+      c.globalAlpha = op;
+      c.drawImage(img, r.left - br.left, r.top - br.top, r.width, r.height);
+    });
+  } finally { c.globalAlpha = 1; }
+
+  // Seta do norte (canto superior direito do mapa).
+  const nx = W - 26, ny = 16;
+  c.fillStyle = 'rgba(255,255,255,.85)';
+  c.beginPath(); c.arc(nx, ny + 16, 18, 0, Math.PI * 2); c.fill();
+  c.fillStyle = C.ink;
+  c.beginPath(); c.moveTo(nx, ny + 2); c.lineTo(nx + 7, ny + 24); c.lineTo(nx, ny + 19); c.closePath(); c.fill();
+  c.fillStyle = '#9E9E9E';
+  c.beginPath(); c.moveTo(nx, ny + 2); c.lineTo(nx - 7, ny + 24); c.lineTo(nx, ny + 19); c.closePath(); c.fill();
+  c.fillStyle = C.ink; c.font = '700 10px Montserrat, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  c.fillText('N', nx, ny + 36);
+
+  // Barra de escala (canto inferior esquerdo): comprimento "redondo" de até ~120 px.
+  const yC = H / 2, a1 = m.containerPointToLatLng([W / 2 - 50, yC]), a2 = m.containerPointToLatLng([W / 2 + 50, yC]);
+  const mpp = m.distance(a1, a2) / 100;
+  const alvo = mpp * 120, p10 = Math.pow(10, Math.floor(Math.log10(alvo)));
+  const metros = [5, 2, 1].map(k => k * p10).find(v => v <= alvo) || p10;
+  const px = metros / mpp, sx = 12, sy = H - 18;
+  c.fillStyle = 'rgba(255,255,255,.85)';
+  c.fillRect(sx - 6, sy - 18, px + 44, 28);
+  [0, 1, 2, 3].forEach(k => { c.fillStyle = k % 2 ? '#FFFFFF' : C.ink; c.fillRect(sx + k * px / 4, sy, px / 4, 5); });
+  c.strokeStyle = C.ink; c.lineWidth = 1; c.strokeRect(sx, sy, px, 5);
+  c.fillStyle = C.ink; c.font = '600 9px Montserrat, sans-serif'; c.textAlign = 'center';
+  const km = metros >= 1000 ? `${(metros / 1000).toLocaleString('pt-BR')} km` : `${metros} m`;
+  c.fillText('0', sx, sy - 4);
+  c.fillText(km, sx + px, sy - 4);
+
+  // Legenda: itens do mapa na tela (amostra de cor + texto), em linhas.
+  const leg = [...$('x-mapa-leg').querySelectorAll('span')].map(sp => {
+    const i = sp.querySelector('i');
+    const cs = i ? getComputedStyle(i) : null;
+    return { cor: cs && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' ? cs.backgroundColor : null, borda: cs && cs.boxShadow !== 'none' ? C.redD : null, txt: sp.textContent.trim() };
+  }).filter(l => l.txt);
+  const pad = 18, larg = Math.max(W, 640), med = document.createElement('canvas').getContext('2d');
+  med.font = '500 11px Montserrat, sans-serif';
+  let lx = pad, linhas = 1;
+  const pos = leg.map(l => {
+    const w = (l.cor || l.borda ? 16 : 0) + med.measureText(l.txt).width;
+    if (lx + w > larg + pad && lx > pad) { lx = pad; linhas++; }
+    const p = { l, x: lx, linha: linhas - 1 };
+    lx += w + 14;
+    return p;
+  });
+  const head = 58, legH = leg.length ? linhas * 18 + 10 : 0, foot = 26;
+  const out = document.createElement('canvas');
+  out.width = (larg + pad * 2) * s; out.height = (head + H + legH + foot) * s;
+  const o = out.getContext('2d');
+  o.scale(s, s);
+  o.fillStyle = '#FFFFFF'; o.fillRect(0, 0, larg + pad * 2, head + H + legH + foot);
+  o.fillStyle = C.red; o.fillRect(pad, 14, 4, 34);
+  o.fillStyle = C.ink; o.font = '700 15px Montserrat, sans-serif'; o.textBaseline = 'alphabetic';
+  o.fillText($('x-mapa-t').textContent, pad + 12, 29);
+  o.fillStyle = C.ink2; o.font = '500 11px Montserrat, sans-serif';
+  o.fillText($('x-mapa-s').textContent, pad + 12, 46);
+  o.textAlign = 'right'; o.fillStyle = C.red; o.font = '800 11px Montserrat, sans-serif';
+  o.fillText('MAPBIOMAS FOGO · MONITOR DO FOGO', larg + pad, 29);
+  o.textAlign = 'left';
+  const mx = pad + (larg - W) / 2;
+  o.drawImage(mc, mx, head, W, H);
+  o.strokeStyle = C.line; o.lineWidth = 1; o.strokeRect(mx + .5, head + .5, W - 1, H - 1);
+  o.textBaseline = 'middle'; o.font = '500 11px Montserrat, sans-serif';
+  pos.forEach(({ l, x, linha }) => {
+    const y = head + H + 14 + linha * 18;
+    let tx = x;
+    if (l.cor || l.borda) {
+      if (l.cor) { o.fillStyle = l.cor; o.fillRect(x, y - 5, 10, 10); }
+      if (l.borda) { o.strokeStyle = l.borda; o.lineWidth = 2; o.strokeRect(x + 1, y - 4, 8, 8); }
+      tx += 16;
+    }
+    o.fillStyle = C.ink2;
+    o.fillText(l.txt, tx, y);
+  });
+  o.fillStyle = C.muted; o.font = '500 9.5px Montserrat, sans-serif';
+  o.fillText(`Fonte: MapBiomas Fogo · Monitor do Fogo (${API.replace('https://', '')}) · Mapa base © Esri`, pad, head + H + legH + foot / 2);
+  try {
+    const blob = await new Promise(r => out.toBlob(r, 'image/png'));
+    if (blob) baixar(arquivo('mapa.png'), blob);
+  } catch (e) {
+    alert('Não foi possível gerar a imagem do mapa (o navegador bloqueou a cópia de alguma camada).');
+  }
+}
+
 function baixarPNG(id) {
   const card = $(id), cv = card?.querySelector('canvas');
   if (!cv || !X.dl[id]) return;
