@@ -4,7 +4,7 @@
 
 > **Local no repositório**: `utils/fire_monitor_highlights/`, uma pasta por país em `src/` (`src/brazil/` e `src/peru/`). Esta documentação descreve o boletim do **Brasil** (`src/brazil/boletim-fogo.html`); a tabela abaixo foi escrita para o repositório original `veralaisa/boletim-monitor-fogo`, onde os arquivos ficam na raiz. Publicado em https://mapbiomas.github.io/brazil-fire/fire_monitor_highlights/brazil/ (workflow `.github/workflows/pages.yml`).
 
-> **Peru** (`src/peru/boletin-fuego.html`): derivado do boletim do Brasil, em espanhol, só com o boletim do mês. Usa a API `https://fogo-peru.geodatin.com` (mesmo formato; território `country` com código 1; subdivisões `department`, `province`, `district`, `biome`; tiles em `/api/territories/grouping/tiles/{grouping}`; `/bounds` devolve só a caixa). A API do Peru tem dados só desde julho de 2025 e o mês de maio de 2026 não existe.
+> **Peru** (`src/peru/boletin-fuego.html`): derivado do boletim do Brasil, em espanhol, só com o boletim do mês. Usa a API `https://fogo-peru.geodatin.com` (mesmo formato; território `country` com código 1; subdivisões `department`, `province`, `district`, `biome`; tiles em `/api/territories/grouping/tiles/{grouping}`; `/bounds` devolve só a caixa). A API do Peru tem dados de julho de 2025 em diante (em 2026-11-10: jul/2025 a jul/2026, todos os meses). O boletim detecta sozinho o último mês; com só 2 anos, não há média histórica e o acumulado de jan–mês não tem variação (2025 começa em julho).
 
 ## 📁 Arquivos
 
