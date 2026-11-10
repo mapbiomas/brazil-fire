@@ -1561,7 +1561,7 @@ function lulcHTML(lc, titulo, min = 6) {
 // Com total, o rótulo traz também a % do Brasil: "515.254 ha · 20%".
 function barrasH(id, nomes, vals, cls, total) {
   const fmt = v => total ? `${nf0(v)} ha · ${fmtP(v / total * 100)}` : nf0(v);
-  const U = unid(maxNum(vals));
+  const U = unid(0);   // rankings sempre em hectares (os rótulos das barras já trazem "515.254 ha")
   mkChart(id, id, {
     type: 'bar',
     data: { labels: nomes, datasets: [{ data: vals, backgroundColor: vals.map(v => cls.cor(v)), borderRadius: 3, barPercentage: .82, categoryPercentage: .9 }] },
@@ -1571,7 +1571,7 @@ function barrasH(id, nomes, vals, cls, total) {
       layout: { padding: { right: total ? 104 : 58 } },
       plugins: { legend: { display: false }, rotulos: { fmt }, tooltip: { callbacks: { label: c => fmt(c.raw) } } },
       scales: {
-        x: yAxis({ ticks: { callback: U.t, font: { size: 9.5 }, maxTicksLimit: 7 }, title: axTitle(eixoHa(U)) }),
+        x: yAxis({ ticks: { callback: U.t, font: { size: 9.5 }, maxTicksLimit: 5 }, title: axTitle(eixoHa(U)) }),
         y: { grid: { display: false }, border: { color: C.ink }, ticks: { font: { size: 10.5 }, color: C.ink } }
       }
     }

@@ -135,7 +135,8 @@ curto(v)        // mapas e legendas: "1.435 mil" (nunca milhão)
 unid(max)       // gráficos: uma unidade por gráfico. Com algum valor ≥ 1 milhão de ha: eixo
                 // "Área queimada (milhões de hectares)" em duas linhas (eixoHa), marcas 2/4/6 (t),
                 // rótulos "3,6 Mha" (f) só no ano em destaque e na média (abaixo de 1 milhão, "631 mil ha"); demais só "3,6" (n) e subtítulo "…, em milhões de hectares" (ext).
-                // Abaixo de 1 milhão: tudo em hectares inteiros ("566.000", eixo "(ha)")
+                // Abaixo de 1 milhão: tudo em hectares inteiros ("566.000", eixo "(ha)").
+                // Rankings de biomas e estados (barrasH): sempre em hectares.
 pctTxt(p)       // "+5%" / "−3%"
 fmtP(p)         // "5%" / "<1%"
 pct1(p)         // "77,5%"
