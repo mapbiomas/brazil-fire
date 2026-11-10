@@ -78,6 +78,7 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 
 - `cardHtml` põe "⬇ PNG" e "▦ Tabela" em todo card com dados; `acaoDoCard` (delegado em `el.panel`). A tabela vem de `tabelaDoCard`: dos gráficos Chart.js desenhados (`Chart.getChart`; `options.plugins.tabela.percent`), ou de `ranking`/`propbars`/`topcards` (cards lazy guardam `root._res`). CSV com `;`.
 - A tabela fixa da aba Anual saiu (agora é o botão Tabela do gráfico anual).
+- PNG do card (`baixarGraficoPng`): fundo branco; copia os canvas e redesenha as partes em HTML (barras 100%, listas/ranking, cards de destaque, legendas com valores, texto no meio das roscas) com `elementosHtmlDoPng` + `desenharHtmlNoPng` (fundos e bordas antes dos canvas, textos depois, palavra por palavra na posição que o navegador dá; números `tabular-nums` caractere por caractere). No tema escuro, `eixosEscurosParaPng` escurece os eixos do Chart.js só durante a cópia. Para testar todos os botões: script headless que troca cada vista, clica PNG/Tabela/CSV e guarda as imagens.
 - Mensal: `state.mesIni`/`mesFim` definem a temporada; atravessando o ano, a temporada Y = meses ≥ início em Y + meses < início em Y+1 (rótulo "2020/21"; a última sem o ano seguinte fica de fora). `state.paletaMes`: legenda oficial da API ou `PALETA_MESES_FOGO`. Novo card empilhado por ano e mês. A legenda mensal usa só os 12 primeiros itens (Colômbia traz 24).
 
 ## Revisão das abas (2026-11-05, tarde)

@@ -3846,54 +3846,108 @@ function eixosEscurosParaPng(canvases) {
   };
 }
 
-// Redesenha no canvas do PNG, na mesma posição da tela, as partes do card feitas em HTML:
-// rótulos das barras, segmentos das barras 100% (com o % dentro) e as linhas das legendas
-// com valores. Textos em cores escuras fixas, porque o PNG tem fundo branco.
-function desenharHtmlNoPng(ctx, els, dx, dy) {
-  const fonte = (cs) => `${cs.fontWeight} ${cs.fontSize} Montserrat, sans-serif`;
-  // Escreve o texto quebrando em linhas na largura da caixa, centralizado na altura dela.
-  const escrever = (txt, r, cs, cor, alinhar = "left") => {
-    if (!txt) return;
-    ctx.font = fonte(cs);
-    const palavras = txt.split(/\s+/);
-    const linhas = [];
-    let atual = "";
-    for (const p of palavras) {
-      const teste = atual ? `${atual} ${p}` : p;
-      if (atual && ctx.measureText(teste).width > r.width + 1) { linhas.push(atual); atual = p; } else atual = teste;
+// Partes do card feitas em HTML (barras 100%, listas, cards de destaque, legendas com valores,
+// texto no meio das roscas...) não estão em canvas. Para irem ao PNG, cada uma é redesenhada
+// na mesma posição da tela: fundo, borda e cada palavra do texto (a posição de cada palavra vem
+// do próprio navegador, então quebras de linha e alinhamentos saem iguais).
+const PNG_IGNORAR = ".legend-row, button, .cor-troca, .calor-dica, .tabela-wrap, .card-tabela-acoes, svg, canvas, [hidden]";
+
+function elementosHtmlDoPng(body) {
+  return [...body.querySelectorAll("*")].filter((el) => {
+    if (el.closest(PNG_IGNORAR) || !el.getClientRects().length) return false;
+    const cs = getComputedStyle(el);
+    return cs.visibility !== "hidden" && cs.display !== "none" && Number(cs.opacity) > 0;
+  });
+}
+
+function desenharHtmlNoPng(ctx, els, dx, dy, etapa) {
+  const escuro = temaEscuro();
+  const transparente = (c) => !c || c === "transparent" || /rgba\([^)]*,\s*0\)$/.test(c);
+  const luz = (c) => {
+    const m = (c || "").match(/\d+(\.\d+)?/g);
+    return m ? (0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]) / 255 : 0;
+  };
+  const card = els[0]?.closest(".card");
+  const superficie = card ? getComputedStyle(card).backgroundColor : "rgb(255, 255, 255)";
+  // Fundo "de verdade" atrás do elemento (para saber se o texto está sobre uma cor ou sobre o card).
+  const temFundoProprio = (el) => {
+    for (let a = el; a && !a.classList.contains("card-body"); a = a.parentElement) {
+      const bg = getComputedStyle(a).backgroundColor;
+      if (!transparente(bg) && bg !== superficie) return true;
     }
-    linhas.push(atual);
-    const lh = parseFloat(cs.fontSize) * 1.3;
-    const y0 = r.top + dy + r.height / 2 - ((linhas.length - 1) * lh) / 2;
-    ctx.fillStyle = cor;
-    ctx.textAlign = alinhar;
-    const x = alinhar === "center" ? r.left + dx + r.width / 2 : alinhar === "right" ? r.right + dx : r.left + dx;
-    linhas.forEach((l, k) => ctx.fillText(l, x, y0 + k * lh));
+    return false;
+  };
+  const caixa = (r, raio) => {
+    ctx.beginPath();
+    if (ctx.roundRect && raio) ctx.roundRect(r.left + dx, r.top + dy, r.width, r.height, Math.min(raio, r.height / 2, r.width / 2));
+    else ctx.rect(r.left + dx, r.top + dy, r.width, r.height);
   };
   ctx.save();
-  ctx.textBaseline = "middle";
-  for (const el of els) {
-    const r = el.getBoundingClientRect();
+  // 1) fundos e bordas (antes dos gráficos em canvas)
+  if (etapa === "fundos") for (const el of els) {
     const cs = getComputedStyle(el);
-    if (el.parentElement.classList.contains("donut-center")) {
-      escrever(el.textContent.trim(), r, cs, el.tagName === "STRONG" ? "#15171c" : "#555555", "center");
-    } else if (el.classList.contains("propbar-label")) {
-      escrever(el.textContent.trim(), r, cs, "#333333");
-    } else if (el.parentElement.classList.contains("propbar")) {
-      ctx.fillStyle = cs.backgroundColor;
-      ctx.fillRect(r.left + dx, r.top + dy, r.width, r.height);
-      escrever(el.textContent.trim(), r, cs, cs.color, "center");
-    } else {
-      for (const filho of el.children) {
-        const rf = filho.getBoundingClientRect();
-        const cf = getComputedStyle(filho);
-        if (filho.tagName === "I") {
-          ctx.fillStyle = resolveColor(filho.style.getPropertyValue("--c").trim()) || cf.backgroundColor;
-          ctx.fillRect(rf.left + dx, rf.top + dy, rf.width, rf.height);
-        } else {
-          const cor = filho.classList.contains("l-share") ? "#555555" : filho.classList.contains("l-value") ? "#333333" : "#15171c";
-          escrever(filho.textContent.trim(), rf, cf, cor, cf.textAlign === "right" || cf.textAlign === "end" ? "right" : "left");
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height) continue;
+    const raio = parseFloat(cs.borderTopLeftRadius) || 0;
+    let bg = cs.backgroundColor;
+    if (el.tagName === "I" && el.style.getPropertyValue("--c")) bg = resolveColor(el.style.getPropertyValue("--c").trim()) || bg;
+    if (!transparente(bg) && bg !== superficie) {
+      // No tema escuro, os cinzas de fundo (trilhos das barras, caixas) viram cinza-claro no PNG.
+      if (escuro && luz(bg) < 0.3 && el.tagName !== "I" && !el.style.getPropertyValue("--c")) bg = "#eef0f3";
+      ctx.fillStyle = bg;
+      caixa(r, raio);
+      ctx.fill();
+    }
+    const bt = parseFloat(cs.borderTopWidth) || 0;
+    if (bt > 0 && !transparente(cs.borderTopColor) && bt === (parseFloat(cs.borderBottomWidth) || 0)) {
+      ctx.strokeStyle = escuro ? "#d9dce1" : cs.borderTopColor;
+      ctx.lineWidth = bt;
+      caixa(r, raio);
+      ctx.stroke();
+    }
+    const bl = parseFloat(cs.borderLeftWidth) || 0;
+    if (bl > bt && !transparente(cs.borderLeftColor)) {
+      ctx.fillStyle = cs.borderLeftColor;
+      ctx.fillRect(r.left + dx, r.top + dy, bl, r.height);
+    }
+  }
+  // 2) textos, palavra por palavra (depois dos gráficos)
+  if (etapa === "fundos") { ctx.restore(); return; }
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  const range = document.createRange();
+  for (const el of els) {
+    const cs = getComputedStyle(el);
+    let cor = cs.color;
+    if (escuro && luz(cor) > 0.55 && !temFundoProprio(el)) cor = luz(cor) > 0.8 ? "#15171c" : "#555555";
+    ctx.fillStyle = cor;
+    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} Montserrat, sans-serif`;
+    const maiusculas = cs.textTransform === "uppercase";
+    // Algarismos de largura fixa (tabular-nums) não existem no canvas: esses números
+    // são desenhados caractere por caractere, cada um centrado na posição da tela.
+    const tabular = /tabular/.test(cs.fontVariantNumeric);
+    for (const no of el.childNodes) {
+      if (no.nodeType !== 3 || !no.textContent.trim()) continue;
+      const txt = no.textContent;
+      const re = /\S+/g;
+      let m;
+      while ((m = re.exec(txt))) {
+        range.setStart(no, m.index);
+        range.setEnd(no, m.index + m[0].length);
+        const rr = range.getBoundingClientRect();
+        if (!rr.width) continue;
+        if (tabular && /\d/.test(m[0])) {
+          ctx.textAlign = "center";
+          for (let k = 0; k < m[0].length; k++) {
+            range.setStart(no, m.index + k);
+            range.setEnd(no, m.index + k + 1);
+            const rc = range.getBoundingClientRect();
+            ctx.fillText(m[0][k], rc.left + dx + rc.width / 2, rc.top + dy + rc.height / 2);
+          }
+          ctx.textAlign = "left";
+          continue;
         }
+        ctx.fillText(maiusculas ? m[0].toUpperCase() : m[0], rr.left + dx, rr.top + dy + rr.height / 2);
       }
     }
   }
@@ -3903,8 +3957,8 @@ function desenharHtmlNoPng(ctx, els, dx, dy) {
 async function baixarGraficoPng(root, card) {
   const body = root.querySelector(".card-body");
   const canvases = [...body.querySelectorAll("canvas")].filter((c) => c.offsetWidth);
-  // Partes feitas em HTML (barras 100%, rótulos e legendas com valores) também vão para a imagem.
-  const htmls = [...body.querySelectorAll(".propbar-label, .propbar > span, .legend-list li, .donut-center > *")].filter((el) => el.offsetWidth);
+  // Partes feitas em HTML (barras 100%, listas, destaques, legendas com valores) também vão para a imagem.
+  const htmls = elementosHtmlDoPng(body);
   if (!canvases.length && !htmls.length) return setStatus(tr("Este card não tem gráfico para baixar; use a tabela."));
   const br = body.getBoundingClientRect();
   const W = Math.ceil(br.width), pad = 16, cab = 52, esc = 2;
@@ -3936,6 +3990,7 @@ async function baixarGraficoPng(root, card) {
   ctx.fillText(tr(`${activeTerritory().nome} · ${state.ini}–${state.fim}${card.subtitle ? ` · ${card.subtitle}` : ""}`), pad, 42, W);
   // No tema escuro os eixos ficam claros na tela e sumiriam no fundo branco do PNG:
   // escurece os eixos só durante a cópia e depois devolve as cores do tema.
+  desenharHtmlNoPng(ctx, htmls, pad - br.left, cab - br.top, "fundos");
   const restaurar = temaEscuro() ? eixosEscurosParaPng(canvases) : () => {};
   try {
     for (const c of canvases) {
@@ -3943,7 +3998,7 @@ async function baixarGraficoPng(root, card) {
       ctx.drawImage(c, pad + r.left - br.left, cab + r.top - br.top, r.width, r.height);
     }
   } finally { restaurar(); }
-  desenharHtmlNoPng(ctx, htmls, pad - br.left, cab - br.top);
+  desenharHtmlNoPng(ctx, htmls, pad - br.left, cab - br.top, "textos");
   ctx.textBaseline = "middle";
   for (const { it, x: lx, linha: l } of pos) {
     const yy = cab + altura + 14 + l * 20;
