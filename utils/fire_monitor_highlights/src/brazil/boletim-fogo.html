@@ -959,7 +959,8 @@ const curto = v => Math.abs(v) >= 1e3 ? Math.round(v / 1e3).toLocaleString('pt-B
 // Senão, em hectares: eixo "(hectares)" e números inteiros (566.000).
 const nMi = v => { const n = v / 1e6; return v > 0 && n < .05 ? '<0,1' : n.toLocaleString('pt-BR', { minimumFractionDigits: n ? 1 : 0, maximumFractionDigits: 1 }); };
 const unid = max => max >= 1e6
-  ? { u: 'milhões de hectares', ext: 'milhões de hectares', n: nMi, f: v => `${nMi(v)} Mha`,
+  // Abaixo de 1 milhão, o rótulo com unidade vira "631 mil ha" em vez de "0,6 Mha".
+  ? { u: 'milhões de hectares', ext: 'milhões de hectares', n: nMi, f: v => Math.abs(v) < 1e6 ? `${curto(v)} ha` : `${nMi(v)} Mha`,
       t: v => (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) }
   : { u: 'hectares', ext: 'hectares', n: nf0, f: nf0, t: nf0 };
 // Título do eixo: em milhões vai em duas linhas, para caber na altura dos gráficos do boletim.
