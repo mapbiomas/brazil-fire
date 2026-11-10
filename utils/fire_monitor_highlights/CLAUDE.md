@@ -129,7 +129,11 @@ legVar()      // legenda HTML das 5 classes
 ### Helpers de formatação
 ```javascript
 nf0(v)          // Número inteiro formatado (pt-BR)
-haC(v)          // "123.456 ha"
+cmp(v, d)       // textos: "566 mil", "1,4 milhão", "2,1 milhões" (nunca "mi")
+haC(v, d)       // "566 mil ha", "1,4 milhão de ha"
+curto(v)        // mapas e legendas: "1.435 mil" (nunca milhão)
+unid(max)       // gráficos: { u: 'mil ha' | 'ha', f } — uma unidade por gráfico, no título do eixo
+                // ("Área queimada (mil ha)"), números sem sufixo; "mil ha" a partir de 10 mil ha
 pctTxt(p)       // "+5%" / "−3%"
 fmtP(p)         // "5%" / "<1%"
 pct1(p)         // "77,5%"

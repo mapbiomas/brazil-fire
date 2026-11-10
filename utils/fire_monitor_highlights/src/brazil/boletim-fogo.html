@@ -940,13 +940,25 @@ const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const range = (a, b) => Array.from({ length: Math.max(0, b - a + 1) }, (_, i) => a + i);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nf0 = v => Math.round(v).toLocaleString('pt-BR');
+// Textos: milhões por extenso ("1,4 milhão", "2,1 milhões"), milhares como "566 mil".
 const cmp = (v, d = 2) => {
   const a = Math.abs(v);
-  if (a >= 1e6) return (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: d }) + ' mi';
+  if (a >= 1e6) {
+    const n = +(v / 1e6).toFixed(d);
+    return n.toLocaleString('pt-BR', { maximumFractionDigits: d }) + (Math.abs(n) < 2 ? ' milhão' : ' milhões');
+  }
   if (a >= 1e3) return Math.round(v / 1e3).toLocaleString('pt-BR') + ' mil';
   return Math.round(v).toLocaleString('pt-BR');
 };
-const haC = v => v == null ? '—' : `${cmp(v)} ha`;
+const haC = (v, d = 2) => v == null ? '—' : `${cmp(v, d)} ${Math.abs(v) >= 1e6 ? 'de ha' : 'ha'}`;
+// Rótulos curtos (mapas e legendas): nunca milhão, sempre "1.435 mil".
+const curto = v => Math.abs(v) >= 1e3 ? Math.round(v / 1e3).toLocaleString('pt-BR') + ' mil' : nf0(v);
+// Gráficos: uma unidade por gráfico, no título do eixo, e os números sem sufixo.
+// A partir de 10 mil ha o gráfico inteiro fica em "mil ha" (1.435, 566, 0,3); abaixo disso, em "ha".
+const unid = max => max >= 1e4
+  ? { u: 'mil ha', f: v => (v / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: v && Math.abs(v) < 1e4 ? 1 : 0 }) }
+  : { u: 'ha', f: nf0 };
+const maxNum = arr => Math.max(0, ...arr.filter(v => typeof v === 'number' && isFinite(v)));
 const pctTxt = p => p == null ? '—' : `${p > 0 ? '+' : p < 0 ? '−' : ''}${Math.abs(Math.round(p))}%`;
 const fmtP = p => p > 0 && p < 1 ? '<1%' : `${Math.round(p)}%`;
 const tone = p => p > 0 ? 'up' : p < 0 ? 'down' : '';
@@ -998,7 +1010,7 @@ function classes(values, n = 5) {
   const leg = pal.map((c, i) => ({ c, de: i === 0 ? v[0] : br[i - 1], ate: i < br.length ? br[i] : v[v.length - 1] }));
   return { cor: x => x > 0 ? pal[idx(x)] : SEM_DADO, idx: x => x > 0 ? idx(x) + (RAMP5.length - pal.length) : -1, leg };
 }
-const fmtLeg = v => v >= 1e4 ? cmp(v, 1) : nf0(v);
+const fmtLeg = v => v >= 1e4 ? curto(v) : nf0(v);
 const legHTML = cls => cls.leg.map(l => `<span><i style="background:${l.c}"></i>${fmtLeg(l.de)} – ${fmtLeg(l.ate)}</span>`).join('')
   + `<span><i style="background:${SEM_DADO}"></i>sem área queimada</span><span>(ha)</span>`;
 
@@ -1106,7 +1118,7 @@ const topLabels = {
     ctx.restore();
   }
 };
-const yAxis = extra => ({ beginAtZero: true, border: { display: false }, grid: { color: '#EFEFEF' }, ticks: { callback: v => cmp(v, 1) }, ...extra });
+const yAxis = extra => ({ beginAtZero: true, border: { display: false }, grid: { color: '#EFEFEF' }, ticks: { callback: v => curto(v) }, ...extra });
 const axTitle = text => ({ display: true, text, color: C.ink2, font: { size: 9.5, weight: '600' }, padding: { top: 2, bottom: 2 } });
 
 /* ---------- mapas ---------- */
@@ -1177,7 +1189,7 @@ function drawStates(el, geo, vals, total, cls) {
     if (SMALL.has(s)) { fora.push({ s, v, c }); return; }
     const t = lab.append('text').attr('text-anchor', 'middle').attr('fill', cls.idx(v || 0) >= 3 ? '#FFFFFF' : C.ink);
     t.append('tspan').attr('class', 'ml-s').attr('x', c[0]).attr('y', c[1]).text(s);
-    if (v != null) t.append('tspan').attr('class', 'ml-v').attr('x', c[0]).attr('dy', '1.2em').text(cmp(v, 1));
+    if (v != null) t.append('tspan').attr('class', 'ml-v').attr('x', c[0]).attr('dy', '1.2em').text(curto(v));
     // Percentual do país só nos estados com fatia relevante, para não poluir.
     if (v != null && v / total >= .03) t.append('tspan').attr('class', 'ml-v').attr('x', c[0]).attr('dy', '1.1em').text(fmtP(v / total * 100));
   });
@@ -1191,7 +1203,7 @@ function drawStates(el, geo, vals, total, cls) {
     lab.append('circle').attr('cx', o.c[0]).attr('cy', o.c[1]).attr('r', 1.8).attr('fill', C.ink);
     const t = lab.append('text').attr('x', xL).attr('y', y).attr('dy', '.35em').attr('fill', C.ink);
     t.append('tspan').attr('class', 'ml-s').text(o.s);
-    t.append('tspan').attr('class', 'ml-v').attr('dx', 4).attr('fill', C.ink2).text(o.v != null ? cmp(o.v, 1) : '—');
+    t.append('tspan').attr('class', 'ml-v').attr('dx', 4).attr('fill', C.ink2).text(o.v != null ? curto(o.v) : '—');
   });
 }
 
@@ -1223,6 +1235,7 @@ function yearChart(id, anos, vals, Y) {
   const ant = vals.filter((_, i) => anos[i] < Y);
   const med = ant.length ? ant.reduce((s, v) => s + v, 0) / ant.length : null;
   const a0 = anos.find(y => y < Y), a1 = anos.filter(y => y < Y).pop();
+  const U = unid(maxNum([...vals, med]));
   mkChart(id, id, {
     type: 'bar',
     data: {
@@ -1235,8 +1248,8 @@ function yearChart(id, anos, vals, Y) {
       layout: { padding: { top: 26, right: 40 } },
       plugins: {
         legend: { display: false },
-        linhaMedia: { v: med, txt: med == null ? '' : cmp(med, 1) },
-        topLabels: { indices: vals.map((_, i) => i), fmt: v => cmp(v, 1) },
+        linhaMedia: { v: med, txt: med == null ? '' : U.f(med) },
+        topLabels: { indices: vals.map((_, i) => i), fmt: U.f },
         tooltip: { callbacks: { label: c => haC(c.raw) } }
       },
       scales: {
@@ -1245,7 +1258,7 @@ function yearChart(id, anos, vals, Y) {
           ticks: { font: { size: 9.5 }, color: c => anos[c.index] === Y ? C.redD : C.muted },
           title: axTitle('Ano')
         },
-        y: yAxis({ grace: '12%', ticks: { callback: v => cmp(v, 1), font: { size: 9 }, maxTicksLimit: 4 }, title: axTitle('Área queimada (ha)') })
+        y: yAxis({ grace: '12%', ticks: { callback: U.f, font: { size: 9 }, maxTicksLimit: 4 }, title: axTitle(`Área queimada (${U.u})`) })
       }
     }
   });
@@ -1384,7 +1397,7 @@ function drawBiomes(el, r, total, cls) {
     if (pos[2]) { fora.push({ n: nomes[c], v, c: p }); return; }
     const t = lab.append('text').attr('text-anchor', 'middle').attr('fill', cls.idx(v || 0) >= 3 ? '#FFFFFF' : C.ink);
     t.append('tspan').attr('class', 'ml-s').attr('x', p[0]).attr('y', p[1]).text(nomes[c]);
-    t.append('tspan').attr('class', 'ml-v').attr('x', p[0]).attr('dy', '1.2em').text(cmp(v || 0, 1));
+    t.append('tspan').attr('class', 'ml-v').attr('x', p[0]).attr('dy', '1.2em').text(curto(v || 0));
     t.append('tspan').attr('class', 'ml-v').attr('x', p[0]).attr('dy', '1.1em').text(fmtP((v || 0) / total * 100));
   });
   fora.sort((a, b) => a.c[1] - b.c[1]);
@@ -1399,7 +1412,7 @@ function drawBiomes(el, r, total, cls) {
     const partes = o.n.length > 9 && o.n.includes(' ') ? [o.n.slice(0, o.n.indexOf(' ')), o.n.slice(o.n.indexOf(' ') + 1)] : [o.n];
     const t = lab.append('text').attr('x', xL).attr('y', y - 6 - (partes.length - 1) * 14).attr('fill', C.ink);
     partes.forEach((p, k) => t.append('tspan').attr('class', 'ml-s').attr('x', xL).attr('dy', k ? '1.1em' : 0).text(p));
-    t.append('tspan').attr('class', 'ml-v').attr('x', xL).attr('dy', '1.2em').attr('fill', C.ink2).text(cmp(o.v || 0, 1));
+    t.append('tspan').attr('class', 'ml-v').attr('x', xL).attr('dy', '1.2em').attr('fill', C.ink2).text(curto(o.v || 0));
     t.append('tspan').attr('class', 'ml-v').attr('x', xL).attr('dy', '1.1em').attr('fill', C.ink2).text(fmtP((o.v || 0) / total * 100));
   });
 }
@@ -1443,13 +1456,13 @@ function kpiSlide(el, rotulo, v) {
   $(el).innerHTML = `<p class="sl-kl">${rotulo}</p><p class="sl-kv">${nf0(v)}<small>ha</small></p>`;
 }
 // Caixa "−1.082.478 ha / Diminuição de 67% em relação à média". O areaHa da API é a diferença.
-// pilula = true: versão compacta "▼ 55% vs. média 2019–2025 (−3,2 mi ha)", usada nos cards da folha 1.
+// pilula = true: versão compacta "▼ 55% vs. média 2019–2025 (−3,2 milhões de ha)", usada nos cards da folha 1.
 function caixaVar(v, ref, pilula = false) {
   if (!v || v.percentage == null) return '';
   const up = v.percentage > 0, p = Math.abs(Math.round(v.percentage));
   if (pilula) {
     return `<div class="sl-var pl ${up ? 'up' : 'down'}"><b>${up ? '▲ +' : '▼ −'}${p}%</b>`
-      + `<span>${ref}</span><small>(${up ? '+' : '−'}${cmp(Math.abs(v.areaHa), 1)} ha)</small></div>`;
+      + `<span>${ref}</span><small>(${up ? '+' : '−'}${haC(Math.abs(v.areaHa), 1)})</small></div>`;
   }
   return `<div class="sl-var ${up ? 'up' : 'down'}"><p class="sl-vv">${up ? '+' : '−'}${nf0(Math.abs(v.areaHa))} ha</p>`
     + `<p class="sl-vt">${up ? 'Aumento' : 'Diminuição'} de ${p}% em relação ${ref}</p></div>`;
@@ -1472,7 +1485,7 @@ function tilePico(ts) {
   const { Y, M } = P;
   const meses = range(1, M).map(m => ({ m, v: sumTs(ts, Y, m, m) }));
   const pico = meses.reduce((a, b) => (b.v > a.v ? b : a)), tot = meses.reduce((s, x) => s + x.v, 0) || 1;
-  return { l: 'Pico do ano', v: cap(MES_L[pico.m - 1]), s: `${cmp(pico.v, 1)} ha · ${fmtP(pico.v / tot * 100)} do total do ano` };
+  return { l: 'Pico do ano', v: cap(MES_L[pico.m - 1]), s: `${haC(pico.v, 1)} · ${fmtP(pico.v / tot * 100)} do total do ano` };
 }
 function tileNativa(lc) {
   const r = lulcResumo(lc);
@@ -1541,6 +1554,7 @@ function lulcHTML(lc, titulo, min = 6) {
 // Com total, o rótulo traz também a % do Brasil: "515.254 ha · 20%".
 function barrasH(id, nomes, vals, cls, total) {
   const fmt = v => total ? `${nf0(v)} ha · ${fmtP(v / total * 100)}` : nf0(v);
+  const U = unid(maxNum(vals));
   mkChart(id, id, {
     type: 'bar',
     data: { labels: nomes, datasets: [{ data: vals, backgroundColor: vals.map(v => cls.cor(v)), borderRadius: 3, barPercentage: .82, categoryPercentage: .9 }] },
@@ -1550,7 +1564,7 @@ function barrasH(id, nomes, vals, cls, total) {
       layout: { padding: { right: total ? 104 : 58 } },
       plugins: { legend: { display: false }, rotulos: { fmt }, tooltip: { callbacks: { label: c => fmt(c.raw) } } },
       scales: {
-        x: yAxis({ ticks: { callback: v => cmp(v, 1), font: { size: 9.5 }, maxTicksLimit: 7 }, title: axTitle('Área queimada (ha)') }),
+        x: yAxis({ ticks: { callback: U.f, font: { size: 9.5 }, maxTicksLimit: 7 }, title: axTitle(`Área queimada (${U.u})`) }),
         y: { grid: { display: false }, border: { color: C.ink }, ticks: { font: { size: 10.5 }, color: C.ink } }
       }
     }
@@ -2268,7 +2282,9 @@ const faixaPeriodo = {
     ctx.restore();
   }
 };
-function opLinha(yT, xT, st, extraPlugins = {}) {
+// U: unidade do gráfico (unid); o "(ha)" do título do eixo vira "(mil ha)" quando for o caso.
+function opLinha(yT, xT, st, extraPlugins = {}, U = unid(0)) {
+  yT = yT.replace('(ha)', `(${U.u})`);
   return {
     maintainAspectRatio: false,
     interaction: { mode: 'index', intersect: false },
@@ -2295,7 +2311,7 @@ function opLinha(yT, xT, st, extraPlugins = {}) {
     },
     scales: {
       x: { grid: { display: false }, border: { color: C.line }, ticks: { font: { size: 11 } }, title: axT(xT) },
-      y: yAxis({ ticks: { callback: v => cmp(v, 1), font: { size: 11 }, maxTicksLimit: 6 }, title: axT(yT) })
+      y: yAxis({ ticks: { callback: U.f, font: { size: 11 }, maxTicksLimit: 6 }, title: axT(yT) })
     }
   };
 }
@@ -2316,7 +2332,7 @@ function xSaz(M, f) {
   $('x-saz-s').textContent = `Cada linha é um ano. A faixa cinza vai do menor ao maior valor de cada mês nos demais anos (${outros[0]}–${outros[outros.length - 1]}).`;
   mkChart('x-saz', 'xc-saz', {
     type: 'line', data: { labels: MES.map(cap), datasets: ds }, plugins: [faixaPeriodo],
-    options: opLinha('Área queimada (ha)', 'Mês', st, { faixaPeriodo: { de: f.ini - 1, ate: f.fim - 1 } })
+    options: opLinha('Área queimada (ha)', 'Mês', st, { faixaPeriodo: { de: f.ini - 1, ate: f.fim - 1 } }, unid(maxNum(ds.flatMap(d => d.data))))
   });
   setDl('x-saz', {
     nome: 'sazonalidade', cols: ['mes', ...P.anos.map(String), 'media_demais_anos', 'minimo_demais_anos', 'maximo_demais_anos'],
@@ -2339,7 +2355,7 @@ function xAcu(M, f) {
       + (d == null ? '.' : `, ${Math.abs(Math.round(d))}% ${d >= 0 ? 'acima' : 'abaixo'} da média dos demais anos.`);
   } else $('x-acu-s').textContent = 'Sem dado para o período.';
   const ds = [...dsReferencia(st), ...linhasCmp(f, S), linhaAno(String(f.ano), S[f.ano], SER[0], 3)];
-  mkChart('x-acu', 'xc-acu', { type: 'line', data: { labels, datasets: ds }, options: opLinha('Área queimada acumulada (ha)', 'Mês', st) });
+  mkChart('x-acu', 'xc-acu', { type: 'line', data: { labels, datasets: ds }, options: opLinha('Área queimada acumulada (ha)', 'Mês', st, {}, unid(maxNum(ds.flatMap(d => d.data)))) });
   setDl('x-acu', {
     nome: 'acumulado', cols: ['mes', ...P.anos.map(String), 'media_demais_anos', 'minimo_demais_anos', 'maximo_demais_anos'],
     rows: range(a, b).map((m, i) => [MES_L[m - 1], ...P.anos.map(y => S[y][i] ?? ''), st[i]?.avg ?? '', st[i]?.min ?? '', st[i]?.max ?? ''])
@@ -2354,16 +2370,17 @@ function xAnual(M, f) {
   const media = vals.filter((_, i) => anos[i] !== f.ano && !parcial(anos[i]));
   const med = media.length ? media.reduce((s, x) => s + x, 0) / media.length : null;
   $('x-anual-s').textContent = (med ? `Média dos demais anos: ${haC(med)}.` : '') + (anos.some(parcial) ? ` ${P.Y} ainda está incompleto (dados até ${MES_L[P.M - 1]}).` : '');
+  const U = unid(maxNum(vals));
   mkChart('x-anual', 'xc-anual', {
     type: 'bar',
     data: { labels: anos.map(y => parcial(y) ? `${y}*` : String(y)), datasets: [{ data: vals, backgroundColor: anos.map(y => corAno(f, y) || C.gray), borderRadius: 3, barPercentage: .78 }] },
     plugins: [topLabels],
     options: {
       maintainAspectRatio: false, layout: { padding: { top: 16 } },
-      plugins: { legend: { display: false }, topLabels: { indices: vals.map((_, i) => i), fmt: v => cmp(v, 1) }, tooltip: { callbacks: { label: c => ` ${haC(c.raw)}` } } },
+      plugins: { legend: { display: false }, topLabels: { indices: vals.map((_, i) => i), fmt: U.f }, tooltip: { callbacks: { label: c => ` ${haC(c.raw)}` } } },
       scales: {
         x: { grid: { display: false }, border: { color: C.line }, ticks: { font: { size: 11 }, color: c => anos[c.index] === f.ano ? C.redD : C.muted }, title: axT('Ano') },
-        y: yAxis({ ticks: { callback: v => cmp(v, 1), font: { size: 11 }, maxTicksLimit: 5 }, title: axT('Área queimada (ha)') })
+        y: yAxis({ ticks: { callback: U.f, font: { size: 11 }, maxTicksLimit: 5 }, title: axT(`Área queimada (${U.u})`) })
       }
     }
   });
@@ -2375,7 +2392,7 @@ function xCal(M, f) {
   const r = pintarCalendario($('xc-cal'), M, f.ano, f.ini, f.fim);
   if (!r) return;
   X.calGeo = r.geo;
-  $('x-cal-leg').innerHTML = `<span>0 ha</span><span class="g"></span><span>${cmp(r.max, 1)} ha</span><span class="fn">· “—” = mês ainda sem dado · contorno = ${f.ano}</span>`;
+  $('x-cal-leg').innerHTML = `<span>0</span><span class="g"></span><span>${r.U.f(r.max)} ${r.U.u}</span><span class="fn">· “—” = mês ainda sem dado · contorno = ${f.ano}</span>`;
   setDl('x-cal', { nome: 'calendario', cols: ['ano', ...MES_L], rows: P.anos.map(y => [y, ...M[y].map(v => v ?? '')]) });
 }
 // Grade ano × mês colorida pela área queimada (painel e página 6 do boletim).
@@ -2393,6 +2410,7 @@ function pintarCalendario(cv, M, anoDest, ini, fim, o = {}) {
   c.clearRect(0, 0, W, H);
   const max = Math.max(1, ...anos.flatMap(y => M[y]).filter(v => v != null));
   const cor = d3.scaleSequentialSqrt([0, max], d3.interpolateRgbBasis(CAL_RAMP));
+  const U = unid(max);   // números das células na unidade da legenda (ha ou mil ha)
   const cw = (W - left) / 12;
   c.textBaseline = 'middle';
   MES.forEach((m, i) => {
@@ -2414,11 +2432,11 @@ function pintarCalendario(cv, M, anoDest, ini, fim, o = {}) {
       c.fillStyle = v == null ? '#F4F4F4' : cor(v);
       c.fillRect(x + gap / 2, yy + gap / 2, cw - gap, rh - gap);
       if (v == null) { c.fillStyle = C.muted; c.font = `500 ${9 * fs}px Montserrat, sans-serif`; c.fillText('—', x + cw / 2, yy + rh / 2); }
-      else if (cw >= 34) { c.fillStyle = v > max * .3 ? '#FFFFFF' : C.ink; c.font = `600 ${9.5 * fs}px Montserrat, sans-serif`; c.fillText(v ? cmp(v, 1) : '0', x + cw / 2, yy + rh / 2); }
+      else if (cw >= 34) { c.fillStyle = v > max * .3 ? '#FFFFFF' : C.ink; c.font = `600 ${9.5 * fs}px Montserrat, sans-serif`; c.fillText(v ? U.f(v) : '0', x + cw / 2, yy + rh / 2); }
     });
     if (y === f.ano) { c.strokeStyle = C.ink; c.lineWidth = 1.5; c.strokeRect(left + .75, yy + .75, W - left - 1.5, rh - 1.5); }
   });
-  return { max, geo: { left, top, rh, cw, anos, M } };
+  return { max, U, geo: { left, top, rh, cw, anos, M } };
 }
 
 /* ---------- mapa ---------- */
@@ -2670,6 +2688,7 @@ function xUsoAno(lcs, tr, f) {
   const ordem = [...classes.entries()].sort((a, b) => b[1].t - a[1].t);
   const val = (k, id) => lcs[k].find(i => i.id === id)?.areaHa || 0;
   const tots = lcs.map(l => l.reduce((s, i) => s + (i.areaHa || 0), 0));
+  const U = unid(maxNum(tots));
   const ds = ordem.map(([id, o]) => {
     const c = cor[id] || '#B5B5B5';
     return { label: o.nome, data: anos.map((_, k) => val(k, id)), backgroundColor: c, borderColor: claro(c) ? BORDA_CLARA : '#FFFFFF', borderWidth: 1, stack: 's' };
@@ -2695,7 +2714,7 @@ function xUsoAno(lcs, tr, f) {
       },
       scales: {
         x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }, color: c => anos[c.index] === f.ano ? C.redD : C.ink2 }, title: axT('Ano') },
-        y: yAxis({ stacked: true, ticks: { callback: v => cmp(v, 1), font: { size: 11 }, maxTicksLimit: 6 }, title: axT('Área queimada (ha)') })
+        y: yAxis({ stacked: true, ticks: { callback: U.f, font: { size: 11 }, maxTicksLimit: 6 }, title: axT(`Área queimada (${U.u})`) })
       }
     }
   });
