@@ -132,8 +132,10 @@ nf0(v)          // Número inteiro formatado (pt-BR)
 cmp(v, d)       // textos: "566 mil", "1,4 milhão", "2,1 milhões" (nunca "mi")
 haC(v, d)       // "566 mil ha", "1,4 milhão de ha"
 curto(v)        // mapas e legendas: "1.435 mil" (nunca milhão)
-unid(max)       // gráficos: { u: 'mil ha' | 'ha', f } — uma unidade por gráfico, no título do eixo
-                // ("Área queimada (mil ha)"), números sem sufixo; "mil ha" a partir de 10 mil ha
+unid(max)       // gráficos: uma unidade por gráfico. Com algum valor ≥ 1 milhão de ha: eixo
+                // "Área queimada (milhões de hectares)" em duas linhas (eixoHa), marcas 2/4/6 (t),
+                // rótulos das barras "3,6 Mha" (f) e subtítulo "…, em milhões de hectares" (ext).
+                // Abaixo de 1 milhão: tudo em hectares inteiros ("566.000", eixo "(ha)")
 pctTxt(p)       // "+5%" / "−3%"
 fmtP(p)         // "5%" / "<1%"
 pct1(p)         // "77,5%"
