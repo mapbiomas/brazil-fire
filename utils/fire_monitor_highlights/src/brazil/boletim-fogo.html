@@ -955,13 +955,13 @@ const haC = (v, d = 2) => v == null ? '—' : `${cmp(v, d)} ${Math.abs(v) >= 1e6
 const curto = v => Math.abs(v) >= 1e3 ? Math.round(v / 1e3).toLocaleString('pt-BR') + ' mil' : nf0(v);
 // Gráficos: uma unidade por gráfico. Com algum valor de 1 milhão de ha ou mais, o gráfico inteiro fica em
 // milhões: eixo "(milhões de hectares)" (u), marcas do eixo sem sufixo (t: 2, 4, 6) e rótulos das barras
-// abreviados (f: "3,6 Mha"). Senão, em hectares: eixo "(hectares)" e números inteiros (566.000).
+// abreviados só no ano em destaque e na média (f: "3,6 Mha"); os demais só com o número (n: "3,6").
+// Senão, em hectares: eixo "(hectares)" e números inteiros (566.000).
+const nMi = v => { const n = v / 1e6; return v > 0 && n < .05 ? '<0,1' : n.toLocaleString('pt-BR', { minimumFractionDigits: n ? 1 : 0, maximumFractionDigits: 1 }); };
 const unid = max => max >= 1e6
-  ? { u: 'milhões de hectares', ext: 'milhões de hectares', f: v => {
-      const n = v / 1e6;
-      return (v > 0 && n < .05 ? '<0,1' : n.toLocaleString('pt-BR', { minimumFractionDigits: n ? 1 : 0, maximumFractionDigits: 1 })) + ' Mha';
-    }, t: v => (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) }
-  : { u: 'hectares', ext: 'hectares', f: nf0, t: nf0 };
+  ? { u: 'milhões de hectares', ext: 'milhões de hectares', n: nMi, f: v => `${nMi(v)} Mha`,
+      t: v => (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) }
+  : { u: 'hectares', ext: 'hectares', n: nf0, f: nf0, t: nf0 };
 // Título do eixo: em milhões vai em duas linhas, para caber na altura dos gráficos do boletim.
 const eixoHa = (U, txt = 'Área queimada') => U.u === 'hectares' ? `${txt} (ha)` : [txt, `(${U.u})`];
 const maxNum = arr => Math.max(0, ...arr.filter(v => typeof v === 'number' && isFinite(v)));
@@ -1107,7 +1107,7 @@ const topLabels = {
     o.indices.forEach(i => {
       const el = meta.data[i], v = chart.data.datasets[0].data[i];
       if (!el || !v) return;
-      const txt = o.fmt(v), w = ctx.measureText(txt).width;
+      const txt = o.fmt(v, i), w = ctx.measureText(txt).width;
       const l = el.x - w / 2, r = el.x + w / 2;
       // Nunca desenha acima da área do gráfico (o rótulo seria cortado).
       let y = Math.max(el.y - 5, chartArea.top + 9);
@@ -1255,7 +1255,7 @@ function yearChart(id, anos, vals, Y) {
       plugins: {
         legend: { display: false },
         linhaMedia: { v: med, txt: med == null ? '' : U.f(med) },
-        topLabels: { indices: vals.map((_, i) => i), fmt: U.f },
+        topLabels: { indices: vals.map((_, i) => i), fmt: (v, i) => anos[i] === Y ? U.f(v) : U.n(v) },
         tooltip: { callbacks: { label: c => haC(c.raw) } }
       },
       scales: {
@@ -2384,7 +2384,7 @@ function xAnual(M, f) {
     plugins: [topLabels],
     options: {
       maintainAspectRatio: false, layout: { padding: { top: 16 } },
-      plugins: { legend: { display: false }, topLabels: { indices: vals.map((_, i) => i), fmt: U.f }, tooltip: { callbacks: { label: c => ` ${haC(c.raw)}` } } },
+      plugins: { legend: { display: false }, topLabels: { indices: vals.map((_, i) => i), fmt: (v, i) => anos[i] === f.ano ? U.f(v) : U.n(v) }, tooltip: { callbacks: { label: c => ` ${haC(c.raw)}` } } },
       scales: {
         x: { grid: { display: false }, border: { color: C.line }, ticks: { font: { size: 11 }, color: c => anos[c.index] === f.ano ? C.redD : C.muted }, title: axT('Ano') },
         y: yAxis({ ticks: { callback: U.t, font: { size: 11 }, maxTicksLimit: 5 }, title: axT(eixoHa(U)) })
@@ -2439,7 +2439,7 @@ function pintarCalendario(cv, M, anoDest, ini, fim, o = {}) {
       c.fillStyle = v == null ? '#F4F4F4' : cor(v);
       c.fillRect(x + gap / 2, yy + gap / 2, cw - gap, rh - gap);
       if (v == null) { c.fillStyle = C.muted; c.font = `500 ${9 * fs}px Montserrat, sans-serif`; c.fillText('—', x + cw / 2, yy + rh / 2); }
-      else if (cw >= 34) { c.fillStyle = v > max * .3 ? '#FFFFFF' : C.ink; c.font = `600 ${9.5 * fs}px Montserrat, sans-serif`; const t = v ? U.f(v) : '0'; if (c.measureText(t).width <= cw - 4) c.fillText(t, x + cw / 2, yy + rh / 2); }
+      else if (cw >= 34) { c.fillStyle = v > max * .3 ? '#FFFFFF' : C.ink; c.font = `600 ${9.5 * fs}px Montserrat, sans-serif`; const t = v ? U.n(v) : '0'; if (c.measureText(t).width <= cw - 4) c.fillText(t, x + cw / 2, yy + rh / 2); }
     });
     if (y === f.ano) { c.strokeStyle = C.ink; c.lineWidth = 1.5; c.strokeRect(left + .75, yy + .75, W - left - 1.5, rh - 1.5); }
   });
