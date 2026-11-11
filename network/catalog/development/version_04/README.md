@@ -1,24 +1,11 @@
-# MapBiomas Fire Monitor - Version 04 (commission-error fix, testing)
+# MapBiomas Fire Monitor - Version 04 (testing)
 
-> **Testing copy of `version_03`.** It fixes the over-estimation of burned area
-> (water and unburned areas classified as fire). Production still uses
-> `version_03`. See [`../../README.md`](../../README.md) for the catalog.
->
-> Changes from `version_03`, restoring the legacy `network/version_02`
-> classifier behaviour:
->
-> | Module | version_03 | version_04 |
-> |---|---|---|
-> | M5 / M6 burned cut | probability `> 0` (p >= 0.0005) | probability `>= 500` (p >= 0.5), `BURN_THRESHOLD` in `src/core/M_dnn.py` |
-> | M4 hidden layers (UI default) | `7, 14, 7` | `7, 14, 7, 14, 7` |
-> | M4 dropout | `keep_prob=0.8` (hidden) | `keep_prob=1.0` (off) |
-> | M4 fallbacks | `[64, 32]`, 5000 iterations | `[7, 14, 7, 14, 7]`, 7000 iterations |
->
-> GEE scripts (`src/gee/M7_*`, `M8_statistics.js`) still use `.gt(0)` on the
-> probability band; use `.gte(500)` there for consistent results.
->
-> M5 skips tiles that already exist in GCS: train with a new model name (or
-> delete the old tiles) before re-classifying.
+> **Based on `version_03`.** This folder is a copy of
+> [`../version_03/`](../version_03/) with the changes listed in
+> [Changes from version_03](#changes-from-version_03), made to reduce the
+> commission error (water and unburned areas classified as fire).
+> Production still uses `version_03`. See [`../../README.md`](../../README.md)
+> for the catalog.
 >
 > Colab links: [`COLAB_LINKS.csv`](./COLAB_LINKS.csv) /
 > [`COLAB_LINKS.txt`](./COLAB_LINKS.txt).
@@ -37,6 +24,29 @@
 | Peru | [monitor_01_peru.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/monitor_01_peru.ipynb) | [collection_03_peru.ipynb](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/network/catalog/development/version_04/notebooks/collection_03_peru.ipynb) |
 
 Full URLs are also available in [`COLAB_LINKS.csv`](./COLAB_LINKS.csv).
+
+## Changes from version_03
+
+Everything not listed here is identical to `version_03`.
+
+| Module | version_03 | version_04 |
+|---|---|---|
+| **M5** burned rule (`dayOfYear` band, tile stats) | probability `> 0` (p > 0.0005) | probability `>= 50` (p >= 0.05) |
+| **M6** burned area (regional stats) | probability `> 0` | probability `>= 50` |
+| **M4** hidden layers (UI default) | `7, 14, 7` | `7, 14, 7, 14, 7` (legacy `network/version_02`) |
+| **M4** dropout (not shown in the UI) | `keep_prob = 0.8` (20% of neurons turned off at each training step) | `keep_prob = 1.0` (dropout off, as in legacy `network/version_02`) |
+| **M4** fallbacks when a saved model has no value | `[64, 32]`, 5000 iterations | `[7, 14, 7, 14, 7]`, 7000 iterations |
+
+- The cut is one constant, `BURN_THRESHOLD = 50` in `src/core/M_dnn.py`
+  (stored probability is `round(p * 1000)`, so 50 = 5%).
+- Band 1 (`probability`) is unchanged: it still stores the probability of every
+  valid pixel. Only band 2 (`dayOfYear`) and the burned-area counts use the cut.
+- **Not changed:** the GEE scripts (`src/gee/M7_*`, `M8_statistics.js`) still
+  use `.gt(0)` on the probability band; use `.gte(50)` there for consistent
+  results.
+- M5 skips tiles that already exist in GCS: train with a new model name (or
+  delete the old tiles) before re-classifying.
+- Tests: `tests/test_burn_threshold.py`.
 
 ## Overview
 
@@ -87,9 +97,9 @@ When a script changes in GEE, update the mirror in `src/gee/`.
 
 - Each tile stores **probability (int16, 0-1000)** and an auxiliary band
   (`dayOfYear` for `burned_area`).
-- Product convention: any positive probability counts as burned
-  (`probability > 0`), matching the GEE filters. Model evaluation in M4 still
-  uses 0.5, because that is a model-quality metric, not the product threshold.
+- Burned rule: `probability >= 50` (p >= 0.05, `BURN_THRESHOLD` in
+  `src/core/M_dnn.py`). Model evaluation in M4 still uses 0.5, because that is a
+  model-quality metric, not the product threshold.
 - Only `burned_area` is enabled today. Other targets require a profile in
   `targets/` and are rejected until implemented.
 

@@ -9,10 +9,9 @@ NumPy is enough (and thread-safe).
 import numpy as np
 
 # Burned-pixel cut on the stored probability (int16, 0-1000).
-# 500 = p >= 0.5, the same decision rule as the legacy network/version_02
-# classifier (softmax + argmax). Up to version_03 any value > 0 (p >= 0.0005)
-# counted as burned, which mapped water, shadow and dark soil as fire.
-BURN_THRESHOLD = 500
+# 50 = p >= 0.05. Up to version_03 any value > 0 (p >= 0.0005) counted as
+# burned, which mapped water, shadow and dark soil as fire.
+BURN_THRESHOLD = 50
 
 
 def forward_embeddings(saved_vars, layers, x_normalized):

@@ -1,4 +1,4 @@
-"""version_04: burned cut is p >= 0.5 and M4 defaults match legacy version_02."""
+"""version_04: burned cut is p >= 0.05 and M4 defaults match legacy version_02."""
 
 import ast
 import os
@@ -19,13 +19,15 @@ def _source(name):
 
 
 class BurnThresholdTests(unittest.TestCase):
-    def test_threshold_is_half_probability(self):
-        self.assertEqual(M_dnn.BURN_THRESHOLD, 500)
+    def test_threshold_is_five_percent(self):
+        self.assertEqual(M_dnn.BURN_THRESHOLD, 50)
 
     def test_low_probabilities_are_not_burned(self):
-        probs = np.array([0.0004, 0.0006, 0.08, 0.4995, 0.5, 0.92])
+        probs = np.array([0.0004, 0.0006, 0.01, 0.049, 0.05, 0.08, 0.92])
         burned = np.round(probs * 1000) >= M_dnn.BURN_THRESHOLD
-        self.assertEqual(burned.tolist(), [False, False, False, True, True, True])
+        self.assertEqual(
+            burned.tolist(), [False, False, False, False, True, True, True]
+        )
 
     def test_m5_and_m6_use_the_threshold(self):
         for name in ('M5_inference.py', 'M6_publisher.py'):

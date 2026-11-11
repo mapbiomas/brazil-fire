@@ -258,7 +258,7 @@ def classify_cell_with_cogs(cell_id, predict_fn, bands_config, norm_stats, out_g
                     dst.write(output_doy, 2, window=dst_win)
 
                     total_valid += n_valid
-                    # Burned = stored probability >= BURN_THRESHOLD (p >= 0.5),
+                    # Burned = stored probability >= BURN_THRESHOLD (p >= 0.05),
                     # using the same rounded int16 value stored in the raster
                     # (band 1) and the dayOfYear mask (band 2).
                     burned = np.round(probs * 1000) >= BURN_THRESHOLD

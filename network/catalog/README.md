@@ -19,7 +19,7 @@ by the export/vectorization pipeline stay exactly the same.
 | `development/version_01` | Collection 2 active (moved from `network/version_02`) | Kept for compatibility; removal planned |
 | `development/version_02` | Peru monitor pipeline (M0–M9, from `peru-fire/mapbiomas_fire_monitor/version_01`) | Reference copy + service-account auth |
 | `development/version_03` | campaign/target catalog | Active development + source for production |
-| `development/version_04` | copy of `version_03` with the commission-error fix (burned = probability >= 500; legacy 5-layer DNN, no dropout) | Testing |
+| `development/version_04` | copy of `version_03` with the commission-error fix (burned = probability >= 50, i.e. p >= 0.05; legacy 5-layer DNN, no dropout) | Testing |
 | `production/` | copy of `development/version_03` | Shipped release |
 
 > `version_03` is the active development copy and the source for production.

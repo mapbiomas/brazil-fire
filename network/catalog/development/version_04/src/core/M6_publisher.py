@@ -137,7 +137,7 @@ def compute_region_stats_from_mosaic(model_id, region, period, fs=None, logger=N
     os.remove(local_tmp)
 
     total_valid = int((prob_band != -9999).sum())
-    # Burned = probability >= BURN_THRESHOLD (p >= 0.5), same rule as the
+    # Burned = probability >= BURN_THRESHOLD (p >= 0.05), same rule as the
     # dayOfYear band in M5.
     burned_mask = prob_band >= BURN_THRESHOLD
     n_burned = int(burned_mask.sum())
@@ -381,7 +381,7 @@ def compute_region_stats_from_tiles(model_id, region, period, fs=None, logger=No
 
             valid_mask = prob_band != -9999
             n_valid = int(valid_mask.sum())
-            # Burned = probability >= BURN_THRESHOLD (p >= 0.5), same rule
+            # Burned = probability >= BURN_THRESHOLD (p >= 0.05), same rule
             # as the dayOfYear band in M5.
             burned_mask = prob_band >= BURN_THRESHOLD
             n_burned = int(burned_mask.sum())
