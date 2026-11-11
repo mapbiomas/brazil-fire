@@ -573,6 +573,8 @@ const I18N_LINHAS = [
   ["Ano final", "Año final", "End year", "Tahun akhir"],
   ["Anos", "Años", "Years", "Tahun"],
   ["Ano", "Año", "Year", "Tahun"],
+  ["até 10%", "hasta 10%", "up to 10%", "hingga 10%"],
+  ["acima de 90%", "más de 90%", "above 90%", "di atas 90%"],
   ["até", "hasta", "to", "sampai"],
   ["Aparência", "Apariencia", "Appearance", "Tampilan"],
   ["Lento", "Lento", "Slow", "Lambat"],

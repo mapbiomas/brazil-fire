@@ -4319,6 +4319,24 @@ function classesPorQuebras(valores, fmt) {
   return { colorOf, legend: ramp.map((color, i) => ({ label: `${fmt(lim[i])} a ${fmt(lim[i + 1])}`, color })) };
 }
 
+// "% do território": classes fixas (iguais em qualquer recorte), com laranjas no meio e o
+// vermelho mais escuro só acima de 90%.
+const PCT_CORTES = [0.10, 0.25, 0.50, 0.75, 0.90];
+const PCT_RAMP = ["#fff0d6", "#fdd08a", "#fca44f", "#f46d36", "#d7301f", "#7a0a0a"];
+function classesPct() {
+  const colorOf = (v) => {
+    if (!(v > 0)) return null;
+    const i = PCT_CORTES.findIndex((c) => v <= c);
+    return PCT_RAMP[i < 0 ? PCT_RAMP.length - 1 : i];
+  };
+  const lim = [0, ...PCT_CORTES, 1];
+  const legend = PCT_RAMP.map((color, i) => ({
+    label: i === 0 ? `até ${pct(lim[1])}` : i === PCT_RAMP.length - 1 ? `acima de ${pct(lim[i])}` : `${pct(lim[i])} a ${pct(lim[i + 1])}`,
+    color,
+  }));
+  return { colorOf, legend };
+}
+
 function classesDivergentes(valores, fmt) {
   const abs = valores.map(Math.abs).filter((v) => v > 0).sort((a, b) => a - b);
   if (!abs.length) return { colorOf: () => DIV_RAMP[2], legend: [{ label: "Sem mudança", color: DIV_RAMP[2] }] };
@@ -4412,7 +4430,9 @@ function renderMapaDinamico(map, spec, tokens, box) {
     } else {
       pool = ids.map((id) => valor(id));
     }
-    classes = st.indicador === "mudanca" ? classesDivergentes(pool, fmtCurto) : classesPorQuebras(pool, fmtCurto);
+    classes = st.indicador === "mudanca" ? classesDivergentes(pool, fmtCurto)
+      : st.indicador === "pct" ? classesPct()
+      : classesPorQuebras(pool, fmtCurto);
     maxAbs = pool.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
     cores = new Map();
     for (const [id, t] of territorios) cores.set(id, t.emCalculo ? spec.corEmCalculo : classes.colorOf(valor(id)));
