@@ -3193,14 +3193,16 @@ function renderView(view) {
 const VISTAS = {
   linhas: [["barras", "Barras"], ["linhas", "Linhas"]],
   rosca: [["barras", "Barras"], ["rosca", "Rosca"]],
-  anual: [["barras", "Barras"], ["linhas", "Linhas"], ["biomas", `Por ${rot("bioma").toLowerCase()}`]],
+  anual: [["barras", "Barras"], ["horizontal", "Horizontal"], ["linhas", "Linhas"], ["biomas", `Por ${rot("bioma").toLowerCase()}`]],
   mensal: [["calor", "Mapa de calor"], ["boxplot", "Boxplot"], ["lista", "Lista"]],
 };
 
 // Vistas que trocam o corpo do card inteiro (não dá para só mudar o tipo do Chart.js).
-const VISTAS_DE_CORPO = ["rosca", "biomas", "calor", "boxplot", "lista"];
+// "horizontal" entra aqui porque muda a altura da caixa do gráfico (um ano por linha).
+const VISTAS_DE_CORPO = ["rosca", "biomas", "calor", "boxplot", "lista", "horizontal"];
 
 const ICONE_VISTA = {
+  horizontal: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 2h5.5a1 1 0 0 1 1 1v1.5a1 1 0 0 1-1 1H2zm0 4.25h11a1 1 0 0 1 1 1v1.5a1 1 0 0 1-1 1H2zm0 4.25h8a1 1 0 0 1 1 1V13a1 1 0 0 1-1 1H2z"/></svg>`,
   barras: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 14V8.5a1 1 0 0 1 1-1h1.5a1 1 0 0 1 1 1V14zm4.75 0V3a1 1 0 0 1 1-1h1.5a1 1 0 0 1 1 1v11zm4.75 0V6.5a1 1 0 0 1 1-1H14a1 1 0 0 1 1 1V14z"/></svg>`,
   linhas: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M1.5 12.5c2-1 2.6-5 4.5-5s2.2 2.5 4 2.5 2.5-4.5 4.5-7"/></svg>`,
   biomas: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 14v-3h3.5v3zm0-4V7.5h3.5V10zm4.75 4V9h3.5v5zm0-6V4h3.5v4zm4.75 6v-2.5H15V14zm0-3.5V6H15v4.5z"/></svg>`,
@@ -3221,6 +3223,8 @@ function vistaDe(card, i) {
 function specNaVista(spec, vista) {
   if (vista === "linhas") return spec.kind === "stacked" ? { ...spec, area: true } : { ...spec, kind: "line" };
   if (vista === "barras" && spec.kind === "line") return { ...spec, kind: "bar" };
+  // Barras deitadas: anos de cima para baixo (bom para relatório em retrato e celular).
+  if (vista === "horizontal") return { ...spec, kind: "hbar", height: Math.max(320, (spec.labels?.length || 0) * 17 + 80) };
   return spec;
 }
 
@@ -3738,7 +3742,7 @@ function conteudoHtml(card, vista) {
   }
   if (card.map) return `${card.map.aviso ? `<p class="map-notice">${escapeHtml(card.map.aviso)}</p>` : ""}<div class="map-box"></div>`;
   if (card.lazy) return `<div class="lazy-body"><p class="empty busy-text">Calculando…</p></div>`;
-  if (card.chart) return chartBoxHtml(card.chart, card.title);
+  if (card.chart) return chartBoxHtml(vista === "horizontal" ? specNaVista(card.chart, vista) : card.chart, card.title);
   if (card.ranking) return rankingHtml(card.ranking);
   if (card.propbars) return propbarsHtml(card.propbars);
   return doughnutHtml(card.doughnut);
@@ -5080,7 +5084,7 @@ function chartConfig(spec, t) {
     options.plugins.tooltip.callbacks.footer = (items) => `Total: ${fmtValor(sum(items.map(valueOf)))}`;
   }
   if (spec.meanLine != null) {
-    options.plugins.tooltip.callbacks.label = (ctx) => ` ${ctx.dataset.label}: ${fmtValor(ctx.parsed.y)}`;
+    options.plugins.tooltip.callbacks.label = (ctx) => ` ${ctx.dataset.label}: ${fmtValor(valueOf(ctx))}`;
   }
 
   if (spec.kind === "line") return lineConfig(spec, t, options);

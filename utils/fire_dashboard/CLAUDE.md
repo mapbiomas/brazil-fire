@@ -71,6 +71,7 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 
 - Seletores de país mostram a coleção de cada país (`COLECOES`, lida em segundo plano por `gifRegiao`); Paraguai e Indonésia: "coleção não informada".
 - Mapa por território: sem bolhas; "Comparar anos" = ano B − ano A ou ano − média do período. Clique: contorno em destaque (halo) e zoom. "Baixar mapa (PNG)" (`baixarMapaPng`): copia tiles e canvas do Leaflet (`preferCanvas`, tiles com `crossOrigin`) e acrescenta título, legenda, escala, seta do norte e fonte. `L.control.scale` em todos os mapas.
+- Gráficos anual e acumulado: vista "Horizontal" (barras deitadas, anos de cima para baixo) no seletor Barras · Horizontal · Linhas · Por bioma. `specNaVista` vira `kind: "hbar"` com altura de 17 px por ano; está em `VISTAS_DE_CORPO` porque a caixa muda de altura. A linha da média (dataset de linha) fica vertical sozinha com `indexAxis: "y"`.
 - Mapa por território (2026-11-11):
   - Cores por quebras naturais (`classesPorQuebras` + `jenksCortes`, Jenks sobre a raiz cúbica, amostra de até 1.200 valores); os quantis deixavam quase tudo na última classe.
   - "% do território" usa classes fixas (`classesPct`: até 10 · 25 · 50 · 75 · 90 · acima de 90%, `PCT_RAMP` creme → laranja → vermelho → vinho); o vinho é só acima de 90%. No norte do Cerrado muitos municípios passam de 90% de verdade (Tocantins inteiro: 70% em 1985–2025).
