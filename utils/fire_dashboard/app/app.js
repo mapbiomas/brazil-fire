@@ -3149,14 +3149,52 @@ function corHtml(card) {
     </div>`;
 }
 
-// Fecha a paleta ao clicar fora dela.
+// Fecha a paleta e o menu do PNG ao clicar fora deles.
 document.addEventListener("click", (e) => {
-  if (e.target.closest(".cor-troca")) return;
-  document.querySelectorAll(".cor-pop:not([hidden])").forEach((p) => {
-    p.hidden = true;
-    p.parentElement.querySelector(".cor-btn")?.setAttribute("aria-expanded", "false");
-  });
+  if (!e.target.closest(".cor-troca")) {
+    document.querySelectorAll(".cor-pop:not([hidden])").forEach((p) => {
+      p.hidden = true;
+      p.parentElement.querySelector(".cor-btn")?.setAttribute("aria-expanded", "false");
+    });
+  }
+  if (!e.target.closest(".png-troca")) {
+    document.querySelectorAll(".png-pop:not([hidden])").forEach((p) => {
+      p.hidden = true;
+      p.parentElement.querySelector("[data-acao='png-menu']")?.setAttribute("aria-expanded", "false");
+    });
+  }
 });
+
+// Largura do PNG: o botão "⬇ PNG" abre um menu com larguras prontas ou uma em px.
+// O gráfico é redesenhado nessa largura só durante a cópia (bom para relatório em coluna estreita).
+const PNG_LARGURAS = [["", "Como está na tela"], ["480", "Estreita (480 px)"], ["720", "Média (720 px)"], ["1100", "Larga (1.100 px)"]];
+const PNG_MIN = 320, PNG_MAX = 2400;
+function lerLarguraPng() {
+  try { return JSON.parse(localStorage.getItem("fogo:pngLargura")) || { op: "", px: 900 }; } catch { return { op: "", px: 900 }; }
+}
+function pngMenuHtml(i) {
+  const s = lerLarguraPng();
+  const op = (v, rotulo) => `<label class="png-op"><input type="radio" name="pngw-${i}" value="${v}"${s.op === v ? " checked" : ""}> ${escapeHtml(rotulo)}</label>`;
+  return `
+          <div class="png-troca">
+            <button type="button" data-acao="png-menu" aria-expanded="false" title="Baixar gráfico (PNG)">⬇ PNG</button>
+            <div class="png-pop" hidden>
+              <span class="cor-pop-titulo">Largura da imagem</span>
+              ${PNG_LARGURAS.map(([v, r]) => op(v, r)).join("")}
+              <label class="png-op"><input type="radio" name="pngw-${i}" value="outra"${s.op === "outra" ? " checked" : ""}> Outra:
+                <input type="number" class="png-px" min="${PNG_MIN}" max="${PNG_MAX}" step="10" value="${Number(s.px) || 900}" aria-label="Largura em pixels"> px</label>
+              <button type="button" class="png-baixar" data-acao="png">⬇ Baixar PNG</button>
+            </div>
+          </div>`;
+}
+function larguraEscolhida(root) {
+  const pop = root.querySelector(".png-pop");
+  if (!pop) return null;
+  const op = pop.querySelector("input[type=radio]:checked")?.value || "";
+  const px = Math.round(Math.min(PNG_MAX, Math.max(PNG_MIN, Number(pop.querySelector(".png-px")?.value) || 900)));
+  try { localStorage.setItem("fogo:pngLargura", JSON.stringify({ op, px })); } catch { /* sem armazenamento */ }
+  return op === "outra" ? px : op ? Number(op) : null;
+}
 
 function renderView(view) {
   view = { ...view, cards: view.cards.map(comCorEscolhida) };
@@ -3694,7 +3732,7 @@ function cardHtml(card, i, view) {
     (card.chart || card.rosca || card.ranking || card.propbars || card.lazy || card.topcards || card.doughnut);
   const acoes = temDados ? `
         <div class="card-acoes">
-          <button type="button" data-acao="png" title="Baixar gráfico (PNG)">⬇ PNG</button>
+          ${pngMenuHtml(i)}
           <button type="button" data-acao="tabela" aria-pressed="false" title="Ver a tabela com os valores">▦ Tabela</button>
         </div>` : "";
   const info = infoDoCard(card);
@@ -3780,7 +3818,25 @@ function acaoDoCard(e) {
     btn.setAttribute("aria-expanded", String(!texto.hidden));
     return;
   }
-  if (btn.dataset.acao === "png") return baixarGraficoPng(root, card);
+  if (btn.dataset.acao === "png-menu") {
+    const pop = root.querySelector(".png-pop");
+    pop.hidden = !pop.hidden;
+    btn.setAttribute("aria-expanded", String(!pop.hidden));
+    if (!pop.hidden) {
+      // Mostra a última largura escolhida (pode ter sido em outro card).
+      const s = lerLarguraPng();
+      const r = pop.querySelector(`input[type=radio][value="${s.op}"]`);
+      if (r) r.checked = true;
+      pop.querySelector(".png-px").value = Number(s.px) || 900;
+    }
+    return;
+  }
+  if (btn.dataset.acao === "png") {
+    const largura = larguraEscolhida(root);
+    const pop = root.querySelector(".png-pop");
+    if (pop) { pop.hidden = true; root.querySelector("[data-acao='png-menu']")?.setAttribute("aria-expanded", "false"); }
+    return baixarGraficoPng(root, card, largura);
+  }
   if (btn.dataset.acao === "csv") {
     const t = tabelaDoCard(root, card);
     const celula = (c) => (/[;"\n]/.test(String(c)) ? `"${String(c).replace(/"/g, '""')}"` : String(c));
@@ -4005,7 +4061,29 @@ function desenharHtmlNoPng(ctx, els, dx, dy, etapa) {
   ctx.restore();
 }
 
-async function baixarGraficoPng(root, card) {
+// Com `largura` (px), o corpo do card é redesenhado nessa largura só durante a cópia e volta depois.
+async function baixarGraficoPng(root, card, largura = null) {
+  const body = root.querySelector(".card-body");
+  if (!largura || !body) return baixarGraficoPngAgora(root, card);
+  const antes = body.style.cssText;
+  const redesenhar = async () => {
+    for (const c of body.querySelectorAll("canvas")) Chart.getChart(c)?.resize();
+    // Espera por tempo (não por quadro de animação, que pode não vir com a aba em segundo plano):
+    // os canvases próprios (mapa de calor) redesenham pelo ResizeObserver.
+    await sleep(200);
+  };
+  try {
+    body.style.width = `${largura}px`;
+    body.style.maxWidth = "none";
+    await redesenhar();
+    await baixarGraficoPngAgora(root, card);
+  } finally {
+    body.style.cssText = antes;
+    await redesenhar();
+  }
+}
+
+async function baixarGraficoPngAgora(root, card) {
   const body = root.querySelector(".card-body");
   const canvases = [...body.querySelectorAll("canvas")].filter((c) => c.offsetWidth);
   // Partes feitas em HTML (barras 100%, listas, destaques, legendas com valores) também vão para a imagem.
