@@ -1,0 +1,1806 @@
+{
+  "source": "https://github.com/mapbiomas/brazil-fire/tree/ad70d566e5676402c597339d10907e1fdf2163f9/utils/fire_legends",
+  "revision": "ad70d566e5676402c597339d10907e1fdf2163f9",
+  "entries": [
+    {
+      "key": [
+        "brasil",
+        "5.1",
+        "annual_burned",
+        "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_annual_burned_v1"
+      ],
+      "legend_id": "brazil_col5_annual_burned_area",
+      "file": "brazil_col5_annual_burned_area.csv",
+      "representable": false,
+      "classes": [
+        {
+          "value": 1,
+          "color": "d4271e",
+          "labels": {
+            "pt": "Área queimada",
+            "en": "Burned area",
+            "es": "Área quemada"
+          }
+        }
+      ]
+    },
+    {
+      "key": [
+        "brasil",
+        "5.1",
+        "monthly_burned",
+        "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_monthly_burned_v1"
+      ],
+      "legend_id": "brazil_col5_monthly_burned_area",
+      "file": "brazil_col5_monthly_burned_area.csv",
+      "representable": true,
+      "classes": [
+        {
+          "value": 1,
+          "color": "cc00ff",
+          "labels": {
+            "pt": "Janeiro",
+            "en": "January",
+            "es": "Enero"
+          }
+        },
+        {
+          "value": 2,
+          "color": "6600ff",
+          "labels": {
+            "pt": "Fevereiro",
+            "en": "February",
+            "es": "Febrero"
+          }
+        },
+        {
+          "value": 3,
+          "color": "0000ff",
+          "labels": {
+            "pt": "Março",
+            "en": "March",
+            "es": "Marzo"
+          }
+        },
+        {
+          "value": 4,
+          "color": "00ccff",
+          "labels": {
+            "pt": "Abril",
+            "en": "April",
+            "es": "Abril"
+          }
+        },
+        {
+          "value": 5,
+          "color": "00ffcc",
+          "labels": {
+            "pt": "Maio",
+            "en": "May",
+            "es": "Mayo"
+          }
+        },
+        {
+          "value": 6,
+          "color": "ffff00",
+          "labels": {
+            "pt": "Junho",
+            "en": "June",
+            "es": "Junio"
+          }
+        },
+        {
+          "value": 7,
+          "color": "ff9900",
+          "labels": {
+            "pt": "Julho",
+            "en": "July",
+            "es": "Julio"
+          }
+        },
+        {
+          "value": 8,
+          "color": "ff3300",
+          "labels": {
+            "pt": "Agosto",
+            "en": "August",
+            "es": "Agosto"
+          }
+        },
+        {
+          "value": 9,
+          "color": "cc0000",
+          "labels": {
+            "pt": "Setembro",
+            "en": "September",
+            "es": "Septiembre"
+          }
+        },
+        {
+          "value": 10,
+          "color": "00cc00",
+          "labels": {
+            "pt": "Outubro",
+            "en": "October",
+            "es": "Octubre"
+          }
+        },
+        {
+          "value": 11,
+          "color": "009900",
+          "labels": {
+            "pt": "Novembro",
+            "en": "November",
+            "es": "Noviembre"
+          }
+        },
+        {
+          "value": 12,
+          "color": "66ff66",
+          "labels": {
+            "pt": "Dezembro",
+            "en": "December",
+            "es": "Diciembre"
+          }
+        }
+      ]
+    },
+    {
+      "key": [
+        "brasil",
+        "5.1",
+        "annual_burned_scar_size_range",
+        "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_annual_burned_scar_size_range_v1"
+      ],
+      "legend_id": "brazil_col5_fire_scar_size",
+      "file": "brazil_col5_fire_scar_size.csv",
+      "representable": true,
+      "classes": [
+        {
+          "value": 1,
+          "color": "d0ae35",
+          "labels": {
+            "pt": "< 10 ha",
+            "en": "< 10 ha",
+            "es": "< 10 ha"
+          }
+        },
+        {
+          "value": 2,
+          "color": "c68e2f",
+          "labels": {
+            "pt": "10 - 250 ha",
+            "en": "10 - 250 ha",
+            "es": "10 - 250 ha"
+          }
+        },
+        {
+          "value": 3,
+          "color": "b96d2b",
+          "labels": {
+            "pt": "250 - 500 ha",
+            "en": "250 - 500 ha",
+            "es": "250 - 500 ha"
+          }
+        },
+        {
+          "value": 4,
+          "color": "ac4b28",
+          "labels": {
+            "pt": "500 - 5.000 ha",
+            "en": "500 - 5.000 ha",
+            "es": "500 - 5.000 ha"
+          }
+        },
+        {
+          "value": 5,
+          "color": "933328",
+          "labels": {
+            "pt": "5.000 - 10.000 ha",
+            "en": "5.000 - 10.000 ha",
+            "es": "5.000 - 10.000 ha"
+          }
+        },
+        {
+          "value": 6,
+          "color": "72251d",
+          "labels": {
+            "pt": "10.000 - 50.000 ha",
+            "en": "10.000 - 50.000 ha",
+            "es": "10.000 - 50.000 ha"
+          }
+        },
+        {
+          "value": 7,
+          "color": "4e180f",
+          "labels": {
+            "pt": "50.000 - 100.000 ha",
+            "en": "50.000 - 100.000 ha",
+            "es": "50.000 - 100.000 ha"
+          }
+        },
+        {
+          "value": 8,
+          "color": "240d00",
+          "labels": {
+            "pt": ">= 100.000 ha",
+            "en": ">= 100.000 ha",
+            "es": ">= 100.000 ha"
+          }
+        }
+      ]
+    },
+    {
+      "key": [
+        "brasil",
+        "5.1",
+        "severity_class",
+        "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_severity_class_v1"
+      ],
+      "legend_id": "brazil_col5_fire_severity",
+      "file": "brazil_col5_fire_severity.csv",
+      "representable": true,
+      "classes": [
+        {
+          "value": 1,
+          "color": "003f1b",
+          "labels": {
+            "pt": "Muito baixa",
+            "en": "Very Low",
+            "es": "Muy baja"
+          }
+        },
+        {
+          "value": 2,
+          "color": "8ee637",
+          "labels": {
+            "pt": "Baixa",
+            "en": "Low",
+            "es": "Baja"
+          }
+        },
+        {
+          "value": 3,
+          "color": "ffd426",
+          "labels": {
+            "pt": "Moderada",
+            "en": "Moderate",
+            "es": "Moderada"
+          }
+        },
+        {
+          "value": 4,
+          "color": "ed7513",
+          "labels": {
+            "pt": "Alta",
+            "en": "High",
+            "es": "Alta"
+          }
+        },
+        {
+          "value": 5,
+          "color": "db2024",
+          "labels": {
+            "pt": "Muito alta",
+            "en": "Very High",
+            "es": "Muy alta"
+          }
+        },
+        {
+          "value": 6,
+          "color": "99151d",
+          "labels": {
+            "pt": "Extrema",
+            "en": "Extreme",
+            "es": "Extrema"
+          }
+        }
+      ]
+    },
+    {
+      "key": [
+        "brasil",
+        "5.1",
+        "fire_frequency",
+        "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_fire_frequency_v1"
+      ],
+      "legend_id": "brazil_col5_fire_frequency",
+      "file": "brazil_col5_fire_frequency.csv",
+      "representable": true,
+      "classes": [
+        {
+          "value": 1,
+          "color": "faf3cd",
+          "labels": {
+            "pt": "1 vez",
+            "en": "1 time",
+            "es": "1 vez"
+          }
+        },
+        {
+          "value": 2,
+          "color": "fdf1b0",
+          "labels": {
+            "pt": "2 vezes",
+            "en": "2 times",
+            "es": "2 veces"
+          }
+        },
+        {
+          "value": 3,
+          "color": "fbe981",
+          "labels": {
+            "pt": "3 vezes",
+            "en": "3 times",
+            "es": "3 veces"
+          }
+        },
+        {
+          "value": 4,
+          "color": "fae258",
+          "labels": {
+            "pt": "4 vezes",
+            "en": "4 times",
+            "es": "4 veces"
+          }
+        },
+        {
+          "value": 5,
+          "color": "f9de44",
+          "labels": {
+            "pt": "5 vezes",
+            "en": "5 times",
+            "es": "5 veces"
+          }
+        },
+        {
+          "value": 6,
+          "color": "f8d71f",
+          "labels": {
+            "pt": "6 vezes",
+            "en": "6 times",
+            "es": "6 veces"
+          }
+        },
+        {
+          "value": 7,
+          "color": "f1ca1e",
+          "labels": {
+            "pt": "7 vezes",
+            "en": "7 times",
+            "es": "7 veces"
+          }
+        },
+        {
+          "value": 8,
+          "color": "e9bc1c",
+          "labels": {
+            "pt": "8 vezes",
+            "en": "8 times",
+            "es": "8 veces"
+          }
+        },
+        {
+          "value": 9,
+          "color": "e2af1a",
+          "labels": {
+            "pt": "9 vezes",
+            "en": "9 times",
+            "es": "9 veces"
+          }
+        },
+        {
+          "value": 10,
+          "color": "daa118",
+          "labels": {
+            "pt": "10 vezes",
+            "en": "10 times",
+            "es": "10 veces"
+          }
+        },
+        {
+          "value": 11,
+          "color": "d29316",
+          "labels": {
+            "pt": "11 vezes",
+            "en": "11 times",
+            "es": "11 veces"
+          }
+        },
+        {
+          "value": 12,
+          "color": "cc8715",
+          "labels": {
+            "pt": "12 vezes",
+            "en": "12 times",
+            "es": "12 veces"
+          }
+        },
+        {
+          "value": 13,
+          "color": "c57b14",
+          "labels": {
+            "pt": "13 vezes",
+            "en": "13 times",
+            "es": "13 veces"
+          }
+        },
+        {
+          "value": 14,
+          "color": "bd6c12",
+          "labels": {
+            "pt": "14 vezes",
+            "en": "14 times",
+            "es": "14 veces"
+          }
+        },
+        {
+          "value": 15,
+          "color": "b76011",
+          "labels": {
+            "pt": "15 vezes",
+            "en": "15 times",
+            "es": "15 veces"
+          }
+        },
+        {
+          "value": 16,
+          "color": "b0540f",
+          "labels": {
+            "pt": "16 vezes",
+            "en": "16 times",
+            "es": "16 veces"
+          }
+        },
+        {
+          "value": 17,
+          "color": "a8450d",
+          "labels": {
+            "pt": "17 vezes",
+            "en": "17 times",
+            "es": "17 veces"
+          }
+        },
+        {
+          "value": 18,
+          "color": "9f360b",
+          "labels": {
+            "pt": "18 vezes",
+            "en": "18 times",
+            "es": "18 veces"
+          }
+        },
+        {
+          "value": 19,
+          "color": "992a0a",
+          "labels": {
+            "pt": "19 vezes",
+            "en": "19 times",
+            "es": "19 veces"
+          }
+        },
+        {
+          "value": 20,
+          "color": "921e08",
+          "labels": {
+            "pt": "20 vezes",
+            "en": "20 times",
+            "es": "20 veces"
+          }
+        },
+        {
+          "value": 21,
+          "color": "8c1307",
+          "labels": {
+            "pt": "21 vezes",
+            "en": "21 times",
+            "es": "21 veces"
+          }
+        },
+        {
+          "value": 22,
+          "color": "810004",
+          "labels": {
+            "pt": "22 vezes",
+            "en": "22 times",
+            "es": "22 veces"
+          }
+        },
+        {
+          "value": 23,
+          "color": "770105",
+          "labels": {
+            "pt": "23 vezes",
+            "en": "23 times",
+            "es": "23 veces"
+          }
+        },
+        {
+          "value": 24,
+          "color": "6a0306",
+          "labels": {
+            "pt": "24 vezes",
+            "en": "24 times",
+            "es": "24 veces"
+          }
+        },
+        {
+          "value": 25,
+          "color": "600407",
+          "labels": {
+            "pt": "25 vezes",
+            "en": "25 times",
+            "es": "25 veces"
+          }
+        },
+        {
+          "value": 26,
+          "color": "5a0508",
+          "labels": {
+            "pt": "26 vezes",
+            "en": "26 times",
+            "es": "26 veces"
+          }
+        },
+        {
+          "value": 27,
+          "color": "4b0709",
+          "labels": {
+            "pt": "27 vezes",
+            "en": "27 times",
+            "es": "27 veces"
+          }
+        },
+        {
+          "value": 28,
+          "color": "450709",
+          "labels": {
+            "pt": "28 vezes",
+            "en": "28 times",
+            "es": "28 veces"
+          }
+        },
+        {
+          "value": 29,
+          "color": "3f0708",
+          "labels": {
+            "pt": "29 vezes",
+            "en": "29 times",
+            "es": "29 veces"
+          }
+        },
+        {
+          "value": 30,
+          "color": "390608",
+          "labels": {
+            "pt": "30 vezes",
+            "en": "30 times",
+            "es": "30 veces"
+          }
+        },
+        {
+          "value": 31,
+          "color": "330607",
+          "labels": {
+            "pt": "31 vezes",
+            "en": "31 times",
+            "es": "31 veces"
+          }
+        },
+        {
+          "value": 32,
+          "color": "2d0506",
+          "labels": {
+            "pt": "32 vezes",
+            "en": "32 times",
+            "es": "32 veces"
+          }
+        },
+        {
+          "value": 33,
+          "color": "270506",
+          "labels": {
+            "pt": "33 vezes",
+            "en": "33 times",
+            "es": "33 veces"
+          }
+        },
+        {
+          "value": 34,
+          "color": "220505",
+          "labels": {
+            "pt": "34 vezes",
+            "en": "34 times",
+            "es": "34 veces"
+          }
+        },
+        {
+          "value": 35,
+          "color": "1c0404",
+          "labels": {
+            "pt": "35 vezes",
+            "en": "35 times",
+            "es": "35 veces"
+          }
+        },
+        {
+          "value": 36,
+          "color": "170404",
+          "labels": {
+            "pt": "36 vezes",
+            "en": "36 times",
+            "es": "36 veces"
+          }
+        },
+        {
+          "value": 37,
+          "color": "120303",
+          "labels": {
+            "pt": "37 vezes",
+            "en": "37 times",
+            "es": "37 veces"
+          }
+        },
+        {
+          "value": 38,
+          "color": "0d0203",
+          "labels": {
+            "pt": "38 vezes",
+            "en": "38 times",
+            "es": "38 veces"
+          }
+        },
+        {
+          "value": 39,
+          "color": "080202",
+          "labels": {
+            "pt": "39 vezes",
+            "en": "39 times",
+            "es": "39 veces"
+          }
+        },
+        {
+          "value": 40,
+          "color": "040101",
+          "labels": {
+            "pt": "40 vezes",
+            "en": "40 times",
+            "es": "40 veces"
+          }
+        },
+        {
+          "value": 41,
+          "color": "020000",
+          "labels": {
+            "pt": "41 vezes",
+            "en": "41 times",
+            "es": "41 veces"
+          }
+        }
+      ]
+    },
+    {
+      "key": [
+        "brasil",
+        "5.1",
+        "interval_since_fire",
+        "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_interval_since_fire_v1"
+      ],
+      "legend_id": "brazil_col5_fire_return_interval",
+      "file": "brazil_col5_fire_return_interval.csv",
+      "representable": true,
+      "classes": [
+        {
+          "value": 1,
+          "color": "940000",
+          "labels": {
+            "pt": "1 ano",
+            "en": "1 year",
+            "es": "1 año"
+          }
+        },
+        {
+          "value": 2,
+          "color": "b51f16",
+          "labels": {
+            "pt": "2 anos",
+            "en": "2 years",
+            "es": "2 años"
+          }
+        },
+        {
+          "value": 3,
+          "color": "d63b24",
+          "labels": {
+            "pt": "3 anos",
+            "en": "3 years",
+            "es": "3 años"
+          }
+        },
+        {
+          "value": 4,
+          "color": "f05a28",
+          "labels": {
+            "pt": "4 anos",
+            "en": "4 years",
+            "es": "4 años"
+          }
+        },
+        {
+          "value": 5,
+          "color": "f47a20",
+          "labels": {
+            "pt": "5 anos",
+            "en": "5 years",
+            "es": "5 años"
+          }
+        },
+        {
+          "value": 6,
+          "color": "f7951d",
+          "labels": {
+            "pt": "6 anos",
+            "en": "6 years",
+            "es": "6 años"
+          }
+        },
+        {
+          "value": 7,
+          "color": "f7b21a",
+          "labels": {
+            "pt": "7 anos",
+            "en": "7 years",
+            "es": "7 años"
+          }
+        },
+        {
+          "value": 8,
+          "color": "f4cc1e",
+          "labels": {
+            "pt": "8 anos",
+            "en": "8 years",
+            "es": "8 años"
+          }
+        },
+        {
+          "value": 9,
+          "color": "e6df2a",
+          "labels": {
+            "pt": "9 anos",
+            "en": "9 years",
+            "es": "9 años"
+          }
+        },
+        {
+          "value": 10,
+          "color": "cde33a",
+          "labels": {
+            "pt": "10 anos",
+            "en": "10 years",
+            "es": "10 años"
+          }
+        },
+        {
+          "value": 11,
+          "color": "aee044",
+          "labels": {
+            "pt": "11 anos",
+            "en": "11 years",
+            "es": "11 años"
+          }
+        },
+        {
+          "value": 12,
+          "color": "8bd84f",
+          "labels": {
+            "pt": "12 anos",
+            "en": "12 years",
+            "es": "12 años"
+          }
+        },
+        {
+          "value": 13,
+          "color": "65cd5b",
+          "labels": {
+            "pt": "13 anos",
+            "en": "13 years",
+            "es": "13 años"
+          }
+        },
+        {
+          "value": 14,
+          "color": "42bf68",
+          "labels": {
+            "pt": "14 anos",
+            "en": "14 years",
+            "es": "14 años"
+          }
+        },
+        {
+          "value": 15,
+          "color": "2fb47a",
+          "labels": {
+            "pt": "15 anos",
+            "en": "15 years",
+            "es": "15 años"
+          }
+        },
+        {
+          "value": 16,
+          "color": "2aa98b",
+          "labels": {
+            "pt": "16 anos",
+            "en": "16 years",
+            "es": "16 años"
+          }
+        },
+        {
+          "value": 17,
+          "color": "35a4a0",
+          "labels": {
+            "pt": "17 anos",
+            "en": "17 years",
+            "es": "17 años"
+          }
+        },
+        {
+          "value": 18,
+          "color": "3aa0b8",
+          "labels": {
+            "pt": "18 anos",
+            "en": "18 years",
+            "es": "18 años"
+          }
+        },
+        {
+          "value": 19,
+          "color": "3696ca",
+          "labels": {
+            "pt": "19 anos",
+            "en": "19 years",
+            "es": "19 años"
+          }
+        },
+        {
+          "value": 20,
+          "color": "2f84c5",
+          "labels": {
+            "pt": "20 anos",
+            "en": "20 years",
+            "es": "20 años"
+          }
+        },
+        {
+          "value": 21,
+          "color": "2d6db7",
+          "labels": {
+            "pt": "21 anos",
+            "en": "21 years",
+            "es": "21 años"
+          }
+        },
+        {
+          "value": 22,
+          "color": "3159a8",
+          "labels": {
+            "pt": "22 anos",
+            "en": "22 years",
+            "es": "22 años"
+          }
+        },
+        {
+          "value": 23,
+          "color": "3d4d9d",
+          "labels": {
+            "pt": "23 anos",
+            "en": "23 years",
+            "es": "23 años"
+          }
+        },
+        {
+          "value": 24,
+          "color": "4b4597",
+          "labels": {
+            "pt": "24 anos",
+            "en": "24 years",
+            "es": "24 años"
+          }
+        },
+        {
+          "value": 25,
+          "color": "5b3f93",
+          "labels": {
+            "pt": "25 anos",
+            "en": "25 years",
+            "es": "25 años"
+          }
+        },
+        {
+          "value": 26,
+          "color": "6b3a91",
+          "labels": {
+            "pt": "26 anos",
+            "en": "26 years",
+            "es": "26 años"
+          }
+        },
+        {
+          "value": 27,
+          "color": "7b3590",
+          "labels": {
+            "pt": "27 anos",
+            "en": "27 years",
+            "es": "27 años"
+          }
+        },
+        {
+          "value": 28,
+          "color": "8b318f",
+          "labels": {
+            "pt": "28 anos",
+            "en": "28 years",
+            "es": "28 años"
+          }
+        },
+        {
+          "value": 29,
+          "color": "9b2f8e",
+          "labels": {
+            "pt": "29 anos",
+            "en": "29 years",
+            "es": "29 años"
+          }
+        },
+        {
+          "value": 30,
+          "color": "aa318d",
+          "labels": {
+            "pt": "30 anos",
+            "en": "30 years",
+            "es": "30 años"
+          }
+        },
+        {
+          "value": 31,
+          "color": "b83b93",
+          "labels": {
+            "pt": "31 anos",
+            "en": "31 years",
+            "es": "31 años"
+          }
+        },
+        {
+          "value": 32,
+          "color": "c5489c",
+          "labels": {
+            "pt": "32 anos",
+            "en": "32 years",
+            "es": "32 años"
+          }
+        },
+        {
+          "value": 33,
+          "color": "d158a8",
+          "labels": {
+            "pt": "33 anos",
+            "en": "33 years",
+            "es": "33 años"
+          }
+        },
+        {
+          "value": 34,
+          "color": "dc6ab5",
+          "labels": {
+            "pt": "34 anos",
+            "en": "34 years",
+            "es": "34 años"
+          }
+        },
+        {
+          "value": 35,
+          "color": "e47bc0",
+          "labels": {
+            "pt": "35 anos",
+            "en": "35 years",
+            "es": "35 años"
+          }
+        },
+        {
+          "value": 36,
+          "color": "ea8ccb",
+          "labels": {
+            "pt": "36 anos",
+            "en": "36 years",
+            "es": "36 años"
+          }
+        },
+        {
+          "value": 37,
+          "color": "efa0d5",
+          "labels": {
+            "pt": "37 anos",
+            "en": "37 years",
+            "es": "37 años"
+          }
+        },
+        {
+          "value": 38,
+          "color": "f3b5df",
+          "labels": {
+            "pt": "38 anos",
+            "en": "38 years",
+            "es": "38 años"
+          }
+        },
+        {
+          "value": 39,
+          "color": "d9d9d9",
+          "labels": {
+            "pt": "39 anos",
+            "en": "39 years",
+            "es": "39 años"
+          }
+        },
+        {
+          "value": 40,
+          "color": "8c8c8c",
+          "labels": {
+            "pt": "40 anos",
+            "en": "40 years",
+            "es": "40 años"
+          }
+        }
+      ]
+    },
+    {
+      "key": [
+        "brasil",
+        "5.1",
+        "year_last_fire",
+        "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_year_last_fire_v1"
+      ],
+      "legend_id": "brazil_col5_last_fire_year",
+      "file": "brazil_col5_last_fire_year.csv",
+      "representable": true,
+      "classes": [
+        {
+          "value": 1985,
+          "color": "010079",
+          "labels": {
+            "pt": "1985",
+            "en": "1985",
+            "es": "1985"
+          }
+        },
+        {
+          "value": 1986,
+          "color": "010b7b",
+          "labels": {
+            "pt": "1986",
+            "en": "1986",
+            "es": "1986"
+          }
+        },
+        {
+          "value": 1987,
+          "color": "01177c",
+          "labels": {
+            "pt": "1987",
+            "en": "1987",
+            "es": "1987"
+          }
+        },
+        {
+          "value": 1988,
+          "color": "00227e",
+          "labels": {
+            "pt": "1988",
+            "en": "1988",
+            "es": "1988"
+          }
+        },
+        {
+          "value": 1989,
+          "color": "002d80",
+          "labels": {
+            "pt": "1989",
+            "en": "1989",
+            "es": "1989"
+          }
+        },
+        {
+          "value": 1990,
+          "color": "003881",
+          "labels": {
+            "pt": "1990",
+            "en": "1990",
+            "es": "1990"
+          }
+        },
+        {
+          "value": 1991,
+          "color": "004284",
+          "labels": {
+            "pt": "1991",
+            "en": "1991",
+            "es": "1991"
+          }
+        },
+        {
+          "value": 1992,
+          "color": "004c86",
+          "labels": {
+            "pt": "1992",
+            "en": "1992",
+            "es": "1992"
+          }
+        },
+        {
+          "value": 1993,
+          "color": "005688",
+          "labels": {
+            "pt": "1993",
+            "en": "1993",
+            "es": "1993"
+          }
+        },
+        {
+          "value": 1994,
+          "color": "00608a",
+          "labels": {
+            "pt": "1994",
+            "en": "1994",
+            "es": "1994"
+          }
+        },
+        {
+          "value": 1995,
+          "color": "026b8d",
+          "labels": {
+            "pt": "1995",
+            "en": "1995",
+            "es": "1995"
+          }
+        },
+        {
+          "value": 1996,
+          "color": "007d96",
+          "labels": {
+            "pt": "1996",
+            "en": "1996",
+            "es": "1996"
+          }
+        },
+        {
+          "value": 1997,
+          "color": "008998",
+          "labels": {
+            "pt": "1997",
+            "en": "1997",
+            "es": "1997"
+          }
+        },
+        {
+          "value": 1998,
+          "color": "198d98",
+          "labels": {
+            "pt": "1998",
+            "en": "1998",
+            "es": "1998"
+          }
+        },
+        {
+          "value": 1999,
+          "color": "26a09e",
+          "labels": {
+            "pt": "1999",
+            "en": "1999",
+            "es": "1999"
+          }
+        },
+        {
+          "value": 2000,
+          "color": "41aca6",
+          "labels": {
+            "pt": "2000",
+            "en": "2000",
+            "es": "2000"
+          }
+        },
+        {
+          "value": 2001,
+          "color": "5db9ad",
+          "labels": {
+            "pt": "2001",
+            "en": "2001",
+            "es": "2001"
+          }
+        },
+        {
+          "value": 2002,
+          "color": "78c5b5",
+          "labels": {
+            "pt": "2002",
+            "en": "2002",
+            "es": "2002"
+          }
+        },
+        {
+          "value": 2003,
+          "color": "94d2bd",
+          "labels": {
+            "pt": "2003",
+            "en": "2003",
+            "es": "2003"
+          }
+        },
+        {
+          "value": 2004,
+          "color": "9fbd98",
+          "labels": {
+            "pt": "2004",
+            "en": "2004",
+            "es": "2004"
+          }
+        },
+        {
+          "value": 2005,
+          "color": "aaa772",
+          "labels": {
+            "pt": "2005",
+            "en": "2005",
+            "es": "2005"
+          }
+        },
+        {
+          "value": 2006,
+          "color": "b4924d",
+          "labels": {
+            "pt": "2006",
+            "en": "2006",
+            "es": "2006"
+          }
+        },
+        {
+          "value": 2007,
+          "color": "bf7c27",
+          "labels": {
+            "pt": "2007",
+            "en": "2007",
+            "es": "2007"
+          }
+        },
+        {
+          "value": 2008,
+          "color": "ca6702",
+          "labels": {
+            "pt": "2008",
+            "en": "2008",
+            "es": "2008"
+          }
+        },
+        {
+          "value": 2009,
+          "color": "c45905",
+          "labels": {
+            "pt": "2009",
+            "en": "2009",
+            "es": "2009"
+          }
+        },
+        {
+          "value": 2010,
+          "color": "bf4b08",
+          "labels": {
+            "pt": "2010",
+            "en": "2010",
+            "es": "2010"
+          }
+        },
+        {
+          "value": 2011,
+          "color": "b93c0c",
+          "labels": {
+            "pt": "2011",
+            "en": "2011",
+            "es": "2011"
+          }
+        },
+        {
+          "value": 2012,
+          "color": "b42e0f",
+          "labels": {
+            "pt": "2012",
+            "en": "2012",
+            "es": "2012"
+          }
+        },
+        {
+          "value": 2013,
+          "color": "ae2012",
+          "labels": {
+            "pt": "2013",
+            "en": "2013",
+            "es": "2013"
+          }
+        },
+        {
+          "value": 2014,
+          "color": "aa2016",
+          "labels": {
+            "pt": "2014",
+            "en": "2014",
+            "es": "2014"
+          }
+        },
+        {
+          "value": 2015,
+          "color": "a6211a",
+          "labels": {
+            "pt": "2015",
+            "en": "2015",
+            "es": "2015"
+          }
+        },
+        {
+          "value": 2016,
+          "color": "a3211e",
+          "labels": {
+            "pt": "2016",
+            "en": "2016",
+            "es": "2016"
+          }
+        },
+        {
+          "value": 2017,
+          "color": "9f2222",
+          "labels": {
+            "pt": "2017",
+            "en": "2017",
+            "es": "2017"
+          }
+        },
+        {
+          "value": 2018,
+          "color": "9b2226",
+          "labels": {
+            "pt": "2018",
+            "en": "2018",
+            "es": "2018"
+          }
+        },
+        {
+          "value": 2019,
+          "color": "961b1e",
+          "labels": {
+            "pt": "2019",
+            "en": "2019",
+            "es": "2019"
+          }
+        },
+        {
+          "value": 2020,
+          "color": "901417",
+          "labels": {
+            "pt": "2020",
+            "en": "2020",
+            "es": "2020"
+          }
+        },
+        {
+          "value": 2021,
+          "color": "8b0e0f",
+          "labels": {
+            "pt": "2021",
+            "en": "2021",
+            "es": "2021"
+          }
+        },
+        {
+          "value": 2022,
+          "color": "850708",
+          "labels": {
+            "pt": "2022",
+            "en": "2022",
+            "es": "2022"
+          }
+        },
+        {
+          "value": 2023,
+          "color": "810000",
+          "labels": {
+            "pt": "2023",
+            "en": "2023",
+            "es": "2023"
+          }
+        },
+        {
+          "value": 2024,
+          "color": "780000",
+          "labels": {
+            "pt": "2024",
+            "en": "2024",
+            "es": "2024"
+          }
+        },
+        {
+          "value": 2025,
+          "color": "750000",
+          "labels": {
+            "pt": "2025",
+            "en": "2025",
+            "es": "2025"
+          }
+        }
+      ]
+    },
+    {
+      "key": [
+        "brasil",
+        "5.1",
+        "accumulated_burned",
+        "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_accumulated_burned_v1"
+      ],
+      "legend_id": "brazil_col5_accumulated_burned_area",
+      "file": "brazil_col5_accumulated_burned_area.csv",
+      "representable": false,
+      "classes": [
+        {
+          "value": 1,
+          "color": "e84130",
+          "labels": {
+            "pt": "Área queimada",
+            "en": "Burned area",
+            "es": "Área quemada"
+          }
+        }
+      ]
+    },
+    {
+      "key": [
+        "brasil",
+        "5.1",
+        "annual_burned_coverage",
+        "projects/mapbiomas-public/assets/brazil/fire/collection5_1/mapbiomas_fire_collection51_annual_burned_coverage_v1"
+      ],
+      "legend_id": "brazil_col5_annual_burned_coverage",
+      "file": "brazil_col5_annual_burned_coverage.csv",
+      "representable": false,
+      "classes": [
+        {
+          "value": 1,
+          "color": "1f8d49",
+          "labels": {
+            "pt": "Floresta",
+            "en": "Forest",
+            "es": "Bosque"
+          }
+        },
+        {
+          "value": 3,
+          "color": "1f8d49",
+          "labels": {
+            "pt": "Formação Florestal",
+            "en": "Forest Formation",
+            "es": "Formación Boscosa"
+          }
+        },
+        {
+          "value": 4,
+          "color": "7dc975",
+          "labels": {
+            "pt": "Formação Savânica",
+            "en": "Savanna Formation",
+            "es": "Formación Sabánica"
+          }
+        },
+        {
+          "value": 5,
+          "color": "04381d",
+          "labels": {
+            "pt": "Mangue",
+            "en": "Mangrove",
+            "es": "Manglar"
+          }
+        },
+        {
+          "value": 6,
+          "color": "007785",
+          "labels": {
+            "pt": "Floresta Alagável",
+            "en": "Floodable Forest",
+            "es": "Bosque Inundable"
+          }
+        },
+        {
+          "value": 9,
+          "color": "7a5900",
+          "labels": {
+            "pt": "Silvicultura",
+            "en": "Forest Plantation",
+            "es": "Plantación Forestal"
+          }
+        },
+        {
+          "value": 10,
+          "color": "d6bc74",
+          "labels": {
+            "pt": "Vegetação Herbácea e Arbustiva",
+            "en": "Herbaceous and Shrubby Vegetation",
+            "es": "Vegetación Herbácea y Arbustiva"
+          }
+        },
+        {
+          "value": 11,
+          "color": "519799",
+          "labels": {
+            "pt": "Campo Alagado e Área Pantanosa",
+            "en": "Wetland",
+            "es": "Humedal"
+          }
+        },
+        {
+          "value": 12,
+          "color": "d6bc74",
+          "labels": {
+            "pt": "Formação Campestre",
+            "en": "Grassland",
+            "es": "Formación Campestre"
+          }
+        },
+        {
+          "value": 14,
+          "color": "ffefc3",
+          "labels": {
+            "pt": "Agropecuária",
+            "en": "Farming",
+            "es": "Agropecuaria"
+          }
+        },
+        {
+          "value": 15,
+          "color": "edde8e",
+          "labels": {
+            "pt": "Pastagem",
+            "en": "Pasture",
+            "es": "Pasto"
+          }
+        },
+        {
+          "value": 18,
+          "color": "e974ed",
+          "labels": {
+            "pt": "Agricultura",
+            "en": "Agriculture",
+            "es": "Agricultura"
+          }
+        },
+        {
+          "value": 19,
+          "color": "c27ba0",
+          "labels": {
+            "pt": "Lavoura Temporária",
+            "en": "Temporary Crop",
+            "es": "Cultivo Temporal"
+          }
+        },
+        {
+          "value": 20,
+          "color": "db7093",
+          "labels": {
+            "pt": "Cana",
+            "en": "Sugar Cane",
+            "es": "Caña"
+          }
+        },
+        {
+          "value": 21,
+          "color": "ffefc3",
+          "labels": {
+            "pt": "Mosaico de Usos",
+            "en": "Mosaic of Uses",
+            "es": "Mosaico de Usos"
+          }
+        },
+        {
+          "value": 22,
+          "color": "d4271e",
+          "labels": {
+            "pt": "Área não Vegetada",
+            "en": "Non Vegetated Area",
+            "es": "Área sin Vegetación"
+          }
+        },
+        {
+          "value": 23,
+          "color": "ffa07a",
+          "labels": {
+            "pt": "Praia, Duna e Areal",
+            "en": "Beach, Dune and Sand Spot",
+            "es": "Playa, Duna y Arenal"
+          }
+        },
+        {
+          "value": 24,
+          "color": "d4271e",
+          "labels": {
+            "pt": "Área Urbanizada",
+            "en": "Urban Area",
+            "es": "Infraestructura Urbana"
+          }
+        },
+        {
+          "value": 25,
+          "color": "db4d4f",
+          "labels": {
+            "pt": "Outras Áreas não Vegetadas",
+            "en": "Other Non Vegetated Areas",
+            "es": "Otras Áreas sin Vegetación"
+          }
+        },
+        {
+          "value": 26,
+          "color": "2532e4",
+          "labels": {
+            "pt": "Corpo D'água",
+            "en": "Water",
+            "es": "Cuerpo de Agua"
+          }
+        },
+        {
+          "value": 29,
+          "color": "ffaa5f",
+          "labels": {
+            "pt": "Afloramento Rochoso",
+            "en": "Rocky Outcrop",
+            "es": "Afloramiento Rocoso"
+          }
+        },
+        {
+          "value": 30,
+          "color": "9c0027",
+          "labels": {
+            "pt": "Mineração",
+            "en": "Mining",
+            "es": "Minería"
+          }
+        },
+        {
+          "value": 31,
+          "color": "091077",
+          "labels": {
+            "pt": "Aquicultura",
+            "en": "Aquaculture",
+            "es": "Acuicultura"
+          }
+        },
+        {
+          "value": 32,
+          "color": "fc8114",
+          "labels": {
+            "pt": "Apicum",
+            "en": "Hypersaline Tidal Flat",
+            "es": "Salitral"
+          }
+        },
+        {
+          "value": 33,
+          "color": "2532e4",
+          "labels": {
+            "pt": "Rio, Lago e Oceano",
+            "en": "River, Lake and Ocean",
+            "es": "Río, Lago y Océano"
+          }
+        },
+        {
+          "value": 35,
+          "color": "9065d0",
+          "labels": {
+            "pt": "Dendê",
+            "en": "Palm Oil",
+            "es": "Palma Aceitera"
+          }
+        },
+        {
+          "value": 36,
+          "color": "d082de",
+          "labels": {
+            "pt": "Lavoura Perene",
+            "en": "Perennial Crop",
+            "es": "Cultivo Perenne"
+          }
+        },
+        {
+          "value": 39,
+          "color": "f5b3c8",
+          "labels": {
+            "pt": "Soja",
+            "en": "Soybean",
+            "es": "Soja"
+          }
+        },
+        {
+          "value": 40,
+          "color": "c71585",
+          "labels": {
+            "pt": "Arroz",
+            "en": "Rice",
+            "es": "Arroz"
+          }
+        },
+        {
+          "value": 41,
+          "color": "f54ca9",
+          "labels": {
+            "pt": "Outras Lavouras Temporárias",
+            "en": "Other Temporary Crops",
+            "es": "Otros Cultivos Temporales"
+          }
+        },
+        {
+          "value": 46,
+          "color": "d68fe2",
+          "labels": {
+            "pt": "Café",
+            "en": "Coffee",
+            "es": "Café"
+          }
+        },
+        {
+          "value": 47,
+          "color": "9932cc",
+          "labels": {
+            "pt": "Citrus",
+            "en": "Citrus",
+            "es": "Cítricos"
+          }
+        },
+        {
+          "value": 48,
+          "color": "e6ccff",
+          "labels": {
+            "pt": "Outras Lavouras Perenes",
+            "en": "Other Perennial Crops",
+            "es": "Otros Cultivos Perennes"
+          }
+        },
+        {
+          "value": 49,
+          "color": "02d659",
+          "labels": {
+            "pt": "Restinga Arbórea",
+            "en": "Wooded Sandbank Vegetation",
+            "es": "Restinga Arbórea"
+          }
+        },
+        {
+          "value": 50,
+          "color": "ad5100",
+          "labels": {
+            "pt": "Restinga Herbácea",
+            "en": "Herbaceous Sandbank Vegetation",
+            "es": "Restinga Herbácea"
+          }
+        },
+        {
+          "value": 62,
+          "color": "ff69b4",
+          "labels": {
+            "pt": "Algodão (beta)",
+            "en": "Cotton (beta)",
+            "es": "Algodón (beta)"
+          }
+        },
+        {
+          "value": 75,
+          "color": "c12100",
+          "labels": {
+            "pt": "Usina Fotovoltaica (beta)",
+            "en": "Photovoltaic Power Plant (beta)",
+            "es": "Planta Fotovoltaica (beta)"
+          }
+        }
+      ]
+    }
+  ]
+}

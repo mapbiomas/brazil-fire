@@ -132,7 +132,16 @@ class EEDownloader:
                 "palette": palette,
                 "bands": [band_name],
             }
-            visualized = image.select(band_name).unmask().visualize(**vis)
+            mask_color = viz_params.get("mask_color")
+            if mask_color is not None:
+                # Visualiza com a máscara original; zero pode ser uma classe válida.
+                hexc = str(mask_color).lstrip("#")
+                fill = ee.Image.constant(
+                    [int(hexc[0:2], 16), int(hexc[2:4], 16), int(hexc[4:6], 16)]
+                ).toUint8()
+                visualized = image.select(band_name).visualize(**vis).unmask(fill, False)
+            else:
+                visualized = image.select(band_name).unmask().visualize(**vis)
             if nodata_color and nodata_value is not None:
                 # Pinta exatamente o valor de nodata, sem afetar a faixa da legenda
                 hexc = str(nodata_color).lstrip("#")

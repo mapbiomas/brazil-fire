@@ -43,6 +43,33 @@ class UIProgressTests(unittest.TestCase):
         return module.show_ui(list(layers), list(territories),
                               output_root=str(Path(tmp) / "out"), temp_root=str(Path(tmp) / "temp"), project="test")
 
+    def test_maps_buttons_and_scheduled_list_follow_batch_selection_across_tabs(self):
+        import ipywidgets as widgets
+        seen = []
+        with tempfile.TemporaryDirectory() as tmp:
+            widget = self.run_ui(tmp, generate=_fake_generate(seen))
+            self.assertEqual(widget.navigation.options[0], "Mapas")
+            button = next(check for origin, layer, check in widget.product_checks
+                          if origin == "Brasil" and layer["id"] == "annual_burned")
+            self.assertIsInstance(button, widgets.ToggleButton)
+            button.value = True
+            _select(widget, territory_ids={"bioma_amazonia"})
+            summary = widget.scheduled_html
+            self.assertIn(button.description, summary.value)
+            self.assertIn("Amazônia", summary.value)
+            for tab in widget.navigation.options:
+                widget.navigation.value = tab
+                self.assertIn(summary, widget.children)
+                self.assertIn(button.description, summary.value)
+            widget.start_batch()
+            self.assertEqual([(a, b) for a, b, _, _ in seen], [("annual_burned", "bioma_amazonia")])
+            territory = next(check for _, item, check in widget.territory_checks if item["id"] == "bioma_amazonia")
+            territory.value = False
+            self.assertNotIn("Amazônia", summary.value)
+            self.assertIn("0 combinação", summary.value)
+            button.value = False
+            self.assertNotIn(button.description, summary.value)
+
     def test_initiative_switch_clears_selections_and_keeps_custom_layers_separate(self):
         seen = []
         with tempfile.TemporaryDirectory() as tmp:
@@ -51,6 +78,10 @@ class UIProgressTests(unittest.TestCase):
             widget.initiative.value = "Peru"
             self.assertTrue(all(not check.value for _, _, check in widget.product_checks))
             self.assertTrue(all(not check.value for _, _, check in widget.territory_checks))
+            self.assertIn("Programados", widget.scheduled_html.value)
+            widget.initiative.value = "Indonésia"
+            self.assertIn("Queued", widget.scheduled_html.value)
+            widget.initiative.value = "Peru"
             _select(widget, {"peru_fire2_annual"}, {"peru"})
             widget.start_batch()
             self.assertEqual([(a, b) for a, b, _, _ in seen], [("peru_fire2_annual", "peru")])
@@ -141,28 +172,34 @@ class UIProgressTests(unittest.TestCase):
             reference = [layer for _, layer, _ in widget.product_checks if str(layer["id"]).startswith("ref_")]
             self.assertTrue(reference)
             self.assertTrue(all(layer["status"] == "experimental" for layer in reference))
-            # Layers with a known style are enabled; unknown ones are not.
-            annual = next(layer for layer in reference if layer["name"] == "annual_burned")
-            self.assertEqual(annual["visualization"]["palette"], ["ffffff", "d4271e"])
-            self.assertTrue(annual.get("enabled", True))
+            pending = next(layer for layer in reference if layer["initiative"] == "Brasil"
+                           and layer["collection"] == "5.1" and layer["name"] == "annual_burned_coverage")
+            self.assertFalse(pending["enabled"])
+            monthly = next(layer for layer in reference if layer["initiative"] == "Brasil"
+                           and layer["collection"] == "5.1" and layer["name"] == "monthly_burned")
+            self.assertTrue(monthly.get("enabled", True))
+            self.assertEqual(monthly["visualization"]["palette"][0], "cc00ff")
 
     def test_reference_layer_style_is_editable(self):
         with tempfile.TemporaryDirectory() as tmp:
             widget = self.run_ui(tmp)
-            colombia = [layer for origin, layer, check in widget.product_checks
-                        if origin == "Colômbia" and layer["name"] == "annual_burned"]
-            self.assertEqual(len(colombia), 1)
-            widget.initiative.value = "Colômbia"
+            monthly = next(layer for origin, layer, check in widget.product_checks
+                           if origin == "Brasil" and layer["name"] == "monthly_burned"
+                           and layer["collection"] == "5.1" and layer["id"].startswith("ref_"))
             for _, layer, check in widget.product_checks:
-                if layer["id"] == colombia[0]["id"]:
+                if layer["id"] == monthly["id"]:
                     check.value = True
                     break
             self.assertEqual(widget.style_panel.layout.display, "")
-            self.assertEqual(widget.style_colors.value, "ffffff,d4271e")
-            widget.style_colors.value = "ffffff,000000"
-            widget.style_labels.value = "Sem fogo,Fogo"
-            self.assertEqual(colombia[0]["visualization"]["palette"], ["ffffff", "000000"])
-            self.assertEqual(colombia[0]["legend"][1]["label"], "Fogo")
+            self.assertTrue(widget.style_colors.value.startswith("cc00ff,"))
+            colors = widget.style_colors.value.split(",")
+            colors[0] = "000000"
+            widget.style_colors.value = ",".join(colors)
+            labels = widget.style_labels.value.split(",")
+            labels[0] = "Primeiro mês"
+            widget.style_labels.value = ",".join(labels)
+            self.assertEqual(monthly["visualization"]["palette"][0], "000000")
+            self.assertEqual(monthly["legend"][0]["label"], "Primeiro mês")
 
     def test_municipality_search_adds_selection(self):
         from gif_factory import ui as module
@@ -178,6 +215,9 @@ class UIProgressTests(unittest.TestCase):
             selected = [t for _, t, check in widget.territory_checks if check.value]
             self.assertEqual(selected[0]["name"], "Petrolina (PE)")
             self.assertEqual(selected[0]["filter"]["values"], [123])
+            self.assertIn("Petrolina (PE)", widget.scheduled_html.value)
+            next(check for _, t, check in widget.territory_checks if t["id"] == selected[0]["id"]).value = False
+            self.assertNotIn("Petrolina (PE)", widget.scheduled_html.value)
 
     def test_simple_territory_type_selector(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -199,7 +239,7 @@ class UIProgressTests(unittest.TestCase):
                     yield from walk(child)
             nodes = list(walk(widget))
             self.assertFalse(any(isinstance(node, (widgets.Tab, widgets.Accordion)) for node in nodes))
-            self.assertTrue(any(isinstance(node, widgets.Checkbox) and "Área queimada" in node.description for node in nodes))
+            self.assertTrue(any(isinstance(node, widgets.ToggleButton) and "Área queimada" in node.description for node in nodes))
             self.assertTrue(any(isinstance(node, widgets.Checkbox) and "Amazônia" in node.description for node in nodes))
             self.assertTrue(any(isinstance(node, widgets.Checkbox) and node.description == "GIFs" for node in nodes))
 

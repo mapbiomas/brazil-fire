@@ -79,6 +79,18 @@ LAYERS.extend([
      "status": "experimental"},
 ])
 
+# Identidade do inventário, distinta do nome exibido. Nos quatro produtos
+# anuais escolhemos explicitamente o estilo do preset (binário) em vez da
+# alternativa experimental: os dois representam a mesma ocorrência de fogo.
+# Isso não afirma que as cores sejam equivalentes ou validadas no GEE.
+for _layer in LAYERS:
+    if _layer["id"] in {"annual_burned", "annual_burned_col4", "peru_fire2_annual", "fire_annual_br51"}:
+        _layer["product"] = "annual_burned"
+        _layer["status"] = "experimental"
+        _layer["dedup_style_reason"] = (
+            "Mesmo produto binário anual; preferir a visualização do preset à sugestão experimental."
+        )
+
 # Degradação — Coleção 11 (distância até a borda). Experimental.
 _DEGRADATION_EDGE_ASSET = "projects/mapbiomas-brazil/assets/DEGRADATION/COLLECTION-11/public/degradation_edge_area_col11_v1"
 LAYERS.extend([

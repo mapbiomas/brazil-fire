@@ -3,14 +3,15 @@
 Fontes:
 - legends.json: colhido de config/visualization.yaml da Fábrica anterior
   (fogo, cobertura, uso, degradação, solo, desmatamento).
-- EXTRA: paletas/legendas oficiais do relatório "MapBiomas Legend Codes
-  Registry" (água, solo, atmosfera, urbano, risco climático) e correções de
-  fogo (binário #d4271e, severidade 5 classes, cicatriz 8, retorno 5).
+- vera_fire_legends.json: snapshot do registro fire_legends, com identidade
+  explícita por iniciativa, coleção, produto e asset.
+- Outras sugestões provenientes de pesquisa não são automaticamente oficiais.
 
 Tudo permanece `experimental` até validação visual no GEE: a presença de uma
 paleta não comprova acesso ao asset, bandas, máscara ou interpretação.
 """
 import json
+import re
 from pathlib import Path
 
 
@@ -22,6 +23,44 @@ def _registry():
 
 
 _REGISTRY = _registry()
+
+# Snapshot independente do repositório de origem; não implica validação no GEE.
+_VERA_PATH = Path(__file__).with_name("vera_fire_legends.json")
+
+
+def _collection_key(value):
+    """Normaliza apenas versões numéricas, preservando todos os componentes."""
+    if not isinstance(value, str):
+        return value
+    match = re.fullmatch(r"(?:collection_)?([0-9]+(?:[._][0-9]+)*)", value)
+    if not match:
+        return value
+    return ".".join(str(int(part)) for part in re.split(r"[._]", match.group(1)))
+
+
+def _vera_key(key):
+    initiative, collection, product, asset = key
+    return initiative, _collection_key(collection), product, asset
+
+
+_VERA = {}
+for _entry in json.loads(_VERA_PATH.read_text(encoding="utf-8"))["entries"]:
+    _key = _vera_key(_entry["key"])
+    if _key in _VERA:
+        raise ValueError(f"Chave de legenda duplicada após normalização: {_key}")
+    _VERA[_key] = _entry
+
+
+def _vera_style(entry, lang):
+    if not entry["representable"]:
+        return None
+    classes = entry["classes"]
+    return {
+        "visualization": {"min": classes[0]["value"], "max": classes[-1]["value"],
+                          "palette": [c["color"] for c in classes], "cmap_type": "categorical",
+                          "prefix_labels": False, "mask_color": "ffffff"},
+        "legend": [{"label": c["labels"][lang], "color": c["color"]} for c in classes],
+    }
 
 INITIATIVES = {
     "brasil": "Brasil", "peru": "Peru", "paraguay": "Paraguai",
@@ -72,40 +111,31 @@ def theme_label(canonical, lang="pt"):
     return THEME_LABELS.get(canonical, {}).get(lang, canonical.replace("_", " ").title())
 
 
+def normalize_collection(value):
+    """Normaliza nomes de coleção para um formato numérico consistente.
+
+    "collection_05_1" -> "5.1", "collection_05" -> "5", "Coleção 5.1" -> "5.1",
+    "Colección 2" -> "2", "Collection 11" -> "11", "5.1" -> "5.1".
+    Outros valores ("monitor", "beta", "Sem coleção") permanecem.
+    """
+    text = str(value or "").strip()
+    m = re.match(r"collection_(\d+)(?:_(\d+))?$", text)
+    if m:
+        return f"{int(m.group(1))}.{int(m.group(2))}" if m.group(2) else str(int(m.group(1)))
+    m = re.match(r"(?:cole[cç][aã]o|coleccion|colección|collection|colecao)\s+(\d+(?:\.\d+)?)$", text, re.IGNORECASE)
+    if m:
+        return m.group(1)
+    if re.fullmatch(r"\d+(?:\.\d+)?", text):
+        return text
+    return text
+
+
 def lang_for(code):
     return LANGUAGES.get(code, "pt")
 
 
 # --- Paletas do relatório (não presentes no offline) -----------------------
 # Cada classe: (value, pt, en, es, color)
-_FIRE_BINARY = [
-    (0, "Ausência de fogo", "Unburned", "Ausencia de fuego", "ffffff"),
-    (1, "Ocorrência de fogo", "Burned", "Ocurrencia de fuego", "d4271e"),
-]
-_FIRE_SEVERITY = [
-    (1, "Muito baixa", "Very low", "Muy baja", "003f1b"),
-    (2, "Baixa", "Low", "Baja", "8ee637"),
-    (3, "Moderada", "Moderate", "Moderada", "ffd426"),
-    (4, "Alta", "High", "Alta", "ed7513"),
-    (5, "Muito alta / Extrema", "Very high / Extreme", "Muy alta / Extrema", "b30000"),
-]
-_FIRE_SCAR = [
-    (1, "< 10 ha", "< 10 ha", "< 10 ha", "d0ae35"),
-    (2, "10 – 250 ha", "10 – 250 ha", "10 – 250 ha", "c68e2f"),
-    (3, "250 – 500 ha", "250 – 500 ha", "250 – 500 ha", "b96d2b"),
-    (4, "500 – 5.000 ha", "500 – 5,000 ha", "500 – 5.000 ha", "ac4b28"),
-    (5, "5.000 – 10.000 ha", "5,000 – 10,000 ha", "5.000 – 10.000 ha", "933328"),
-    (6, "10.000 – 50.000 ha", "10,000 – 50,000 ha", "10.000 – 50.000 ha", "72251d"),
-    (7, "50.000 – 100.000 ha", "50,000 – 100,000 ha", "50.000 – 100.000 ha", "4e180f"),
-    (8, ">= 100.000 ha", ">= 100,000 ha", ">= 100.000 ha", "240d00"),
-]
-_FIRE_RETURN = [
-    (1, "1 a 2 anos", "1 to 2 years", "1 a 2 años", "7a0000"),
-    (2, "3 a 5 anos", "3 to 5 years", "3 a 5 años", "ba3a00"),
-    (3, "6 a 10 anos", "6 to 10 years", "6 a 10 años", "e07f00"),
-    (4, "11 a 20 anos", "11 to 20 years", "11 a 20 años", "f5c042"),
-    (5, "> 20 anos", "> 20 years", "> 20 años", "fff2aa"),
-]
 _WATER_BINARY = [
     (0, "Sem água", "Non-water", "Sin agua", "ffffff"),
     (1, "Água", "Water", "Agua", "0000ff"),
@@ -256,7 +286,7 @@ def _categorical(classes, lang="pt"):
     labels = [row[idx] for row in classes]
     values = [row[0] for row in classes]
     return {
-        "visualization": {"min": min(values), "max": max(values), "palette": colors, "cmap_type": "categorical"},
+        "visualization": {"min": min(values), "max": max(values), "palette": colors, "cmap_type": "categorical", "prefix_labels": False},
         "legend": [{"label": label, "color": color} for label, color in zip(labels, colors)],
     }
 
@@ -300,31 +330,9 @@ def style_for(record, lang="pt"):
     code = record.get("initiative", "brasil")
 
     if theme == "fire":
-        if name in {"annual burned", "annual burned area", "annual burned area ha", "accumulated burned", "accumulated burned area"}:
-            return _categorical(_FIRE_BINARY, lang)
-        if name in {"monthly burned", "monthly burned area"}:
-            return _from_registry("fire_col5_monthly", lang)
-        if name in {"fire frequency", "frequency burned", "frequency", "fire recurrence", "recurrence"}:
-            key = "fire_col2_frequency" if code == "peru" else "frequency_paraguay" if code == "paraguay" else "fire_col5_frequency"
-            return _from_registry(key, lang) or _from_registry("fire_col5_frequency", lang)
-        if name in {"severity", "severity class", "potential severity"}:
-            return _categorical(_FIRE_SEVERITY, lang)
-        if name in {"scar size", "scar size range", "annual burned scar size range"}:
-            return _categorical(_FIRE_SCAR, lang)
-        if name in {"return interval", "fire return interval", "interval since fire"}:
-            return _categorical(_FIRE_RETURN, lang)
-        if name in {"year last fire", "last fire", "year of last fire"}:
-            return _from_registry("fire_col5_year_last_fire", lang) or _from_registry("fire_col2_year_last_fire", lang)
-        if name in {"time after fire", "time since last fire"}:
-            return _from_registry("fire_col5_time_after_fire", lang)
-        if name in {"unprecedented fire"}:
-            return _from_registry("unprecedented_fire", lang)
-        if name in {"burned at least once"}:
-            return _from_registry("burned_at_least_once", lang)
-        # Coberturas (queimado por classe de cobertura)
-        if "coverage" in name:
-            return _from_registry("coverage_nivel2", lang)
-        return None
+        key = _vera_key(tuple(record.get(k) for k in ("initiative", "collection", "product", "asset")))
+        entry = _VERA.get(key)
+        return _vera_style(entry, lang) if entry is not None else None
 
     if theme == "lulc" or theme == "lulc_10m":
         if name in {"lulc nivel0", "nivel0", "lulc l0"}:

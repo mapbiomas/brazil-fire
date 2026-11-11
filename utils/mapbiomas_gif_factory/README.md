@@ -1,25 +1,25 @@
-# MapBiomas GIF Factory — piloto
+# MapBiomas GIF Factory — pilot
 
-Protótipo para produzir GIFs cartográficos de imagens multibanda do Earth Engine no Google Colab. O catálogo inicial inclui produtos experimentais de Fogo do Brasil e Peru; assets, permissões, legendas e resultados precisam ser conferidos antes do uso em produção.
+A prototype for producing map GIFs from multiband Earth Engine images in Google Colab. The initial catalog includes experimental fire products for Brazil and Peru; assets, permissions, legends, and results must be checked before production use.
 
-[![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/utils/mapbiomas_gif_factory/notebooks/piloto.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/utils/mapbiomas_gif_factory/notebooks/piloto.ipynb)
 
-## Como usar
+## How to use
 
-1. Abra o notebook acima. Na primeira célula, `GEE_PROJECT` usa `mapbiomas-brazil`; altere para um projeto Earth Engine ao qual você tenha acesso, se necessário. A célula clona o repositório na primeira execução e, nas seguintes, apenas busca e reposiciona em `REPO_REF`, reinstala o pacote e descarta módulos em cache — assim você recebe atualizações sem reiniciar o runtime.
-2. Execute as células em ordem. Edite `LAYERS` e `TERRITORIES` se quiser acrescentar itens personalizados; as bandas de imagens multibanda são descobertas automaticamente.
-3. Na interface, escolha **uma iniciativa** (Brasil, Peru ou Personalizado) e navegue pelas guias **Produtos**, **Territórios**, **Saídas e destino** e **Resultados**. Em Produtos, o seletor de **Tema** filtra os produtos da iniciativa ativa. Um lote nunca mistura iniciativas: trocar de iniciativa limpa as seleções.
-4. Selecione pelo menos um produto, um território e os tipos de arquivo. Países inteiros e biomas individuais estão disponíveis para Brasil e Peru. **Territórios personalizados ficam disponíveis em qualquer iniciativa**, para rodar um produto já preparado sobre um limite não previsto. Na iniciativa **Personalizado**, aparecem apenas as suas camadas, e todos os grupos de território ficam acessíveis.
-5. Escolha se a biblioteca principal será local ou, marcando envio automático, o Drive. Use **Verificar disponibilidade** para consultar o estado das combinações selecionadas e clique em **Gerar GIFs**. Alternativamente, execute a célula `ui.start_batch()`.
-6. Se a biblioteca principal já tiver resultados completos e compatíveis, eles não serão reprocessados. Caso haja conflito, o processo avisa e não sobrescreve. Para enviar arquivos locais mais tarde, selecione-os na seção de envio; os metadados necessários são copiados junto.
+1. Open the notebook above. In the first cell, `GEE_PROJECT` defaults to `mapbiomas-brazil`; change it to an Earth Engine project you can access if necessary. The cell clones the repository on the first run and, on subsequent runs, fetches and checks out `REPO_REF`, reinstalls the package, and clears cached modules, so updates are available without restarting the runtime.
+2. Run the cells in order. Edit `LAYERS` and `TERRITORIES` to add custom items; multiband image bands are discovered automatically.
+3. In the interface, choose an initiative and navigate the **Mapas** (Maps), **Territórios** (Territories), **Saídas e destino** (Outputs and destination), and **Resultados** (Results) tabs. Under Mapas, filter by theme and collection and use the buttons to select products. A batch never mixes initiatives: changing initiatives clears the selections.
+4. Select at least one product, one territory, and the file types. Whole countries and individual biomes are available for Brazil and Peru. **Custom territories are available in every initiative**, allowing an existing product to run over a boundary not included in the presets. The **Personalizado** (Custom) initiative shows only your layers, with all territory groups available.
+5. Choose whether the main library is local or, by enabling automatic upload, on Drive. Use **Verificar disponibilidade** (Check availability) to check the selected combinations, then click **Gerar GIFs** (Generate GIFs). Alternatively, run the `ui.start_batch()` cell.
+6. Complete, compatible results already in the main library will not be reprocessed. If there is a conflict, the process warns you and does not overwrite files. To upload local files later, select them in the upload section; the required metadata is copied with them.
 
-A guia **Produtos** inclui as iniciativas e os registros de referência por temática e coleção. Os presets habilitados aparecem diretamente; outras layers exigem configuração explícita e confirmação de que asset, bandas e legenda são adequados. A configuração manual não substitui a validação no Earth Engine.
+The **Mapas** tab brings together presets and reference records by theme and collection. The **Agendados** (Queued) list remains visible across tabs and summarizes the maps, territories, and number of combinations to be submitted when the batch runs. Selection does not replace validation of the asset, bands, processing, and legend in Earth Engine.
 
-O armazenamento `/content` desaparece quando a sessão Colab termina. Os dados temporários não são enviados ao Drive automaticamente.
+Storage under `/content` disappears when the Colab session ends. Temporary data is not automatically uploaded to Drive.
 
-## Pastas e disponibilidade
+## Folders and availability
 
-A biblioteca é permanente durante a sessão local, ou no Drive se este for escolhido como destino. Não há uma pasta de entrega por execução:
+The library persists for the duration of the local session, or on Drive if Drive is selected as the destination. There is no separate delivery folder per run:
 
 ```text
 mapbiomas_gif_factory/
@@ -31,43 +31,43 @@ mapbiomas_gif_factory/
 └── Peru_Fuego_Coleccion_2/Area_quemada_anual/Peru/
 ```
 
-Os intermediários ficam visíveis em `/content/temp/<iniciativa_tema_colecao>/<produto>/<territorio>/<período>/<execução>/processamento/`. Eles permanecem na sessão para inspeção, inclusive após falhas; o projeto não apaga automaticamente pastas antigas.
+Intermediate files remain visible under `/content/temp/<iniciativa_tema_colecao>/<produto>/<territorio>/<período>/<execução>/processamento/`. They remain in the session for inspection, including after failures; the project does not automatically delete old folders.
 
-- **Disponível:** os tipos de saída selecionados têm metadados compatíveis e todos os arquivos registrados conferem.
-- **Parcial:** há metadados compatíveis, mas falta algum arquivo ou tipo de saída; pode ser necessário gerar novamente no temporário. Arquivos existentes não são substituídos.
-- **Não gerado:** não há resultado registrado para a seleção.
-- **Verificar:** metadados ausentes/inválidos, arquivos alterados ou configuração diferente. Não há sobrescrita automática; examine a pasta no destino.
+- **Disponível (Available):** the selected output types have compatible metadata and all registered files check out.
+- **Parcial (Partial):** compatible metadata exists, but a file or output type is missing; regeneration in the temporary folder may be necessary. Existing files are not replaced.
+- **Não gerado (Not generated):** no result is registered for the selection.
+- **Verificar (Check):** metadata is missing or invalid, files have changed, or the configuration differs. There is no automatic overwrite; inspect the destination folder.
 
-Com envio automático habilitado, o Drive é a referência. Apagar um arquivo no Drive faz a próxima verificação indicar resultado parcial, mesmo que exista cópia local. Com envio automático desativado, a biblioteca local é a referência. Um envio posterior seletivo leva os metadados e pode aparecer como parcial até todos os arquivos de um tipo serem copiados.
+With automatic upload enabled, Drive is the reference. Deleting a file on Drive makes the next check report a partial result, even if a local copy exists. With automatic upload disabled, the local library is the reference. A later selective upload carries the metadata and may appear partial until all files of a type have been copied.
 
-Uma série completa usa `completo` nos metadados e não recebe período extra no nome do GIF/colagem. Um intervalo parcial contínuo acrescenta, por exemplo, `_2020-2023`; uma seleção irregular recebe um identificador, e os nomes exatos das bandas ficam nos metadados. Frames parciais ficam em subpasta própria. A conferência verifica configuração, lista de bandas, tamanho e SHA-256 dos arquivos; ela não detecta uma alteração no conteúdo do asset Earth Engine se o endereço e os nomes das bandas permanecerem iguais.
+A complete series uses `completo` in the metadata and has no extra period in the GIF/collage filename. A continuous partial range adds, for example, `_2020-2023`; an irregular selection receives an identifier, and the exact band names are stored in the metadata. Partial frames are placed in their own subfolder. The check verifies configuration, band list, file size, and SHA-256; it does not detect changes to Earth Engine asset content if the address and band names remain the same.
 
-## Camadas e territórios personalizados
+## Custom layers and territories
 
-As células `LAYERS` e `TERRITORIES` são listas Python explícitas. Altere-as e execute novamente a interface. As camadas de `LAYERS` aparecem na iniciativa **Personalizado** e são gravadas em `Personalizado_<tema>_<coleção>/...`; os presets ficam em Brasil e Peru. Os territórios de `TERRITORIES` aparecem no grupo **Personalizados** e podem ser combinados com produtos de qualquer iniciativa.
+The `LAYERS` and `TERRITORIES` cells are explicit Python lists. Edit them and run the interface again. Layers in `LAYERS` appear in the **Personalizado** initiative and are saved under `Personalizado_<tema>_<coleção>/...`; presets remain under Brazil and Peru. Territories in `TERRITORIES` appear in the **Personalizados** (Custom) group and can be combined with products from any initiative.
 
-Para uma camada `ee.Image` multibanda:
+For a multiband `ee.Image` layer:
 
 ```python
 LAYERS = [{
-    "id": "minha_camada",  # identificador único: letras, números, _ ou -
+    "id": "minha_camada",  # unique identifier: letters, numbers, _ or -
     "name": "Minha camada",
-    "theme": "Meu tema",             # opcional
-    "collection": "Minha coleção",   # opcional
+    "theme": "Meu tema",             # optional
+    "collection": "Minha coleção",   # optional
     "asset": "projects/.../minha_imagem",
     "visualization": {"min": 0, "max": 1, "palette": ["fdfdfd", "800000"]},
     "legend": [{"label": "Não observado", "color": "fdfdfd"},
                {"label": "Fogo", "color": "800000"}],
-    # "start_year": 2020,  # opcionais; omitidos = todas as bandas
+    # "start_year": 2020,  # optional; omit both for all bands
     # "end_year": 2023,
 }]
 ```
 
-`id`, `name`, `asset`, `visualization` e `legend` são obrigatórios. `bands` é opcional para seleção explícita. As cores da legenda devem corresponder à paleta; para classes não consecutivas, não presumir que uma paleta curta represente corretamente os valores. Os exemplos de Fogo 4 e MATOPIBA são experimentais.
+`id`, `name`, `asset`, `visualization`, and `legend` are required. `bands` is optional for explicit selection. Legend colors must match the palette; for nonconsecutive classes, do not assume that a short palette correctly represents the values. The Fire 4 and MATOPIBA examples are experimental.
 
-### Eixo da sequência: tempo ou profundidade
+### Sequence axis: time or depth
 
-Por padrão a animação percorre os anos das bandas. Produtos de Solo organizados por camada de profundidade usam outro eixo, com `axis` e `depth_band`:
+By default, the animation runs through the bands' years. Soil products organized by depth layer use a different axis, with `axis` and `depth_band`:
 
 ```python
 LAYERS = [{
@@ -76,18 +76,18 @@ LAYERS = [{
     "theme": "Solo",
     "collection": "Coleção 3",
     "asset": "projects/.../mapbiomas_brazil_collection3_soil_clay_fraction_v1",
-    "axis": "depth",          # "time" (padrão) ou "depth"
+    "axis": "depth",          # "time" (default) or "depth"
     "depth_band": "clay_fraction",
     "visualization": {"min": 0, "max": 100, "palette": ["ffffcc", "800026"]},
     "legend": [{"label": "0", "color": "ffffcc"}, {"label": "100", "color": "800026"}],
 }]
 ```
 
-Nesse eixo, a fábrica lê a propriedade `depth` de cada imagem da coleção, monta a sequência e rotula os frames como `0–10 cm`. `start_year`/`end_year` são rejeitados, e colagens e GIFs especiais por ano são desligados. Os produtos de profundidade do catálogo estão desabilitados: ainda falta validar legenda e visualização de cada variável.
+For this axis, the factory reads the `depth` property of each image in the collection, builds the sequence, and labels frames such as `0–10 cm`. `start_year`/`end_year` are rejected, and collages and special annual GIFs are disabled. Catalog depth products are disabled: each variable's legend and visualization still need validation.
 
-Para séries cumulativas, como `fire_frequency_1985_1999`, o rótulo do frame usa o ano final quando todas as janelas começam no mesmo ano; caso contrário, o intervalo completo é mantido.
+For cumulative series such as `fire_frequency_1985_1999`, the frame label uses the final year when all windows begin in the same year; otherwise, the full range is retained.
 
-Um território é uma `ee.FeatureCollection`. O filtro opcional usa `ee.Filter.inList`:
+A territory is an `ee.FeatureCollection`. The optional filter uses `ee.Filter.inList`:
 
 ```python
 TERRITORIES = [{
@@ -98,21 +98,24 @@ TERRITORIES = [{
 }]
 ```
 
-Para apenas um valor, pode usar `"value": "Cerrado"` no lugar de `values`. Omita `filter` para usar toda a coleção. Confirme acesso ao asset e os valores do atributo. O projeto ainda não verifica automaticamente se o território intersecta os dados.
+For a single value, you can use `"value": "Cerrado"` instead of `values`. Omit `filter` to use the entire collection. Confirm access to the asset and the attribute values. The project does not yet automatically check whether the territory intersects the data.
 
-Na guia **Territórios**, digite o nome do município para ver os resultados em tempo real; selecione e adicione um ou vários. A busca usa FAO GAUL 2025; não é a malha oficial IBGE. As opções de UC e TI aparecem na mesma busca, mas ainda aguardam fontes conectadas e validadas. A busca diferencia maiúsculas e retorna até 30 resultados. É possível combinar feições da mesma fonte em uma só FeatureCollection; os limites internos não são dissolvidos. A conta precisa ter acesso ao asset.
+In the **Territórios** tab, type a municipality name to see results in real time; select and add one or more. The search uses FAO GAUL 2025, not the official IBGE boundaries. Conservation unit (UC) and Indigenous territory (TI) options appear in the same search, but their sources are still awaiting connection and validation. The search is case-sensitive and returns up to 30 results. Features from the same source can be combined into one FeatureCollection; internal boundaries are not dissolved. The account must have access to the asset.
 
-O catálogo de produtos é unificado: presets e o inventário de referência aparecem juntos, agrupados por temática e coleção. A maioria das layers já traz paleta e legenda sugeridas, marcadas como experimentais: fogo (anual, mensal, severidade, frequência, cicatriz, retorno, ano do último fogo, tempo após o fogo), cobertura queimada, uso e cobertura (Brasil 30m/10m, Peru), água, solo, atmosfera, urbano e risco climático. As paletas vêm das fontes oficiais (legends.json colhido da Fábrica anterior + relatório de legendas MapBiomas). Ao selecionar uma layer, um painel **Ajustar paleta e legenda** permite revisar ou trocar cores e rótulos. Layers sem fonte confirmada (ex.: índice de segurança hídrica) permanecem desabilitadas até haver referência.
+The catalog contains presets and a reference inventory, grouped by theme and collection. Unverified non-fire reference records remain disabled rather than inheriting a style by name; presets remain experimental. When a selectable layer is chosen, the **Ajustar paleta e legenda** (Adjust palette and legend) panel allows colors and labels to be reviewed. An available suggestion does not prove correctness or successful execution.
 
-## Limitações e próximos passos
+Reference fire legends use a pinned snapshot of `utils/fire_legends`, matched by initiative, collection, product, and asset. Only consecutive, multi-class palettes can currently be represented without inferring pixel values; other reference entries remain disabled. Legacy presets have their own experimental styles and are not proof that a legend is validated. `build_vera_fire_legends.py` regenerates the snapshot from the pinned CSV sources in `fire_legends_source/`. The provisional non-fire inventory in `validation/theme_legends/` records source styles without asserting a product, asset, or processor match.
 
-- O adaptador suporta `ee.Image` multibanda, coleções temporais simples e estruturas conhecidas de Solo em profundidade. Coleções com várias variáveis multibanda permitem selecionar a variável; períodos duplicados, coleções com mais de 500 imagens, mosaicos, RGB e produtos que exigem processadores específicos ainda requerem adaptação. Peru, Frequência de fogo e Solo são experimentais e devem ser conferidos no Colab.
-- Bandas com ano ou intervalo identificável são ordenadas temporalmente; seleção ambígua é interrompida, em vez de produzir uma sequência presumida.
-- A biblioteca não importa automaticamente os resultados gerados pela versão anterior; arquivos antigos sem metadados compatíveis aparecem como `Verificar` se ocuparem o novo caminho.
-- A estimativa de tempo cobre apenas o download atual; a barra de lote conta combinações processadas, inclusive falhas.
-- A verificação de disponibilidade consulta metadados e arquivos; ela não valida ausência de interseção entre território e cobertura dos dados.
-- Próximas expansões: legendas verificadas de uso e cobertura 10/10.1, produtos com processadores próprios e validação visual das coleções de Solo e Atmosfera.
+## Limitations and next steps
 
-## Desenvolvimento
+- The adapter supports multiband `ee.Image`, simple temporal collections, and known Soil depth structures. Collections with multiple multiband variables allow variable selection; duplicate periods, collections with more than 500 images, mosaics, RGB, and products requiring specific processors still need adaptation. Peru, Fire frequency, and Soil are experimental and should be checked in Colab.
+- Bands with an identifiable year or range are ordered chronologically; ambiguous selections are stopped rather than producing an assumed sequence.
+- The library does not automatically import results generated by the previous version; old files without compatible metadata appear as `Verificar` if they occupy the new path.
+- The time estimate covers only the current download; the batch progress bar counts processed combinations, including failures.
+- The availability check consults metadata and files; it does not check whether the territory intersects the data coverage.
+- The frame layout uses fixed-size elements: very small output dimensions or unusually narrow territories can produce clipped or overlapping text. Inspect output before use; the notebook uses the default 2000-pixel dimension.
+- Planned extensions include verified land use and land cover 10/10.1 legends, products with their own processors, and visual validation of Soil and Atmosphere collections.
 
-`pip install -e .` e `python -m unittest discover -s tests`. A validação visual e de ponta a ponta requer Earth Engine, permissões dos assets, Google Drive e uma sessão Colab.
+## Development
+
+`pip install -e .` and `python -m unittest discover -s tests`. Visual and end-to-end validation requires Earth Engine, asset permissions, Google Drive, and a Colab session.

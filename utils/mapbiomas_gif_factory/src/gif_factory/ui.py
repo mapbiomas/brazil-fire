@@ -16,7 +16,7 @@ from .progress import ProgressState
 from .library import assess, fingerprint, ingest, variant_for, sync_selected
 from .territory_search import (TERRITORY_SEARCH_SOURCES, search_configured,
                                search_municipalities, territory as searched_territory)
-from .reference_catalog import INITIATIVES, LANGUAGES, build_reference_layers, canonical_theme, theme_label
+from .reference_catalog import INITIATIVES, LANGUAGES, build_reference_layers, canonical_theme, normalize_collection, theme_label
 
 
 def _duration(seconds):
@@ -56,7 +56,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
 
     inventory_path = Path(__file__).with_name("reference_inventory.json")
     records = json.loads(inventory_path.read_text(encoding="utf-8"))["records"] if inventory_path.is_file() else []
-    reference_layers = build_reference_layers(records)
+    reference_layers = build_reference_layers(records, presets=LAYERS)
 
     # Catálogo de presets e camadas do usuário ficam separados por iniciativa.
     catalog = [(country, [x for x in LAYERS if x.get("initiative", "Brasil") == country]
@@ -68,7 +68,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
         groups = {}
         for layer in entries:
             theme = canonical_theme(layer.get("theme", "Fogo" if origin == "Brasil" else "Outros"))
-            collection = layer.get("collection", "Coleção 5" if origin == "Brasil" else "Sem coleção")
+            collection = normalize_collection(layer.get("collection", "Coleção 5" if origin == "Brasil" else "Sem coleção"))
             groups.setdefault((theme, collection), []).append(layer)
         sections = []
         for (theme, collection), group in groups.items():
@@ -76,7 +76,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             for layer in group:
                 enabled = layer.get("enabled", True)
                 label = layer["name"] + (" [pendente]" if not enabled else " [experimental]" if layer.get("status") == "experimental" else "")
-                check = w.Checkbox(value=False, description=label, disabled=not enabled, indent=False, layout=w.Layout(width="95%"))
+                check = w.ToggleButton(value=False, description=label, disabled=not enabled, layout=w.Layout(width="95%"))
                 check._reference = str(layer.get("id", "")).startswith("ref_")
                 product_checks.append((origin, layer, check))
                 checks.append(check)
@@ -90,7 +90,7 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             sections.append(w.HTML("Nenhuma camada configurada."))
         theme_panels[origin] = sections
     theme_body = w.VBox([])
-    catalog_panel = w.VBox([w.HTML("<h3>Produtos</h3>"), theme_nav, collection_nav, theme_body])
+    catalog_panel = w.VBox([w.HTML("<h3>Mapas</h3>"), theme_nav, collection_nav, theme_body])
 
     # Territórios personalizados continuam disponíveis em qualquer iniciativa.
     territory_checks = []
@@ -104,6 +104,31 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
             territory_checks.append((name, territory, check))
             checks.append(check)
         territory_boxes.append(w.VBox([w.HTML(f"<b>{name}</b>"), *checks]))
+
+    scheduled = w.HTML()
+
+    def update_scheduled(*_):
+        active = initiative.value
+        initiative_code = next((code for code, label in INITIATIVES.items() if label == active), "brasil")
+        lang = LANGUAGES.get(initiative_code, "pt")
+        labels = {
+            "pt": ("Agendados", "combinação(ões)", "Mapas", "Territórios", "Nenhum"),
+            "es": ("Programados", "combinación(es)", "Mapas", "Territorios", "Ninguno"),
+            "en": ("Queued", "combination(s)", "Maps", "Territories", "None"),
+        }[lang]
+        title, combinations, maps_label, places_label, empty = labels
+        allowed = ("Brasil", "Peru", "Personalizados") if active == "Personalizado" else (active, "Personalizados")
+        maps = [check.description for origin, _, check in product_checks if origin == active and check.value]
+        places = [territory["name"] for group, territory, check in territory_checks if group in allowed and check.value]
+        map_text = ", ".join(escape(name) for name in maps) or empty
+        territory_text = ", ".join(escape(name) for name in places) or empty
+        scheduled.value = (f"<b>{title}</b> · {len(maps) * len(places)} {combinations}"
+                           f"<br>{maps_label}: {map_text}<br>{places_label}: {territory_text}")
+
+    for _, _, check in product_checks + territory_checks:
+        check.observe(update_scheduled, names="value")
+    initiative.observe(update_scheduled, names="value")
+    update_scheduled()
 
     territory_type = w.ToggleButtons(options=list(TERRITORY_SEARCH_SOURCES), value="Município", description="Tipo:")
     municipality_text = w.Text(description="Município:", placeholder="Digite o nome", continuous_update=True, layout=w.Layout(width="60%"))
@@ -178,6 +203,8 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
                         continue
                     check = w.Checkbox(value=True, description=item["name"], indent=False, layout=w.Layout(width="95%"))
                     territory_checks.append(("Personalizados", item, check))
+                    check.observe(update_scheduled, names="value")
+                    update_scheduled()
                     territory_boxes[2].children = (*territory_boxes[2].children, check)
                 _selected_municipalities.clear()
                 _render_municipality_results()
@@ -518,17 +545,18 @@ def show_ui(layers, territories, output_root="/content/mapbiomas_gif_factory_out
     style_min.observe(_apply_style_fields, names="value")
     style_max.observe(_apply_style_fields, names="value")
     catalog_panel.children = (*catalog_panel.children, style_panel)
-    navigation = w.ToggleButtons(options=["Produtos", "Territórios", "Saídas e destino", "Resultados"], description="Guia:")
+    navigation = w.ToggleButtons(options=["Mapas", "Territórios", "Saídas e destino", "Resultados"], description="Guia:")
     panels = [catalog_panel, territories_panel, output_panel, delivery_panel]
     def change_panel(*_):
         for i, panel in enumerate(panels):
             panel.layout.display = "" if navigation.value == navigation.options[i] else "none"
     navigation.observe(change_panel, names="value")
     change_panel()
-    ui = w.VBox([initiative, navigation, *panels, run_button, sprout, status, overall, progress, log])
+    ui = w.VBox([initiative, navigation, *panels, scheduled, run_button, sprout, status, overall, progress, log])
     ui.start_batch = start_batch
     ui.initiative = initiative
     ui.navigation = navigation
+    ui.scheduled_html = scheduled
     ui.theme_nav = theme_nav
     ui.collection_nav = collection_nav
     ui.product_checks = product_checks

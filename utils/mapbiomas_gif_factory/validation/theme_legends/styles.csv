@@ -1,0 +1,2239 @@
+style_id,source,source_sha256,source_yaml,status,country_link,collection_link,asset_link,processor_link,validation
+random,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"random:
+    name: Fragmentos de Vegetação
+    min: 0
+    max: 1
+    palette: []
+    random_viz: true
+    cmap_type: binary
+    label: Cada fragmento possui uma cor distinta
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc:
+    name: Uso e Cobertura (Coleção 11)
+    min: 0
+    max: 91
+    palette:
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 007785
+    - 228c70
+    - auto_bg
+    - 7a5900
+    - auto_bg
+    - '519799'
+    - d6bc74
+    - auto_bg
+    - auto_bg
+    - edde8e
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - db7093
+    - ffefc3
+    - auto_bg
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - ad5100
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - auto_bg
+    - 9065d0
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ffaa5f
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - ff69b4
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - '757272'
+    - auto_bg
+    - 86b074
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 81dbbf
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 403d3e
+    label: Classe de uso
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Formação Florestal
+    - Formação Savânica
+    - Mangue
+    - Floresta Alagável
+    - Savana Alagada (beta)
+    - ''
+    - Silvicultura
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - ''
+    - ''
+    - Pastagem
+    - ''
+    - ''
+    - ''
+    - ''
+    - Cana
+    - Mosaico de Usos
+    - ''
+    - Praia, Duna e Areal
+    - Área Urbanizada
+    - Outras Áreas não Vegetadas
+    - ''
+    - ''
+    - ''
+    - Afloramento Rochoso
+    - Mineração
+    - Aquicultura
+    - Apicum
+    - Rio, Lago e Oceano
+    - ''
+    - Dendê
+    - ''
+    - ''
+    - ''
+    - Soja
+    - Arroz
+    - Outras Lavouras Temporárias
+    - ''
+    - ''
+    - ''
+    - ''
+    - Café
+    - Citrus
+    - Outras Lavouras Perenes
+    - Restinga Arbórea
+    - Restinga Herbácea ou Arbustiva
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Algodão (beta)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Usina Fotovoltaica
+    - ''
+    - Formação Herbáceo Arbustiva
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Marismas (beta)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Parque Eólico (beta)
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_nivel0,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_nivel0:
+    name: Uso e Cobertura - Nível 0
+    min: 0
+    max: 4
+    palette:
+    - auto_bg
+    - 1f8d49
+    - ffefc3
+    - 2532e4
+    - '808080'
+    label: Classe
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - Vegetação Natural
+    - Antrópico
+    - Corpos d'água
+    - Não observado
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_nivel1,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_nivel1:
+    name: Uso e Cobertura - Nível 1
+    min: 0
+    max: 8
+    palette:
+    - auto_bg
+    - 1f8d49
+    - d6bc74
+    - ad5100
+    - 7a5900
+    - ffefc3
+    - db4d4f
+    - 2532e4
+    - '808080'
+    label: Classe
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - Formação Florestal
+    - Formação Campestre e Herbácea
+    - Afloramento Rochoso
+    - Silvicultura
+    - Agropecuária
+    - Área não Vegetada
+    - Corpos d'água
+    - Não observado
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_nivel1_1,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_nivel1_1:
+    name: Uso e Cobertura - Nível 1.1
+    min: 0
+    max: 27
+    palette:
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 1f8d49
+    - 7dc975
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 7a5900
+    - auto_bg
+    - '519799'
+    - d6bc74
+    - auto_bg
+    - auto_bg
+    - edde8e
+    - auto_bg
+    - auto_bg
+    - e974ed
+    - auto_bg
+    - auto_bg
+    - ffefc3
+    - db4d4f
+    - auto_bg
+    - d4271e
+    - auto_bg
+    - 2532e4
+    - '808080'
+    label: Classe
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Formação Florestal
+    - Formação Savânica
+    - ''
+    - ''
+    - ''
+    - ''
+    - Silvicultura
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - ''
+    - ''
+    - Pastagem
+    - ''
+    - ''
+    - Lavoura
+    - ''
+    - ''
+    - Mosaico de Usos
+    - Área não Vegetada
+    - ''
+    - Área Urbanizada
+    - ''
+    - Corpos d'água
+    - Não observado
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_nivel2,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_nivel2:
+    name: Uso e Cobertura - Nível 2
+    min: 0
+    max: 36
+    palette:
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 1f8d49
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 7a5900
+    - auto_bg
+    - '519799'
+    - d6bc74
+    - auto_bg
+    - auto_bg
+    - edde8e
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - f54ca9
+    - auto_bg
+    - ffefc3
+    - auto_bg
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 2532e4
+    - auto_bg
+    - auto_bg
+    - ad5100
+    - 9c0027
+    - 091077
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - e974ed
+    label: Classe
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Formação Florestal
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Silvicultura
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - ''
+    - ''
+    - Pastagem
+    - ''
+    - ''
+    - ''
+    - Lavoura Temporária
+    - ''
+    - Mosaico de Usos
+    - ''
+    - Praia, Duna e Areal
+    - Área Urbanizada
+    - Outras Áreas não Vegetadas
+    - Corpos d'água
+    - ''
+    - ''
+    - Afloramento Rochoso
+    - Mineração
+    - Aquicultura
+    - ''
+    - ''
+    - ''
+    - ''
+    - Lavoura Perene
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+landsat_swir,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"landsat_swir:
+    name: Landsat Falsa Cor (SWIR1/NIR/RED)
+    min: 0
+    max: 6000
+    cmap_type: sequential
+    rgb: true
+    rgb_legend: true
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+landsat_rgb,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"landsat_rgb:
+    name: Landsat Cor Natural (R/G/B)
+    min: 0
+    max: 4000
+    cmap_type: sequential
+    rgb: true
+    rgb_legend: true
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+def_seco,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"def_seco:
+    name: Desmatamento e Vegetação Secundária
+    min: 0
+    max: 7
+    palette:
+    - ffffff
+    - fff6bf
+    - '127622'
+    - 56d117
+    - ea1c1c
+    - 6fc4b7
+    - ffb66c
+    - 8c8c8c
+    label: Classe
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - Antrópico
+    - Vegetação Primária
+    - Vegetação Secundária
+    - Supressão de Vegetação Primária
+    - Regeneração da Vegetação Secundária
+    - Supressão de Vegetação Secundária
+    - Ruído
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+soc,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"soc:
+    name: Carbono Orgânico do Solo
+    min: -1
+    max: 80
+    palette:
+    - ffffff
+    - ffffe5
+    - fff7bc
+    - fee391
+    - fec44f
+    - fe9929
+    - ec7014
+    - cc4c02
+    - '993404'
+    - '662506'
+    label: t/ha
+    unit: t/ha
+    cmap_type: sequential
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+edge_area_col101,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"edge_area_col101:
+    name: Distância da Borda
+    min: 0
+    max: 8
+    palette:
+    - '808080'
+    - E31A1C
+    - FEB24C
+    - B2DF8A
+    - 33A02C
+    - 7289AB
+    - 3F48CC
+    - A059A0
+    - E066FF
+    label: Distância da borda (m)
+    cmap_type: categorical
+    discrete_labels:
+    - Sem vegetação
+    - <= 30 m
+    - <= 60 m
+    - <= 90 m
+    - <= 120 m
+    - <= 150 m
+    - <= 300 m
+    - <= 600 m
+    - <= 1000 m
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+edge_area_col11,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"edge_area_col11:
+    name: Distância até a Borda
+    min: 0
+    max: 7000
+    nodata_value: 0
+    nodata_color: auto_bg
+    palette:
+    - d73027
+    - fc8d59
+    - fee08b
+    - ffffbf
+    - d9ef8b
+    - '91cf60'
+    - 1a9850
+    label: Distância até a borda (m)
+    unit: m
+    cmap_type: sequential
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+edge_area_1000m,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"edge_area_1000m:
+    name: Distância até a Borda (até 1000 m)
+    min: 0
+    max: 8
+    palette:
+    - auto_bg
+    - bc4749
+    - d68c8d
+    - fff59d
+    - dce0af
+    - a7c957
+    - '6a994e'
+    - '386641'
+    - '0d2207'
+    palette_dark:
+    - auto_bg
+    - bc4749
+    - d68c8d
+    - fff59d
+    - dce0af
+    - a7c957
+    - '6a994e'
+    - '488153'
+    - '34673c'
+    label: Distância até a borda (m)
+    unit: m
+    cmap_type: categorical
+    prefix_labels: false
+    discrete_labels:
+    - ''
+    - ≤ 30 m
+    - ≤ 60 m
+    - ≤ 90 m
+    - ≤ 120 m
+    - ≤ 150 m
+    - ≤ 300 m
+    - ≤ 600 m
+    - ≤ 1000 m
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+edge_age_col101,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"edge_age_col101:
+    name: Idade da Borda
+    min: 0
+    max: 40
+    palette:
+    - '808080'
+    - 33A02C
+    - 49AB3C
+    - 60B64D
+    - 77C15E
+    - 8ECD6F
+    - A4D880
+    - B4E083
+    - BBE373
+    - C1E664
+    - C8E954
+    - CEEC44
+    - D5EF35
+    - DCEC2B
+    - E3E721
+    - EBE318
+    - F2DE0F
+    - F9DA06
+    - FFD300
+    - FFC500
+    - FFB800
+    - FFAA00
+    - FF9D00
+    - FF8F00
+    - FB7D03
+    - F66808
+    - F1540D
+    - EC3F12
+    - E72B17
+    - E11B1F
+    - D52637
+    - C9324E
+    - BD3D66
+    - B1487E
+    - A55495
+    - 9A51A7
+    - 9043B5
+    - 8735C3
+    - 7D28D1
+    - 731ADF
+    - 6A0DED
+    label: Idade da borda (anos)
+    cmap_type: sequential
+    unit: anos
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+edge_area,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"edge_area:
+    name: Proximidade de Borda
+    min: 0
+    max: 9
+    palette:
+    - 55604B
+    - FF0001
+    - 32CD32
+    - 19B06F
+    - 6FA8DC
+    - 0B5394
+    - A64D79
+    - F54CA9
+    - 55604B
+    label: Distância de borda (m)
+    cmap_type: sequential
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+distances,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"distances:
+    name: Distância de Isolamento
+    min: 0
+    max: 12
+    palette:
+    - 55604B
+    - 000080
+    - 0000ff
+    - 8080ff
+    - 008000
+    - 00ff00
+    - 80ff80
+    - '800000'
+    - ff0000
+    - FF8080
+    - 55604B
+    - 55604B
+    - 55604B
+    label: Classe de distância
+    cmap_type: sequential
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+patch_size,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"patch_size:
+    name: Tamanho de Fragmento
+    min: 0
+    max: 7
+    palette:
+    - A9A9A9
+    - E50C08
+    - FFAA5F
+    - 32CD32
+    - 19B06F
+    - 6FA8DC
+    - 0B5394
+    - A9A9A9
+    label: Tamanho do fragmento (ha)
+    cmap_type: categorical
+    discrete_labels:
+    - Não observado
+    - ''
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+secondary_vegetation_coverage,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"secondary_vegetation_coverage:
+    name: Cobertura da Vegetação Secundária
+    min: 0
+    max: 62
+    palette:
+    - '808080'
+    - 32a65e
+    - 32a65e
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 026975
+    - '000000'
+    - '000000'
+    - 7a6c00
+    - ad975a
+    - '519799'
+    - d6bc74
+    - d89f5c
+    - FFFFB2
+    - edde8e
+    - '000000'
+    - '000000'
+    - f5b3c8
+    - C27BA0
+    - db7093
+    - ffefc3
+    - db4d4f
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 0000FF
+    - '000000'
+    - '000000'
+    - ffaa5f
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - 93dfe6
+    - 9065d0
+    - d082de
+    - '000000'
+    - '000000'
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - cca0d4
+    - dbd26b
+    - 807a40
+    - e04cfa
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ad5100
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - CC66FF
+    - FF6666
+    - '006400'
+    - 8d9e8b
+    - f5d5d5
+    - ff69b4
+    label: Classe de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - Não observado
+    - ''
+    - ''
+    - Formação Florestal
+    - Formação Savânica
+    - Mangue
+    - Floresta Alagável
+    - ''
+    - ''
+    - ''
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Apicum
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Restinga Arbórea
+    - Restinga Herbácea
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+morphology,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"morphology:
+    name: Morfologia do Fragmento
+    min: 0
+    max: 6
+    palette:
+    - '808080'
+    - 34662B
+    - 9BCFB3
+    - 46A9B1
+    - FFCC4A
+    - F6B0CB
+    - A9DBEB
+    label: Classe morfológica
+    cmap_type: categorical
+    discrete_labels:
+    - Sem vegetação
+    - Núcleo
+    - Borda
+    - Perfuração
+    - Mancha
+    - Laço
+    - Ponte
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+secondary_vegetation_age,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"secondary_vegetation_age:
+    name: Idade da Vegetação Secundária
+    min: 0
+    max: 39
+    palette:
+    - '808080'
+    - F3F6C2
+    - F1F6A1
+    - EFF680
+    - EEF660
+    - EDF63F
+    - EAF622
+    - D9F622
+    - C8F622
+    - B6F622
+    - A4F622
+    - 8EF622
+    - 79F622
+    - 71F622
+    - 67F623
+    - 5DF625
+    - 55F627
+    - 4DF629
+    - 41F62A
+    - 39F62C
+    - 31F62E
+    - 28F62F
+    - 22F430
+    - 22E72D
+    - 22DF2A
+    - 22D127
+    - 22C123
+    - 23B21F
+    - 23AA1C
+    - 23A21B
+    - 239A19
+    - 238F16
+    - '238513'
+    - 237D11
+    - '237510'
+    - 246D0D
+    - 24680C
+    - 24640B
+    - 24600A
+    - '255808'
+    label: Idade (anos)
+    cmap_type: sequential
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_drc_nivel0,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_drc_nivel0:
+    name: Couverture et Utilisation des Terres (Niveau 0)
+    min: 0
+    max: 27
+    palette:
+    - ffffff
+    - '139912'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - FFD966
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d5d5e5
+    label: Classe d'occupation du sol
+    cmap_type: categorical
+    prefix_labels: false
+    discrete_labels:
+    - ''
+    - Naturel (1)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Anthropique (14)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Non défini (27)
+    legend_order:
+    - 1
+    - 14
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_drc_nivel1,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_drc_nivel1:
+    name: Couverture et Utilisation des Terres (Niveau 1)
+    min: 0
+    max: 27
+    palette:
+    - ffffff
+    - 1f8d49
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d6bc74
+    - '808080'
+    - '808080'
+    - '808080'
+    - ffefc3
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d4271e
+    - '808080'
+    - '808080'
+    - '808080'
+    - 2532e4
+    - ffffff
+    label: Classe d'occupation du sol
+    cmap_type: categorical
+    prefix_labels: false
+    discrete_labels:
+    - ''
+    - Forêt (1)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Végétation herbeuse et arbustive (10)
+    - ''
+    - ''
+    - ''
+    - Zones agricoles et d'élevage (14)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Zone non végétalisée (22)
+    - ''
+    - ''
+    - ''
+    - Eau (26)
+    - Non observé (27)
+    legend_order:
+    - 1
+    - 10
+    - 14
+    - 22
+    - 26
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_drc_nivel2,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_drc_nivel2:
+    name: Couverture et Utilisation des Terres (Niveau 2)
+    min: 0
+    max: 66
+    palette:
+    - ffffff
+    - '808080'
+    - '808080'
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - '808080'
+    - '808080'
+    - '808080'
+    - 7a6c00
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - ffefc3
+    - '808080'
+    - '808080'
+    - d4271e
+    - db4d4f
+    - '808080'
+    - ffffff
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - 2532e4
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - a89358
+    label: Classe d'occupation du sol
+    cmap_type: categorical
+    prefix_labels: false
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Forêt dense (3)
+    - Forêt claire (4)
+    - Mangrove (5)
+    - ''
+    - ''
+    - ''
+    - Plantation forestière (9)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Mosaïque d'Usages (21)
+    - ''
+    - ''
+    - Zone urbaine (24)
+    - Autre zone sans végétation (25)
+    - ''
+    - Non observé (27)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Fleuve, lac et océan (33)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Savane (66)
+    legend_order:
+    - 3
+    - 4
+    - 5
+    - 66
+    - 9
+    - 21
+    - 24
+    - 25
+    - 33
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_peru_nivel0,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_peru_nivel0:
+    name: ""Cobertura y uso de la tierra - Perú - Nivel 0 (Natural/Antrópico)""
+    min: 0
+    max: 92
+    palette:
+    - 'ffffff'
+    - '1f8d49'
+    - '1f8d49'
+    - '1f8d49'
+    - '7dc975'
+    - '04381d'
+    - '007785'
+    - '1d7782'
+    - '000000'
+    - '7a6c00'
+    - 'd6bc74'
+    - '519799'
+    - 'd6bc74'
+    - 'd89f5c'
+    - 'ffefc3'
+    - 'edde8e'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c27ba0'
+    - 'db7093'
+    - 'ffefc3'
+    - 'db4d4f'
+    - 'ffa07a'
+    - 'd4271e'
+    - 'db4d4f'
+    - '0000ff'
+    - '000000'
+    - '000000'
+    - 'ffaa5f'
+    - '9c0027'
+    - '091077'
+    - 'fc8114'
+    - '2532e4'
+    - '93dfe6'
+    - '9065d0'
+    - 'd082de'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c71585'
+    - 'f54ca9'
+    - 'cca0d4'
+    - 'dbd26b'
+    - '807a40'
+    - 'e04cfa'
+    - 'd68fe2'
+    - '9932cc'
+    - 'e6ccff'
+    - '02d659'
+    - 'ad5100'
+    - '5faf92'
+    - 'f0b4a8'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - 'f99fff'
+    - 'd84690'
+    - '006400'
+    - '8d9e8b'
+    - 'f5d5d5'
+    - 'ff69b4'
+    - 'c7e0ab'
+    - '000000'
+    - 'b9158a'
+    - 'a89358'
+    - '7dc975'
+    - 'e97a7a'
+    - '0fffe3'
+    - 'be9e00'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '757272'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '8a680c'
+    - '99771c'
+    - '000000'
+    - '26abab'
+    - 'a88831'
+    - '81dbbf'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '329c5a'
+    - '6bd46c'
+    - '3ddb40'
+    - '403d3e'
+    - 'd98a45'
+    label: Clase de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - 'No observado'
+    - 'Natural'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Antrópico'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    legend_order:
+    - 1
+    - 14
+    - 0
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_peru_nivel1,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_peru_nivel1:
+    name: ""Cobertura y uso de la tierra - Perú - Nivel 1""
+    min: 0
+    max: 92
+    palette:
+    - 'ffffff'
+    - '1f8d49'
+    - '1f8d49'
+    - '1f8d49'
+    - '7dc975'
+    - '04381d'
+    - '007785'
+    - '1d7782'
+    - '000000'
+    - '7a6c00'
+    - 'd6bc74'
+    - '519799'
+    - 'd6bc74'
+    - 'd89f5c'
+    - 'ffefc3'
+    - 'edde8e'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c27ba0'
+    - 'db7093'
+    - 'ffefc3'
+    - 'db4d4f'
+    - 'ffa07a'
+    - 'd4271e'
+    - 'db4d4f'
+    - '0000ff'
+    - '000000'
+    - '000000'
+    - 'ffaa5f'
+    - '9c0027'
+    - '091077'
+    - 'fc8114'
+    - '2532e4'
+    - '93dfe6'
+    - '9065d0'
+    - 'd082de'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c71585'
+    - 'f54ca9'
+    - 'cca0d4'
+    - 'dbd26b'
+    - '807a40'
+    - 'e04cfa'
+    - 'd68fe2'
+    - '9932cc'
+    - 'e6ccff'
+    - '02d659'
+    - 'ad5100'
+    - '5faf92'
+    - 'f0b4a8'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - 'f99fff'
+    - 'd84690'
+    - '006400'
+    - '8d9e8b'
+    - 'f5d5d5'
+    - 'ff69b4'
+    - 'c7e0ab'
+    - '000000'
+    - 'b9158a'
+    - 'a89358'
+    - '7dc975'
+    - 'e97a7a'
+    - '0fffe3'
+    - 'be9e00'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '757272'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '8a680c'
+    - '99771c'
+    - '000000'
+    - '26abab'
+    - 'a88831'
+    - '81dbbf'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '329c5a'
+    - '6bd46c'
+    - '3ddb40'
+    - '403d3e'
+    - 'd98a45'
+    label: Clase de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - 'No observado'
+    - ''
+    - ''
+    - 'Formación boscosa'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Formación natural no boscosa'
+    - ''
+    - ''
+    - ''
+    - 'Área agropecuaria'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Área sin vegetación'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Cuerpo de agua'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    legend_order:
+    - 3
+    - 10
+    - 14
+    - 22
+    - 33
+    - 0
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_peru_nivel2,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_peru_nivel2:
+    name: ""Cobertura y uso de la tierra - Perú - Nivel 2""
+    min: 0
+    max: 92
+    palette:
+    - 'ffffff'
+    - '1f8d49'
+    - '1f8d49'
+    - '1f8d49'
+    - '7dc975'
+    - '04381d'
+    - '007785'
+    - '1d7782'
+    - '000000'
+    - '7a6c00'
+    - 'd6bc74'
+    - '519799'
+    - 'd6bc74'
+    - 'd89f5c'
+    - 'ffefc3'
+    - 'edde8e'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c27ba0'
+    - 'db7093'
+    - 'ffefc3'
+    - 'db4d4f'
+    - 'ffa07a'
+    - 'd4271e'
+    - 'db4d4f'
+    - '0000ff'
+    - '000000'
+    - '000000'
+    - 'ffaa5f'
+    - '9c0027'
+    - '091077'
+    - 'fc8114'
+    - '2532e4'
+    - '93dfe6'
+    - '9065d0'
+    - 'd082de'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c71585'
+    - 'f54ca9'
+    - 'cca0d4'
+    - 'dbd26b'
+    - '807a40'
+    - 'e04cfa'
+    - 'd68fe2'
+    - '9932cc'
+    - 'e6ccff'
+    - '02d659'
+    - 'ad5100'
+    - '5faf92'
+    - 'f0b4a8'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - 'f99fff'
+    - 'd84690'
+    - '006400'
+    - '8d9e8b'
+    - 'f5d5d5'
+    - 'ff69b4'
+    - 'c7e0ab'
+    - '000000'
+    - 'b9158a'
+    - 'a89358'
+    - '7dc975'
+    - 'e97a7a'
+    - '0fffe3'
+    - 'be9e00'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '757272'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '8a680c'
+    - '99771c'
+    - '000000'
+    - '26abab'
+    - 'a88831'
+    - '81dbbf'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '329c5a'
+    - '6bd46c'
+    - '3ddb40'
+    - '403d3e'
+    - 'd98a45'
+    label: Clase de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - 'No observado'
+    - 'Formación boscosa'
+    - ''
+    - 'Bosque'
+    - 'Bosque seco'
+    - 'Manglar'
+    - 'Bosque inundable'
+    - ''
+    - ''
+    - 'Plantación forestal'
+    - 'Formación natural no boscosa'
+    - 'Formación herbácea inundable'
+    - 'Formación herbácea'
+    - 'Formaciones arbustivas y otras'
+    - 'Área agropecuaria'
+    - 'Pasto (beta)'
+    - ''
+    - ''
+    - 'Agricultura'
+    - ''
+    - ''
+    - 'Mosaico agropecuario'
+    - 'Área sin vegetación'
+    - 'Playa'
+    - 'Infraestructura urbana'
+    - 'Otra área antrópica sin vegetación'
+    - 'Cuerpo de agua'
+    - ''
+    - ''
+    - ''
+    - 'Minería'
+    - 'Acuicultura'
+    - ''
+    - 'Río, lago u océano'
+    - 'Glaciar'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Superficie salina costera'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Superficie de salar'
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Matorral y otros arbustales'
+    - ''
+    - 'Otra área natural sin vegetación'
+    - ''
+    - 'Loma costera (beta)'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Superficie rocosa'
+    legend_order:
+    - 1
+    - 3
+    - 4
+    - 5
+    - 6
+    - 10
+    - 11
+    - 12
+    - 13
+    - 66
+    - 70
+    - 14
+    - 9
+    - 15
+    - 21
+    - 18
+    - 22
+    - 23
+    - 24
+    - 25
+    - 30
+    - 52
+    - 61
+    - 68
+    - 92
+    - 26
+    - 31
+    - 33
+    - 34
+    - 0
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_peru_nivel3,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_peru_nivel3:
+    name: ""Cobertura y uso de la tierra - Perú - Nivel 3""
+    min: 0
+    max: 92
+    palette:
+    - 'ffffff'
+    - '1f8d49'
+    - '1f8d49'
+    - '1f8d49'
+    - '7dc975'
+    - '04381d'
+    - '007785'
+    - '1d7782'
+    - '000000'
+    - '7a6c00'
+    - 'd6bc74'
+    - '519799'
+    - 'd6bc74'
+    - 'd89f5c'
+    - 'ffefc3'
+    - 'edde8e'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c27ba0'
+    - 'db7093'
+    - 'ffefc3'
+    - 'db4d4f'
+    - 'ffa07a'
+    - 'd4271e'
+    - 'db4d4f'
+    - '0000ff'
+    - '000000'
+    - '000000'
+    - 'ffaa5f'
+    - '9c0027'
+    - '091077'
+    - 'fc8114'
+    - '2532e4'
+    - '93dfe6'
+    - '9065d0'
+    - 'd082de'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c71585'
+    - 'f54ca9'
+    - 'cca0d4'
+    - 'dbd26b'
+    - '807a40'
+    - 'e04cfa'
+    - 'd68fe2'
+    - '9932cc'
+    - 'e6ccff'
+    - '02d659'
+    - 'ad5100'
+    - '5faf92'
+    - 'f0b4a8'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - 'f99fff'
+    - 'd84690'
+    - '006400'
+    - '8d9e8b'
+    - 'f5d5d5'
+    - 'ff69b4'
+    - 'c7e0ab'
+    - '000000'
+    - 'b9158a'
+    - 'a89358'
+    - '7dc975'
+    - 'e97a7a'
+    - '0fffe3'
+    - 'be9e00'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '757272'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '8a680c'
+    - '99771c'
+    - '000000'
+    - '26abab'
+    - 'a88831'
+    - '81dbbf'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '329c5a'
+    - '6bd46c'
+    - '3ddb40'
+    - '403d3e'
+    - 'd98a45'
+    label: Clase de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - 'No observado'
+    - 'Formación boscosa'
+    - ''
+    - 'Bosque'
+    - 'Bosque seco'
+    - 'Manglar'
+    - 'Bosque inundable'
+    - ''
+    - ''
+    - 'Plantación forestal'
+    - 'Formación natural no boscosa'
+    - 'Formación herbácea inundable'
+    - 'Formación herbácea'
+    - 'Formaciones arbustivas y otras'
+    - 'Área agropecuaria'
+    - 'Pasto (beta)'
+    - ''
+    - ''
+    - 'Agricultura'
+    - ''
+    - ''
+    - 'Mosaico agropecuario'
+    - 'Área sin vegetación'
+    - 'Playa'
+    - 'Infraestructura urbana'
+    - 'Otra área antrópica sin vegetación'
+    - 'Cuerpo de agua'
+    - ''
+    - ''
+    - ''
+    - 'Minería'
+    - 'Acuicultura'
+    - ''
+    - 'Río, lago u océano'
+    - 'Glaciar'
+    - 'Palma aceitera'
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Arroz (beta)'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Herbazal inundable de tierras bajas'
+    - 'Superficie salina costera'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Superficie de salar'
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Matorral y otros arbustales'
+    - ''
+    - 'Otra área natural sin vegetación'
+    - ''
+    - 'Loma costera (beta)'
+    - ''
+    - 'Otros cultivos'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Herbazal inundable altoandino'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Superficie rocosa'
+    legend_order:
+    - 1
+    - 3
+    - 4
+    - 5
+    - 6
+    - 10
+    - 11
+    - 51
+    - 82
+    - 12
+    - 13
+    - 66
+    - 70
+    - 14
+    - 9
+    - 15
+    - 21
+    - 35
+    - 40
+    - 18
+    - 72
+    - 22
+    - 23
+    - 24
+    - 25
+    - 30
+    - 52
+    - 61
+    - 68
+    - 92
+    - 26
+    - 31
+    - 33
+    - 34
+    - 0
+  ",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado
+lulc_peru,config/visualization.yaml,72c21980b4b0a263ce63d4ab6727907f45dfffc8e3784238a664d81ae2c6c9fb,"lulc_peru:
+    name: Cobertura y uso de la tierra - Perú
+    min: 0
+    max: 92
+    palette:
+    - ffffff
+    - 1f8d49
+    - 1f8d49
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 007785
+    - 1d7782
+    - '000000'
+    - 7a6c00
+    - d6bc74
+    - '519799'
+    - d6bc74
+    - d89f5c
+    - ffefc3
+    - edde8e
+    - '000000'
+    - '000000'
+    - f5b3c8
+    - c27ba0
+    - db7093
+    - ffefc3
+    - db4d4f
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 0000ff
+    - '000000'
+    - '000000'
+    - ffaa5f
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - 93dfe6
+    - 9065d0
+    - d082de
+    - '000000'
+    - '000000'
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - cca0d4
+    - dbd26b
+    - 807a40
+    - e04cfa
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ad5100
+    - 5faf92
+    - f0b4a8
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - f99fff
+    - d84690
+    - '006400'
+    - 8d9e8b
+    - f5d5d5
+    - ff69b4
+    - c7e0ab
+    - '000000'
+    - b9158a
+    - a89358
+    - 7dc975
+    - e97a7a
+    - 0fffe3
+    - be9e00
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '757272'
+    - '000000'
+    - '000000'
+    - '000000'
+    - 8a680c
+    - 99771c
+    - '000000'
+    - 26abab
+    - a88831
+    - 81dbbf
+    - '000000'
+    - '000000'
+    - '000000'
+    - 329c5a
+    - 6bd46c
+    - 3ddb40
+    - 403d3e
+    - d98a45
+    label: Clase de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - No observado
+    - Formación boscosa
+    - ''
+    - Bosque
+    - Bosque seco
+    - Manglar
+    - Bosque inundable
+    - ''
+    - ''
+    - Plantación forestal
+    - Formación natural no boscosa
+    - Formación herbácea inundable
+    - Formación herbácea
+    - Formaciones arbustivas y otras
+    - Área agropecuaria
+    - Pasto (beta)
+    - ''
+    - ''
+    - Agricultura
+    - ''
+    - ''
+    - Mosaico agropecuario
+    - Área sin vegetación
+    - Playa
+    - Infraestructura urbana
+    - Otra área antrópica sin vegetación
+    - Cuerpo de agua
+    - ''
+    - ''
+    - ''
+    - Minería
+    - Acuicultura
+    - ''
+    - Río, lago u océano
+    - Glaciar
+    - Palma aceitera
+    - ''
+    - ''
+    - ''
+    - ''
+    - Arroz (beta)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Herbazal inundable de tierras bajas
+    - Superficie salina costera
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Superficie de salar
+    - ''
+    - ''
+    - ''
+    - ''
+    - Matorral y otros arbustales
+    - ''
+    - Otra área natural sin vegetación
+    - ''
+    - Loma costera (beta)
+    - ''
+    - Otros cultivos
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Herbazal inundable altoandino
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Superficie rocosa
+    legend_order:
+    - 1
+    - 3
+    - 4
+    - 5
+    - 6
+    - 10
+    - 11
+    - 51
+    - 82
+    - 12
+    - 13
+    - 66
+    - 70
+    - 14
+    - 9
+    - 15
+    - 21
+    - 35
+    - 40
+    - 18
+    - 72
+    - 22
+    - 23
+    - 24
+    - 25
+    - 30
+    - 52
+    - 61
+    - 68
+    - 92
+    - 26
+    - 31
+    - 33
+    - 34
+    - 0
+",provisorio,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado,nao_comprovado

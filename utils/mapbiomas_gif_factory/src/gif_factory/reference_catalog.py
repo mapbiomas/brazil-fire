@@ -1,6 +1,6 @@
 """Catálogo unificado de layers do inventário com paletas/legendas sugeridas.
 
-Delega o mapeamento produto→legenda a `legends.py`. Uma paleta presente não
+Delega o mapeamento de fogo a `legends.py`. Uma paleta presente não
 comprova acesso ao asset, bandas, máscara ou interpretação: todas as layers
 sugeridas permanecem `status: "experimental"` até validação visual no GEE.
 """
@@ -9,10 +9,20 @@ import math
 import re
 
 from .legends import (INITIATIVES, LANGUAGES, canonical_theme, lang_for,
-                      style_for, theme_label)
+                      normalize_collection as _normalize_collection, style_for, theme_label)
 
 __all__ = ["INITIATIVES", "LANGUAGES", "canonical_theme", "theme_label",
-           "build_reference_layers", "layer_for_record", "experimental_layer"]
+           "normalize_collection", "build_reference_layers", "layer_for_record",
+           "experimental_layer"]
+
+
+def normalize_collection(value):
+    """Normaliza coleções numéricas sem remover qualificadores como beta/monitor."""
+    text = _normalize_collection(value)
+    match = re.fullmatch(r"(?:c)?(\d+)(?:\.(\d+))?", text, re.IGNORECASE)
+    if match:
+        return ".".join(str(int(part)) for part in match.groups() if part is not None)
+    return text
 
 
 def layer_for_record(record):
@@ -22,11 +32,14 @@ def layer_for_record(record):
             "name": record["product"],
             "initiative": INITIATIVES.get(record["initiative"], record["initiative"]),
             "theme": canonical_theme(record.get("theme")),
-            "collection": record["collection"],
+            "collection": normalize_collection(record.get("collection")),
             "asset": record.get("asset"),
             "status": "experimental"}
     if not record.get("asset"):
         base.update(enabled=False, reason="Sem asset no inventário.")
+        return base
+    if base["theme"] != "fire":
+        base.update(enabled=False, reason="Paleta/legenda sem identidade de produto e asset comprovada; registro explícito pendente.")
         return base
     lang = lang_for(record.get("initiative"))
     style = style_for(record, lang)
@@ -37,9 +50,44 @@ def layer_for_record(record):
     return base
 
 
-def build_reference_layers(records):
-    """Achata o inventário em layers sugeridas para o catálogo."""
-    return [layer_for_record(record) for record in records]
+def _equivalent_preset(layer, preset):
+    """Só suprime quando identidade e configuração operacional são iguais."""
+    if not preset.get("enabled", True):
+        return False
+    if (not layer.get("enabled", True)
+            and (layer.get("reason") != "Paleta/legenda pendente de fonte."
+                 or not str(preset.get("dedup_style_reason") or "").strip())):
+        return False
+    if not layer.get("asset") or preset.get("product", preset.get("name")) != layer["name"]:
+        return False
+    def identity(item):
+        initiative = item.get("initiative", "Brasil")
+        initiative = INITIATIVES.get(str(initiative).lower(), initiative)
+        return (str(initiative).casefold(), canonical_theme(item.get("theme")),
+                normalize_collection(item.get("collection")))
+
+    if identity(layer) != identity(preset):
+        return False
+    metadata = {"id", "name", "product", "initiative", "theme", "collection",
+                "status", "enabled", "reason", "dedup_style_reason"}
+    # Diferenças de estilo só são descartadas por decisão explícita do preset;
+    # qualquer campo operacional desconhecido continua impedindo a supressão.
+    if isinstance(preset.get("dedup_style_reason"), str) and preset["dedup_style_reason"].strip():
+        metadata |= {"visualization", "legend", "legend_label", "legend_source"}
+    return ({k: v for k, v in layer.items() if k not in metadata} ==
+            {k: v for k, v in preset.items() if k not in metadata})
+
+
+def build_reference_layers(records, exclude_assets=None, *, presets=None):
+    """Omite equivalentes ativos; estilo diferente exige justificativa explícita.
+
+    `exclude_assets` é aceito por compatibilidade, mas ignorado: asset isolado
+    não identifica produto, tratamento ou disponibilidade. Passe `presets`.
+    """
+    presets = list(presets or ())
+    layers = (layer_for_record(record) for record in records)
+    return [layer for layer in layers
+            if not any(_equivalent_preset(layer, preset) for preset in presets)]
 
 
 def experimental_layer(record, palette_text, labels_text, minimum, maximum):

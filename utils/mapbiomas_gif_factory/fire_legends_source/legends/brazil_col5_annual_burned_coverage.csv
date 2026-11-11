@@ -1,0 +1,38 @@
+pixel_value,name_pt,name_en,name_es,hex
+1,Floresta,Forest,Bosque,#1f8d49
+3,Formação Florestal,Forest Formation,Formación Boscosa,#1f8d49
+4,Formação Savânica,Savanna Formation,Formación Sabánica,#7dc975
+5,Mangue,Mangrove,Manglar,#04381d
+6,Floresta Alagável,Floodable Forest,Bosque Inundable,#007785
+9,Silvicultura,Forest Plantation,Plantación Forestal,#7a5900
+10,Vegetação Herbácea e Arbustiva,Herbaceous and Shrubby Vegetation,Vegetación Herbácea y Arbustiva,#d6bc74
+11,Campo Alagado e Área Pantanosa,Wetland,Humedal,#519799
+12,Formação Campestre,Grassland,Formación Campestre,#d6bc74
+14,Agropecuária,Farming,Agropecuaria,#ffefc3
+15,Pastagem,Pasture,Pasto,#edde8e
+18,Agricultura,Agriculture,Agricultura,#e974ed
+19,Lavoura Temporária,Temporary Crop,Cultivo Temporal,#c27ba0
+20,Cana,Sugar Cane,Caña,#db7093
+21,Mosaico de Usos,Mosaic of Uses,Mosaico de Usos,#ffefc3
+22,Área não Vegetada,Non Vegetated Area,Área sin Vegetación,#d4271e
+23,"Praia, Duna e Areal","Beach, Dune and Sand Spot","Playa, Duna y Arenal",#ffa07a
+24,Área Urbanizada,Urban Area,Infraestructura Urbana,#d4271e
+25,Outras Áreas não Vegetadas,Other Non Vegetated Areas,Otras Áreas sin Vegetación,#db4d4f
+26,Corpo D'água,Water,Cuerpo de Agua,#2532e4
+29,Afloramento Rochoso,Rocky Outcrop,Afloramiento Rocoso,#ffaa5f
+30,Mineração,Mining,Minería,#9c0027
+31,Aquicultura,Aquaculture,Acuicultura,#091077
+32,Apicum,Hypersaline Tidal Flat,Salitral,#fc8114
+33,"Rio, Lago e Oceano","River, Lake and Ocean","Río, Lago y Océano",#2532e4
+35,Dendê,Palm Oil,Palma Aceitera,#9065d0
+36,Lavoura Perene,Perennial Crop,Cultivo Perenne,#d082de
+39,Soja,Soybean,Soja,#f5b3c8
+40,Arroz,Rice,Arroz,#c71585
+41,Outras Lavouras Temporárias,Other Temporary Crops,Otros Cultivos Temporales,#f54ca9
+46,Café,Coffee,Café,#d68fe2
+47,Citrus,Citrus,Cítricos,#9932cc
+48,Outras Lavouras Perenes,Other Perennial Crops,Otros Cultivos Perennes,#e6ccff
+49,Restinga Arbórea,Wooded Sandbank Vegetation,Restinga Arbórea,#02d659
+50,Restinga Herbácea,Herbaceous Sandbank Vegetation,Restinga Herbácea,#ad5100
+62,Algodão (beta),Cotton (beta),Algodón (beta),#ff69b4
+75,Usina Fotovoltaica (beta),Photovoltaic Power Plant (beta),Planta Fotovoltaica (beta),#c12100
