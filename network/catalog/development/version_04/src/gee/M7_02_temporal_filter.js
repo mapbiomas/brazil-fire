@@ -10,6 +10,9 @@ var CATALOG_ROOT = 'projects/mapbiomas-peru/assets/FIRE/CATALOG_01';
 var CLASSIFICATIONS_ROOT = CATALOG_ROOT + '/MONITOR_01/LIBRARY_CLASSIFICATIONS/';
 var REGIONS = ee.FeatureCollection('projects/mapbiomas-peru/assets/FIRE/AUXILIARY_DATA/regiones_fuego_peru_v1');
 var SCALE = 10;
+// version_04: burned = probability >= BURN_THRESHOLD (0-1000 scale; 50 = 5%).
+// version_03 used > 0. Keep equal to BURN_THRESHOLD in src/core/M_dnn.py.
+var BURN_THRESHOLD = 50;
 
 // ⚙️ CONFIGURACIÓN DEL USUARIO
 
@@ -93,7 +96,7 @@ function buildPreviousMonthsMaskServer(sourceImg, inputCol) {
     
     var pastMask = ee.Image(ee.Algorithms.If(
         pastImageCount.gt(0),
-        pastCol.map(function(img) { return img.select(0).unmask(0).gt(0); }).reduce(ee.Reducer.max()),
+        pastCol.map(function(img) { return img.select(0).unmask(0).gte(BURN_THRESHOLD); }).reduce(ee.Reducer.max()),
         ee.Image(0)
     ));
 

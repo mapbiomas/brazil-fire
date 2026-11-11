@@ -21,6 +21,9 @@ var FILTERED = CLASSIFICATIONS_ROOT + 'FILTERED/';
 var REGIONS = ee.FeatureCollection('projects/mapbiomas-peru/assets/FIRE/AUXILIARY_DATA/regiones_fuego_peru_v1');
 var REGION_PROPERTY = 'region_nam';
 var SCALE = 10;
+// version_04: burned = probability >= BURN_THRESHOLD (0-1000 scale; 50 = 5%).
+// version_03 used > 0. Keep equal to BURN_THRESHOLD in src/core/M_dnn.py.
+var BURN_THRESHOLD = 50;
 
 // Carga e integración de LULC (MapBiomas Perú Colección 4)
 var LULC = ee.Image('projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1');
@@ -112,7 +115,7 @@ function buildTerritoryRaster(regionList) {
 
 function calculateArea(stageImage, territoryRaster, lulcYear) {
     var mask = stageImage.mask().reduce(ee.Reducer.max());
-    var burned = stageImage.select(0).gt(0); 
+    var burned = stageImage.select(0).gte(BURN_THRESHOLD); 
     
     var fireStatus = ee.Image(0).where(mask, 1).where(burned, 2);
 

@@ -37,6 +37,22 @@ class BurnThresholdTests(unittest.TestCase):
             self.assertNotIn('prob_band > 0', src, name)
 
 
+class GeeThresholdTests(unittest.TestCase):
+    GEE = os.path.join(CORE, '..', 'gee')
+    SCRIPTS = (
+        'M7_00_selection_merge.js', 'M7_01_lulc_filters.js',
+        'M7_02_temporal_filter.js', 'M8_statistics.js',
+    )
+
+    def test_gee_scripts_use_the_same_cut(self):
+        for name in self.SCRIPTS:
+            with open(os.path.join(self.GEE, name), encoding='utf-8') as handle:
+                src = handle.read()
+            self.assertIn(f'var BURN_THRESHOLD = {M_dnn.BURN_THRESHOLD};', src, name)
+            self.assertNotIn('select(0).gt(0)', src, name)
+            self.assertNotIn('unmask(0).gt(0)', src, name)
+
+
 class LegacyDefaultsTests(unittest.TestCase):
     def test_trainer_defaults(self):
         tree = ast.parse(_source('M4_algorithms_dnn.py'))

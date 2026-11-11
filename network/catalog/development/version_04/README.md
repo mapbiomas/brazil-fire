@@ -33,6 +33,7 @@ Everything not listed here is identical to `version_03`.
 |---|---|---|
 | **M5** burned rule (`dayOfYear` band, tile stats) | probability `> 0` (p > 0.0005) | probability `>= 50` (p >= 0.05) |
 | **M6** burned area (regional stats) | probability `> 0` | probability `>= 50` |
+| **M7 / M8** (GEE) selection, filters, temporal memory, statistics | `.gt(0)` | `.gte(BURN_THRESHOLD)`, `BURN_THRESHOLD = 50` |
 | **M4** hidden layers (UI default) | `7, 14, 7` | `7, 14, 7, 14, 7` (legacy `network/version_02`) |
 | **M4** dropout (not shown in the UI) | `keep_prob = 0.8` (20% of neurons turned off at each training step) | `keep_prob = 1.0` (dropout off, as in legacy `network/version_02`) |
 | **M4** fallbacks when a saved model has no value | `[64, 32]`, 5000 iterations | `[7, 14, 7, 14, 7]`, 7000 iterations |
@@ -41,9 +42,11 @@ Everything not listed here is identical to `version_03`.
   (stored probability is `round(p * 1000)`, so 50 = 5%).
 - Band 1 (`probability`) is unchanged: it still stores the probability of every
   valid pixel. Only band 2 (`dayOfYear`) and the burned-area counts use the cut.
-- **Not changed:** the GEE scripts (`src/gee/M7_*`, `M8_statistics.js`) still
-  use `.gt(0)` on the probability band; use `.gte(50)` there for consistent
-  results.
+- GEE scripts (`src/gee/M7_*`, `M8_statistics.js`) use the same cut through
+  `var BURN_THRESHOLD = 50;` at the top of each file (was `.gt(0)`). M7_00 also
+  masks the exported ft00 image to `probability >= 50`, so tiles produced with
+  `version_03` are filtered too. These are local mirrors: copy them into GEE
+  (or a test copy of the scripts) to use them.
 - M5 skips tiles that already exist in GCS: train with a new model name (or
   delete the old tiles) before re-classifying.
 - Tests: `tests/test_burn_threshold.py`.

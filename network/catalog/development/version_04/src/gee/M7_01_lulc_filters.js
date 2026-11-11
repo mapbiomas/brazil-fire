@@ -34,6 +34,9 @@ var CLASSIFICATIONS_ROOT = CATALOG_ROOT + '/MONITOR_01/LIBRARY_CLASSIFICATIONS/'
 var REGIONS = ee.FeatureCollection('projects/mapbiomas-peru/assets/FIRE/AUXILIARY_DATA/regiones_fuego_peru_v1');
 var REGION_PROPERTY = 'region_nam';
 var SCALE = 10;
+// version_04: burned = probability >= BURN_THRESHOLD (0-1000 scale; 50 = 5%).
+// version_03 used > 0. Keep equal to BURN_THRESHOLD in src/core/M_dnn.py.
+var BURN_THRESHOLD = 50;
 
 // ⚙️ CONFIGURACIÓN DEL USUARIO (MODIFICAR AQUÍ)
 // Nombre de su colección / variante
@@ -219,7 +222,7 @@ ee.data.listAssets(inputCollection, {}, function (result) {
             });
 
             // 2. Filtrado de píxeles aislados (select(0))
-            var connections = maskedImage.select(0).gt(0).connectedPixelCount({ maxSize: 100, eightConnected: false });
+            var connections = maskedImage.select(0).gte(BURN_THRESHOLD).connectedPixelCount({ maxSize: 100, eightConnected: false });
             maskedImage = maskedImage.where(connections.lte(minConnectedPixels), 0).selfMask();
 
             var mosaicLayer = loadSentinelMosaic(periodName);
@@ -255,7 +258,7 @@ ee.data.listAssets(inputCollection, {}, function (result) {
             });
 
             // 2. Filtrado de píxeles aislados (select(0))
-            var connections = maskedImage.select(0).gt(0).connectedPixelCount({ maxSize: 100, eightConnected: false });
+            var connections = maskedImage.select(0).gte(BURN_THRESHOLD).connectedPixelCount({ maxSize: 100, eightConnected: false });
             maskedImage = maskedImage.where(connections.lte(minConnectedPixels), 0).selfMask();
             maskedImage = setTimeProperties(maskedImage.copyProperties(sourceImage).set('filter_stage', 'ft01'), periodName);
 
