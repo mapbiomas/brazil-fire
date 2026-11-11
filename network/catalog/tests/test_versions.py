@@ -95,7 +95,8 @@ class CollectionVersionPathsTests(unittest.TestCase):
 class MonitorVersionPathsTests(unittest.TestCase):
     EXPECTED = {
         'development/version_03': 'network/catalog/development/version_03/src/core',
-        'production': 'network/catalog/production/src/core',
+        'development/version_04': 'network/catalog/development/version_04/src/core',
+        'production':'network/catalog/production/src/core',
     }
 
     def test_each_version_has_16_notebooks_with_the_right_repo_path(self):
