@@ -70,7 +70,11 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 ## Ajustes de mapas e GIF (2026-11-05)
 
 - Seletores de país mostram a coleção de cada país (`COLECOES`, lida em segundo plano por `gifRegiao`); Paraguai e Indonésia: "coleção não informada".
-- Mapa por território: sem bolhas; "Comparar anos" = ano B − ano A ou ano − média do período. Clique: contorno em destaque (halo) e zoom. "Baixar mapa (PNG)" (`baixarMapaPng`): copia tiles e canvas do Leaflet (`preferCanvas`, tiles com `crossOrigin`) e acrescenta título, legenda, escala e fonte. `L.control.scale` em todos os mapas.
+- Mapa por território: sem bolhas; "Comparar anos" = ano B − ano A ou ano − média do período. Clique: contorno em destaque (halo) e zoom. "Baixar mapa (PNG)" (`baixarMapaPng`): copia tiles e canvas do Leaflet (`preferCanvas`, tiles com `crossOrigin`) e acrescenta título, legenda, escala, seta do norte e fonte. `L.control.scale` em todos os mapas.
+- Mapa por território (2026-11-11):
+  - Cores por quebras naturais (`classesPorQuebras` + `jenksCortes`, Jenks sobre a raiz cúbica, amostra de até 1.200 valores); os quantis deixavam quase tudo na última classe.
+  - "% do território" no período todo = acumulado ÷ área (`getRankingAcumulado`: ranking do subtema acumulado com `year: [ini, fim]`, igual à estatística — conferido MT 1985–2025 = 45.120.667 ha); no modo "um ano", área do ano ÷ área. Recortados por bioma usam o acumulado da interseção (`calcularRecorte` devolve `acum`).
+  - Estados com bioma no filtro: só a parte de cada estado no bioma (geometria `getGeometry([estado, bioma], "intersection")`, descarta < `RECORTE_MIN` do estado; valores pela mesma fila da divisa, `valoresDaDivisa`). Antes eram estados inteiros com aviso.
 - Dados brutos: "Subproduto" com grupos Anuais / Por período (`opcoesSelectHtml` com `grupo`); ano escolhível nos anuais; cortina só nos anuais, com ano da esquerda e da direita; contornos clicáveis (biomas, estados ou municípios do estado).
 - GIF: velocidades 700/350/180 ms; passo 6 "Limites no mapa" (biomas/ecorregiões ou 1º nível administrativo do país), desenhados em cinza sob o contorno do território.
 

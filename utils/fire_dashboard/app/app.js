@@ -769,26 +769,41 @@ function getMunicipiosPorUf() {
 function getRankingAno(categoryId, ano) {
   return cached(`${envId()}:ranking:${categoryId}:${ano}`, async () => {
     const total = await getLegend("anualTotal");
-    const params = {
+    return rankingDaApi({
       subthemeKey: sub("anual"), legendKey: total.key, pixelValue: levelItems(total, 0)[0].pixelValue, // o ranking aceita um valor só
       year: ano, territoryCategoryId: categoryId, pageSize: 6000,
-    };
-    // Rankings ainda não calculados (comuns fora do Brasil) voltam como tarefa: espera e pede de novo.
-    const inicio = Date.now();
-    let resp = await fetchRanking(state.conn.env, params);
-    let falhas = 0;
-    while (!Array.isArray(resp.ranking) && resp.taskID && Date.now() - inicio < CONFIG.taskTimeoutMs) {
-      try {
-        await waitForTask(state.conn.env, resp.taskID, inicio, (status, ms) =>
-          setStatus(`Calculando o ranking no servidor (${status}) · ${Math.round(ms / 1000)} s`, true));
-      } catch (err) {
-        if (++falhas > 2) throw err; // tarefa "failed" costuma ser passageira: pede de novo até 2 vezes
-      }
-      resp = await fetchRanking(state.conn.env, params);
-    }
-    if (!Array.isArray(resp.ranking) && resp.taskID) throw new ApiError("O servidor ainda está calculando este ranking. Tente de novo em alguns minutos.");
-    return new Map((resp.ranking || []).map((r) => [r.territory.id, { name: ehBrasil ? r.territory.name : nomeLimpo(r.territory.name), value: r.value || 0 }]));
+    });
   });
+}
+
+// Área que queimou ao menos uma vez em [ini, fim] (acumulado do período), por território.
+// Com year = [ini, fim], o ranking do acumulado dá o mesmo valor da estatística (conferido: MT 1985–2025).
+function getRankingAcumulado(categoryId, ini, fim) {
+  return cached(`${envId()}:rankingAcum:${categoryId}:${ini}:${fim}`, async () => {
+    const leg = await getLegend("acumulado");
+    return rankingDaApi({
+      subthemeKey: sub("acumulado"), legendKey: leg.key, pixelValue: levelItems(leg, 0)[0].pixelValue,
+      year: [ini, fim], territoryCategoryId: categoryId, pageSize: 6000,
+    });
+  });
+}
+
+async function rankingDaApi(params) {
+  // Rankings ainda não calculados (comuns fora do Brasil) voltam como tarefa: espera e pede de novo.
+  const inicio = Date.now();
+  let resp = await fetchRanking(state.conn.env, params);
+  let falhas = 0;
+  while (!Array.isArray(resp.ranking) && resp.taskID && Date.now() - inicio < CONFIG.taskTimeoutMs) {
+    try {
+      await waitForTask(state.conn.env, resp.taskID, inicio, (status, ms) =>
+        setStatus(`Calculando o ranking no servidor (${status}) · ${Math.round(ms / 1000)} s`, true));
+    } catch (err) {
+      if (++falhas > 2) throw err; // tarefa "failed" costuma ser passageira: pede de novo até 2 vezes
+    }
+    resp = await fetchRanking(state.conn.env, params);
+  }
+  if (!Array.isArray(resp.ranking) && resp.taskID) throw new ApiError("O servidor ainda está calculando este ranking. Tente de novo em alguns minutos.");
+  return new Map((resp.ranking || []).map((r) => [r.territory.id, { name: ehBrasil ? r.territory.name : nomeLimpo(r.territory.name), value: r.value || 0 }]));
 }
 
 // Soma do ranking anual em [ini, fim]: { linhas: [{id, name, value, porAno}], anos }.
@@ -1210,7 +1225,18 @@ async function calcularRecorte({ munId, biomaId, ini, fim }) {
   }, () => {});
   const porAnoMap = new Map(byYear(res).map((a) => [a.ano, a.area]));
   const porAno = anos.map((a) => porAnoMap.get(a) || 0);
-  return { value: sum(porAno), porAno };
+  // Acumulado do período na interseção (para "% do território"); se falhar, fica sem e o mapa usa a soma.
+  let acum;
+  try {
+    const leg = await getLegend("acumulado");
+    const ra = await fetchAreaStatistics(state.conn.env, {
+      subthemeKey: sub("acumulado"), legendKey: leg.key, pixelValue: pixelValues(levelItems(leg, 0)),
+      year: [ini, fim], yearSeriesAnchor: "start", territoryId: [munId, biomaId], spatialMethod: "intersection",
+    }, () => {});
+    const serie = byYear(ra);
+    acum = serie.length ? serie[serie.length - 1].area : undefined;
+  } catch { /* segue sem o acumulado */ }
+  return { value: sum(porAno), porAno, acum };
 }
 
 // Aplica o recorte às linhas do ranking de municípios: os "dentro" mantêm o valor do
@@ -2851,7 +2877,41 @@ async function loadMapaRanking({ t, ini, fim }) {
   const progresso = (rotulo) => (n, tot) => setStatus(`${rotulo}: ${n}/${tot}`, true);
 
   let linhas, features, escopoRotulo, anosRk, aviso = "", emCalculo = false;
-  if (unidade === "estados" || unidade === "biomas") {
+  const biomaFiltro = c.biomas.find((b) => b.id === state.biomaId);
+  if (unidade === "estados" && biomaFiltro) {
+    // Estados com bioma no filtro: só a parte de cada estado dentro do bioma. A geometria e a
+    // área queimada vêm da interseção calculada pela API (mesma fila dos municípios da divisa).
+    const lista = state.estadoId ? c.estados.filter((e) => e.id === state.estadoId) : c.estados;
+    setStatus(`Recortando ${rot("estado", true).toLowerCase()} pelo ${rot("bioma").toLowerCase()}…`, true);
+    const pares = await mapLimit(lista, 6, async (e) => {
+      const [inter, inteiro] = await Promise.all([
+        getGeometry([e.id, biomaFiltro.id], "intersection").catch(() => null),
+        getGeometry([e.id]).catch(() => null),
+      ]);
+      if (!inter || !["Polygon", "MultiPolygon"].includes(inter.type) || !inter.coordinates?.length) return null;
+      let fracao = 1;
+      try { fracao = safeDiv(turf.area(inter), turf.area(inteiro)); } catch { /* sem a área do estado: fica */ }
+      return fracao >= RECORTE_MIN ? { e, geometry: inter, fracao } : null;
+    });
+    const dentro = pares.filter(Boolean);
+    const { valores, pendentes, falhas } = valoresDaDivisa(dentro.map((p) => p.e.id), biomaFiltro.id, ini, fim);
+    anosRk = range(ini, fim);
+    linhas = dentro.filter((p) => valores.has(p.e.id))
+      .map((p) => ({ id: p.e.id, name: p.e.name, ...valores.get(p.e.id), recortado: true, fracao: p.fracao }))
+      .sort((a, b) => b.value - a.value);
+    features = dentro.map((p) => ({
+      type: "Feature", geometry: p.geometry,
+      properties: {
+        id: p.e.id, name: p.e.name, value: valores.get(p.e.id)?.value || 0, emCalculo: !valores.has(p.e.id),
+        nota: `${pct(p.fracao)} do ${rot("estado").toLowerCase()} no ${rot("bioma").toLowerCase()}${valores.has(p.e.id) ? " · área da interseção" : " · área exata em cálculo"}`,
+      },
+    }));
+    escopoRotulo = `${rot("estado", true)} · parte em ${biomaFiltro.name}`;
+    aviso = `Só a parte de cada ${rot("estado").toLowerCase()} dentro do ${rot("bioma").toLowerCase()} ${biomaFiltro.name}, com a área exata da interseção calculada pela API`
+      + (pendentes ? `: ${dentro.length - pendentes - falhas} prontos, ${pendentes} em cálculo no servidor (ficam em cinza até terminar; a página se atualiza sozinha)` : "")
+      + (falhas ? `; ${falhas} não puderam ser calculados agora` : "") + ".";
+    emCalculo = pendentes > 0;
+  } else if (unidade === "estados" || unidade === "biomas") {
     // Estados ou biomas inteiros: um ranking por ano da categoria + contorno de cada território.
     const ehBioma = unidade === "biomas";
     const lista = ehBioma ? c.biomas : c.estados;
@@ -2904,19 +2964,24 @@ async function loadMapaRanking({ t, ini, fim }) {
   setStatus("");
 
   // Quantis com um valor por território (municípios aparecem em vários pedaços).
-  const classes = quantileClasses([...new Map(features.filter((f) => !f.properties.emCalculo).map((f) => [f.properties.id, f.properties.value])).values()]);
+  const classes = classesPorQuebras([...new Map(features.filter((f) => !f.properties.emCalculo).map((f) => [f.properties.id, f.properties.value])).values()], (v) => `${fmtCompact.format(v)} ha`);
   const corEmCalculo = "#9aa0a6";
   for (const f of features) f.properties.color = f.properties.emCalculo ? corEmCalculo : classes.colorOf(f.properties.value);
   const top = linhas.slice(0, 10);
   const recorte = state.biomaId || state.estadoId ? await getGeometry(t.ids, t.metodo).catch(() => null) : null;
   // Série anual de cada território (para linha do tempo, variação, detalhe e CSV).
   const porId = new Map(linhas.map((l) => [l.id, l]));
+  // Acumulado do período (área que queimou ao menos uma vez), para "% do território": territórios
+  // inteiros vêm do ranking do acumulado; os recortados por bioma, da interseção (calcularRecorte).
+  const catUnid = { biomas: c.catBioma, estados: c.catEstado, municipios: c.catMunicipio }[unidade];
+  const acumRk = catUnid ? await getRankingAcumulado(catUnid, ini, fim).catch(() => null) : null;
   const territorios = new Map();
   for (const f of features) {
     const { id, name } = f.properties;
     if (territorios.has(id)) continue;
-    const serie = porId.get(id)?.porAno;
-    territorios.set(id, { name, porAno: serie ? [...serie] : new Array(anosRk.length).fill(0), emCalculo: f.properties.emCalculo });
+    const l = porId.get(id);
+    const acum = l?.recortado ? l.acum : acumRk?.get(id)?.value;
+    territorios.set(id, { name, porAno: l?.porAno ? [...l.porAno] : new Array(anosRk.length).fill(0), acum, emCalculo: f.properties.emCalculo });
   }
 
   return {
@@ -2961,24 +3026,6 @@ async function loadMapaRanking({ t, ini, fim }) {
   };
 }
 
-// 5 classes por quantis (só valores > 0) na rampa CHORO_RAMP.
-function quantileClasses(valores) {
-  const pos = valores.filter((v) => v > 0).sort((a, b) => a - b);
-  if (!pos.length) return { colorOf: () => null, legend: [] };
-  const q = (p) => pos[Math.min(pos.length - 1, Math.floor(p * pos.length))];
-  const cortes = [q(0.2), q(0.4), q(0.6), q(0.8)];
-  const colorOf = (v) => {
-    if (!(v > 0)) return null;
-    const i = cortes.findIndex((c) => v <= c);
-    return CHORO_RAMP[i < 0 ? CHORO_RAMP.length - 1 : i];
-  };
-  const limites = [pos[0], ...cortes, pos[pos.length - 1]];
-  const legend = CHORO_RAMP.map((color, i) => ({
-    label: `${fmtCompact.format(i ? limites[i] : limites[0])}–${fmtCompact.format(limites[i + 1])} ha`,
-    color,
-  }));
-  return { colorOf, legend };
-}
 
 // Contornos de referência do mapa de dados brutos, com nome (clicáveis: o clique destaca o contorno).
 async function referenceOutlines(visualizar) {
@@ -4225,18 +4272,51 @@ function renderMap(box, spec) {
 const DIV_RAMP = ["#2a78d6", "#9ec5f0", "#d9dbe0", "#f5a99c", "#d7301f"]; // azul = menos fogo, vermelho = mais
 const haCurto = (v) => (Math.abs(v) >= 1e6 ? mha(v) : ha(v));
 
-function classesPorQuantis(valores, fmt) {
+// Quebras naturais (Fisher-Jenks) em k classes sobre valores já ordenados; devolve os k−1 cortes.
+function jenksCortes(ord, k) {
+  const n = ord.length;
+  if (n <= k) return ord.slice(0, -1);
+  const lower = Array.from({ length: n + 1 }, () => new Array(k + 1).fill(0));
+  const vari = Array.from({ length: n + 1 }, () => new Array(k + 1).fill(Infinity));
+  for (let j = 1; j <= k; j++) { lower[1][j] = 1; vari[1][j] = 0; }
+  for (let l = 2; l <= n; l++) {
+    let s1 = 0, s2 = 0, w = 0, v = 0;
+    for (let m = 1; m <= l; m++) {
+      const i3 = l - m + 1, val = ord[i3 - 1];
+      s2 += val * val; s1 += val; w++;
+      v = s2 - (s1 * s1) / w;
+      if (i3 > 1) for (let j = 2; j <= k; j++) {
+        if (vari[l][j] >= v + vari[i3 - 1][j - 1]) { lower[l][j] = i3; vari[l][j] = v + vari[i3 - 1][j - 1]; }
+      }
+    }
+    lower[l][1] = 1; vari[l][1] = v;
+  }
+  const cortes = [];
+  let kk = n;
+  for (let j = k; j >= 2; j--) { const id = lower[kk][j] - 2; cortes.unshift(ord[id]); kk = lower[kk][j] - 1; }
+  return cortes;
+}
+
+// 5 classes por quebras naturais sobre a raiz cúbica dos valores (> 0): com quantis, os
+// territórios grandes caíam quase todos na última classe; com Jenks direto, quase todos na primeira.
+// Com muitos valores (ex.: municípios × anos), usa uma amostra ordenada de até 1.200 valores.
+function classesPorQuebras(valores, fmt) {
   const pos = valores.filter((v) => v > 0).sort((a, b) => a - b);
   if (!pos.length) return { colorOf: () => null, legend: [] };
-  const q = (p) => pos[Math.min(pos.length - 1, Math.floor(p * pos.length))];
-  const cortes = [q(0.2), q(0.4), q(0.6), q(0.8)];
+  const passo = Math.max(1, pos.length / 1200);
+  const amostra = [];
+  for (let i = 0; i < pos.length; i += passo) amostra.push(Math.cbrt(pos[Math.floor(i)]));
+  if (Math.cbrt(pos[pos.length - 1]) !== amostra[amostra.length - 1]) amostra.push(Math.cbrt(pos[pos.length - 1]));
+  const k = Math.min(CHORO_RAMP.length, new Set(amostra).size);
+  const cortes = [...new Set(jenksCortes(amostra, k).map((c) => c ** 3))];
+  const ramp = cortes.length + 1 >= CHORO_RAMP.length ? CHORO_RAMP : CHORO_RAMP.slice(CHORO_RAMP.length - cortes.length - 1);
   const colorOf = (v) => {
     if (!(v > 0)) return null;
     const i = cortes.findIndex((c) => v <= c);
-    return CHORO_RAMP[i < 0 ? CHORO_RAMP.length - 1 : i];
+    return ramp[i < 0 ? ramp.length - 1 : i];
   };
   const lim = [pos[0], ...cortes, pos[pos.length - 1]];
-  return { colorOf, legend: CHORO_RAMP.map((color, i) => ({ label: `${fmt(lim[i])} a ${fmt(lim[i + 1])}`, color })) };
+  return { colorOf, legend: ramp.map((color, i) => ({ label: `${fmt(lim[i])} a ${fmt(lim[i + 1])}`, color })) };
 }
 
 function classesDivergentes(valores, fmt) {
@@ -4304,8 +4384,11 @@ function renderMapaDinamico(map, spec, tokens, box) {
     }
     const v = anoIdx == null ? somaFaixa(t.porAno, 0, n - 1) : t.porAno[anoIdx] || 0;
     if (st.indicador === "pct") {
+      // Período todo: área que queimou ao menos uma vez (acumulado), não a soma dos anos
+      // (que conta duas vezes o que queimou de novo e pode passar de 100%). Um ano só: a área do ano.
       const a = areaDe(id);
-      return a ? v / a : 0;
+      const queimada = anoIdx == null && t.acum != null ? t.acum : v;
+      return a ? Math.min(1, queimada / a) : 0;
     }
     return v;
   }
@@ -4329,7 +4412,7 @@ function renderMapaDinamico(map, spec, tokens, box) {
     } else {
       pool = ids.map((id) => valor(id));
     }
-    classes = st.indicador === "mudanca" ? classesDivergentes(pool, fmtCurto) : classesPorQuantis(pool, fmtCurto);
+    classes = st.indicador === "mudanca" ? classesDivergentes(pool, fmtCurto) : classesPorQuebras(pool, fmtCurto);
     maxAbs = pool.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
     cores = new Map();
     for (const [id, t] of territorios) cores.set(id, t.emCalculo ? spec.corEmCalculo : classes.colorOf(valor(id)));
@@ -4344,7 +4427,7 @@ function renderMapaDinamico(map, spec, tokens, box) {
   function dica(id, nota) {
     const t = territorios.get(id);
     const quando = st.indicador === "mudanca" ? compRotulo()
-      : st.periodo === "ano" ? `em ${st.ano}` : `soma ${ano0}–${anoN}`;
+      : st.periodo === "ano" ? `em ${st.ano}` : st.indicador === "pct" ? `acumulado ${ano0}–${anoN}` : `soma ${ano0}–${anoN}`;
     const v = t?.emCalculo ? "Calculando a área da interseção…" : `${fmtLongo(valor(id))} <small>(${quando})</small>`;
     return `<strong>${escapeHtml(t?.name || "")}</strong><br>${v}${nota ? `<br><small>${escapeHtml(nota)}</small>` : ""}<br><small>Clique para ver o detalhe</small>`;
   }
@@ -4392,8 +4475,11 @@ function renderMapaDinamico(map, spec, tokens, box) {
 
   function tituloIndicador() {
     if (st.indicador === "mudanca") return `Diferença na área queimada: ${compRotulo()}`;
+    if (st.indicador === "pct") {
+      return st.periodo === "ano" ? `% do território que queimou em ${st.ano}` : `% do território que queimou ao menos uma vez em ${ano0}–${anoN} (acumulado)`;
+    }
     const quando = st.periodo === "ano" ? `em ${st.ano}` : `${ano0}–${anoN} (soma dos anos)`;
-    return st.indicador === "pct" ? `% do território que queimou ${quando}` : `Área queimada ${quando}`;
+    return `Área queimada ${quando}`;
   }
 
   function atualizarTextos() {
@@ -4402,10 +4488,11 @@ function renderMapaDinamico(map, spec, tokens, box) {
     if (st.indicador === "area") {
       s = `Mostra quantos hectares queimaram em cada ${nomeUnid} ${periodoTxt}. Quanto mais escuro, mais queimou.`;
     } else if (st.indicador === "pct") {
-      s = `Mostra que parte de cada ${nomeUnid} queimou ${periodoTxt} (área queimada ÷ área do ${nomeUnid}), ` +
-        `para comparar ${unidPlural} pequenos e grandes.` +
-        (st.periodo === "todo" ? " Na soma dos anos pode passar de 100%, porque o mesmo lugar pode queimar mais de uma vez." : "") +
-        " A área do território vem do contorno do mapa (valor aproximado).";
+      s = st.periodo === "todo"
+        ? `Mostra que parte de cada ${nomeUnid} queimou ao menos uma vez de ${ano0} a ${anoN} (área queimada acumulada ÷ área do ${nomeUnid}), ` +
+          `para comparar ${unidPlural} pequenos e grandes. O que queimou mais de uma vez conta uma vez só, então nunca passa de 100%.`
+        : `Mostra que parte de cada ${nomeUnid} queimou em ${st.ano} (área queimada ÷ área do ${nomeUnid}), para comparar ${unidPlural} pequenos e grandes.`;
+      s += " A área do território vem do contorno do mapa (valor aproximado).";
     } else if (st.comp === "media") {
       s = `Compara a área queimada em ${st.anoM} com a média anual de ${ano0}–${anoN}. ` +
         `Vermelho = ${st.anoM} queimou mais que a média; azul = queimou menos.`;
@@ -4729,6 +4816,20 @@ async function baixarMapaPng(map, box, titulo, legendaEl) {
   ctx.fillRect(ex + e.px - 2, ey - 6, 2, 9);
   ctx.font = "600 11px Montserrat, sans-serif";
   ctx.fillText(e.rotulo, ex + e.px + 6, ey + 4);
+
+  // Seta do norte (canto superior direito do mapa; o mapa web fica sempre com o norte para cima).
+  const nx = pad + W - 26, ny = cab + 12;
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.beginPath(); ctx.arc(nx, ny + 17, 19, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#1f1f1f";
+  ctx.beginPath(); ctx.moveTo(nx, ny + 3); ctx.lineTo(nx + 7, ny + 25); ctx.lineTo(nx, ny + 20); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#9e9e9e";
+  ctx.beginPath(); ctx.moveTo(nx, ny + 3); ctx.lineTo(nx - 7, ny + 25); ctx.lineTo(nx, ny + 20); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#1f1f1f";
+  ctx.font = "700 10px Montserrat, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("N", nx, ny + 36);
+  ctx.textAlign = "left";
 
   // Legenda e fonte.
   ctx.textBaseline = "middle";
