@@ -194,9 +194,9 @@ If the query returns names, regions are populated automatically. Otherwise a dia
 
 Assembles M5 tiles into regional mosaics, applies LULC mask and sieve filter, computes burned area statistics (CSV: tile + region), uploads to GEE as ImageCollections. Interactive dashboard for batch monitoring and coverage visualization.
 
-### M7 / M8 — Curation & Release (under development)
+### M7 / M8 / M9 — Post-processing in GEE
 
-M7: spatial/temporal masks, variant listing. M8: best-selection evaluation, official publication.
+Ready; they run in the GEE Code Editor (mirrors in `src/gee/`). M7: ft00 national selection/merge, ft01 land-use mask + small patches, ft02 temporal filter. M8: statistics per stage and land use. M9: promotion to pre-official.
 
 ---
 
