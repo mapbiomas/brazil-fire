@@ -18,6 +18,7 @@ from M5_workplan import (
 from M_regions import REGION_NAME_PROPERTY
 from M_cache import CacheManager
 from M_ui_components import _fmt_time, ProgressTracker
+from M6_image_upload import build_image_upload_command
 
 
 def _get_resolution_from_model(model_id):
@@ -96,7 +97,7 @@ def merge_region_tiles(model_id, region, period, fs=None, logger=None, campaign=
             options=gdal.TranslateOptions(
                 creationOptions=['COMPRESS=LZW', 'BIGTIFF=YES']))
 
-        # Nomeia as bandas no GeoTIFF — GEE respeita BandDescription
+        # Preserve band names for Earth Engine ingestion.
         try:
             ds = gdal.Open(mosaic_local, 1)
             ds.GetRasterBand(1).SetDescription('probability')
@@ -238,53 +239,38 @@ def upload_to_gee(model_id, region, period, fs=None, logger=None, campaign=None,
 
     asset_id = f"{parent}/{region}_{period}"
 
-    # Deletar se ja existir
-    try:
-        ee.data.getAsset(asset_id)
-        if logger:
-            logger(f"    Asset already exists, deleting: {asset_id}")
-        ee.data.deleteAsset(asset_id)
-        time.sleep(2)
-    except Exception:
-        pass
-
     time_metadata = _period_export_metadata(period)
-
-    ee_project = CONFIG.get('gee_project', 'mapbiomas-peru')
-    country = CONFIG.get('country', 'peru')
-    version = CONFIG.get('version', 'version_01')
-
-    cmd = (
-        f'earthengine --project {ee_project} upload image '
-        f'--asset_id={asset_id} '
-        f'--pyramiding_policy=mode '
-        f'--time_start {time_metadata["time_start"]} '
-        f'--time_end {time_metadata["time_end"]} '
-        f'--property source=mapbiomas-fire '
-        f'--property model_id={model_id} '
-        f'--property region={region} '
-        f'--property period={period} '
-        f'--property year={time_metadata["year"]} '
-        f'--property month={time_metadata["month"]} '
-        f'--property campaign={campaign or ""} '
-        f'--property country={country} '
-        f'--property version={version} '
-        f'--property type={time_metadata["asset_type"]} '
-        f'--property periodicity={time_metadata["periodicity"]} '
-        f'{gcs_uri}'
+    command = build_image_upload_command(
+        project=CONFIG.get('gee_project', 'mapbiomas-peru'),
+        asset_id=asset_id,
+        gcs_uri=gcs_uri,
+        metadata={
+            **time_metadata,
+            'model_id': model_id,
+            'region': region,
+            'period': period,
+            'campaign': campaign or '',
+            'country': CONFIG.get('country', 'peru'),
+            'version': CONFIG.get('version', 'version_01'),
+            'type': time_metadata['asset_type'],
+        },
     )
 
     if logger:
-        logger(f"    Submitting earthengine upload...")
-    ret = subprocess.run(cmd, shell=True)
-    if ret.returncode == 0:
+        logger(f"    Uploading to the same GEE asset ID (--force overwrite enabled)...")
+    try:
+        result = subprocess.run(command)
+    except Exception as exc:
         if logger:
-            logger(f"    GEE upload task submitted! Asset: {asset_id}")
-        return True
-    else:
-        if logger:
-            logger(f"    [ERROR] GEE upload failed (exit {ret.returncode})")
+            logger(f"    [ERROR] GEE image upload failed: {exc}")
         return False
+    if result.returncode == 0:
+        if logger:
+            logger(f"    GEE upload submitted with overwrite: {asset_id}")
+        return True
+    if logger:
+        logger(f"    [ERROR] GEE upload failed (exit {result.returncode})")
+    return False
 
 
 def gee_asset_exists(model_id, region, period, campaign=None):
