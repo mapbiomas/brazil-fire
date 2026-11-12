@@ -80,11 +80,11 @@ The `.js` files in this folder are mirrors. The canonical scripts live in the
 
 | Local file | GEE script |
 |---|---|
-| `M7_00_selection_merge.js` | [`5-Monitor-Fuego/M7/monthly/ft00_selection_merge`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/M7/monthly/ft00_selection_merge) |
-| `M7_01_lulc_filters.js` | [`5-Monitor-Fuego/M7/monthly/propuesta_a/ft01_lulc_filters`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/M7/monthly/propuesta_a/ft01_lulc_filters) |
-| `M7_02_temporal_filter.js` | [`5-Monitor-Fuego/M7/monthly/propuesta_a/ft02_temporal_filter`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/M7/monthly/propuesta_a/ft02_temporal_filter) |
-| `M8_statistics.js` | [`5-Monitor-Fuego/M8/M8_statistics`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/M8/M8_statistics) |
-| `M9_00_promote_ui.js` | [`5-Monitor-Fuego/M9/M9_00_promote_ui`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/M9/M9_00_promote_ui) |
+| `M7_00_selection_merge.js` | [`5-MapBiomas-Fuego/M7/ft00_selection_merge`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/ft00_selection_merge) |
+| `M7_01_lulc_filters.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/` (one copy per country, campaign and period) |
+| `M7_02_temporal_filter.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/` (one copy per country, campaign and period) |
+| `M8_statistics.js` | [`5-MapBiomas-Fuego/M8/M8_statistics`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M8/M8_statistics) |
+| `M9_00_promote_ui.js` | [`5-MapBiomas-Fuego/M9/M9_00_promote_ui`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M9/M9_00_promote_ui) |
 
 The GEE Code Editor links require access to the `mapbiomas-fire` repository.
 When a script changes in GEE, update the mirror in `src/gee/`.

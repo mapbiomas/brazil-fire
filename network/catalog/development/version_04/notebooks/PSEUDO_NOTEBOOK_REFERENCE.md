@@ -211,10 +211,10 @@ These steps are ready and run in the **GEE Code Editor**, not in this notebook. 
 
 | Step | What it does | GEE script |
 |---|---|---|
-| **M7 ft00** | Picks one model per region and merges them into a national image | [ft00_selection_merge](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/M7/monthly/ft00_selection_merge) |
-| **M7 ft01** | Land-use mask + removal of small isolated patches | [ft01_lulc_filters](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/M7/monthly/propuesta_a/ft01_lulc_filters) |
-| **M7 ft02** | Temporal filter (consistency with previous periods) | [ft02_temporal_filter](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/M7/monthly/propuesta_a/ft02_temporal_filter) |
-| **M8** | Burned-area statistics per filter stage and land use | [M8_statistics](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/M8/M8_statistics) |
-| **M9** | Promotes the chosen version to pre-official | [M9_00_promote_ui](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/M9/M9_00_promote_ui) |
+| **M7 ft00** | Picks one model per region and merges them into a national image | [ft00_selection_merge](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/ft00_selection_merge) |
+| **M7 ft01** | Land-use mask + removal of small isolated patches | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/` (folder) |
+| **M7 ft02** | Temporal filter (consistency with previous periods) | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/` (folder) |
+| **M8** | Burned-area statistics per filter stage and land use | [M8_statistics](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M8/M8_statistics) |
+| **M9** | Promotes the chosen version to pre-official | [M9_00_promote_ui](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M9/M9_00_promote_ui) |
 
 The links need access to the `mapbiomas-fire` GEE repository. Copies of the scripts are kept in `src/gee/` of this version.

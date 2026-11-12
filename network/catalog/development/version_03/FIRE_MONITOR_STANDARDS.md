@@ -142,7 +142,7 @@ Interactive polygon drawing on satellite imagery in GEE Code Editor. Fire (burne
 
 **Access:**
 - Source code: `src/core/M3_toolkit.js`
-- GEE Editor: `users/mapbiomasworkspace1/mapbiomas-fire:5-Monitor-Fuego/Toolkit_Monitor_Fuego`
+- GEE Editor: `users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M3/M3_Toolkit_MapBiomas_Fuego`
 - Tutorial slides: Google Slides link in `M3_sample_ui.py`
 
 **5 UI locales:** `en`, `es`, `pt`, `fr`, `id` (configurable via `APP_LANG` in toolkit).

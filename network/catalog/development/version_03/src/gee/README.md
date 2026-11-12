@@ -1,7 +1,7 @@
 # MapBiomas Fire Monitor — M7 / M8 / M9 Scripts
 
 JavaScript (GEE Code Editor) scripts for MONITOR_01 post-classification pipeline.
-Sincronizado com `mapbiomas-fire/5-Monitor-Fuego` (M7 v4.9, M8 v3.1, M9 v5.5).
+Sincronizado com `mapbiomas-fire/5-MapBiomas-Fuego` (M7 v4.9, M8 v3.1, M9 v5.5).
 
 ## Scripts
 
