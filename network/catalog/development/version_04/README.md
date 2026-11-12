@@ -81,8 +81,8 @@ The `.js` files in this folder are mirrors. The canonical scripts live in the
 | Local file | GEE script |
 |---|---|
 | `M7_00_selection_merge.js` | [`5-MapBiomas-Fuego/M7/ft00_selection_merge`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/ft00_selection_merge) |
-| `M7_01_lulc_filters.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/` (one copy per country, campaign and period) |
-| `M7_02_temporal_filter.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/` (one copy per country, campaign and period) |
+| `M7_01_lulc_filters.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft01_lulc_filters` (e.g. [peru/MONITOR_01/monthly](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/peru/MONITOR_01/monthly/ft01_lulc_filters)) |
+| `M7_02_temporal_filter.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft02_temporal_filter` (e.g. [peru/MONITOR_01/monthly](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/peru/MONITOR_01/monthly/ft02_temporal_filter)) |
 | `M8_statistics.js` | [`5-MapBiomas-Fuego/M8/M8_statistics`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M8/M8_statistics) |
 | `M9_00_promote_ui.js` | [`5-MapBiomas-Fuego/M9/M9_00_promote_ui`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M9/M9_00_promote_ui) |
 
