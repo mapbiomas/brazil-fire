@@ -139,7 +139,7 @@ def _run_classification(plan, out, progress_callback=None, n_workers=None):
 
 def _classify_one_tile(cell, model_id, region_name, period, campaign,
                         predict_fn, bands_config, norm_stats, band_paths, band_order,
-                        out, worker_id, fs):
+                        region_geometry, out, worker_id, fs):
     cell_id = cell['name']
     out_rel = tile_path(model_id, region_name, cell_id, period, campaign)
     out_full = gcs_full(out_rel)
@@ -152,7 +152,7 @@ def _classify_one_tile(cell, model_id, region_name, period, campaign,
     try:
         stats = classify_cell_with_cogs(
             cell_id, predict_fn, bands_config, norm_stats,
-            out_full, band_paths, band_order,
+            out_full, band_paths, band_order, region_geometry=region_geometry,
             logger=lambda m: _log(out, m), worker_id=worker_id
         )
     except Exception as e:
@@ -221,8 +221,12 @@ def _process_period(model_id, period, group_jobs, out, progress_callback=None, n
 
     # 4. Pre-computar celdas de todas as regiões para progresso cumulativo
     region_cells_map = {}
+    region_geometry_map = {}
     for job in group_jobs:
-        region_cells_map[job['region']] = _get_region_cells(job['region'])
+        region_name = job['region']
+        if region_name not in region_cells_map:
+            region_cells_map[region_name] = _get_region_cells(region_name)
+            region_geometry_map[region_name] = _get_region_geometry(region_name)
     total_cells_group = sum(len(cells) for cells in region_cells_map.values())
     processed = 0
     _t0 = time.time()
@@ -269,7 +273,7 @@ def _process_period(model_id, period, group_jobs, out, progress_callback=None, n
                     _classify_one_tile,
                     cell, model_id, region_name, period, campaign,
                     predict_fn, bands_config, norm_stats, band_paths, band_order,
-                    out, worker_id, fs
+                    region_geometry_map[region_name], out, worker_id, fs
                 )
                 futures[future] = cell['name']
 
@@ -434,3 +438,15 @@ def _get_region_cells(region_name):
     except Exception as e:
         print(f"[ERROR] Grid search failed: {e}")
         return []
+
+
+def _get_region_geometry(region_name):
+    """Fetch the selected region's union geometry once for the M5 batch."""
+    import ee
+
+    region_fc = ee.FeatureCollection(CONFIG['asset_regions']).filter(
+        ee.Filter.eq(REGION_NAME_PROPERTY, region_name)
+    )
+    if region_fc.size().getInfo() == 0:
+        raise ValueError(f"No geometry found for region {region_name!r}")
+    return region_fc.geometry().getInfo()
