@@ -1,84 +1,71 @@
-# MapBiomas Fire - Pipeline (M0-M6)
+# MapBiomas Fire - Pipeline (M0-M9)
 
 ## Documentation and User Guide
-Expand this section to understand the data architecture, environment requirements, and workflow.
+Short guide to the pipeline. Run the sections in order: each module reads what the previous one saved.
 
-### Introduction and Context
+### How it works (5 steps)
 
-This pipeline is the automated processing core for the **MapBiomas Fire Scar Monitoring**. It is organized into sequential stages (M0-M8), each with a specific responsibility:
+1. **Images (M1-M2):** GEE builds one mosaic per period (`minnbr`: the lowest-NBR observation, where a burn scar shows best) and exports it to GCS. M2 joins the pieces into Cloud-Optimized GeoTIFFs (COGs).
+2. **Samples (M3):** in the GEE toolkit, draw `fire` and `notFire` polygons for each region and period.
+3. **Training (M4):** a neural network (DNN) learns burned vs. unburned from the samples. Default: 5 hidden layers `7, 14, 7, 14, 7`, no dropout, 7000 iterations (same setup as the legacy collection).
+4. **Classification (M5):** the model scans the region tile by tile and saves the burn probability and the day of the burn for every pixel.
+5. **Publication and post-processing (M6 -> M7-M9):** M6 builds regional mosaics and statistics and uploads them to GEE. M7-M9 run in GEE: national merge, filters, statistics and promotion.
 
-- **M0 - Setup and Authentication**: Auto-detects Colab vs local environment, installs dependencies, configures GCS/GEE project paths via `set_global_opts()`, authenticates with Earth Engine, and sets the language locale. Centralizes all configuration (sensor, periodicity, country, language, GEE/GCS project).
+### Modules
 
-- **M1 - Export (GEE → GCS)**: Multi-sensor satellite image export. Handles Sentinel-2 (and in future: Landsat 5/7/8/9, MODIS, HLS). Applies sensor-specific radiometric corrections, cloud masking (QA_PIXEL, Fmask, CS), and exports optimized GeoTIFF chunks to Google Cloud Storage. Supports monthly and annual periods with configurable mosaics (minnbr, minnbr_buffer).
+| Module | Runs in | What it does | Output |
+|---|---|---|---|
+| **M0** | Colab | Setup, paths (`set_global_opts()`), authentication | config printed as `[CONFIG]`, `[GEE]`, `[GCS]` |
+| **M1** | Colab -> GEE | Exports period mosaics | GCS `CHUNKS/` |
+| **M2** | Colab | Assembles chunks into COGs | GCS `COG/` |
+| **M3** | GEE toolkit | Training polygons | GEE + GCS `LIBRARY_SAMPLES/` |
+| **M4** | Colab | Trains the DNN | GCS `LIBRARY_MODELS/{model}/` |
+| **M5** | Colab | Classifies tiles | GCS `CLASSIFIED_TILES/` |
+| **M6** | Colab | Regional mosaics, stats, GEE upload | GCS `CLASSIFIED_REGION/`, `STATS/`; GEE `REGIONAL/` |
+| **M7** | GEE | ft00 national merge, ft01 land-use + small patches, ft02 temporal filter | GEE `FILTERED/` |
+| **M8** | GEE | Burned-area statistics per filter stage | tables |
+| **M9** | GEE | Promotion of the chosen version | pre-official collection |
 
-- **M2 - Mosaic Assembly (COG)**: Assembles exported chunks into full-region Cloud-Optimized GeoTIFFs using GDAL VRT for virtual stacking. Produces compressed, tiled COGs with LZW compression.
+### Classification output (M5)
 
-- **M3 - Sample Collection (GEE Toolkit JavaScript)**: Training data collection via a custom GEE JavaScript Toolkit. Users draw fire (burned) and notFire (unburned) polygons on satellite imagery. Samples are exported with full metadata. Supports multi-country, multi-language (EN/ES/PT/FR/ID), and regional classification layers (classification, probability, dayOfYear).
+Each tile is an int16 GeoTIFF with 2 bands (nodata `-9999`):
 
-- **M4 - DNN Training**: Deep Neural Network classification. Uses a flexible band extraction matrix to sample pixel values from M2 mosaics using M3 polygon samples. Trains a DNN classifier with configurable architecture, generates t-SNE audit plots, and saves model weights and metadata to GCS.
+| Band | Name | Value |
+|---|---|---|
+| b1 | `probability` | burn probability x 1000 (0-1000; `50` = 5%), every valid pixel |
+| b2 | `dayOfYear` | day of the year of the burn, where `probability > 0` |
 
-- **M5 - Tile Classification**: Produces int16 2-band COG tile rasters (probability 0–1000 + dayOfYear) for each cim-world grid cell. Classifies tiles independently using a trained DNN model from M4. Results are consumed by M6 for mosaicking and publication.
+Because the probability is kept, a stricter burned cut can be tested later in GEE without classifying again.
 
-- **M6 - Mosaic, Statistics & Publication**: Assembles classified M5 tiles into regional mosaics, computes burned area statistics (CSV), and uploads results to Google Earth Engine. Includes an interactive dashboard for batch monitoring, analytics filtering, and coverage visualization.
+### Where things are saved
 
-- **M7 - Post-Classification Masks**: 🔨 **Under development.** Will apply spatial and temporal masks to classified outputs before final publication.
+```
+GCS {gcs_library_images_prefix}/LIBRARY_IMAGES/{SENSOR}/{PERIODICITY}/{MOSAIC}/{period}/
+    CHUNKS/  (M1)    COG/  (M2)
 
-- **M8 - Final Version Evaluation & Official Release**: 🔨 **Under development.** Will evaluate candidate versions and select the official release for publication.
+GCS {gcs_campaigns_prefix}/{campaign}/
+    LIBRARY_SAMPLES/                    M3  sample_{id}_{region}_{period}.csv
+    LIBRARY_MODELS/{model}/             M4  weights, metadata, metrics
+    LIBRARY_CLASSIFICATIONS/{model}/
+        CLASSIFIED_TILES/               M5  tile_{region}_{cell}_{period}.tif
+        CLASSIFIED_REGION/              M6  region_{region}_{model}_{period}.tif
+        STATS/                          M6  stats_tile.csv, stats_region.csv
 
-**Global Inputs:** Raw image collections from Google Earth Engine (Sentinel-2), vector polygons for training (samples), and auxiliary land cover maps.
+GEE {gee_campaigns_prefix}/{campaign}/
+    AUXILIARY/                          M0  fire regions
+    LIBRARY_SAMPLES/                    M3  sample polygons
+    LIBRARY_CLASSIFICATIONS/REGIONAL/   M6  probability + dayOfYear per region
+    LIBRARY_CLASSIFICATIONS/FILTERED/   M7  ft00, ft01, ft02
+```
 
-**Global Outputs:** Optimized chunks and mosaics (COGs) on Google Cloud Storage (GCS), neural network model weights (DNN), int16 2-band classification rasters (probability + dayOfYear), consolidated statistics (CSV), and versioned ImageCollections on GEE.
+Model name: `training_{id}_{shortname}_{sensor}` (e.g. `training_0001_amazon_sentinel2`).
 
-> **Note:** Both the local PC disk and Colab temporary storage act as **ephemeral space**. Persistence always occurs in the **Google Cloud Storage (GCS) Bucket**.
+### Good to know
 
-### Data Lifecycle and Naming Rules
-
-| Stage | Weight | Inputs → Outputs | Naming Rule | Example |
-| :--- | :--- | :--- | :--- | :--- |
-| **M1: Export** | **Light** | **IN:** GEE Collections<br>**OUT:** GCS Chunks | `image_{country}_fire_{sensor}_{mosaic}_{band}_{temporal_id}_{suffix}` | `image_peru_fire_sentinel2_minnbr_blue_2025_08_00000-00000` |
-| **M2: Mosaic** | **Medium** | **IN:** GCS Chunks<br>**OUT:** COG Mosaics (GCS) | same as M1 seed, stored in `/COG/` dir | `image_peru_fire_sentinel2_minnbr_blue_2025_08` |
-| **M3: Samples** | **Light** | **IN:** Mosaics (M2)<br>**OUT:** Polygons (GCS/Asset) | `sample_{id}_{temporal_id}`| `sample_0001_2025_07` |
-| **M4: Train** | **Medium** | **IN:** M3 Samples + M2 Mosaics<br>**OUT:** DNN (GCS) | `training_{id}_{shortname}_{sensor}` | `training_0001_amazon_sentinel2` |
-| **M5: Classify**| **Heavy**| **IN:** M4 Model + M2 Mosaics<br>**OUT:** int16 Tiles (GCS) | `tile_{region}_{period}_{cell}.tif` | `tile_amazonia_2025_08_SA-24-V-C.tif` |
-| **M6: Publish**| **Heavy**| **IN:** M5 Tiles<br>**OUT:** Mosaics + Stats CSV + GEE Assets | `{region}_{period}_mosaic.tif` | `peru_2025_08_mosaic.tif` |
-| **M7: Mask** | — | Post-Classification Masks | — | 🔨 Under development |
-| **M8: Release**| — | Final Version Evaluation & Release | — | 🔨 Under development |
-
-### Data Architecture and Relationships (M1-M6)
-
-The monitor operates a circular synchronization flow between three environments:
-
-| Environment | Components | Role |
-| :--- | :--- | :--- |
-| **Google Earth Engine** | ImageCollections / Assets | Raw data source and final destination |
-| **Google Cloud Storage** | Chunks / COGs / Models / Samples / Classifications | Persistence and central workspace |
-| **Local Cache (Temp)** | VRT Stack / Tiles / NumPy Arrays | High-speed I/O processing |
-
-#### Persistence Map (Where to find the data)
-
-| Stage | Extension | Main Cloud Storage Path (GCS) |
-| :--- | :--- | :--- |
-| **M1: Export** | `.tif` | `{gcs_catalog_prefix}/LIBRARY_IMAGES/{SENSOR}/MONTHLY/{MOSAIC}/{date}/CHUNKS/` |
-| **M2: Mosaic** | `.tif` | `{gcs_catalog_prefix}/LIBRARY_IMAGES/{SENSOR}/MONTHLY/{MOSAIC}/{date}/COG/` |
-| **M3: Samples** | `.csv` | `{gcs_catalog_prefix}/LIBRARY_SAMPLES/{campaign}/` |
-| **M4: Train** | `.pb / .json` | `{gcs_catalog_prefix}/LIBRARY_MODELS/training_{id}_{shortname}_{sensor}/` |
-| **M5: Classify** | `.tif` | `{gcs_catalog_prefix}/LIBRARY_CLASSIFICATIONS/{model_id}/CLASSIFIED_TILES/` (tiles) |
-| | `.tif` | `{gcs_catalog_prefix}/LIBRARY_CLASSIFICATIONS/{model_id}/CLASSIFIED_REGION/` (mosaics) |
-| | `.csv` | `{gcs_catalog_prefix}/LIBRARY_CLASSIFICATIONS/{model_id}/STATS/` (statistics) |
-
-#### Standard Naming Rules
-- **Images (M1/M2):** `image_{country}_fire_{sensor}_{mosaic}_{band}_{temporal_id}`
-- **Samples (M3):** `sample_{id}_{country}_{region}_{temporal_id}`
-- **Classification (M5):** `tile_{region}_{period}_{cell}.tif` (int16 2-band: probability + dayOfYear)
-- **Mosaic (M6):** `{region}_{period}_mosaic.tif`
-
----
-
-### Feedback and Fault Tolerance
-
-- **Remaining:** The "Select Remaining" button will only mark items **pending** in GCS.
-- **Overwrite:** Manually re-marking a success-flagged item (green) indicates the intention to replace the file.
-- **Edit Mode (`EDIT_MODE`):** If activated in M0, the UI exposes "Delete" buttons in GCS.
+- Colab and local disk are temporary. Everything that matters is saved in GCS and GEE.
+- Re-running is safe: modules skip what already exists in GCS. To classify again with a new model, train it under a new name (or delete the old tiles).
+- In the selection lists, **Select remaining** marks only pending items; re-marking a green (done) item overwrites it.
+- Access: GEE uses your own account; GCS uses the service account. If M0 prints `[GCS][WARN]`, ask to join the service-account group.
 
 ---
 

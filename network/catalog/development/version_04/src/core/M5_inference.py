@@ -11,7 +11,6 @@ from osgeo import gdal
 from M_lang import L as Lang
 from M0_auth_config import CONFIG, mosaic_name_for_period, period_cog_path, get_temp_dir, _gcs_download, _gcs_upload
 from M4_data_extractor import normalize
-from M_dnn import BURN_THRESHOLD
 from M_periods import parse_period
 
 BLOCK_SIZE = 4096
@@ -251,17 +250,17 @@ def classify_cell_with_cogs(cell_id, predict_fn, bands_config, norm_stats, out_g
                     output_prob[valid_mask] = np.round(probs * 1000).astype(np.int16)
                     if 'dayOfYear' in bands_block:
                         burned_2d = np.zeros((hb, wb), dtype=bool)
-                        burned_2d[valid_mask] = np.round(probs * 1000) >= BURN_THRESHOLD
+                        burned_2d[valid_mask] = np.round(probs * 1000) > 0
                         output_doy[burned_2d] = bands_block['dayOfYear'][burned_2d].astype(np.int16)
 
                     dst.write(output_prob, 1, window=dst_win)
                     dst.write(output_doy, 2, window=dst_win)
 
                     total_valid += n_valid
-                    # Burned = stored probability >= BURN_THRESHOLD (p >= 0.05),
-                    # using the same rounded int16 value stored in the raster
-                    # (band 1) and the dayOfYear mask (band 2).
-                    burned = np.round(probs * 1000) >= BURN_THRESHOLD
+                    # Product convention: any positive probability counts as
+                    # burned, using the same rounded int16 value stored in the
+                    # raster (band 1) and the dayOfYear mask (band 2).
+                    burned = np.round(probs * 1000) > 0
                     n_burned = int(burned.sum())
                     total_burned += n_burned
                     if n_burned > 0:

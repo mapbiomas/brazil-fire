@@ -13,9 +13,6 @@ var CLASSIFICATIONS_ROOT = CATALOG_ROOT + '/MONITOR_01/LIBRARY_CLASSIFICATIONS/'
 var REGIONS = ee.FeatureCollection('projects/mapbiomas-peru/assets/FIRE/AUXILIARY_DATA/regiones_fuego_peru_v1');
 var REGION_PROPERTY = 'region_nam';
 var SCALE = 10;
-// version_04: burned = probability >= BURN_THRESHOLD (0-1000 scale; 50 = 5%).
-// version_03 used > 0. Keep equal to BURN_THRESHOLD in src/core/M_dnn.py.
-var BURN_THRESHOLD = 50;
 var START_YEAR = 2025;
 var APP_LANG = 'es';
 
@@ -145,7 +142,7 @@ function createCheckboxForModel(regionName, model, containerPanel){
             regionModelMap[regionName] = model.modelId;
             Object.keys(checkboxStore[regionName]).forEach(function(k){if(k!==model.modelId)checkboxStore[regionName][k].setValue(false);});
             
-            var classImg = ee.Image(model.assetId).select(0).gte(BURN_THRESHOLD).selfMask();
+            var classImg = ee.Image(model.assetId).select(0).gt(0).selfMask();
             manageMapLayer('class_'+key, classImg, {palette:['#ff0000']}, model.modelId+' | '+regionName);
         } else {
             if(regionModelMap[regionName]===model.modelId)regionModelMap[regionName]=null;
@@ -156,7 +153,7 @@ function createCheckboxForModel(regionName, model, containerPanel){
     checkboxStore[regionName][model.modelId] = cb;
     containerPanel.add(cb);
     if(sel){
-        var classImg = ee.Image(model.assetId).select(0).gte(BURN_THRESHOLD).selfMask();
+        var classImg = ee.Image(model.assetId).select(0).gt(0).selfMask();
         manageMapLayer('class_'+regionName+'_'+model.modelId, classImg, {palette:['#ff0000']}, model.modelId+' | '+regionName);
     }
 }
@@ -572,7 +569,7 @@ function doExport(){
         doyImage = doyImage.where(regionMask.eq(1),source.select(1));
     });
 
-    nationalImage = nationalImage.addBands(doyImage).updateMask(nationalImage.gte(BURN_THRESHOLD)).selfMask().set({
+    nationalImage = nationalImage.addBands(doyImage).selfMask().set({
       'region_models': modelList.join(','),
       'campaign': camp,
       'filter_stage': 'ft00',

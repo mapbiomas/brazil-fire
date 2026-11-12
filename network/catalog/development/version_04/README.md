@@ -2,8 +2,8 @@
 
 > **Based on `version_03`.** This folder is a copy of
 > [`../version_03/`](../version_03/) with the changes listed in
-> [Changes from version_03](#changes-from-version_03), made to reduce the
-> commission error (water and unburned areas classified as fire).
+> [Changes from version_03](#changes-from-version_03): the M4 network goes
+> back to the legacy `network/version_02` setup. The burned rule is unchanged.
 > Production still uses `version_03`. See [`../../README.md`](../../README.md)
 > for the catalog.
 >
@@ -31,25 +31,18 @@ Everything not listed here is identical to `version_03`.
 
 | Module | version_03 | version_04 |
 |---|---|---|
-| **M5** burned rule (`dayOfYear` band, tile stats) | probability `> 0` (p > 0.0005) | probability `>= 50` (p >= 0.05) |
-| **M6** burned area (regional stats) | probability `> 0` | probability `>= 50` |
-| **M7 / M8** (GEE) selection, filters, temporal memory, statistics | `.gt(0)` | `.gte(BURN_THRESHOLD)`, `BURN_THRESHOLD = 50` |
 | **M4** hidden layers (UI default) | `7, 14, 7` | `7, 14, 7, 14, 7` (legacy `network/version_02`) |
 | **M4** dropout (not shown in the UI) | `keep_prob = 0.8` (20% of neurons turned off at each training step) | `keep_prob = 1.0` (dropout off, as in legacy `network/version_02`) |
 | **M4** fallbacks when a saved model has no value | `[64, 32]`, 5000 iterations | `[7, 14, 7, 14, 7]`, 7000 iterations |
 
-- The cut is one constant, `BURN_THRESHOLD = 50` in `src/core/M_dnn.py`
-  (stored probability is `round(p * 1000)`, so 50 = 5%).
-- Band 1 (`probability`) is unchanged: it still stores the probability of every
-  valid pixel. Only band 2 (`dayOfYear`) and the burned-area counts use the cut.
-- GEE scripts (`src/gee/M7_*`, `M8_statistics.js`) use the same cut through
-  `var BURN_THRESHOLD = 50;` at the top of each file (was `.gt(0)`). M7_00 also
-  masks the exported ft00 image to `probability >= 50`, so tiles produced with
-  `version_03` are filtered too. These are local mirrors: copy them into GEE
-  (or a test copy of the scripts) to use them.
-- M5 skips tiles that already exist in GCS: train with a new model name (or
-  delete the old tiles) before re-classifying.
-- Tests: `tests/test_burn_threshold.py`.
+- The burned rule is the same as `version_03`: stored probability
+  (`round(p * 1000)`, 0-1000) `> 0` in M5/M6 and `.gt(0)` in the GEE scripts.
+  The probability band keeps every valid pixel, so a stricter cut (e.g.
+  `>= 50`, p >= 0.05) can still be tested later in GEE without re-classifying.
+- The M4 changes only take effect for newly trained models. M5 skips tiles that
+  already exist in GCS: train with a new model name (or delete the old tiles)
+  before re-classifying.
+- Tests: `tests/test_legacy_dnn.py`.
 
 ## Overview
 
@@ -100,8 +93,7 @@ When a script changes in GEE, update the mirror in `src/gee/`.
 
 - Each tile stores **probability (int16, 0-1000)** and an auxiliary band
   (`dayOfYear` for `burned_area`).
-- Burned rule: `probability >= 50` (p >= 0.05, `BURN_THRESHOLD` in
-  `src/core/M_dnn.py`). Model evaluation in M4 still uses 0.5, because that is a
+- Burned rule: `probability > 0`. Model evaluation in M4 still uses 0.5, because that is a
   model-quality metric, not the product threshold.
 - Only `burned_area` is enabled today. Other targets require a profile in
   `targets/` and are rejected until implemented.
