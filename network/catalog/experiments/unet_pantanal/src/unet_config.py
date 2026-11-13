@@ -1,13 +1,13 @@
 """
 U-Net experiment - configuration and GCS paths.
 
-The U-Net is an alternative M4/M5 path of the version_04 catalog. It reuses
-the same mosaics (M1/M2 COGs in LIBRARY_IMAGES) and the same training
-polygons (M3 CSVs in LIBRARY_SAMPLES). Everything it writes goes to a
-separate folder, ``{gcs_campaigns_prefix}/{campaign}/{EXPERIMENT}/``; it
-never changes or deletes existing files.
+Independent experiment (no import from the catalog versions). It reads the
+same mosaics (catalog M1/M2 COGs in LIBRARY_IMAGES) and the same training
+polygons (catalog M3 CSVs in LIBRARY_SAMPLES) of a campaign. Everything it
+writes goes to ``{GCS_PREFIX}/{CAMPAIGN}/{EXPERIMENT}/``; it never changes
+or deletes other files.
 
-Usage in the notebook (after ``set_global_opts()`` and ``authenticate()``)::
+Usage in the notebook::
 
     from unet_config import make_config, paths
     UCFG = make_config(REGION="pantanal", YEARS=[2024])
@@ -15,15 +15,26 @@ Usage in the notebook (after ``set_global_opts()`` and ``authenticate()``)::
 """
 import copy
 
-# Spectral bands read from the M2 COGs, in this order (channels 0..4).
+# Spectral bands read from the mosaic COGs, in this order (channels 0..4).
 DEFAULT_BANDS = ["blue", "red", "nir", "swir1", "swir2"]
 
 # Spectral indices appended after the bands (see unet_features.add_indices).
 DEFAULT_INDICES = ["nbr", "nbr2", "mirbi", "ndvi", "bai", "evi"]
 
 DEFAULTS = {
+    # --- Project (where the catalog data is) -------------------------------
+    "COUNTRY": "brazil",
+    "BUCKET": "mapbiomas-fire",
+    "GCS_PREFIX": "sudamerica/brazil/CATALOG_01",   # holds LIBRARY_IMAGES and the campaigns
+    "CAMPAIGN": "COLLECTION_06",
+    "GEE_PROJECT": "mapbiomas-brazil",
+    "REGIONS_ASSET": ("projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/COLLECTION_06/"
+                      "AUXILIARY/regiones_fuego_brazil_v1"),
+    "REGION_PROPERTY": "region_nam",
+    "SERVICE_ACCOUNT": "mapbiomas-fire@mapbiomas.iam.gserviceaccount.com",
+
     # --- Experiment -------------------------------------------------------
-    "MODEL": "unet",                 # "unet" | "mlp" (mlp = version_04 M4/M5, untouched)
+    "MODEL": "unet",                 # "unet" | "mlp" (mlp = catalog M4/M5 notebook)
     "EXPERIMENT": "UNET_01",         # output folder inside the campaign
     "MODEL_NAME": "unet_pantanal_v1",
     "REGION": "pantanal",            # value of `region_nam` in the regions asset
@@ -127,15 +138,15 @@ def channel_names(cfg):
 def paths(cfg):
     """GCS paths (relative to the bucket) for this experiment.
 
-    Mosaic and sample folders come from the version_04 M0 helpers, so the
-    U-Net reads exactly what M2 and M3 wrote.
+    The sample folder follows the catalog layout
+    (``{GCS_PREFIX}/{CAMPAIGN}/LIBRARY_SAMPLES``), so the U-Net reads exactly
+    what the catalog M3 wrote.
     """
-    from M0_auth_config import CONFIG, gcs_samples_path
-
-    root = f"{CONFIG['gcs_campaigns_prefix']}/{CONFIG['campaign']}/{cfg['EXPERIMENT']}"
+    campaign = f"{cfg['GCS_PREFIX']}/{cfg['CAMPAIGN']}"
+    root = f"{campaign}/{cfg['EXPERIMENT']}"
     return {
-        "bucket": CONFIG["bucket"],
-        "samples": gcs_samples_path(),
+        "bucket": cfg["BUCKET"],
+        "samples": f"{campaign}/LIBRARY_SAMPLES",
         "root": root,
         "chips": f"{root}/chips",
         "stats": f"{root}/stats/norm_stats.json",
@@ -149,19 +160,20 @@ def paths(cfg):
 def mosaic_band_paths(cfg, year):
     """{band: 'bucket/.../image_..._cog.tif'} for BANDS + VALID_BAND.
 
-    Same names M4_data_extractor and M5_inference use.
+    Annual mosaics, same folder and file names the catalog (version_04 M1/M2)
+    writes and its M4/M5 read:
+    {GCS_PREFIX}/LIBRARY_IMAGES/{SENSOR}/ANNUALLY/{MOSAIC}/{year}/COG/
+        image_{country}_fire_{sensor}_{mosaic}_{band}_{year}_cog.tif
     """
-    from M0_auth_config import CONFIG, mosaic_name_for_period, period_cog_path
-
     bands = list(cfg["BANDS"]) + [cfg["VALID_BAND"]]
     if cfg.get("MULTIBAND_FILE"):
-        path = f"{CONFIG['bucket']}/{cfg['MULTIBAND_FILE'].format(year=year)}"
+        path = f"{cfg['BUCKET']}/{cfg['MULTIBAND_FILE'].format(year=year)}"
         return {b: path for b in bands}
 
-    key = str(year)
-    folder = period_cog_path(key, mosaic=cfg["MOSAIC"], sensor=cfg["SENSOR"])
-    out = {}
-    for b in bands:
-        name = mosaic_name_for_period(key, band=b, mosaic=cfg["MOSAIC"], sensor=cfg["SENSOR"])
-        out[b] = f"{CONFIG['bucket']}/{folder}/{name}_cog.tif"
-    return out
+    sensor, mosaic = cfg["SENSOR"].lower(), cfg["MOSAIC"].lower()
+    folder = (f"{cfg['GCS_PREFIX']}/LIBRARY_IMAGES/{sensor.upper()}/ANNUALLY/"
+              f"{mosaic.upper()}/{year}/COG")
+    return {
+        b: f"{cfg['BUCKET']}/{folder}/image_{cfg['COUNTRY']}_fire_{sensor}_{mosaic}_{b}_{year}_cog.tif"
+        for b in bands
+    }

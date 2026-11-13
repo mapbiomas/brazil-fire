@@ -10,6 +10,7 @@ import os
 
 import numpy as np
 
+import unet_env as gcs
 from unet_config import mosaic_band_paths, paths
 
 
@@ -29,13 +30,12 @@ def _is_colab():
 # ---------------------------------------------------------------------------
 
 def _open_raster(rel_path):
-    """Open a GCS raster: /vsigs/ streaming (as M5), gcsfs handle as fallback."""
+    """Open a GCS raster: /vsigs/ streaming, gcsfs handle as fallback."""
     import rasterio
     try:
         return rasterio.open(f"/vsigs/{rel_path}")
     except Exception:
-        from M_gcs import _get_fs
-        return rasterio.open(_get_fs().open(rel_path, "rb"))
+        return rasterio.open(gcs.open_file(rel_path, "rb"))
 
 
 class MosaicReader:
@@ -149,10 +149,9 @@ class MosaicReader:
 # ---------------------------------------------------------------------------
 
 def list_sample_files(cfg, year):
-    from M_gcs import _get_fs
     P = paths(cfg)
     folder = f"{P['bucket']}/{P['samples']}"
-    names = [f.split("/")[-1] for f in _get_fs().ls(folder) if f.endswith(".csv")]
+    names = [n for n in gcs.ls(folder) if n.endswith(".csv")]
     if cfg.get("SAMPLE_FILES"):
         wanted = [n if n.endswith(".csv") else f"{n}.csv" for n in cfg["SAMPLE_FILES"]]
         missing = [n for n in wanted if n not in names]
@@ -178,10 +177,8 @@ def load_samples(cfg, year, crs, logger=None):
     import pandas as pd
     from shapely import make_valid
     from shapely.geometry import MultiPolygon, Polygon, shape
-    from M_gcs import _get_fs
 
     P = paths(cfg)
-    fs = _get_fs()
     files = list_sample_files(cfg, year)
     if not files:
         raise FileNotFoundError(
@@ -190,7 +187,7 @@ def load_samples(cfg, year, crs, logger=None):
     field = cfg["CLASS_FIELD"]
     frames = []
     for name in files:
-        with fs.open(f"{P['bucket']}/{P['samples']}/{name}", "r") as f:
+        with gcs.open_file(f"{P['bucket']}/{P['samples']}/{name}", "r") as f:
             df = pd.read_csv(f)
         if field not in df.columns or ".geo" not in df.columns:
             raise ValueError(f"{name}: needs columns '{field}' and '.geo' (M3 format).")
@@ -254,27 +251,23 @@ def region_geometry(cfg, crs, logger=None, simplify_m=100):
     """Shapely geometry of REGION in the mosaic CRS (None if REGION is None)."""
     import geopandas as gpd
     from shapely.geometry import shape
-    from M0_auth_config import CONFIG
-    import M_gcs
 
     region = cfg.get("REGION")
     if not region:
         return None
     P = paths(cfg)
     cache = f"{P['splits']}/region_{region}.geojson"
-    if M_gcs.blob_exists(cache):
-        gj = json.loads(M_gcs.read_text(cache))
+    if gcs.blob_exists(cache):
+        gj = json.loads(gcs.read_text(cache))
     else:
         import ee
-        from M_regions import REGION_NAME_PROPERTY
-        fc = ee.FeatureCollection(CONFIG["asset_regions"]).filter(
-            ee.Filter.eq(REGION_NAME_PROPERTY, region))
+        asset, prop = cfg["REGIONS_ASSET"], cfg["REGION_PROPERTY"]
+        fc = ee.FeatureCollection(asset).filter(ee.Filter.eq(prop, region))
         if fc.size().getInfo() == 0:
-            names = ee.FeatureCollection(CONFIG["asset_regions"]).aggregate_array(
-                REGION_NAME_PROPERTY).getInfo()
-            raise ValueError(f"Region '{region}' not in {CONFIG['asset_regions']}. Options: {names}")
+            names = ee.FeatureCollection(asset).aggregate_array(prop).getInfo()
+            raise ValueError(f"Region '{region}' not in {asset}. Options: {names}")
         gj = fc.geometry().simplify(maxError=simplify_m).getInfo()
-        M_gcs.write_text(cache, json.dumps(gj))
+        write_text(cfg, cache, json.dumps(gj))
         _log(logger, f"[REGION] {region} geometry cached in gs://{P['bucket']}/{cache}")
     geom = gpd.GeoSeries([shape(gj)], crs="EPSG:4326").to_crs(crs).iloc[0]
     return geom
@@ -291,37 +284,41 @@ def _check_inside(cfg, rel_path):
 
 
 def upload(cfg, local_path, rel_path):
-    import M_gcs
     _check_inside(cfg, rel_path)
-    M_gcs.upload(local_path, rel_path)
+    gcs.upload(local_path, rel_path)
+
+
+def write_text(cfg, rel_path, text):
+    _check_inside(cfg, rel_path)
+    gcs.write_text(rel_path, text)
 
 
 def write_json(cfg, rel_path, data):
-    import M_gcs
-    _check_inside(cfg, rel_path)
-    M_gcs.write_text(rel_path, json.dumps(data, indent=2, default=str))
+    write_text(cfg, rel_path, json.dumps(data, indent=2, default=str))
+
+
+def delete_files(cfg, gs_paths):
+    """Delete objects, only inside the experiment folder."""
+    for p in gs_paths:
+        _check_inside(cfg, gcs.gs_path(p)[5:].split("/", 1)[1])
+    gcs.rm_files(gs_paths)
 
 
 def read_json(rel_path):
-    import M_gcs
-    return json.loads(M_gcs.read_text(rel_path))
+    return json.loads(gcs.read_text(rel_path))
 
 
 def download_prefix(rel_prefix, local_dir, suffix=None):
     """Copy every file under a GCS prefix to a local folder; returns local paths."""
-    import M_gcs
     os.makedirs(local_dir, exist_ok=True)
     out = []
-    for remote in M_gcs.list_files(rel_prefix, suffix=suffix):
+    for remote in gcs.list_files(rel_prefix, suffix=suffix):
         local = os.path.join(local_dir, remote.rstrip("/").split("/")[-1])
         if not os.path.exists(local):
-            M_gcs.download(remote, local)
+            gcs.download(remote, local)
         out.append(local)
     return sorted(out)
 
 
 def local_dir(*parts):
-    from M0_auth_config import get_temp_dir
-    path = os.path.join(get_temp_dir("unet"), *parts)
-    os.makedirs(path, exist_ok=True)
-    return path
+    return gcs.temp_dir(*parts)

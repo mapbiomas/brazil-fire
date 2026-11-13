@@ -5,7 +5,7 @@ import unittest
 
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "unet"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from unet_config import DEFAULT_BANDS, DEFAULT_INDICES, make_config  # noqa: E402
 from unet_features import (PixelReservoir, add_indices, best_threshold,  # noqa: E402

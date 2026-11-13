@@ -19,7 +19,7 @@ Roteiro para montar a apresentação. Cada seção `##` corresponde a um slide o
 ## 2. Objetivo e escopo
 
 - Bioma piloto: **Pantanal**. Ano: **2024**. Campanha: `brazil.collection_06`.
-- A U-Net é um **caminho alternativo**. O fluxo MLP não muda.
+- A U-Net é um **experimento independente**, numa pasta própria (`network/catalog/experiments/unet_pantanal/`). Ela só lê os dados do catálogo; o fluxo MLP não muda.
 - A saída é **compatível** com a pós-classificação atual: probabilidade × 1000 e `dayOfYear`, no mesmo formato dos tiles do M5.
 - Tudo roda no Google Colab com GPU, lendo e gravando no Google Cloud Storage.
 
@@ -180,7 +180,8 @@ Fonte: `reports/comparison_2024.json`. O campo `markdown` já traz a tabela pron
 
 | Item | Local |
 |---|---|
-| Código | branch `classification-unet`, `network/catalog/development/version_04/src/unet/` |
-| Notebook Colab | `version_04/notebooks/unet_01_brazil_pantanal.ipynb` |
+| Pasta do experimento | branch `classification-unet`, `network/catalog/experiments/unet_pantanal/` |
+| Código | `unet_pantanal/src/` |
+| Notebook Colab | `unet_pantanal/notebooks/unet_pantanal_2024.ipynb` |
 | Resultados | `gs://mapbiomas-fire/sudamerica/brazil/CATALOG_01/COLLECTION_06/UNET_01/` |
-| Guia técnico (inglês) | `version_04/src/unet/README.md` |
+| Guia técnico (inglês) | `unet_pantanal/README.md` |

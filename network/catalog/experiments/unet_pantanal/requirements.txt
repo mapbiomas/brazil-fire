@@ -1,0 +1,8 @@
+# U-Net experiment (Colab already has numpy, pandas, tensorflow, matplotlib)
+earthengine-api
+gcsfs
+google-cloud-storage
+rasterio
+geopandas
+shapely>=2
+pyproj

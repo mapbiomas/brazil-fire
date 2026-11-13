@@ -1,9 +1,9 @@
 """
 U-Net experiment - dataset, model, masked loss/metrics, training (spec 5.8-5.11).
 
-TensorFlow 2 / Keras. Do not import this module in the same Colab runtime
-after the version_04 M4 trainer: M4 calls `tf.compat.v1.disable_v2_behavior()`,
-which breaks Keras 2 training. Use a fresh runtime for the U-Net notebook.
+TensorFlow 2 / Keras. Do not run this in the same Colab runtime as the
+catalog M4 trainer: M4 calls `tf.compat.v1.disable_v2_behavior()`, which
+breaks Keras 2 training. Use a fresh runtime for the U-Net notebook.
 """
 import json
 import os
@@ -250,12 +250,12 @@ def train(cfg, logger=print):
 def load_model(cfg):
     """Load the trained U-Net from GCS (compile=False: inference only)."""
     tf = _tf()
-    import M_gcs
+    import unet_env as gcs
     from unet_io import local_dir
     P = paths(cfg)
     local = os.path.join(local_dir("models"), f"{cfg['MODEL_NAME']}.keras")
     if not os.path.exists(local):
-        M_gcs.download(f"{P['models']}/{cfg['MODEL_NAME']}.keras", local)
+        gcs.download(f"{P['models']}/{cfg['MODEL_NAME']}.keras", local)
     return tf.keras.models.load_model(local, compile=False)
 
 

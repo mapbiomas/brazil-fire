@@ -1,5 +1,5 @@
 """
-U-Net experiment - chips from the M3 polygons (spec 5.3-5.7).
+U-Net experiment - chips from the catalog M3 polygons (spec 5.3-5.7).
 
 For each year:
   1. spatial blocks (BLOCK_KM) split into train/val/test;
@@ -19,8 +19,8 @@ from unet_config import IGNORE, SPLITS, channel_names, paths
 from unet_features import PixelReservoir, add_indices, compute_norm_stats, scale_bands
 from unet_geo import (BlockGrid, balance_by_class, block_size_in_crs, chip_quality,
                       chip_window, rasterize_labels, sample_points_in_polygon, window_box)
-from unet_io import (MosaicReader, _log, load_samples, local_dir, region_geometry,
-                     upload, write_json)
+from unet_io import (MosaicReader, _log, delete_files, load_samples, local_dir,
+                     region_geometry, upload, write_json)
 
 
 # ---------------------------------------------------------------------------
@@ -149,16 +149,16 @@ def sample_centers(cfg, samples, grid):
 
 def build_chips(cfg, year, logger=None, overwrite=False, n_preview=16):
     """Generate and upload the chips of one year. Returns a summary dict."""
-    import M_gcs
+    import unet_env as gcs
     P = paths(cfg)
-    existing = M_gcs.list_files(P["chips"], suffix=".tfrecord.gz")
+    existing = gcs.list_files(P["chips"], suffix=".tfrecord.gz")
     existing = [f for f in existing if f.split("/")[-1].startswith(f"{year}_")]
     if existing and not overwrite:
         _log(logger, f"[CHIPS] {year}: {len(existing)} shard(s) already in GCS; skipping "
                      "(overwrite=True to rebuild).", "warning")
         return {"year": year, "skipped": True, "shards": existing}
     if existing and overwrite:
-        M_gcs.rm_files(existing)
+        delete_files(cfg, existing)
 
     reader = MosaicReader(cfg, year, logger)
     try:

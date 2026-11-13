@@ -44,15 +44,6 @@ Everything not listed here is identical to `version_03`.
   before re-classifying.
 - Tests: `tests/test_legacy_dnn.py`.
 
-## U-Net test (experimental)
-
-An alternative to M4/M5 that trains a U-Net on image chips, built from the same
-M2 mosaics and M3 samples, with output in the M5 format. First test: Brazil,
-COLLECTION_06, Pantanal, 2024. The MLP flow is unchanged. Code and guide:
-[`src/unet/`](./src/unet/README.md). Notebook:
-[`unet_01_brazil_pantanal.ipynb`](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/classification-unet/network/catalog/development/version_04/notebooks/unet_01_brazil_pantanal.ipynb).
-Presentation notes (pt): [`docs/unet/`](./docs/unet/apresentacao_unet_pantanal.md).
-
 ## Overview
 
 This folder contains the classification engine of the MapBiomas Fire Catalog.
