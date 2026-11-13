@@ -36,7 +36,8 @@ unet_pantanal/
     unet_predict.py   sliding-window inference over the region, COG upload
     unet_report.py    test metrics, MLP baseline, comparison table
   tests/test_unet_*.py                 unit tests
-  docs/apresentacao_unet_pantanal.md   presentation notes (Portuguese)
+  docs/proposta_metodologia_unet_pantanal.md   slides outline: method proposal (Portuguese)
+  docs/apresentacao_unet_pantanal.md           slides outline with results to fill (Portuguese)
 ```
 
 ## How to run
