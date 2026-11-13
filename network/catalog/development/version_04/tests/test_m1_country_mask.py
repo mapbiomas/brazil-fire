@@ -110,6 +110,9 @@ class UpdateManifestTests(unittest.TestCase):
         button.click()
         callback.assert_called_once_with(checkbox)
 
+    def test_m1_grid_has_manifest_lookup_available(self):
+        self.assertTrue(callable(M1_export_ui.find_item))
+
     def test_m1_export_logic_has_no_geometry_clip_calls(self):
         source_path = Path(CORE) / 'M1_export_logic.py'
         self.assertNotIn('.clip(', source_path.read_text(encoding='utf-8'))

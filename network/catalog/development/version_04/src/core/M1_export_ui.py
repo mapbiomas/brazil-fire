@@ -15,7 +15,7 @@ from M_ui_components import PipelineStepUI, cell_log
 from M_lang import L as Lang
 from M_mosaics import methods_for
 from M1_update_manifest import (
-    add_pending_item, load_manifest, mark_item_complete,
+    add_pending_item, find_item, load_manifest, mark_item_complete,
     pending_item, save_manifest, set_item_status,
 )
 
