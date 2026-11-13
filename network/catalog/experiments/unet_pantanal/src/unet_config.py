@@ -64,8 +64,8 @@ DEFAULTS = {
     "EXPERIMENT": "UNET_01",         # output folder inside the campaign
     "MODEL_NAME": "unet_monitor_pantanal_v1",
     # Region to classify: value of REGION_PROPERTY in the regions asset (case
-    # sensitive; the error lists the options). Example: "Pantanalr_60".
-    "REGION": "Pantanalr_60",
+    # sensitive; the error lists the options). Example: "Pantanalr_1".
+    "REGION": "Pantanalr_1",
     # Value of the `region` column in the sample CSVs (case-insensitive), e.g.
     # "Pantanal 60". None = same as REGION.
     "SAMPLE_REGION": "Pantanal 60",

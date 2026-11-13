@@ -36,7 +36,7 @@ class TestPeriods(unittest.TestCase):
         self.assertEqual(region_slug({"REGION": " Mata-Atlântica / 2 "}), "mata_atl_ntica_2")
         self.assertEqual(region_slug({"REGION": None}), "mosaic")
         cfg = make_config()
-        self.assertEqual(cfg["REGION"], "Pantanalr_60")
+        self.assertEqual(cfg["REGION"], "Pantanalr_1")
         self.assertEqual(cfg["SAMPLE_REGION"], "Pantanal 60")
         self.assertEqual(cfg["REGIONS_ASSET"], "users/geomapeamentoipam/AUXILIAR/regioes_biomas_col2")
         self.assertEqual((cfg["REGION_PROPERTY"], cfg["REGION_NAME_FIELDS"], cfg["REGION_NAME_JOIN"]),
