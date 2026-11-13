@@ -71,13 +71,14 @@ class TestModel(unittest.TestCase):
         x = rng.random((16, 16, 11)).astype(np.float32)
         x[0, 0] = np.nan
         y = rng.choice([0, 1, 255], (16, 16)).astype(np.uint8)
-        rec = encode_chip(x, y, 2024, "train", 1.5, -2.5)
+        rec = encode_chip(x, y, "2026_10", "train", 1.5, -2.5)
         x2, y2, meta = decode_chip_numpy(rec)
         np.testing.assert_array_equal(np.isnan(x2), np.isnan(x))
         np.testing.assert_array_equal(y2, y)
         self.assertEqual(meta["split"], "train")
+        self.assertEqual(meta["period"], "2026_10")
         with tempfile.TemporaryDirectory() as d:
-            path = os.path.join(d, "2024_train_000.tfrecord.gz")
+            path = os.path.join(d, "2026_10_train_000.tfrecord.gz")
             with tf.io.TFRecordWriter(path, options="GZIP") as w:
                 for _ in range(3):
                     w.write(rec)

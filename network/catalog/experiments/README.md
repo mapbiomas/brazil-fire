@@ -8,4 +8,4 @@ part of a new catalog version.
 
 | Experiment | What it tests | Status |
 |---|---|---|
-| [`unet_pantanal`](unet_pantanal/) | U-Net on image chips instead of the pixel MLP (Brazil, Pantanal, 2024) | in test |
+| [`unet_pantanal`](unet_pantanal/) | U-Net on image chips instead of the pixel MLP (Fire Monitor, Brazil, Pantanal, Sentinel-2 monthly) | in test |

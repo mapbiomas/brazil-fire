@@ -1,4 +1,4 @@
-# Proposta de teste: U-Net para área queimada no Pantanal (2024)
+# Proposta de teste: U-Net no Monitor do Fogo (Pantanal, Sentinel-2 mensal)
 
 Roteiro para montar a apresentação da **metodologia proposta**, antes dos resultados. Cada seção `##` é um slide. Em cada um há:
 - **Mensagem:** a frase que o slide precisa passar;
@@ -11,10 +11,10 @@ Roteiro para montar a apresentação da **metodologia proposta**, antes dos resu
 ## 1. Capa
 
 **U-Net para mapeamento de área queimada**
-Proposta de teste no Pantanal, 2024
-MapBiomas Fogo, catálogo Landsat
+Proposta de teste no Monitor do Fogo: Pantanal, Sentinel-2, mosaicos mensais
+MapBiomas Fogo
 
-**Visual:** mosaico Landsat do Pantanal em falsa-cor (SWIR1/NIR/RED), com cicatrizes de 2024 visíveis.
+**Visual:** mosaico mensal Sentinel-2 do Pantanal em falsa-cor (SWIR1/NIR/RED), com cicatrizes do mês visíveis.
 
 ---
 
@@ -22,7 +22,7 @@ MapBiomas Fogo, catálogo Landsat
 
 **Mensagem:** hoje a classificação olha cada pixel sozinho; a cicatriz de fogo tem forma e vizinhança.
 
-- O fluxo atual classifica **pixel a pixel** com uma rede MLP (M4/M5).
+- O Monitor do Fogo classifica hoje **pixel a pixel** com uma rede MLP (M4/M5), mês a mês.
 - O MLP não sabe se o pixel vizinho também queimou nem qual é o formato da mancha.
 - Isso pode gerar:
   - ruído "sal e pimenta" dentro e fora das cicatrizes;
@@ -40,10 +40,10 @@ MapBiomas Fogo, catálogo Landsat
 
 **Mensagem:** com os mesmos dados de hoje, uma rede que vê a vizinhança mapeia melhor?
 
-> Uma U-Net, treinada com **as mesmas amostras** e **os mesmos mosaicos** do catálogo, mapeia a área queimada do Pantanal em 2024 melhor que o MLP atual?
+> Uma U-Net, treinada com **as mesmas amostras** e **os mesmos mosaicos** do catálogo, mapeia a área queimada mensal do Pantanal melhor que o MLP atual do Monitor?
 
-- **Mesmas amostras:** polígonos de fogo e não fogo já coletados (M3).
-- **Mesmos mosaicos:** mosaico anual Landsat de NBR mínimo (M1/M2).
+- **Mesmas amostras:** polígonos mensais de fogo e não fogo já coletados para o Monitor (M3).
+- **Mesmos mosaicos:** mosaico mensal Sentinel-2 de NBR mínimo (M1/M2).
 - **Nenhuma coleta nova** para este teste.
 
 **Fala:** manter os dados iguais é o que permite atribuir a diferença ao método, e não a dados novos.
@@ -52,19 +52,19 @@ MapBiomas Fogo, catálogo Landsat
 
 ## 4. Escopo do piloto
 
-**Mensagem:** um bioma e um ano, para responder rápido.
+**Mensagem:** um bioma e poucos meses, para responder rápido.
 
 | Item | Escolha |
 |---|---|
-| País / campanha | Brasil, `COLLECTION_06` |
+| País / campanha | Brasil, Monitor do Fogo (`MONITOR_01`) |
 | Bioma | Pantanal |
-| Ano | 2024 |
-| Sensor | Landsat, 30 m, mosaico anual de NBR mínimo |
+| Período | mensal; primeiro mês de teste: outubro de 2026 (`2026_10`), com mais meses se houver poucas amostras |
+| Sensor | Sentinel-2, 10 m, mosaico mensal de NBR mínimo |
 | Onde roda | Google Colab com GPU |
 | Onde ficam os dados | Google Cloud Storage do MapBiomas Fogo |
 
 **Por que o Pantanal:**
-- bioma com muito fogo em 2024;
+- bioma com muito fogo e já coberto pelo Monitor;
 - tem um desafio conhecido: **água escura e áreas alagadas** que lembram cicatriz. Bom teste para o contexto espacial.
 
 **Visual:** mapa do Brasil com o Pantanal destacado.
@@ -77,8 +77,8 @@ MapBiomas Fogo, catálogo Landsat
 
 ```
 MLP:    1 pixel (bandas)              →  1 probabilidade
-U-Net:  recorte de 128 × 128 pixels   →  mapa de 128 × 128 probabilidades
-        (≈ 3,8 × 3,8 km)
+U-Net:  recorte de 256 × 256 pixels   →  mapa de 256 × 256 probabilidades
+        (≈ 2,6 × 2,6 km com pixel de 10 m)
 ```
 
 - Rede convolucional muito usada para **segmentação de imagens**: dizer, pixel a pixel, o que é cada coisa.
@@ -183,7 +183,7 @@ U-Net:  recorte de 128 × 128 pixels   →  mapa de 128 × 128 probabilidades
 |---|---|---|
 | **A** MLP | 5 bandas, pixel a pixel | referência: mesma rede do M4 |
 | **B** MLP | 5 bandas + 6 índices, pixel a pixel | mede o ganho dos índices |
-| **C** U-Net | 5 bandas + 6 índices, recorte 128 × 128 | mede o ganho do contexto espacial |
+| **C** U-Net | 5 bandas + 6 índices, recorte 256 × 256 | mede o ganho do contexto espacial |
 
 - **A × B:** quanto os índices ajudam.
 - **B × C:** quanto a vizinhança ajuda, com os mesmos atributos.
@@ -232,20 +232,22 @@ Sugestão para discussão com a equipe:
 
 - **Água escura × cicatriz:** lagoas e áreas alagadas do Pantanal. Vamos conferir os recortes sobre corpos d'água.
 - **Rótulos só dentro dos polígonos:** a rede não vê bordas rotuladas. Se errar bordas, o próximo passo é rotular por completo alguns recortes.
-- **Um bioma e um ano:** o resultado vale para o Pantanal em 2024; generalizar exige outros testes.
+- **Um bioma e poucos meses:** o resultado vale para o Pantanal nos meses testados; generalizar exige outros meses e biomas.
+- **Poucas amostras por mês:** se um mês tiver poucos polígonos, juntamos vários meses no treino (um modelo só) e geramos um mapa por mês.
+- **Nuvens e sombras:** o mosaico mensal pode guardar restos de nuvem ou sombra, que também lembram cicatriz.
 - **Métrica por pixel:** compara modelos nos pixels de teste. A validação do mapa final segue com os dados de referência habituais.
 
 ---
 
 ## 15. Próximos passos
 
-1. Exportar os mosaicos e as amostras do Pantanal 2024 (em andamento).
+1. Conferir os mosaicos mensais e as amostras do Monitor para o Pantanal (outubro de 2026 em diante).
 2. Rodar o notebook: recortes, treino, avaliação e mapa.
 3. Preencher a tabela A × B × C e fazer a inspeção visual.
 4. Discutir o resultado com a equipe usando os critérios do slide 13.
 5. Se a U-Net ganhar:
    - passar a saída pelo M7 e comparar a área queimada final;
-   - testar outros anos (por exemplo, 2019 e 2020) e outro bioma.
+   - testar outros meses, incluindo o pico da estação de fogo, e outro bioma.
 
 ---
 
@@ -254,7 +256,7 @@ Sugestão para discussão com a equipe:
 | Item | Local |
 |---|---|
 | Pasta do experimento | branch `classification-unet`, `network/catalog/experiments/unet_pantanal/` |
-| Notebook Colab | `unet_pantanal/notebooks/unet_pantanal_2024.ipynb` |
+| Notebook Colab | `unet_pantanal/notebooks/unet_monitor_pantanal.ipynb` |
 | Guia técnico (inglês) | `unet_pantanal/README.md` |
 | Roteiro com resultados | `unet_pantanal/docs/apresentacao_unet_pantanal.md` |
-| Saídas no bucket | `gs://mapbiomas-fire/sudamerica/brazil/CATALOG_01/COLLECTION_06/UNET_01/` |
+| Saídas no bucket | `gs://mapbiomas-fire/sudamerica/brazil/CATALOG_01/MONITOR_01/UNET_01/` |

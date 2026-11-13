@@ -30,25 +30,25 @@ def _summary(h_val_fire, h_val_not, h_te_fire, h_te_not):
 
 
 def evaluate_unet(cfg, model, logger=None):
-    """Masked test metrics per year and for all years together."""
+    """Masked test metrics per period and for all periods together."""
     P = paths(cfg)
     stats = read_json(P["stats"])
     files = download_prefix(P["chips"], local_dir("chips"), suffix=".tfrecord.gz")
     results = {}
     total = None
-    for year in cfg["YEARS"]:
-        va, te = chip_files(files, [year], "val"), chip_files(files, [year], "test")
+    for period in cfg["PERIODS"]:
+        va, te = chip_files(files, [period], "val"), chip_files(files, [period], "test")
         if not va or not te:
-            _log(logger, f"[EVAL][WARN] {year}: missing val/test chips", "warning")
+            _log(logger, f"[EVAL][WARN] {period}: missing val/test chips", "warning")
             continue
         hv = split_histograms(model, va, stats, cfg)
         ht = split_histograms(model, te, stats, cfg)
         res = _summary(*hv, *ht)
-        write_json(cfg, f"{P['reports']}/metrics_{year}.json", {"model": cfg["MODEL_NAME"], **res})
-        results[year] = res
+        write_json(cfg, f"{P['reports']}/metrics_{period}.json", {"model": cfg["MODEL_NAME"], **res})
+        results[period] = res
         total = [*hv, *ht] if total is None else [a + b for a, b in zip(total, [*hv, *ht])]
         t = res["test_at_best"]
-        _log(logger, f"[EVAL] {year} U-Net test @ {res['val_best_threshold']:.2f}: "
+        _log(logger, f"[EVAL] {period} U-Net test @ {res['val_best_threshold']:.2f}: "
                      f"F1 {t['f1']:.3f} IoU {t['iou']:.3f} | @0.5 F1 {res['test_at_0_5']['f1']:.3f}")
     if total is not None:
         results["all"] = _summary(*total)
@@ -97,8 +97,8 @@ def compare_with_mlp(cfg, unet_results, logger=None):
     """Train MLP A and B on the train-chip pixels; return the A x B x C table."""
     P = paths(cfg)
     files = download_prefix(P["chips"], local_dir("chips"), suffix=".tfrecord.gz")
-    years = cfg["YEARS"]
-    tr, va, te = (chip_files(files, years, s) for s in ("train", "val", "test"))
+    periods = cfg["PERIODS"]
+    tr, va, te = (chip_files(files, periods, s) for s in ("train", "val", "test"))
     Xtr, Ytr = labeled_pixels(tr, cfg, cfg["MLP_MAX_PIXELS"], cfg["SEED"])
     Xva, Yva = labeled_pixels(va, cfg)
     Xte, Yte = labeled_pixels(te, cfg)
@@ -119,8 +119,8 @@ def compare_with_mlp(cfg, unet_results, logger=None):
     rows["C_unet"] = unet_results["all"]
 
     table = comparison_table(rows)
-    write_json(cfg, f"{P['reports']}/comparison_{'_'.join(map(str, years))}.json",
-               {"years": years, "test_pixels": int(len(Xte)), "rows": rows, "markdown": table})
+    write_json(cfg, f"{P['reports']}/comparison_{'-'.join(periods)}.json",
+               {"periods": periods, "test_pixels": int(len(Xte)), "rows": rows, "markdown": table})
     return rows, table
 
 

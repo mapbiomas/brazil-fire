@@ -1,12 +1,12 @@
 """
 U-Net experiment - chips from the catalog M3 polygons (spec 5.3-5.7).
 
-For each year:
+For each period:
   1. spatial blocks (BLOCK_KM) split into train/val/test;
   2. chip centers sampled inside each polygon, balanced fire / not fire;
   3. CHIP x CHIP window of the mosaic + label raster (1 fire, 0 not fire,
      255 no information / nodata);
-  4. TFRecord shards in GCS: {EXPERIMENT}/chips/{year}_{split}_{shard}.tfrecord.gz
+  4. TFRecord shards in GCS: {EXPERIMENT}/chips/{period}_{split}_{shard}.tfrecord.gz
 
 The chips keep RAW features (reflectance 0-1 + indices, NaN = nodata).
 Normalization statistics come later from the train chips only.
@@ -15,7 +15,7 @@ import os
 
 import numpy as np
 
-from unet_config import IGNORE, SPLITS, channel_names, paths
+from unet_config import IGNORE, SPLITS, channel_names, paths, period_info, split_chip_name
 from unet_features import PixelReservoir, add_indices, compute_norm_stats, scale_bands
 from unet_geo import (BlockGrid, balance_by_class, block_size_in_crs, chip_quality,
                       chip_window, rasterize_labels, sample_points_in_polygon, window_box)
@@ -27,7 +27,7 @@ from unet_io import (MosaicReader, _log, delete_files, load_samples, local_dir,
 # TFRecord encoding
 # ---------------------------------------------------------------------------
 
-def encode_chip(x, y, year, split, cx, cy):
+def encode_chip(x, y, period, split, cx, cy):
     import tensorflow as tf
 
     def _bytes(v):
@@ -44,7 +44,7 @@ def encode_chip(x, y, year, split, cx, cy):
         "x": _bytes(np.ascontiguousarray(x, dtype=np.float32).tobytes()),
         "y": _bytes(np.ascontiguousarray(y, dtype=np.uint8).tobytes()),
         "h": _int(h), "w": _int(w), "c": _int(c),
-        "year": _int(year),
+        "period": _bytes(str(period).encode()),
         "split": _bytes(split.encode()),
         "center_x": _float(cx), "center_y": _float(cy),
     }
@@ -59,7 +59,7 @@ def decode_chip_numpy(record):
     h, w, c = f["h"].int64_list.value[0], f["w"].int64_list.value[0], f["c"].int64_list.value[0]
     x = np.frombuffer(f["x"].bytes_list.value[0], dtype=np.float32).reshape(h, w, c)
     y = np.frombuffer(f["y"].bytes_list.value[0], dtype=np.uint8).reshape(h, w)
-    meta = {"year": f["year"].int64_list.value[0],
+    meta = {"period": f["period"].bytes_list.value[0].decode(),
             "split": f["split"].bytes_list.value[0].decode(),
             "center_x": f["center_x"].float_list.value[0],
             "center_y": f["center_y"].float_list.value[0]}
@@ -69,8 +69,8 @@ def decode_chip_numpy(record):
 class ShardWriter:
     """Writes GZIP TFRecord shards of ~SHARD_MB and uploads each one to GCS."""
 
-    def __init__(self, cfg, year, split, logger=None):
-        self.cfg, self.year, self.split, self.logger = cfg, year, split, logger
+    def __init__(self, cfg, period, split, logger=None):
+        self.cfg, self.period, self.split, self.logger = cfg, period, split, logger
         self.max_bytes = int(cfg["SHARD_MB"]) * 1024 * 1024
         self.dir = local_dir("chips_out")
         self.shard = -1
@@ -82,7 +82,7 @@ class ShardWriter:
     def _open(self):
         import tensorflow as tf
         self.shard += 1
-        name = f"{self.year}_{self.split}_{self.shard:03d}.tfrecord.gz"
+        name = f"{self.period}_{self.split}_{self.shard:03d}.tfrecord.gz"
         self.local = os.path.join(self.dir, name)
         self.writer = tf.io.TFRecordWriter(self.local, options="GZIP")
         self.bytes = 0
@@ -147,23 +147,24 @@ def sample_centers(cfg, samples, grid):
     return balance_by_class(centers, "cls", "split", cfg["SEED"])
 
 
-def build_chips(cfg, year, logger=None, overwrite=False, n_preview=16):
-    """Generate and upload the chips of one year. Returns a summary dict."""
+def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
+    """Generate and upload the chips of one period. Returns a summary dict."""
     import unet_env as gcs
+    period = period_info(period)[0]
     P = paths(cfg)
     existing = gcs.list_files(P["chips"], suffix=".tfrecord.gz")
-    existing = [f for f in existing if f.split("/")[-1].startswith(f"{year}_")]
+    existing = [f for f in existing if split_chip_name(f)[0] == period]
     if existing and not overwrite:
-        _log(logger, f"[CHIPS] {year}: {len(existing)} shard(s) already in GCS; skipping "
+        _log(logger, f"[CHIPS] {period}: {len(existing)} shard(s) already in GCS; skipping "
                      "(overwrite=True to rebuild).", "warning")
-        return {"year": year, "skipped": True, "shards": existing}
+        return {"period": period, "skipped": True, "shards": existing}
     if existing and overwrite:
         delete_files(cfg, existing)
 
-    reader = MosaicReader(cfg, year, logger)
+    reader = MosaicReader(cfg, period, logger)
     try:
         inventory = reader.inventory()
-        samples, sample_report = load_samples(cfg, year, reader.crs, logger)
+        samples, sample_report = load_samples(cfg, period, reader.crs, logger)
         region = region_geometry(cfg, reader.crs, logger)
         grid = _block_grid(cfg, samples, region, reader.crs)
         centers = sample_centers(cfg, samples, grid)
@@ -171,7 +172,7 @@ def build_chips(cfg, year, logger=None, overwrite=False, n_preview=16):
                      f"{centers.groupby(['split', 'cls']).size().to_dict()}")
 
         sindex = samples.sindex
-        writers = {s: ShardWriter(cfg, year, s, logger) for s in SPLITS}
+        writers = {s: ShardWriter(cfg, period, s, logger) for s in SPLITS}
         counts = {s: {"chips": 0, "fire_px": 0, "notfire_px": 0} for s in SPLITS}
         dropped = {"cross_block": 0, "few_labels": 0, "nodata": 0}
         overlaps = []
@@ -203,7 +204,7 @@ def build_chips(cfg, year, logger=None, overwrite=False, n_preview=16):
             if n_overlap:
                 overlaps.append({"center_x": c.x, "center_y": c.y, "pixels": n_overlap})
             x = add_indices(scale_bands(raw, cfg["SCALE"], valid), bands, indices)
-            writers[c.split].write(encode_chip(x, y, year, c.split, c.x, c.y))
+            writers[c.split].write(encode_chip(x, y, period, c.split, c.x, c.y))
             counts[c.split]["chips"] += 1
             counts[c.split]["fire_px"] += int((y == 1).sum())
             counts[c.split]["notfire_px"] += int((y == 0).sum())
@@ -228,16 +229,16 @@ def build_chips(cfg, year, logger=None, overwrite=False, n_preview=16):
 
         # Blocks + logs
         tmp = local_dir("splits")
-        gpkg = os.path.join(tmp, f"blocks_{year}.gpkg")
+        gpkg = os.path.join(tmp, f"blocks_{period}.gpkg")
         grid.to_geodataframe(reader.crs).to_file(gpkg, driver="GPKG")
-        upload(cfg, gpkg, f"{P['splits']}/blocks_{year}.gpkg")
+        upload(cfg, gpkg, f"{P['splits']}/blocks_{period}.gpkg")
 
         fig_rel = None
         if preview:
-            fig_rel = save_preview(cfg, year, preview)
+            fig_rel = save_preview(cfg, period, preview)
 
         summary = {
-            "year": year, "inventory": inventory, "samples": sample_report,
+            "period": period, "inventory": inventory, "samples": sample_report,
             "blocks": grid.counts(), "centers": int(len(centers)),
             "chips": counts, "dropped": dropped,
             "fire_notfire_overlaps": {"chips": len(overlaps), "pixels": int(sum(o["pixels"] for o in overlaps)),
@@ -245,15 +246,15 @@ def build_chips(cfg, year, logger=None, overwrite=False, n_preview=16):
             "shards": {s: w.files for s, w in writers.items()},
             "channels": channel_names(cfg), "preview": fig_rel,
         }
-        write_json(cfg, f"{P['reports']}/chips_{year}.json", summary)
-        _log(logger, f"[CHIPS] {year}: " + ", ".join(f"{s} {counts[s]['chips']}" for s in SPLITS)
+        write_json(cfg, f"{P['reports']}/chips_{period}.json", summary)
+        _log(logger, f"[CHIPS] {period}: " + ", ".join(f"{s} {counts[s]['chips']}" for s in SPLITS)
                      + f" | dropped {dropped} | fire/notfire overlaps in {len(overlaps)} chip(s)")
         return summary
     finally:
         reader.close()
 
 
-def save_preview(cfg, year, preview):
+def save_preview(cfg, period, preview):
     """Figure with up to 16 chips: false color SWIR1/NIR/RED + labels."""
     import matplotlib
     matplotlib.use("Agg")
@@ -279,12 +280,12 @@ def save_preview(cfg, year, preview):
         lab[y == 0] = (0, 0.3, 1, 0.6)
         axes[r, 2 * c + 1].imshow(rgb)
         axes[r, 2 * c + 1].imshow(lab)
-    fig.suptitle(f"{cfg['REGION']} {year} - train chips (SWIR1/NIR/RED | red = fire, blue = not fire)")
+    fig.suptitle(f"{cfg['REGION']} {period} - train chips (SWIR1/NIR/RED | red = fire, blue = not fire)")
     fig.tight_layout()
-    local = os.path.join(local_dir("reports"), f"chips_preview_{year}.png")
+    local = os.path.join(local_dir("reports"), f"chips_preview_{period}.png")
     fig.savefig(local, dpi=110)
     plt.close(fig)
-    rel = f"{paths(cfg)['reports']}/chips_preview_{year}.png"
+    rel = f"{paths(cfg)['reports']}/chips_preview_{period}.png"
     upload(cfg, local, rel)
     return rel
 
@@ -294,14 +295,14 @@ def save_preview(cfg, year, preview):
 # ---------------------------------------------------------------------------
 
 def compute_stats(cfg, logger=None):
-    """Read the train shards of every year and save norm_stats.json."""
+    """Read the train shards of every period in PERIODS and save norm_stats.json."""
     import tensorflow as tf
     from unet_io import download_prefix
 
     P = paths(cfg)
     files = download_prefix(P["chips"], local_dir("chips"), suffix=".tfrecord.gz")
-    train = [f for f in files if "_train_" in os.path.basename(f)
-             and int(os.path.basename(f).split("_")[0]) in cfg["YEARS"]]
+    train = [f for f in files if split_chip_name(f)[1] == "train"
+             and split_chip_name(f)[0] in cfg["PERIODS"]]
     if not train:
         raise FileNotFoundError("No train chips found; run build_chips first.")
     names = channel_names(cfg)
@@ -312,7 +313,7 @@ def compute_stats(cfg, logger=None):
         res.add(x)
     stats = compute_norm_stats(res.data, names, tuple(cfg["CLIP_PERCENTILES"]))
     stats["train_pixels_seen"] = int(res.seen)
-    stats["years"] = list(cfg["YEARS"])
+    stats["periods"] = list(cfg["PERIODS"])
     stats["source"] = "train chips only"
     write_json(cfg, P["stats"], stats)
     _log(logger, f"[STATS] {len(names)} channels from {res.seen} valid train pixels "

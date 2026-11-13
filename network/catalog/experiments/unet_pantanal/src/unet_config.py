@@ -7,10 +7,14 @@ polygons (catalog M3 CSVs in LIBRARY_SAMPLES) of a campaign. Everything it
 writes goes to ``{GCS_PREFIX}/{CAMPAIGN}/{EXPERIMENT}/``; it never changes
 or deletes other files.
 
+Default: Fire Monitor (MONITOR_01), Sentinel-2, monthly mosaics and monthly
+samples. A period is a catalog period key: '2026_10' (monthly) or '2024'
+(annual).
+
 Usage in the notebook::
 
     from unet_config import make_config, paths
-    UCFG = make_config(REGION="pantanal", YEARS=[2024])
+    UCFG = make_config(REGION="pantanal", PERIODS=["2026_10"])
     P = paths(UCFG)
 """
 import copy
@@ -26,9 +30,9 @@ DEFAULTS = {
     "COUNTRY": "brazil",
     "BUCKET": "mapbiomas-fire",
     "GCS_PREFIX": "sudamerica/brazil/CATALOG_01",   # holds LIBRARY_IMAGES and the campaigns
-    "CAMPAIGN": "COLLECTION_06",
+    "CAMPAIGN": "MONITOR_01",
     "GEE_PROJECT": "mapbiomas-brazil",
-    "REGIONS_ASSET": ("projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/COLLECTION_06/"
+    "REGIONS_ASSET": ("projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/MONITOR_01/"
                       "AUXILIARY/regiones_fuego_brazil_v1"),
     "REGION_PROPERTY": "region_nam",
     "SERVICE_ACCOUNT": "mapbiomas-fire@mapbiomas.iam.gserviceaccount.com",
@@ -36,27 +40,31 @@ DEFAULTS = {
     # --- Experiment -------------------------------------------------------
     "MODEL": "unet",                 # "unet" | "mlp" (mlp = catalog M4/M5 notebook)
     "EXPERIMENT": "UNET_01",         # output folder inside the campaign
-    "MODEL_NAME": "unet_pantanal_v1",
+    "MODEL_NAME": "unet_monitor_pantanal_v1",
     "REGION": "pantanal",            # value of `region_nam` in the regions asset
-    "YEARS": [2024],
+    # Periods used for training and classification: '2026_10' (monthly) or
+    # '2024' (annual). Chips of all periods train one model; each period gets
+    # its own map.
+    "PERIODS": ["2026_10"],
 
     # --- Mosaics (M2 COGs) ------------------------------------------------
-    "SENSOR": "landsat",
+    "SENSOR": "sentinel2",           # sentinel2 (10 m) | landsat (30 m)
     "MOSAIC": "minnbr",
     "BANDS": list(DEFAULT_BANDS),
     "VALID_BAND": "dayOfYear",       # pixel is valid where this band > 0 (same rule as M5)
-    # M1 exports Landsat reflectance x 100 as uint8 (Sentinel-2/MODIS use other
-    # multipliers). Dividing by SCALE gives reflectance 0-1.
+    # M1 exports Sentinel-2 and Landsat reflectance x 100 as uint8.
+    # Dividing by SCALE gives reflectance 0-1.
     "SCALE": 100.0,
-    # Optional override: one multiband GeoTIFF per year instead of one COG per
-    # band. Relative to the bucket, `{year}` is replaced. Band order = BANDS,
-    # VALID_BAND last.
+    # Optional override: one multiband GeoTIFF per period instead of one COG
+    # per band. Relative to the bucket, `{period}` is replaced. Band order =
+    # BANDS, VALID_BAND last.
     "MULTIBAND_FILE": None,
 
     # --- Samples (M3 CSVs) ------------------------------------------------
-    # File names in LIBRARY_SAMPLES (fnmatch pattern; {year} and {region} are
-    # replaced). Rows are also filtered by `period == year`.
-    "SAMPLE_GLOB": "*{year}*.csv",
+    # File names in LIBRARY_SAMPLES (fnmatch pattern; {period} and {region}
+    # are replaced). Rows are also filtered by the `period` column (or by the
+    # date at the end of the file name when `period` is empty), as M4 does.
+    "SAMPLE_GLOB": "*{period}*.csv",
     "SAMPLE_FILES": None,            # explicit list of CSV names (overrides SAMPLE_GLOB)
     "FILTER_SAMPLES_BY_REGION": True,  # keep rows whose `region` column == REGION
     "CLASS_FIELD": "fire",
@@ -67,7 +75,8 @@ DEFAULTS = {
     "STATS_MAX_PIXELS": 2_000_000,   # random train pixels used for clip/mean/std
 
     # --- Chips ------------------------------------------------------------
-    "CHIP": 128,
+    # 256 px x 10 m (Sentinel-2) = 2.56 km. For Landsat (30 m), 128 px = 3.8 km.
+    "CHIP": 256,
     "POINTS_PER_POLYGON": 4,
     "MIN_LABELED_FRACTION": 0.01,
     "MAX_NODATA_FRACTION": 0.50,
@@ -81,7 +90,7 @@ DEFAULTS = {
     # --- Training ---------------------------------------------------------
     "FILTERS": [32, 64, 128, 256],
     "BOTTOM_FILTERS": 512,
-    "BATCH": 16,
+    "BATCH": 8,                      # 8 chips of 256 px fit a Colab T4 with mixed precision
     "EPOCHS": 60,
     "LR": 1e-4,
     "PATIENCE": 8,
@@ -126,9 +135,62 @@ def validate_config(cfg):
         raise ValueError(f"CHIP must be a multiple of {depth}.")
     if (cfg["INFER_TILE"] + 2 * cfg["OVERLAP"]) % depth:
         raise ValueError(f"INFER_TILE + 2*OVERLAP must be a multiple of {depth}.")
-    if not cfg["YEARS"]:
-        raise ValueError("YEARS must list at least one year.")
+    if not cfg["PERIODS"]:
+        raise ValueError("PERIODS must list at least one period (e.g. ['2026_10']).")
+    cfg["PERIODS"] = [period_info(p)[0] for p in cfg["PERIODS"]]
     return cfg
+
+
+# ---------------------------------------------------------------------------
+# Periods (same keys and folders as the catalog M_periods)
+# ---------------------------------------------------------------------------
+
+PERIOD_FOLDERS = {"yearly": "ANNUALLY", "monthly": "MONTHLY"}
+
+
+def normalize_period(value):
+    """'2026_10', '202610', 2024, '2024.0' -> '2026_10' / '2024'; empty -> ''."""
+    if value is None:
+        return ""
+    text = str(value).strip()
+    if text.lower() in {"", "nan", "nat", "none", "<na>"}:
+        return ""
+    if text.endswith(".0") and text[:-2].isdigit():
+        text = text[:-2]
+    if text.isdigit() and len(text) == 6:
+        return f"{text[:4]}_{text[4:]}"
+    return text
+
+
+def period_info(value):
+    """(key, periodicity) for an annual ('2024') or monthly ('2026_10') period."""
+    key = normalize_period(value)
+    parts = key.split("_")
+    if not parts[0].isdigit() or len(parts[0]) != 4:
+        raise ValueError(f"Invalid period '{value}'; use 'YYYY' or 'YYYY_MM'.")
+    if len(parts) == 1:
+        return key, "yearly"
+    if len(parts) == 2 and parts[1].isdigit() and 1 <= int(parts[1]) <= 12:
+        return f"{parts[0]}_{int(parts[1]):02d}", "monthly"
+    raise ValueError(f"Invalid period '{value}'; use 'YYYY' or 'YYYY_MM'.")
+
+
+def period_from_file_name(name):
+    """Date at the end of a sample file name ('..._2026_10.csv' -> '2026_10'), as M4."""
+    parts = name.rsplit(".", 1)[0].split("_")
+    if len(parts) >= 2 and len(parts[-2]) == 4 and parts[-2].isdigit() and parts[-1].isdigit():
+        return f"{parts[-2]}_{parts[-1]}"
+    if len(parts[-1]) == 4 and parts[-1].isdigit():
+        return parts[-1]
+    return ""
+
+
+def split_chip_name(path):
+    """'.../2026_10_train_003.tfrecord.gz' -> ('2026_10', 'train', '003')."""
+    import os
+    name = os.path.basename(path).split(".")[0]
+    period, split, shard = name.rsplit("_", 2)
+    return period, split, shard
 
 
 def channel_names(cfg):
@@ -157,23 +219,24 @@ def paths(cfg):
     }
 
 
-def mosaic_band_paths(cfg, year):
+def mosaic_band_paths(cfg, period):
     """{band: 'bucket/.../image_..._cog.tif'} for BANDS + VALID_BAND.
 
-    Annual mosaics, same folder and file names the catalog (version_04 M1/M2)
-    writes and its M4/M5 read:
-    {GCS_PREFIX}/LIBRARY_IMAGES/{SENSOR}/ANNUALLY/{MOSAIC}/{year}/COG/
-        image_{country}_fire_{sensor}_{mosaic}_{band}_{year}_cog.tif
+    Same folder and file names the catalog (version_04 M1/M2) writes and its
+    M4/M5 read:
+    {GCS_PREFIX}/LIBRARY_IMAGES/{SENSOR}/{MONTHLY|ANNUALLY}/{MOSAIC}/{period}/COG/
+        image_{country}_fire_{sensor}_{mosaic}_{band}_{period}_cog.tif
     """
+    key, periodicity = period_info(period)
     bands = list(cfg["BANDS"]) + [cfg["VALID_BAND"]]
     if cfg.get("MULTIBAND_FILE"):
-        path = f"{cfg['BUCKET']}/{cfg['MULTIBAND_FILE'].format(year=year)}"
+        path = f"{cfg['BUCKET']}/{cfg['MULTIBAND_FILE'].format(period=key)}"
         return {b: path for b in bands}
 
     sensor, mosaic = cfg["SENSOR"].lower(), cfg["MOSAIC"].lower()
-    folder = (f"{cfg['GCS_PREFIX']}/LIBRARY_IMAGES/{sensor.upper()}/ANNUALLY/"
-              f"{mosaic.upper()}/{year}/COG")
+    folder = (f"{cfg['GCS_PREFIX']}/LIBRARY_IMAGES/{sensor.upper()}/{PERIOD_FOLDERS[periodicity]}/"
+              f"{mosaic.upper()}/{key}/COG")
     return {
-        b: f"{cfg['BUCKET']}/{folder}/image_{cfg['COUNTRY']}_fire_{sensor}_{mosaic}_{b}_{year}_cog.tif"
+        b: f"{cfg['BUCKET']}/{folder}/image_{cfg['COUNTRY']}_fire_{sensor}_{mosaic}_{b}_{key}_cog.tif"
         for b in bands
     }

@@ -23,11 +23,17 @@ def _tf():
 # Dataset
 # ---------------------------------------------------------------------------
 
-def chip_files(local_files, years, split):
+def chip_files(local_files, periods, split):
+    """Shards of the given periods and split ('2026_10_train_000.tfrecord.gz')."""
+    from unet_config import split_chip_name
+    wanted = {str(p) for p in periods}
     out = []
     for f in local_files:
-        parts = os.path.basename(f).split("_")
-        if len(parts) >= 3 and parts[1] == split and int(parts[0]) in years:
+        try:
+            period, s, _ = split_chip_name(f)
+        except ValueError:
+            continue
+        if s == split and period in wanted:
             out.append(f)
     return sorted(out)
 
@@ -200,8 +206,8 @@ def train(cfg, logger=print):
 
     stats = read_json(P["stats"])
     files = download_prefix(P["chips"], local_dir("chips"), suffix=".tfrecord.gz")
-    tr = chip_files(files, cfg["YEARS"], "train")
-    va = chip_files(files, cfg["YEARS"], "val")
+    tr = chip_files(files, cfg["PERIODS"], "train")
+    va = chip_files(files, cfg["PERIODS"], "val")
     if not tr or not va:
         raise FileNotFoundError(f"Need train and val chips (train={len(tr)}, val={len(va)} shards).")
 
@@ -234,7 +240,7 @@ def train(cfg, logger=print):
         "model": cfg["MODEL_NAME"], "architecture": "unet",
         "channels": channel_names(cfg), "bands": cfg["BANDS"], "indices": cfg["INDICES"],
         "scale": cfg["SCALE"], "valid_band": cfg["VALID_BAND"], "chip": cfg["CHIP"],
-        "years": cfg["YEARS"], "region": cfg["REGION"], "stats": P["stats"],
+        "periods": cfg["PERIODS"], "region": cfg["REGION"], "stats": P["stats"],
         "train_shards": [os.path.basename(f) for f in tr],
         "val_shards": [os.path.basename(f) for f in va],
         "epochs_run": len(hist.history["loss"]),

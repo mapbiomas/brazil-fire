@@ -14,7 +14,7 @@ import time
 
 import numpy as np
 
-from unet_config import paths
+from unet_config import paths, period_info
 from unet_features import add_indices, normalize, scale_bands
 from unet_io import MosaicReader, _log, local_dir, region_geometry, upload, write_json
 
@@ -55,8 +55,8 @@ def to_output(prob, valid, doy):
     return p, d
 
 
-def predict_mosaic(cfg, year, model, stats, logger=None, upload_result=True):
-    """Classify the region of one year and upload a COG. Returns the GCS path."""
+def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
+    """Classify the region of one period and upload a COG. Returns the GCS path."""
     import rasterio
     from rasterio.features import geometry_mask
     from rasterio.windows import Window
@@ -64,15 +64,16 @@ def predict_mosaic(cfg, year, model, stats, logger=None, upload_result=True):
     from shapely.geometry import box
     from shapely.prepared import prep
 
+    period = period_info(period)[0]
     P = paths(cfg)
     T, O = cfg["INFER_TILE"], cfg["OVERLAP"]
-    reader = MosaicReader(cfg, year, logger)
+    reader = MosaicReader(cfg, period, logger)
     try:
         region = region_geometry(cfg, reader.crs, logger)
         region_p = prep(region) if region is not None else None
         win = region_window(reader, region)
         out_transform = win_transform(win, reader.transform)
-        name = f"{cfg['REGION'] or 'mosaic'}_{year}_prob"
+        name = f"{cfg['REGION'] or 'mosaic'}_{period}_prob"
         tmp = local_dir("predict")
         local_tif = os.path.join(tmp, f"{name}_tmp.tif")
         profile = {
@@ -82,7 +83,7 @@ def predict_mosaic(cfg, year, model, stats, logger=None, upload_result=True):
             "compress": "deflate", "BIGTIFF": "IF_SAFER",
         }
         tiles = list(core_tiles(win, T))
-        _log(logger, f"[PREDICT] {year}: {int(win.width)}x{int(win.height)} px, "
+        _log(logger, f"[PREDICT] {period}: {int(win.width)}x{int(win.height)} px, "
                      f"{len(tiles)} tiles of {T}+2x{O}")
         bands, indices = cfg["BANDS"], cfg["INDICES"]
         n_valid = n_burned = 0
@@ -141,24 +142,24 @@ def predict_mosaic(cfg, year, model, stats, logger=None, upload_result=True):
         rio_copy(local_tif, cog, driver="COG", COMPRESS="DEFLATE", BIGTIFF="IF_SAFER")
         os.remove(local_tif)
         rel = f"{P['predict']}/{name}.tif"
-        summary = {"year": year, "model": cfg["MODEL_NAME"], "gcs": f"gs://{P['bucket']}/{rel}",
+        summary = {"period": period, "model": cfg["MODEL_NAME"], "gcs": f"gs://{P['bucket']}/{rel}",
                    "valid_pixels": n_valid, "burned_pixels_prob_gt_0": n_burned,
                    "encoding": "b1 probability int16 0-1000; b2 dayOfYear where probability > 0; nodata -9999",
                    "minutes": round((time.time() - t0) / 60, 1)}
         if upload_result:
             upload(cfg, cog, rel)
-            write_json(cfg, f"{P['reports']}/predict_{year}.json", summary)
-        _log(logger, f"[PREDICT] {year} -> {summary['gcs']} ({summary['minutes']} min)")
+            write_json(cfg, f"{P['reports']}/predict_{period}.json", summary)
+        _log(logger, f"[PREDICT] {period} -> {summary['gcs']} ({summary['minutes']} min)")
         summary["local"] = cog
         return summary
     finally:
         reader.close()
 
 
-def gee_upload_command(cfg, year, asset_id):
+def gee_upload_command(cfg, period, asset_id):
     """`earthengine upload image` command for the prediction COG (optional)."""
     P = paths(cfg)
-    name = f"{cfg['REGION'] or 'mosaic'}_{year}_prob"
+    name = f"{cfg['REGION'] or 'mosaic'}_{period}_prob"
     return (f"earthengine upload image --asset_id={asset_id} "
             f"--nodata_value={NODATA} --pyramiding_policy=mean "
             f"gs://{P['bucket']}/{P['predict']}/{name}.tif")

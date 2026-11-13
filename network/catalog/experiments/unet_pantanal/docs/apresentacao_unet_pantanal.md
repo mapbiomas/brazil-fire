@@ -1,4 +1,4 @@
-# U-Net para área queimada: teste no Pantanal (2024)
+# U-Net para área queimada: teste no Monitor do Fogo (Pantanal, Sentinel-2 mensal)
 
 Roteiro para montar a apresentação. Cada seção `##` corresponde a um slide ou bloco. Os campos marcados com **[preencher]** saem dos relatórios gerados pelo notebook, na pasta `reports/` do GCS.
 
@@ -6,10 +6,10 @@ Roteiro para montar a apresentação. Cada seção `##` corresponde a um slide o
 
 ## 1. Contexto
 
-- **MapBiomas Fogo:** mapeamento anual de cicatrizes de fogo com Landsat de 30 m.
-- **Fluxo atual (catálogo version_04):**
-  1. M1/M2: mosaico anual de NBR mínimo.
-  2. M3: polígonos `fire` / `notFire`.
+- **Monitor do Fogo:** mapeamento mensal de cicatrizes de fogo com Sentinel-2 de 10 m.
+- **Fluxo atual (catálogo version_04, campanha `MONITOR_01`):**
+  1. M1/M2: mosaico mensal de NBR mínimo.
+  2. M3: polígonos `fire` / `notFire` de cada mês.
   3. M4: rede MLP pixel a pixel.
   4. M5: probabilidade.
   5. M6–M9: pós-classificação no GEE.
@@ -18,7 +18,7 @@ Roteiro para montar a apresentação. Cada seção `##` corresponde a um slide o
 
 ## 2. Objetivo e escopo
 
-- Bioma piloto: **Pantanal**. Ano: **2024**. Campanha: `brazil.collection_06`.
+- Bioma piloto: **Pantanal**. Período: **mensal**, começando em outubro de 2026 (`2026_10`). Campanha: `brazil.monitor_01`.
 - A U-Net é um **experimento independente**, numa pasta própria (`network/catalog/experiments/unet_pantanal/`). Ela só lê os dados do catálogo; o fluxo MLP não muda.
 - A saída é **compatível** com a pós-classificação atual: probabilidade × 1000 e `dayOfYear`, no mesmo formato dos tiles do M5.
 - Tudo roda no Google Colab com GPU, lendo e gravando no Google Cloud Storage.
@@ -27,20 +27,20 @@ Roteiro para montar a apresentação. Cada seção `##` corresponde a um slide o
 
 | Dado | Origem | Formato |
 |---|---|---|
-| Mosaico anual | M1/M2 (`LIBRARY_IMAGES/LANDSAT/ANNUALLY/MINNBR/2024/COG/`) | 1 COG por banda, refletância × 100 (uint8); válido onde `dayOfYear > 0` |
-| Amostras | M3 (`COLLECTION_06/LIBRARY_SAMPLES/*.csv`) | polígonos com `fire` = 1/0, `region`, `period` |
-| Região | `regiones_fuego_brazil_v1` (`region_nam = pantanal`) | limite para os blocos e para a inferência |
+| Mosaico mensal | M1/M2 (`LIBRARY_IMAGES/SENTINEL2/MONTHLY/MINNBR/2026_10/COG/`) | 1 COG por banda, refletância × 100 (uint8), 10 m; válido onde `dayOfYear > 0` |
+| Amostras | M3 (`MONITOR_01/LIBRARY_SAMPLES/*.csv`) | polígonos com `fire` = 1/0, `region`, `period` (mês) |
+| Região | `MONITOR_01/AUXILIARY/regiones_fuego_brazil_v1` (`region_nam = pantanal`) | limite para os blocos e para a inferência |
 
 Bandas usadas: blue, red, nir, swir1, swir2.
 
-**[preencher]** Número de polígonos e área por classe, que estão em `reports/chips_2024.json` → `samples.by_class`.
+**[preencher]** Número de polígonos e área por classe, que estão em `reports/chips_2026_10.json` → `samples.by_class` (um arquivo por mês).
 
 ## 4. Do pixel ao recorte (chip)
 
 ```
 MLP:    1 pixel (5 bandas)          →  1 probabilidade
-U-Net:  recorte 128 × 128 pixels    →  mapa 128 × 128 de probabilidades
-        (≈ 3,8 × 3,8 km)
+U-Net:  recorte 256 × 256 pixels    →  mapa 256 × 256 de probabilidades
+        (≈ 2,6 × 2,6 km com pixel de 10 m)
 ```
 
 - Os centros dos recortes são sorteados **dentro dos polígonos**, até 4 por polígono.
@@ -51,7 +51,7 @@ U-Net:  recorte 128 × 128 pixels    →  mapa 128 × 128 de probabilidades
   - **255:** sem informação (fora dos polígonos ou sem dado). Esses pixels são ignorados no treino e nas métricas.
 - Onde fogo e não fogo se sobrepõem, vale fogo. Esses casos ficam registrados.
 
-**Figura:** `reports/chips_preview_2024.png`, com 16 recortes em falsa-cor SWIR1/NIR/RED e o rótulo sobreposto (vermelho = fogo, azul = não fogo).
+**Figura:** `reports/chips_preview_2026_10.png`, com 16 recortes em falsa-cor SWIR1/NIR/RED e o rótulo sobreposto (vermelho = fogo, azul = não fogo).
 
 ## 5. Divisão espacial antes de tudo
 
@@ -63,9 +63,11 @@ U-Net:  recorte 128 × 128 pixels    →  mapa 128 × 128 de probabilidades
 - Uma checagem no código garante que **nenhum recorte de teste toca um bloco de treino**.
 - **Por quê:** recortes vizinhos são quase iguais. Sem essa separação, o teste mediria memória do modelo, não generalização.
 
-**Figura:** mapa dos blocos (`splits/blocks_2024.gpkg`) com as cores treino / validação / teste.
+**Figura:** mapa dos blocos (`splits/blocks_2026_10.gpkg`) com as cores treino / validação / teste.
 
-**[preencher]** Blocos e recortes por conjunto, além dos descartados: `reports/chips_2024.json` → `blocks`, `chips`, `dropped`.
+**[preencher]** Blocos e recortes por conjunto, além dos descartados: `reports/chips_2026_10.json` → `blocks`, `chips`, `dropped`.
+
+Se houver vários meses em `PERIODS`, os recortes de todos eles treinam **um único modelo**, e cada mês ganha seu próprio mapa.
 
 ## 6. Atributos espectrais
 
@@ -89,8 +91,8 @@ As estatísticas vêm **só dos recortes de treino** e ficam salvas em `stats/no
 ## 7. A rede U-Net
 
 ```
-entrada 128×128×11
-  ├─ 32 ─┐                                  ┌─ 32 → saída 128×128×1 (sigmoide)
+entrada 256×256×11
+  ├─ 32 ─┐                                  ┌─ 32 → saída 256×256×1 (sigmoide)
   │   ├─ 64 ─┐                          ┌─ 64
   │   │   ├─ 128 ─┐              ┌─ 128
   │   │   │   ├─ 256 ─┐   ┌─ 256
@@ -99,7 +101,7 @@ entrada 128×128×11
 ```
 
 - Os **atalhos (skip connections)** devolvem os detalhes finos, como bordas da cicatriz, que se perdem na descida.
-- A rede é totalmente convolucional. Treina com recortes de 128 e classifica janelas maiores.
+- A rede é totalmente convolucional. Treina com recortes de 256 e classifica janelas maiores.
 - Cada convolução usa normalização em lote e ReLU. O treino usa precisão mista na GPU.
 
 ## 8. Perda, métricas e treino
@@ -108,17 +110,17 @@ entrada 128×128×11
   - Dice compensa o desequilíbrio entre área queimada e não queimada.
 - **Métricas da classe fogo:** IoU, F1, precisão e revocação, todas mascaradas.
 - **Treino:**
-  - Adam, taxa de aprendizado 1e-4, lotes de 16, até 60 épocas.
+  - Adam, taxa de aprendizado 1e-4, lotes de 8, até 60 épocas.
   - Para cedo quando a IoU de validação não melhora em 8 épocas e guarda o melhor modelo.
   - Aumento de dados só no treino: espelhamentos e rotações de 90°, aplicados juntos à imagem e ao rótulo.
 
-**Figura:** curvas de perda e IoU por época (`models/unet_pantanal_v1_history.csv`).
+**Figura:** curvas de perda e IoU por época (`models/unet_monitor_pantanal_v1_history.csv`).
 
 ## 9. Classificação do Pantanal inteiro
 
 - **Janela deslizante:** cada janela lê 512 + 2×16 pixels e grava só o centro de 512 × 512.
   - Por isso não aparecem emendas entre as janelas.
-- **Saída:** `predict/pantanal_2024_prob.tif`.
+- **Saída:** `predict/pantanal_2026_10_prob.tif`, um arquivo por mês.
   - COG com a mesma grade do mosaico.
   - Banda 1: probabilidade × 1000.
   - Banda 2: `dayOfYear` onde a probabilidade é > 0.
@@ -127,7 +129,7 @@ entrada 128×128×11
 
 **Figura:** mapa de probabilidade, mais um zoom comparando MLP e U-Net na mesma área.
 
-**[preencher]** Tempo de inferência e pixels válidos: `reports/predict_2024.json`.
+**[preencher]** Tempo de inferência e pixels válidos: `reports/predict_2026_10.json`.
 
 ## 10. Comparação justa com o MLP
 
@@ -137,9 +139,9 @@ As três versões são avaliadas **nos mesmos pixels de teste**. O limiar de cad
 |---|---|---|---|---|---|---|
 | A — MLP | 5 bandas, pixel | [preencher] | [preencher] | [preencher] | [preencher] | [preencher] |
 | B — MLP | 5 bandas + 6 índices, pixel | [preencher] | [preencher] | [preencher] | [preencher] | [preencher] |
-| C — U-Net | 5 bandas + 6 índices, recorte 128×128 | [preencher] | [preencher] | [preencher] | [preencher] | [preencher] |
+| C — U-Net | 5 bandas + 6 índices, recorte 256×256 | [preencher] | [preencher] | [preencher] | [preencher] | [preencher] |
 
-Fonte: `reports/comparison_2024.json`. O campo `markdown` já traz a tabela pronta, incluindo os valores com limiar 0,5.
+Fonte: `reports/comparison_2026_10.json` (os meses de `PERIODS`, separados por hífen). O campo `markdown` já traz a tabela pronta, incluindo os valores com limiar 0,5.
 
 - **A × B** mostra o ganho dos índices.
 - **B × C** mostra o ganho do contexto espacial, com os mesmos atributos.
@@ -163,7 +165,8 @@ Fonte: `reports/comparison_2024.json`. O campo `markdown` já traz a tabela pron
 
 - **Água escura × cicatriz:** no Pantanal, lagoas e áreas alagadas podem parecer queimadas. Vale conferir os recortes de inspeção sobre corpos d'água.
 - **Rótulos só no miolo dos polígonos:** a rede não vê bordas rotuladas. Se ela errar bordas, o próximo passo é **rotular por completo** alguns recortes, sem mudar a arquitetura.
-- **Um ano e um bioma:** o resultado vale para o Pantanal em 2024. Generalizar exige testar outros anos e regiões.
+- **Poucos meses e um bioma:** o resultado vale para o Pantanal nos meses testados. Generalizar exige outros meses e regiões.
+- **Nuvens e sombras:** o mosaico mensal pode guardar restos de nuvem ou sombra; conferir nos recortes de inspeção.
 - **Métrica por pixel:** a comparação usa pixels de teste rotulados. A validação do mapa final continua sendo feita com os dados de referência habituais.
 
 ## 13. Próximos passos
@@ -171,7 +174,7 @@ Fonte: `reports/comparison_2024.json`. O campo `markdown` já traz a tabela pron
 1. Rodar o teste completo e preencher a tabela A × B × C.
 2. Inspecionar visualmente o mapa da U-Net contra o MLP e o mosaico (bordas, água, nuvens).
 3. Se a U-Net ganhar, passar a saída pelo M7 (ft00–ft02) e comparar a área queimada final.
-4. Testar outros anos (por exemplo, 2019 e 2020, de grandes incêndios) e outro bioma.
+4. Testar outros meses, incluindo o pico da estação de fogo, e outro bioma.
 5. Avaliar a rotulagem completa de alguns recortes.
 
 ---
@@ -182,6 +185,6 @@ Fonte: `reports/comparison_2024.json`. O campo `markdown` já traz a tabela pron
 |---|---|
 | Pasta do experimento | branch `classification-unet`, `network/catalog/experiments/unet_pantanal/` |
 | Código | `unet_pantanal/src/` |
-| Notebook Colab | `unet_pantanal/notebooks/unet_pantanal_2024.ipynb` |
-| Resultados | `gs://mapbiomas-fire/sudamerica/brazil/CATALOG_01/COLLECTION_06/UNET_01/` |
+| Notebook Colab | `unet_pantanal/notebooks/unet_monitor_pantanal.ipynb` |
+| Resultados | `gs://mapbiomas-fire/sudamerica/brazil/CATALOG_01/MONITOR_01/UNET_01/` |
 | Guia técnico (inglês) | `unet_pantanal/README.md` |

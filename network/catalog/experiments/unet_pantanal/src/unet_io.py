@@ -11,7 +11,8 @@ import os
 import numpy as np
 
 import unet_env as gcs
-from unet_config import mosaic_band_paths, paths
+from unet_config import (mosaic_band_paths, normalize_period, paths, period_from_file_name,
+                         period_info)
 
 
 def _log(logger, msg, level="info"):
@@ -39,19 +40,19 @@ def _open_raster(rel_path):
 
 
 class MosaicReader:
-    """Reads the same window from every band COG of one year.
+    """Reads the same window from every band COG of one period.
 
     `read(window)` returns (raw, valid): raw is (len(BANDS), h, w) in the file
     dtype and valid is a bool (h, w) mask (VALID_BAND > 0, as in M5). Parts of
     the window outside the image are filled with 0 / invalid.
     """
 
-    def __init__(self, cfg, year, logger=None):
+    def __init__(self, cfg, period, logger=None):
         self.cfg = cfg
-        self.year = year
+        self.period = period_info(period)[0]
         self.bands = list(cfg["BANDS"])
         self.valid_band = cfg["VALID_BAND"]
-        self.paths = mosaic_band_paths(cfg, year)
+        self.paths = mosaic_band_paths(cfg, self.period)
         self.multiband = bool(cfg.get("MULTIBAND_FILE"))
         self.sources = {}
         try:
@@ -65,8 +66,8 @@ class MosaicReader:
         except Exception as exc:
             self.close()
             raise FileNotFoundError(
-                f"Could not open the {year} mosaic. Check that M2 finished for "
-                f"this year. Paths: {self.paths}. Error: {exc}"
+                f"Could not open the {self.period} mosaic. Check that M2 finished for "
+                f"this period. Paths: {self.paths}. Error: {exc}"
             ) from exc
         self._check_grid()
         ref = self.sources[self.bands[0]]
@@ -75,7 +76,7 @@ class MosaicReader:
         self.width = ref.width
         self.height = ref.height
         self.profile = ref.profile.copy()
-        _log(logger, f"[MOSAIC] {year}: {self.width}x{self.height} px | {self.crs} | res {ref.res}")
+        _log(logger, f"[MOSAIC] {self.period}: {self.width}x{self.height} px | {self.crs} | res {ref.res}")
 
     def _check_grid(self):
         ref_b = self.bands[0]
@@ -123,7 +124,7 @@ class MosaicReader:
         return self.read_band(self.valid_band, window)
 
     def inventory(self):
-        info = {"year": self.year, "crs": str(self.crs), "width": self.width,
+        info = {"period": self.period, "crs": str(self.crs), "width": self.width,
                 "height": self.height, "transform": list(self.transform)[:6],
                 "scale_divisor": self.cfg["SCALE"], "bands": {}}
         for b in self.bands + [self.valid_band]:
@@ -148,7 +149,8 @@ class MosaicReader:
 # Samples (M3 CSV)
 # ---------------------------------------------------------------------------
 
-def list_sample_files(cfg, year):
+def list_sample_files(cfg, period):
+    period = period_info(period)[0]
     P = paths(cfg)
     folder = f"{P['bucket']}/{P['samples']}"
     names = [n for n in gcs.ls(folder) if n.endswith(".csv")]
@@ -158,46 +160,71 @@ def list_sample_files(cfg, year):
         if missing:
             raise FileNotFoundError(f"Sample files not found in gs://{folder}: {missing}")
         return wanted
-    pattern = cfg["SAMPLE_GLOB"].format(year=year, region=cfg["REGION"])
+    pattern = cfg["SAMPLE_GLOB"].format(period=period, region=cfg["REGION"])
     return sorted(n for n in names if fnmatch.fnmatch(n, pattern))
 
 
-def _period_of(value):
-    text = str(value).strip()
-    return text.split(".")[0] if text else ""
+def sample_periods(df, file_name):
+    """Period of each row, with the same rules as the catalog M4 extractor:
+    the `period` column (normalized); empty -> date at the end of the file
+    name; if the column has a year later than the file date, the file date
+    wins. Returns (Series of keys, number of corrected rows)."""
+    import pandas as pd
+    file_date = period_from_file_name(file_name)
+    if "period" in df.columns:
+        per = df["period"].map(normalize_period)
+    else:
+        per = pd.Series([""] * len(df), index=df.index)
+    corrected = 0
+    if file_date:
+        per = per.where(per != "", file_date)
+        fy = int(file_date[:4])
+        years = per.map(lambda p: int(p[:4]) if p[:4].isdigit() else 0)
+        if (years > fy).any():
+            corrected = int(len(per))
+            per = pd.Series([file_date] * len(df), index=df.index)
+    return per, corrected
 
 
-def load_samples(cfg, year, crs, logger=None):
-    """M3 polygons for one year as a GeoDataFrame in the mosaic CRS.
+def load_samples(cfg, period, crs, logger=None):
+    """M3 polygons of one period as a GeoDataFrame in the mosaic CRS.
 
     Columns kept: class (0/1), source file, geometry. Invalid geometries are
     repaired (make_valid); only polygon parts are kept.
     """
+    period = period_info(period)[0]
     import geopandas as gpd
     import pandas as pd
     from shapely import make_valid
     from shapely.geometry import MultiPolygon, Polygon, shape
 
     P = paths(cfg)
-    files = list_sample_files(cfg, year)
+    files = list_sample_files(cfg, period)
     if not files:
         raise FileNotFoundError(
             f"No sample CSV matches '{cfg['SAMPLE_GLOB']}' in gs://{P['bucket']}/{P['samples']}."
         )
     field = cfg["CLASS_FIELD"]
     frames = []
+    corrected = {}
     for name in files:
         with gcs.open_file(f"{P['bucket']}/{P['samples']}/{name}", "r") as f:
             df = pd.read_csv(f)
         if field not in df.columns or ".geo" not in df.columns:
             raise ValueError(f"{name}: needs columns '{field}' and '.geo' (M3 format).")
         df["_source"] = name
+        df["_period"], n_fix = sample_periods(df, name)
+        if n_fix:
+            corrected[name] = n_fix
+            _log(logger, f"[SAMPLES][WARN] {name}: 'period' later than the file date; "
+                         f"using the file date (as M4).", "warning")
         frames.append(df)
     df = pd.concat(frames, ignore_index=True)
     n_read = len(df)
-
-    if "period" in df.columns:
-        df = df[df["period"].map(_period_of).isin(["", str(year)])]
+    periods_found = sorted(df["_period"].unique().tolist())
+    df = df[df["_period"] == period]
+    if df.empty:
+        raise ValueError(f"No sample row has period {period}. Periods found in {files}: {periods_found}")
     if cfg.get("FILTER_SAMPLES_BY_REGION") and cfg.get("REGION") and "region" in df.columns:
         regions = sorted(df["region"].astype(str).unique().tolist())
         df = df[df["region"].astype(str).str.lower() == str(cfg["REGION"]).lower()]
@@ -230,14 +257,15 @@ def load_samples(cfg, year, crs, logger=None):
 
     area_ha = gdf.to_crs("EPSG:6933").area / 1e4
     report = {
-        "files": files, "rows_read": n_read, "polygons": int(len(gdf)),
+        "files": files, "rows_read": n_read, "periods_found": periods_found,
+        "period_corrected_rows": corrected, "polygons": int(len(gdf)),
         "by_class": {
             str(c): {"polygons": int((gdf["class"] == c).sum()),
                      "area_ha": float(area_ha[gdf["class"] == c].sum())}
             for c in (1, 0)
         },
     }
-    _log(logger, f"[SAMPLES] {year}: {len(files)} file(s), {len(gdf)} polygons | "
+    _log(logger, f"[SAMPLES] {period}: {len(files)} file(s), {len(gdf)} polygons | "
                  f"fire {report['by_class']['1']['polygons']} ({report['by_class']['1']['area_ha']:.0f} ha) | "
                  f"not fire {report['by_class']['0']['polygons']} ({report['by_class']['0']['area_ha']:.0f} ha)")
     return gdf, report
