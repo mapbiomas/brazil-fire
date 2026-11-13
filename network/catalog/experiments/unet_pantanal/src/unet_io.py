@@ -12,7 +12,7 @@ import numpy as np
 
 import unet_env as gcs
 from unet_config import (mosaic_band_paths, normalize_period, paths, period_from_file_name,
-                         period_info)
+                         period_info, region_slug)
 
 
 def _log(logger, msg, level="info"):
@@ -235,13 +235,14 @@ def load_samples(cfg, period, crs, logger=None):
     df = df[df["_period"] == period]
     if df.empty:
         raise ValueError(f"No sample row has period {period}. Periods found in {files}: {periods_found}")
-    if cfg.get("FILTER_SAMPLES_BY_REGION") and cfg.get("REGION") and "region" in df.columns:
+    sample_region = cfg.get("SAMPLE_REGION") or cfg.get("REGION")
+    if cfg.get("FILTER_SAMPLES_BY_REGION") and sample_region and "region" in df.columns:
         regions = sorted(df["region"].astype(str).unique().tolist())
-        df = df[df["region"].astype(str).str.lower() == str(cfg["REGION"]).lower()]
+        df = df[df["region"].astype(str).str.lower() == str(sample_region).lower()]
         if df.empty:
             raise ValueError(
-                f"No sample has region == '{cfg['REGION']}'. Regions found: {regions}. "
-                "Fix REGION or set FILTER_SAMPLES_BY_REGION=False."
+                f"No sample has region == '{sample_region}'. Regions found: {regions}. "
+                "Set SAMPLE_REGION to one of them, or FILTER_SAMPLES_BY_REGION=False."
             )
 
     df = df[pd.to_numeric(df[field], errors="coerce").isin([0, 1])].copy()
@@ -285,6 +286,29 @@ def load_samples(cfg, period, crs, logger=None):
 # Region geometry (GEE regions asset, cached in GCS)
 # ---------------------------------------------------------------------------
 
+def regions_collection(cfg):
+    """The regions FeatureCollection with the computed REGION_PROPERTY.
+
+    With REGION_NAME_FIELDS = ["bioma", "id"] and REGION_NAME_JOIN = "r_", each
+    feature gets region_name = bioma + "r_" + id.
+    """
+    import ee
+    fc = ee.FeatureCollection(cfg["REGIONS_ASSET"])
+    fields = cfg.get("REGION_NAME_FIELDS")
+    if not fields:
+        return fc
+    join, prop = cfg.get("REGION_NAME_JOIN") or "", cfg["REGION_PROPERTY"]
+
+    def add_name(f):
+        parts = [ee.String(ee.Algorithms.String(f.get(k))) for k in fields]
+        name = parts[0]
+        for p in parts[1:]:
+            name = name.cat(join).cat(p)
+        return f.set(prop, name)
+
+    return fc.map(add_name)
+
+
 def region_geometry(cfg, crs, logger=None, simplify_m=100):
     """Shapely geometry of REGION in the mosaic CRS (None if REGION is None)."""
     import geopandas as gpd
@@ -294,16 +318,17 @@ def region_geometry(cfg, crs, logger=None, simplify_m=100):
     if not region:
         return None
     P = paths(cfg)
-    cache = f"{P['splits']}/region_{region}.geojson"
+    cache = f"{P['splits']}/region_{region_slug(cfg)}.geojson"
     if gcs.blob_exists(cache):
         gj = json.loads(gcs.read_text(cache))
     else:
         import ee
         asset, prop = cfg["REGIONS_ASSET"], cfg["REGION_PROPERTY"]
-        fc = ee.FeatureCollection(asset).filter(ee.Filter.eq(prop, region))
+        all_regions = regions_collection(cfg)
+        fc = all_regions.filter(ee.Filter.eq(prop, region))
         if fc.size().getInfo() == 0:
-            names = ee.FeatureCollection(asset).aggregate_array(prop).getInfo()
-            raise ValueError(f"Region '{region}' not in {asset}. Options: {names}")
+            names = sorted(set(map(str, all_regions.aggregate_array(prop).getInfo())))
+            raise ValueError(f"Region '{region}' ({prop}) not in {asset}. Options: {names}")
         gj = fc.geometry().simplify(maxError=simplify_m).getInfo()
         write_text(cfg, cache, json.dumps(gj))
         _log(logger, f"[REGION] {region} geometry cached in gs://{P['bucket']}/{cache}")

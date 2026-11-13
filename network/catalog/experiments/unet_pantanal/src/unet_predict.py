@@ -14,7 +14,7 @@ import time
 
 import numpy as np
 
-from unet_config import paths, period_info
+from unet_config import paths, period_info, region_slug
 from unet_features import add_indices, normalize, scale_bands
 from unet_io import MosaicReader, _log, local_dir, region_geometry, upload, write_json
 
@@ -74,7 +74,7 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
         region_p = prep(region) if region is not None else None
         win = region_window(reader, region)
         out_transform = win_transform(win, reader.transform)
-        name = f"{cfg['REGION'] or 'mosaic'}_{period}_prob"
+        name = f"{region_slug(cfg)}_{period}_prob"
         tmp = local_dir("predict")
         local_tif = os.path.join(tmp, f"{name}_tmp.tif")
         profile = {
@@ -163,7 +163,7 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
 def gee_upload_command(cfg, period, asset_id):
     """`earthengine upload image` command for the prediction COG (optional)."""
     P = paths(cfg)
-    name = f"{cfg['REGION'] or 'mosaic'}_{period}_prob"
+    name = f"{region_slug(cfg)}_{period}_prob"
     return (f"earthengine upload image --asset_id={asset_id} "
             f"--nodata_value={NODATA} --pyramiding_policy=mean "
             f"gs://{P['bucket']}/{P['predict']}/{name}.tif")

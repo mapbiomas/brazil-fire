@@ -30,6 +30,18 @@ class TestPeriods(unittest.TestCase):
         self.assertEqual(period_from_file_name("samples_brazil_2024.csv"), "2024")
         self.assertEqual(period_from_file_name("samples_brazil.csv"), "")
 
+    def test_region_slug(self):
+        from unet_config import region_slug
+        self.assertEqual(region_slug({"REGION": "Pantanal 60"}), "pantanal_60")
+        self.assertEqual(region_slug({"REGION": " Mata-Atlântica / 2 "}), "mata_atl_ntica_2")
+        self.assertEqual(region_slug({"REGION": None}), "mosaic")
+        cfg = make_config()
+        self.assertEqual(cfg["REGION"], "Pantanalr_60")
+        self.assertEqual(cfg["SAMPLE_REGION"], "Pantanal 60")
+        self.assertEqual(cfg["REGIONS_ASSET"], "users/geomapeamentoipam/AUXILIAR/regioes_biomas_col2")
+        self.assertEqual((cfg["REGION_PROPERTY"], cfg["REGION_NAME_FIELDS"], cfg["REGION_NAME_JOIN"]),
+                         ("region_name", ["bioma", "id"], "r_"))
+
     def test_chip_name(self):
         self.assertEqual(split_chip_name("gs://b/x/2026_10_train_003.tfrecord.gz"), ("2026_10", "train", "003"))
         self.assertEqual(split_chip_name("/tmp/2024_val_000.tfrecord.gz"), ("2024", "val", "000"))

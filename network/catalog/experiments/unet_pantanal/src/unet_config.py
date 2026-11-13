@@ -46,16 +46,29 @@ DEFAULTS = {
     "GCS_PREFIX": "sudamerica/brazil/CATALOG_01",   # holds LIBRARY_IMAGES and the campaigns
     "CAMPAIGN": "MONITOR_01",
     "GEE_PROJECT": "mapbiomas-brazil",
-    "REGIONS_ASSET": ("projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/MONITOR_01/"
-                      "AUXILIARY/regiones_fuego_brazil_v1"),
-    "REGION_PROPERTY": "region_nam",
+    # Regions asset. Each feature gets a computed name:
+    #   region_name = bioma + REGION_NAME_JOIN + id      (e.g. "Pantanal" + "r_" + 60)
+    # as in the GEE script `f.set('region_name', f.getString('bioma').cat('r_').cat(f.get('id')))`.
+    # Set REGION_NAME_FIELDS=None to use an existing property named REGION_PROPERTY.
+    "REGIONS_ASSET": "users/geomapeamentoipam/AUXILIAR/regioes_biomas_col2",
+    "REGION_PROPERTY": "region_name",
+    "REGION_NAME_FIELDS": ["bioma", "id"],
+    "REGION_NAME_JOIN": "r_",
+    # Older MONITOR_01 asset (property already there):
+    # "REGIONS_ASSET": "projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/MONITOR_01/AUXILIARY/regiones_fuego_brazil_v1",
+    # "REGION_PROPERTY": "region_nam", "REGION_NAME_FIELDS": None,
     "SERVICE_ACCOUNT": "mapbiomas-fire@mapbiomas.iam.gserviceaccount.com",
 
     # --- Experiment -------------------------------------------------------
     "MODEL": "unet",                 # "unet" | "mlp" (mlp = catalog M4/M5 notebook)
     "EXPERIMENT": "UNET_01",         # output folder inside the campaign
     "MODEL_NAME": "unet_monitor_pantanal_v1",
-    "REGION": "pantanal",            # value of `region_nam` in the regions asset
+    # Region to classify: value of REGION_PROPERTY in the regions asset (case
+    # sensitive; the error lists the options). Example: "Pantanalr_60".
+    "REGION": "Pantanalr_60",
+    # Value of the `region` column in the sample CSVs (case-insensitive), e.g.
+    # "Pantanal 60". None = same as REGION.
+    "SAMPLE_REGION": "Pantanal 60",
     # Periods used for training and classification: '2026_10' (monthly) or
     # '2024' (annual). Chips of all periods train one model; each period gets
     # its own map.
@@ -211,6 +224,13 @@ def period_from_file_name(name):
     if len(parts[-1]) == 4 and parts[-1].isdigit():
         return parts[-1]
     return ""
+
+
+def region_slug(cfg):
+    """REGION as a file-name part: 'Pantanal 60' -> 'pantanal_60' ('mosaic' if no region)."""
+    import re
+    slug = re.sub(r"[^a-z0-9]+", "_", str(cfg.get("REGION") or "").lower()).strip("_")
+    return slug or "mosaic"
 
 
 def split_chip_name(path):

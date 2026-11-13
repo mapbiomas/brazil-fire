@@ -14,7 +14,14 @@ it only **reads** the data the catalog already produced in Google Cloud Storage:
   `dayOfYear > 0`);
 - samples: the M3 CSVs in `{GCS_PREFIX}/MONITOR_01/LIBRARY_SAMPLES/`
   (`fire` = 1/0, `region`, `period`, `.geo` polygon);
-- regions: `projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/MONITOR_01/AUXILIARY/regiones_fuego_brazil_v1`.
+- regions: `users/geomapeamentoipam/AUXILIAR/regioes_biomas_col2`, where each
+  feature gets `region_name = bioma + "r_" + id` (computed in the code, as in
+  the GEE script `f.set('region_name', f.getString('bioma').cat('r_').cat(f.get('id')))`).
+  `REGION` is one of those names (for example `Pantanalr_60`; the error message
+  lists the valid ones). `SAMPLE_REGION` is the value of the `region` column in
+  the sample CSVs (for example `Pantanal 60`); the two names can differ.
+  The older `MONITOR_01/AUXILIARY/regiones_fuego_brazil_v1` asset stays as a
+  comment in `src/unet_config.py`.
 
 **First test setup:** only `green` and `swir2` are exported for `2026_10`, so
 `BANDS=["green", "swir2"]`, `INDICES=[]` (no index can be computed from these
