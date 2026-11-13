@@ -8,6 +8,7 @@ from M_cache import CacheManager
 from M_ui_components import PipelineStepUI, cell_log, ProgressTracker
 from M_lang import L as Lang
 from M_mosaics import methods_for
+from M1_update_manifest import find_item, load_manifest
 
 class MosaicAssemblerUI(PipelineStepUI):
     def __init__(self, years=None):
@@ -50,6 +51,11 @@ class MosaicAssemblerUI(PipelineStepUI):
         self.years = resolve_years(self.requested_years)
         self.bands = CONFIG['bands_all']
         self.state = CacheManager.load() or {}
+        try:
+            self.update_manifest = load_manifest()
+        except Exception as e:
+            print(f"[WARN] M2 update manifest unavailable: {e}")
+            self.update_manifest = {'version': 1, 'items': []}
         # Chunks/COGs exported by earlier sessions live only in GCS. Rebuild the
         # cache when it is empty (fresh clone) or older than the TTL, so the
         # already-exported mosaics show up as READY/OK without a manual Sync.
@@ -131,7 +137,31 @@ class MosaicAssemblerUI(PipelineStepUI):
                 chk = widgets.Checkbox(value=False, indent=False, layout=L(width='18px', height='18px', margin='0'))
                 chk._meta = {'sensor': sensor, 'period': period, 'mosaic': mosaic_method, 'year': y, 'month': m, 'period_key': date_str, 'band': b}
 
-                if exists_cog:
+                update_entry = find_item(self.update_manifest, {
+                    'country': CONFIG['country'], 'sensor': sensor,
+                    'period': period, 'mosaic': mosaic_method,
+                    'period_key': date_str, 'band': b, 'type': 'GCS',
+                })
+                chunks_ready = bool(
+                    update_entry and update_entry.get('status') == 'chunks_ready'
+                )
+                m1_update_pending = bool(
+                    update_entry
+                    and update_entry.get('status') not in ('complete', 'submitted_new')
+                    and not chunks_ready
+                )
+                chk._meta['country_update'] = chunks_ready
+
+                if chunks_ready:
+                    cell = PipelineStepUI.make_status_cell(
+                        chk, Lang.M1_UPDATE_LABEL, 'mfm-run', width='auto',
+                    )
+                elif m1_update_pending:
+                    chk.disabled = True
+                    cell = PipelineStepUI.make_status_cell(
+                        chk, Lang.M1_UPDATE_LABEL, 'mfm-run', width='auto',
+                    )
+                elif exists_cog:
                     if not is_edit_mode(): chk.disabled = True
                     cog_dir = period_cog_path(date_str, mosaic=mosaic_method, sensor=sensor)
                     cog_file = f"{m_name}_cog.tif"

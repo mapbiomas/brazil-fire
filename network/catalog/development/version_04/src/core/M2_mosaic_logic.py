@@ -6,6 +6,7 @@ import os
 import subprocess
 import glob
 import time
+from functools import lru_cache
 
 from M0_auth_config import (
     CONFIG, mosaic_name, mosaic_name_for_period, _get_fs,
@@ -40,7 +41,10 @@ def list_gcs_files(prefix, logger=None):
     
     try:
         files = fs.find(f"gs://{CONFIG['bucket']}/{clean_prefix}")
-        tif_files = [f for f in files if f.endswith('.tif')]
+        tif_files = [
+            f for f in files
+            if f.endswith('.tif') and '/.m1_updates/' not in f.lower()
+        ]
         return [f"gs://{f}" for f in tif_files]
     except Exception as e:
         if logger: logger(f"Error accessing GCS: {e}", "error")
@@ -56,7 +60,12 @@ def check_m2_dependencies():
         'gdalbuildvrt': 'gdalbuildvrt',
         'gdal_translate': 'gdal_translate'
     }
-    return [name for name, cmd in deps.items() if not check_command_exists(cmd)]
+    missing = [name for name, cmd in deps.items() if not check_command_exists(cmd)]
+    try:
+        import rasterio  # noqa: F401
+    except ImportError:
+        missing.append('rasterio')
+    return missing
 
 def run_cmd(args, label="Comando"):
     """Envolve comando subprocess com traces mais seguros"""
@@ -65,6 +74,50 @@ def run_cmd(args, label="Comando"):
         return res
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Error in {label}: {e.stderr.strip() if e.stderr else e.stdout.strip()}")
+
+
+def mask_raster_to_country(source_path, output_path, country_geometry):
+    """Rasterize country regions on the source grid; exterior becomes nodata.
+
+    The raster's pixel values are retained, while its validity mask is combined
+    with the rasterized country geometry. This is intentionally not a crop/clip:
+    the original bounds and grid remain unchanged.
+    """
+    import numpy as np
+    import rasterio
+    from rasterio.features import geometry_mask
+    from rasterio.warp import transform_geom
+
+    with rasterio.open(source_path) as source:
+        geometry = country_geometry
+        if source.crs and str(source.crs).upper() not in ('EPSG:4326', 'OGC:CRS84'):
+            geometry = transform_geom('EPSG:4326', source.crs, country_geometry)
+        inside_country = geometry_mask(
+            [geometry],
+            out_shape=(source.height, source.width),
+            transform=source.transform,
+            all_touched=False,
+            invert=True,
+        )
+        valid = inside_country & (source.dataset_mask() > 0)
+        profile = source.profile.copy()
+        profile.update(driver='GTiff', compress='LZW', tiled=True)
+        profile.pop('blockxsize', None)
+        profile.pop('blockysize', None)
+
+        with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True):
+            with rasterio.open(output_path, 'w', **profile) as destination:
+                for band_index in range(1, source.count + 1):
+                    destination.write(source.read(band_index), band_index)
+                destination.write_mask(np.where(valid, 255, 0).astype('uint8'))
+    return output_path
+
+
+@lru_cache(maxsize=16)
+def _country_geometry_geojson(asset_regions):
+    """Fetch a configured country boundary once per asset per notebook session."""
+    import ee
+    return ee.FeatureCollection(asset_regions).geometry().getInfo()
 
 def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sensor=None, mosaic_method='minnbr', logger=None, progress_idx=0, progress_total=0, start_time=None, period_key=None):
     import shutil
@@ -115,6 +168,7 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
         if not gcs_files:
             if logger: logger(f"No shard found in GCS for {label}.", "warning")
             return []
+        country_geometry = _country_geometry_geojson(CONFIG['asset_regions'])
             
         found_bands = {}
         for f in gcs_files:
@@ -161,6 +215,8 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
 
                 vrt_path = os.path.join(tmp_path, f"{base_name}_{b_name}.vrt")
                 run_cmd(['gdalbuildvrt', vrt_path] + local_shards, label=f"VRT ({b_name})")
+                masked_path = os.path.join(tmp_path, f"{base_name}_{b_name}_country_mask.tif")
+                mask_raster_to_country(vrt_path, masked_path, country_geometry)
 
                 cog_base = (
                     mosaic_name_for_period(info.key, band=clean_b_name, sensor=s, mosaic=m_method)
@@ -174,11 +230,20 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
                 run_cmd([
                     'gdal_translate', '-of', 'COG', '-ot', dt,
                     '-co', 'COMPRESS=LZW', '-co', 'PREDICTOR=2',
-                    '-co', 'NUM_THREADS=2', '-co', 'BIGTIFF=YES', vrt_path, cog_local_path
+                    '-co', 'NUM_THREADS=2', '-co', 'BIGTIFF=YES', masked_path, cog_local_path
                 ], label=f"COG Conversion ({clean_b_name})")
 
                 dest = f"{CONFIG['bucket']}/{mosaic_prefix}/{cog_remote_name}"
                 upload(cog_local_path, dest)
+
+                try:
+                    from M1_update_manifest import complete_gcs_item
+                    complete_gcs_item(
+                        CONFIG['country'], s, period, m_method, label, clean_b_name,
+                    )
+                except Exception as e:
+                    if logger:
+                        logger(f"[WARN] COG uploaded but update manifest was not marked complete: {e}", "warning")
                 
                 if logger: logger(f" Success: {cog_remote_name}", "success")
                 if DELETE_CHUNKS_AFTER_COG:

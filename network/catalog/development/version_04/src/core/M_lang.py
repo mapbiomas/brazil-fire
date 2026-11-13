@@ -536,6 +536,9 @@ class L:
     EXPORT_START_BTN = "Start Export"
     EXPORT_SENT = "tasks sent."
     EXPORT_NONE_SEL = "No option selected for export."
+    M1_UPDATE_LABEL = "Update"
+    M1_UPDATE_TOOLTIP = "Re-export this date and band with the country mask"
+    M1_M2_READY = "M2 ready"
 
     M1_HEADER_TITLE = "M1 - Dispatcher"
     M1_HEADER_SUBTITLE = "Multi-sensor export interface"
@@ -1108,6 +1111,9 @@ STRINGS_ES = {
     "EXPORT_START_BTN": "Iniciar Exportación",
     "EXPORT_SENT": "tareas enviadas.",
     "EXPORT_NONE_SEL": "Ninguna opción seleccionada para exportación.",
+    "M1_UPDATE_LABEL": "Actualizar",
+    "M1_UPDATE_TOOLTIP": "Reexportar esta fecha y banda con la máscara del país",
+    "M1_M2_READY": "Listo para M2",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Montaje de Mosaicos",
     "MOSAIC_SYNC": "Sincronizar Datos",
@@ -1703,6 +1709,9 @@ STRINGS_PT = {
     "EXPORT_START_BTN": "Iniciar Exportação",
     "EXPORT_SENT": "tarefas enviadas.",
     "EXPORT_NONE_SEL": "Nenhuma opção selecionada para exportação.",
+    "M1_UPDATE_LABEL": "Atualizar",
+    "M1_UPDATE_TOOLTIP": "Reexportar esta data e banda com a máscara do país",
+    "M1_M2_READY": "Pronto para M2",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Montagem de Mosaicos",
     "MOSAIC_SYNC": "Sincronizar Dados",
@@ -2298,6 +2307,9 @@ STRINGS_FR = {
     "EXPORT_START_BTN": "Démarrer exportation",
     "EXPORT_SENT": "tâches envoyées.",
     "EXPORT_NONE_SEL": "Aucune option sélectionnée pour l'exportation.",
+    "M1_UPDATE_LABEL": "Mettre à jour",
+    "M1_UPDATE_TOOLTIP": "Réexporter cette date et bande avec le masque du pays",
+    "M1_M2_READY": "Prêt pour M2",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Assemblage de mosaïques",
     "MOSAIC_SYNC": "Synchroniser données",
@@ -2892,6 +2904,9 @@ STRINGS_ID = {
     "EXPORT_START_BTN": "Mulai Ekspor",
     "EXPORT_SENT": "tugas terkirim.",
     "EXPORT_NONE_SEL": "Tidak ada opsi dipilih untuk ekspor.",
+    "M1_UPDATE_LABEL": "Perbarui",
+    "M1_UPDATE_TOOLTIP": "Ekspor ulang tanggal dan band ini dengan masker negara",
+    "M1_M2_READY": "Siap untuk M2",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Perakitan Mozaik",
     "MOSAIC_SYNC": "Sinkron Data",

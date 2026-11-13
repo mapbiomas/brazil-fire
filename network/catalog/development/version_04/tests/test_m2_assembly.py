@@ -54,6 +54,12 @@ def assembly_env(shards, upload_error=None, rm_error=None):
              patch.object(logic, 'run_cmd', return_value=None) as run_cmd_mock, \
              patch.object(logic, 'upload', upload_mock), \
              patch.object(logic, 'rm_files', rm_mock), \
+             patch.object(logic, 'mask_raster_to_country', return_value='masked.tif') as mask_mock, \
+             patch.object(logic, '_country_geometry_geojson', return_value={
+                 'type': 'Polygon',
+                 'coordinates': [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
+             }), \
+             patch('M1_update_manifest.complete_gcs_item') as manifest_complete_mock, \
              patch.object(logic, 'check_m2_dependencies', return_value=[]), \
              patch.object(logic, 'get_temp_dir', return_value=tmp):
             yield upload_mock, rm_mock, run_cmd_mock

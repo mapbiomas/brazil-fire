@@ -79,6 +79,22 @@ class OutputStateTests(unittest.TestCase):
             ('RUN', True),
         )
 
+    def test_pending_country_mask_update_replaces_ok_state(self):
+        self.assertEqual(
+            resolve_output_state('GCS', True, True, False, False, update_pending=True),
+            ('UPDATE', True),
+        )
+        self.assertEqual(
+            resolve_output_state('ASSET', False, False, True, False, update_pending=True),
+            ('UPDATE', True),
+        )
+
+    def test_update_never_overrides_active_task(self):
+        self.assertEqual(
+            resolve_output_state('GCS', True, False, False, True, update_pending=True),
+            ('RUN', True),
+        )
+
 
 class OutputLinkTests(unittest.TestCase):
     @classmethod

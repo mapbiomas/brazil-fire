@@ -14,9 +14,14 @@ from M_cache import CacheManager
 from M_ui_components import PipelineStepUI, cell_log
 from M_lang import L as Lang
 from M_mosaics import methods_for
+from M1_update_manifest import (
+    add_pending_item, load_manifest, mark_item_complete,
+    pending_item, save_manifest, set_item_status,
+)
 
 
-def resolve_output_state(row_type, has_chunks, has_cog, has_asset, is_active):
+def resolve_output_state(row_type, has_chunks, has_cog, has_asset, is_active,
+                         update_pending=False):
     """Return (state, exists) for one M1 grid cell.
 
     GCS rows are satisfied by either the exported chunks or the assembled
@@ -29,6 +34,8 @@ def resolve_output_state(row_type, has_chunks, has_cog, has_asset, is_active):
         exists = bool(has_chunks or has_cog)
     if is_active:
         return 'RUN', exists
+    if exists and update_pending:
+        return 'UPDATE', True
     return ('OK' if exists else 'MISS'), exists
 
 
@@ -80,6 +87,26 @@ def make_link_cell(chk, url, width='auto'):
     return cell
 
 
+def make_update_cell(chk, callback, width='auto'):
+    """Render a direct Update action for an old country-wide output."""
+    button = widgets.Button(
+        description=Lang.M1_UPDATE_LABEL, icon='refresh', button_style='warning',
+        tooltip=Lang.M1_UPDATE_TOOLTIP,
+        layout=widgets.Layout(width='76px', height='26px', padding='0'),
+    )
+    button.on_click(lambda _button: callback(chk))
+    chk._update_button = button
+    cell = widgets.HBox(
+        [chk, button],
+        layout=widgets.Layout(
+            width=width, min_height='34px', justify_content='center',
+            align_items='center', padding='0', overflow='hidden', margin='1px',
+        ),
+    )
+    cell.add_class('mfm-run')
+    return cell
+
+
 class ExportDispatcherUI(PipelineStepUI):
     def __init__(self, years=None):
         super().__init__(
@@ -104,6 +131,12 @@ class ExportDispatcherUI(PipelineStepUI):
         self.bands = CONFIG['bands_all']
         self.update_status(Lang.LOADING_CACHE)
         self.state = CacheManager.load() or {}
+        try:
+            self.update_manifest = load_manifest()
+            self._reconcile_update_tasks()
+        except Exception as e:
+            print(f"[WARN] M1 update manifest unavailable: {e}")
+            self.update_manifest = {'version': 1, 'items': []}
         # Chunks/COGs written outside this session live only in GCS. Rebuild
         # the cache when it is older than the TTL so the grid reflects the
         # current GCS state without requiring a manual Sync.
@@ -141,7 +174,10 @@ class ExportDispatcherUI(PipelineStepUI):
 
     def _on_select_all(self, _):
         for chk in self.chk_dict.values():
-            if not chk.disabled and not chk._meta.get('exists'): chk.value = True
+            if not chk.disabled and (
+                not chk._meta.get('exists') or chk._meta.get('update_pending')
+            ):
+                chk.value = True
 
     def _on_select_none(self, _):
         for chk in self.chk_dict.values():
@@ -151,7 +187,9 @@ class ExportDispatcherUI(PipelineStepUI):
         config_module.set_edit_mode(change['new'])
         for chk in self.chk_dict.values():
             chk.disabled = chk._meta.get('active', False) or (
-                chk._meta.get('exists', False) and not change['new']
+                chk._meta.get('exists', False)
+                and not chk._meta.get('update_pending', False)
+                and not change['new']
             )
 
     def _on_select_row(self, btn):
@@ -161,6 +199,28 @@ class ExportDispatcherUI(PipelineStepUI):
         any_on = any(chk.value for chk in row_chks)
         target_val = not any_on
         for chk in row_chks: chk.value = target_val
+
+    def _on_update_click(self, chk):
+        """Run exactly the selected M1 date/band/target update."""
+        try:
+            self._reconcile_update_tasks()
+            manifest_entry = find_item(self.update_manifest, chk._meta)
+            if manifest_entry and manifest_entry.get('status') in ('chunks_ready', 'complete'):
+                self._refresh_cache()
+                return
+        except Exception as e:
+            print(f"[WARN] Could not reconcile before M1 update: {e}")
+        for candidate in self.chk_dict.values():
+            candidate.value = False
+        chk.value = True
+        chk.disabled = True
+        if hasattr(chk, '_update_button'):
+            chk._update_button.disabled = True
+        submitted = start_export(self, mode=chk._meta['type'])
+        if not submitted:
+            chk.disabled = False
+            if hasattr(chk, '_update_button'):
+                chk._update_button.disabled = False
 
     def _build_mosaic_grid(self, sensor, period, mosaic_method, active_tasks):
         L = widgets.Layout
@@ -239,16 +299,42 @@ class ExportDispatcherUI(PipelineStepUI):
                     is_active = any(task_id in t.lower() for t in active_tasks)
 
                     chk = widgets.Checkbox(value=False, indent=False, layout=L(width='18px', height='18px', margin='0'))
-                    chk._meta = {'sensor': sensor, 'period': period, 'mosaic': mosaic_method, 'year': y, 'month': m, 'period_key': date_str, 'band': b, 'type': row_type}
+                    chk._meta = {
+                        'country': CONFIG['country'], 'sensor': sensor,
+                        'period': period, 'mosaic': mosaic_method,
+                        'year': y, 'month': m, 'period_key': date_str,
+                        'band': b, 'type': row_type,
+                    }
+
+                    candidate = dict(chk._meta)
+                    candidate['exists'] = bool(has_asset if row_type == 'ASSET' else (has_chunks or has_cog))
+                    if candidate['exists'] and not is_active:
+                        add_pending_item(self.update_manifest, candidate)
+                    update_entry = find_item(self.update_manifest, candidate)
+                    chunks_ready = bool(
+                        update_entry and update_entry.get('status') == 'chunks_ready'
+                    )
+                    is_update_pending = candidate['exists'] and pending_item(
+                        self.update_manifest, candidate,
+                    )
 
                     status, exists = resolve_output_state(
                         row_type, has_chunks, has_cog, has_asset, is_active,
+                        update_pending=is_update_pending,
                     )
                     chk._meta['exists'] = exists
                     chk._meta['active'] = is_active
-                    css = {'RUN': 'mfm-run', 'OK': 'mfm-ok', 'MISS': 'mfm-null'}[status]
+                    chk._meta['update_pending'] = is_update_pending
+                    if chunks_ready and status == 'UPDATE':
+                        status = 'M2_READY'
+                    css = {
+                        'RUN': 'mfm-run', 'UPDATE': 'mfm-run',
+                        'M2_READY': 'mfm-run', 'OK': 'mfm-ok', 'MISS': 'mfm-null',
+                    }[status]
 
-                    chk.disabled = is_active or (exists and not is_edit_mode())
+                    chk.disabled = is_active or (
+                        exists and not is_edit_mode() and not is_update_pending
+                    ) or chunks_ready
 
                     link = None
                     if status == 'OK':
@@ -257,7 +343,15 @@ class ExportDispatcherUI(PipelineStepUI):
                             sensor=sensor, period=period, mosaic=mosaic_method,
                             period_key=date_str, band=b, mosaic_name=m_name,
                         )
-                    if link:
+                    if status == 'UPDATE':
+                        cell = make_update_cell(
+                            chk, self._on_update_click, width='auto',
+                        )
+                    elif status == 'M2_READY':
+                        cell = PipelineStepUI.make_status_cell(
+                            chk, Lang.M1_M2_READY, css, width='auto',
+                        )
+                    elif link:
                         cell = make_link_cell(chk, link, width='auto')
                     else:
                         cell = PipelineStepUI.make_status_cell(chk, status, css, width='auto')
@@ -267,6 +361,11 @@ class ExportDispatcherUI(PipelineStepUI):
 
                 matrix_rows.append(widgets.HBox(cells, layout=matrix_row_layout))
         
+        try:
+            save_manifest(self.update_manifest)
+        except Exception as e:
+            print(f"[WARN] Could not persist M1 update manifest: {e}")
+
         return widgets.VBox(matrix_rows, layout=L(
             max_height='450px', 
             width='100%',
@@ -441,6 +540,96 @@ class ExportDispatcherUI(PipelineStepUI):
             self.is_refreshing = False
             self.hide_loader()
 
+    def _reconcile_update_tasks(self):
+        """Promote successful staged GCS shards; complete successful EE assets."""
+        entries = self.update_manifest.get('items', [])
+        changed = False
+        for entry in entries:
+            if entry.get('status') not in ('submitted', 'exporting', 'submitted_new'):
+                continue
+            task_ids = entry.get('task_ids') or [entry.get('task_id')]
+            task_ids = [task_id for task_id in task_ids if task_id]
+            if not task_ids:
+                continue
+            try:
+                states = ee.data.getTaskStatus(*task_ids)
+                states = [states] if isinstance(states, dict) else states
+                by_id = {str(task.get('id')): task.get('state') for task in states}
+                task_states = [by_id.get(str(task_id), 'UNKNOWN') for task_id in task_ids]
+            except Exception as e:
+                print(f"[WARN] Could not check M1 task status: {e}")
+                continue
+
+            if any(state in ('FAILED', 'CANCELLED') for state in task_states):
+                if entry.get('type') == 'GCS' and entry.get('staging_prefix'):
+                    try:
+                        from M_gcs import glob, rm_files
+                        rm_files(glob(entry['staging_prefix'] + '*'))
+                    except Exception as e:
+                        print(f"[WARN] Could not clean failed M1 staging objects: {e}")
+                entry['status'] = 'pending'
+                entry['last_error'] = f"M1 task state(s): {task_states}"
+                entry.pop('task_ids', None)
+                entry.pop('staging_prefix', None)
+                entry.pop('target_prefix', None)
+                changed = True
+                continue
+            if not all(state == 'COMPLETED' for state in task_states):
+                continue
+
+            if entry.get('type') == 'ASSET':
+                mark_item_complete(self.update_manifest, entry)
+                changed = True
+                continue
+
+            if entry.get('status') == 'submitted_new':
+                mark_item_complete(self.update_manifest, entry)
+                changed = True
+                continue
+
+            from M_gcs import copy, glob, rm_files
+            stage_prefix = entry.get('staging_prefix')
+            target_prefix = entry.get('target_prefix')
+            staged = glob(stage_prefix + '*') if stage_prefix and target_prefix else []
+            if not staged:
+                entry['status'] = 'pending'
+                entry['last_error'] = 'Export completed but no staged GCS shards were found.'
+                entry.pop('task_ids', None)
+                changed = True
+                continue
+            existing_targets = glob(target_prefix + '*')
+            promoted_targets = []
+            try:
+                for source in staged:
+                    staged_name = source.rsplit('/', 1)[-1]
+                    prefix_name = stage_prefix.rsplit('/', 1)[-1]
+                    if not staged_name.startswith(prefix_name):
+                        raise RuntimeError(f"Unexpected staged M1 shard name: {source}")
+                    suffix = staged_name[len(prefix_name):]
+                    destination = target_prefix + suffix
+                    copy(source, destination)
+                    promoted_targets.append(destination)
+                obsolete_targets = [
+                    target for target in existing_targets
+                    if target not in promoted_targets
+                ]
+                if obsolete_targets:
+                    rm_files(obsolete_targets)
+                rm_files(staged)
+            except Exception as e:
+                entry['last_error'] = f"Staged shard promotion failed: {e}"
+                print(f"[WARN] {entry['last_error']}")
+                changed = True
+                continue
+            entry['status'] = 'chunks_ready'
+            entry.pop('task_ids', None)
+            entry.pop('staging_prefix', None)
+            entry.pop('target_prefix', None)
+            changed = True
+
+        if changed:
+            save_manifest(self.update_manifest)
+
 def run_ui(years=None):
     ui = ExportDispatcherUI(years=years)
     ui.display() 
@@ -484,7 +673,12 @@ def start_export(ui_obj, mode=None):
     import M1_export_logic as logic
     from M0_auth_config import CONFIG
     
-    country_geom = ee.FeatureCollection(CONFIG['asset_regions']).geometry().bounds()
+    country_regions = ee.FeatureCollection(CONFIG['asset_regions'])
+    country_geometry = country_regions.geometry()
+    try:
+        manifest = ui_obj.update_manifest
+    except AttributeError:
+        manifest = load_manifest()
 
     succeeded = 0
     for i, meta in enumerate(selected, 1):
@@ -505,22 +699,49 @@ def start_export(ui_obj, mode=None):
             start_date = info.start.strftime('%Y-%m-%d')
             end_date = info.end.strftime('%Y-%m-%d')
 
-            mosaic_obj = logic.get_quality_mosaic(sensor, y, start_date, end_date, country_geom, month=m, method=mosaic_m)
+            mosaic_obj = logic.get_quality_mosaic(
+                sensor, y, start_date, end_date, country_geometry,
+                month=m, method=mosaic_m,
+            )
 
             if meta['type'] == 'ASSET':
-                logic.export_to_asset(
+                task = logic.export_to_asset(
                     mosaic_obj, name_full, y, m, p, band=band, mosaic=mosaic_m,
                     sensor=sensor, period_key=period_key,
                 )
+                entry, _ = add_pending_item(manifest, meta)
+                if not meta.get('update_pending'):
+                    entry['before'] = 'not previously exported'
+                set_item_status(
+                    manifest, meta,
+                    'submitted' if meta.get('update_pending') else 'submitted_new',
+                    task_id=getattr(task, 'id', None),
+                )
             else:
-                if meta.get('exists'):
-                    logic.delete_gcs_band(
-                        y, m, p, band, sensor=sensor, mosaic=mosaic_m,
-                        period_key=period_key,
-                    )
-                logic.export_to_gcs(
+                stage_prefix = None
+                target_prefix = None
+                if meta.get('update_pending'):
+                    import uuid
+                    from M0_auth_config import period_chunk_path, CONFIG
+                    stage_dir = f"{period_chunk_path(period_key, mosaic=mosaic_m, sensor=sensor)}/.m1_updates/{uuid.uuid4().hex}"
+                    stage_prefix = f"{stage_dir}/{name_full}_"
+                    target_prefix = f"gs://{CONFIG['bucket']}/{period_chunk_path(period_key, mosaic=mosaic_m, sensor=sensor)}/{name_full}_"
+                tasks = logic.export_to_gcs(
                     mosaic_obj, name_base, y, m, p, bands=[band], mosaic=mosaic_m,
                     sensor=sensor, period_key=period_key,
+                    staging_prefix=stage_prefix.rsplit('/', 1)[0] if stage_prefix else None,
+                )
+                entry, _ = add_pending_item(manifest, meta)
+                if not meta.get('update_pending'):
+                    entry['before'] = 'not previously exported'
+                set_item_status(
+                    manifest, meta,
+                    'exporting' if meta.get('update_pending') else 'submitted_new',
+                    task_ids=[getattr(task, 'id', None) for task in tasks],
+                    **({
+                        'staging_prefix': stage_prefix,
+                        'target_prefix': target_prefix,
+                    } if meta.get('update_pending') else {}),
                 )
             succeeded += 1
             cell_log(f"Export sent: {sensor} {mosaic_m} ({band}) {period_key} [{meta['type']}]", type='success')
@@ -536,3 +757,8 @@ def start_export(ui_obj, mode=None):
         # New files are still being written asynchronously; drop the cache stamp
         # so M2 rescans GCS when it opens instead of trusting the old state.
         CacheManager.mark_stale()
+    try:
+        save_manifest(manifest)
+    except Exception as e:
+        print(f"[WARN] Could not persist M1 update task state: {e}")
+    return succeeded
