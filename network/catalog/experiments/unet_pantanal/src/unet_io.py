@@ -289,8 +289,8 @@ def load_samples(cfg, period, crs, logger=None):
 def regions_collection(cfg):
     """The regions FeatureCollection with the computed REGION_PROPERTY.
 
-    With REGION_NAME_FIELDS = ["bioma", "id"] and REGION_NAME_JOIN = "r_", each
-    feature gets region_name = bioma + "r_" + id.
+    With REGION_NAME_FIELDS = ["bioma", "id"] and REGION_NAME_JOIN = "_r", each
+    feature gets region_name = bioma + "_r" + id.
     """
     import ee
     fc = ee.FeatureCollection(cfg["REGIONS_ASSET"])

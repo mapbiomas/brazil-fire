@@ -47,13 +47,13 @@ DEFAULTS = {
     "CAMPAIGN": "MONITOR_01",
     "GEE_PROJECT": "mapbiomas-brazil",
     # Regions asset. Each feature gets a computed name:
-    #   region_name = bioma + REGION_NAME_JOIN + id      (e.g. "Pantanal" + "r_" + 60)
-    # as in the GEE script `f.set('region_name', f.getString('bioma').cat('r_').cat(f.get('id')))`.
+    #   region_name = bioma + REGION_NAME_JOIN + id      (e.g. "Pantanal" + "_r" + 1)
+    # as in the GEE script `f.set('region_name', f.getString('bioma').cat('_r').cat(f.get('id')))`.
     # Set REGION_NAME_FIELDS=None to use an existing property named REGION_PROPERTY.
     "REGIONS_ASSET": "users/geomapeamentoipam/AUXILIAR/regioes_biomas_col2",
     "REGION_PROPERTY": "region_name",
     "REGION_NAME_FIELDS": ["bioma", "id"],
-    "REGION_NAME_JOIN": "r_",
+    "REGION_NAME_JOIN": "_r",
     # Older MONITOR_01 asset (property already there):
     # "REGIONS_ASSET": "projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/MONITOR_01/AUXILIARY/regiones_fuego_brazil_v1",
     # "REGION_PROPERTY": "region_nam", "REGION_NAME_FIELDS": None,
@@ -64,8 +64,8 @@ DEFAULTS = {
     "EXPERIMENT": "UNET_01",         # output folder inside the campaign
     "MODEL_NAME": "unet_monitor_pantanal_v1",
     # Region to classify: value of REGION_PROPERTY in the regions asset (case
-    # sensitive; the error lists the options). Example: "Pantanalr_1".
-    "REGION": "Pantanalr_1",
+    # sensitive; the error lists the options). Example: "Pantanal_r1".
+    "REGION": "Pantanal_r1",
     # Value of the `region` column in the sample CSVs (case-insensitive), e.g.
     # "Pantanal 60". None = same as REGION.
     "SAMPLE_REGION": "Pantanal 60",

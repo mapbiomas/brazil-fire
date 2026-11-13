@@ -36,11 +36,11 @@ class TestPeriods(unittest.TestCase):
         self.assertEqual(region_slug({"REGION": " Mata-Atlântica / 2 "}), "mata_atl_ntica_2")
         self.assertEqual(region_slug({"REGION": None}), "mosaic")
         cfg = make_config()
-        self.assertEqual(cfg["REGION"], "Pantanalr_1")
+        self.assertEqual(cfg["REGION"], "Pantanal_r1")
         self.assertEqual(cfg["SAMPLE_REGION"], "Pantanal 60")
         self.assertEqual(cfg["REGIONS_ASSET"], "users/geomapeamentoipam/AUXILIAR/regioes_biomas_col2")
         self.assertEqual((cfg["REGION_PROPERTY"], cfg["REGION_NAME_FIELDS"], cfg["REGION_NAME_JOIN"]),
-                         ("region_name", ["bioma", "id"], "r_"))
+                         ("region_name", ["bioma", "id"], "_r"))
 
     def test_chip_name(self):
         self.assertEqual(split_chip_name("gs://b/x/2026_10_train_003.tfrecord.gz"), ("2026_10", "train", "003"))
