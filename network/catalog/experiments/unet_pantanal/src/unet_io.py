@@ -51,17 +51,18 @@ class MosaicReader:
         self.cfg = cfg
         self.period = period_info(period)[0]
         self.bands = list(cfg["BANDS"])
-        self.valid_band = cfg["VALID_BAND"]
+        self.valid_band = cfg.get("VALID_BAND") or None
+        self.all_bands = self.bands + ([self.valid_band] if self.valid_band else [])
         self.paths = mosaic_band_paths(cfg, self.period)
         self.multiband = bool(cfg.get("MULTIBAND_FILE"))
         self.sources = {}
         try:
             if self.multiband:
                 ds = _open_raster(self.paths[self.bands[0]])
-                for b in self.bands + [self.valid_band]:
+                for b in self.all_bands:
                     self.sources[b] = ds
             else:
-                for b in self.bands + [self.valid_band]:
+                for b in self.all_bands:
                     self.sources[b] = _open_raster(self.paths[b])
         except Exception as exc:
             self.close()
@@ -95,7 +96,7 @@ class MosaicReader:
 
     def _band_index(self, b):
         if self.multiband:
-            return (self.bands + [self.valid_band]).index(b) + 1
+            return self.all_bands.index(b) + 1
         return 1
 
     def read_band(self, b, window):
@@ -114,20 +115,29 @@ class MosaicReader:
 
     def read(self, window):
         raw = np.stack([self.read_band(b, window) for b in self.bands])
-        valid = self.read_band(self.valid_band, window) > 0
-        nodata = self.sources[self.bands[0]].nodata
-        if nodata is not None:
-            valid &= np.all(raw != nodata, axis=0)
+        if self.valid_band:
+            valid = self.read_band(self.valid_band, window) > 0
+        else:
+            # No dayOfYear: outside the image / masked pixels are 0 in every band.
+            valid = np.any(raw > 0, axis=0)
+        for b, arr in zip(self.bands, raw):
+            nodata = self.sources[b].nodata
+            if nodata is not None:
+                valid &= arr != nodata
         return raw, valid
 
     def read_doy(self, window):
+        """dayOfYear of the window, or None when VALID_BAND is not set."""
+        if not self.valid_band:
+            return None
         return self.read_band(self.valid_band, window)
 
     def inventory(self):
         info = {"period": self.period, "crs": str(self.crs), "width": self.width,
                 "height": self.height, "transform": list(self.transform)[:6],
                 "scale_divisor": self.cfg["SCALE"], "bands": {}}
-        for b in self.bands + [self.valid_band]:
+        info["valid_band"] = self.valid_band or "none (valid = bands not nodata and not all 0)"
+        for b in self.all_bands:
             ds = self.sources[b]
             info["bands"][b] = {"path": f"gs://{self.paths[b]}", "dtype": ds.dtypes[0],
                                 "nodata": ds.nodata, "res": list(ds.res)}

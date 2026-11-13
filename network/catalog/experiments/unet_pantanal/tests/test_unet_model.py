@@ -24,9 +24,9 @@ except ImportError:
 @unittest.skipUnless(HAVE_TF, "tensorflow not installed")
 class TestModel(unittest.TestCase):
     def setUp(self):
-        from unet_config import make_config
+        from unet_config import FULL_BANDS, FULL_INDICES, make_config
         self.cfg = make_config(BATCH=2, FILTERS=[4, 8], BOTTOM_FILTERS=8, CHIP=16,
-                               INFER_TILE=16, OVERLAP=8)
+                               INFER_TILE=16, OVERLAP=8, BANDS=FULL_BANDS, INDICES=FULL_INDICES)
         self.stats = {"clip_low": [-1.0] * 11, "clip_high": [2.0] * 11,
                       "mean": [0.5] * 11, "std": [0.25] * 11}
 

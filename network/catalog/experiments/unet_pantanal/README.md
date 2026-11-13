@@ -16,6 +16,17 @@ it only **reads** the data the catalog already produced in Google Cloud Storage:
   (`fire` = 1/0, `region`, `period`, `.geo` polygon);
 - regions: `projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/MONITOR_01/AUXILIARY/regiones_fuego_brazil_v1`.
 
+**First test setup:** only `green` and `swir2` are exported for `2026_10`, so
+`BANDS=["green", "swir2"]`, `INDICES=[]` (no index can be computed from these
+two) and `VALID_BAND=None` (no `dayOfYear` yet: a pixel is valid where the
+bands are not nodata and not all 0, and output band 2 stays -9999). The full
+band and index lists are kept commented in `src/unet_config.py` and in the
+notebook. With no indices, the MLP comparison has only A (bands) and C (U-Net).
+
+`PERIODS` are the months used for training (mosaic **and** samples needed);
+`PREDICT_PERIODS` are the months to classify (only the mosaic is needed;
+default = `PERIODS`).
+
 A period is a catalog period key: `2026_10` (monthly) or `2024` (annual). The
 same code runs the annual Landsat collection with `CAMPAIGN="COLLECTION_06"`,
 `SENSOR="landsat"`, `PERIODS=["2024"]` and `CHIP=128`.
@@ -103,8 +114,9 @@ so earlier results are kept.
 - Chips: 256 x 256 px (2.56 km at 10 m).
 - Labels: 1 inside fire polygons, 0 inside not-fire polygons, 255 elsewhere
   and on nodata. Fire wins where both overlap (logged).
-- Features: 5 bands (blue, red, nir, swir1, swir2) + NBR, NBR2, MIRBI, NDVI,
-  BAI, EVI, from one function used for chips and inference. Values are
+- Features: first test green + swir2; full set 5 bands (blue, red, nir,
+  swir1, swir2) + NBR, NBR2, MIRBI, NDVI, BAI, EVI, from one function used
+  for chips and inference. Values are
   clipped to the train 1-99 percentiles, then standardized.
 - Model: U-Net, filters 32-64-128-256, bottom 512, batch norm, sigmoid output,
   masked BCE + Dice, early stopping on validation IoU of the fire class.

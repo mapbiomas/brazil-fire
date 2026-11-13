@@ -19,11 +19,25 @@ Usage in the notebook::
 """
 import copy
 
-# Spectral bands read from the mosaic COGs, in this order (channels 0..4).
-DEFAULT_BANDS = ["blue", "red", "nir", "swir1", "swir2"]
+# Spectral bands read from the mosaic COGs, in this order.
+# Full sets, for when every band is exported.
+FULL_BANDS = ["blue", "red", "nir", "swir1", "swir2"]
+FULL_INDICES = ["nbr", "nbr2", "mirbi", "ndvi", "bai", "evi"]
+
+# First test: only the bands exported so far for MONITOR_01 2026_10.
+DEFAULT_BANDS = ["green", "swir2"]
+# DEFAULT_BANDS = list(FULL_BANDS)
 
 # Spectral indices appended after the bands (see unet_features.add_indices).
-DEFAULT_INDICES = ["nbr", "nbr2", "mirbi", "ndvi", "bai", "evi"]
+# None of them can be computed from green + swir2 only.
+DEFAULT_INDICES = []
+# DEFAULT_INDICES = list(FULL_INDICES)   # needs blue, red, nir, swir1, swir2
+
+# Bands each index needs (checked by validate_config).
+INDEX_BANDS = {
+    "nbr": {"nir", "swir2"}, "nbr2": {"swir1", "swir2"}, "mirbi": {"swir1", "swir2"},
+    "ndvi": {"nir", "red"}, "bai": {"red", "nir"}, "evi": {"nir", "red", "blue"},
+}
 
 DEFAULTS = {
     # --- Project (where the catalog data is) -------------------------------
@@ -46,12 +60,18 @@ DEFAULTS = {
     # '2024' (annual). Chips of all periods train one model; each period gets
     # its own map.
     "PERIODS": ["2026_10"],
+    # Periods to classify with the trained model (need a mosaic, not samples).
+    # None = the same as PERIODS.
+    "PREDICT_PERIODS": None,
 
     # --- Mosaics (M2 COGs) ------------------------------------------------
     "SENSOR": "sentinel2",           # sentinel2 (10 m) | landsat (30 m)
     "MOSAIC": "minnbr",
     "BANDS": list(DEFAULT_BANDS),
-    "VALID_BAND": "dayOfYear",       # pixel is valid where this band > 0 (same rule as M5)
+    # Pixel is valid where this band > 0 (same rule as M5), and the output
+    # band 2 gets its value. None (not exported yet): a pixel is valid where
+    # the bands are not nodata and not all 0; output band 2 stays -9999.
+    "VALID_BAND": None,              # "dayOfYear" when it is exported
     # M1 exports Sentinel-2 and Landsat reflectance x 100 as uint8.
     # Dividing by SCALE gives reflectance 0-1.
     "SCALE": 100.0,
@@ -135,9 +155,17 @@ def validate_config(cfg):
         raise ValueError(f"CHIP must be a multiple of {depth}.")
     if (cfg["INFER_TILE"] + 2 * cfg["OVERLAP"]) % depth:
         raise ValueError(f"INFER_TILE + 2*OVERLAP must be a multiple of {depth}.")
+    if not cfg["BANDS"]:
+        raise ValueError("BANDS must list at least one band.")
+    for idx in cfg["INDICES"]:
+        missing = INDEX_BANDS.get(idx, set()) - set(cfg["BANDS"])
+        if missing:
+            raise ValueError(f"Index '{idx}' needs bands {sorted(missing)}; add them to BANDS "
+                             "or remove the index from INDICES.")
     if not cfg["PERIODS"]:
         raise ValueError("PERIODS must list at least one period (e.g. ['2026_10']).")
     cfg["PERIODS"] = [period_info(p)[0] for p in cfg["PERIODS"]]
+    cfg["PREDICT_PERIODS"] = [period_info(p)[0] for p in (cfg["PREDICT_PERIODS"] or cfg["PERIODS"])]
     return cfg
 
 
@@ -220,7 +248,7 @@ def paths(cfg):
 
 
 def mosaic_band_paths(cfg, period):
-    """{band: 'bucket/.../image_..._cog.tif'} for BANDS + VALID_BAND.
+    """{band: 'bucket/.../image_..._cog.tif'} for BANDS + VALID_BAND (if set).
 
     Same folder and file names the catalog (version_04 M1/M2) writes and its
     M4/M5 read:
@@ -228,7 +256,7 @@ def mosaic_band_paths(cfg, period):
         image_{country}_fire_{sensor}_{mosaic}_{band}_{period}_cog.tif
     """
     key, periodicity = period_info(period)
-    bands = list(cfg["BANDS"]) + [cfg["VALID_BAND"]]
+    bands = list(cfg["BANDS"]) + ([cfg["VALID_BAND"]] if cfg.get("VALID_BAND") else [])
     if cfg.get("MULTIBAND_FILE"):
         path = f"{cfg['BUCKET']}/{cfg['MULTIBAND_FILE'].format(period=key)}"
         return {b: path for b in bands}

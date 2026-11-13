@@ -41,11 +41,17 @@ class TestPaths(unittest.TestCase):
         self.assertEqual(cfg["CAMPAIGN"], "MONITOR_01")
         self.assertEqual(cfg["PERIODS"], ["2026_10"])
         p = mosaic_band_paths(cfg, "2026_10")
+        # same object as
+        # https://storage.googleapis.com/mapbiomas-fire/sudamerica/brazil/CATALOG_01/LIBRARY_IMAGES/
+        #   SENTINEL2/MONTHLY/MINNBR/2026_10/COG/image_brazil_fire_sentinel2_minnbr_green_2026_10_cog.tif
         self.assertEqual(
-            p["nir"],
+            p["green"],
             "mapbiomas-fire/sudamerica/brazil/CATALOG_01/LIBRARY_IMAGES/SENTINEL2/MONTHLY/MINNBR/"
-            "2026_10/COG/image_brazil_fire_sentinel2_minnbr_nir_2026_10_cog.tif")
-        self.assertEqual(set(p), {"blue", "red", "nir", "swir1", "swir2", "dayOfYear"})
+            "2026_10/COG/image_brazil_fire_sentinel2_minnbr_green_2026_10_cog.tif")
+        self.assertEqual(set(p), {"green", "swir2"})  # no dayOfYear yet
+        full = mosaic_band_paths(make_config(BANDS=["blue", "red", "nir", "swir1", "swir2"],
+                                             VALID_BAND="dayOfYear"), "2026_10")
+        self.assertTrue(full["dayOfYear"].endswith("image_brazil_fire_sentinel2_minnbr_dayOfYear_2026_10_cog.tif"))
         P = paths(cfg)
         self.assertEqual(P["samples"], "sudamerica/brazil/CATALOG_01/MONITOR_01/LIBRARY_SAMPLES")
         self.assertEqual(P["root"], "sudamerica/brazil/CATALOG_01/MONITOR_01/UNET_01")
@@ -53,12 +59,23 @@ class TestPaths(unittest.TestCase):
             self.assertTrue(P[key].startswith(P["root"] + "/"), key)
 
     def test_annual_landsat(self):
-        cfg = make_config(CAMPAIGN="COLLECTION_06", SENSOR="landsat", PERIODS=[2024], CHIP=128)
+        cfg = make_config(CAMPAIGN="COLLECTION_06", SENSOR="landsat", PERIODS=[2024], CHIP=128,
+                          BANDS=["blue", "red", "nir", "swir1", "swir2"], VALID_BAND="dayOfYear")
         self.assertEqual(cfg["PERIODS"], ["2024"])
         self.assertEqual(
             mosaic_band_paths(cfg, 2024)["nir"],
             "mapbiomas-fire/sudamerica/brazil/CATALOG_01/LIBRARY_IMAGES/LANDSAT/ANNUALLY/MINNBR/"
             "2024/COG/image_brazil_fire_landsat_minnbr_nir_2024_cog.tif")
+
+    def test_predict_periods(self):
+        self.assertEqual(make_config()["PREDICT_PERIODS"], ["2026_10"])
+        cfg = make_config(PERIODS=["2026_09", "2026_10"], PREDICT_PERIODS=["202611", "2026_10"])
+        self.assertEqual(cfg["PREDICT_PERIODS"], ["2026_11", "2026_10"])
+
+    def test_index_needs_bands(self):
+        with self.assertRaises(ValueError):
+            make_config(INDICES=["nbr"])  # default bands are green + swir2
+        make_config(BANDS=["nir", "swir2"], INDICES=["nbr"])
 
     def test_unknown_key_fails(self):
         with self.assertRaises(KeyError):
@@ -73,6 +90,22 @@ class TestPaths(unittest.TestCase):
         _check_inside(cfg, paths(cfg)["reports"] + "/x.json")
         with self.assertRaises(PermissionError):
             _check_inside(cfg, paths(cfg)["samples"] + "/x.csv")
+
+
+class TestOutputWithoutDoy(unittest.TestCase):
+    def test_to_output(self):
+        try:
+            import numpy as np
+            from unet_predict import NODATA, to_output
+        except ImportError as exc:
+            self.skipTest(str(exc))
+        prob = np.array([[0.0, 0.4], [0.9, 0.2]])
+        valid = np.array([[True, True], [True, False]])
+        p, d = to_output(prob, valid, None)
+        self.assertEqual(p.tolist(), [[0, 400], [900, NODATA]])
+        self.assertTrue((d == NODATA).all())
+        p, d = to_output(prob, valid, np.full((2, 2), 280))
+        self.assertEqual(d.tolist(), [[NODATA, 280], [280, NODATA]])
 
 
 class TestSamplePeriods(unittest.TestCase):

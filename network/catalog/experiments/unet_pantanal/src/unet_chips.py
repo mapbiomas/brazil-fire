@@ -261,7 +261,13 @@ def save_preview(cfg, period, preview):
     import matplotlib.pyplot as plt
 
     bands = cfg["BANDS"]
-    rgb_idx = [bands.index(b) for b in ("swir1", "nir", "red")]
+    if all(b in bands for b in ("swir1", "nir", "red")):
+        rgb_idx = [bands.index(b) for b in ("swir1", "nir", "red")]
+    else:  # e.g. green + swir2: (swir2, green, green)
+        order = [b for b in ("swir2", "swir1", "nir", "red", "green", "blue") if b in bands] or list(bands)
+        rgb_idx = [bands.index(b) for b in (order * 3)[:3]]
+        if len(order) == 2:
+            rgb_idx = [bands.index(order[0]), bands.index(order[1]), bands.index(order[1])]
     n = len(preview)
     cols = 4
     rows = int(np.ceil(n / cols))
@@ -280,7 +286,8 @@ def save_preview(cfg, period, preview):
         lab[y == 0] = (0, 0.3, 1, 0.6)
         axes[r, 2 * c + 1].imshow(rgb)
         axes[r, 2 * c + 1].imshow(lab)
-    fig.suptitle(f"{cfg['REGION']} {period} - train chips (SWIR1/NIR/RED | red = fire, blue = not fire)")
+    rgb_names = "/".join(bands[i].upper() for i in rgb_idx)
+    fig.suptitle(f"{cfg['REGION']} {period} - train chips ({rgb_names} | red = fire, blue = not fire)")
     fig.tight_layout()
     local = os.path.join(local_dir("reports"), f"chips_preview_{period}.png")
     fig.savefig(local, dpi=110)

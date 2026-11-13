@@ -105,8 +105,9 @@ def compare_with_mlp(cfg, unet_results, logger=None):
     _log(logger, f"[MLP] labeled pixels: train {len(Xtr)} | val {len(Xva)} | test {len(Xte)}")
 
     n_bands = len(cfg["BANDS"])
-    variants = {"A_mlp_bands": slice(0, n_bands),
-                "B_mlp_bands_indices": slice(0, len(channel_names(cfg)))}
+    variants = {"A_mlp_bands": slice(0, n_bands)}
+    if cfg["INDICES"]:  # B only makes sense when there are indices
+        variants["B_mlp_bands_indices"] = slice(0, len(channel_names(cfg)))
     rows = {}
     for name, cols in variants.items():
         mean, std = _mean_std(Xtr[:, cols])

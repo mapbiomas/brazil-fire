@@ -7,7 +7,9 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from unet_config import DEFAULT_BANDS, DEFAULT_INDICES, make_config  # noqa: E402
+from unet_config import FULL_BANDS as DEFAULT_BANDS  # noqa: E402
+from unet_config import FULL_INDICES as DEFAULT_INDICES  # noqa: E402
+from unet_config import make_config  # noqa: E402
 from unet_features import (PixelReservoir, add_indices, best_threshold,  # noqa: E402
                            compute_norm_stats, metrics_at, normalize,
                            prob_histograms, scale_bands)
@@ -17,7 +19,9 @@ class TestConfig(unittest.TestCase):
     def test_defaults_valid(self):
         cfg = make_config()
         self.assertEqual(cfg["SCALE"], 100.0)
-        self.assertEqual(cfg["VALID_BAND"], "dayOfYear")
+        self.assertEqual(cfg["BANDS"], ["green", "swir2"])
+        self.assertEqual(cfg["INDICES"], [])
+        self.assertIsNone(cfg["VALID_BAND"])  # dayOfYear not exported yet
 
     def test_unknown_key(self):
         with self.assertRaises(KeyError):

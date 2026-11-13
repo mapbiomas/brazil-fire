@@ -50,8 +50,9 @@ def to_output(prob, valid, doy):
     p = np.full(prob.shape, NODATA, dtype=np.int16)
     p[valid] = np.round(np.clip(prob[valid], 0, 1) * 1000).astype(np.int16)
     d = np.full(prob.shape, NODATA, dtype=np.int16)
-    burned = valid & (p > 0)
-    d[burned] = doy[burned].astype(np.int16)
+    if doy is not None:  # no dayOfYear band -> band 2 stays NODATA
+        burned = valid & (p > 0)
+        d[burned] = doy[burned].astype(np.int16)
     return p, d
 
 
@@ -144,7 +145,10 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
         rel = f"{P['predict']}/{name}.tif"
         summary = {"period": period, "model": cfg["MODEL_NAME"], "gcs": f"gs://{P['bucket']}/{rel}",
                    "valid_pixels": n_valid, "burned_pixels_prob_gt_0": n_burned,
-                   "encoding": "b1 probability int16 0-1000; b2 dayOfYear where probability > 0; nodata -9999",
+                   "encoding": ("b1 probability int16 0-1000; b2 dayOfYear where probability > 0"
+                                if cfg.get("VALID_BAND") else
+                                "b1 probability int16 0-1000; b2 empty (-9999): no dayOfYear band")
+                               + "; nodata -9999",
                    "minutes": round((time.time() - t0) / 60, 1)}
         if upload_result:
             upload(cfg, cog, rel)
