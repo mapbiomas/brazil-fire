@@ -1084,6 +1084,28 @@ OBJ = {
         },
     },
     "venezuela": {
+        "fire": {
+            "collection_01": [
+                _p("venezuela", "fire", "collection1", "annual_burned",
+                   "projects/mapbiomas-public/assets/venezuela/fire/collection1/mapbiomas_venezuela_fire_collection1_annual_burned_v1", "byte", vectorize=True),
+                _p("venezuela", "fire", "collection1", "annual_burned_coverage",
+                   "projects/mapbiomas-public/assets/venezuela/fire/collection1/mapbiomas_venezuela_fire_collection1_annual_burned_coverage_v1", "byte"),
+                _p("venezuela", "fire", "collection1", "annual_burned_scar_size_range",
+                   "projects/mapbiomas-public/assets/venezuela/fire/collection1/mapbiomas_venezuela_fire_collection1_annual_burned_scar_size_range_v1", "byte"),
+                _p("venezuela", "fire", "collection1", "monthly_burned",
+                   "projects/mapbiomas-public/assets/venezuela/fire/collection1/mapbiomas_venezuela_fire_collection1_monthly_burned_v1", "byte"),
+                _p("venezuela", "fire", "collection1", "accumulated_burned",
+                   "projects/mapbiomas-public/assets/venezuela/fire/collection1/mapbiomas_venezuela_fire_collection1_accumulated_burned_v1", "byte"),
+                _p("venezuela", "fire", "collection1", "accumulated_burned_coverage",
+                   "projects/mapbiomas-public/assets/venezuela/fire/collection1/mapbiomas_venezuela_fire_collection1_accumulated_burned_coverage_v1", "byte"),
+                _p("venezuela", "fire", "collection1", "frequency_burned",
+                   "projects/mapbiomas-public/assets/venezuela/fire/collection1/mapbiomas_venezuela_fire_collection1_frequency_burned_v1", "byte"),
+                _p("venezuela", "fire", "collection1", "frequency_burned_coverage",
+                   "projects/mapbiomas-public/assets/venezuela/fire/collection1/mapbiomas_venezuela_fire_collection1_frequency_burned_coverage_v1", "int16"),
+                _p("venezuela", "fire", "collection1", "year_last_fire",
+                   "projects/mapbiomas-public/assets/venezuela/fire/collection1/mapbiomas_venezuela_fire_collection1_year_last_fire_v1", "int16"),
+            ],
+        },
         "lulc": {
             "collection_03": [
                 _p("venezuela", "lulc", "collection3", "coverage",
@@ -1106,7 +1128,29 @@ OBJ = {
         },
     },
 "ecuador": {
-        "lulc": {
+        "fire": {
+            "collection_01": [
+                _p("ecuador", "fire", "collection1", "annual_burned",
+                   "projects/mapbiomas-public/assets/ecuador/fire/collection1/mapbiomas_ecuador_fire_collection1_annual_burned_v1", "byte", vectorize=True),
+                _p("ecuador", "fire", "collection1", "annual_burned_coverage",
+                   "projects/mapbiomas-public/assets/ecuador/fire/collection1/mapbiomas_ecuador_fire_collection1_annual_burned_coverage_v1", "byte"),
+                _p("ecuador", "fire", "collection1", "annual_burned_scar_size_range",
+                   "projects/mapbiomas-public/assets/ecuador/fire/collection1/mapbiomas_ecuador_fire_collection1_annual_burned_scar_size_range_v1", "byte"),
+                _p("ecuador", "fire", "collection1", "monthly_burned",
+                   "projects/mapbiomas-public/assets/ecuador/fire/collection1/mapbiomas_ecuador_fire_collection1_monthly_burned_v1", "byte"),
+                _p("ecuador", "fire", "collection1", "accumulated_burned",
+                   "projects/mapbiomas-public/assets/ecuador/fire/collection1/mapbiomas_ecuador_fire_collection1_accumulated_burned_v1", "byte"),
+                _p("ecuador", "fire", "collection1", "accumulated_burned_coverage",
+                   "projects/mapbiomas-public/assets/ecuador/fire/collection1/mapbiomas_ecuador_fire_collection1_accumulated_burned_coverage_v1", "byte"),
+                _p("ecuador", "fire", "collection1", "frequency_burned",
+                   "projects/mapbiomas-public/assets/ecuador/fire/collection1/mapbiomas_ecuador_fire_collection1_frequency_burned_v1", "byte"),
+                _p("ecuador", "fire", "collection1", "frequency_burned_coverage",
+                   "projects/mapbiomas-public/assets/ecuador/fire/collection1/mapbiomas_ecuador_fire_collection1_frequency_burned_coverage_v1", "int16"),
+                _p("ecuador", "fire", "collection1", "year_last_fire",
+                   "projects/mapbiomas-public/assets/ecuador/fire/collection1/mapbiomas_ecuador_fire_collection1_year_last_fire_v1", "int16"),
+            ],
+        },
+    "lulc": {
             "collection_01": [
                 _p("ecuador", "lulc", "collection1", "integration",
                    "projects/mapbiomas-public/assets/ecuador/collection1/mapbiomas_ecuador_collection1_integration_v1", "byte"),
