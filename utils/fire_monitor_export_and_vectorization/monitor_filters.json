@@ -1,0 +1,13 @@
+{
+  "preset": "fire_monitor",
+  "include_countries": [],
+  "exclude_countries": [],
+  "include_themes": [],
+  "exclude_themes": [],
+  "include_collections": {},
+  "exclude_collections": {},
+  "include_products": {},
+  "exclude_products": {},
+  "load_data_cache": {},
+  "schema_version": 2
+}
