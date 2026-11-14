@@ -3,6 +3,7 @@ Componentes de UI Base (Ipywidgets)
 MapBiomas Fire Monitor Pipeline - ASCII Version
 """
 import ipywidgets as widgets
+import html
 import time
 from IPython.display import display, clear_output
 from M_lang import L
@@ -19,6 +20,17 @@ def cell_log(message, type="info"):
     """Exibe mensagem colorida na célula atual (não dentro de um PipelineStepUI)."""
     color = THEME.get(type.upper(), THEME['DEFAULT'])
     display(widgets.HTML(f"<span style='color:{color}'>[{type.upper()}] {message}</span>"))
+
+
+def make_update_note(message):
+    """Blue, compact explanation shown beside each module's sync control."""
+    return widgets.HTML(
+        '<div style="background:#eaf3ff;border:1px solid #91caff;'
+        'border-left:4px solid #1677ff;border-radius:6px;padding:7px 11px;'
+        'color:#0958d9;font-size:11px;line-height:1.4;">'
+        f'<strong>{html.escape(message)}</strong></div>',
+        layout=widgets.Layout(flex='1 1 360px', min_width='290px'),
+    )
 
 class PipelineStepUI:
     """
@@ -137,19 +149,6 @@ class PipelineStepUI:
             .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
             .mfm-hdr  { font-size:11px; font-weight:700; color:#495057; text-align:center; }
 
-            .m1-primary-tabs .lm-TabBar-tab:nth-child(2),
-            .m1-primary-tabs .p-TabBar-tab:nth-child(2) {
-                color:#0958d9 !important;
-                background:#eaf3ff !important;
-                border-color:#91caff !important;
-                font-weight:700 !important;
-            }
-            .m1-primary-tabs .lm-TabBar-tab:nth-child(2).lm-mod-current,
-            .m1-primary-tabs .p-TabBar-tab:nth-child(2).p-mod-current {
-                color:#003eb3 !important;
-                background:#d6e8ff !important;
-                border-bottom-color:#1677ff !important;
-            }
         </style>''')
 
     @staticmethod

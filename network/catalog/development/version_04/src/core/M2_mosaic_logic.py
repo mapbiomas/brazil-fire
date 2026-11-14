@@ -77,40 +77,56 @@ def run_cmd(args, label="Comando"):
         raise RuntimeError(f"Error in {label}: {e.stderr.strip() if e.stderr else e.stdout.strip()}")
 
 
-def mask_raster_to_country(source_path, output_path, country_geometry):
-    """Rasterize country regions on the source grid; exterior becomes nodata.
+def mask_raster_to_country(source_path, output_path, country_geometry, window_size=512):
+    """Rasterize the country mask window-by-window on the unchanged source grid.
 
-    The raster's pixel values are retained, while its validity mask is combined
-    with the rasterized country geometry. This is intentionally not a crop/clip:
-    the original bounds and grid remain unchanged.
+    Data and validity masks are read/written in bounded windows so a large
+    country COG never needs to be materialized as a full-image NumPy array.
     """
     import numpy as np
     import rasterio
     from rasterio.features import geometry_mask
     from rasterio.warp import transform_geom
+    from rasterio.windows import Window, transform as window_transform
+
+    if not isinstance(window_size, int) or window_size <= 0:
+        raise ValueError("window_size must be a positive integer")
 
     with rasterio.open(source_path) as source:
         geometry = country_geometry
         if source.crs and str(source.crs).upper() not in ('EPSG:4326', 'OGC:CRS84'):
             geometry = transform_geom('EPSG:4326', source.crs, country_geometry)
-        inside_country = geometry_mask(
-            [geometry],
-            out_shape=(source.height, source.width),
-            transform=source.transform,
-            all_touched=False,
-            invert=True,
-        )
-        valid = inside_country & (source.dataset_mask() > 0)
         profile = source.profile.copy()
         profile.update(driver='GTiff', compress='LZW', tiled=True)
         profile.pop('blockxsize', None)
         profile.pop('blockysize', None)
+        output_block_size = max(16, ((window_size + 15) // 16) * 16)
+        profile['blockxsize'] = output_block_size
+        profile['blockysize'] = output_block_size
 
         with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True):
             with rasterio.open(output_path, 'w', **profile) as destination:
-                for band_index in range(1, source.count + 1):
-                    destination.write(source.read(band_index), band_index)
-                destination.write_mask(np.where(valid, 255, 0).astype('uint8'))
+                for row in range(0, source.height, window_size):
+                    height = min(window_size, source.height - row)
+                    for col in range(0, source.width, window_size):
+                        width = min(window_size, source.width - col)
+                        window = Window(col, row, width, height)
+                        country_mask = geometry_mask(
+                            [geometry],
+                            out_shape=(height, width),
+                            transform=window_transform(window, source.transform),
+                            all_touched=False,
+                            invert=True,
+                        )
+                        source_mask = source.dataset_mask(window=window) > 0
+                        valid = country_mask & source_mask
+                        for band_index in range(1, source.count + 1):
+                            data = source.read(band_index, window=window)
+                            destination.write(data, band_index, window=window)
+                        destination.write_mask(
+                            np.where(valid, 255, 0).astype('uint8'),
+                            window=window,
+                        )
     return output_path
 
 

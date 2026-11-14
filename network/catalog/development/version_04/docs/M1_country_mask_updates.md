@@ -13,20 +13,19 @@ invalid/nodata.
 1. Open M1 for the country and years to be checked. Existing outputs that have
    no manifest record are recorded as pending in
    `gs://<bucket>/<gcs_library_images>/.CACHE/M1_UPDATE_MANIFEST.json`.
-2. Each pending M1 cell displays a localized **Update** button. It operates on
-   exactly that period, band and target; other selections are cleared.
-3. GEE asset updates use the existing asset ID with Earth Engine overwrite
-   enabled. GCS checks the actual objects again when **Update** is clicked:
-   - If the COG exists, M2 downloads and masks that COG on its original grid,
-     rebuilds it, then overwrites the same object. This path creates no Earth
-     Engine task and leaves the old COG intact until the replacement upload.
-   - If the COG is absent but chunks exist, M2 builds the masked COG from those
-     chunks. This path also creates no Earth Engine task.
-   - If neither COG nor chunks exist, M1 uses the normal Earth Engine export
-     flow for a new product.
-4. Refresh M1 to see the completed item return to **OK**. Failed masking or
-   assembly leaves the item eligible for retry; an absent product remains
-   eligible for the normal export path.
+2. Select pending **ASSET** checkboxes in M1 and run the notebook's normal M1
+   start cell. It re-exports the GEE asset to the same ID with overwrite enabled.
+   Existing GCS mosaics are labeled for M2 rather than re-exported by M1.
+3. Select the corresponding pending GCS checkbox in M2 and run the regular M2
+   assembly cell. If a COG already exists, M2 downloads it to Colab's temporary
+   directory, applies the country mask in fixed-size raster windows, writes a
+   temporary replacement, and uploads it to the same object key. The old COG
+   remains until the replacement upload succeeds. If only chunks exist, M2
+   assembles those chunks. If neither COG nor chunks exists, use the normal M1
+   export first.
+4. Temporary input/output rasters are removed after processing, including on
+   failure. Refresh the module to see the completed item return to **OK**; a
+   failed mask or assembly remains selectable for retry.
 
 The manifest identity is country, sensor, periodicity, mosaic method, period
 key, band and target. Campaign is deliberately excluded. M1's default

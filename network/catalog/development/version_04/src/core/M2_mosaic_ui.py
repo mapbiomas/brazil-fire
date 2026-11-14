@@ -5,10 +5,13 @@ import ipywidgets as widgets
 from M0_auth_config import CONFIG, GLOBAL_OPTS, mosaic_name_for_period, is_edit_mode, period_cog_path, get_sensor_start_year, resolve_years
 from M_periods import list_periods, period_state_key
 from M_cache import CacheManager
-from M_ui_components import PipelineStepUI, cell_log, ProgressTracker
+from M_ui_components import PipelineStepUI, cell_log, ProgressTracker, make_update_note
 from M_lang import L as Lang
 from M_mosaics import methods_for
-from M1_update_manifest import find_item, load_manifest
+from M1_update_manifest import (
+    find_item, load_manifest, mark_item_complete, pending_item,
+    save_manifest, set_item_status,
+)
 
 class MosaicAssemblerUI(PipelineStepUI):
     def __init__(self, years=None):
@@ -142,24 +145,26 @@ class MosaicAssemblerUI(PipelineStepUI):
                     'period': period, 'mosaic': mosaic_method,
                     'period_key': date_str, 'band': b, 'type': 'GCS',
                 })
-                chunks_ready = bool(
-                    update_entry and update_entry.get('status') == 'chunks_ready'
-                )
-                m1_update_pending = bool(
-                    update_entry
-                    and update_entry.get('status') not in ('complete', 'submitted_new')
-                    and not chunks_ready
-                )
-                chk._meta['country_update'] = chunks_ready
+                country_update = bool(update_entry and pending_item(
+                    self.update_manifest, {
+                        'country': CONFIG['country'], 'sensor': sensor,
+                        'period': period, 'mosaic': mosaic_method,
+                        'period_key': date_str, 'band': b, 'type': 'GCS',
+                    },
+                ))
+                chk._meta.update({
+                    'country': CONFIG['country'],
+                    'country_update': country_update and (exists_cog or has_chunks),
+                    'has_cog': exists_cog,
+                    'has_chunks': has_chunks,
+                })
 
-                if chunks_ready:
+                if country_update and (exists_cog or has_chunks):
+                    # A legacy COG/chunk update is explicitly selectable even
+                    # when edit mode is off; the ordinary M2 start cell runs it.
+                    chk.disabled = False
                     cell = PipelineStepUI.make_status_cell(
-                        chk, Lang.M1_UPDATE_LABEL, 'mfm-run', width='auto',
-                    )
-                elif m1_update_pending:
-                    chk.disabled = True
-                    cell = PipelineStepUI.make_status_cell(
-                        chk, Lang.M1_UPDATE_LABEL, 'mfm-run', width='auto',
+                        chk, Lang.M1_UPDATE_LABEL, 'mfm-update', width='auto',
                     )
                 elif exists_cog:
                     if not is_edit_mode(): chk.disabled = True
@@ -246,7 +251,10 @@ class MosaicAssemblerUI(PipelineStepUI):
         
         # Loader integrado ao rodapé
         footer = widgets.VBox([
-            widgets.HBox([btn_all, btn_none, self.btn_refresh, self.loader_html], layout=L(margin='15px 0', gap='10px', align_items='center'))
+            widgets.HBox([
+                btn_all, btn_none, self.btn_refresh,
+                make_update_note(Lang.M1_UPDATE_M2_NOTE), self.loader_html,
+            ], layout=L(margin='15px 0', gap='10px', align_items='center', flex_flow='row wrap'))
         ])
 
         # --- SISTEMA DE ABAS (TABS) ---
@@ -388,6 +396,66 @@ def run_ui(years=None):
     ui.hide_loader()
     return ui
 
+
+def process_country_mosaic_item(item, manifest, logger=print):
+    """Apply an M2 country-mask update or run the usual chunks assembly."""
+    from M2_mosaic_logic import assemble_country_mosaic, mask_existing_country_cog
+
+    period_key = item.get('period_key') or (
+        f"{item['year']}_{item['month']:02d}" if item.get('month') else str(item['year'])
+    )
+    country_update = item.get('country_update', False)
+    has_chunks = item.get('has_chunks', False)
+
+    if country_update and item.get('has_cog'):
+        set_item_status(manifest, item, 'masking_cog')
+        save_manifest(manifest)
+        try:
+            updated = mask_existing_country_cog(
+                period_key, item['band'], item['sensor'], item['mosaic'],
+                logger=logger,
+            )
+        except Exception as error:
+            set_item_status(manifest, item, 'pending', last_error=str(error))
+            save_manifest(manifest)
+            raise
+        if updated:
+            mark_item_complete(manifest, item)
+            save_manifest(manifest)
+            return [f"updated COG {period_key}/{item['band']}"]
+        if not has_chunks:
+            error = f"COG disappeared before update and no chunks are available: {period_key}/{item['band']}"
+            set_item_status(manifest, item, 'pending', last_error=error)
+            save_manifest(manifest)
+            raise RuntimeError(error)
+
+    if country_update:
+        if not has_chunks:
+            error = f"No COG or chunks available for M2 update: {period_key}/{item['band']}"
+            set_item_status(manifest, item, 'pending', last_error=error)
+            save_manifest(manifest)
+            raise RuntimeError(error)
+        set_item_status(manifest, item, 'chunks_ready')
+        save_manifest(manifest)
+
+    result = assemble_country_mosaic(
+        year=item['year'], month=item['month'], period=item['period'],
+        sensor=item['sensor'], mosaic_method=item['mosaic'],
+        bands=[item['band']], period_key=period_key, logger=logger,
+    )
+    if country_update:
+        if not result:
+            set_item_status(
+                manifest, item, 'pending',
+                last_error=f"M2 did not produce a COG for {period_key}/{item['band']}.",
+            )
+            save_manifest(manifest)
+            raise RuntimeError(f"M2 did not produce a COG for {period_key}/{item['band']}.")
+        mark_item_complete(manifest, item)
+        save_manifest(manifest)
+    return result
+
+
 def start_mosaic_assembly(ui_obj):
     selected = [chk._meta for chk in ui_obj.chk_dict.values() if chk.value]
     if not selected:
@@ -398,8 +466,6 @@ def start_mosaic_assembly(ui_obj):
     print(f"[INFO] Starting assembly of {len(selected)} COG bands...")
     cell_log(f"Starting assembly of {len(selected)} COG bands...", type='info')
     
-    from M2_mosaic_logic import assemble_country_mosaic
-
     succeeded = 0
     prog = ProgressTracker(len(selected), "COG Assembly")
     for item in selected:
@@ -410,15 +476,9 @@ def start_mosaic_assembly(ui_obj):
         try:
             cell_log(f"[{prog.completed+1}/{prog.total}] Processing {item['sensor']} {d_label} {item['band']}...", type='info')
             
-            assemble_country_mosaic(
-                year=item['year'],
-                month=item['month'],
-                period=item['period'],
-                sensor=item['sensor'],
-                mosaic_method=item['mosaic'],
-                bands=[item['band']],
-                period_key=period_key,
-                logger=print
+            process_country_mosaic_item(
+                item, getattr(ui_obj, 'update_manifest', {'version': 1, 'items': []}),
+                logger=print,
             )
             succeeded += 1
             cell_log(f"OK: {item['sensor']} {d_label} {item['band']}", type='success')

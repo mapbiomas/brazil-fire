@@ -79,10 +79,10 @@ class OutputStateTests(unittest.TestCase):
             ('RUN', True),
         )
 
-    def test_pending_country_mask_update_replaces_ok_state(self):
+    def test_pending_update_only_replaces_ok_for_gee_assets(self):
         self.assertEqual(
             resolve_output_state('GCS', True, True, False, False, update_pending=True),
-            ('UPDATE', True),
+            ('OK', True),
         )
         self.assertEqual(
             resolve_output_state('ASSET', False, False, True, False, update_pending=True),
