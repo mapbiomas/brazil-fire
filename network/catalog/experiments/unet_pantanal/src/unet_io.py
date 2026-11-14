@@ -282,6 +282,71 @@ def load_samples(cfg, period, crs, logger=None):
     return gdf, report
 
 
+def print_inventory(cfg, inv, sample_files, report):
+    """Resumo didatico do inventario: mosaico (de onde vem a imagem) e amostras (o que o modelo aprende)."""
+    deg_to_m = 111320.0
+    res_deg = next(iter(inv["bands"].values()))["res"][0]
+    geographic = str(inv["crs"]).upper() in ("EPSG:4326", "OGC:CRS84")
+    res_m = res_deg * deg_to_m if geographic else res_deg
+    line = "=" * 72
+    print(line)
+    print(f"INVENTARIO  |  periodo {inv['period']}  |  regiao {cfg['REGION']}  |  {cfg['SENSOR']} {cfg['MOSAIC']}")
+    print(line)
+    print("Para que serve: confere, sem treinar nada, se as imagens (mosaico) e as amostras")
+    print("(poligonos de fogo / nao-fogo) existem, estao na mesma grade e sao suficientes.\n")
+
+    print("1) MOSAICO (as imagens que entram no modelo)")
+    print(f"   Grade: {inv['width']:,} x {inv['height']:,} pixels | CRS {inv['crs']} | pixel ~ {res_m:.1f} m")
+    print("   (o mosaico cobre a America do Sul inteira; o codigo le so a janela da regiao)")
+    print(f"   {'banda':<11}{'tipo':<8}{'nodata':<9}{'pixel (graus)':<16}arquivo")
+    for name, b in inv["bands"].items():
+        print(f"   {name:<11}{b['dtype']:<8}{str(b['nodata']):<9}{b['res'][0]:<16.3e}{b['path'].rsplit('/', 1)[-1]}")
+    n_feat = len(cfg["BANDS"]) + len(cfg["INDICES"])
+    print(f"   -> o modelo recebe {n_feat} canais: bandas {cfg['BANDS']}"
+          + (f" + indices {cfg['INDICES']}" if cfg["INDICES"] else " (sem indices)"))
+    vb = inv["valid_band"]
+    if cfg.get("VALID_BAND"):
+        print(f"   -> pixel valido: onde {vb} > 0; a banda 2 da saida traz o dia do ano da queimada")
+    else:
+        print("   -> sem dayOfYear: pixel valido = bandas nao-nodata e nao todas 0; banda 2 da saida fica vazia")
+    res_ok = len({round(b["res"][0], 12) for b in inv["bands"].values()}) == 1
+    print(f"   -> todas as bandas na mesma grade: {'SIM' if res_ok else 'NAO - verifique os COGs'}\n")
+
+    print("2) AMOSTRAS (o que o modelo aprende)")
+    print(f"   Arquivo(s): {', '.join(os.path.basename(str(f)) for f in sample_files) or 'nenhum'}")
+    print(f"   Regiao filtrada: {cfg.get('SAMPLE_REGION') or cfg['REGION']} | periodos no arquivo: {report['periods_found']}")
+    fixed = sum(report["period_corrected_rows"].values()) if isinstance(report["period_corrected_rows"], dict) \
+        else report["period_corrected_rows"]
+    print(f"   Linhas com periodo corrigido pela regra do M4: {fixed}")
+    f, n = report["by_class"]["1"], report["by_class"]["0"]
+    total = f["polygons"] + n["polygons"]
+    print(f"   {'classe':<22}{'poligonos':>10}{'area (ha)':>13}{'media/poligono (ha)':>22}")
+    for label, c in (("fogo (1)", f), ("nao-fogo (0)", n)):
+        mean = c["area_ha"] / c["polygons"] if c["polygons"] else 0
+        print(f"   {label:<22}{c['polygons']:>10}{c['area_ha']:>13,.0f}{mean:>22,.1f}")
+    print(f"   {'total':<22}{total:>10}\n")
+
+    print("3) O QUE OBSERVAR")
+    notes = []
+    if total < 100:
+        notes.append(f"Poucos poligonos ({total}): com blocos de {cfg['BLOCK_KM']} km, validacao e teste "
+                     "podem ficar com 1 ou 2 blocos. Acrescente meses em PERIODS se possivel.")
+    if n["polygons"] < 10:
+        notes.append(f"So {n['polygons']} poligonos de nao-fogo: o modelo pode confundir agua, sombra e "
+                     "solo escuro com cicatriz.")
+    if f["polygons"] and n["polygons"] and (f["area_ha"] / max(n["area_ha"], 1e-9) < 0.2
+                                             or f["area_ha"] / max(n["area_ha"], 1e-9) > 5):
+        notes.append("Areas de fogo e nao-fogo muito diferentes; os chips sao balanceados pelo numero, "
+                     "nao pela area.")
+    if not cfg["INDICES"]:
+        notes.append("Sem indices espectrais (faltam nir/swir1): a comparacao com o MLP tera so as variantes A e C.")
+    if not notes:
+        notes.append("Nada de especial: pode seguir para a etapa de chips.")
+    for t in notes:
+        print(f"   - {t}")
+    print(line)
+
+
 # ---------------------------------------------------------------------------
 # Region geometry (GEE regions asset, cached in GCS)
 # ---------------------------------------------------------------------------
