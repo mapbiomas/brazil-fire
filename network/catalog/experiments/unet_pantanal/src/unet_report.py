@@ -39,7 +39,7 @@ def evaluate_unet(cfg, model, logger=None):
     for period in cfg["PERIODS"]:
         va, te = chip_files(files, [period], "val"), chip_files(files, [period], "test")
         if not va or not te:
-            _log(logger, f"[EVAL][WARN] {period}: missing val/test chips", "warning")
+            _log(logger, f"[TESTE][AVISO] {period}: faltam chips de validacao ou teste", "warning")
             continue
         hv = split_histograms(model, va, stats, cfg)
         ht = split_histograms(model, te, stats, cfg)
@@ -48,8 +48,8 @@ def evaluate_unet(cfg, model, logger=None):
         results[period] = res
         total = [*hv, *ht] if total is None else [a + b for a, b in zip(total, [*hv, *ht])]
         t = res["test_at_best"]
-        _log(logger, f"[EVAL] {period} U-Net test @ {res['val_best_threshold']:.2f}: "
-                     f"F1 {t['f1']:.3f} IoU {t['iou']:.3f} | @0.5 F1 {res['test_at_0_5']['f1']:.3f}")
+        _log(logger, f"[TESTE] {period} U-Net no limiar {res['val_best_threshold']:.2f}: "
+                     f"F1 {t['f1']:.3f} IoU {t['iou']:.3f} | no limiar 0.5 F1 {res['test_at_0_5']['f1']:.3f}")
     if total is not None:
         results["all"] = _summary(*total)
     return results
@@ -102,7 +102,7 @@ def compare_with_mlp(cfg, unet_results, logger=None):
     Xtr, Ytr = labeled_pixels(tr, cfg, cfg["MLP_MAX_PIXELS"], cfg["SEED"])
     Xva, Yva = labeled_pixels(va, cfg)
     Xte, Yte = labeled_pixels(te, cfg)
-    _log(logger, f"[MLP] labeled pixels: train {len(Xtr)} | val {len(Xva)} | test {len(Xte)}")
+    _log(logger, f"[MLP] pixels rotulados: treino {len(Xtr)} | validacao {len(Xva)} | teste {len(Xte)}")
 
     n_bands = len(cfg["BANDS"])
     variants = {"A_mlp_bands": slice(0, n_bands)}
@@ -116,7 +116,7 @@ def compare_with_mlp(cfg, unet_results, logger=None):
         pt = _predict(model, (Xte[:, cols] - mean) / std)
         rows[name] = _summary(*prob_histograms(pv, Yva), *prob_histograms(pt, Yte))
         t = rows[name]["test_at_best"]
-        _log(logger, f"[MLP] {name}: test F1 {t['f1']:.3f} IoU {t['iou']:.3f}")
+        _log(logger, f"[MLP] {name}: teste F1 {t['f1']:.3f} IoU {t['iou']:.3f}")
     rows["C_unet"] = unet_results["all"]
 
     table = comparison_table(rows)
@@ -127,7 +127,7 @@ def compare_with_mlp(cfg, unet_results, logger=None):
 
 def comparison_table(rows):
     """Markdown table: one line per model, test metrics at the val threshold and at 0.5."""
-    head = ("| Model | Threshold (val) | F1 | IoU | Omission | Commission | F1 @0.5 | IoU @0.5 |\n"
+    head = ("| Modelo | Limiar (validacao) | F1 | IoU | Omissao | Comissao | F1 @0.5 | IoU @0.5 |\n"
             "|---|---|---|---|---|---|---|---|")
     lines = [head]
     for name, r in rows.items():

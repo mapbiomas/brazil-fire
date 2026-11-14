@@ -93,5 +93,34 @@ class TestGeo(unittest.TestCase):
         self.assertAlmostEqual(nod, 0.6)
 
 
+class TestBlockClasses(unittest.TestCase):
+    """Block split keeps fire and not-fire in every split when it can (numpy only)."""
+
+    def setUp(self):
+        try:
+            from unet_geo import BlockGrid  # noqa: F401
+        except ImportError as exc:
+            self.skipTest(str(exc))
+
+    def test_all_splits_get_both_classes(self):
+        from unet_geo import BlockGrid
+        g = BlockGrid((0, 0, 100, 100), 10, 10)
+        # 20 blocks along a row: fire in every block, not-fire in every second block
+        pts = [(5 + 10 * i, 5, 1) for i in range(10)] + [(5 + 10 * i, 15, 0) for i in range(0, 10, 2)]
+        g.assign([(x, y) for x, y, _ in pts], (0.7, 0.15, 0.15), seed=1, classes_xy=pts)
+        self.assertTrue(g.stratified)
+        for s in ("train", "val", "test"):
+            cls = {c for (x, y, c) in pts if g.split_of(x, y) == s}
+            self.assertEqual(cls, {0, 1}, s)
+
+    def test_falls_back_when_impossible(self):
+        from unet_geo import BlockGrid
+        g = BlockGrid((0, 0, 100, 100), 10, 10)
+        pts = [(5 + 10 * i, 5, 1) for i in range(6)] + [(5, 15, 0)]  # one single not-fire block
+        g.assign([(x, y) for x, y, _ in pts], (0.7, 0.15, 0.15), seed=1, classes_xy=pts, tries=50)
+        self.assertFalse(g.stratified)
+        self.assertEqual(sum(g.counts().values()), 7)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -127,7 +127,8 @@ def _block_grid(cfg, samples, region_geom, crs):
     dx, dy = block_size_in_crs(cfg["BLOCK_KM"], crs, lat_center)
     grid = BlockGrid(bounds, dx, dy)
     cent = samples.geometry.representative_point()
-    grid.assign(list(zip(cent.x, cent.y)), cfg["SPLIT"], cfg["SEED"])
+    grid.assign(list(zip(cent.x, cent.y)), cfg["SPLIT"], cfg["SEED"],
+                classes_xy=list(zip(cent.x, cent.y, samples["class"])))
     return grid
 
 
@@ -155,8 +156,8 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
     existing = gcs.list_files(P["chips"], suffix=".tfrecord.gz")
     existing = [f for f in existing if split_chip_name(f)[0] == period]
     if existing and not overwrite:
-        _log(logger, f"[CHIPS] {period}: {len(existing)} shard(s) already in GCS; skipping "
-                     "(overwrite=True to rebuild).", "warning")
+        _log(logger, f"[CHIPS] {period}: {len(existing)} arquivo(s) ja estao no GCS; nada refeito "
+                     "(use overwrite=True para refazer).", "warning")
         return {"period": period, "skipped": True, "shards": existing}
     if existing and overwrite:
         delete_files(cfg, existing)
@@ -168,8 +169,12 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
         region = region_geometry(cfg, reader.crs, logger)
         grid = _block_grid(cfg, samples, region, reader.crs)
         centers = sample_centers(cfg, samples, grid)
-        _log(logger, f"[SPLIT] blocks {grid.counts()} | centers per split: "
-                     f"{centers.groupby(['split', 'cls']).size().to_dict()}")
+        centers_by_split = {
+            s: {str(c): int(n) for c, n in g.groupby("cls").size().items()}
+            for s, g in centers.groupby("split")
+        } if len(centers) else {}
+        _log(logger, f"[DIVISAO] blocos {grid.counts()} | classes completas em cada divisao: "
+                     f"{'sim' if getattr(grid, 'stratified', False) else 'NAO'}")
 
         sindex = samples.sindex
         writers = {s: ShardWriter(cfg, period, s, logger) for s in SPLITS}
@@ -215,7 +220,7 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
                 elif rng.random() < 0.05:
                     preview[int(rng.integers(n_preview))] = (x, y)
             if (k + 1) % 500 == 0:
-                _log(logger, f"  [CHIPS] {k + 1}/{len(centers)} centers processed")
+                _log(logger, f"  [CHIPS] {k + 1}/{len(centers)} centros processados")
 
         for w in writers.values():
             w.close_shard()
@@ -240,6 +245,8 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
         summary = {
             "period": period, "inventory": inventory, "samples": sample_report,
             "blocks": grid.counts(), "centers": int(len(centers)),
+            "centers_by_split": centers_by_split,
+            "split_has_both_classes": bool(getattr(grid, "stratified", False)),
             "chips": counts, "dropped": dropped,
             "fire_notfire_overlaps": {"chips": len(overlaps), "pixels": int(sum(o["pixels"] for o in overlaps)),
                                        "items": overlaps[:200]},
@@ -248,7 +255,7 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
         }
         write_json(cfg, f"{P['reports']}/chips_{period}.json", summary)
         _log(logger, f"[CHIPS] {period}: " + ", ".join(f"{s} {counts[s]['chips']}" for s in SPLITS)
-                     + f" | dropped {dropped} | fire/notfire overlaps in {len(overlaps)} chip(s)")
+                     + f" | descartados {dropped} | sobreposicao fogo/nao-fogo em {len(overlaps)} chip(s)")
         return summary
     finally:
         reader.close()
@@ -311,7 +318,7 @@ def compute_stats(cfg, logger=None):
     train = [f for f in files if split_chip_name(f)[1] == "train"
              and split_chip_name(f)[0] in cfg["PERIODS"]]
     if not train:
-        raise FileNotFoundError("No train chips found; run build_chips first.")
+        raise FileNotFoundError("Nao ha chips de treino. Rode o passo 2 (chips) antes.")
     names = channel_names(cfg)
     res = PixelReservoir(cfg["STATS_MAX_PIXELS"], len(names), cfg["SEED"])
     for rec in tf.data.TFRecordDataset(train, compression_type="GZIP").as_numpy_iterator():
@@ -323,6 +330,6 @@ def compute_stats(cfg, logger=None):
     stats["periods"] = list(cfg["PERIODS"])
     stats["source"] = "train chips only"
     write_json(cfg, P["stats"], stats)
-    _log(logger, f"[STATS] {len(names)} channels from {res.seen} valid train pixels "
-                 f"(sample {len(res.data)}) -> gs://{P['bucket']}/{P['stats']}")
+    _log(logger, f"[STATS] {len(names)} canais, {res.seen} pixels validos de treino "
+                 f"(amostra {len(res.data)}) -> gs://{P['bucket']}/{P['stats']}")
     return stats

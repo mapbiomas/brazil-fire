@@ -41,7 +41,7 @@ _CREDENTIALS = None
 def _user_credentials():
     try:
         from google.colab import auth  # noqa: F401
-        print("[AUTH] Colab login (pop-up)...")
+        print("[LOGIN] Login do Colab (janela pop-up)...")
         auth.authenticate_user()
     except ImportError:
         pass  # local machine: Application Default Credentials
@@ -63,11 +63,11 @@ def connect(cfg, earth_engine=True):
         import ee
         try:
             ee.Initialize(project=GEE_PROJECT)
-            print(f"[GEE] Initialized with your account | project: {GEE_PROJECT}")
+            print(f"[GEE] Earth Engine iniciado com a sua conta | projeto: {GEE_PROJECT}")
         except Exception as exc:
             raise RuntimeError(
-                f"Earth Engine failed for project {GEE_PROJECT}. Check that your "
-                f"account can read this project. Error: {exc}") from exc
+                f"Falha no Earth Engine (projeto {GEE_PROJECT}). Confira se a sua conta tem "
+                f"acesso a esse projeto. Erro: {exc}") from exc
 
     sa = cfg.get("SERVICE_ACCOUNT")
     _CREDENTIALS = source
@@ -79,19 +79,19 @@ def connect(cfg, earth_engine=True):
                 source_credentials=source, target_principal=sa, target_scopes=SCOPES)
             creds.refresh(Request())
             _CREDENTIALS = creds
-            print(f"[GCS] Service account ready | {sa}")
+            print(f"[GCS] Conta de servico pronta | {sa}")
         except Exception as exc:
             if "iam.serviceAccounts.getAccessToken" in str(exc):
-                print(f"[GCS][WARN] Your account cannot use {sa}. Join {SERVICE_ACCOUNT_GROUP} "
-                      f"or get 'Storage Object User' on gs://{BUCKET}.")
+                print(f"[GCS][AVISO] Sua conta nao pode usar {sa}. Entre no grupo {SERVICE_ACCOUNT_GROUP} "
+                      f"ou peca o papel 'Storage Object User' em gs://{BUCKET}.")
             else:
-                print(f"[GCS][WARN] Service account failed: {exc}")
-            print("[GCS] Using your own account for the bucket.")
+                print(f"[GCS][AVISO] Falha na conta de servico: {exc}")
+            print("[GCS] Usando a sua propria conta para acessar o bucket.")
 
     ok = _storage_client().bucket(BUCKET).exists()
-    print(f"[CHECK] GCS gs://{BUCKET}: {'OK' if ok else 'NOT ACCESSIBLE'}")
+    print(f"[CHECK] GCS gs://{BUCKET}: {'OK' if ok else 'SEM ACESSO'}")
     if not ok:
-        raise PermissionError(f"Cannot access gs://{BUCKET}.")
+        raise PermissionError(f"Sem acesso a gs://{BUCKET}.")
 
 
 # ---------------------------------------------------------------------------
@@ -100,7 +100,7 @@ def connect(cfg, earth_engine=True):
 
 def _require_bucket():
     if not BUCKET:
-        raise RuntimeError("Run unet_env.connect(UCFG) first.")
+        raise RuntimeError("Rode antes unet_env.connect(UCFG) (celula 0.2).")
     return BUCKET
 
 

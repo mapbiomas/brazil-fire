@@ -42,6 +42,9 @@ It writes a probability raster per period in the catalog **M5 format** (int16
 probability x 1000 plus `dayOfYear`, nodata -9999), so the catalog
 post-processing (M6/M7) can read it.
 
+The notebook and the printed summaries are in Portuguese for now (a language
+option comes later); the texts of the step summaries live in `src/unet_resumo.py`.
+
 ## Folder structure
 
 ```
@@ -59,6 +62,7 @@ unet_pantanal/
     unet_model.py     tf.data pipeline, U-Net, masked BCE+Dice, masked metrics, training
     unet_predict.py   sliding-window inference over the region, COG upload
     unet_report.py    test metrics, MLP baseline, comparison table
+    unet_resumo.py    didactic printed summaries of the notebook steps (Portuguese)
   tests/test_unet_*.py                        unit tests
   docs/proposta_metodologia_unet_pantanal.md  slides outline: method proposal (Portuguese)
   docs/apresentacao_unet_pantanal.md          slides outline with results to fill (Portuguese)

@@ -67,8 +67,9 @@ class MosaicReader:
         except Exception as exc:
             self.close()
             raise FileNotFoundError(
-                f"Could not open the {self.period} mosaic. Check that M2 finished for "
-                f"this period. Paths: {self.paths}. Error: {exc}"
+                f"Nao foi possivel abrir o mosaico {self.period}. Confira se todas as bandas de BANDS "
+                f"(e VALID_BAND) foram exportadas para esse periodo; a banda que nao existe aparece no erro. "
+                f"Caminhos: {self.paths}. Erro: {exc}"
             ) from exc
         self._check_grid()
         ref = self.sources[self.bands[0]]
@@ -77,7 +78,7 @@ class MosaicReader:
         self.width = ref.width
         self.height = ref.height
         self.profile = ref.profile.copy()
-        _log(logger, f"[MOSAIC] {self.period}: {self.width}x{self.height} px | {self.crs} | res {ref.res}")
+        _log(logger, f"[MOSAICO] {self.period}: {self.width}x{self.height} px | {self.crs} | pixel {ref.res}")
 
     def _check_grid(self):
         ref_b = self.bands[0]
@@ -90,8 +91,8 @@ class MosaicReader:
                 bad.append(f"{b}: crs={ds.crs} transform={tuple(ds.transform)[:6]} size={ds.width}x{ds.height}")
         if bad:
             raise ValueError(
-                "Mosaic bands are not on the same grid as "
-                f"'{ref_b}' (crs={ref.crs}, size={ref.width}x{ref.height}):\n  " + "\n  ".join(bad)
+                "As bandas do mosaico nao estao na mesma grade de "
+                f"'{ref_b}' (crs={ref.crs}, tamanho={ref.width}x{ref.height}):\n  " + "\n  ".join(bad)
             )
 
     def _band_index(self, b):
@@ -168,7 +169,7 @@ def list_sample_files(cfg, period):
         wanted = [n if n.endswith(".csv") else f"{n}.csv" for n in cfg["SAMPLE_FILES"]]
         missing = [n for n in wanted if n not in names]
         if missing:
-            raise FileNotFoundError(f"Sample files not found in gs://{folder}: {missing}")
+            raise FileNotFoundError(f"Arquivos de amostra nao encontrados em gs://{folder}: {missing}")
         return wanted
     pattern = cfg["SAMPLE_GLOB"].format(period=period, region=cfg["REGION"])
     return sorted(n for n in names if fnmatch.fnmatch(n, pattern))
@@ -212,7 +213,8 @@ def load_samples(cfg, period, crs, logger=None):
     files = list_sample_files(cfg, period)
     if not files:
         raise FileNotFoundError(
-            f"No sample CSV matches '{cfg['SAMPLE_GLOB']}' in gs://{P['bucket']}/{P['samples']}."
+            f"Nenhum CSV de amostras casa com '{cfg['SAMPLE_GLOB']}' em gs://{P['bucket']}/{P['samples']}. "
+            "O nome do arquivo precisa ter o periodo (ex.: ..._2026_10.csv) ou use SAMPLE_FILES=[...]."
         )
     field = cfg["CLASS_FIELD"]
     frames = []
@@ -221,28 +223,28 @@ def load_samples(cfg, period, crs, logger=None):
         with gcs.open_file(f"{P['bucket']}/{P['samples']}/{name}", "r") as f:
             df = pd.read_csv(f)
         if field not in df.columns or ".geo" not in df.columns:
-            raise ValueError(f"{name}: needs columns '{field}' and '.geo' (M3 format).")
+            raise ValueError(f"{name}: precisa das colunas '{field}' e '.geo' (formato M3).")
         df["_source"] = name
         df["_period"], n_fix = sample_periods(df, name)
         if n_fix:
             corrected[name] = n_fix
-            _log(logger, f"[SAMPLES][WARN] {name}: 'period' later than the file date; "
-                         f"using the file date (as M4).", "warning")
+            _log(logger, f"[AMOSTRAS][AVISO] {name}: a coluna 'period' tem data posterior a do nome do "
+                         f"arquivo; vale a data do arquivo (regra do M4).", "warning")
         frames.append(df)
     df = pd.concat(frames, ignore_index=True)
     n_read = len(df)
     periods_found = sorted(df["_period"].unique().tolist())
     df = df[df["_period"] == period]
     if df.empty:
-        raise ValueError(f"No sample row has period {period}. Periods found in {files}: {periods_found}")
+        raise ValueError(f"Nenhuma amostra e do periodo {period}. Periodos encontrados em {files}: {periods_found}")
     sample_region = cfg.get("SAMPLE_REGION") or cfg.get("REGION")
     if cfg.get("FILTER_SAMPLES_BY_REGION") and sample_region and "region" in df.columns:
         regions = sorted(df["region"].astype(str).unique().tolist())
         df = df[df["region"].astype(str).str.lower() == str(sample_region).lower()]
         if df.empty:
             raise ValueError(
-                f"No sample has region == '{sample_region}'. Regions found: {regions}. "
-                "Set SAMPLE_REGION to one of them, or FILTER_SAMPLES_BY_REGION=False."
+                f"Nenhuma amostra tem region == '{sample_region}'. Regioes encontradas: {regions}. "
+                "Ajuste SAMPLE_REGION para uma delas, ou use FILTER_SAMPLES_BY_REGION=False."
             )
 
     df = df[pd.to_numeric(df[field], errors="coerce").isin([0, 1])].copy()
@@ -393,10 +395,10 @@ def region_geometry(cfg, crs, logger=None, simplify_m=100):
         fc = all_regions.filter(ee.Filter.eq(prop, region))
         if fc.size().getInfo() == 0:
             names = sorted(set(map(str, all_regions.aggregate_array(prop).getInfo())))
-            raise ValueError(f"Region '{region}' ({prop}) not in {asset}. Options: {names}")
+            raise ValueError(f"A regiao '{region}' ({prop}) nao existe em {asset}. Opcoes: {names}")
         gj = fc.geometry().simplify(maxError=simplify_m).getInfo()
         write_text(cfg, cache, json.dumps(gj))
-        _log(logger, f"[REGION] {region} geometry cached in gs://{P['bucket']}/{cache}")
+        _log(logger, f"[REGIAO] geometria de {region} salva em gs://{P['bucket']}/{cache}")
     geom = gpd.GeoSeries([shape(gj)], crs="EPSG:4326").to_crs(crs).iloc[0]
     return geom
 
@@ -408,7 +410,7 @@ def region_geometry(cfg, crs, logger=None, simplify_m=100):
 def _check_inside(cfg, rel_path):
     root = paths(cfg)["root"]
     if not rel_path.startswith(root + "/"):
-        raise PermissionError(f"Refusing to write outside {root}: {rel_path}")
+        raise PermissionError(f"Recusado: so e permitido escrever dentro de {root} ({rel_path})")
 
 
 def upload(cfg, local_path, rel_path):

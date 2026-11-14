@@ -59,29 +59,54 @@ class BlockGrid:
     def splits_of_box(self, minx, miny, maxx, maxy):
         return {self.split.get(b, "unused") for b in self.blocks_of_box(minx, miny, maxx, maxy)}
 
-    def assign(self, occupied_xy, fractions, seed):
+    def assign(self, occupied_xy, fractions, seed, classes_xy=None, tries=2000):
         """Shuffle the blocks that contain samples and split them by fractions.
 
         Blocks without samples stay 'unused' (no chips come from them).
+        classes_xy: optional list of (x, y, class). When given, the shuffle is
+        repeated (seed, seed+1, ...) until train, val and test each hold both
+        classes (fire and not fire); if no shuffle manages, the first one is kept.
+        self.stratified tells which happened.
         """
         occupied = sorted({self.index(x, y) for x, y in occupied_xy})
-        rng = np.random.default_rng(seed)
-        order = rng.permutation(len(occupied))
         n = len(occupied)
         n_train = int(round(fractions[0] * n))
         n_val = int(round(fractions[1] * n))
         if n >= 3:
             n_train = min(max(n_train, 1), n - 2)
             n_val = min(max(n_val, 1), n - n_train - 1)
-        self.split = {}
-        for rank, k in enumerate(order):
-            b = occupied[k]
-            if rank < n_train:
-                self.split[b] = "train"
-            elif rank < n_train + n_val:
-                self.split[b] = "val"
-            else:
-                self.split[b] = "test"
+
+        def shuffle(sd):
+            order = np.random.default_rng(sd).permutation(n)
+            out = {}
+            for rank, k in enumerate(order):
+                b = occupied[k]
+                out[b] = ("train" if rank < n_train else "val" if rank < n_train + n_val else "test")
+            return out
+
+        block_classes = {}
+        if classes_xy:
+            for x, y, c in classes_xy:
+                block_classes.setdefault(self.index(x, y), set()).add(int(c))
+
+        def complete(split_map):
+            for s in SPLITS:
+                cl = set()
+                for b, v in split_map.items():
+                    if v == s:
+                        cl |= block_classes.get(b, set())
+                if cl != {0, 1}:
+                    return False
+            return True
+
+        self.split = shuffle(seed)
+        self.stratified = not block_classes
+        if block_classes and n >= 3:
+            for k in range(tries):
+                cand = shuffle(seed + k)
+                if complete(cand):
+                    self.split, self.stratified = cand, True
+                    break
         return self
 
     def block_box(self, b):
@@ -144,7 +169,8 @@ def balance_by_class(df, class_col, split_col, seed):
     for _, g in df.groupby(split_col):
         n = g[class_col].value_counts()
         if len(n) < 2:
-            continue  # a split with one class only cannot be balanced
+            parts.append(g)  # one class only: cannot balance; keep the centers (warned in the summary)
+            continue
         k = int(n.min())
         for _, gc in g.groupby(class_col):
             idx = rng.choice(len(gc), k, replace=False)

@@ -32,7 +32,7 @@ def region_window(reader, region_geom):
     c1 = min(reader.width, int(math.ceil(w.col_off + w.width)))
     r1 = min(reader.height, int(math.ceil(w.row_off + w.height)))
     if c1 <= c0 or r1 <= r0:
-        raise ValueError("Region does not intersect the mosaic.")
+        raise ValueError("A regiao nao cruza o mosaico.")
     return Window(c0, r0, c1 - c0, r1 - r0)
 
 
@@ -84,8 +84,8 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
             "compress": "deflate", "BIGTIFF": "IF_SAFER",
         }
         tiles = list(core_tiles(win, T))
-        _log(logger, f"[PREDICT] {period}: {int(win.width)}x{int(win.height)} px, "
-                     f"{len(tiles)} tiles of {T}+2x{O}")
+        _log(logger, f"[CLASSIFICAR] {period}: {int(win.width)}x{int(win.height)} px, "
+                     f"{len(tiles)} janelas de {T}+2x{O}")
         bands, indices = cfg["BANDS"], cfg["INDICES"]
         n_valid = n_burned = 0
         t0 = time.time()
@@ -134,8 +134,8 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
                     flush()
                 if (k + 1) % 200 == 0:
                     el = time.time() - t0
-                    _log(logger, f"  [PREDICT] {k + 1}/{len(tiles)} tiles | "
-                                 f"{el / 60:.1f} min | ETA {el / (k + 1) * (len(tiles) - k - 1) / 60:.1f} min")
+                    _log(logger, f"  [CLASSIFICAR] {k + 1}/{len(tiles)} janelas | "
+                                 f"{el / 60:.1f} min | faltam ~{el / (k + 1) * (len(tiles) - k - 1) / 60:.1f} min")
             flush()
 
         cog = os.path.join(tmp, f"{name}.tif")
@@ -153,7 +153,7 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
         if upload_result:
             upload(cfg, cog, rel)
             write_json(cfg, f"{P['reports']}/predict_{period}.json", summary)
-        _log(logger, f"[PREDICT] {period} -> {summary['gcs']} ({summary['minutes']} min)")
+        _log(logger, f"[CLASSIFICAR] {period} -> {summary['gcs']} ({summary['minutes']} min)")
         summary["local"] = cog
         return summary
     finally:

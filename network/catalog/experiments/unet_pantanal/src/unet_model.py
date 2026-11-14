@@ -200,16 +200,23 @@ def train(cfg, logger=print):
     tf.keras.utils.set_random_seed(cfg["SEED"])
     if cfg["MIXED_PRECISION"] and _gpu_available():
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
-        logger("[TRAIN] mixed_float16 on GPU")
+        logger("[TREINO] precisao mista (mixed_float16) na GPU")
     elif not _gpu_available():
-        logger("[TRAIN][WARN] No GPU: Runtime > Change runtime type > GPU.")
+        logger("[TREINO][AVISO] Sem GPU: Ambiente de execucao > Alterar tipo > GPU.")
 
     stats = read_json(P["stats"])
     files = download_prefix(P["chips"], local_dir("chips"), suffix=".tfrecord.gz")
     tr = chip_files(files, cfg["PERIODS"], "train")
     va = chip_files(files, cfg["PERIODS"], "val")
     if not tr or not va:
-        raise FileNotFoundError(f"Need train and val chips (train={len(tr)}, val={len(va)} shards).")
+        falta = "treino" if not tr else "validacao"
+        raise FileNotFoundError(
+            f"Faltam chips de {falta} (arquivos: treino={len(tr)}, validacao={len(va)}).\n"
+            "Causa provavel: na divisao por blocos de BLOCK_KM km, a validacao (ou o treino) ficou sem "
+            "blocos ou so com uma classe (so fogo ou so nao-fogo), e seus chips nao foram gerados.\n"
+            "O que fazer: (1) volte ao passo 2 e veja a tabela de chips por divisao; (2) rode-o de novo "
+            "com REFAZER_CHIPS = True (os chips ja salvos sao de uma execucao anterior); (3) se ainda "
+            "faltar, acrescente meses em PERIODS ou reduza BLOCK_KM (ex.: 10).")
 
     model = build_unet(len(channel_names(cfg)), cfg["FILTERS"], cfg["BOTTOM_FILTERS"])
     M = masked_metric_class()
@@ -249,7 +256,7 @@ def train(cfg, logger=print):
     }
     write_json(cfg, f"{P['models']}/{cfg['MODEL_NAME']}_metadata.json", meta)
     upload(cfg, os.path.join(out_dir, "history.csv"), f"{P['models']}/{cfg['MODEL_NAME']}_history.csv")
-    logger(f"[TRAIN] best model -> gs://{P['bucket']}/{rel}")
+    logger(f"[TREINO] melhor modelo salvo em gs://{P['bucket']}/{rel}")
     return model, meta
 
 
