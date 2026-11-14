@@ -132,8 +132,24 @@ class PipelineStepUI:
         return widgets.HTML('''<style>
             .mfm-ok   { background:#d4edda !important; border:1px solid #c3e6cb !important; }
             .mfm-run  { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
+            .mfm-update { background:#eaf3ff !important; border:1px solid #91caff !important; }
+            .mfm-update span { color:#0958d9 !important; }
             .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
             .mfm-hdr  { font-size:11px; font-weight:700; color:#495057; text-align:center; }
+
+            .m1-primary-tabs .lm-TabBar-tab:nth-child(2),
+            .m1-primary-tabs .p-TabBar-tab:nth-child(2) {
+                color:#0958d9 !important;
+                background:#eaf3ff !important;
+                border-color:#91caff !important;
+                font-weight:700 !important;
+            }
+            .m1-primary-tabs .lm-TabBar-tab:nth-child(2).lm-mod-current,
+            .m1-primary-tabs .p-TabBar-tab:nth-child(2).p-mod-current {
+                color:#003eb3 !important;
+                background:#d6e8ff !important;
+                border-bottom-color:#1677ff !important;
+            }
         </style>''')
 
     @staticmethod

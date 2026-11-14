@@ -101,6 +101,6 @@ def complete_gcs_item(country, sensor, period, mosaic, period_key, band):
         'type': 'GCS',
     }
     entry = find_item(manifest, item)
-    if entry and entry.get('status') == 'chunks_ready':
+    if entry and entry.get('status') in ('chunks_ready', 'masking_cog'):
         mark_item_complete(manifest, item)
         save_manifest(manifest)

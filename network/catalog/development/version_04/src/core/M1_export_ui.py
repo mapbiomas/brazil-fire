@@ -1,6 +1,7 @@
 print("\n>>> M1_export_ui initializing (v7.0 Tabs) <<<")
 import ee
 import traceback
+import html
 import ipywidgets as widgets
 
 from M0_auth_config import (
@@ -90,7 +91,7 @@ def make_link_cell(chk, url, width='auto'):
 def make_update_cell(chk, callback, width='auto'):
     """Render a direct Update action for an old country-wide output."""
     button = widgets.Button(
-        description=Lang.M1_UPDATE_LABEL, icon='refresh', button_style='warning',
+        description=Lang.M1_UPDATE_LABEL, icon='refresh', button_style='info',
         tooltip=Lang.M1_UPDATE_TOOLTIP,
         layout=widgets.Layout(width='76px', height='26px', padding='0'),
     )
@@ -103,8 +104,124 @@ def make_update_cell(chk, callback, width='auto'):
             align_items='center', padding='0', overflow='hidden', margin='1px',
         ),
     )
-    cell.add_class('mfm-run')
+    cell.add_class('mfm-update')
     return cell
+
+
+def make_update_help():
+    """Explain why existing outputs need an update and the GCS/M2 follow-up."""
+    return widgets.HTML(
+        f'<span style="font-size:11px;color:#666;">{Lang.M1_UPDATE_HELP}</span>',
+        layout=widgets.Layout(flex='1 1 320px', min_width='260px'),
+    )
+
+
+def make_update_guide():
+    """Build the localized M1 update explainer tab."""
+    sections = (
+        (Lang.M1_UPDATE_GUIDE_NORMAL_TITLE, Lang.M1_UPDATE_GUIDE_NORMAL),
+        (Lang.M1_UPDATE_GUIDE_REASON_TITLE, Lang.M1_UPDATE_GUIDE_REASON),
+        (Lang.M1_UPDATE_GUIDE_ACTION_TITLE, Lang.M1_UPDATE_GUIDE_ACTION),
+    )
+    cards = ''.join(
+        '<section style="background:#fff;border:1px solid #d6e4ff;'
+        'border-left:4px solid #1677ff;border-radius:8px;padding:14px 16px;'
+        'margin:12px 0;">'
+        f'<h3 style="margin:0 0 7px;color:#0958d9;font-size:15px;">{html.escape(title)}</h3>'
+        f'<p style="margin:0;color:#334155;line-height:1.55;">{html.escape(body)}</p>'
+        '</section>'
+        for title, body in sections
+    )
+    return widgets.HTML(
+        '<div style="max-width:900px;margin:10px auto;padding:12px 20px;'
+        'background:#f5f9ff;border:1px solid #d6e4ff;border-radius:12px;">'
+        f'<h2 style="margin:0;color:#003eb3;font-size:20px;">'
+        f'{html.escape(Lang.M1_UPDATE_GUIDE_TITLE)}</h2>{cards}</div>',
+        layout=widgets.Layout(width='100%', padding='8px'),
+    )
+
+
+def make_primary_tabs(guide_widget, update_widget, sensor_children, sensors):
+    """Create M1's top-level tabs, keeping the update guide before sensors."""
+    tabs = widgets.Tab()
+    tabs.children = [guide_widget, update_widget] + list(sensor_children)
+    tabs.add_class('m1-primary-tabs')
+    tabs.set_title(0, Lang.TAB_GUIDE)
+    tabs.set_title(1, Lang.M1_UPDATE_TAB)
+    for index, sensor in enumerate(sensors, start=2):
+        tabs.set_title(index, sensor)
+    return tabs
+
+
+def update_existing_gcs_output(meta, manifest):
+    """Update existing GCS data without scheduling a new M1 export.
+
+    Returns False only when neither the target COG nor its source chunks exist;
+    callers must then use the ordinary M1 export path for a genuinely missing
+    product. Errors while processing an existing product are propagated.
+    """
+    from M_gcs import blob_exists, glob
+
+    period_key = meta.get('period_key') or (
+        f"{meta['year']}_{meta['month']:02d}" if meta.get('month') else str(meta['year'])
+    )
+    band = meta['band']
+    sensor = meta['sensor']
+    mosaic = meta['mosaic']
+    name = mosaic_name_for_period(
+        period_key, band=band, mosaic=mosaic, sensor=sensor,
+    )
+    cog_dir = period_cog_path(period_key, mosaic=mosaic, sensor=sensor)
+    cog_name = f"{name}_cog.tif"
+    cog_uri = f"gs://{CONFIG['bucket']}/{cog_dir}/{cog_name}"
+    cog_exists = blob_exists(cog_uri)
+
+    if cog_exists:
+        if find_item(manifest, meta) is None:
+            add_pending_item(manifest, meta)
+        set_item_status(manifest, meta, 'masking_cog')
+        save_manifest(manifest)
+        try:
+            from M2_mosaic_logic import mask_existing_country_cog
+            updated = mask_existing_country_cog(
+                period_key, band, sensor, mosaic,
+                logger=lambda message, _level='info': print(message),
+            )
+            if not updated:
+                raise RuntimeError(f"Existing COG disappeared before masking: {cog_uri}")
+            mark_item_complete(manifest, meta)
+            save_manifest(manifest)
+            return True
+        except Exception as e:
+            set_item_status(manifest, meta, 'pending', last_error=str(e))
+            save_manifest(manifest)
+            raise
+
+    chunks_dir = period_chunk_path(period_key, mosaic=mosaic, sensor=sensor)
+    chunk_prefix = f"gs://{CONFIG['bucket']}/{chunks_dir}/{name}_*.tif"
+    existing_chunks = glob(chunk_prefix)
+    if not existing_chunks:
+        return False
+
+    if find_item(manifest, meta) is None:
+        add_pending_item(manifest, meta)
+    # Existing chunks but no COG: M2 assembles those chunks directly.
+    set_item_status(manifest, meta, 'chunks_ready')
+    save_manifest(manifest)
+    from M2_mosaic_logic import assemble_country_mosaic
+    result = assemble_country_mosaic(
+        year=meta['year'], month=meta.get('month'), period=meta['period'],
+        sensor=sensor, mosaic_method=mosaic, bands=[band],
+        period_key=period_key,
+        logger=lambda message, _level='info': print(message),
+    )
+    if not result:
+        set_item_status(manifest, meta, 'pending', last_error='M2 did not produce the COG.')
+        save_manifest(manifest)
+        raise RuntimeError(f"M2 could not assemble existing chunks for {period_key}/{band}.")
+    mark_item_complete(manifest, meta)
+    save_manifest(manifest)
+    return True
 
 
 class ExportDispatcherUI(PipelineStepUI):
@@ -216,6 +333,23 @@ class ExportDispatcherUI(PipelineStepUI):
         chk.disabled = True
         if hasattr(chk, '_update_button'):
             chk._update_button.disabled = True
+        if chk._meta['type'] == 'GCS':
+            try:
+                if update_existing_gcs_output(chk._meta, self.update_manifest):
+                    CacheManager.mark_stale()
+                    self._refresh_cache()
+                    return
+                # The cache or manifest may have been stale: if neither COG nor
+                # shards exist now, treat this as a new product and export M1.
+                chk._meta['update_pending'] = False
+                chk._meta['exists'] = False
+            except Exception as e:
+                print(f"[ERR] Existing GCS output update failed; no new M1 task started: {e}")
+                cell_log(f"Update failed: {e}", type='error')
+                chk.disabled = False
+                if hasattr(chk, '_update_button'):
+                    chk._update_button.disabled = False
+                return
         submitted = start_export(self, mode=chk._meta['type'])
         if not submitted:
             chk.disabled = False
@@ -414,7 +548,10 @@ class ExportDispatcherUI(PipelineStepUI):
         self.chk_reexport.observe(self._on_reexport_toggle, names='value')
         
         footer = widgets.VBox([
-            widgets.HBox([btn_all, btn_none, self.chk_reexport, self.btn_refresh, self.loader_html], layout=L(margin='15px 0', gap='10px', align_items='center'))
+            widgets.HBox([
+                btn_all, btn_none, self.chk_reexport, self.btn_refresh,
+                make_update_help(), self.loader_html,
+            ], layout=L(margin='15px 0', gap='10px', align_items='center', flex_flow='row wrap'))
         ])
 
         sensors = [s.upper() for s in (GLOBAL_OPTS['SENSOR'] if isinstance(GLOBAL_OPTS['SENSOR'], list) else [GLOBAL_OPTS['SENSOR']])]
@@ -453,24 +590,23 @@ class ExportDispatcherUI(PipelineStepUI):
             period_tabs.observe(lambda change, si=i: self._on_period_change(change, si), names='selected_index')
             self.sensor_children.append(period_tabs)
         
-        # Add Guide tab at index 0
+        # Keep static guides separate from lazy-loaded sensor/date grids.
         guide_widget = widgets.HTML(Lang.GUIDE_M1_HTML)
-        self.sensor_tabs.children = [guide_widget] + self.sensor_children
-        self.sensor_tabs.set_title(0, Lang.TAB_GUIDE)
-        for i, s in enumerate(sensors):
-            self.sensor_tabs.set_title(i + 1, s)
+        self.sensor_tabs = make_primary_tabs(
+            guide_widget, make_update_guide(), self.sensor_children, sensors,
+        )
 
         self.sensor_tabs.observe(self._on_sensor_change, names='selected_index')
 
         self._load_tab(0, 0, 0, active_tasks)
-        self.sensor_tabs.selected_index = 1  # show first sensor, not guide
+        self.sensor_tabs.selected_index = 2  # show first sensor, not a guide
 
         if hasattr(self, '_last_sensor_idx'):
             try:
                 vis_idx = self._last_sensor_idx
                 self.sensor_tabs.selected_index = vis_idx
                 if vis_idx > 0:
-                    real_idx = vis_idx - 1
+                    real_idx = vis_idx - 2
                     s_tab = self.sensor_children[real_idx]
                     s_tab.selected_index = self._last_period_idx
                     m_tab = s_tab.children[self._last_period_idx]
@@ -484,9 +620,9 @@ class ExportDispatcherUI(PipelineStepUI):
 
     def _on_sensor_change(self, change):
         vis_idx = change['new']
-        if vis_idx == 0:  # Guide tab
+        if vis_idx < 2:  # static guide tabs
             return
-        real_idx = vis_idx - 1
+        real_idx = vis_idx - 2
         p_tabs = self.sensor_children[real_idx]
         p_idx = p_tabs.selected_index
         m_idx = p_tabs.children[p_idx].selected_index
@@ -526,7 +662,7 @@ class ExportDispatcherUI(PipelineStepUI):
             self.is_refreshing = True
             if hasattr(self, 'sensor_tabs'):
                 self._last_sensor_idx = self.sensor_tabs.selected_index  # visual index
-                if self._last_sensor_idx > 0:
+                if self._last_sensor_idx > 1:
                     real_idx = self._last_sensor_idx - 1
                     s_tab = self.sensor_children[real_idx]
                     self._last_period_idx = s_tab.selected_index
@@ -690,6 +826,19 @@ def start_export(ui_obj, mode=None):
         p = info.periodicity
         band, mosaic_m, sensor = meta['band'], meta['mosaic'], meta['sensor']
 
+        # Recheck GCS at execution time. A stale cache/manifest must not
+        # schedule a new Earth Engine export over an existing COG/chunks.
+        if meta['type'] == 'GCS':
+            if update_existing_gcs_output(meta, manifest):
+                succeeded += 1
+                cell_log(
+                    f"Updated existing GCS output: {sensor} {period_key} ({band})",
+                    type='success',
+                )
+                continue
+            meta['update_pending'] = False
+            meta['exists'] = False
+
         name_base = mosaic_name_for_period(period_key, mosaic=mosaic_m, sensor=sensor, band=None)
         name_full = mosaic_name_for_period(period_key, band=band, mosaic=mosaic_m, sensor=sensor)
 
@@ -750,8 +899,11 @@ def start_export(ui_obj, mode=None):
             cell_log(f"Failed {sensor} {mosaic_m} ({band}) {period_key}: {e}", type='error')
             traceback.print_exc()
             
-    print(f"\n Completed! {succeeded}/{len(selected)} tasks sent.")
-    cell_log(f"Completed! {succeeded}/{len(selected)} tasks sent.", type='success' if succeeded == len(selected) else 'warning')
+    print(f"\n Completed! {succeeded}/{len(selected)} selected items processed.")
+    cell_log(
+        f"Completed! {succeeded}/{len(selected)} selected items processed.",
+        type='success' if succeeded == len(selected) else 'warning',
+    )
 
     if succeeded:
         # New files are still being written asynchronously; drop the cache stamp

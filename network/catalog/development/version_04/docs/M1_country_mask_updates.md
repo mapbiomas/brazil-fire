@@ -16,16 +16,17 @@ invalid/nodata.
 2. Each pending M1 cell displays a localized **Update** button. It operates on
    exactly that period, band and target; other selections are cleared.
 3. GEE asset updates use the existing asset ID with Earth Engine overwrite
-   enabled. For GCS, M1 exports to a unique staging prefix. After the export
-   task completes, refresh M1 to promote the staged shards over the existing
-   shard keys. Old shards are not removed before replacement.
-4. For a GCS row, run the corresponding M2 assembly after M1 reports the
-   updated chunks. M2 rasterizes the country geometry on the existing raster
-   grid and uploads the corrected COG to its existing object key. Only after a
-   successful COG upload are source chunks cleaned up and the manifest item
-   marked complete.
-5. Refresh M1 to see the completed item return to **OK**. A failed or incomplete
-   task remains eligible for another update.
+   enabled. GCS checks the actual objects again when **Update** is clicked:
+   - If the COG exists, M2 downloads and masks that COG on its original grid,
+     rebuilds it, then overwrites the same object. This path creates no Earth
+     Engine task and leaves the old COG intact until the replacement upload.
+   - If the COG is absent but chunks exist, M2 builds the masked COG from those
+     chunks. This path also creates no Earth Engine task.
+   - If neither COG nor chunks exist, M1 uses the normal Earth Engine export
+     flow for a new product.
+4. Refresh M1 to see the completed item return to **OK**. Failed masking or
+   assembly leaves the item eligible for retry; an absent product remains
+   eligible for the normal export path.
 
 The manifest identity is country, sensor, periodicity, mosaic method, period
 key, band and target. Campaign is deliberately excluded. M1's default

@@ -538,7 +538,16 @@ class L:
     EXPORT_NONE_SEL = "No option selected for export."
     M1_UPDATE_LABEL = "Update"
     M1_UPDATE_TOOLTIP = "Re-export this date and band with the country mask"
+    M1_UPDATE_HELP = "Old exports need the country mask. Update reapplies it; after GCS updates, run M2 to rebuild the COG."
     M1_M2_READY = "M2 ready"
+    M1_UPDATE_TAB = "Update"
+    M1_UPDATE_GUIDE_TITLE = "Why are we updating these outputs?"
+    M1_UPDATE_GUIDE_NORMAL_TITLE = "Normal processing flow"
+    M1_UPDATE_GUIDE_NORMAL = "M1 creates the selected country mosaic and exports it to a GEE asset or GCS chunks. M2 combines GCS chunks, applies the country mask, and writes the final COG."
+    M1_UPDATE_GUIDE_REASON_TITLE = "Why this correction is needed"
+    M1_UPDATE_GUIDE_REASON = "Older outputs may not have the country-wide mask. We are applying the complete configured regions FeatureCollection so each product remains one national output, with pixels outside the country masked."
+    M1_UPDATE_GUIDE_ACTION_TITLE = "What Update does"
+    M1_UPDATE_GUIDE_ACTION = "For an existing GEE asset, M1 overwrites the same asset. For an existing GCS COG, the saved COG is masked on its current grid and replaced at the same path, without a new Earth Engine task. If only GCS chunks exist, M2 builds the COG from them. If neither COG nor chunks exist, the usual M1 export runs."
 
     M1_HEADER_TITLE = "M1 - Dispatcher"
     M1_HEADER_SUBTITLE = "Multi-sensor export interface"
@@ -1113,7 +1122,16 @@ STRINGS_ES = {
     "EXPORT_NONE_SEL": "Ninguna opción seleccionada para exportación.",
     "M1_UPDATE_LABEL": "Actualizar",
     "M1_UPDATE_TOOLTIP": "Reexportar esta fecha y banda con la máscara del país",
+    "M1_UPDATE_HELP": "Las salidas antiguas necesitan la máscara del país. Actualizar la aplica; después de actualizar GCS, ejecute M2 para reconstruir el COG.",
     "M1_M2_READY": "Listo para M2",
+    "M1_UPDATE_TAB": "Actualización",
+    "M1_UPDATE_GUIDE_TITLE": "¿Por qué actualizamos estas salidas?",
+    "M1_UPDATE_GUIDE_NORMAL_TITLE": "Flujo normal de procesamiento",
+    "M1_UPDATE_GUIDE_NORMAL": "M1 crea el mosaico nacional seleccionado y lo exporta a un asset GEE o a fragmentos GCS. M2 combina los fragmentos GCS, aplica la máscara del país y escribe el COG final.",
+    "M1_UPDATE_GUIDE_REASON_TITLE": "Por qué se necesita esta corrección",
+    "M1_UPDATE_GUIDE_REASON": "Las salidas antiguas pueden no tener la máscara nacional. Aplicamos toda la FeatureCollection de regiones configurada para mantener un único producto nacional y enmascarar los píxeles fuera del país.",
+    "M1_UPDATE_GUIDE_ACTION_TITLE": "Qué hace Actualizar",
+    "M1_UPDATE_GUIDE_ACTION": "Para un asset GEE existente, M1 sobrescribe el mismo asset. Para un COG GCS existente, se enmascara el COG guardado sobre su grilla actual y se reemplaza en la misma ruta, sin una nueva tarea de Earth Engine. Si solo hay fragmentos GCS, M2 crea el COG a partir de ellos. Si no hay COG ni fragmentos, se ejecuta la exportación M1 habitual.",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Montaje de Mosaicos",
     "MOSAIC_SYNC": "Sincronizar Datos",
@@ -1711,7 +1729,16 @@ STRINGS_PT = {
     "EXPORT_NONE_SEL": "Nenhuma opção selecionada para exportação.",
     "M1_UPDATE_LABEL": "Atualizar",
     "M1_UPDATE_TOOLTIP": "Reexportar esta data e banda com a máscara do país",
+    "M1_UPDATE_HELP": "As saídas antigas precisam da máscara do país. Atualizar aplica a máscara; depois, rode o M2 para reconstruir o COG no GCS.",
     "M1_M2_READY": "Pronto para M2",
+    "M1_UPDATE_TAB": "Atualização",
+    "M1_UPDATE_GUIDE_TITLE": "Por que estamos atualizando estas saídas?",
+    "M1_UPDATE_GUIDE_NORMAL_TITLE": "Fluxo normal de processamento",
+    "M1_UPDATE_GUIDE_NORMAL": "O M1 cria o mosaico nacional selecionado e o exporta para um asset GEE ou para chunks no GCS. O M2 combina os chunks, aplica a máscara do país e grava o COG final.",
+    "M1_UPDATE_GUIDE_REASON_TITLE": "Por que esta correção é necessária",
+    "M1_UPDATE_GUIDE_REASON": "Saídas antigas podem não ter a máscara nacional. Aplicamos a FeatureCollection completa de regiões configurada para manter um único produto nacional e mascarar pixels fora do país.",
+    "M1_UPDATE_GUIDE_ACTION_TITLE": "O que Atualizar faz",
+    "M1_UPDATE_GUIDE_ACTION": "Para um asset GEE existente, o M1 sobrescreve o mesmo asset. Para um COG existente no GCS, a máscara é aplicada ao COG salvo, preservando sua grade, e o arquivo é substituído no mesmo caminho sem criar uma nova task do Earth Engine. Se houver apenas chunks no GCS, o M2 monta o COG a partir deles. Se não houver COG nem chunks, segue a exportação normal do M1.",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Montagem de Mosaicos",
     "MOSAIC_SYNC": "Sincronizar Dados",
@@ -2309,7 +2336,16 @@ STRINGS_FR = {
     "EXPORT_NONE_SEL": "Aucune option sélectionnée pour l'exportation.",
     "M1_UPDATE_LABEL": "Mettre à jour",
     "M1_UPDATE_TOOLTIP": "Réexporter cette date et bande avec le masque du pays",
+    "M1_UPDATE_HELP": "Les anciens exports nécessitent le masque du pays. La mise à jour l'applique ; pour le GCS, lancez M2 ensuite pour reconstruire le COG.",
     "M1_M2_READY": "Prêt pour M2",
+    "M1_UPDATE_TAB": "Mise à jour",
+    "M1_UPDATE_GUIDE_TITLE": "Pourquoi mettre à jour ces sorties ?",
+    "M1_UPDATE_GUIDE_NORMAL_TITLE": "Flux normal de traitement",
+    "M1_UPDATE_GUIDE_NORMAL": "M1 crée le mosaïque national sélectionné et l'exporte vers un asset GEE ou des fragments GCS. M2 combine les fragments, applique le masque du pays et écrit le COG final.",
+    "M1_UPDATE_GUIDE_REASON_TITLE": "Pourquoi cette correction est nécessaire",
+    "M1_UPDATE_GUIDE_REASON": "Les anciennes sorties peuvent ne pas avoir le masque national. Nous appliquons toute la FeatureCollection de régions configurée afin de conserver un produit national unique et de masquer les pixels hors du pays.",
+    "M1_UPDATE_GUIDE_ACTION_TITLE": "Action de Mise à jour",
+    "M1_UPDATE_GUIDE_ACTION": "Pour un asset GEE existant, M1 remplace le même asset. Pour un COG GCS existant, le COG sauvegardé est masqué sur sa grille actuelle puis remplacé au même chemin, sans nouvelle tâche Earth Engine. Si seuls des fragments GCS existent, M2 crée le COG à partir de ceux-ci. Si aucun COG ni fragment n'existe, l'export M1 normal est lancé.",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Assemblage de mosaïques",
     "MOSAIC_SYNC": "Synchroniser données",
@@ -2906,7 +2942,16 @@ STRINGS_ID = {
     "EXPORT_NONE_SEL": "Tidak ada opsi dipilih untuk ekspor.",
     "M1_UPDATE_LABEL": "Perbarui",
     "M1_UPDATE_TOOLTIP": "Ekspor ulang tanggal dan band ini dengan masker negara",
+    "M1_UPDATE_HELP": "Ekspor lama memerlukan masker negara. Perbarui menerapkannya; setelah pembaruan GCS, jalankan M2 untuk membuat ulang COG.",
     "M1_M2_READY": "Siap untuk M2",
+    "M1_UPDATE_TAB": "Pembaruan",
+    "M1_UPDATE_GUIDE_TITLE": "Mengapa keluaran ini diperbarui?",
+    "M1_UPDATE_GUIDE_NORMAL_TITLE": "Alur pemrosesan normal",
+    "M1_UPDATE_GUIDE_NORMAL": "M1 membuat mosaik nasional yang dipilih dan mengekspornya ke asset GEE atau potongan GCS. M2 menggabungkan potongan GCS, menerapkan masker negara, dan menulis COG akhir.",
+    "M1_UPDATE_GUIDE_REASON_TITLE": "Mengapa koreksi ini diperlukan",
+    "M1_UPDATE_GUIDE_REASON": "Keluaran lama mungkin belum memiliki masker nasional. Seluruh FeatureCollection wilayah yang dikonfigurasi diterapkan agar produk tetap satu keluaran nasional dan piksel di luar negara dimasker.",
+    "M1_UPDATE_GUIDE_ACTION_TITLE": "Apa yang dilakukan Perbarui",
+    "M1_UPDATE_GUIDE_ACTION": "Untuk asset GEE yang sudah ada, M1 menimpa asset yang sama. Untuk COG GCS yang sudah ada, COG tersimpan dimasker pada grid saat ini lalu diganti di jalur yang sama, tanpa task Earth Engine baru. Jika hanya potongan GCS yang tersedia, M2 menyusun COG dari potongan itu. Jika COG dan potongan tidak ada, ekspor M1 biasa dijalankan.",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Perakitan Mozaik",
     "MOSAIC_SYNC": "Sinkron Data",

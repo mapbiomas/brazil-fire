@@ -6,6 +6,7 @@ import os
 import subprocess
 import glob
 import time
+import tempfile
 from functools import lru_cache
 
 from M0_auth_config import (
@@ -118,6 +119,62 @@ def _country_geometry_geojson(asset_regions):
     """Fetch a configured country boundary once per asset per notebook session."""
     import ee
     return ee.FeatureCollection(asset_regions).geometry().getInfo()
+
+
+def mask_existing_country_cog(period_key, band, sensor, mosaic_method, logger=None):
+    """Mask an existing GCS COG in place without creating an Earth Engine task.
+
+    The old object remains untouched until the masked COG has been built
+    successfully; the final upload replaces the same GCS object key.
+    """
+    import shutil
+    from M_gcs import blob_exists
+
+    info = parse_period(period_key)
+    cog_dir = period_cog_path(period_key, mosaic=mosaic_method, sensor=sensor)
+    band_name = 'dayOfYear' if band.lower() == 'dayofyear' else band
+    cog_name = (
+        f"{mosaic_name_for_period(period_key, band=band_name, sensor=sensor, mosaic=mosaic_method)}_cog.tif"
+    )
+    remote_uri = f"gs://{CONFIG['bucket']}/{cog_dir}/{cog_name}"
+    if not blob_exists(remote_uri):
+        return False
+
+    missing = [dep for dep in check_m2_dependencies() if dep != 'gsutil']
+    if missing:
+        raise RuntimeError(f"Missing M2 dependencies: {missing}")
+
+    work_dir = tempfile.mkdtemp(prefix='m1_country_mask_', dir=get_temp_dir())
+    try:
+        source_path = os.path.join(work_dir, cog_name)
+        masked_path = os.path.join(work_dir, f"masked_{cog_name}")
+        output_path = os.path.join(work_dir, f"updated_{cog_name}")
+        download(remote_uri, source_path)
+        geometry = _country_geometry_geojson(CONFIG['asset_regions'])
+        mask_raster_to_country(source_path, masked_path, geometry)
+        data_type = BAND_DATATYPES.get(band_name, 'Int16')
+        run_cmd([
+            'gdal_translate', '-of', 'COG', '-ot', data_type,
+            '-co', 'COMPRESS=LZW', '-co', 'PREDICTOR=2',
+            '-co', 'NUM_THREADS=2', '-co', 'BIGTIFF=YES',
+            masked_path, output_path,
+        ], label=f"COG country-mask update ({band_name})")
+        upload(output_path, f"{CONFIG['bucket']}/{cog_dir}/{cog_name}")
+
+        try:
+            from M1_update_manifest import complete_gcs_item
+            complete_gcs_item(
+                CONFIG['country'], sensor, info.periodicity,
+                mosaic_method, period_key, band_name,
+            )
+        except Exception as e:
+            if logger:
+                logger(f"[WARN] Masked COG uploaded but manifest completion failed: {e}", "warning")
+        if logger:
+            logger(f"Updated existing COG in place: {remote_uri}", "success")
+        return True
+    finally:
+        shutil.rmtree(work_dir, ignore_errors=True)
 
 def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sensor=None, mosaic_method='minnbr', logger=None, progress_idx=0, progress_total=0, start_time=None, period_key=None):
     import shutil
