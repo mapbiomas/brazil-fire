@@ -79,14 +79,14 @@ def connect(cfg, earth_engine=True):
                 source_credentials=source, target_principal=sa, target_scopes=SCOPES)
             creds.refresh(Request())
             _CREDENTIALS = creds
-            print(f"[GCS] Conta de servico pronta | {sa}")
+            print(f"[GCS] Conta de serviço pronta | {sa}")
         except Exception as exc:
             if "iam.serviceAccounts.getAccessToken" in str(exc):
-                print(f"[GCS][AVISO] Sua conta nao pode usar {sa}. Entre no grupo {SERVICE_ACCOUNT_GROUP} "
+                print(f"[GCS][AVISO] Sua conta não pode usar {sa}. Entre no grupo {SERVICE_ACCOUNT_GROUP} "
                       f"ou peca o papel 'Storage Object User' em gs://{BUCKET}.")
             else:
-                print(f"[GCS][AVISO] Falha na conta de servico: {exc}")
-            print("[GCS] Usando a sua propria conta para acessar o bucket.")
+                print(f"[GCS][AVISO] Falha na conta de serviço: {exc}")
+            print("[GCS] Usando a sua própria conta para acessar o bucket.")
 
     ok = _storage_client().bucket(BUCKET).exists()
     print(f"[CHECK] GCS gs://{BUCKET}: {'OK' if ok else 'SEM ACESSO'}")
@@ -100,7 +100,7 @@ def connect(cfg, earth_engine=True):
 
 def _require_bucket():
     if not BUCKET:
-        raise RuntimeError("Rode antes unet_env.connect(UCFG) (celula 0.2).")
+        raise RuntimeError("Rode antes unet_env.connect(UCFG) (célula 0.2).")
     return BUCKET
 
 

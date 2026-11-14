@@ -67,8 +67,8 @@ class MosaicReader:
         except Exception as exc:
             self.close()
             raise FileNotFoundError(
-                f"Nao foi possivel abrir o mosaico {self.period}. Confira se todas as bandas de BANDS "
-                f"(e VALID_BAND) foram exportadas para esse periodo; a banda que nao existe aparece no erro. "
+                f"Não foi possível abrir o mosaico {self.period}. Confira se todas as bandas de BANDS "
+                f"(e VALID_BAND) foram exportadas para esse período; a banda que não existe aparece no erro. "
                 f"Caminhos: {self.paths}. Erro: {exc}"
             ) from exc
         self._check_grid()
@@ -91,7 +91,7 @@ class MosaicReader:
                 bad.append(f"{b}: crs={ds.crs} transform={tuple(ds.transform)[:6]} size={ds.width}x{ds.height}")
         if bad:
             raise ValueError(
-                "As bandas do mosaico nao estao na mesma grade de "
+                "As bandas do mosaico não estão na mesma grade de "
                 f"'{ref_b}' (crs={ref.crs}, tamanho={ref.width}x{ref.height}):\n  " + "\n  ".join(bad)
             )
 
@@ -169,7 +169,7 @@ def list_sample_files(cfg, period):
         wanted = [n if n.endswith(".csv") else f"{n}.csv" for n in cfg["SAMPLE_FILES"]]
         missing = [n for n in wanted if n not in names]
         if missing:
-            raise FileNotFoundError(f"Arquivos de amostra nao encontrados em gs://{folder}: {missing}")
+            raise FileNotFoundError(f"Arquivos de amostra não encontrados em gs://{folder}: {missing}")
         return wanted
     pattern = cfg["SAMPLE_GLOB"].format(period=period, region=cfg["REGION"])
     return sorted(n for n in names if fnmatch.fnmatch(n, pattern))
@@ -213,8 +213,8 @@ def load_samples(cfg, period, crs, logger=None):
     files = list_sample_files(cfg, period)
     if not files:
         raise FileNotFoundError(
-            f"Nenhum CSV de amostras casa com '{cfg['SAMPLE_GLOB']}' em gs://{P['bucket']}/{P['samples']}. "
-            "O nome do arquivo precisa ter o periodo (ex.: ..._2026_10.csv) ou use SAMPLE_FILES=[...]."
+            f"Nenhum CSV de amostras corresponde a '{cfg['SAMPLE_GLOB']}' em gs://{P['bucket']}/{P['samples']}. "
+            "O nome do arquivo precisa ter o período (ex.: ..._2026_10.csv) ou use SAMPLE_FILES=[...]."
         )
     field = cfg["CLASS_FIELD"]
     frames = []
@@ -228,7 +228,7 @@ def load_samples(cfg, period, crs, logger=None):
         df["_period"], n_fix = sample_periods(df, name)
         if n_fix:
             corrected[name] = n_fix
-            _log(logger, f"[AMOSTRAS][AVISO] {name}: a coluna 'period' tem data posterior a do nome do "
+            _log(logger, f"[AMOSTRAS][AVISO] {name}: a coluna 'period' tem data posterior à do nome do "
                          f"arquivo; vale a data do arquivo (regra do M4).", "warning")
         frames.append(df)
     df = pd.concat(frames, ignore_index=True)
@@ -236,14 +236,14 @@ def load_samples(cfg, period, crs, logger=None):
     periods_found = sorted(df["_period"].unique().tolist())
     df = df[df["_period"] == period]
     if df.empty:
-        raise ValueError(f"Nenhuma amostra e do periodo {period}. Periodos encontrados em {files}: {periods_found}")
+        raise ValueError(f"Nenhuma amostra é do período {period}. Períodos encontrados em {files}: {periods_found}")
     sample_region = cfg.get("SAMPLE_REGION") or cfg.get("REGION")
     if cfg.get("FILTER_SAMPLES_BY_REGION") and sample_region and "region" in df.columns:
         regions = sorted(df["region"].astype(str).unique().tolist())
         df = df[df["region"].astype(str).str.lower() == str(sample_region).lower()]
         if df.empty:
             raise ValueError(
-                f"Nenhuma amostra tem region == '{sample_region}'. Regioes encontradas: {regions}. "
+                f"Nenhuma amostra tem region == '{sample_region}'. Regiões encontradas: {regions}. "
                 "Ajuste SAMPLE_REGION para uma delas, ou use FILTER_SAMPLES_BY_REGION=False."
             )
 
@@ -282,71 +282,6 @@ def load_samples(cfg, period, crs, logger=None):
                  f"fire {report['by_class']['1']['polygons']} ({report['by_class']['1']['area_ha']:.0f} ha) | "
                  f"not fire {report['by_class']['0']['polygons']} ({report['by_class']['0']['area_ha']:.0f} ha)")
     return gdf, report
-
-
-def print_inventory(cfg, inv, sample_files, report):
-    """Resumo didatico do inventario: mosaico (de onde vem a imagem) e amostras (o que o modelo aprende)."""
-    deg_to_m = 111320.0
-    res_deg = next(iter(inv["bands"].values()))["res"][0]
-    geographic = str(inv["crs"]).upper() in ("EPSG:4326", "OGC:CRS84")
-    res_m = res_deg * deg_to_m if geographic else res_deg
-    line = "=" * 72
-    print(line)
-    print(f"INVENTARIO  |  periodo {inv['period']}  |  regiao {cfg['REGION']}  |  {cfg['SENSOR']} {cfg['MOSAIC']}")
-    print(line)
-    print("Para que serve: confere, sem treinar nada, se as imagens (mosaico) e as amostras")
-    print("(poligonos de fogo / nao-fogo) existem, estao na mesma grade e sao suficientes.\n")
-
-    print("1) MOSAICO (as imagens que entram no modelo)")
-    print(f"   Grade: {inv['width']:,} x {inv['height']:,} pixels | CRS {inv['crs']} | pixel ~ {res_m:.1f} m")
-    print("   (o mosaico cobre a America do Sul inteira; o codigo le so a janela da regiao)")
-    print(f"   {'banda':<11}{'tipo':<8}{'nodata':<9}{'pixel (graus)':<16}arquivo")
-    for name, b in inv["bands"].items():
-        print(f"   {name:<11}{b['dtype']:<8}{str(b['nodata']):<9}{b['res'][0]:<16.3e}{b['path'].rsplit('/', 1)[-1]}")
-    n_feat = len(cfg["BANDS"]) + len(cfg["INDICES"])
-    print(f"   -> o modelo recebe {n_feat} canais: bandas {cfg['BANDS']}"
-          + (f" + indices {cfg['INDICES']}" if cfg["INDICES"] else " (sem indices)"))
-    vb = inv["valid_band"]
-    if cfg.get("VALID_BAND"):
-        print(f"   -> pixel valido: onde {vb} > 0; a banda 2 da saida traz o dia do ano da queimada")
-    else:
-        print("   -> sem dayOfYear: pixel valido = bandas nao-nodata e nao todas 0; banda 2 da saida fica vazia")
-    res_ok = len({round(b["res"][0], 12) for b in inv["bands"].values()}) == 1
-    print(f"   -> todas as bandas na mesma grade: {'SIM' if res_ok else 'NAO - verifique os COGs'}\n")
-
-    print("2) AMOSTRAS (o que o modelo aprende)")
-    print(f"   Arquivo(s): {', '.join(os.path.basename(str(f)) for f in sample_files) or 'nenhum'}")
-    print(f"   Regiao filtrada: {cfg.get('SAMPLE_REGION') or cfg['REGION']} | periodos no arquivo: {report['periods_found']}")
-    fixed = sum(report["period_corrected_rows"].values()) if isinstance(report["period_corrected_rows"], dict) \
-        else report["period_corrected_rows"]
-    print(f"   Linhas com periodo corrigido pela regra do M4: {fixed}")
-    f, n = report["by_class"]["1"], report["by_class"]["0"]
-    total = f["polygons"] + n["polygons"]
-    print(f"   {'classe':<22}{'poligonos':>10}{'area (ha)':>13}{'media/poligono (ha)':>22}")
-    for label, c in (("fogo (1)", f), ("nao-fogo (0)", n)):
-        mean = c["area_ha"] / c["polygons"] if c["polygons"] else 0
-        print(f"   {label:<22}{c['polygons']:>10}{c['area_ha']:>13,.0f}{mean:>22,.1f}")
-    print(f"   {'total':<22}{total:>10}\n")
-
-    print("3) O QUE OBSERVAR")
-    notes = []
-    if total < 100:
-        notes.append(f"Poucos poligonos ({total}): com blocos de {cfg['BLOCK_KM']} km, validacao e teste "
-                     "podem ficar com 1 ou 2 blocos. Acrescente meses em PERIODS se possivel.")
-    if n["polygons"] < 10:
-        notes.append(f"So {n['polygons']} poligonos de nao-fogo: o modelo pode confundir agua, sombra e "
-                     "solo escuro com cicatriz.")
-    if f["polygons"] and n["polygons"] and (f["area_ha"] / max(n["area_ha"], 1e-9) < 0.2
-                                             or f["area_ha"] / max(n["area_ha"], 1e-9) > 5):
-        notes.append("Areas de fogo e nao-fogo muito diferentes; os chips sao balanceados pelo numero, "
-                     "nao pela area.")
-    if not cfg["INDICES"]:
-        notes.append("Sem indices espectrais (faltam nir/swir1): a comparacao com o MLP tera so as variantes A e C.")
-    if not notes:
-        notes.append("Nada de especial: pode seguir para a etapa de chips.")
-    for t in notes:
-        print(f"   - {t}")
-    print(line)
 
 
 # ---------------------------------------------------------------------------
@@ -395,10 +330,10 @@ def region_geometry(cfg, crs, logger=None, simplify_m=100):
         fc = all_regions.filter(ee.Filter.eq(prop, region))
         if fc.size().getInfo() == 0:
             names = sorted(set(map(str, all_regions.aggregate_array(prop).getInfo())))
-            raise ValueError(f"A regiao '{region}' ({prop}) nao existe em {asset}. Opcoes: {names}")
+            raise ValueError(f"A região '{region}' ({prop}) não existe em {asset}. Opções: {names}")
         gj = fc.geometry().simplify(maxError=simplify_m).getInfo()
         write_text(cfg, cache, json.dumps(gj))
-        _log(logger, f"[REGIAO] geometria de {region} salva em gs://{P['bucket']}/{cache}")
+        _log(logger, f"[REGIÃO] geometria de {region} salva em gs://{P['bucket']}/{cache}")
     geom = gpd.GeoSeries([shape(gj)], crs="EPSG:4326").to_crs(crs).iloc[0]
     return geom
 
@@ -410,7 +345,7 @@ def region_geometry(cfg, crs, logger=None, simplify_m=100):
 def _check_inside(cfg, rel_path):
     root = paths(cfg)["root"]
     if not rel_path.startswith(root + "/"):
-        raise PermissionError(f"Recusado: so e permitido escrever dentro de {root} ({rel_path})")
+        raise PermissionError(f"Recusado: só é permitido escrever dentro de {root} ({rel_path})")
 
 
 def upload(cfg, local_path, rel_path):

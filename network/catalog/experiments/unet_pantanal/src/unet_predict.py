@@ -32,7 +32,7 @@ def region_window(reader, region_geom):
     c1 = min(reader.width, int(math.ceil(w.col_off + w.width)))
     r1 = min(reader.height, int(math.ceil(w.row_off + w.height)))
     if c1 <= c0 or r1 <= r0:
-        raise ValueError("A regiao nao cruza o mosaico.")
+        raise ValueError("A região não cruza o mosaico.")
     return Window(c0, r0, c1 - c0, r1 - r0)
 
 

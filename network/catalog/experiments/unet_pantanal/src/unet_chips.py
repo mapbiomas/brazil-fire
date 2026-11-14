@@ -194,7 +194,7 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
     existing = gcs.list_files(P["chips"], suffix=".tfrecord.gz")
     existing = [f for f in existing if split_chip_name(f)[0] == period]
     if existing and not overwrite:
-        _log(logger, f"[CHIPS] {period}: {len(existing)} arquivo(s) ja estao no GCS; nada refeito "
+        _log(logger, f"[CHIPS] {period}: {len(existing)} arquivo(s) já estão no GCS; nada refeito "
                      "(use overwrite=True para refazer).", "warning")
         return {"period": period, "skipped": True, "shards": existing}
     if existing and overwrite:
@@ -212,7 +212,7 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
             s: {str(c): int(n) for c, n in g.groupby("cls").size().items()}
             for s, g in centers.groupby("split")
         } if len(centers) else {}
-        _log(logger, f"[DIVISAO] blocos {grid.counts()} | classes completas em cada divisao: "
+        _log(logger, f"[DIVISÃO] blocos {grid.counts()} | classes completas em cada divisão: "
                      f"{'sim' if getattr(grid, 'stratified', False) else 'NAO'}")
 
         sindex = samples.sindex
@@ -300,7 +300,7 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
         }
         write_json(cfg, f"{P['reports']}/chips_{period}.json", summary)
         _log(logger, f"[CHIPS] {period}: " + ", ".join(f"{s} {counts[s]['chips']}" for s in SPLITS)
-                     + f" | descartados {dropped} | sobreposicao fogo/nao-fogo em {len(overlaps)} chip(s)")
+                     + f" | descartados {dropped} | sobreposição fogo/não-fogo em {len(overlaps)} chip(s)")
         return summary
     finally:
         reader.close()
@@ -363,7 +363,7 @@ def compute_stats(cfg, logger=None):
     train = [f for f in files if split_chip_name(f)[1] == "train"
              and split_chip_name(f)[0] in cfg["PERIODS"]]
     if not train:
-        raise FileNotFoundError("Nao ha chips de treino. Rode o passo 2 (chips) antes.")
+        raise FileNotFoundError("Não há chips de treino. Rode o passo 2 (chips) antes.")
     names = channel_names(cfg)
     res = PixelReservoir(cfg["STATS_MAX_PIXELS"], len(names), cfg["SEED"])
     for rec in tf.data.TFRecordDataset(train, compression_type="GZIP").as_numpy_iterator():
@@ -375,6 +375,6 @@ def compute_stats(cfg, logger=None):
     stats["periods"] = list(cfg["PERIODS"])
     stats["source"] = "train chips only"
     write_json(cfg, P["stats"], stats)
-    _log(logger, f"[STATS] {len(names)} canais, {res.seen} pixels validos de treino "
+    _log(logger, f"[STATS] {len(names)} canais, {res.seen} pixels válidos de treino "
                  f"(amostra {len(res.data)}) -> gs://{P['bucket']}/{P['stats']}")
     return stats

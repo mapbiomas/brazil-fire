@@ -39,7 +39,7 @@ def evaluate_unet(cfg, model, logger=None):
     for period in cfg["PERIODS"]:
         va, te = chip_files(files, [period], "val"), chip_files(files, [period], "test")
         if not va or not te:
-            _log(logger, f"[TESTE][AVISO] {period}: faltam chips de validacao ou teste", "warning")
+            _log(logger, f"[TESTE][AVISO] {period}: faltam chips de validação ou teste", "warning")
             continue
         hv = split_histograms(model, va, stats, cfg)
         ht = split_histograms(model, te, stats, cfg)
@@ -102,7 +102,7 @@ def compare_with_mlp(cfg, unet_results, logger=None):
     Xtr, Ytr = labeled_pixels(tr, cfg, cfg["MLP_MAX_PIXELS"], cfg["SEED"])
     Xva, Yva = labeled_pixels(va, cfg)
     Xte, Yte = labeled_pixels(te, cfg)
-    _log(logger, f"[MLP] pixels rotulados: treino {len(Xtr)} | validacao {len(Xva)} | teste {len(Xte)}")
+    _log(logger, f"[MLP] pixels rotulados: treino {len(Xtr)} | validação {len(Xva)} | teste {len(Xte)}")
 
     n_bands = len(cfg["BANDS"])
     variants = {"A_mlp_bands": slice(0, n_bands)}
@@ -127,7 +127,7 @@ def compare_with_mlp(cfg, unet_results, logger=None):
 
 def comparison_table(rows):
     """Markdown table: one line per model, test metrics at the val threshold and at 0.5."""
-    head = ("| Modelo | Limiar (validacao) | F1 | IoU | Omissao | Comissao | F1 @0.5 | IoU @0.5 |\n"
+    head = ("| Modelo | Limiar (validação) | F1 | IoU | Omissão | Comissão | F1 @0.5 | IoU @0.5 |\n"
             "|---|---|---|---|---|---|---|---|")
     lines = [head]
     for name, r in rows.items():

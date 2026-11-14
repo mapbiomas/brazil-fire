@@ -200,22 +200,22 @@ def train(cfg, logger=print):
     tf.keras.utils.set_random_seed(cfg["SEED"])
     if cfg["MIXED_PRECISION"] and _gpu_available():
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
-        logger("[TREINO] precisao mista (mixed_float16) na GPU")
+        logger("[TREINO] precisão mista (mixed_float16) na GPU")
     elif not _gpu_available():
-        logger("[TREINO][AVISO] Sem GPU: Ambiente de execucao > Alterar tipo > GPU.")
+        logger("[TREINO][AVISO] Sem GPU: Ambiente de execução > Alterar tipo > GPU.")
 
     stats = read_json(P["stats"])
     files = download_prefix(P["chips"], local_dir("chips"), suffix=".tfrecord.gz")
     tr = chip_files(files, cfg["PERIODS"], "train")
     va = chip_files(files, cfg["PERIODS"], "val")
     if not tr or not va:
-        falta = "treino" if not tr else "validacao"
+        falta = "treino" if not tr else "validação"
         raise FileNotFoundError(
-            f"Faltam chips de {falta} (arquivos: treino={len(tr)}, validacao={len(va)}).\n"
-            "Causa provavel: na divisao por blocos de BLOCK_KM km, a validacao (ou o treino) ficou sem "
-            "blocos ou so com uma classe (so fogo ou so nao-fogo), e seus chips nao foram gerados.\n"
-            "O que fazer: (1) volte ao passo 2 e veja a tabela de chips por divisao; (2) rode-o de novo "
-            "com REFAZER_CHIPS = True (os chips ja salvos sao de uma execucao anterior); (3) se ainda "
+            f"Faltam chips de {falta} (arquivos: treino={len(tr)}, validação={len(va)}).\n"
+            "Causa provável: na divisão por blocos de BLOCK_KM km, a validação (ou o treino) ficou sem "
+            "blocos ou só com uma classe (só fogo ou só não-fogo), e seus chips não foram gerados.\n"
+            "O que fazer: (1) volte ao passo 2 e veja a tabela de chips por divisão; (2) rode-o de novo "
+            "com REFAZER_CHIPS = True (os chips já salvos são de uma execução anterior); (3) se ainda "
             "faltar, acrescente meses em PERIODS ou reduza BLOCK_KM (ex.: 10).")
 
     model = build_unet(len(channel_names(cfg)), cfg["FILTERS"], cfg["BOTTOM_FILTERS"])
