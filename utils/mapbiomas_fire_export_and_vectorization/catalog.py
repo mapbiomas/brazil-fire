@@ -6,7 +6,7 @@ max observado, temporal e **units** (bandas p/ imagem multibanda; imagens p/
 IMAGE_COLLECTION). O `type` declarado no OBJ e mantido (nao sobrescrito).
 
 Uso (onde houver GEE, ex.: Colab):
-    from export_and_vectorization.catalog import build_inventory
+    from mapbiomas_fire_export_and_vectorization.catalog import build_inventory
     inv = build_inventory(["brasil", "indonesia"], refresh=True)
 """
 

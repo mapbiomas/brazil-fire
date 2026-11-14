@@ -1,7 +1,7 @@
 """Form para adicionar/ocultar colecoes no OBJ (qualquer tema, nao so fire).
 
 Celuula opcional no notebook:
-    from export_and_vectorization.collection_manager import add_collection_form
+    from mapbiomas_fire_export_and_vectorization.collection_manager import add_collection_form
     add_collection_form()
 """
 

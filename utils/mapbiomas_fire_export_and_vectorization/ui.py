@@ -457,17 +457,17 @@ def _is_complete(v):
 
 
 # ---------------------------------------------------------------------------
-# Guias (7 idiomas)
+# Guias (PT, EN, ES)
 # ---------------------------------------------------------------------------
-LANG_ORDER = ["PT", "ES", "EN", "ID", "FR", "NL", "ZH"]
+LANG_ORDER = ["PT", "EN", "ES"]
 
 GUIDES = {'PT': {'name': 'Português',
         'tab_title': 'Guia: Português',
         'welcome_note': 'Bem-vindo! Esta guia em português explica o aplicativo MapBiomas Export & Publish '
-                        '(catálogo de dados multipaís e multitemático): como navegar (país → tema → '
+                        '(catálogo de dados de fogo multipaís): como navegar (país → tema → '
                         'coleção → produto), descobrir as unidades, processar cada etapa e publicar os '
                         'mapas. As abas acima mostram a interface; use esta guia sempre que precisar.',
-        'what': 'O aplicativo exporta dados do catálogo MapBiomas (fogo, uso e cobertura, etc.): do Earth '
+        'what': 'O aplicativo exporta dados do catálogo MapBiomas (fogo): do Earth '
                 'Engine (GEE) para o GCS, monta mosaicos (COG) por unidade (banda ou imagem), publica no '
                 'bucket público e remove os arquivos temporários. A vetorização é uma análise opcional '
                 'para produtos vetorizáveis (ex.: annual_burned).',
@@ -554,7 +554,7 @@ GUIDES = {'PT': {'name': 'Português',
  'ES': {'name': 'Español',
         'tab_title': 'Guía: Español',
         'welcome_note': '¡Bienvenido! Esta guía en español explica la aplicación Export & Vectorization del '
-                        'Monitor del Fuego de MapBiomas: cómo navegar (país → tema → colección → producto), '
+                        'MapBiomas Fuego: cómo navegar (país → tema → colección → producto), '
                         'descubrir las unidades, procesar cada Etapa y publicar los mapas. Las pestañas de '
                         'arriba muestran la interfaz; use esta guía siempre que la necesite.',
         'what': 'La aplicación exporta los mapas de área quemada/incendio de MapBiomas Fire: de Earth Engine '
@@ -715,333 +715,7 @@ GUIDES = {'PT': {'name': 'Português',
                               ' ↓',
                               'Publish → public bucket',
                               ' ↓',
-                              '(if vectorizable) Vectorization → ZIP + upload GEE']}]},
- 'ID': {'name': 'Bahasa Indonesia',
-        'tab_title': 'Panduan: Bahasa Indonesia',
-        'welcome_note': 'Selamat datang! Panduan dalam bahasa Indonesia ini menjelaskan aplikasi Export & '
-                        'Vectorization dari MapBiomas Fire: cara navigasi (negara → tema → koleksi → '
-                        'produk), menemukan unit, memproses setiap langkah, dan memublikasikan peta. Tab di '
-                        'atas menampilkan antarmuka; gunakan panduan ini kapan pun Anda butuhkan.',
-        'what': 'Aplikasi ini mengekspor peta area terbakar/kebakaran dari MapBiomas Fire: dari Earth Engine '
-                '(GEE) ke GCS, membuat mosaik (COG) per unit (band atau citra), melakukan vektorisasi jika '
-                'berlaku, memublikasikan ke Earth Engine dan bucket publik, serta menghapus file sementara.',
-        'howto_title': 'Cara penggunaan',
-        'steps': ['<b>Navigasi</b> melalui tab: negara → tema → koleksi → produk.',
-                  'Klik <b>Load Data</b> (tombol merah berdenyut) untuk menemukan <b>unit</b>: band (citra '
-                  'multiband) atau citra (ImageCollection). Penemuan dilakukan berdasarkan permintaan — '
-                  'cache tidak diisi dengan data yang tidak dimuat.',
-                  'Pada kisi, centang unit yang diinginkan. Filter <code>Unit:</code> (default “All units”) '
-                  'membatasi berdasarkan awalan unit.',
-                  'Klik <b>Sync</b> untuk memeriksa status langkah-langkah. Pemindaian berjalan di latar '
-                  'belakang, dengan indikator kemajuan (kernel tidak terblokir).',
-                  'Jalankan langkah-langkah secara berurutan: <b>Export → Mosaik → Publikasikan mosaik → '
-                  'Vektor GCS → Vektor GEE → Publikasikan vektor → Bersihkan temp</b>. langkah-langkah 4–6 '
-                  'hanya untuk produk yang dapat divektorisasi (misalnya, annual_burned); untuk yang lain: '
-                  '<b>Export → Mosaik → Publikasikan mosaik → Bersihkan temp</b>.',
-                  'Untuk mengulang langkah, aktifkan <code>FORCE_&lt;LANGKAH&gt; = True</code> di sel '
-                  'langkah dan pilih unit di kisi.',
-                  'Untuk membuat versi memori Katalog (saat ada data baru di <code>config.py</code>), '
-                  'gunakan tombol <b>⤓ Catalog cache (.json)</b> di bilah bawah dan unggah file ke GitHub.'],
-        'cols_title': 'Kolom kisi',
-        'cols': [['Export', 'unit diekspor dari GEE (temp/)'],
-                 ['Mosaic', 'COG yang digabungkan'],
-                 ['Public mosaic', 'COG dicerminkan di bucket publik'],
-                 ['Vector GCS', 'vektor dalam format ZIP (hanya produk yang dapat divektorisasi)'],
-                 ['Vector GEE', 'FeatureCollection di Earth Engine'],
-                 ['Public vector', 'ZIP dicerminkan di bucket publik'],
-                 ['Clean temp', 'tile sementara dihapus setelah konsolidasi']],
-        'links': 'Lencana <b>🔗 OK</b> membuka tautan unduhan; <b>Vector GEE</b> menyalin asset ID.',
-        'legend': 'OK = langkah selesai | MISS = langkah tertunda | N/A = tidak berlaku',
-        'graphs_title': 'Grafik',
-        'graphs': [{'title': 'Navigasi',
-                    'lines': ['Negara',
-                              '└─ Tema',
-                              '   └─ Koleksi',
-                              '      └─ Produk',
-                              '         └─ Unit (band atau citra)']},
-                   {'title': 'Langkah-langkah (produk dapat divektorisasi)',
-                    'lines': ['1 Export → tiles 0/1 (temp/)',
-                              ' ↓',
-                              '2 Mosaik → COG',
-                              ' ↓',
-                              '3 Publikasikan mosaik → bucket publik',
-                              ' ↓',
-                              '4 Vektor GCS → ZIP',
-                              ' ↓',
-                              '5 Vektor GEE → FeatureCollection',
-                              ' ↓',
-                              '6 Publikasikan vektor → ZIP publik',
-                              ' ↓',
-                              '7 Bersihkan temp']},
-                   {'title': 'Langkah-langkah (produk lainnya)',
-                    'lines': ['1 Export',
-                              ' ↓',
-                              '2 Mosaik',
-                              ' ↓',
-                              '3 Publikasikan mosaik',
-                              ' ↓',
-                              '4 Bersihkan temp']},
-                   {'title': 'Memori Katalog',
-                    'lines': ['config.py (data mentah)',
-                              ' ↓',
-                              'Load Data (menemukan unit berdasarkan permintaan)',
-                              ' ↓',
-                              'catalog_cache.json (memori antar sesi)',
-                              ' ↓',
-                              'Tombol ⤓ Catalog cache (.json)',
-                              ' ↓',
-                              'GitHub (pembuatan versi)']},
-                   {'title': 'Alur data',
-                    'lines': ['GEE ImageCollection',
-                              ' ↓',
-                              'Export → tiles 0/1 (temp/)',
-                              ' ↓',
-                              'Mosaik → COG',
-                              ' ↓',
-                              'Publikasikan → bucket publik',
-                              ' ↓',
-                              '(jika dapat divektorisasi) Vektorisasi → ZIP + upload GEE']}]},
- 'FR': {'name': 'Français',
-        'tab_title': 'Guide : Français',
-        'welcome_note': "Bienvenue ! Ce guide en français explique l'application Export & Vectorization de "
-                        'MapBiomas Fire : comment naviguer (pays → thème → collection → produit), découvrir '
-                        'les unités, traiter chaque étape et publier les cartes. Les onglets ci-dessus '
-                        "affichent l'interface ; utilisez ce guide chaque fois que nécessaire.",
-        'what': "L'application exporte les cartes des zones brûlées/incendies de MapBiomas Fire : de Earth "
-                'Engine (GEE) vers GCS, assemble des mosaïques (COG) par unité (bande ou image), vectorise '
-                'le cas échéant, publie sur Earth Engine et le bucket public, et supprime les fichiers '
-                'temporaires.',
-        'howto_title': 'Comment utiliser',
-        'steps': ['<b>Naviguez</b> à travers les onglets : pays → thème → collection → produit.',
-                  'Cliquez sur <b>Load Data</b> (bouton rouge clignotant) pour découvrir les <b>unités</b> : '
-                  'bandes (image multibande) ou images (ImageCollection). La découverte est à la demande — '
-                  "le cache n'est pas rempli de données non chargées.",
-                  'Dans la grille, cochez les unités souhaitées. Le filtre <code>Unit:</code> (par défaut « '
-                  "All units ») restreint par préfixe d'unité.",
-                  "Cliquez sur <b>Sync</b> pour vérifier le statut des étapes. L'analyse s'exécute en "
-                  'arrière-plan avec un indicateur de progression (le noyau ne se bloque pas).',
-                  "Exécutez les étapes dans l'ordre : <b>Export → Mosaïque → Publier mosaïque → Vecteur GCS "
-                  '→ Vecteur GEE → Publier vecteur → Nettoyer temp</b>. étapes 4–6 uniquement pour les '
-                  'produits vectorisables (ex. : annual_burned) ; pour les autres : <b>Export → Mosaïque → '
-                  'Publier mosaïque → Nettoyer temp</b>.',
-                  'Pour refaire une étape, activez <code>FORCE_&lt;ÉTAPE&gt; = True</code> dans la cellule '
-                  "de l'étape et sélectionnez les unités dans la grille.",
-                  "Pour versionner la mémoire du catalogue (lorsqu'il y a de nouvelles données dans "
-                  '<code>config.py</code>), utilisez le bouton <b>⤓ Catalog cache (.json)</b> dans la barre '
-                  'inférieure et téléchargez le fichier sur GitHub.'],
-        'cols_title': 'Colonnes de la grille',
-        'cols': [['Export', 'unité exportée depuis GEE (temp/)'],
-                 ['Mosaic', 'COG assemblé'],
-                 ['Public mosaic', 'COG mis en miroir dans le bucket public'],
-                 ['Vector GCS', 'vecteur zippé (uniquement produits vectorisables)'],
-                 ['Vector GEE', 'FeatureCollection dans Earth Engine'],
-                 ['Public vector', 'ZIP mis en miroir dans le bucket public'],
-                 ['Clean temp', 'tuiles temporaires supprimées après consolidation']],
-        'links': "Les badges <b>🔗 OK</b> ouvrent le lien de téléchargement ; <b>Vector GEE</b> copie l'asset "
-                 'ID.',
-        'legend': 'OK = étape terminée | MISS = étape en attente | N/A = non applicable',
-        'graphs_title': 'Graphiques',
-        'graphs': [{'title': 'Navigation',
-                    'lines': ['Pays',
-                              '└─ Thème',
-                              '   └─ Collection',
-                              '      └─ Produit',
-                              '         └─ Unités (bandes ou images)']},
-                   {'title': 'Étapes (produit vectorisable)',
-                    'lines': ['1 Export → tiles 0/1 (temp/)',
-                              ' ↓',
-                              '2 Mosaïque → COG',
-                              ' ↓',
-                              '3 Publier mosaïque → bucket public',
-                              ' ↓',
-                              '4 Vecteur GCS → ZIP',
-                              ' ↓',
-                              '5 Vecteur GEE → FeatureCollection',
-                              ' ↓',
-                              '6 Publier vecteur → ZIP public',
-                              ' ↓',
-                              '7 Nettoyer temp']},
-                   {'title': 'Étapes (autres produits)',
-                    'lines': ['1 Export',
-                              ' ↓',
-                              '2 Mosaïque',
-                              ' ↓',
-                              '3 Publier mosaïque',
-                              ' ↓',
-                              '4 Nettoyer temp']},
-                   {'title': 'Mémoire du catalogue',
-                    'lines': ['config.py (données brutes)',
-                              ' ↓',
-                              'Load Data (découvre les unités à la demande)',
-                              ' ↓',
-                              'catalog_cache.json (mémoire entre sessions)',
-                              ' ↓',
-                              'Bouton ⤓ Catalog cache (.json)',
-                              ' ↓',
-                              'GitHub (versionnage)']},
-                   {'title': 'Flux de données',
-                    'lines': ['GEE ImageCollection',
-                              ' ↓',
-                              'Export → tiles 0/1 (temp/)',
-                              ' ↓',
-                              'Mosaïque → COG',
-                              ' ↓',
-                              'Publier → bucket public',
-                              ' ↓',
-                              '(si vectorisable) Vectorisation → ZIP + upload GEE']}]},
- 'NL': {'name': 'Nederlands',
-        'tab_title': 'Gids: Nederlands',
-        'welcome_note': 'Welkom! Deze Nederlandstalige gids legt de Export & Vectorization app van MapBiomas '
-                        'Fire uit: hoe te navigeren (land → thema → collectie → product), de eenheden te '
-                        'ontdekken, elke stap te verwerken en de kaarten te publiceren. De tabbladen '
-                        'hierboven tonen de interface; gebruik deze gids wanneer je hem nodig hebt.',
-        'what': 'De app exporteert kaarten van verbrande gebieden/branden van MapBiomas Fire: van Earth '
-                'Engine (GEE) naar GCS, bouwt mozaïeken (COG) per eenheid (band of afbeelding), vectoriseert '
-                'indien van toepassing, publiceert naar Earth Engine en de openbare bucket, en verwijdert '
-                'tijdelijke bestanden.',
-        'howto_title': 'Hoe te gebruiken',
-        'steps': ['<b>Navigeer</b> door de tabbladen: land → thema → collectie → product.',
-                  'Klik op <b>Load Data</b> (kloppende rode knop) om de <b>eenheden</b> te ontdekken: banden '
-                  '(multiband afbeelding) of afbeeldingen (ImageCollection). Ontdekking is on-demand — de '
-                  'cache wordt niet gevuld met ongeladen gegevens.',
-                  'Vink in het raster de gewenste eenheden aan. Het filter <code>Unit:</code> (standaard '
-                  '“All units”) beperkt op voorvoegsel van de eenheid.',
-                  'Klik op <b>Sync</b> om de status van de stappen te controleren. De scan draait op de '
-                  'achtergrond, met een voortgangsindicator (de kernel blokkeert niet).',
-                  'Voer de stappen op volgorde uit: <b>Export → Mozaïek → Publiceer mozaïek → Vector GCS → '
-                  'Vector GEE → Publiceer vector → Wis temp</b>. stappen 4–6 alleen voor vectoriseerbare '
-                  'producten (bijv. annual_burned); voor de rest: <b>Export → Mozaïek → Publiceer mozaïek → '
-                  'Wis temp</b>.',
-                  'Om een stap opnieuw te doen, activeer je <code>FORCE_&lt;STAP&gt; = True</code> in de cel '
-                  'van de stap en selecteer je de eenheden in het raster.',
-                  'Om de geheugen van de catalogus te versioneren (wanneer er nieuwe gegevens in '
-                  '<code>config.py</code> zijn), gebruik je de knop <b>⤓ Catalog cache (.json)</b> in de '
-                  'onderste balk en upload je het bestand naar GitHub.'],
-        'cols_title': 'Rasterkolommen',
-        'cols': [['Export', 'eenheid geëxporteerd van GEE (temp/)'],
-                 ['Mosaic', 'geassembleerde COG'],
-                 ['Public mosaic', 'COG gespiegeld in de openbare bucket'],
-                 ['Vector GCS', 'gezipte vector (alleen vectoriseerbare producten)'],
-                 ['Vector GEE', 'FeatureCollection in Earth Engine'],
-                 ['Public vector', 'ZIP gespiegeld in de openbare bucket'],
-                 ['Clean temp', 'tijdelijke tegels verwijderd na consolidatie']],
-        'links': 'Badges <b>🔗 OK</b> openen de downloadlink; <b>Vector GEE</b> kopieert de asset ID.',
-        'legend': 'OK = stap voltooid | MISS = stap in afwachting | N/A = niet van toepassing',
-        'graphs_title': 'Grafieken',
-        'graphs': [{'title': 'Navigatie',
-                    'lines': ['Land',
-                              '└─ Thema',
-                              '   └─ Collectie',
-                              '      └─ Product',
-                              '         └─ Eenheden (banden of afbeeldingen)']},
-                   {'title': 'Stappen (vectoriseerbaar product)',
-                    'lines': ['1 Export → tiles 0/1 (temp/)',
-                              ' ↓',
-                              '2 Mozaïek → COG',
-                              ' ↓',
-                              '3 Publiceer mozaïek → openbare bucket',
-                              ' ↓',
-                              '4 Vector GCS → ZIP',
-                              ' ↓',
-                              '5 Vector GEE → FeatureCollection',
-                              ' ↓',
-                              '6 Publiceer vector → openbare ZIP',
-                              ' ↓',
-                              '7 Wis temp']},
-                   {'title': 'Stappen (overige producten)',
-                    'lines': ['1 Export',
-                              ' ↓',
-                              '2 Mozaïek',
-                              ' ↓',
-                              '3 Publiceer mozaïek',
-                              ' ↓',
-                              '4 Wis temp']},
-                   {'title': 'Geheugen van de catalogus',
-                    'lines': ['config.py (ruwe data)',
-                              ' ↓',
-                              'Load Data (ontdekt eenheden on-demand)',
-                              ' ↓',
-                              'catalog_cache.json (geheugen tussen sessies)',
-                              ' ↓',
-                              'Knop ⤓ Catalog cache (.json)',
-                              ' ↓',
-                              'GitHub (versioneren)']},
-                   {'title': 'Dataflow',
-                    'lines': ['GEE ImageCollection',
-                              ' ↓',
-                              'Export → tiles 0/1 (temp/)',
-                              ' ↓',
-                              'Mozaïek → COG',
-                              ' ↓',
-                              'Publiceer → openbare bucket',
-                              ' ↓',
-                              '(indien vectoriseerbaar) Vectorisatie → ZIP + upload GEE']}]},
- 'ZH': {'name': '中文',
-        'tab_title': '指南：中文',
-        'welcome_note': '欢迎！本中文指南说明了 MapBiomas Fire 的 Export & Vectorization 应用程序：如何导航（国家 → 主题 → 集合 → 产品），发现 '
-                        '单位，处理每个 步骤，并发布地图。上面的选项卡显示了界面；随时使用此指南。',
-        'what': '该应用程序从 MapBiomas Fire 导出烧毁面积/火灾地图：从 Earth Engine (GEE) 到 GCS，按 单位（波段或图像）构建镶嵌图 '
-                '(COG)，在适用时进行矢量化，发布到 Earth Engine 和公共存储桶，并删除临时文件。',
-        'howto_title': '如何使用',
-        'steps': ['通过选项卡<b>导航</b>：国家 → 主题 → 集合 → 产品。',
-                  '单击 <b>Load Data</b>（闪烁的红色按钮）以发现 <b>单位</b>：波段（多波段图像）或图像（ImageCollection）。发现是按需进行的 — '
-                  '缓存不会被未加载的数据填满。',
-                  '在网格中，勾选所需的 单位。<code>Unit:</code> 过滤器（默认为“All units”）按 单位 前缀进行限制。',
-                  '单击 <b>Sync</b> 检查 步骤 的状态。扫描在后台运行，带有进度指示器（内核不会阻塞）。',
-                  '按顺序执行 步骤：<b>Export → 镶嵌 → 发布镶嵌图 → 矢量 GCS → 矢量 GEE → 发布矢量 → 清理临时文件</b>。步骤 4–6 '
-                  '仅适用于可矢量化的产品（例如 annual_burned）；对于其他产品：<b>Export → 镶嵌 → 发布镶嵌图 → 清理临时文件</b>。',
-                  '要重做 步骤，请在 步骤 单元格中激活 <code>FORCE_&lt;步骤&gt; = True</code> 并在网格中选择 单位。',
-                  '要对 目录 内存进行版本控制（当 <code>config.py</code> 中有新数据时），请使用底部栏中的 <b>⤓ Catalog cache (.json)</b> '
-                  '按钮并将文件上传到 GitHub。'],
-        'cols_title': '网格列',
-        'cols': [['Export', '从 GEE 导出的 单位 (temp/)'],
-                 ['Mosaic', '组装的 COG'],
-                 ['Public mosaic', '镜像在公共存储桶中的 COG'],
-                 ['Vector GCS', '压缩的矢量（仅限可矢量化产品）'],
-                 ['Vector GEE', 'Earth Engine 中的 FeatureCollection'],
-                 ['Public vector', '镜像在公共存储桶中的 ZIP'],
-                 ['Clean temp', '合并后删除的临时切片']],
-        'links': '带有 <b>🔗 OK</b> 的徽章可打开下载链接；<b>Vector GEE</b> 复制 asset ID。',
-        'legend': 'OK = 步骤 已完成 | MISS = 步骤 待处理 | N/A = 不适用',
-        'graphs_title': '图表',
-        'graphs': [{'title': '导航：',
-                    'lines': ['国家', '└─ 主题', '   └─ 集合', '      └─ 产品', '         └─ 单位（波段或图像）']},
-                   {'title': '步骤（可矢量化产品）：',
-                    'lines': ['1 Export → tiles 0/1 (temp/)',
-                              ' ↓',
-                              '2 镶嵌 → COG',
-                              ' ↓',
-                              '3 发布镶嵌图 → 公共存储桶',
-                              ' ↓',
-                              '4 矢量 GCS → ZIP',
-                              ' ↓',
-                              '5 矢量 GEE → FeatureCollection',
-                              ' ↓',
-                              '6 发布矢量 → 公共 ZIP',
-                              ' ↓',
-                              '7 清理临时文件']},
-                   {'title': '步骤（其他产品）：',
-                    'lines': ['1 Export', ' ↓', '2 镶嵌', ' ↓', '3 发布镶嵌图', ' ↓', '4 清理临时文件']},
-                   {'title': '目录 内存：',
-                    'lines': ['config.py（原始数据）',
-                              ' ↓',
-                              'Load Data（按需发现 单位）',
-                              ' ↓',
-                              'catalog_cache.json（会话之间的内存）',
-                              ' ↓',
-                              '按钮 ⤓ Catalog cache (.json)',
-                              ' ↓',
-                              'GitHub（版本控制）']},
-                   {'title': '数据流：',
-                    'lines': ['GEE ImageCollection',
-                              ' ↓',
-                              'Export → tiles 0/1 (temp/)',
-                              ' ↓',
-                              '镶嵌 → COG',
-                              ' ↓',
-                              '发布 → 公共存储桶',
-                              ' ↓',
-                              '（如果可矢量化）矢量化 → ZIP + upload GEE']}]}}
+                              '(if vectorizable) Vectorization → ZIP + upload GEE']}]}}
 
 
 def _guide_graphs(g, p):
@@ -2095,8 +1769,8 @@ class CountryTabs:
         return getattr(self._active_panel, name)
 
 
-class FireMonitorApp:
-    """App em guias: Interface (navegacao) + guias em 7 idiomas."""
+class FireApp:
+    """App em guias: Interface (navegacao) + guias em PT, EN e ES."""
 
     def __init__(self, countries):
         self.header = widgets.HTML()
@@ -2139,8 +1813,8 @@ class FireMonitorApp:
     #
     #     # Preset selector
     #     self.preset_dropdown = widgets.Dropdown(
-    #         options=["fire_monitor", "all", "lulc_only", "custom"],
-    #         value="fire_monitor",
+    #         options=["fire", "all", "custom"],
+    #         value="fire",
     #         description="Preset:",
     #         layout=L(width="200px")
     #     )
@@ -2170,21 +1844,21 @@ class FireMonitorApp:
     #     self.btn_save_filters = widgets.Button(
     #         description="Save Filters", button_style="success", icon="save",
     #         layout=L(width="130px", height="34px"),
-    #         tooltip="Save current filters to monitor_filters.json"
+    #         tooltip="Save current filters to filters.json"
     #     )
     #     self.btn_save_filters.on_click(self._on_save_filters)
     #
     #     self.btn_load_filters = widgets.Button(
     #         description="Load Filters", button_style="info", icon="folder-open",
     #         layout=L(width="130px", height="34px"),
-    #         tooltip="Load filters from monitor_filters.json"
+    #         tooltip="Load filters from filters.json"
     #     )
     #     self.btn_load_filters.on_click(self._on_load_filters)
     #
     #     self.btn_sync_github = widgets.Button(
     #         description="Sync to GitHub", button_style="success", icon="cloud-upload",
     #         layout=L(width="130px", height="34px"),
-    #         tooltip="Commit and push monitor_filters.json (load data cache) to GitHub"
+    #         tooltip="Commit and push filters.json (load data cache) to GitHub"
     #     )
     #     self.btn_sync_github.on_click(self._on_sync_github)
     #
@@ -2217,14 +1891,12 @@ class FireMonitorApp:
 
     # def _on_preset_change(self, change):
     #     preset = change.get("new")
-    #     if preset == "fire_monitor":
+    #     if preset == "fire":
     #         self.filter_theme_select.value = ("fire",)
     #         self.filter_country_select.value = tuple(self.interface.countries)
     #     elif preset == "all":
     #         self.filter_theme_select.value = ()
     #         self.filter_country_select.value = tuple(self.interface.countries)
-    #     elif preset == "lulc_only":
-    #         self.filter_theme_select.value = ("lulc", "lulc_10m")
     #         self.filter_country_select.value = tuple(self.interface.countries)
     #     # For "custom", don't auto-change
     #     self._apply_filters()
@@ -2275,7 +1947,7 @@ class FireMonitorApp:
     #         self._apply_filters()
 
     # def _on_save_filters(self, _):
-    #     """Save current filters to monitor_filters.json."""
+    #     """Save current filters to filters.json."""
     #     filters = config.load_filters()
     #     filters["preset"] = self.preset_dropdown.value
     #     filters["include_countries"] = list(self.filter_country_select.value)
@@ -2284,20 +1956,20 @@ class FireMonitorApp:
     #     filters["exclude_countries"] = []
     #     filters["exclude_themes"] = []
     #     config.save_filters(filters)
-    #     self._log("Filters saved to monitor_filters.json", "success")
+    #     self._log("Filters saved to filters.json", "success")
     #
     # def _on_load_filters(self, _):
-    #     """Load filters from monitor_filters.json."""
+    #     """Load filters from filters.json."""
     #     filters = config.load_filters()
-    #     self.preset_dropdown.value = filters.get("preset", "fire_monitor")
+    #     self.preset_dropdown.value = filters.get("preset", "fire")
     #     self.filter_country_select.value = tuple(filters.get("include_countries", self.interface.countries))
     #     self.filter_theme_select.value = tuple(filters.get("include_themes", []))
     #     self._apply_filters()
     #     self._update_cache_status()
-    #     self._log("Filters loaded from monitor_filters.json", "success")
+    #     self._log("Filters loaded from filters.json", "success")
     #
     # def _on_sync_github(self, _):
-    #     """Commit and push monitor_filters.json to GitHub."""
+    #     """Commit and push filters.json to GitHub."""
     #     self.btn_sync_github.disabled = True
     #     self.btn_sync_github.description = "Syncing..."
     #     self.btn_sync_github.icon = "spinner"
@@ -2405,7 +2077,7 @@ class FireMonitorApp:
 
 def run_ui(countries=None):
     countries = countries or config.sorted_countries()
-    app = FireMonitorApp(countries)
+    app = FireApp(countries)
     app.display()
     app.interface._activate(0)
     return app

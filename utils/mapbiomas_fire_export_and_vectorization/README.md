@@ -1,10 +1,9 @@
-# MapBiomas Export & Publish
+# MapBiomas Fogo — Export & Vectorization
 
-Pipeline multipais/multitematico para exportar dados do catalogo MapBiomas
-(originalmente o monitor de fogo, hoje expandido para muitos paises, temas e
-produtos): exportacao do GEE, mosaico, publicacao no bucket publico e limpeza
-do temp. A **vetorizacao** e uma etapa **opcional** (analise adicional) para
-produtos vetorizaveis.
+Pipeline multipais para exportar as colecoes do **MapBiomas Fogo**: exportacao do
+GEE, mosaico, publicacao no bucket publico e limpeza do temp. A **vetorizacao** e
+uma etapa **opcional** para produtos vetorizaveis. Vale para todas as colecoes
+de fogo (anuais, mensais etc.), nao so uma.
 
 > ⚠️ **Fluxo beta/experimental**: o catalogo (`config.OBJ`) NAO inclui todos os
 > dados do MapBiomas — e um subconjunto validado. Valide os resultados em escopo
@@ -14,11 +13,8 @@ produtos vetorizaveis.
 
 Os notebooks rodam direto no Colab a partir desta `main` (sem clone manual):
 
-[![Open In Colab — All Initiatives](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/mapbiomas_fire_monitor/version_01/export_and_vectorization/mapbiomas_directlink_all_initiatives.ipynb)
-**`mapbiomas_directlink_all_initiatives.ipynb`** — todas as iniciativas/temas (`THEMES = []`)
-
-[![Open In Colab — Fire Monitor Brazil](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/mapbiomas_fire_monitor/version_01/export_and_vectorization/mapbiomas_fire_monitor_brazil.ipynb)
-**`mapbiomas_fire_monitor_brazil.ipynb`** — somente fogo (`THEMES = ["fire"]`)
+[![Open In Colab — MapBiomas Fogo](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/utils/mapbiomas_fire_export_and_vectorization/mapbiomas_fire_export_and_vectorization.ipynb)
+**`mapbiomas_fire_export_and_vectorization.ipynb`** — MapBiomas Fogo (`THEMES = ["fire"]`)
 
 > O link segue o padrao
 > `https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/<caminho>/notebook.ipynb`.
@@ -26,10 +22,9 @@ Os notebooks rodam direto no Colab a partir desta `main` (sem clone manual):
 ## Estrutura
 
 ```
-export_and_vectorization/
+mapbiomas_fire_export_and_vectorization/
 ├── README.md
-├── mapbiomas_directlink_all_initiatives.ipynb   ← notebook multi-iniciativa (Colab)
-├── mapbiomas_fire_monitor_brazil.ipynb          ← notebook focado em fogo (Colab)
+├── mapbiomas_fire_export_and_vectorization.ipynb          ← notebook (Colab)
 ├── config.py                             ← configuracao multipais (paths derivados)
 ├── state.py                              ← cache e scan GCS/GEE
 ├── export.py                             ← GEE → GCS tiles (Byte 0/1)
@@ -40,13 +35,13 @@ export_and_vectorization/
 ```
 
 > **Onde fica o catalogo (`config.py`)** — no Colab, apos o clone, o pacote esta em
-> `/content/brazil-fire/mapbiomas_fire_monitor/version_01/export_and_vectorization/`.
+> `/content/brazil-fire/utils/mapbiomas_fire_export_and_vectorization/`.
 > Para versionar somente esse arquivo, edite-o direto no GitHub:
-> https://github.com/mapbiomas/brazil-fire/blob/main/mapbiomas_fire_monitor/version_01/export_and_vectorization/config.py
+> https://github.com/mapbiomas/brazil-fire/blob/main/utils/mapbiomas_fire_export_and_vectorization/config.py
 
 ## Como usar
 
-1. Abra um dos notebooks no Google Colab pelos badges da secao acima.
+1. Abra o notebook no Google Colab pelo badge da secao acima.
 2. Execute a celula 1 para instalar dependencias.
 3. Execute a celula 2 para autenticar no GCP e Google Earth Engine.
 4. Na célula de config, defina `COUNTRIES` e `THEMES`: lista **vazia** = descoberta
@@ -127,10 +122,10 @@ unidades/bandas descobertas no GEE, para a UI abrir sem discovery a cada sessao.
 - **Versionamento**: quando novos dados forem adicionados ao `config.py`, rode o
   **Load Data** no produto (ou **Load Collection**), baixe o JSON pelo botao e
   suba-o no GitHub
-  (`export_and_vectorization/catalog_cache.json`) — as proximas sessoes abrem sem
+  (`mapbiomas_fire_export_and_vectorization/catalog_cache.json`) — as proximas sessoes abrem sem
   discovery. O arquivo e versionado (nao esta mais no `.gitignore`).
 - **CLI (regeneracao completa, opcional)**: `python -m
-  export_and_vectorization.catalog --all --refresh` re-descobre todos os paises e
+  mapbiomas_fire_export_and_vectorization.catalog --all --refresh` re-descobre todos os paises e
   salva o cache.
 
 ### Celulas descontinuadas nos notebooks
@@ -177,7 +172,7 @@ Badges **OK** de algumas colunas viram links (apenas quando a etapa esta OK):
 
 - **Mosaico** → baixa o COG: `https://storage.googleapis.com/mapbiomas-fire/{...}/monthly_burned-{country}_{Y}_{M}.tif`
 - **Vetor GCS** → baixa o ZIP: `https://storage.googleapis.com/mapbiomas-fire/{...}/monthly_burned-{country}_{Y}_{M}.zip`
-- **Vetor GEE** → clique copia o asset ID (`projects/mapbiomas-{country}/assets/FIRE/MONITOR/...`)
+- **Vetor GEE** → clique copia o asset ID (`projects/mapbiomas-{country}/assets/FIRE/{collection}/...`)
 - **Publico mosaico** → baixa o COG do bucket publico: `https://storage.googleapis.com/mapbiomas-public/{...}`
 - **Publico vetor** → baixa o ZIP do bucket publico: `https://storage.googleapis.com/mapbiomas-public/{...}`
 - **Export** (tiles) e **Clean temp** ficam sem link.
@@ -354,7 +349,7 @@ passam a mostra-los automaticamente (`config.resolve_countries`).
 
 ## Convencoes de nomes
 
-- Tiles: `fire_monitor_v1_monthly_burned_{country}_{YYYY}_{MM}XXXXXXXXXX-XXXXXXXXXX.tif`
+- Tiles: `mapbiomas_fire_monthly_burned_{country}_{YYYY}_{MM}XXXXXXXXXX-XXXXXXXXXX.tif`
 - Mosaico: `monthly_burned-{country}_{YYYY}_{MM}.tif`
 - Vetor (zip): `monthly_burned-{country}_{YYYY}_{MM}.zip`
 
@@ -371,7 +366,7 @@ graca via mascara interna do COG, e o DEFLATE comprime melhor que o LZW em dados
 A vetorizacao usa `gdal_polygonize -mask` e ignora o pixel 0 (nodata) normalmente.
 
 Para comparar codecs num mes real, rode o script
-`python -m export_and_vectorization.benchmark_compression --country indonesia --year 2024 --month 7`
+`python -m mapbiomas_fire_export_and_vectorization.benchmark_compression --country indonesia --year 2024 --month 7`
 (LZW vs DEFLATE vs ZSTD; opcional `--blocksize`).
 
 ## Publicacao (etapas 3, 4 e 7)

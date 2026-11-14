@@ -43,9 +43,9 @@ def _new_entry():
 
 
 def _tile_unit(basename, context=None):
-    """Extrai a unidade de um tile: fire_monitor_v1_{product}_{country}_{unit}_{tileid}.tif."""
+    """Extrai a unidade de um tile: mapbiomas_fire_{product}_{country}_{unit}_{tileid}.tif."""
     context = context or config.processing_context()
-    prefix = f"fire_monitor_v1_{context['product']}_{context['storage_country']}_"
+    prefix = f"mapbiomas_fire_{context['product']}_{context['storage_country']}_"
     if not basename.startswith(prefix):
         return None
     rest = basename[len(prefix):].removesuffix(".tif")
@@ -110,7 +110,7 @@ def scan_gcs(context=None, logger=None):
     tiles_path = f"{root}/temp"
     mosaic_path = root
     vector_path = config.vector_prefix(context)
-    tile_prefix = f"fire_monitor_v1_{product}_{storage_country}_"
+    tile_prefix = f"mapbiomas_fire_{product}_{storage_country}_"
     art_prefix = f"{product}-{storage_country}_"
 
     _log(f"Scanning GCS: gs://{config.BUCKET}/{tiles_path}/{tile_prefix}*.tif ...")

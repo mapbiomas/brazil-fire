@@ -1,5 +1,5 @@
 {
-  "preset": "fire_monitor",
+  "preset": "fire",
   "include_countries": [],
   "exclude_countries": [],
   "include_themes": [],

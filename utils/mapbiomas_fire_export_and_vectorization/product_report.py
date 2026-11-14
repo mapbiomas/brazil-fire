@@ -4,9 +4,9 @@ Imprime por produto (pais -> tema -> colecao): type declarado, dtype/bandas/max
 observados no GEE, kind, salvamento sugerido do mosaico e flag vectorize.
 
 Uso (onde houver GEE/GCS, ex.: Colab):
-    python -m export_and_vectorization.product_report --country brasil --country indonesia
-    python -m export_and_vectorization.product_report --country brasil --refresh
-    python -m export_and_vectorization.product_report --all
+    python -m mapbiomas_fire_export_and_vectorization.product_report --country brasil --country indonesia
+    python -m mapbiomas_fire_export_and_vectorization.product_report --country brasil --refresh
+    python -m mapbiomas_fire_export_and_vectorization.product_report --all
 """
 
 import argparse

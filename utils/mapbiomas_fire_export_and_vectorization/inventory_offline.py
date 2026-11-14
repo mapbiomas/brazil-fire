@@ -4,7 +4,7 @@ Imprime a arvore pais -> tema -> colecao -> produtos (type/vectorize/visible)
 apenas a partir do config.OBJ. Roda em qualquer lugar.
 
 Uso:
-    python -m export_and_vectorization.inventory_offline [--country brasil] [--all]
+    python -m mapbiomas_fire_export_and_vectorization.inventory_offline [--country brasil] [--all]
 """
 
 import argparse

@@ -110,7 +110,7 @@ def start_export(unit_key, force=False, logger=None, context=None):
 
     prefix = config.tile_pattern_unit(unit_key, ctx)
     tag = config._sanitize(f"{ctx['product']}_{ctx['storage_country']}_{unit_key}")
-    task_desc = f"{EXPORT_FLAG}MONITOR_EXPORT_{tag}"
+    task_desc = f"{EXPORT_FLAG}EXPORT_{tag}"
 
     if logger:
         logger(f"[EXPORT] Starting export: {task_desc} -> gs://{config.BUCKET}/{config.tiles_prefix(ctx)}/{prefix}_*.tif")

@@ -3,10 +3,10 @@
 Remonta 1 mes com diferentes codecs (-a_nodata 0) e imprime o tamanho de cada
 COG, para escolher a compactacao mais eficiente.
 
-Uso (a partir da pasta version_01, onde ha GDAL + acesso GCS, ex.: Colab):
-    python -m export_and_vectorization.benchmark_compression \
+Uso (a partir da pasta utils, onde ha GDAL + acesso GCS, ex.: Colab):
+    python -m mapbiomas_fire_export_and_vectorization.benchmark_compression \
         --country indonesia --year 2024 --month 7
-    python -m export_and_vectorization.benchmark_compression \
+    python -m mapbiomas_fire_export_and_vectorization.benchmark_compression \
         --country brazil --year 2024 --month 7 --codecs LZW DEFLATE9 --blocksize 512
 
 Requer: gdalbuildvrt + gdal_translate (GDAL) e tiles ja exportados no GCS.
