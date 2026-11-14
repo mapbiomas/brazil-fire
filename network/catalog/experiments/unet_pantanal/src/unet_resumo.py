@@ -33,11 +33,11 @@ def print_inventory(cfg, inv, sample_files, report):
     res_deg = next(iter(inv["bands"].values()))["res"][0]
     geographic = str(inv["crs"]).upper() in ("EPSG:4326", "OGC:CRS84")
     res_m = res_deg * 111320.0 if geographic else res_deg
-    _cab(f"INVENTÁRIO  |  período {inv['period']}  |  região {cfg['REGION']}  |  {cfg['SENSOR']} {cfg['MOSAIC']}")
+    _cab(f"📋 INVENTÁRIO  |  período {inv['period']}  |  região {cfg['REGION']}  |  {cfg['SENSOR']} {cfg['MOSAIC']}")
     print("Para que serve: conferir, sem treinar nada, se as imagens (mosaico) e as amostras")
     print("(polígonos de fogo e não-fogo) existem, estão na mesma grade e são suficientes.\n")
 
-    print("1) MOSAICO (as imagens que entram no modelo)")
+    print("🛰️  1) MOSAICO (as imagens que entram no modelo)")
     print(f"   Grade: {inv['width']:,} x {inv['height']:,} pixels | CRS {inv['crs']} | pixel ≈ {res_m:.1f} m")
     print("   (o mosaico cobre a América do Sul inteira; o código lê só a janela da região)")
     print(f"   {'banda':<11}{'tipo':<8}{'nodata':<9}{'pixel (graus)':<16}arquivo")
@@ -51,9 +51,9 @@ def print_inventory(cfg, inv, sample_files, report):
     else:
         print("   -> sem dayOfYear: pixel válido = bandas não-nodata e não todas 0; a banda 2 da saída fica vazia")
     res_ok = len({round(b["res"][0], 12) for b in inv["bands"].values()}) == 1
-    print(f"   -> todas as bandas na mesma grade: {'SIM' if res_ok else 'NÃO - verifique os COGs'}\n")
+    print(f"   {'✅' if res_ok else '❌'} todas as bandas na mesma grade: {'SIM' if res_ok else 'NÃO - verifique os COGs'}\n")
 
-    print("2) AMOSTRAS (o que o modelo aprende)")
+    print("🔥 2) AMOSTRAS (o que o modelo aprende)")
     print(f"   Arquivo(s): {', '.join(os.path.basename(str(f)) for f in sample_files) or 'nenhum'}")
     print(f"   Região filtrada: {cfg.get('SAMPLE_REGION') or cfg['REGION']} | períodos no arquivo: {report['periods_found']}")
     corr = report["period_corrected_rows"]
@@ -67,7 +67,7 @@ def print_inventory(cfg, inv, sample_files, report):
         print(f"   {label:<22}{c['polygons']:>10}{c['area_ha']:>13,.0f}{mean:>22,.1f}")
     print(f"   {'total':<22}{total:>10}\n")
 
-    print("3) O QUE OBSERVAR")
+    print("👀 3) O QUE OBSERVAR")
     notes = []
     if total < 100:
         notes.append(f"Poucos polígonos ({total}): com blocos de {cfg['BLOCK_KM']} km, a validação e o teste "
@@ -84,7 +84,7 @@ def print_inventory(cfg, inv, sample_files, report):
     if not notes:
         notes.append("Nada de especial: pode seguir para a etapa de chips.")
     for t in notes:
-        print(f"   - {t}")
+        print(f"   {'✅' if t.startswith('Nada') else '⚠️ '} {t}")
     print(LINHA)
 
 
@@ -104,7 +104,7 @@ def resumo_chips(cfg, summary):
     b = summary["blocks"]
     cen = summary.get("centers_by_split", {})
     d = summary["dropped"]
-    _cab(f"CHIPS  |  período {summary['period']}  |  chip {cfg['CHIP']}x{cfg['CHIP']} px")
+    _cab(f"✂️  CHIPS  |  período {summary['period']}  |  chip {cfg['CHIP']}x{cfg['CHIP']} px")
     print("O que é um chip: um recorte quadrado da imagem, com o seu mapa de rótulos. A U-Net não vê")
     print("a região inteira de uma vez; ela aprende com muitos recortes pequenos e depois é")
     print("aplicada, janela a janela, sobre toda a região.")
@@ -118,7 +118,7 @@ def resumo_chips(cfg, summary):
         print(f"   {SPLIT_NOME[s]:<11}{b.get(s, 0):>7}{cc.get('1', 0):>14}{cc.get('0', 0):>18}"
               f"{c[s]['chips']:>8}{c[s]['fire_px']:>10,}{c[s]['notfire_px']:>13,}   {SPLIT_PARA_QUE[s]}")
 
-    print("\n   Balanço de classes (pixels rotulados):")
+    print("\n   ⚖️  Balanço de classes (pixels rotulados):")
     for s in ("train", "val", "test"):
         f_px, n_px = c[s]["fire_px"], c[s]["notfire_px"]
         tot = f_px + n_px
@@ -144,10 +144,10 @@ def resumo_chips(cfg, summary):
     if ov["chips"]:
         print(f"   Polígonos de fogo e não-fogo se sobrepõem em {ov['chips']} chip(s) "
               f"({ov['pixels']} pixels): vale o fogo.")
-    print("\n   Rótulos: 1 = fogo, 0 = não-fogo, 255 = sem informação (fora dos polígonos ou nodata).")
+    print("\n   🏷️  Rótulos: 1 = fogo, 0 = não-fogo, 255 = sem informação (fora dos polígonos ou nodata).")
     print("   Os pixels 255 são ignorados na perda e nas métricas: o modelo só é cobrado onde há rótulo.")
 
-    print("\nO QUE OBSERVAR")
+    print("\n👀 O QUE OBSERVAR")
     avisos = []
     for s in ("val", "test"):
         if c[s]["chips"] == 0:
@@ -175,8 +175,8 @@ def resumo_chips(cfg, summary):
     if not avisos:
         avisos.append("Divisões com as duas classes e chips em todas: pode seguir para o passo 3.")
     for a in avisos:
-        print(f"   - {a}")
-    print("   - Confira a figura abaixo: vermelho = fogo, azul = não-fogo. Cuidado com lagoas "
+        print(f"   {'✅' if a.startswith('Divisões com') else '⚠️ '} {a}")
+    print("   🖼️  Confira a figura abaixo: vermelho = fogo, azul = não-fogo. Cuidado com lagoas "
           "(água escura parece cicatriz), nuvens e sombras.")
     print(LINHA)
 
@@ -187,7 +187,7 @@ def resumo_chips(cfg, summary):
 
 def resumo_estatisticas(stats):
     """Passo 3: o que é a normalização e os valores por canal."""
-    _cab("NORMALIZAÇÃO  |  estatísticas calculadas só nos chips de treino")
+    _cab("📏 NORMALIZAÇÃO  |  estatísticas calculadas só nos chips de treino")
     print("Para que serve: a rede aprende melhor quando todos os canais têm escala parecida.")
     print("Cada valor x vira  (x_cortado − média) / desvio.  'Cortado' = limitado entre o")
     print("percentil 1 e o 99, para que pixels extremos (nuvem, brilho) não distorçam a escala.")
@@ -242,7 +242,7 @@ def resumo_treino(cfg, meta, model=None):
     h = meta["history"]
     ep, loss, vloss, iou, viou = _curvas(h)
     melhor = max(range(ep), key=lambda i: viou[i])
-    _cab(f"TREINO  |  modelo {meta['model']}  |  {len(meta['channels'])} canais de entrada")
+    _cab(f"🏋️  TREINO  |  modelo {meta['model']}  |  {len(meta['channels'])} canais de entrada")
     print("Como a U-Net funciona, em poucas palavras: um 'codificador' reduz a imagem em etapas para entender")
     print("o contexto (o que é cicatriz, o que é água); um 'decodificador' volta ao tamanho original,")
     print("reaproveitando por atalhos (skip connections) os detalhes finos de cada etapa. A saída é um")
@@ -264,25 +264,25 @@ def resumo_treino(cfg, meta, model=None):
             print(f"   {i + 1:>6}{loss[i]:>9.3f}{vl:>11.3f}{iou[i]:>8.3f}{viou[i]:>9.3f}{f1s[i]:>8.3f}{marca}")
 
     print(f"\n   Melhor época: {melhor + 1} | IoU do fogo na validação: {viou[melhor]:.3f}")
-    print("\n   DIAGNÓSTICO")
+    print("\n   🩺 DIAGNÓSTICO")
     if max(viou) <= 0:
-        print("   *** TREINO INVÁLIDO: o IoU de validação ficou em 0 em todas as épocas. ***")
+        print("   ❌ TREINO INVÁLIDO: o IoU de validação ficou em 0 em todas as épocas.")
         print("   A validação não tem pixels de fogo (ou o modelo não acerta nenhum), então a 'melhor")
         print("   época' é arbitrária e o modelo não deve ser usado. Volte ao passo 2, confira se a")
         print("   validação tem fogo e não-fogo na tabela, refaça os chips (REFAZER_CHIPS = True) e treine de novo.")
     else:
         lacuna = iou[melhor] - viou[melhor]
         if lacuna > 0.25:
-            print(f"   - Treino ({iou[melhor]:.2f}) muito acima da validação ({viou[melhor]:.2f}): sinal de "
+            print(f"   ⚠️  Treino ({iou[melhor]:.2f}) muito acima da validação ({viou[melhor]:.2f}): sinal de "
                   "decoração (overfitting). Com poucos chips isso é esperado; mais meses ou amostras ajudam.")
         elif viou[melhor] < 0.3:
-            print("   - IoU de validação baixo (< 0,3): o modelo ainda erra muito. Confira os chips na figura "
+            print("   ⚠️  IoU de validação baixo (< 0,3): o modelo ainda erra muito. Confira os chips na figura "
                   "do passo 2 (rótulos, água, sombras) antes de culpar o modelo.")
         else:
-            print("   - Treino e validação andam juntos e o IoU é razoável: bom sinal.")
+            print("   ✅ Treino e validação andam juntos e o IoU é razoável: bom sinal.")
         if ep >= cfg["EPOCHS"]:
-            print("   - O treino usou todas as épocas: o modelo ainda podia melhorar. Aumente EPOCHS.")
-    print("\n   Como ler:")
+            print("   ⚠️  O treino usou todas as épocas: o modelo ainda podia melhorar. Aumente EPOCHS.")
+    print("\n   💡 Como ler:")
     print("   - IoU = área acertada / (área prevista + área real − área acertada). 1,0 é perfeito.")
     print("   - F1 = equilíbrio entre precisão (o que marcou é fogo mesmo) e recall (fogo que encontrou).")
     print("   - Perda: quanto menor, melhor; compare treino e validação, não só o valor.")
@@ -295,13 +295,13 @@ def resumo_treino(cfg, meta, model=None):
 
 def _matriz(m):
     print("                        previsto: FOGO        previsto: NÃO-FOGO")
-    print(f"   real: FOGO        {m['tp']:>14,} (acertou)   {m['fn']:>14,} (perdeu fogo)")
-    print(f"   real: NÃO-FOGO    {m['fp']:>14,} (alarme falso) {m['tn']:>12,} (acertou)")
+    print(f"   real: FOGO        {m['tp']:>14,} (✅ acertou)   {m['fn']:>14,} (❌ perdeu fogo)")
+    print(f"   real: NÃO-FOGO    {m['fp']:>14,} (❌ alarme falso) {m['tn']:>12,} (✅ acertou)")
 
 
 def resumo_teste(unet_results):
     """Passo 5: métricas de teste, matriz de confusão e leitura em linguagem simples."""
-    _cab("TESTE  |  nota final, em pixels que o modelo nunca viu")
+    _cab("🎯 TESTE  |  nota final, em pixels que o modelo nunca viu")
     print("Limiar = probabilidade a partir da qual um pixel conta como fogo. Foi escolhido na")
     print("VALIDAÇÃO (melhor F1), nunca no teste, para que a nota seja honesta.\n")
     for per, res in unet_results.items():
@@ -314,13 +314,35 @@ def resumo_teste(unet_results):
         for rot, m in ((f"{thr:.2f}", t), ("0.50", t5)):
             print(f"   {'':<4}{rot:<10}{m['iou']:>7.3f}{m['f1']:>7.3f}{m['precision']:>10.3f}"
                   f"{m['recall']:>8.3f}{m['omission']:>9.3f}{m['commission']:>10.3f}")
-        print(f"\n   Matriz de confusão no limiar {thr:.2f} (em pixels do teste):")
+        print(f"\n   🧮 Matriz de confusão no limiar {thr:.2f} (em pixels do teste):")
         _matriz(t)
         tot_f = t["tp"] + t["fn"]
         print(f"\n   Em palavras: dos {tot_f:,} pixels que são fogo de verdade, o modelo achou "
               f"{100 * t['recall']:.0f}%; dos pixels que marcou como fogo, {100 * t['precision']:.0f}% "
-              "eram fogo de verdade.\n")
-    print("   Como ler:")
+              "eram fogo de verdade.")
+        print("\n   🩺 DIAGNÓSTICO")
+        achados = []
+        if t5["recall"] > 0.95 and t5["precision"] < 0.4:
+            achados.append(("⚠️ ", f"No limiar 0,50 o modelo marca quase tudo como fogo (recall {t5['recall']:.2f}, "
+                                  f"precisão {t5['precision']:.2f}, parecida com a fração de fogo do teste). "
+                                  "As probabilidades estão pouco separadas; por isso o limiar escolhido na "
+                                  "validação importa tanto."))
+        if t["precision"] > 0.9 and t["recall"] < 0.6:
+            achados.append(("⚠️ ", f"No limiar escolhido o modelo é cauteloso: quase tudo o que marca é fogo "
+                                  f"(precisão {t['precision']:.2f}), mas perde {100 * (1 - t['recall']):.0f}% do fogo real."))
+        if t["precision"] < 0.5 and t["recall"] > 0.8:
+            achados.append(("⚠️ ", "O modelo marca fogo demais (muitos alarmes falsos). Confira água escura, sombras e solo."))
+        if t["iou"] < 0.5:
+            achados.append(("⚠️ ", f"IoU {t['iou']:.2f} (< 0,5): ainda é um resultado inicial. Com poucos chips de "
+                                  "treino isso é esperado; mais meses e amostras são o caminho."))
+        elif t["iou"] >= 0.7:
+            achados.append(("✅", f"IoU {t['iou']:.2f}: bom resultado para esta base. Confira em mais blocos de teste."))
+        if not achados:
+            achados.append(("ℹ️ ", "Resultado intermediário. Veja a matriz acima para saber se o erro é de omissão ou comissão."))
+        for icone, texto in achados:
+            print(f"   {icone} {texto}")
+        print()
+    print("   💡 Como ler:")
     print("   - Precisão = dos pixels marcados como fogo, quantos eram fogo. Comissão = 1 − precisão (alarmes falsos).")
     print("   - Recall = do fogo real, quanto foi encontrado. Omissão = 1 − recall (fogo perdido).")
     print("   - Precisão alta + recall baixo: o modelo é cauteloso e perde parte do fogo.")
@@ -328,4 +350,48 @@ def resumo_teste(unet_results):
     print("   - O IoU é sempre menor que o F1 do mesmo modelo (F1 = 2·IoU / (1 + IoU)); ao comparar com a")
     print("     literatura, use a mesma métrica. As notas variam muito entre estudos (sensor, região, divisão).")
     print("   - Com poucos blocos de teste, estes números oscilam: use como indício, não como prova.")
+    print(LINHA)
+
+
+# ---------------------------------------------------------------------------
+# Passo 7 - Comparação com o MLP
+# ---------------------------------------------------------------------------
+
+def resumo_comparacao(cfg, rows):
+    """Passo 7: o que é comparado, como, e qual modelo ganhou (com cautela)."""
+    _cab("⚖️  COMPARAÇÃO  |  MLP por pixel  x  U-Net por chip")
+    print("O que é comparado:")
+    print("   🔹 MLP (A) = a rede do catálogo (M4): camadas "
+          f"{'-'.join(str(n) for n in cfg['MLP_LAYERS'])}. Ela vê só os valores dos canais de UM pixel por vez,")
+    print("      sem olhar os vizinhos. É o ponto de partida do catálogo.")
+    print("   🔸 U-Net (C) = vê o chip inteiro: usa forma, borda e textura da cicatriz, além da cor.")
+    print("   (B = o MLP com índices espectrais; é pulado quando INDICES está vazio.)\n")
+    print("Como a comparação é justa:")
+    print("   1. Os dois treinam nos MESMOS chips de treino (o MLP usa os pixels rotulados deles, "
+          f"até {cfg['MLP_MAX_PIXELS']:,}).")
+    print("   2. Cada modelo escolhe o seu limiar na VALIDAÇÃO.")
+    print("   3. A nota sai nos MESMOS pixels de teste, que nenhum dos dois viu.\n")
+    print(f"   {'modelo':<22}{'limiar':>8}{'IoU':>8}{'F1':>8}{'precisão':>10}{'recall':>8}")
+    melhor, melhor_iou = None, -1.0
+    for nome, r in rows.items():
+        m = r["test_at_best"]
+        print(f"   {nome:<22}{r['val_best_threshold']:>8.2f}{m['iou']:>8.3f}{m['f1']:>8.3f}"
+              f"{m['precision']:>10.3f}{m['recall']:>8.3f}")
+        if m["iou"] > melhor_iou:
+            melhor, melhor_iou = nome, m["iou"]
+    print("\n   🩺 LEITURA")
+    if "C_unet" in rows and len(rows) > 1:
+        outros = [(n, r["test_at_best"]["iou"]) for n, r in rows.items() if n != "C_unet"]
+        mlp_nome, mlp_iou = max(outros, key=lambda x: x[1])
+        u_iou = rows["C_unet"]["test_at_best"]["iou"]
+        dif = u_iou - mlp_iou
+        if dif > 0.05:
+            print(f"   ✅ A U-Net ganhou: IoU {u_iou:.3f} contra {mlp_iou:.3f} do {mlp_nome} (+{dif:.3f}).")
+        elif dif < -0.05:
+            print(f"   ⚠️  O {mlp_nome} ganhou: IoU {mlp_iou:.3f} contra {u_iou:.3f} da U-Net ({dif:.3f}).")
+            print("      Com poucos chips de treino é comum: a U-Net precisa de mais dados que o MLP.")
+        else:
+            print(f"   ℹ️  Empate técnico: IoU {u_iou:.3f} (U-Net) e {mlp_iou:.3f} ({mlp_nome}); diferença < 0,05.")
+    print("   ⚠️  Cuidado: com poucos blocos de teste, diferenças pequenas não são conclusivas.")
+    print("      O MLP é avaliado em pixels, não no produto final em mosaico (M5).")
     print(LINHA)
