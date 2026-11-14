@@ -173,8 +173,8 @@ Badges **OK** de algumas colunas viram links (apenas quando a etapa esta OK):
 - **Mosaico** → baixa o COG: `https://storage.googleapis.com/mapbiomas-fire/{...}/monthly_burned-{country}_{Y}_{M}.tif`
 - **Vetor GCS** → baixa o ZIP: `https://storage.googleapis.com/mapbiomas-fire/{...}/monthly_burned-{country}_{Y}_{M}.zip`
 - **Vetor GEE** → clique copia o asset ID (`projects/mapbiomas-{country}/assets/FIRE/{collection}/...`)
-- **Publico mosaico** → baixa o COG do bucket publico: `https://storage.googleapis.com/mapbiomas-public/{...}`
-- **Publico vetor** → baixa o ZIP do bucket publico: `https://storage.googleapis.com/mapbiomas-public/{...}`
+- **Publico mosaico** → baixa o COG do bucket publico: `https://storage.googleapis.com/mapbiomas-fire/{...}`
+- **Publico vetor** → baixa o ZIP do bucket publico: `https://storage.googleapis.com/mapbiomas-fire/{...}`
 - **Export** (tiles) e **Clean temp** ficam sem link.
 
 Os buckets `mapbiomas-fire` e `mapbiomas-public` sao leitura publica (links diretos).

@@ -33,7 +33,7 @@ Assets GEE:  {assetid} (origem)
 import re
 
 BUCKET = "mapbiomas-fire"
-PUBLIC_BUCKET = "mapbiomas-fire"#PUBLIC_BUCKET = "mapbiomas-public"
+PUBLIC_BUCKET = "mapbiomas-fire"
 BUCKET_PATH = "initiatives"
 
 GEE_PROJECT = "mapbiomas-fire-485203"
