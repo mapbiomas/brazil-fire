@@ -91,7 +91,7 @@ def make_link_cell(chk, url, width='auto'):
 def make_update_label(chk, label, width='auto'):
     """Show migration routing as a label; execution uses the grid checkbox."""
     cell = widgets.HBox(
-        [chk, widgets.HTML(f'<span style="font-size:10px;font-weight:700;color:#0958d9">{html.escape(label)}</span>')],
+        [chk, widgets.HTML(f'<span style="font-size:10px;font-weight:700;color:#856404">{html.escape(label)}</span>')],
         layout=widgets.Layout(
             width=width, min_height='34px', justify_content='center',
             align_items='center', padding='0', overflow='hidden', margin='1px',

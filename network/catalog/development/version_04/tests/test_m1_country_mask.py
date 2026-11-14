@@ -109,6 +109,7 @@ class UpdateManifestTests(unittest.TestCase):
         self.assertIs(cell.children[0], checkbox)
         self.assertIsInstance(cell.children[1], M1_export_ui.widgets.HTML)
         self.assertIn(M1_export_ui.Lang.M1_UPDATE_LABEL, cell.children[1].value)
+        self.assertIn('#856404', cell.children[1].value)
         self.assertIn('mfm-update', cell._dom_classes)
 
     def test_m1_only_marks_existing_gee_assets_as_updates(self):
@@ -167,7 +168,9 @@ class UpdateManifestTests(unittest.TestCase):
         self.assertIn('COG', m2_note.value)
         status_css = M1_export_ui.PipelineStepUI.get_status_css().value
         self.assertIn('.mfm-update', status_css)
-        self.assertIn('#0958d9', status_css)
+        self.assertIn('background:#fff3cd', status_css)
+        self.assertIn('border:1px solid #ffeaa8', status_css)
+        self.assertIn('#856404', status_css)
 
     def test_selected_asset_update_uses_normal_m1_export_dispatch(self):
         from types import SimpleNamespace

@@ -144,8 +144,8 @@ class PipelineStepUI:
         return widgets.HTML('''<style>
             .mfm-ok   { background:#d4edda !important; border:1px solid #c3e6cb !important; }
             .mfm-run  { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
-            .mfm-update { background:#eaf3ff !important; border:1px solid #91caff !important; }
-            .mfm-update span { color:#0958d9 !important; }
+            .mfm-update { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
+            .mfm-update span { color:#856404 !important; }
             .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
             .mfm-hdr  { font-size:11px; font-weight:700; color:#495057; text-align:center; }
 
