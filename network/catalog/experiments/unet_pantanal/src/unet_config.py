@@ -112,6 +112,9 @@ DEFAULTS = {
     "CHIP": 256,
     "POINTS_PER_POLYGON": 4,
     "MIN_LABELED_FRACTION": 0.01,
+    # Block split search: each of train/val/test must keep at least this many chip
+    # centers of EACH class after the chips that cross block borders are dropped.
+    "MIN_CENTERS_PER_CLASS": 3,
     "MAX_NODATA_FRACTION": 0.50,
     "SHARD_MB": 100,
 

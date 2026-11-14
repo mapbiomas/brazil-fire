@@ -46,6 +46,14 @@ def resumo_chips(cfg, summary):
               f"{c[s]['chips']:>8}{c[s]['fire_px']:>10,}{c[s]['notfire_px']:>13,}   {SPLIT_PARA_QUE[s]}")
     print(f"\n   Chips descartados: {d['cross_block']} cruzavam blocos de divisoes diferentes | "
           f"{d['few_labels']} com poucos pixels rotulados | {d['nodata']} com muito nodata")
+    db = summary.get("dropped_by_split_class")
+    if db:
+        partes = [f"{SPLIT_NOME[s]}: {db[s]['1']} de fogo, {db[s]['0']} de nao-fogo" for s in ("train", "val", "test")]
+        print("   Descartados por divisao: " + " | ".join(partes))
+    ss = summary.get("split_search") or {}
+    if ss.get("min_centers_per_class") is not None:
+        print(f"   Sorteio dos blocos: menor numero de centros de uma classe numa divisao, depois dos "
+              f"descartes = {ss['min_centers_per_class']} (meta: {cfg['MIN_CENTERS_PER_CLASS']})")
     ov = summary["fire_notfire_overlaps"]
     if ov["chips"]:
         print(f"   Poligonos de fogo e nao-fogo se sobrepoem em {ov['chips']} chip(s) "

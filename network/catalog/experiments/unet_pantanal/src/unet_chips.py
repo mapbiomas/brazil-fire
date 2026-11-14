@@ -110,7 +110,27 @@ class ShardWriter:
 # Chip generation
 # ---------------------------------------------------------------------------
 
-def _block_grid(cfg, samples, region_geom, crs):
+def raw_points(cfg, samples):
+    """Random chip centers inside each polygon: [(polygon index, class, x, y)] (before any split)."""
+    rng = np.random.default_rng(cfg["SEED"])
+    out = []
+    for idx, (geom, cls) in enumerate(zip(samples.geometry, samples["class"])):
+        for p in sample_points_in_polygon(geom, cfg["POINTS_PER_POLYGON"], rng):
+            out.append((idx, int(cls), p.x, p.y))
+    return out
+
+
+def _survivors(grid, points, boxes, rep_xy):
+    """Chip centers per split and class that stay inside their own blocks."""
+    cnt = {s: {0: 0, 1: 0} for s in SPLITS}
+    for (idx, cls, _, _), box in zip(points, boxes):
+        s = grid.split_of(*rep_xy[idx])
+        if s in cnt and grid.splits_of_box(*box) == {s}:
+            cnt[s][cls] += 1
+    return cnt
+
+
+def _block_grid(cfg, samples, region_geom, crs, transform=None, points=None, tries=500):
     bounds = region_geom.bounds if region_geom is not None else tuple(samples.total_bounds)
     # Grid covers both the region and the samples.
     sb = samples.total_bounds
@@ -127,22 +147,40 @@ def _block_grid(cfg, samples, region_geom, crs):
     dx, dy = block_size_in_crs(cfg["BLOCK_KM"], crs, lat_center)
     grid = BlockGrid(bounds, dx, dy)
     cent = samples.geometry.representative_point()
-    grid.assign(list(zip(cent.x, cent.y)), cfg["SPLIT"], cfg["SEED"],
-                classes_xy=list(zip(cent.x, cent.y, samples["class"])))
+    xy = list(zip(cent.x, cent.y))
+    if transform is None or not points:
+        grid.assign(xy, cfg["SPLIT"], cfg["SEED"], classes_xy=list(zip(cent.x, cent.y, samples["class"])))
+        return grid
+    # Search the block shuffle (seed, seed+1, ...) so that, AFTER the chips that cross block
+    # borders are dropped, every split still has centers of both classes.
+    boxes = [window_box(transform, chip_window(transform, x, y, cfg["CHIP"])) for _, _, x, y in points]
+    need = cfg["MIN_CENTERS_PER_CLASS"]
+    best = (-1, cfg["SEED"], None)
+    for k in range(tries):
+        grid.assign(xy, cfg["SPLIT"], cfg["SEED"] + k)
+        cnt = _survivors(grid, points, boxes, list(zip(cent.x, cent.y)))
+        score = min(cnt[s][c] for s in SPLITS for c in (0, 1))
+        if score > best[0]:
+            best = (score, cfg["SEED"] + k, cnt)
+        if score >= need:
+            break
+    grid.assign(xy, cfg["SPLIT"], best[1])
+    grid.stratified = best[0] >= 1
+    grid.min_centers = best[0]
+    grid.survivors = best[2]
     return grid
 
 
-def sample_centers(cfg, samples, grid):
+def sample_centers(cfg, samples, grid, points=None):
     """Chip centers inside each polygon; split = split of the polygon's block."""
     import geopandas as gpd
-    rng = np.random.default_rng(cfg["SEED"])
-    rep = samples.geometry.representative_point()
+    from shapely.geometry import Point
+    points = points if points is not None else raw_points(cfg, samples)
+    rep = list(samples.geometry.representative_point())
     rows = []
-    for idx, (geom, cls, rp) in enumerate(zip(samples.geometry, samples["class"], rep)):
-        split = grid.split_of(rp.x, rp.y)
-        for p in sample_points_in_polygon(geom, cfg["POINTS_PER_POLYGON"], rng):
-            rows.append({"poly": idx, "cls": int(cls), "split": split,
-                         "x": p.x, "y": p.y, "geometry": p})
+    for idx, cls, x, y in points:
+        split = grid.split_of(rep[idx].x, rep[idx].y)
+        rows.append({"poly": idx, "cls": cls, "split": split, "x": x, "y": y, "geometry": Point(x, y)})
     centers = gpd.GeoDataFrame(rows, geometry="geometry", crs=samples.crs)
     centers = centers[centers["split"].isin(SPLITS)]
     return balance_by_class(centers, "cls", "split", cfg["SEED"])
@@ -167,8 +205,9 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
         inventory = reader.inventory()
         samples, sample_report = load_samples(cfg, period, reader.crs, logger)
         region = region_geometry(cfg, reader.crs, logger)
-        grid = _block_grid(cfg, samples, region, reader.crs)
-        centers = sample_centers(cfg, samples, grid)
+        points = raw_points(cfg, samples)
+        grid = _block_grid(cfg, samples, region, reader.crs, reader.transform, points)
+        centers = sample_centers(cfg, samples, grid, points)
         centers_by_split = {
             s: {str(c): int(n) for c, n in g.groupby("cls").size().items()}
             for s, g in centers.groupby("split")
@@ -180,6 +219,7 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
         writers = {s: ShardWriter(cfg, period, s, logger) for s in SPLITS}
         counts = {s: {"chips": 0, "fire_px": 0, "notfire_px": 0} for s in SPLITS}
         dropped = {"cross_block": 0, "few_labels": 0, "nodata": 0}
+        dropped_by = {s: {"0": 0, "1": 0} for s in SPLITS}
         overlaps = []
         chip_boxes = {s: [] for s in SPLITS}
         preview = []
@@ -192,6 +232,7 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
             box = window_box(reader.transform, win)
             if grid.splits_of_box(*box) != {c.split}:
                 dropped["cross_block"] += 1
+                dropped_by[c.split][str(c.cls)] += 1
                 continue
             raw, valid = reader.read(win)
             from rasterio.windows import transform as win_transform
@@ -205,6 +246,7 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
                 y, valid, cfg["MIN_LABELED_FRACTION"], cfg["MAX_NODATA_FRACTION"])
             if not keep:
                 dropped["nodata" if nod_frac > cfg["MAX_NODATA_FRACTION"] else "few_labels"] += 1
+                dropped_by[c.split][str(c.cls)] += 1
                 continue
             if n_overlap:
                 overlaps.append({"center_x": c.x, "center_y": c.y, "pixels": n_overlap})
@@ -245,7 +287,10 @@ def build_chips(cfg, period, logger=None, overwrite=False, n_preview=16):
         summary = {
             "period": period, "inventory": inventory, "samples": sample_report,
             "blocks": grid.counts(), "centers": int(len(centers)),
-            "centers_by_split": centers_by_split,
+            "centers_by_split": centers_by_split, "dropped_by_split_class": dropped_by,
+            "split_search": {"min_centers_per_class": getattr(grid, "min_centers", None),
+                            "survivors": {s: {str(k): v for k, v in c.items()}
+                                          for s, c in (getattr(grid, "survivors", None) or {}).items()}},
             "split_has_both_classes": bool(getattr(grid, "stratified", False)),
             "chips": counts, "dropped": dropped,
             "fire_notfire_overlaps": {"chips": len(overlaps), "pixels": int(sum(o["pixels"] for o in overlaps)),
