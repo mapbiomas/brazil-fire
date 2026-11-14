@@ -118,6 +118,29 @@ class AssemblyDtypeTests(unittest.TestCase):
     def test_day_of_year_is_int16(self):
         self.assertEqual(BAND_DATATYPES['dayOfYear'], 'Int16')
 
+    def test_parallel_assemblies_allocate_unique_temporary_workdirs(self):
+        from concurrent.futures import ThreadPoolExecutor
+
+        real_mkdtemp = tempfile.mkdtemp
+        allocated = []
+
+        def track_mkdtemp(*args, **kwargs):
+            path = real_mkdtemp(*args, **kwargs)
+            allocated.append(path)
+            return path
+
+        with patch.object(tempfile, 'mkdtemp', side_effect=track_mkdtemp), \
+             assembly_env([shard('blue'), shard('green')]) as (_, _, _):
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                results = list(executor.map(
+                    lambda band: assemble((band,)), ('blue', 'green'),
+                ))
+
+        # One shared test root plus one isolated temporary root per M2 job.
+        self.assertEqual(len(allocated), 3)
+        self.assertEqual(len(set(allocated[1:])), 2)
+        self.assertTrue(all(results))
+
     def test_translate_uses_byte_for_spectral_band(self):
         with assembly_env([shard('blue')]) as (_, _, run_cmd_mock):
             assemble(['blue'])

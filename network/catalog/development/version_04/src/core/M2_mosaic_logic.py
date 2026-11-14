@@ -1,11 +1,7 @@
-"""
-M2 - Processamento e Download (Lógica)
-Converte shards (GCS) em COGs nacionais através do GDAL (Sequencial/Monoprocess)
-"""
+"""M2 download and mosaic logic for country-wide COGs."""
 import os
 import subprocess
 import glob
-import time
 import tempfile
 from functools import lru_cache
 
@@ -137,7 +133,9 @@ def _country_geometry_geojson(asset_regions):
     return ee.FeatureCollection(asset_regions).geometry().getInfo()
 
 
-def mask_existing_country_cog(period_key, band, sensor, mosaic_method, logger=None):
+def mask_existing_country_cog(
+    period_key, band, sensor, mosaic_method, logger=None, update_manifest=True,
+):
     """Mask an existing GCS COG in place without creating an Earth Engine task.
 
     The old object remains untouched until the masked COG has been built
@@ -177,22 +175,23 @@ def mask_existing_country_cog(period_key, band, sensor, mosaic_method, logger=No
         ], label=f"COG country-mask update ({band_name})")
         upload(output_path, f"{CONFIG['bucket']}/{cog_dir}/{cog_name}")
 
-        try:
-            from M1_update_manifest import complete_gcs_item
-            complete_gcs_item(
-                CONFIG['country'], sensor, info.periodicity,
-                mosaic_method, period_key, band_name,
-            )
-        except Exception as e:
-            if logger:
-                logger(f"[WARN] Masked COG uploaded but manifest completion failed: {e}", "warning")
+        if update_manifest:
+            try:
+                from M1_update_manifest import complete_gcs_item
+                complete_gcs_item(
+                    CONFIG['country'], sensor, info.periodicity,
+                    mosaic_method, period_key, band_name,
+                )
+            except Exception as e:
+                if logger:
+                    logger(f"[WARN] Masked COG uploaded but manifest completion failed: {e}", "warning")
         if logger:
             logger(f"Updated existing COG in place: {remote_uri}", "success")
         return True
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
 
-def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sensor=None, mosaic_method='minnbr', logger=None, progress_idx=0, progress_total=0, start_time=None, period_key=None):
+def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sensor=None, mosaic_method='minnbr', logger=None, progress_idx=0, progress_total=0, start_time=None, period_key=None, update_manifest=True):
     import shutil
     from M0_auth_config import GLOBAL_OPTS, _single
 
@@ -228,9 +227,10 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
         return []
 
     work_root = get_temp_dir()
-    session_id = f"m2_{base_name}_{int(time.time())}"
-    tmp_path = os.path.join(work_root, session_id)
-    os.makedirs(tmp_path, exist_ok=True)
+    # Parallel M2 workers can share a period/mosaic but process different bands.
+    # Allocate atomically unique work dirs so one worker cannot remove another's
+    # temporary VRT, shards, or COG during cleanup.
+    tmp_path = tempfile.mkdtemp(prefix=f"m2_{base_name}_", dir=work_root)
 
     results = []
 
@@ -309,14 +309,15 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
                 dest = f"{CONFIG['bucket']}/{mosaic_prefix}/{cog_remote_name}"
                 upload(cog_local_path, dest)
 
-                try:
-                    from M1_update_manifest import complete_gcs_item
-                    complete_gcs_item(
-                        CONFIG['country'], s, period, m_method, label, clean_b_name,
-                    )
-                except Exception as e:
-                    if logger:
-                        logger(f"[WARN] COG uploaded but update manifest was not marked complete: {e}", "warning")
+                if update_manifest:
+                    try:
+                        from M1_update_manifest import complete_gcs_item
+                        complete_gcs_item(
+                            CONFIG['country'], s, period, m_method, label, clean_b_name,
+                        )
+                    except Exception as e:
+                        if logger:
+                            logger(f"[WARN] COG uploaded but update manifest was not marked complete: {e}", "warning")
                 
                 if logger: logger(f" Success: {cog_remote_name}", "success")
                 if DELETE_CHUNKS_AFTER_COG:

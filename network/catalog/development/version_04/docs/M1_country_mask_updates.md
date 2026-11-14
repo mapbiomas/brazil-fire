@@ -27,6 +27,11 @@ invalid/nodata.
    failure. Refresh the module to see the completed item return to **OK**; a
    failed mask or assembly remains selectable for retry.
 
+M2 processes selected products with at most two workers at a time. Each worker
+uses an isolated temporary directory; processing remains windowed to bound
+memory. Two concurrent products use more local disk and I/O than one, so start
+with a small batch when validating a new Colab runtime.
+
 The manifest identity is country, sensor, periodicity, mosaic method, period
 key, band and target. Campaign is deliberately excluded. M1's default
 `years=None` spans all available years; pass an explicit year range to work in

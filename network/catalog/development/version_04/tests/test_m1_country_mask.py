@@ -159,6 +159,57 @@ class UpdateManifestTests(unittest.TestCase):
         ui._on_select_all(None)
         self.assertTrue(checkbox.value)
 
+    def test_m2_processes_multiple_selected_products_with_bounded_parallel_workers(self):
+        import threading
+        import time
+
+        class SelectedCheckbox:
+            def __init__(self, meta):
+                self.value = True
+                self._meta = meta
+
+        ui = M2_mosaic_ui.MosaicAssemblerUI.__new__(M2_mosaic_ui.MosaicAssemblerUI)
+        ui.chk_dict = {
+            f'item-{index}': SelectedCheckbox({
+                'sensor': 'sentinel2', 'year': 2025, 'month': index + 1,
+                'period': 'monthly', 'period_key': f'2025_{index + 1:02d}',
+                'band': f'band-{index}', 'mosaic': 'minnbr',
+                'country': 'testland', 'type': 'GCS',
+                'country_update': True, 'has_cog': True, 'has_chunks': False,
+            })
+            for index in range(3)
+        }
+        ui.update_manifest = {
+            'version': 1,
+            'items': [
+                {**checkbox._meta, 'status': 'pending'}
+                for checkbox in ui.chk_dict.values()
+            ],
+        }
+        ui.years = [2025]
+        ui._reload_current_tab = Mock()
+        active = 0
+        max_active = 0
+        active_lock = threading.Lock()
+
+        def process(*_args, **_kwargs):
+            nonlocal active, max_active
+            with active_lock:
+                active += 1
+                max_active = max(max_active, active)
+            time.sleep(0.05)
+            with active_lock:
+                active -= 1
+            return ['done']
+
+        with patch.object(M2_mosaic_ui, 'process_country_mosaic_item', side_effect=process), \
+             patch.object(M2_mosaic_ui.CacheManager, 'build_cache_from_gcs', return_value={}), \
+             patch.object(M2_mosaic_ui, 'save_manifest'):
+            M2_mosaic_ui.start_mosaic_assembly(ui)
+
+        self.assertEqual(max_active, 2)
+        self.assertTrue(all(entry['status'] == 'complete' for entry in ui.update_manifest['items']))
+
     def test_update_notes_are_blue_and_explain_m1_and_m2_routes(self):
         from M_ui_components import make_update_note
 
@@ -322,7 +373,10 @@ class UpdateManifestTests(unittest.TestCase):
              patch('M2_mosaic_ui.save_manifest'):
             result = M2_mosaic_ui.process_country_mosaic_item(item, manifest)
 
-        mask_cog.assert_called_once_with('2025_01', 'red', 'sentinel2', 'minnbr', logger=print)
+        mask_cog.assert_called_once_with(
+            '2025_01', 'red', 'sentinel2', 'minnbr',
+            logger=print, update_manifest=True,
+        )
         assemble.assert_not_called()
         self.assertTrue(result)
         self.assertEqual(manifest['items'][0]['status'], 'complete')

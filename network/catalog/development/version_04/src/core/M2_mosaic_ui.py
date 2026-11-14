@@ -1,6 +1,7 @@
 print("\n>>> M2_mosaic_ui initializing (v7.0 Tabs) <<<")
 import traceback
 import ipywidgets as widgets
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from M0_auth_config import CONFIG, GLOBAL_OPTS, mosaic_name_for_period, is_edit_mode, period_cog_path, get_sensor_start_year, resolve_years
 from M_periods import list_periods, period_state_key
@@ -12,6 +13,8 @@ from M1_update_manifest import (
     find_item, load_manifest, mark_item_complete, pending_item,
     save_manifest, set_item_status,
 )
+
+M2_MAX_WORKERS = 2
 
 class MosaicAssemblerUI(PipelineStepUI):
     def __init__(self, years=None):
@@ -397,7 +400,7 @@ def run_ui(years=None):
     return ui
 
 
-def process_country_mosaic_item(item, manifest, logger=print):
+def process_country_mosaic_item(item, manifest, logger=print, persist_manifest=True):
     """Apply an M2 country-mask update or run the usual chunks assembly."""
     from M2_mosaic_logic import assemble_country_mosaic, mask_existing_country_cog
 
@@ -408,51 +411,60 @@ def process_country_mosaic_item(item, manifest, logger=print):
     has_chunks = item.get('has_chunks', False)
 
     if country_update and item.get('has_cog'):
-        set_item_status(manifest, item, 'masking_cog')
-        save_manifest(manifest)
+        if persist_manifest:
+            set_item_status(manifest, item, 'masking_cog')
+            save_manifest(manifest)
         try:
             updated = mask_existing_country_cog(
                 period_key, item['band'], item['sensor'], item['mosaic'],
-                logger=logger,
+                logger=logger, update_manifest=persist_manifest,
             )
         except Exception as error:
-            set_item_status(manifest, item, 'pending', last_error=str(error))
-            save_manifest(manifest)
+            if persist_manifest:
+                set_item_status(manifest, item, 'pending', last_error=str(error))
+                save_manifest(manifest)
             raise
         if updated:
-            mark_item_complete(manifest, item)
-            save_manifest(manifest)
+            if persist_manifest:
+                mark_item_complete(manifest, item)
+                save_manifest(manifest)
             return [f"updated COG {period_key}/{item['band']}"]
         if not has_chunks:
             error = f"COG disappeared before update and no chunks are available: {period_key}/{item['band']}"
-            set_item_status(manifest, item, 'pending', last_error=error)
-            save_manifest(manifest)
+            if persist_manifest:
+                set_item_status(manifest, item, 'pending', last_error=error)
+                save_manifest(manifest)
             raise RuntimeError(error)
 
     if country_update:
         if not has_chunks:
             error = f"No COG or chunks available for M2 update: {period_key}/{item['band']}"
-            set_item_status(manifest, item, 'pending', last_error=error)
-            save_manifest(manifest)
+            if persist_manifest:
+                set_item_status(manifest, item, 'pending', last_error=error)
+                save_manifest(manifest)
             raise RuntimeError(error)
-        set_item_status(manifest, item, 'chunks_ready')
-        save_manifest(manifest)
+        if persist_manifest:
+            set_item_status(manifest, item, 'chunks_ready')
+            save_manifest(manifest)
 
     result = assemble_country_mosaic(
         year=item['year'], month=item['month'], period=item['period'],
         sensor=item['sensor'], mosaic_method=item['mosaic'],
         bands=[item['band']], period_key=period_key, logger=logger,
+        update_manifest=persist_manifest,
     )
     if country_update:
         if not result:
+            error = f"M2 did not produce a COG for {period_key}/{item['band']}."
+            if persist_manifest:
+                set_item_status(manifest, item, 'pending', last_error=error)
+                save_manifest(manifest)
+            raise RuntimeError(error)
+        if persist_manifest:
             set_item_status(
-                manifest, item, 'pending',
-                last_error=f"M2 did not produce a COG for {period_key}/{item['band']}.",
+                manifest, item, 'complete',
             )
             save_manifest(manifest)
-            raise RuntimeError(f"M2 did not produce a COG for {period_key}/{item['band']}.")
-        mark_item_complete(manifest, item)
-        save_manifest(manifest)
     return result
 
 
@@ -463,31 +475,72 @@ def start_mosaic_assembly(ui_obj):
         cell_log("No mosaic selected.", type='warning')
         return
     
-    print(f"[INFO] Starting assembly of {len(selected)} COG bands...")
-    cell_log(f"Starting assembly of {len(selected)} COG bands...", type='info')
-    
+    worker_count = min(M2_MAX_WORKERS, len(selected))
+    print(
+        f"[INFO] Starting assembly of {len(selected)} COG bands "
+        f"with {worker_count} worker(s)..."
+    )
+    cell_log(
+        f"Starting assembly of {len(selected)} COG bands with {worker_count} worker(s)...",
+        type='info',
+    )
+
+    manifest = getattr(ui_obj, 'update_manifest', {'version': 1, 'items': []})
+    manifest_changed = False
+    for item in selected:
+        if item.get('country_update'):
+            set_item_status(
+                manifest, item,
+                'masking_cog' if item.get('has_cog') else 'chunks_ready',
+            )
+            manifest_changed = True
+    if manifest_changed:
+        save_manifest(manifest)
+
     succeeded = 0
     prog = ProgressTracker(len(selected), "COG Assembly")
-    for item in selected:
-        period_key = item.get('period_key') or (
-            f"{item['year']}_{item['month']:02d}" if item['month'] else f"{item['year']}"
-        )
-        d_label = period_key
-        try:
-            cell_log(f"[{prog.completed+1}/{prog.total}] Processing {item['sensor']} {d_label} {item['band']}...", type='info')
-            
-            process_country_mosaic_item(
-                item, getattr(ui_obj, 'update_manifest', {'version': 1, 'items': []}),
-                logger=print,
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        future_items = {
+            executor.submit(
+                process_country_mosaic_item, item, manifest,
+                logger=print, persist_manifest=False,
+            ): (index, item)
+            for index, item in enumerate(selected, 1)
+        }
+        for future in as_completed(future_items):
+            index, item = future_items[future]
+            period_key = item.get('period_key') or (
+                f"{item['year']}_{item['month']:02d}"
+                if item['month'] else f"{item['year']}"
             )
-            succeeded += 1
-            cell_log(f"OK: {item['sensor']} {d_label} {item['band']}", type='success')
-        except Exception as e:
-            print(f"[ERR] Failed {item['sensor']} {d_label} {item['band']}: {e}")
-            cell_log(f"Failed {item['sensor']} {d_label} {item['band']}: {e}", type='error')
-            traceback.print_exc()
-        finally:
-            prog.step()
+            try:
+                cell_log(
+                    f"[{index}/{len(selected)}] Processing {item['sensor']} "
+                    f"{period_key} {item['band']}...",
+                    type='info',
+                )
+                future.result()
+                succeeded += 1
+                if item.get('country_update'):
+                    mark_item_complete(manifest, item)
+                    save_manifest(manifest)
+                cell_log(
+                    f"OK: {item['sensor']} {period_key} {item['band']}",
+                    type='success',
+                )
+            except Exception as e:
+                print(f"[ERR] Failed {item['sensor']} {period_key} {item['band']}: {e}")
+                if item.get('country_update'):
+                    entry = set_item_status(manifest, item, 'pending')
+                    entry['last_error'] = str(e)
+                    save_manifest(manifest)
+                cell_log(
+                    f"Failed {item['sensor']} {period_key} {item['band']}: {e}",
+                    type='error',
+                )
+                traceback.print_exc()
+            finally:
+                prog.step()
     print(f"\n[SUMMARY] Assembly completed: {succeeded}/{len(selected)} succeeded.")
     cell_log(f"Assembly completed: {succeeded}/{len(selected)} | {prog.summary()}", type='success')
 
