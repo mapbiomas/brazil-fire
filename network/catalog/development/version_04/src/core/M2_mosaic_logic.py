@@ -6,6 +6,9 @@ import tempfile
 import json
 import hashlib
 import threading
+import logging
+import base64
+import math
 from functools import lru_cache
 
 from M0_auth_config import (
@@ -97,14 +100,144 @@ _MASK_CACHE_VERSION = 1
 _mask_cache_guard = threading.Lock()
 _mask_cache_dir = None
 _mask_cache_locks = {}
+_mask_upload_active = set()
+_MASK_UPLOAD_RETRY_DELAYS = (0.25, 1.0)
+_MASK_GCS_REQUEST_TIMEOUT = 30
+
+
+def _mask_gcs_request_timeout():
+    """Per-request socket timeout, not a deadline for a complete transfer."""
+    import M0_auth_config
+    value = (M0_auth_config.CONFIG or {}).get('m2_country_mask_cache_gcs_timeout',
+                                             _MASK_GCS_REQUEST_TIMEOUT)
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+        raise ValueError('m2_country_mask_cache_gcs_timeout must be a finite positive number')
+    return value
+
+
+def _mask_file_sha256(path):
+    digest = hashlib.sha256()
+    with open(path, 'rb') as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _remote_mask_blob(key):
+    """Resolve the active M0 configuration, including after set_global_opts."""
+    import M0_auth_config
+    config = M0_auth_config.CONFIG or {}
+    prefix = config.get('m2_country_mask_cache_gcs_prefix')
+    if 'm2_country_mask_cache_gcs_prefix' not in config and config.get('bucket'):
+        prefix = f"gs://{config['bucket']}/temp/registro_de_testes_de_mosaico/m2_country_masks/v1"
+    if not prefix:
+        return None
+    if not isinstance(prefix, str) or not prefix.startswith('gs://'):
+        raise ValueError('m2_country_mask_cache_gcs_prefix must be gs://bucket/prefix')
+    bucket, separator, name = prefix[5:].strip('/').partition('/')
+    if not bucket or not separator or not name.strip('/'):
+        raise ValueError('A dedicated GCS cache prefix is required')
+    from M_gcs import _storage_client
+    return _storage_client().bucket(bucket).blob(name.rstrip('/') + '/' + key + '.tif')
+
+
+def _verify_uploaded_mask(blob, path):
+    """Compare GCS CRC32C for the uploaded generation without deleting it."""
+    import google_crc32c
+    checksum = google_crc32c.Checksum()
+    with open(path, 'rb') as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            checksum.update(chunk)
+    if blob.generation is None:
+        raise ValueError('Uploaded country mask generation unavailable')
+    blob.reload(if_generation_match=blob.generation, timeout=_mask_gcs_request_timeout(), retry=None)
+    if blob.crc32c != base64.b64encode(checksum.digest()).decode('ascii'):
+        raise ValueError('Uploaded country mask CRC32C mismatch')
+
+
+def _upload_country_mask(blob, path, key):
+    """Publish once plus bounded retries of transient errors, never overwrite."""
+    from google.api_core.exceptions import (
+        ServiceUnavailable, TooManyRequests, GatewayTimeout, DeadlineExceeded,
+    )
+    from requests.exceptions import ConnectionError as RequestConnectionError, Timeout
+    import google_crc32c  # noqa: F401 - require verification before upload
+
+    blob.metadata = {'m2-mask-key': key, 'm2-mask-version': str(_MASK_CACHE_VERSION),
+                     'm2-mask-sha256': _mask_file_sha256(path)}
+    transient = (OSError, ServiceUnavailable, TooManyRequests, GatewayTimeout,
+                 DeadlineExceeded, RequestConnectionError, Timeout)
+    for attempt in range(len(_MASK_UPLOAD_RETRY_DELAYS) + 1):
+        try:
+            # Disable the SDK's retry and automatic checksum deletion: retries
+            # are bounded here and every write retains the create-only condition.
+            blob.upload_from_filename(path, if_generation_match=0, checksum=None,
+                                      content_type='image/tiff', retry=None, timeout=_mask_gcs_request_timeout())
+        except transient:
+            if attempt == len(_MASK_UPLOAD_RETRY_DELAYS):
+                raise
+            threading.Event().wait(_MASK_UPLOAD_RETRY_DELAYS[attempt])
+        else:
+            _verify_uploaded_mask(blob, path)
+            return
+
+
+def _start_mask_upload(blob, path, key):
+    """One daemon publisher per local mask; never wait for network in callers."""
+    with _mask_cache_guard:
+        if path in _mask_upload_active:
+            return
+        _mask_upload_active.add(path)
+
+    def worker():
+        try:
+            _upload_country_mask(blob, path, key)
+        except Exception as exc:
+            logging.getLogger(__name__).warning('M2 mask cache upload skipped or failed: %s', exc)
+        finally:
+            with _mask_cache_guard:
+                _mask_upload_active.discard(path)
+
+    try:
+        threading.Thread(target=worker, name='m2-mask-cache-upload', daemon=True).start()
+    except Exception:
+        with _mask_cache_guard:
+            _mask_upload_active.discard(path)
+        raise
+
+
+def _download_country_mask(blob, path, source, key):
+    """Download one immutable generation and validate metadata, bytes and grid."""
+    import rasterio
+    blob.reload(timeout=_mask_gcs_request_timeout(), retry=None)
+    metadata = blob.metadata or {}
+    if (metadata.get('m2-mask-key') != key or
+            metadata.get('m2-mask-version') != str(_MASK_CACHE_VERSION) or
+            not metadata.get('m2-mask-sha256') or blob.generation is None):
+        raise ValueError('Invalid country mask cache metadata')
+    blob.download_to_filename(path, if_generation_match=blob.generation, checksum='auto',
+                              timeout=_mask_gcs_request_timeout(), retry=None)
+    if _mask_file_sha256(path) != metadata['m2-mask-sha256']:
+        raise ValueError('Country mask checksum mismatch')
+    with rasterio.open(path) as mask:
+        if (mask.width, mask.height, mask.crs, mask.transform, mask.count, mask.dtypes) != (
+            source.width, source.height, source.crs, source.transform, 1, ('uint8',)
+        ):
+            raise ValueError('Country mask grid or type mismatch')
+        for _, window in mask.block_windows(1):
+            data = mask.read(1, window=window)
+            if ((data != 0) & (data != 1)).any():
+                raise ValueError('Invalid country mask values')
 
 
 def _cached_country_mask(source, features, block_size):
     """Build once per complete grid and polygon payload, shared by threads.
 
     The private temporary directory lives for the Python session and is removed
-    at interpreter exit. Each distinct grid/geometry consumes local disk space;
-    there is no eviction or remote upload. Failed builds leave no cache entry.
+    at interpreter exit. GCS persistence defaults to the dedicated bucket prefix;
+    set m2_country_mask_cache_gcs_prefix to False to disable it. Failures fall
+    back to local rasterization. Uploads run in background with bounded transient
+    retries; process exit may interrupt them. No eviction is performed.
     """
     global _mask_cache_dir
     import rasterio
@@ -128,6 +261,24 @@ def _cached_country_mask(source, features, block_size):
         with tempfile.TemporaryDirectory(prefix='build_', dir=directory) as staging:
             vector_path = os.path.join(staging, 'country.geojson')
             staged_raster = os.path.join(staging, 'country.tif')
+            blob = None
+            missing = False
+            try:
+                blob = _remote_mask_blob(key)
+                if blob is not None:
+                    try:
+                        _download_country_mask(blob, staged_raster, source, key)
+                    except Exception as exc:
+                        from google.api_core.exceptions import NotFound
+                        if isinstance(exc, (NotFound, FileNotFoundError)):
+                            missing = True
+                        else:
+                            logging.getLogger(__name__).warning('M2 mask cache download failed: %s', exc)
+                    else:
+                        os.replace(staged_raster, raster_path)
+                        return raster_path
+            except Exception as exc:
+                logging.getLogger(__name__).warning('M2 mask cache unavailable: %s', exc)
             with open(vector_path, 'w', encoding='utf-8') as vector:
                 json.dump({'type': 'FeatureCollection', 'features': features}, vector)
             mask_profile = {
@@ -142,6 +293,11 @@ def _cached_country_mask(source, features, block_size):
             run_cmd(['gdal_rasterize', '-burn', '1', '-optim', 'VECTOR',
                      vector_path, staged_raster], label='Country mask rasterization')
             os.replace(staged_raster, raster_path)
+            if blob is not None and missing:
+                try:
+                    _start_mask_upload(blob, raster_path, key)
+                except Exception as exc:
+                    logging.getLogger(__name__).warning('M2 mask cache upload skipped or failed: %s', exc)
     return raster_path
 
 

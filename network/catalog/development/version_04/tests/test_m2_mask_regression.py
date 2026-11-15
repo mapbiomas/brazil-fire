@@ -58,7 +58,8 @@ class M2MaskRegression(unittest.TestCase):
                 dst.write(np.full((4, 4), 9, dtype='uint8'), 1)
                 dst.write(np.array([[0, 255, 255, 255]] * 4, dtype='uint8'), 2)
                 dst.colorinterp = (ColorInterp.gray, ColorInterp.alpha)
-            with patch.object(m2, 'run_cmd', side_effect=burn):
+            with patch.object(m2, 'run_cmd', side_effect=burn), \
+                 patch.object(m2, '_remote_mask_blob', return_value=None):
                 m2.mask_raster_to_country(source, output, geometry, window_size=2)
             self.assertEqual(len(calls), 1)
             with rasterio.open(output) as dst:

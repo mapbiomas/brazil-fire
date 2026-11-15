@@ -33,14 +33,51 @@ Python session, and combines that mask with
 the source validity mask in fixed-size windows. Its temporary TIFF is BigTIFF;
 M2 checks the output COG's grid, band count and internal mask before upload.
 The cache is reused only for matching polygon geometry, CRS, transform, width
-and height; different grids (including 10 m and 30 m) get separate masks. It is
-not uploaded to GCS and does not survive a normal runtime restart. Each distinct
-grid consumes temporary disk space, with no automatic eviction during the session.
+and height; different grids (including 10 m and 30 m) get separate masks. Each
+distinct grid consumes temporary disk space, with no automatic eviction during
+the session. By default M2 uses a dedicated remote cache under the configured
+bucket:
 
-M2 detects the runtime's available CPUs, memory and free temporary disk and
-chooses a conservative number of concurrent products (currently one or two).
-The CPU budget is shared with GDAL compression threads; additional cores do not
-necessarily speed up a disk-bound job. Each product uses an isolated temporary
+```text
+gs://<bucket>/temp/registro_de_testes_de_mosaico/m2_country_masks/v1/
+```
+
+To override or disable it, set the following **after M0 initialization and
+before starting M2**:
+
+```python
+import M2_mosaic_logic
+M2_mosaic_logic.CONFIG['m2_country_mask_cache_gcs_prefix'] = 'gs://<bucket>/<dedicated-mask-cache-prefix>'
+# To disable remote persistence instead:
+# M2_mosaic_logic.CONFIG['m2_country_mask_cache_gcs_prefix'] = False
+```
+
+The override must be set again after reinitializing M0. Use an authorized prefix
+separate from COGs, chunks and manifests. A session-local cache hit avoids a
+download; otherwise M2 checks for an
+immutable remote entry and builds and conditionally publishes one on a miss.
+Cache GCS requests use a 30-second socket timeout by default and disable SDK
+retries. Adjust `M0_auth_config.CONFIG['m2_country_mask_cache_gcs_timeout']`
+to a finite positive number of seconds after M0 initialization if needed for
+large transfers. This is a per-request socket timeout, not a total transfer
+deadline; slow transfers that continue making progress may take longer.
+Publication runs in a background daemon with at most three create-only attempts
+for transient upload errors. It reuses the local mask without delaying bands;
+session termination may interrupt publication, and an exhausted retry is not
+restarted by later local cache hits. A later session can attempt publication again.
+Downloads are checked against metadata, checksum, grid and mask values. An
+invalid or inaccessible entry falls back to local rasterization; it is not
+automatically deleted or replaced. A bad immutable entry requires administrative
+investigation before future sessions can reuse that key. Remote cache permissions and GCS failures can
+affect performance, but should not block local masking. Do not assume 10 m or
+30 m alone identifies a grid. This cache has no automatic remote eviction; its
+storage costs and retention are the operator's responsibility.
+
+M2 detects CPUs available to the process, including affinity and visible cgroup
+quotas, as well as memory limits and free temporary disk, and chooses a
+conservative number of concurrent products (currently one or two). The CPU budget
+is shared with GDAL compression threads (currently at most eight per product);
+additional cores do not necessarily speed up a disk-bound job. Each product uses an isolated temporary
 directory. The output can require substantial disk space, and the local Peru
 benchmark took over an hour per full-country band. Start with one band when
 validating a new Colab runtime; actual performance and disk needs vary.

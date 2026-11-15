@@ -442,7 +442,8 @@ class CountryCogMaskTests(unittest.TestCase):
                                transform=from_origin(0, 4, 1, 1)) as source:
                 source.write(np.ones((4, 4), dtype='uint8'), 1)
                 source.write_mask(np.array([[0, 255, 255, 255]] * 4, dtype='uint8'))
-            with patch.object(M2_mosaic_logic, 'run_cmd', side_effect=rasterize_command):
+            with patch.object(M2_mosaic_logic, 'run_cmd', side_effect=rasterize_command), \
+                 patch.object(M2_mosaic_logic, '_remote_mask_blob', return_value=None):
                 mask_raster_to_country(str(source_path), str(output_path), geometry, window_size=2)
             self.assertEqual(len(calls), 1)
             with open(output_path, 'rb') as output:
@@ -477,7 +478,8 @@ class CountryCogMaskTests(unittest.TestCase):
                     target.write(rasterize([geometry], out_shape=target.shape,
                                            transform=target.transform, dtype='uint8'), 1)
 
-            with patch.object(M2_mosaic_logic, 'run_cmd', side_effect=rasterize_command):
+            with patch.object(M2_mosaic_logic, 'run_cmd', side_effect=rasterize_command), \
+                 patch.object(M2_mosaic_logic, '_remote_mask_blob', return_value=None):
                 mask_raster_to_country(
                     str(source_path), str(output_path), geometry, window_size=2,
                 )

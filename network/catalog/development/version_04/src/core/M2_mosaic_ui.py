@@ -1,7 +1,10 @@
 print("\n>>> M2_mosaic_ui initializing (v7.0 Tabs) <<<")
 import traceback
 import os
+import posixpath
+import re
 import shutil
+import sys
 import ipywidgets as widgets
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -16,9 +19,12 @@ from M1_update_manifest import (
     save_manifest, set_item_status,
 )
 
-# Provisional cap: full-size COGs compete for disk and each GDAL process uses
-# two threads. Increase only after representative end-to-end benchmarks.
+# Provisional cap: full-size COGs compete for disk. Increase only after
+# representative end-to-end benchmarks.
 M2_MAX_WORKERS = 2
+# Avoid assuming that more compression threads necessarily improve throughput.
+M2_MAX_GDAL_THREADS = 8
+_CGROUP_UNKNOWN = object()
 
 
 def choose_m2_workers(selected_count, cpu_count, total_ram, available_ram, free_disk):
@@ -45,13 +51,157 @@ def choose_gdal_threads(cpu_count, product_workers, available_ram):
         return 1
     gib = 1024 ** 3
     ram_budget = max(1, int(max(0, available_ram - 2 * gib) // (gib // 2)))
-    return max(1, min(cpu_budget, ram_budget // max(1, product_workers)))
+    return max(1, min(M2_MAX_GDAL_THREADS, cpu_budget, ram_budget // max(1, product_workers)))
+
+
+def _read_resource_file(path):
+    try:
+        with open(path, encoding='utf-8') as stream:
+            return stream.read().strip()
+    except (OSError, UnicodeError):
+        return None
+
+
+def _resource_file_absent(path):
+    """Distinguish a missing root controller file from an unreadable one."""
+    try:
+        os.stat(path)
+    except FileNotFoundError:
+        return True
+    except OSError:
+        pass
+    return False
+
+
+def _cgroup_limits():
+    """Return visible cgroup CPU and memory limits, including parent limits.
+
+    Missing or inaccessible Linux cgroup files leave the corresponding limit
+    unknown. Fractional CPU quotas are rounded down, with a minimum of one.
+    """
+    memberships = _read_resource_file('/proc/self/cgroup')
+    mounts = _read_resource_file('/proc/self/mountinfo')
+    if memberships is None or mounts is None:
+        return (1, _CGROUP_UNKNOWN, None) if sys.platform.startswith('linux') else (None, None, None)
+    groups = {}
+    for line in memberships.splitlines():
+        parts = line.split(':', 2)
+        if len(parts) == 3 and parts[2].startswith('/'):
+            for controller in parts[1].split(','):
+                groups[controller] = posixpath.normpath(parts[2])
+        else:
+            return (1, _CGROUP_UNKNOWN, None)
+    if not groups and sys.platform.startswith('linux'):
+        return (1, _CGROUP_UNKNOWN, None)
+    cpu_limits, memory_limits, memory_available = [], [], []
+    memory_usage_unknown = False
+    cpu_unknown = memory_unknown = False
+    matched = set()
+    for line in mounts.splitlines():
+        left, separator, right = line.partition(' - ')
+        fields, fs = left.split(), right.split()
+        if not separator or len(fields) < 5 or len(fs) < 3 or fs[0] not in ('cgroup', 'cgroup2'):
+            continue
+        controllers = [''] if fs[0] == 'cgroup2' else fs[2].split(',')
+        root, mount = (re.sub(r'\\([0-7]{3})', lambda match: chr(int(match.group(1), 8)), value)
+                       for value in fields[3:5])
+        for controller in controllers:
+            if controller not in groups or controller not in ('', 'cpu', 'memory'):
+                continue
+            group = groups[controller]
+            root = posixpath.normpath(root)
+            if root != '/' and group != root and not group.startswith(root + '/'):
+                continue
+            matched.add(controller)
+            relative = group[len(root):].lstrip('/') if root != '/' else group.lstrip('/')
+            path = posixpath.join(mount, relative)
+            while True:
+                if controller in ('', 'cpu'):
+                    if controller == '':
+                        raw_cpu = _read_resource_file(posixpath.join(path, 'cpu.max'))
+                        # The actual cgroup2 root normally has no controller
+                        # limit files; a mounted subtree root is not exempt.
+                        if (raw_cpu is None and root == '/' and path == mount
+                                and _resource_file_absent(posixpath.join(path, 'cpu.max'))):
+                            raw_cpu = 'max 100000'
+                        value = (raw_cpu or '').split()
+                        quota, period = (value + [None, None])[:2]
+                    else:
+                        quota = _read_resource_file(posixpath.join(path, 'cpu.cfs_quota_us'))
+                        period = _read_resource_file(posixpath.join(path, 'cpu.cfs_period_us'))
+                    try:
+                        period = int(period)
+                        if period <= 0:
+                            raise ValueError('invalid period')
+                        if controller == '' and quota == 'max':
+                            pass
+                        elif controller == 'cpu' and quota == '-1':
+                            pass
+                        else:
+                            quota = int(quota)
+                            if quota <= 0:
+                                raise ValueError('invalid quota')
+                            cpu_limits.append(max(1, quota // period))
+                    except (ValueError, TypeError):
+                        cpu_unknown = True
+                if controller in ('', 'memory'):
+                    limit_name = 'memory.max' if controller == '' else 'memory.limit_in_bytes'
+                    usage_name = 'memory.current' if controller == '' else 'memory.usage_in_bytes'
+                    try:
+                        raw_limit = _read_resource_file(posixpath.join(path, limit_name))
+                        if (controller == '' and raw_limit is None and root == '/' and path == mount
+                                and _resource_file_absent(posixpath.join(path, limit_name))):
+                            raw_limit = 'max'
+                        if not (controller == '' and raw_limit == 'max'):
+                            limit = int(raw_limit)
+                            if limit < 0:
+                                raise ValueError('invalid memory limit')
+                            # cgroup v1 uses enormous sentinel values for unlimited.
+                            if controller == '' or limit < (1 << 60):
+                                memory_limits.append(limit)
+                                try:
+                                    usage = int(_read_resource_file(posixpath.join(path, usage_name)))
+                                    if usage >= 0:
+                                        memory_available.append(max(0, limit - usage))
+                                    else:
+                                        memory_usage_unknown = True
+                                except (ValueError, TypeError):
+                                    memory_usage_unknown = True
+                    except (ValueError, TypeError):
+                        memory_unknown = True
+                if path == mount:
+                    break
+                parent = posixpath.dirname(path)
+                if parent == path:
+                    break
+                path = parent
+    if '' in groups and '' not in matched:
+        cpu_unknown = memory_unknown = True
+    if 'cpu' in groups and 'cpu' not in matched:
+        cpu_unknown = True
+    if 'memory' in groups and 'memory' not in matched:
+        memory_unknown = True
+    return (1 if cpu_unknown else min(cpu_limits, default=None),
+            _CGROUP_UNKNOWN if memory_unknown else min(memory_limits, default=None),
+            None if memory_unknown or memory_usage_unknown else min(memory_available, default=None))
 
 
 def detect_m2_resources():
     """Read actual runtime resources, not an assumed Colab subscription tier."""
-    cpu = getattr(os, 'process_cpu_count', os.cpu_count)()
+    try:
+        cpu = getattr(os, 'process_cpu_count', os.cpu_count)()
+    except (OSError, ValueError):
+        cpu = None
     total = available = disk = None
+    try:
+        affinity = len(os.sched_getaffinity(0))
+        if affinity:
+            cpu = min(cpu, affinity) if cpu else affinity
+    except (AttributeError, OSError, ValueError):
+        pass
+    cpu_limit, memory_limit, memory_free = _cgroup_limits()
+    if cpu_limit is not None:
+        cpu = min(cpu, cpu_limit) if cpu else cpu_limit
     try:
         import psutil
         memory = psutil.virtual_memory()
@@ -65,6 +215,12 @@ def detect_m2_resources():
             pass
     except (ImportError, OSError, AttributeError):
         pass
+    if memory_limit is _CGROUP_UNKNOWN:
+        total = available = None
+    elif memory_limit is not None:
+        total = min(total, memory_limit) if total is not None else memory_limit
+        # A limit without usage cannot safely establish available memory.
+        available = min(available, memory_free) if available is not None and memory_free is not None else None
     try:
         from M0_auth_config import get_temp_dir
         disk = shutil.disk_usage(get_temp_dir()).free
