@@ -11,7 +11,7 @@ from unet_ui import (auto_shortname, available_periods, build_classificar, build
                      period_label, predict_keys, sample_choices, sample_id, train_keys)
 
 BASE = "mapbiomas-fire/sudamerica/brazil/CATALOG_01"
-CSV = "samples_01_pantanal_r1_sentinel_2026_10.csv"
+CSV = "samples_01_pantanal_r1_2026_10.csv"
 TREE = {
     f"{BASE}/LIBRARY_IMAGES/SENTINEL2/MONTHLY/MINNBR": ["2026_09", "2026_10", "lixo"],
     f"{BASE}/LIBRARY_IMAGES/SENTINEL2/MONTHLY/MINNBR/2026_10/COG": [

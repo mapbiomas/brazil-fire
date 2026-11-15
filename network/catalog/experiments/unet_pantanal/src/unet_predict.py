@@ -16,9 +16,11 @@ import numpy as np
 
 from unet_config import paths, period_info, region_slug
 from unet_features import add_indices, normalize, scale_bands
-from unet_io import MosaicReader, _log, local_dir, region_geometry, upload, write_json
+from unet_io import MosaicReader, _log, local_dir, read_json, region_geometry, upload, write_json
 
 NODATA = -9999
+# Output bands: burned (1 = probability >= validation threshold), prob (x 1000), doy (day of year).
+BAND_NAMES = ("burned", "prob", "doy")
 
 
 def region_window(reader, region_geom):
@@ -45,15 +47,31 @@ def core_tiles(win, tile):
             yield r0 + r, c0 + c, min(tile, H - r), min(tile, W - c)
 
 
-def to_output(prob, valid, doy):
-    """M5 encoding: (probability int16 0-1000, dayOfYear where probability > 0)."""
+def get_threshold(cfg, logger=None):
+    """Cut of the burned band: THRESHOLD, else the best-F1 threshold of the validation, else 0.5."""
+    if cfg.get("THRESHOLD") is not None:
+        return float(cfg["THRESHOLD"])
+    P = paths(cfg)
+    for name in ["all"] + list(cfg["PERIODS"]):
+        try:
+            return float(read_json(f"{P['reports']}/metrics_{name}.json")["val_best_threshold"])
+        except Exception:
+            continue
+    _log(logger, "[CLASSIFICAR][AVISO] sem métricas de validação (passo 5): usando limiar 0.5", "warning")
+    return 0.5
+
+
+def to_output(prob, valid, doy, threshold=0.5):
+    """(burned 0/1, prob int16 0-1000, doy where prob > 0); NODATA where not valid."""
+    b = np.full(prob.shape, NODATA, dtype=np.int16)
+    b[valid] = (prob[valid] >= threshold).astype(np.int16)
     p = np.full(prob.shape, NODATA, dtype=np.int16)
     p[valid] = np.round(np.clip(prob[valid], 0, 1) * 1000).astype(np.int16)
     d = np.full(prob.shape, NODATA, dtype=np.int16)
     if doy is not None:  # no dayOfYear band -> band 2 stays NODATA
         burned = valid & (p > 0)
         d[burned] = doy[burned].astype(np.int16)
-    return p, d
+    return b, p, d
 
 
 def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
@@ -68,6 +86,7 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
     period = period_info(period)[0]
     P = paths(cfg)
     T, O = cfg["INFER_TILE"], cfg["OVERLAP"]
+    threshold = get_threshold(cfg, logger)
     reader = MosaicReader(cfg, period, logger)
     try:
         region = region_geometry(cfg, reader.crs, logger)
@@ -79,7 +98,7 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
         local_tif = os.path.join(tmp, f"{name}_tmp.tif")
         profile = {
             "driver": "GTiff", "width": int(win.width), "height": int(win.height),
-            "count": 2, "dtype": "int16", "crs": reader.crs, "transform": out_transform,
+            "count": 3, "dtype": "int16", "crs": reader.crs, "transform": out_transform,
             "nodata": NODATA, "tiled": True, "blockxsize": 512, "blockysize": 512,
             "compress": "deflate", "BIGTIFF": "IF_SAFER",
         }
@@ -87,16 +106,16 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
         _log(logger, f"[CLASSIFICAR] {period}: {int(win.width)}x{int(win.height)} px, "
                      f"{len(tiles)} janelas de {T}+2x{O}")
         bands, indices = cfg["BANDS"], cfg["INDICES"]
-        n_valid = n_burned = 0
+        n_valid = n_burned = n_prob = 0
         t0 = time.time()
 
         with rasterio.open(local_tif, "w", **profile) as dst:
-            dst.set_band_description(1, "probability")
-            dst.set_band_description(2, "dayOfYear")
+            for i, nm in enumerate(BAND_NAMES, 1):
+                dst.set_band_description(i, nm)
             batch = []
 
             def flush():
-                nonlocal n_valid, n_burned
+                nonlocal n_valid, n_burned, n_prob
                 if not batch:
                     return
                 xb = np.stack([b["x"] for b in batch])
@@ -104,12 +123,14 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
                 for b, pr in zip(batch, prob):
                     h, w = b["h"], b["w"]
                     core = pr[O:O + h, O:O + w]
-                    p, d = to_output(core, b["valid"], b["doy"])
+                    bu, p, d = to_output(core, b["valid"], b["doy"], threshold)
                     dwin = Window(b["col"] - int(win.col_off), b["row"] - int(win.row_off), w, h)
-                    dst.write(p, 1, window=dwin)
-                    dst.write(d, 2, window=dwin)
+                    dst.write(bu, 1, window=dwin)
+                    dst.write(p, 2, window=dwin)
+                    dst.write(d, 3, window=dwin)
                     n_valid += int(b["valid"].sum())
-                    n_burned += int((p > 0).sum())
+                    n_burned += int((bu == 1).sum())
+                    n_prob += int((p > 0).sum())
                 batch.clear()
 
             for k, (row, col, h, w) in enumerate(tiles):
@@ -144,11 +165,11 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
         os.remove(local_tif)
         rel = f"{P['predict']}/{name}.tif"
         summary = {"period": period, "model": cfg["MODEL_NAME"], "gcs": f"gs://{P['bucket']}/{rel}",
-                   "valid_pixels": n_valid, "burned_pixels_prob_gt_0": n_burned,
-                   "encoding": ("b1 probability int16 0-1000; b2 dayOfYear where probability > 0"
-                                if cfg.get("VALID_BAND") else
-                                "b1 probability int16 0-1000; b2 empty (-9999): no dayOfYear band")
-                               + "; nodata -9999",
+                   "valid_pixels": n_valid, "burned_pixels": n_burned, "pixels_prob_gt_0": n_prob,
+                   "threshold": threshold, "bands": list(BAND_NAMES),
+                   "encoding": (f"burned: 1 if prob >= {threshold:.2f}, else 0; prob: probability int16 0-1000; "
+                                + ("doy: dayOfYear where prob > 0" if cfg.get("VALID_BAND") else
+                                   "doy: empty (-9999), no dayOfYear band")) + "; nodata -9999",
                    "minutes": round((time.time() - t0) / 60, 1)}
         if upload_result:
             upload(cfg, cog, rel)

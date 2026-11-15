@@ -38,8 +38,9 @@ A period is a catalog period key: `2026_10` (monthly) or `2024` (annual). The
 same code runs the annual Landsat collection with `CAMPAIGN="COLLECTION_06"`,
 `SENSOR="landsat"`, `PERIODS=["2024"]` and `CHIP=128`.
 
-It writes a probability raster per period in the catalog **M5 format** (int16
-probability x 1000 plus `dayOfYear`, nodata -9999), so the catalog
+It writes a raster per period with three named int16 bands (nodata -9999):
+`burned` (1 where the probability is >= the best-F1 threshold of the validation,
+else 0), `prob` (probability x 1000) and `doy` (`dayOfYear`, where `prob > 0`), so the catalog
 post-processing (M6/M7) can read it.
 
 The notebook and the printed summaries are in Portuguese for now (a language
@@ -106,7 +107,7 @@ splits/blocks_{period}.gpkg                 blocks with train/val/test
 splits/region_{region}.geojson              cached region geometry
 stats/norm_stats.json                       clip limits, mean and std (train chips only)
 models/{MODEL_NAME}.keras                   trained U-Net (+ _metadata.json, _history.csv)
-predict/{region}_{period}_prob.tif          COG, M5 format
+predict/{region}_{period}_prob.tif          COG, bands burned / prob / doy
 reports/chips_{period}.json                 inventory, sample counts, dropped chips, overlaps
 reports/chips_preview_{period}.png          16 train chips with labels
 reports/metrics_{period}.json               test metrics

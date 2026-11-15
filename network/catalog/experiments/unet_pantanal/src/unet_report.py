@@ -52,6 +52,7 @@ def evaluate_unet(cfg, model, logger=None):
                      f"F1 {t['f1']:.3f} IoU {t['iou']:.3f} | no limiar 0.5 F1 {res['test_at_0_5']['f1']:.3f}")
     if total is not None:
         results["all"] = _summary(*total)
+        write_json(cfg, f"{P['reports']}/metrics_all.json", {"model": cfg["MODEL_NAME"], **results["all"]})
     return results
 
 

@@ -11,7 +11,7 @@ from unet_gee import asset_id, classified_periods, gee_folders, map_path, time_p
 
 CFG = make_config(TRAINING_ID="1", SHORTNAME="pantanal_r1", REGION="Pantanal_r1")
 VERSION = "training_001_pantanal_r1_sentinel2"
-PREFIX = "projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/MONITOR_01/UNET_01"
+PREFIX = "projects/mapbiomas-fire-485203/assets/FIRE/CATALOG_01/MONITOR_01/UNET_01"
 
 
 class TestGee(unittest.TestCase):
@@ -30,8 +30,11 @@ class TestGee(unittest.TestCase):
         self.assertEqual(time_props("2024")["month"], 0)
 
     def test_command(self):
-        cmd = upload_command(CFG, "2026_10")
-        self.assertTrue(cmd.startswith("earthengine --project mapbiomas-brazil upload image "))
+        cmd = upload_command(CFG, "2026_10", 0.63)
+        self.assertTrue(cmd.startswith("earthengine --project mapbiomas-fire-485203 upload image "))
+        self.assertIn("--band_names=burned,prob,doy", cmd)
+        self.assertIn("--nodata_value=-9999", cmd)
+        self.assertIn("--property threshold=0.63", cmd)
         for part in (f"--asset_id={PREFIX}/pantanal/{VERSION}/pantanal_r1_2026_10", "--pyramiding_policy=mode",
                      f"--property model_id={VERSION}", "--property region=Pantanal_r1", "--property month=10"):
             self.assertIn(part, cmd)

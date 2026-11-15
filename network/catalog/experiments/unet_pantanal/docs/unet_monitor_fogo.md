@@ -94,7 +94,7 @@ U-Net:  recorte (chip) 256 × 256 px   →  mapa 256 × 256 de probabilidades
 | Mosaico mensal | `CATALOG_01/LIBRARY_IMAGES/SENTINEL2/MONTHLY/MINNBR/{mês}/COG/`, um COG por banda (refletância × 100, 10 m) |
 | Bandas | blue, green, red, nir, swir1, swir2 + `dayOfYear` (pixel válido onde > 0) |
 | Índices (opcionais) | NBR, NBR2, MIRBI, NDVI, BAI, EVI, calculados das bandas por uma única função (treino e mapa) |
-| Amostras | `MONITOR_01/LIBRARY_SAMPLES/samples_01_pantanal_r1_sentinel_2026_10.csv` (fogo = 1 / não fogo = 0) |
+| Amostras | `MONITOR_01/LIBRARY_SAMPLES/samples_01_pantanal_r1_2026_10.csv` (fogo = 1 / não fogo = 0) |
 | Região | asset `regioes_biomas_col2`, `bioma + "_r" + id` → `Pantanal_r1` |
 
 **Normalização:** corte nos percentis 1–99 e padronização, com estatísticas **só dos chips de treino**.
@@ -147,11 +147,12 @@ entrada 256×256×C
 ## 11. Mapa da região inteira
 
 - **Janela deslizante:** cada janela lê 512 + 2×16 px e grava só o centro, então não aparecem emendas.
-- **Saída no formato M5**, um COG por mês na grade do mosaico:
-  - banda 1: probabilidade × 1000;
-  - banda 2: `dayOfYear`;
+- **Saída com 3 bandas nomeadas**, um COG por mês na grade do mosaico:
+  - `burned`: 1 = queimado, 0 = não queimado, no limiar de melhor F1 da validação (ex.: 0,63);
+  - `prob`: probabilidade × 1000 (0–1000);
+  - `doy`: dia do ano (`dayOfYear`), onde `prob` > 0;
   - −9999 fora da região.
-- Entra na pós-classificação sem mudanças; o corte de probabilidade continua sendo escolhido no GEE.
+- O limiar usado vai para o relatório e para a propriedade `threshold` da imagem no GEE; `prob` permite escolher outro corte depois.
 
 ## 12. Comparação justa com o MLP
 

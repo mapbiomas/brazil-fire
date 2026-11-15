@@ -7,7 +7,7 @@ ImageCollection, one image per region and period, with time and model
 properties. An asset that already exists is replaced.
 
     {GEE_PREFIX}/{CAMPAIGN}/{EXPERIMENT}/{biome}/{version}/{region}_{period}
-    e.g. projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/MONITOR_01/UNET_01/
+    e.g. projects/mapbiomas-fire-485203/assets/FIRE/CATALOG_01/MONITOR_01/UNET_01/
          pantanal/training_001_pantanal_r1_sentinel2/pantanal_r1_2026_10
 """
 import calendar
@@ -20,7 +20,7 @@ from unet_config import biome_slug, paths, period_info, region_slug
 
 
 def gee_prefix(cfg):
-    return cfg.get("GEE_PREFIX") or f"projects/{cfg['GEE_PROJECT']}/assets/FIRE/CATALOG_01"
+    return cfg.get("GEE_PREFIX") or f"projects/{cfg['GEE_EXPORT_PROJECT']}/assets/FIRE/CATALOG_01"
 
 
 def gee_folders(cfg):
@@ -58,8 +58,18 @@ def time_props(period):
             "periodicity": periodicity}
 
 
-def upload_command(cfg, period):
-    """`earthengine upload image` command (as the production M6)."""
+def map_threshold(cfg, period):
+    """Threshold used in the map (reports/predict_{period}.json); None if unknown."""
+    from unet_io import read_json
+    try:
+        return read_json(f"{paths(cfg)['reports']}/predict_{period_info(period)[0]}.json").get("threshold")
+    except Exception:
+        return None
+
+
+def upload_command(cfg, period, threshold=None):
+    """`earthengine upload image` command (as the production M6); bands burned, prob, doy."""
+    from unet_predict import BAND_NAMES
     t = time_props(period)
     props = {
         "source": "mapbiomas-fire", "model": "unet", "model_id": cfg["MODEL_NAME"],
@@ -67,9 +77,12 @@ def upload_command(cfg, period):
         "year": t["year"], "month": t["month"], "periodicity": t["periodicity"],
         "campaign": cfg["CAMPAIGN"], "experiment": cfg["EXPERIMENT"],
     }
+    if threshold is not None:
+        props["threshold"] = round(float(threshold), 4)
     prop_args = " ".join(f"--property {k}={v}" for k, v in props.items())
-    return (f"earthengine --project {cfg['GEE_PROJECT']} upload image "
-            f"--asset_id={asset_id(cfg, period)} --pyramiding_policy=mode "
+    return (f"earthengine --project {cfg['GEE_EXPORT_PROJECT']} upload image "
+            f"--asset_id={asset_id(cfg, period)} --pyramiding_policy=mode --nodata_value=-9999 "
+            f"--band_names={','.join(BAND_NAMES)} "
             f"--time_start {t['time_start']} --time_end {t['time_end']} "
             f"{prop_args} {map_path(cfg, period)}")
 
@@ -122,7 +135,7 @@ def publish(cfg, periods, logger=print, run=None):
             time.sleep(2)
         except Exception:
             pass
-        ok = run(upload_command(cfg, period)) == 0
+        ok = run(upload_command(cfg, period, map_threshold(cfg, period))) == 0
         done[period] = ok
         logger(f"   {'✅ enviado' if ok else '❌ falhou'}: {period} → {aid}")
     if any(done.values()):

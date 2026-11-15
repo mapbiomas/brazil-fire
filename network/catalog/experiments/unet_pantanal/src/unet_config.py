@@ -46,6 +46,13 @@ DEFAULTS = {
     "GCS_PREFIX": "sudamerica/brazil/CATALOG_01",   # holds LIBRARY_IMAGES and the campaigns
     "CAMPAIGN": "MONITOR_01",
     "GEE_PROJECT": "mapbiomas-brazil",
+    # Project that runs the ingestion tasks (earthengine upload) and owns the published maps.
+    "GEE_EXPORT_PROJECT": "mapbiomas-fire-485203",
+    # Asset root of the published maps; None = projects/{GEE_EXPORT_PROJECT}/assets/FIRE/CATALOG_01
+    "GEE_PREFIX": None,
+    # Cut of the burned band of the map (0-1). None = best-F1 threshold of the validation
+    # (reports/metrics_all.json, written in step 5).
+    "THRESHOLD": None,
     # Regions asset. Each feature gets a computed name:
     #   region_name = bioma + REGION_NAME_JOIN + id      (e.g. "Pantanal" + "_r" + 1)
     # as in the GEE script `f.set('region_name', f.getString('bioma').cat('_r').cat(f.get('id')))`.

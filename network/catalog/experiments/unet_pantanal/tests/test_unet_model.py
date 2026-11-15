@@ -127,7 +127,8 @@ class TestTiling(unittest.TestCase):
         prob = np.array([[0.0, 0.0004, 0.0006, 0.9]])
         valid = np.array([[True, True, True, False]])
         doy = np.array([[10, 20, 30, 40]])
-        p, d = to_output(prob, valid, doy)
+        b, p, d = to_output(prob, valid, doy, threshold=0.0006)
+        self.assertEqual(b.tolist(), [[0, 0, 1, NODATA]])
         self.assertEqual(p.tolist(), [[0, 0, 1, NODATA]])
         self.assertEqual(d.tolist(), [[NODATA, NODATA, 30, NODATA]])
 

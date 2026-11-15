@@ -113,10 +113,12 @@ class TestOutputWithoutDoy(unittest.TestCase):
             self.skipTest(str(exc))
         prob = np.array([[0.0, 0.4], [0.9, 0.2]])
         valid = np.array([[True, True], [True, False]])
-        p, d = to_output(prob, valid, None)
+        b, p, d = to_output(prob, valid, None)
         self.assertEqual(p.tolist(), [[0, 400], [900, NODATA]])
+        self.assertEqual(b.tolist(), [[0, 0], [1, NODATA]])  # limiar padrão 0.5
         self.assertTrue((d == NODATA).all())
-        p, d = to_output(prob, valid, np.full((2, 2), 280))
+        b, p, d = to_output(prob, valid, np.full((2, 2), 280), threshold=0.4)
+        self.assertEqual(b.tolist(), [[0, 1], [1, NODATA]])
         self.assertEqual(d.tolist(), [[NODATA, 280], [280, NODATA]])
 
 

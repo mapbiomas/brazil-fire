@@ -80,9 +80,9 @@ def print_inventory(cfg, inv, sample_files, report):
     print(f"   -> o modelo recebe {n_feat} canais: bandas {cfg['BANDS']}"
           + (f" + índices {cfg['INDICES']}" if cfg["INDICES"] else " (sem índices)"))
     if cfg.get("VALID_BAND"):
-        print(f"   -> pixel válido: onde {inv['valid_band']} > 0; a banda 2 da saída traz o dia do ano da queimada")
+        print(f"   -> pixel válido: onde {inv['valid_band']} > 0; a banda `doy` da saída traz o dia do ano da queimada")
     else:
-        print("   -> sem dayOfYear: pixel válido = bandas não-nodata e não todas 0; a banda 2 da saída fica vazia")
+        print("   -> sem dayOfYear: pixel válido = bandas não-nodata e não todas 0; a banda `doy` da saída fica vazia")
     res_ok = len({round(b["res"][0], 12) for b in inv["bands"].values()}) == 1
     print(f"   {'✅' if res_ok else '❌'} todas as bandas na mesma grade: {'SIM' if res_ok else 'NÃO - verifique os COGs'}\n")
 
