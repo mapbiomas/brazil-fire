@@ -101,7 +101,7 @@ U-Net:  recorte (chip) 256 × 256 px   →  mapa 256 × 256 de probabilidades
 
 ## 8. Das amostras aos chips
 
-1. **Polígonos usados:** os dos CSVs escolhidos, do mês e da região (`Pantanal 60`), com classe 0/1 e geometria válida.
+1. **Polígonos usados:** os dos CSVs escolhidos, do mês e da região (`Pantanal_r1`), com classe 0/1 e geometria válida.
 2. **Centros:** até 4 pontos sorteados por polígono; mesma quantidade de fogo e não fogo.
 3. **Rótulo de cada pixel:**
    - **1:** dentro de polígono de fogo;

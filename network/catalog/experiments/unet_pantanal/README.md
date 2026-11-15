@@ -19,7 +19,7 @@ it only **reads** the data the catalog already produced in Google Cloud Storage:
   the GEE script `f.set('region_name', f.getString('bioma').cat('_r').cat(f.get('id')))`).
   `REGION` is one of those names (for example `Pantanal_r1`; the error message
   lists the valid ones). `SAMPLE_REGION` is the value of the `region` column in
-  the sample CSVs (for example `Pantanal 60`); the two names can differ.
+  the sample CSVs (for example `Pantanal_r1`); the two names can differ.
   The older `MONITOR_01/AUXILIARY/regiones_fuego_brazil_v1` asset stays as a
   comment in `src/unet_config.py`.
 

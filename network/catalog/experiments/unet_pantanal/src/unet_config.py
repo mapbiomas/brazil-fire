@@ -84,8 +84,8 @@ DEFAULTS = {
     # sensitive; the error lists the options). Example: "Pantanal_r1".
     "REGION": "Pantanal_r1",
     # Value of the `region` column in the sample CSVs (case-insensitive), e.g.
-    # "Pantanal 60". None = same as REGION.
-    "SAMPLE_REGION": "Pantanal 60",
+    # "Pantanal_r1". None = same as REGION.
+    "SAMPLE_REGION": "Pantanal_r1",
     # Periods used for training and classification: '2026_10' (monthly) or
     # '2024' (annual). Chips of all periods train one model; each period gets
     # its own map.
