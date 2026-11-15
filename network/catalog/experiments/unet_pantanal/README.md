@@ -65,8 +65,7 @@ unet_pantanal/
     unet_resumo.py    didactic printed summaries of the notebook steps (Portuguese)
     unet_ui.py        notebook widgets: step 2 new training (samples, bands, indices, version) or existing version; 4 epochs; 6 model + classify periods
   tests/test_unet_*.py                        unit tests
-  docs/proposta_metodologia_unet_pantanal.md  slides outline: method proposal (Portuguese)
-  docs/apresentacao_unet_pantanal.md          slides outline with results to fill (Portuguese)
+  docs/unet_monitor_fogo.md                   slides outline: context, proposal and progress (Portuguese)
 ```
 
 ## How to run
