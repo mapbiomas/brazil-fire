@@ -25,6 +25,27 @@ def _cab(titulo):
 
 
 # ---------------------------------------------------------------------------
+# Passo 0 - Configuração
+# ---------------------------------------------------------------------------
+
+def print_config(cfg):
+    """Resumo da configuração ativa (equivalente ao print_config do catálogo)."""
+    _cab(f"⚙️ CONFIGURAÇÃO  |  {cfg['COUNTRY']} / {cfg['CAMPAIGN']}  |  {cfg['SENSOR']} {cfg['MOSAIC']}")
+    print(f"   Região a classificar : {cfg['REGION']}   (amostras: {cfg.get('SAMPLE_REGION') or cfg['REGION']})")
+    print(f"   Períodos de treino   : {', '.join(cfg['PERIODS'])}")
+    print(f"   Períodos a classificar: {', '.join(cfg['PREDICT_PERIODS'])}")
+    print(f"   Bandas ({len(cfg['BANDS'])})          : {', '.join(cfg['BANDS'])}")
+    idx = ", ".join(cfg["INDICES"]) if cfg["INDICES"] else "nenhum"
+    print(f"   Índices ({len(cfg['INDICES'])})         : {idx}")
+    print(f"   Canais de entrada    : {len(cfg['BANDS']) + len(cfg['INDICES'])}")
+    print(f"   Chip / bloco         : {cfg['CHIP']} px / {cfg['BLOCK_KM']} km | treino {cfg['EPOCHS']} épocas, batch {cfg['BATCH']}")
+    print(f"   Saídas               : gs://{cfg['BUCKET']}/{cfg['GCS_PREFIX']}/{cfg['CAMPAIGN']}/{cfg['EXPERIMENT']}/")
+    if set(cfg["PREDICT_PERIODS"]) - set(cfg["PERIODS"]):
+        print("   ℹ️  Há períodos a classificar que não estão no treino: o modelo os mapeia sem ter visto suas amostras.")
+    print()
+
+
+# ---------------------------------------------------------------------------
 # Passo 1 - Inventário
 # ---------------------------------------------------------------------------
 
