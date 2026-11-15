@@ -30,6 +30,12 @@ class TestPeriods(unittest.TestCase):
         self.assertEqual(period_from_file_name("samples_brazil_2024.csv"), "2024")
         self.assertEqual(period_from_file_name("samples_brazil.csv"), "")
 
+    def test_valid_band_off_spellings(self):
+        for off in (None, False, "", "None", "none", "False", "null"):
+            self.assertIsNone(make_config(VALID_BAND=off)["VALID_BAND"], off)
+        self.assertEqual(make_config(VALID_BAND="dayOfYear")["VALID_BAND"], "dayOfYear")
+        self.assertNotIn("None", mosaic_band_paths(make_config(VALID_BAND="None"), "2024_10"))
+
     def test_region_slug(self):
         from unet_config import region_slug
         self.assertEqual(region_slug({"REGION": "Pantanal 60"}), "pantanal_60")

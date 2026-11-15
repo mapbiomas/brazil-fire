@@ -173,6 +173,10 @@ def make_config(**overrides):
     if unknown:
         raise KeyError(f"Unknown U-Net config keys: {unknown}")
     cfg.update(copy.deepcopy(overrides))
+    # "No dayOfYear band": None, False, "" or the text "None"/"False"/"null" all mean off.
+    vb = cfg.get("VALID_BAND")
+    if vb is False or (isinstance(vb, str) and vb.strip().lower() in ("", "none", "null", "false", "no")):
+        cfg["VALID_BAND"] = None
     validate_config(cfg)
     return cfg
 
