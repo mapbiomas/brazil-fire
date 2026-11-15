@@ -221,6 +221,137 @@ class AssemblyChunkCleanupTests(unittest.TestCase):
         rm_mock.assert_not_called()
 
 
+class AssemblyRasterRegressionTests(unittest.TestCase):
+    """Exercise M2 orchestration with local rasters, not real GCS or Earth Engine."""
+
+    @classmethod
+    def setUpClass(cls):
+        AssemblyDtypeTests.setUpClass()
+
+    def test_chunks_flow_through_mask_and_cog_before_upload_and_cleanup(self):
+        import numpy as np
+        import rasterio
+        from rasterio.features import rasterize
+        from rasterio.shutil import copy
+        from rasterio.transform import from_origin
+
+        chunks = [shard('blue'), shard('blue').replace('0000000000-0000000000',
+                                                       '0000000000-0000000002')]
+        geometry = {'type': 'Polygon',
+                    'coordinates': [[[0, 0], [3, 0], [3, 2], [0, 2], [0, 0]]]}
+        events = []
+
+        with tempfile.TemporaryDirectory() as tmp:
+            sources = {}
+            for i, remote in enumerate(chunks):
+                path = os.path.join(tmp, f'input_{i}.tif')
+                with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True):
+                    with rasterio.open(path, 'w', driver='GTiff', width=2, height=2,
+                                       count=1, dtype='uint8', crs='EPSG:4326',
+                                       transform=from_origin(i * 2, 2, 1, 1)) as dst:
+                        dst.write(np.array([[0, 7], [8, 9]] if i == 0 else
+                                           [[10, 11], [12, 13]], dtype='uint8'), 1)
+                        dst.write_mask(np.array([[255, 0], [255, 255]] if i == 0 else
+                                                [[255, 255], [255, 255]], dtype='uint8'))
+                sources[remote] = path
+
+            def download_chunk(remote, local):
+                shutil.copyfile(sources[remote], local)
+
+            def command(args, label=None):
+                events.append(args[0])
+                # Explicit zero nodata would discard valid zero-valued pixels.
+                self.assertNotIn('-srcnodata', args)
+                self.assertNotIn('-vrtnodata', args)
+                self.assertNotIn('-a_nodata', args)
+                if args[0] == 'gdalbuildvrt':
+                    # The local stand-in retains dataset masks when assembling tiles.
+                    datasets = [rasterio.open(path) for path in args[2:]]
+                    try:
+                        data = np.concatenate([ds.read() for ds in datasets], axis=2)
+                        mask = np.concatenate([ds.dataset_mask() for ds in datasets], axis=1)
+                        profile = datasets[0].profile.copy()
+                        profile.update(driver='GTiff', height=data.shape[1],
+                                       width=data.shape[2])
+                        with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True):
+                            with rasterio.open(args[1], 'w', **profile) as dst:
+                                dst.write(data)
+                                dst.write_mask(mask)
+                    finally:
+                        for dataset in datasets:
+                            dataset.close()
+                elif args[0] == 'gdal_translate':
+                    self.assertEqual(args[args.index('-of') + 1], 'COG')
+                    copy(args[-2], args[-1], driver='COG', COMPRESS='LZW')
+                else:
+                    self.fail(f'Unexpected command: {args}')
+
+            def country_mask(source, features, block_size):
+                path = os.path.join(tmp, 'country.tif')
+                profile = source.profile.copy()
+                profile.update(driver='GTiff', count=1, dtype='uint8')
+                with rasterio.open(path, 'w', **profile) as dst:
+                    dst.write(rasterize([feature['geometry'] for feature in features],
+                                        out_shape=source.shape,
+                                        transform=source.transform, dtype='uint8'), 1)
+                return path
+
+            real_mask = logic.mask_raster_to_country
+
+            def apply_mask(*args, **kwargs):
+                events.append('mask')
+                return real_mask(*args, **kwargs)
+
+            def upload_cog(path, destination):
+                events.append('upload')
+                with rasterio.open(path) as cog:
+                    self.assertEqual(cog.tags(ns='IMAGE_STRUCTURE').get('LAYOUT'), 'COG')
+                    self.assertEqual(cog.read(1)[0, 0], 0)
+                    np.testing.assert_array_equal(cog.dataset_mask() > 0,
+                                                  [[True, False, True, False],
+                                                   [True, True, True, False]])
+
+            def remove(remote):
+                events.append('remove')
+                self.assertEqual(remote, chunks)
+
+            with patch.object(logic, 'list_gcs_files', return_value=chunks), \
+                 patch.object(logic, 'download', side_effect=download_chunk), \
+                 patch.object(logic, 'run_cmd', side_effect=command), \
+                 patch.object(logic, '_cached_country_mask', side_effect=country_mask), \
+                 patch.object(logic, '_country_geometry_geojson', return_value=geometry), \
+                 patch.object(logic, 'mask_raster_to_country', side_effect=apply_mask), \
+                 patch.object(logic, 'upload', side_effect=upload_cog), \
+                 patch.object(logic, 'rm_files', side_effect=remove), \
+                 patch.object(logic, 'check_m2_dependencies', return_value=[]), \
+                 patch.object(logic, 'get_temp_dir', return_value=tmp), \
+                 patch('M1_update_manifest.complete_gcs_item'):
+                result = assemble(['blue'])
+
+            self.assertEqual(len(result), 1)
+            self.assertEqual(events, ['gdalbuildvrt', 'mask', 'gdal_translate', 'upload', 'remove'])
+
+    def test_processing_failures_keep_chunks(self):
+        for failing_step in ('gdalbuildvrt', 'mask', 'gdal_translate', 'validation'):
+            with self.subTest(step=failing_step), \
+                 assembly_env([shard('blue')]) as (upload_mock, rm_mock, run_cmd_mock):
+                def fail_command(args, label=None):
+                    if args[0] == failing_step:
+                        raise RuntimeError(failing_step)
+
+                run_cmd_mock.side_effect = fail_command
+                with patch.object(logic, 'mask_raster_to_country',
+                                  side_effect=RuntimeError(failing_step) if failing_step == 'mask'
+                                  else None), \
+                     patch.object(logic, '_validate_masked_cog',
+                                  side_effect=RuntimeError(failing_step) if failing_step == 'validation'
+                                  else None):
+                    with self.assertRaisesRegex(RuntimeError, failing_step):
+                        assemble(['blue'])
+                upload_mock.assert_not_called()
+                rm_mock.assert_not_called()
+
+
 class RemoveFilesTests(unittest.TestCase):
     def test_removes_objects_in_batches(self):
         client = MagicMock()

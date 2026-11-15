@@ -369,6 +369,7 @@ class MosaicAssemblerUI(PipelineStepUI):
                 ))
                 chk._meta.update({
                     'country': CONFIG['country'],
+                    'type': 'GCS',
                     'country_update': country_update and (exists_cog or has_chunks),
                     'has_cog': exists_cog,
                     'has_chunks': has_chunks,
