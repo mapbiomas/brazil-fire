@@ -159,11 +159,3 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True):
     finally:
         reader.close()
 
-
-def gee_upload_command(cfg, period, asset_id):
-    """`earthengine upload image` command for the prediction COG (optional)."""
-    P = paths(cfg)
-    name = f"{region_slug(cfg)}_{period}_prob"
-    return (f"earthengine upload image --asset_id={asset_id} "
-            f"--nodata_value={NODATA} --pyramiding_policy=mean "
-            f"gs://{P['bucket']}/{P['predict']}/{name}.tif")

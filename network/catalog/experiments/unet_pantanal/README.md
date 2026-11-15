@@ -61,6 +61,7 @@ unet_pantanal/
     unet_chips.py     chips -> TFRecord shards, preview figure, train statistics
     unet_model.py     tf.data pipeline, U-Net, masked BCE+Dice, masked metrics, training
     unet_predict.py   sliding-window inference over the region, COG upload
+    unet_gee.py       step 6.3: ingest the maps from GCS into a GEE ImageCollection (as the production M6)
     unet_report.py    test metrics, MLP baseline, comparison table
     unet_resumo.py    didactic printed summaries of the notebook steps (Portuguese)
     unet_ui.py        notebook widgets: step 2 new training (samples, bands, indices, version) or existing version; 4 epochs; 6 model + classify periods

@@ -187,6 +187,12 @@ class TestWidgets(unittest.TestCase):
         new = build_classificar(ui.cfg, **ui.selected())
         self.assertEqual(new["PREDICT_PERIODS"], ["2026_09", "2026_10"])
         self.assertEqual(new["MODEL_NAME"], "training_003_x_sentinel2")
+        from unet_ui import PublicarUI
+        cfg = make_config(TRAINING_ID="1", SHORTNAME="pantanal_r1")
+        pub = PublicarUI(cfg, maps=["2026_09", "2026_10"], assets={"pantanal_r1_2026_10"})
+        self.assertIn("GEE ✅", pub.chk[1].description)
+        self.assertEqual(pub.selected(), ["2026_09"])  # só o que ainda não está no GEE
+        self.assertEqual(PublicarUI(cfg, maps=[], assets=set()).selected(), [])  # versão sem mapas
         op = OpcoesUI(self.cfg)
         op.w_epochs.value = 12
         self.assertEqual(build_opcoes(op.cfg, **op.selected())["EPOCHS"], 12)

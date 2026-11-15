@@ -448,6 +448,47 @@ class ClassificarUI(_Base):
         return dict(predict_periods=[k for k, c in zip(self.keys, self.chk_pred) if c.value])
 
 
+class PublicarUI(_Base):
+    """Passo 6.3: mapas da versão no GCS e quais já estão no GEE (como o M6 do production)."""
+
+    def __init__(self, cfg, maps=None, assets=None):
+        import ipywidgets as w
+        from unet_gee import classified_periods, gee_assets, gee_folders
+        from unet_config import region_slug
+        self.w, self.cfg = w, cfg
+        L = w.Layout
+        self.maps = maps if maps is not None else classified_periods(cfg)
+        assets = assets if assets is not None else gee_assets(cfg)
+        self.in_gee = {p for p in self.maps if f"{region_slug(cfg)}_{p}" in assets}
+        self.chk = [w.Checkbox(value=p not in self.in_gee, indent=False, layout=L(width="auto"),
+                               description=f"{p}  ·  GCS ✅  ·  GEE "
+                                           f"{'✅ (substitui)' if p in self.in_gee else '⏳ ainda não'}")
+                    for p in self.maps]
+        dest = gee_folders(cfg)[1]
+        self.root = w.VBox([
+            _box(w, "☁️ Mapas para subir ao GEE",
+                 f"versão {cfg['MODEL_NAME']}; destino: <code>{dest}</code>",
+                 self.chk or [w.HTML("❌ Esta versão ainda não tem mapas em predict/. Rode o 6.2 antes.")])])
+
+    def selected(self):
+        return [p for p, c in zip(self.maps, self.chk) if c.value]
+
+
+def run_ui_publicar(cfg, maps=None, assets=None):
+    return PublicarUI(cfg, maps, assets).show()
+
+
+def apply_publicar(ui):
+    """Envia ao GEE os meses marcados (earthengine upload image, como o M6 do production)."""
+    from unet_gee import publish
+    periods = ui.selected()
+    if not periods:
+        print("Nenhum mês marcado: nada enviado.")
+        return {}
+    print(f"☁️ Enviando {len(periods)} mapa(s) da versão {ui.cfg['MODEL_NAME']} ao GEE...")
+    return publish(ui.cfg, periods)
+
+
 def run_ui_treino(cfg, listing=None, versions=None):
     return TreinoUI(cfg, listing, versions).show()
 

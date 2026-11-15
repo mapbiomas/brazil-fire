@@ -198,6 +198,7 @@ Critérios combinados **antes** de ver o resultado (para discussão com a equipe
 | 7 | Comparação com o MLP do catálogo | – |
 
 - Layout igual aos notebooks do catálogo: guia recolhido no topo e uma interface (widgets) em cada passo que pede escolha.
+- **Publicação no GEE (passo 6.3):** como o M6 do production, cada mapa vira uma imagem `{região}_{mês}` na coleção da versão (`…/MONITOR_01/UNET_01/{bioma}/{versão}`), com propriedades de modelo, região e período. Já vêm marcados os meses que ainda não estão no GEE.
 - **Treino e classificação são separados:** treina em 2026_10 e mapeia qualquer mês com mosaico.
 - **Resumos didáticos em português** em cada passo, com diagnóstico automático (✅ ⚠️ ❌ 💡), curvas de treino e matriz de confusão.
 
