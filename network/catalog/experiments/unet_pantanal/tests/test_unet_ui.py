@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from unet_config import make_config, paths  # noqa: E402
 from unet_ui import (auto_shortname, available_periods, build_classificar, build_opcoes,  # noqa: E402
                      build_treino, config_from_saved, list_versions, mosaic_table, next_training_id,
-                     period_label, predict_keys, sample_choices, train_keys)
+                     period_label, predict_keys, sample_choices, sample_id, train_keys)
 
 BASE = "mapbiomas-fire/sudamerica/brazil/CATALOG_01"
 CSV = "samples_01_pantanal_r1_sentinel_2026_10.csv"
@@ -74,8 +74,11 @@ class TestVersions(unittest.TestCase):
         self.assertEqual(P["experiment"], f"{BASE.split('/', 1)[1]}/MONITOR_01/UNET_01")
         self.assertEqual(paths(make_config())["root"], P["experiment"])  # sem versão: layout antigo
 
-    def test_auto_shortname(self):
-        self.assertEqual(auto_shortname(make_config(REGION="Pantanal_r1"), 10), "pantanal_r1_10c")
+    def test_auto_shortname_and_sample_id(self):
+        self.assertEqual(auto_shortname(make_config(REGION="Pantanal_r1")), "pantanal_r1")
+        self.assertEqual(sample_id([CSV]), "01")
+        self.assertEqual(sample_id(["samples_07_x_2026_10.csv", CSV]), "01")
+        self.assertIsNone(sample_id(["amostras_2026_10.csv"]))
 
     def test_saved_roundtrip(self):
         import json
@@ -132,19 +135,19 @@ class TestWidgets(unittest.TestCase):
         from unet_ui import TreinoUI, apply_treino
         ui = TreinoUI(self.cfg, self.listing, self.versions)
         self.assertEqual(ui.selected_samples, {CSV})  # pré-seleção pelos períodos da configuração
-        self.assertEqual(ui.w_id.value, "002")
-        self.assertEqual(ui.w_short.value, "pantanal_r1_4c")
+        self.assertEqual(ui.w_id.value, "01")  # vem de samples_01_...
+        self.assertEqual(ui.w_short.value, "pantanal_r1")
+        self.assertIn("já é usado", ui.lbl_version.value)  # training_001 já existe no GCS falso
+        ui._clear()
+        self.assertEqual(ui.w_id.value, "002")  # sem amostras com ID: menor ID livre
+        ui.w_id.value = "5"
+        ui.w_short.value = "meu_teste"
+        ui._select_all()
+        self.assertEqual((ui.w_id.value, ui.w_short.value), ("5", "meu_teste"))  # digitado: não é sobrescrito
         ui.chk_bands[4].value = True  # swir1
         ui.chk_idx[1].value = True  # nbr2
-        self.assertEqual(ui.w_short.value, "pantanal_r1_6c")  # shortname automático acompanha
-        ui.w_short.value = "meu_teste"
-        ui.chk_bands[0].value = True
-        self.assertEqual(ui.w_short.value, "meu_teste")  # digitado: não é sobrescrito
-        ui._clear()
-        self.assertEqual(len(ui.pane_sel.children), 0)
-        ui._select_all()
         cfg = apply_treino(ui, save=False)
-        self.assertEqual(cfg["MODEL_NAME"], "training_002_meu_teste_sentinel2")
+        self.assertEqual(cfg["MODEL_NAME"], "training_005_meu_teste_sentinel2")
         self.assertEqual(cfg["INDICES"], ["nbr", "nbr2"])
         self.assertEqual(cfg["SAMPLE_FILES"], [CSV])
 

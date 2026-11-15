@@ -120,9 +120,18 @@ def next_training_id(versions):
     return next(f"{i:03d}" for i in range(1, 1000) if i not in used)
 
 
-def auto_shortname(cfg, n_channels):
-    """'pantanal_r1_10c' = região + número de canais (bandas + índices)."""
-    return f"{region_slug(cfg)}_{n_channels}c"
+def auto_shortname(cfg):
+    """Shortname sugerido: a região ('Pantanal_r1' -> 'pantanal_r1')."""
+    return region_slug(cfg)
+
+
+SAMPLE_ID_RE = re.compile(r"^samples?_(\d+)_", re.IGNORECASE)
+
+
+def sample_id(files):
+    """ID das amostras escolhidas ('samples_01_pantanal_...' -> '01'); None se nenhum nome tiver ID."""
+    ids = [m.group(1) for m in (SAMPLE_ID_RE.match(f) for f in sorted(files)) if m]
+    return ids[0] if ids else None
 
 
 def build_treino(cfg, sample_files, bands, indices, training_id=None, shortname=None, comment=""):
@@ -212,7 +221,6 @@ def mostrar_mosaicos(cfg, listing=None):
     from unet_resumo import _cab
     listing = listing if listing is not None else available_periods(cfg)
     _cab(f"📋 MOSAICOS DISPONÍVEIS  |  {cfg['SENSOR']} {cfg['MOSAIC']}  |  {cfg['COUNTRY']}")
-    print("Para que serve: ver quais meses já têm imagem exportada (M2) e com quais bandas, antes de escolher o treino.\n")
     rows = mosaic_table(listing)
     if len(rows) == 1:
         print("❌ Nenhum mosaico encontrado nessa pasta do GCS. Confira país, sensor e mosaico na configuração.")
@@ -287,8 +295,11 @@ class TreinoUI(_Base):
         self.lbl_version = w.HTML()
         for c in (self.w_id, self.w_short):
             c.observe(lambda _: self._refresh_version(), names="value")
-        self._auto_short = True
-        self.w_short.observe(self._on_short_typed, names="value")
+        # ID e shortname são preenchidos sozinhos até a pessoa digitar neles.
+        self._auto = {"id": True, "short": True}
+        self._last = {}
+        self.w_id.observe(lambda c: self._on_typed("id", c), names="value")
+        self.w_short.observe(lambda c: self._on_typed("short", c), names="value")
         version_box = _box(w, "🏷️ Versão (destino no GCS)",
                            "cada versão tem a sua pasta: chips, modelo, métricas e mapas ficam separados",
                            [w.HBox([self.w_id, self.w_short]), self.w_comment, self.lbl_version])
@@ -336,12 +347,14 @@ class TreinoUI(_Base):
         self.selected_samples.clear()
         self._refresh()
 
-    def _on_short_typed(self, change):
-        if change["new"] != getattr(self, "_last_auto", None):
-            self._auto_short = False
+    def _on_typed(self, key, change):
+        if change["new"] != self._last.get(key):
+            self._auto[key] = False
 
-    def _n_channels(self):
-        return sum(c.value for c in self.chk_bands) + sum(c.value for c in self.chk_idx)
+    def _set_auto(self, key, widget, value):
+        if self._auto[key] and value is not None:
+            self._last[key] = value
+            widget.value = value
 
     def _refresh(self):
         avail = [n for n in self._filtered() if n not in self.selected_samples]
@@ -350,9 +363,8 @@ class TreinoUI(_Base):
         periods = sorted({self.period_of[n] for n in self.selected_samples})
         self.lbl_periods.value = (f"Períodos de treino: <b>{', '.join(periods)}</b>" if periods
                                   else "<span style='color:#b00'>Nenhuma amostra selecionada.</span>")
-        if self._auto_short:
-            self._last_auto = auto_shortname(self.cfg, self._n_channels())
-            self.w_short.value = self._last_auto
+        self._set_auto("id", self.w_id, sample_id(self.selected_samples) or next_training_id(self.versions))
+        self._set_auto("short", self.w_short, auto_shortname(self.cfg))
         self._refresh_version()
 
     def _refresh_version(self):
