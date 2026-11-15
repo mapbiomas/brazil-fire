@@ -3,6 +3,7 @@ import os
 import subprocess
 import glob
 import tempfile
+import json
 from functools import lru_cache
 
 from M0_auth_config import (
@@ -55,7 +56,8 @@ def check_m2_dependencies():
     deps = {
         'gsutil':  'gsutil' if os.name != 'nt' else 'gsutil.cmd',
         'gdalbuildvrt': 'gdalbuildvrt',
-        'gdal_translate': 'gdal_translate'
+        'gdal_translate': 'gdal_translate',
+        'gdal_rasterize': 'gdal_rasterize',
     }
     missing = [name for name, cmd in deps.items() if not check_command_exists(cmd)]
     try:
@@ -73,52 +75,81 @@ def run_cmd(args, label="Comando"):
         raise RuntimeError(f"Error in {label}: {e.stderr.strip() if e.stderr else e.stdout.strip()}")
 
 
+def _polygon_features(geometry):
+    """Flatten GEE/GeoJSON collections without burning line or point features."""
+    kind = geometry.get('type')
+    if kind == 'FeatureCollection':
+        for feature in geometry.get('features', []):
+            yield from _polygon_features(feature)
+    elif kind == 'Feature':
+        if geometry.get('geometry'):
+            yield from _polygon_features(geometry['geometry'])
+    elif kind == 'GeometryCollection':
+        for part in geometry.get('geometries', []):
+            yield from _polygon_features(part)
+    elif kind in ('Polygon', 'MultiPolygon'):
+        yield {'type': 'Feature', 'properties': {}, 'geometry': geometry}
+
+
 def mask_raster_to_country(source_path, output_path, country_geometry, window_size=512):
-    """Rasterize the country mask window-by-window on the unchanged source grid.
+    """Rasterize once on the unchanged source grid, then combine masks by window.
 
     Data and validity masks are read/written in bounded windows so a large
     country COG never needs to be materialized as a full-image NumPy array.
     """
     import numpy as np
     import rasterio
-    from rasterio.features import geometry_mask
-    from rasterio.warp import transform_geom
-    from rasterio.windows import Window, transform as window_transform
+    from rasterio.enums import ColorInterp
+    from rasterio.windows import Window
 
     if not isinstance(window_size, int) or window_size <= 0:
         raise ValueError("window_size must be a positive integer")
+    features = list(_polygon_features(country_geometry))
+    if not features:
+        raise ValueError('Country geometry has no polygons')
 
     with rasterio.open(source_path) as source:
-        geometry = country_geometry
-        if source.crs and str(source.crs).upper() not in ('EPSG:4326', 'OGC:CRS84'):
-            geometry = transform_geom('EPSG:4326', source.crs, country_geometry)
+        data_bands = [i for i, color in enumerate(source.colorinterp, 1)
+                      if color != ColorInterp.alpha]
+        if not data_bands:
+            raise ValueError('Source has no data bands')
         profile = source.profile.copy()
-        profile.update(driver='GTiff', compress='LZW', tiled=True)
+        profile.update(driver='GTiff', count=len(data_bands), compress='LZW', tiled=True, BIGTIFF='YES')
+        profile.pop('photometric', None)
         profile.pop('blockxsize', None)
         profile.pop('blockysize', None)
         output_block_size = max(16, ((window_size + 15) // 16) * 16)
         profile['blockxsize'] = output_block_size
         profile['blockysize'] = output_block_size
 
-        with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True):
-            with rasterio.open(output_path, 'w', **profile) as destination:
+        with tempfile.TemporaryDirectory(prefix='country_mask_', dir=os.path.dirname(os.path.abspath(output_path))) as mask_dir:
+            vector_path = os.path.join(mask_dir, 'country.geojson')
+            raster_path = os.path.join(mask_dir, 'country.tif')
+            with open(vector_path, 'w', encoding='utf-8') as vector:
+                json.dump({'type': 'FeatureCollection', 'features': features}, vector)
+            mask_profile = {
+                'driver': 'GTiff', 'width': source.width, 'height': source.height,
+                'count': 1, 'dtype': 'uint8', 'crs': source.crs,
+                'transform': source.transform, 'tiled': True,
+                'blockxsize': output_block_size, 'blockysize': output_block_size,
+                'compress': 'LZW', 'BIGTIFF': 'YES', 'SPARSE_OK': 'TRUE',
+            }
+            with rasterio.open(raster_path, 'w', **mask_profile):
+                pass
+            run_cmd(['gdal_rasterize', '-burn', '1', '-optim', 'VECTOR',
+                     vector_path, raster_path], label='Country mask rasterization')
+            with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True), rasterio.open(raster_path) as country, rasterio.open(output_path, 'w', **profile) as destination:
                 for row in range(0, source.height, window_size):
                     height = min(window_size, source.height - row)
                     for col in range(0, source.width, window_size):
                         width = min(window_size, source.width - col)
                         window = Window(col, row, width, height)
-                        country_mask = geometry_mask(
-                            [geometry],
-                            out_shape=(height, width),
-                            transform=window_transform(window, source.transform),
-                            all_touched=False,
-                            invert=True,
-                        )
+                        country_mask = country.read(1, window=window) > 0
                         source_mask = source.dataset_mask(window=window) > 0
                         valid = country_mask & source_mask
-                        for band_index in range(1, source.count + 1):
+                        for output_index, band_index in enumerate(data_bands, 1):
                             data = source.read(band_index, window=window)
-                            destination.write(data, band_index, window=window)
+                            destination.write(data, output_index, window=window)
                         destination.write_mask(
                             np.where(valid, 255, 0).astype('uint8'),
                             window=window,
@@ -128,13 +159,39 @@ def mask_raster_to_country(source_path, output_path, country_geometry, window_si
 
 @lru_cache(maxsize=16)
 def _country_geometry_geojson(asset_regions):
-    """Fetch a configured country boundary once per asset per notebook session."""
+    """Fetch individual region features once per asset per notebook session."""
     import ee
-    return ee.FeatureCollection(asset_regions).geometry().getInfo()
+    return ee.FeatureCollection(asset_regions).getInfo()
+
+
+def _validate_masked_cog(source_path, output_path):
+    """Reject incomplete or grid-changing conversions before publishing."""
+    import rasterio
+    from rasterio.enums import ColorInterp, MaskFlags
+
+    with rasterio.open(source_path) as source, rasterio.open(output_path) as output:
+        if (source.width, source.height, source.transform, source.crs, source.count) != (
+            output.width, output.height, output.transform, output.crs, output.count
+        ):
+            raise ValueError('COG grid or band count differs from masked source')
+        if ColorInterp.alpha in output.colorinterp:
+            raise ValueError('COG must not contain an alpha band')
+        if not all(MaskFlags.per_dataset in flags for flags in output.mask_flag_enums):
+            raise ValueError('COG is missing its internal validity mask')
+        if output.tags(ns='IMAGE_STRUCTURE').get('LAYOUT') != 'COG':
+            raise ValueError('Output is not a COG')
+        # Force a read, detecting at least an unreadable first tile before upload.
+        output.read(1, window=((0, min(1, output.height)), (0, min(1, output.width))))
+
+
+def _cog_threads(value):
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ValueError('gdal_threads must be a positive integer')
+    return value
 
 
 def mask_existing_country_cog(
-    period_key, band, sensor, mosaic_method, logger=None, update_manifest=True,
+    period_key, band, sensor, mosaic_method, logger=None, update_manifest=True, gdal_threads=2,
 ):
     """Mask an existing GCS COG in place without creating an Earth Engine task.
 
@@ -170,9 +227,10 @@ def mask_existing_country_cog(
         run_cmd([
             'gdal_translate', '-of', 'COG', '-ot', data_type,
             '-co', 'COMPRESS=LZW', '-co', 'PREDICTOR=2',
-            '-co', 'NUM_THREADS=2', '-co', 'BIGTIFF=YES',
+            '-co', f'NUM_THREADS={_cog_threads(gdal_threads)}', '-co', 'BIGTIFF=YES',
             masked_path, output_path,
         ], label=f"COG country-mask update ({band_name})")
+        _validate_masked_cog(masked_path, output_path)
         upload(output_path, f"{CONFIG['bucket']}/{cog_dir}/{cog_name}")
 
         if update_manifest:
@@ -191,7 +249,7 @@ def mask_existing_country_cog(
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
 
-def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sensor=None, mosaic_method='minnbr', logger=None, progress_idx=0, progress_total=0, start_time=None, period_key=None, update_manifest=True):
+def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sensor=None, mosaic_method='minnbr', logger=None, progress_idx=0, progress_total=0, start_time=None, period_key=None, update_manifest=True, gdal_threads=2):
     import shutil
     from M0_auth_config import GLOBAL_OPTS, _single
 
@@ -303,9 +361,10 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
                 run_cmd([
                     'gdal_translate', '-of', 'COG', '-ot', dt,
                     '-co', 'COMPRESS=LZW', '-co', 'PREDICTOR=2',
-                    '-co', 'NUM_THREADS=2', '-co', 'BIGTIFF=YES', masked_path, cog_local_path
+                    '-co', f'NUM_THREADS={_cog_threads(gdal_threads)}', '-co', 'BIGTIFF=YES', masked_path, cog_local_path
                 ], label=f"COG Conversion ({clean_b_name})")
 
+                _validate_masked_cog(masked_path, cog_local_path)
                 dest = f"{CONFIG['bucket']}/{mosaic_prefix}/{cog_remote_name}"
                 upload(cog_local_path, dest)
 

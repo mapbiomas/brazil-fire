@@ -1,5 +1,7 @@
 print("\n>>> M2_mosaic_ui initializing (v7.0 Tabs) <<<")
 import traceback
+import os
+import shutil
 import ipywidgets as widgets
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -14,7 +16,61 @@ from M1_update_manifest import (
     save_manifest, set_item_status,
 )
 
+# Provisional cap: full-size COGs compete for disk and each GDAL process uses
+# two threads. Increase only after representative end-to-end benchmarks.
 M2_MAX_WORKERS = 2
+
+
+def choose_m2_workers(selected_count, cpu_count, total_ram, available_ram, free_disk):
+    """Choose a conservative product concurrency from observed resources.
+
+    RAM and disk are in bytes. Unknown resources fall back to one worker;
+    these thresholds do not guarantee enough disk for a particular COG.
+    """
+    gib = 1024 ** 3
+    if selected_count <= 0:
+        return 0
+    if (cpu_count is not None and cpu_count >= 4
+            and total_ram is not None and total_ram >= 32 * gib
+            and available_ram is not None and available_ram >= 24 * gib
+            and free_disk is not None and free_disk >= 100 * gib):
+        return min(selected_count, M2_MAX_WORKERS, 2)
+    return 1
+
+
+def choose_gdal_threads(cpu_count, product_workers, available_ram):
+    """Budget CPUs and a conservative RAM reserve across GDAL products."""
+    cpu_budget = max(1, (cpu_count or 1) // max(1, product_workers))
+    if available_ram is None:
+        return 1
+    gib = 1024 ** 3
+    ram_budget = max(1, int(max(0, available_ram - 2 * gib) // (gib // 2)))
+    return max(1, min(cpu_budget, ram_budget // max(1, product_workers)))
+
+
+def detect_m2_resources():
+    """Read actual runtime resources, not an assumed Colab subscription tier."""
+    cpu = getattr(os, 'process_cpu_count', os.cpu_count)()
+    total = available = disk = None
+    try:
+        import psutil
+        memory = psutil.virtual_memory()
+        total, available = memory.total, memory.available
+        try:
+            affinity = getattr(psutil.Process(), 'cpu_affinity', None)
+            cpus = affinity() if affinity else []
+            if cpus:
+                cpu = min(cpu or len(cpus), len(cpus))
+        except (psutil.Error, OSError, AttributeError):
+            pass
+    except (ImportError, OSError, AttributeError):
+        pass
+    try:
+        from M0_auth_config import get_temp_dir
+        disk = shutil.disk_usage(get_temp_dir()).free
+    except (OSError, ValueError):
+        pass
+    return cpu, total, available, disk
 
 class MosaicAssemblerUI(PipelineStepUI):
     def __init__(self, years=None):
@@ -400,7 +456,8 @@ def run_ui(years=None):
     return ui
 
 
-def process_country_mosaic_item(item, manifest, logger=print, persist_manifest=True):
+def process_country_mosaic_item(item, manifest, logger=print, persist_manifest=True,
+                                gdal_threads=2):
     """Apply an M2 country-mask update or run the usual chunks assembly."""
     from M2_mosaic_logic import assemble_country_mosaic, mask_existing_country_cog
 
@@ -417,7 +474,7 @@ def process_country_mosaic_item(item, manifest, logger=print, persist_manifest=T
         try:
             updated = mask_existing_country_cog(
                 period_key, item['band'], item['sensor'], item['mosaic'],
-                logger=logger, update_manifest=persist_manifest,
+                logger=logger, update_manifest=persist_manifest, gdal_threads=gdal_threads,
             )
         except Exception as error:
             if persist_manifest:
@@ -451,7 +508,7 @@ def process_country_mosaic_item(item, manifest, logger=print, persist_manifest=T
         year=item['year'], month=item['month'], period=item['period'],
         sensor=item['sensor'], mosaic_method=item['mosaic'],
         bands=[item['band']], period_key=period_key, logger=logger,
-        update_manifest=persist_manifest,
+        update_manifest=persist_manifest, gdal_threads=gdal_threads,
     )
     if country_update:
         if not result:
@@ -475,7 +532,16 @@ def start_mosaic_assembly(ui_obj):
         cell_log("No mosaic selected.", type='warning')
         return
     
-    worker_count = min(M2_MAX_WORKERS, len(selected))
+    resources = detect_m2_resources()
+    worker_count = choose_m2_workers(len(selected), *resources)
+    cpu, total, available, free_disk = resources
+    gdal_threads = choose_gdal_threads(cpu, worker_count, available)
+    gib = 1024 ** 3
+    def format_gib(value):
+        return f"{value / gib:.1f} GiB" if value is not None else 'unknown'
+    print(f"[M2 resources] CPUs={cpu or 'unknown'} | RAM total={format_gib(total)} "
+          f"available={format_gib(available)} | temp free={format_gib(free_disk)} | "
+          f"product workers={worker_count} (GDAL: up to {gdal_threads} threads per product)")
     print(
         f"[INFO] Starting assembly of {len(selected)} COG bands "
         f"with {worker_count} worker(s)..."
@@ -499,11 +565,23 @@ def start_mosaic_assembly(ui_obj):
 
     succeeded = 0
     prog = ProgressTracker(len(selected), "COG Assembly")
+    def run_item(index, item):
+        period_key = item.get('period_key') or (
+            f"{item['year']}_{item['month']:02d}"
+            if item.get('month') else f"{item['year']}"
+        )
+        cell_log(
+            f"[{index}/{len(selected)}] Processing {item['sensor']} "
+            f"{period_key} {item['band']}...", type='info',
+        )
+        return process_country_mosaic_item(
+            item, manifest, logger=print, persist_manifest=False, gdal_threads=gdal_threads,
+        )
+
     with ThreadPoolExecutor(max_workers=worker_count) as executor:
         future_items = {
             executor.submit(
-                process_country_mosaic_item, item, manifest,
-                logger=print, persist_manifest=False,
+                run_item, index, item,
             ): (index, item)
             for index, item in enumerate(selected, 1)
         }
@@ -514,11 +592,6 @@ def start_mosaic_assembly(ui_obj):
                 if item['month'] else f"{item['year']}"
             )
             try:
-                cell_log(
-                    f"[{index}/{len(selected)}] Processing {item['sensor']} "
-                    f"{period_key} {item['band']}...",
-                    type='info',
-                )
                 future.result()
                 succeeded += 1
                 if item.get('country_update'):

@@ -55,6 +55,7 @@ def assembly_env(shards, upload_error=None, rm_error=None):
              patch.object(logic, 'upload', upload_mock), \
              patch.object(logic, 'rm_files', rm_mock), \
              patch.object(logic, 'mask_raster_to_country', return_value='masked.tif') as mask_mock, \
+             patch.object(logic, '_validate_masked_cog'), \
              patch.object(logic, '_country_geometry_geojson', return_value={
                  'type': 'Polygon',
                  'coordinates': [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],

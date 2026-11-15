@@ -27,10 +27,19 @@ invalid/nodata.
    failure. Refresh the module to see the completed item return to **OK**; a
    failed mask or assembly remains selectable for retry.
 
-M2 processes selected products with at most two workers at a time. Each worker
-uses an isolated temporary directory; processing remains windowed to bound
-memory. Two concurrent products use more local disk and I/O than one, so start
-with a small batch when validating a new Colab runtime.
+M2 rasterizes the polygon parts of the configured country features once per
+product on its original grid, using `gdal_rasterize`, and combines that mask with
+the source validity mask in fixed-size windows. Its temporary TIFF is BigTIFF;
+M2 checks the output COG's grid, band count and internal mask before upload.
+The current implementation does **not** yet cache the mask across products.
+
+M2 detects the runtime's available CPUs, memory and free temporary disk and
+chooses a conservative number of concurrent products (currently one or two).
+The CPU budget is shared with GDAL compression threads; additional cores do not
+necessarily speed up a disk-bound job. Each product uses an isolated temporary
+directory. The output can require substantial disk space, and the local Peru
+benchmark took over an hour per full-country band. Start with one band when
+validating a new Colab runtime; actual performance and disk needs vary.
 
 The manifest identity is country, sensor, periodicity, mosaic method, period
 key, band and target. Campaign is deliberately excluded. M1's default

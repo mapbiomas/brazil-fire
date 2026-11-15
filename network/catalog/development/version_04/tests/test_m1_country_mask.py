@@ -202,7 +202,8 @@ class UpdateManifestTests(unittest.TestCase):
                 active -= 1
             return ['done']
 
-        with patch.object(M2_mosaic_ui, 'process_country_mosaic_item', side_effect=process), \
+        with patch.object(M2_mosaic_ui, 'choose_m2_workers', return_value=2), \
+             patch.object(M2_mosaic_ui, 'process_country_mosaic_item', side_effect=process), \
              patch.object(M2_mosaic_ui.CacheManager, 'build_cache_from_gcs', return_value={}), \
              patch.object(M2_mosaic_ui, 'save_manifest'):
             M2_mosaic_ui.start_mosaic_assembly(ui)
@@ -375,7 +376,7 @@ class UpdateManifestTests(unittest.TestCase):
 
         mask_cog.assert_called_once_with(
             '2025_01', 'red', 'sentinel2', 'minnbr',
-            logger=print, update_manifest=True,
+            logger=print, update_manifest=True, gdal_threads=2,
         )
         assemble.assert_not_called()
         self.assertTrue(result)
@@ -419,6 +420,37 @@ class UpdateManifestTests(unittest.TestCase):
 
 
 class CountryCogMaskTests(unittest.TestCase):
+    def test_geometry_is_rasterized_once_and_intermediate_is_bigtiff(self):
+        import numpy as np
+        import rasterio
+        from rasterio.features import rasterize
+        from rasterio.transform import from_origin
+
+        geometry = {'type': 'Polygon', 'coordinates': [[[0, 0], [3, 0], [3, 4], [0, 4], [0, 0]]]}
+        calls = []
+        def rasterize_command(args, label=None):
+            calls.append(args)
+            with rasterio.open(args[-1], 'r+') as target:
+                target.write(rasterize([geometry], out_shape=target.shape,
+                                       transform=target.transform, dtype='uint8'), 1)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_path = Path(temp_dir) / 'source.tif'
+            output_path = Path(temp_dir) / 'masked.tif'
+            with rasterio.open(source_path, 'w', driver='GTiff', height=4, width=4,
+                               count=1, dtype='uint8', crs='EPSG:4326',
+                               transform=from_origin(0, 4, 1, 1)) as source:
+                source.write(np.ones((4, 4), dtype='uint8'), 1)
+                source.write_mask(np.array([[0, 255, 255, 255]] * 4, dtype='uint8'))
+            with patch.object(M2_mosaic_logic, 'run_cmd', side_effect=rasterize_command):
+                mask_raster_to_country(str(source_path), str(output_path), geometry, window_size=2)
+            self.assertEqual(len(calls), 1)
+            with open(output_path, 'rb') as output:
+                self.assertIn(output.read(4), (b'II+\x00', b'MM\x00+'))
+            with rasterio.open(output_path) as masked:
+                np.testing.assert_array_equal(masked.dataset_mask() > 0,
+                                              [[False, True, True, False]] * 4)
+
     def test_country_mask_keeps_grid_and_marks_exterior_invalid(self):
         import numpy as np
         import rasterio
@@ -439,9 +471,16 @@ class CountryCogMaskTests(unittest.TestCase):
             with rasterio.open(source_path, 'w', **profile) as source:
                 source.write(np.full((4, 4), 7, dtype='uint8'), 1)
 
-            mask_raster_to_country(
-                str(source_path), str(output_path), geometry, window_size=2,
-            )
+            def rasterize_command(args, label=None):
+                from rasterio.features import rasterize
+                with rasterio.open(args[-1], 'r+') as target:
+                    target.write(rasterize([geometry], out_shape=target.shape,
+                                           transform=target.transform, dtype='uint8'), 1)
+
+            with patch.object(M2_mosaic_logic, 'run_cmd', side_effect=rasterize_command):
+                mask_raster_to_country(
+                    str(source_path), str(output_path), geometry, window_size=2,
+                )
 
             with rasterio.open(output_path) as masked:
                 self.assertEqual((masked.width, masked.height), (4, 4))
@@ -464,6 +503,7 @@ class CountryCogMaskTests(unittest.TestCase):
              patch.object(M2_mosaic_logic, '_country_geometry_geojson', return_value={'type': 'Polygon'}), \
              patch.object(M2_mosaic_logic, 'mask_raster_to_country') as mask, \
              patch.object(M2_mosaic_logic, 'run_cmd') as build_cog, \
+             patch.object(M2_mosaic_logic, '_validate_masked_cog'), \
              patch.object(M2_mosaic_logic, 'upload') as upload, \
              patch('M1_update_manifest.complete_gcs_item'):
             result = M2_mosaic_logic.mask_existing_country_cog(
@@ -476,6 +516,49 @@ class CountryCogMaskTests(unittest.TestCase):
         mask.assert_called_once()
         build_cog.assert_called_once()
         upload.assert_called_once_with(upload.call_args.args[0], 'bucket/cogs/mosaic_red_cog.tif')
+
+    def test_mask_failure_does_not_upload_or_complete_manifest(self):
+        with tempfile.TemporaryDirectory() as temp_dir, \
+             patch.object(M2_mosaic_logic, 'CONFIG', {
+                 'bucket': 'bucket', 'asset_regions': 'regions', 'country': 'testland',
+             }), \
+             patch.object(M2_mosaic_logic, 'period_cog_path', return_value='cogs'), \
+             patch.object(M2_mosaic_logic, 'mosaic_name_for_period', return_value='mosaic_red'), \
+             patch('M_gcs.blob_exists', return_value=True), \
+             patch.object(M2_mosaic_logic, 'get_temp_dir', return_value=temp_dir), \
+             patch.object(M2_mosaic_logic, 'check_m2_dependencies', return_value=[]), \
+             patch.object(M2_mosaic_logic, 'download'), \
+             patch.object(M2_mosaic_logic, '_country_geometry_geojson', return_value={}), \
+             patch.object(M2_mosaic_logic, 'mask_raster_to_country', side_effect=RuntimeError('failed')), \
+             patch.object(M2_mosaic_logic, 'upload') as upload, \
+             patch('M1_update_manifest.complete_gcs_item') as complete:
+            with self.assertRaisesRegex(RuntimeError, 'failed'):
+                M2_mosaic_logic.mask_existing_country_cog('2025_01', 'red', 'sentinel2', 'minnbr')
+            upload.assert_not_called()
+            complete.assert_not_called()
+            self.assertEqual(list(Path(temp_dir).iterdir()), [])
+
+    def test_invalid_cog_is_not_uploaded_or_marked_complete(self):
+        with tempfile.TemporaryDirectory() as temp_dir, \
+             patch.object(M2_mosaic_logic, 'CONFIG', {
+                 'bucket': 'bucket', 'asset_regions': 'regions', 'country': 'testland',
+             }), \
+             patch.object(M2_mosaic_logic, 'period_cog_path', return_value='cogs'), \
+             patch.object(M2_mosaic_logic, 'mosaic_name_for_period', return_value='mosaic_red'), \
+             patch('M_gcs.blob_exists', return_value=True), \
+             patch.object(M2_mosaic_logic, 'get_temp_dir', return_value=temp_dir), \
+             patch.object(M2_mosaic_logic, 'check_m2_dependencies', return_value=[]), \
+             patch.object(M2_mosaic_logic, 'download'), \
+             patch.object(M2_mosaic_logic, '_country_geometry_geojson', return_value={}), \
+             patch.object(M2_mosaic_logic, 'mask_raster_to_country'), \
+             patch.object(M2_mosaic_logic, 'run_cmd'), \
+             patch.object(M2_mosaic_logic, '_validate_masked_cog', side_effect=ValueError('invalid COG')), \
+             patch.object(M2_mosaic_logic, 'upload') as upload, \
+             patch('M1_update_manifest.complete_gcs_item') as complete:
+            with self.assertRaisesRegex(ValueError, 'invalid COG'):
+                M2_mosaic_logic.mask_existing_country_cog('2025_01', 'red', 'sentinel2', 'minnbr')
+            upload.assert_not_called()
+            complete.assert_not_called()
 
 
 if __name__ == '__main__':
