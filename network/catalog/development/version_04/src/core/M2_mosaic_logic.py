@@ -4,6 +4,8 @@ import subprocess
 import glob
 import tempfile
 import json
+import hashlib
+import threading
 from functools import lru_cache
 
 from M0_auth_config import (
@@ -91,6 +93,58 @@ def _polygon_features(geometry):
         yield {'type': 'Feature', 'properties': {}, 'geometry': geometry}
 
 
+_MASK_CACHE_VERSION = 1
+_mask_cache_guard = threading.Lock()
+_mask_cache_dir = None
+_mask_cache_locks = {}
+
+
+def _cached_country_mask(source, features, block_size):
+    """Build once per complete grid and polygon payload, shared by threads.
+
+    The private temporary directory lives for the Python session and is removed
+    at interpreter exit. Each distinct grid/geometry consumes local disk space;
+    there is no eviction or remote upload. Failed builds leave no cache entry.
+    """
+    global _mask_cache_dir
+    import rasterio
+
+    payload = {'version': _MASK_CACHE_VERSION, 'crs': source.crs.to_wkt() if source.crs else None,
+               'transform': list(source.transform), 'width': source.width, 'height': source.height,
+               'features': features}
+    key = hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(',', ':'),
+                                    ensure_ascii=True).encode('utf-8')).hexdigest()
+    with _mask_cache_guard:
+        if _mask_cache_dir is None:
+            _mask_cache_dir = tempfile.TemporaryDirectory(prefix='m2_country_cache_', dir=get_temp_dir())
+        directory = _mask_cache_dir.name
+        lock = _mask_cache_locks.setdefault(key, threading.Lock())
+    raster_path = os.path.join(directory, key + '.tif')
+    with lock:
+        if os.path.isfile(raster_path):
+            return raster_path
+        # The staging directory is on the same filesystem, so publication is
+        # atomic; neither a failed rasterization nor a partial file is reused.
+        with tempfile.TemporaryDirectory(prefix='build_', dir=directory) as staging:
+            vector_path = os.path.join(staging, 'country.geojson')
+            staged_raster = os.path.join(staging, 'country.tif')
+            with open(vector_path, 'w', encoding='utf-8') as vector:
+                json.dump({'type': 'FeatureCollection', 'features': features}, vector)
+            mask_profile = {
+                'driver': 'GTiff', 'width': source.width, 'height': source.height,
+                'count': 1, 'dtype': 'uint8', 'crs': source.crs,
+                'transform': source.transform, 'tiled': True,
+                'blockxsize': block_size, 'blockysize': block_size,
+                'compress': 'LZW', 'BIGTIFF': 'YES', 'SPARSE_OK': 'TRUE',
+            }
+            with rasterio.open(staged_raster, 'w', **mask_profile):
+                pass
+            run_cmd(['gdal_rasterize', '-burn', '1', '-optim', 'VECTOR',
+                     vector_path, staged_raster], label='Country mask rasterization')
+            os.replace(staged_raster, raster_path)
+    return raster_path
+
+
 def mask_raster_to_country(source_path, output_path, country_geometry, window_size=512):
     """Rasterize once on the unchanged source grid, then combine masks by window.
 
@@ -122,38 +176,23 @@ def mask_raster_to_country(source_path, output_path, country_geometry, window_si
         profile['blockxsize'] = output_block_size
         profile['blockysize'] = output_block_size
 
-        with tempfile.TemporaryDirectory(prefix='country_mask_', dir=os.path.dirname(os.path.abspath(output_path))) as mask_dir:
-            vector_path = os.path.join(mask_dir, 'country.geojson')
-            raster_path = os.path.join(mask_dir, 'country.tif')
-            with open(vector_path, 'w', encoding='utf-8') as vector:
-                json.dump({'type': 'FeatureCollection', 'features': features}, vector)
-            mask_profile = {
-                'driver': 'GTiff', 'width': source.width, 'height': source.height,
-                'count': 1, 'dtype': 'uint8', 'crs': source.crs,
-                'transform': source.transform, 'tiled': True,
-                'blockxsize': output_block_size, 'blockysize': output_block_size,
-                'compress': 'LZW', 'BIGTIFF': 'YES', 'SPARSE_OK': 'TRUE',
-            }
-            with rasterio.open(raster_path, 'w', **mask_profile):
-                pass
-            run_cmd(['gdal_rasterize', '-burn', '1', '-optim', 'VECTOR',
-                     vector_path, raster_path], label='Country mask rasterization')
-            with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True), rasterio.open(raster_path) as country, rasterio.open(output_path, 'w', **profile) as destination:
-                for row in range(0, source.height, window_size):
-                    height = min(window_size, source.height - row)
-                    for col in range(0, source.width, window_size):
-                        width = min(window_size, source.width - col)
-                        window = Window(col, row, width, height)
-                        country_mask = country.read(1, window=window) > 0
-                        source_mask = source.dataset_mask(window=window) > 0
-                        valid = country_mask & source_mask
-                        for output_index, band_index in enumerate(data_bands, 1):
-                            data = source.read(band_index, window=window)
-                            destination.write(data, output_index, window=window)
-                        destination.write_mask(
-                            np.where(valid, 255, 0).astype('uint8'),
-                            window=window,
-                        )
+        raster_path = _cached_country_mask(source, features, output_block_size)
+        with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True), rasterio.open(raster_path) as country, rasterio.open(output_path, 'w', **profile) as destination:
+            for row in range(0, source.height, window_size):
+                height = min(window_size, source.height - row)
+                for col in range(0, source.width, window_size):
+                    width = min(window_size, source.width - col)
+                    window = Window(col, row, width, height)
+                    country_mask = country.read(1, window=window) > 0
+                    source_mask = source.dataset_mask(window=window) > 0
+                    valid = country_mask & source_mask
+                    for output_index, band_index in enumerate(data_bands, 1):
+                        data = source.read(band_index, window=window)
+                        destination.write(data, output_index, window=window)
+                    destination.write_mask(
+                        np.where(valid, 255, 0).astype('uint8'),
+                        window=window,
+                    )
     return output_path
 
 

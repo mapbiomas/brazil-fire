@@ -10,6 +10,29 @@ import M2_mosaic_ui as ui_module
 
 
 class ExecutionReportingTests(unittest.TestCase):
+    def test_duplicate_destination_is_scheduled_only_once(self):
+        meta = {'sensor': 'sentinel2', 'year': 2025, 'month': 1,
+                'period_key': '2025_01', 'band': 'red', 'mosaic': 'minnbr'}
+        ui = SimpleNamespace(chk_dict={str(i): SimpleNamespace(value=True, _meta=dict(meta)) for i in range(2)},
+                             update_manifest={'items': []}, years=[], _reload_current_tab=Mock())
+        with patch.object(ui_module, 'process_country_mosaic_item', return_value=['done']) as process, \
+             patch.object(ui_module, 'cell_log'), \
+             patch.object(ui_module.CacheManager, 'build_cache_from_gcs', return_value={}):
+            ui_module.start_mosaic_assembly(ui)
+        self.assertEqual(process.call_count, 1)
+
+    def test_empty_normal_assembly_is_reported_as_failure(self):
+        meta = {'sensor': 'sentinel2', 'year': 2025, 'month': 1,
+                'period_key': '2025_01', 'band': 'red', 'mosaic': 'minnbr'}
+        ui = SimpleNamespace(chk_dict={'x': SimpleNamespace(value=True, _meta=meta)},
+                             update_manifest={'items': []}, years=[], _reload_current_tab=Mock())
+        with patch.object(ui_module, 'process_country_mosaic_item', return_value=[]), \
+             patch.object(ui_module, 'cell_log') as log, \
+             patch.object(ui_module.CacheManager, 'build_cache_from_gcs', return_value={}):
+            ui_module.start_mosaic_assembly(ui)
+        self.assertTrue(any('Failed' in str(call.args[0]) for call in log.call_args_list))
+        self.assertFalse(any(str(call.args[0]).startswith('OK:') for call in log.call_args_list))
+
     def test_thread_budget_uses_detected_cpus_without_oversubscription(self):
         choose = ui_module.choose_gdal_threads
         gib = 1024 ** 3

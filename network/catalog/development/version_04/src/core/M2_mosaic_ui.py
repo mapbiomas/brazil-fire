@@ -531,6 +531,21 @@ def start_mosaic_assembly(ui_obj):
         print("[WARNING] No mosaic selected.")
         cell_log("No mosaic selected.", type='warning')
         return
+
+    unique = []
+    seen = set()
+    for item in selected:
+        period_key = item.get('period_key') or (
+            f"{item['year']}_{item['month']:02d}" if item.get('month') else str(item['year'])
+        )
+        destination = (str(item['sensor']).lower(), str(item['mosaic']).lower(),
+                       period_key, str(item['band']).lower())
+        if destination in seen:
+            print(f"[WARN] Duplicate destination ignored: {destination}")
+            continue
+        seen.add(destination)
+        unique.append(item)
+    selected = unique
     
     resources = detect_m2_resources()
     worker_count = choose_m2_workers(len(selected), *resources)
@@ -592,7 +607,8 @@ def start_mosaic_assembly(ui_obj):
                 if item['month'] else f"{item['year']}"
             )
             try:
-                future.result()
+                if not future.result():
+                    raise RuntimeError('M2 did not produce an output COG.')
                 succeeded += 1
                 if item.get('country_update'):
                     mark_item_complete(manifest, item)

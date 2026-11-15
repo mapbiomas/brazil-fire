@@ -27,11 +27,15 @@ invalid/nodata.
    failure. Refresh the module to see the completed item return to **OK**; a
    failed mask or assembly remains selectable for retry.
 
-M2 rasterizes the polygon parts of the configured country features once per
-product on its original grid, using `gdal_rasterize`, and combines that mask with
+M2 rasterizes the polygon parts of the configured country features on the
+original grid using `gdal_rasterize`, caches the raster mask locally for the
+Python session, and combines that mask with
 the source validity mask in fixed-size windows. Its temporary TIFF is BigTIFF;
 M2 checks the output COG's grid, band count and internal mask before upload.
-The current implementation does **not** yet cache the mask across products.
+The cache is reused only for matching polygon geometry, CRS, transform, width
+and height; different grids (including 10 m and 30 m) get separate masks. It is
+not uploaded to GCS and does not survive a normal runtime restart. Each distinct
+grid consumes temporary disk space, with no automatic eviction during the session.
 
 M2 detects the runtime's available CPUs, memory and free temporary disk and
 chooses a conservative number of concurrent products (currently one or two).
