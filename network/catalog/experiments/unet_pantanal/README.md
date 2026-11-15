@@ -93,7 +93,9 @@ notebook.
 Outputs, all inside `{GCS_PREFIX}/{CAMPAIGN}/{EXPERIMENT}/`
 (`EXPERIMENT` = `UNET_01` by default). The code refuses to write or delete
 anywhere else. Each training version chosen in step 2 (as the catalog M4:
-`training_{id}_{shortname}_{sensor}`) gets its own folder with the files below
+`training_{id}_{shortname}_{sensor}`) gets its own folder
+`{EXPERIMENT}/{biome}/{region}/training_.../` (biome taken from `REGION`:
+`Pantanal_r1` -> `pantanal/pantanal_r1/`; `BIOME` overrides it) with the files below
 plus `config.json`, which reopens the version later. Without `TRAINING_ID`
 the files go directly in `{EXPERIMENT}/` (old layout).
 

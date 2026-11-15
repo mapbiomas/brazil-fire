@@ -33,7 +33,7 @@ class TestPeriods(unittest.TestCase):
     def test_region_slug(self):
         from unet_config import region_slug
         self.assertEqual(region_slug({"REGION": "Pantanal 60"}), "pantanal_60")
-        self.assertEqual(region_slug({"REGION": " Mata-Atlântica / 2 "}), "mata_atl_ntica_2")
+        self.assertEqual(region_slug({"REGION": " Mata-Atlântica / 2 "}), "mata_atlantica_2")
         self.assertEqual(region_slug({"REGION": None}), "mosaic")
         cfg = make_config()
         self.assertEqual(cfg["REGION"], "Pantanal_r1")

@@ -12,7 +12,7 @@ Cada etapa mostra só a escolha que ela usa:
              cfg = apply_classificar(ui)
 
 Cada versão (``training_{id}_{shortname}_{sensor}``) tem uma pasta própria em
-``{EXPERIMENT}/`` com chips, estatísticas, modelo, relatórios, mapas e o
+``{EXPERIMENT}/{bioma}/{região}/`` com chips, estatísticas, modelo, relatórios, mapas e o
 ``config.json`` que permite reabri-la.
 
 A lógica (listar, montar a configuração) fica em funções sem widgets, para
@@ -109,8 +109,8 @@ def period_label(key, info, bands_needed, with_samples=True):
 # --- versões --------------------------------------------------------------------------------
 
 def list_versions(cfg, ls=None):
-    """Pastas de versão em {EXPERIMENT}/ (training_NNN_...), ordenadas."""
-    names = _ls(ls)(f"{cfg['BUCKET']}/{paths(cfg)['experiment']}")
+    """Pastas de versão em {EXPERIMENT}/{bioma}/{região}/ (training_NNN_...), ordenadas."""
+    names = _ls(ls)(f"{cfg['BUCKET']}/{paths(cfg)['versions']}")
     return sorted(n for n in names if VERSION_RE.match(n))
 
 
@@ -187,7 +187,7 @@ def load_version(base_cfg, name):
     """Configuração salva de uma versão (pelo nome da pasta)."""
     from unet_io import read_json
     P = paths(base_cfg)
-    return config_from_saved(base_cfg, read_json(f"{P['experiment']}/{name}/config.json"))
+    return config_from_saved(base_cfg, read_json(f"{P['versions']}/{name}/config.json"))
 
 
 def build_opcoes(cfg, epochs, batch):
@@ -376,7 +376,7 @@ class TreinoUI(_Base):
         clash = [v for v in self.versions if v.startswith(f"training_{int(tid):03d}_")]
         warn = (f" <span style='color:#b60'>⚠️ o ID {int(tid):03d} já é usado por {', '.join(clash)}</span>"
                 if clash else "")
-        self.lbl_version.value = f"Pasta: <code>{paths(self.cfg)['experiment']}/{name}/</code>{warn}"
+        self.lbl_version.value = f"Pasta: <code>{paths(self.cfg)['versions']}/{name}/</code>{warn}"
 
     # --- leitura ---
     @property

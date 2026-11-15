@@ -21,8 +21,9 @@ TREE = {
         "image_brazil_fire_sentinel2_minnbr_red_2026_09_cog.tif",
         "image_brazil_fire_sentinel2_minnbr_dayOfYear_2026_09_cog.tif"],
     f"{BASE}/MONITOR_01/LIBRARY_SAMPLES": [CSV, "samples_02_pantanal_r1_2027_01.csv", "outro.txt"],
-    f"{BASE}/MONITOR_01/UNET_01": ["chips", "training_001_pantanal_r1_6c_sentinel2",
-                                    "training_003_x_sentinel2", "models"],
+    f"{BASE}/MONITOR_01/UNET_01": ["chips", "training_009_antigo_sentinel2", "pantanal"],
+    f"{BASE}/MONITOR_01/UNET_01/pantanal/pantanal_r1": ["chips", "training_001_pantanal_r1_6c_sentinel2",
+                                                     "training_003_x_sentinel2", "models"],
 }
 
 
@@ -69,10 +70,19 @@ class TestVersions(unittest.TestCase):
         cfg = make_config(TRAINING_ID="7", SHORTNAME="Pantanal R1 6c")
         P = paths(cfg)
         self.assertEqual(cfg["MODEL_NAME"], "training_007_pantanal_r1_6c_sentinel2")
-        self.assertTrue(P["root"].endswith("/UNET_01/training_007_pantanal_r1_6c_sentinel2"))
+        self.assertTrue(P["root"].endswith("/UNET_01/pantanal/pantanal_r1/training_007_pantanal_r1_6c_sentinel2"))
         self.assertTrue(P["chips"].startswith(P["root"] + "/"))
         self.assertEqual(P["experiment"], f"{BASE.split('/', 1)[1]}/MONITOR_01/UNET_01")
         self.assertEqual(paths(make_config())["root"], P["experiment"])  # sem versão: layout antigo
+
+    def test_biome_folders(self):
+        from unet_config import biome_slug
+        self.assertEqual(biome_slug(make_config(REGION="Mata_Atlântica_r3")), "mata_atlantica")
+        self.assertEqual(biome_slug(make_config(REGION="Cerrado_r12")), "cerrado")
+        self.assertEqual(biome_slug(make_config(REGION="Cerrado_r12", BIOME="Cerrado Norte")), "cerrado_norte")
+        P = paths(make_config(REGION="Mata_Atlântica_r3", TRAINING_ID="1"))
+        self.assertTrue(P["versions"].endswith("/UNET_01/mata_atlantica/mata_atlantica_r3"))
+        self.assertTrue(P["root"].startswith(P["versions"] + "/training_001_"))
 
     def test_auto_shortname_and_sample_id(self):
         self.assertEqual(auto_shortname(make_config(REGION="Pantanal_r1")), "pantanal_r1")

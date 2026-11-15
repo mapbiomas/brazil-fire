@@ -65,8 +65,11 @@ DEFAULTS = {
     "MODEL_NAME": "unet_monitor_pantanal_v1",
     # Training version, as in the catalog M4 (training_{id}_{shortname}_{sensor}).
     # When TRAINING_ID is set, every output of this training (chips, stats,
-    # model, reports, maps) goes to {EXPERIMENT}/training_{id}_{shortname}_{sensor}/
+    # model, reports, maps) goes to
+    # {EXPERIMENT}/{biome}/{region}/training_{id}_{shortname}_{sensor}/
     # and MODEL_NAME becomes that name. None = old layout ({EXPERIMENT}/ directly).
+    # The biome comes from REGION ('Pantanal_r1' -> 'pantanal'); BIOME overrides it.
+    "BIOME": None,
     "TRAINING_ID": None,             # e.g. "001"
     "SHORTNAME": None,               # e.g. "pantanal_r1_6b"
     "COMMENT": "",
@@ -240,9 +243,28 @@ def period_from_file_name(name):
 
 def region_slug(cfg):
     """REGION as a file-name part: 'Pantanal 60' -> 'pantanal_60' ('mosaic' if no region)."""
+    return _ascii_slug(cfg.get("REGION")) or "mosaic"
+
+
+def _ascii_slug(text):
+    """'Mata Atlântica' -> 'mata_atlantica'."""
     import re
-    slug = re.sub(r"[^a-z0-9]+", "_", str(cfg.get("REGION") or "").lower()).strip("_")
-    return slug or "mosaic"
+    import unicodedata
+    text = unicodedata.normalize("NFKD", str(text or "")).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
+
+
+def biome_slug(cfg):
+    """Biome folder: BIOME if set, else the part of REGION before '_r'.
+
+    'Pantanal_r1' -> 'pantanal'; 'Mata_Atlantica_r3' -> 'mata_atlantica'.
+    """
+    import re
+    if cfg.get("BIOME"):
+        return _ascii_slug(cfg["BIOME"])
+    region = str(cfg.get("REGION") or "")
+    m = re.match(r"^(.*?)_r\d+$", region, flags=re.IGNORECASE)
+    return _ascii_slug(m.group(1) if m else region) or "mosaic"
 
 
 def split_chip_name(path):
@@ -277,11 +299,15 @@ def paths(cfg):
     campaign = f"{cfg['GCS_PREFIX']}/{cfg['CAMPAIGN']}"
     root = f"{campaign}/{cfg['EXPERIMENT']}"
     experiment = root
+    # Versions: {EXPERIMENT}/{biome}/{region}/training_.../ (one folder per
+    # biome, one per region inside it, as the catalog samples and M4 models).
+    versions = f"{experiment}/{biome_slug(cfg)}/{region_slug(cfg)}"
     if cfg.get("TRAINING_ID"):
-        root = f"{root}/{version_name(cfg)}"
+        root = f"{versions}/{version_name(cfg)}"
     return {
         "bucket": cfg["BUCKET"],
         "experiment": experiment,
+        "versions": versions,
         "config": f"{root}/config.json",
         "samples": f"{campaign}/LIBRARY_SAMPLES",
         "root": root,

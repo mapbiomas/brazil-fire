@@ -45,7 +45,7 @@ O layout segue os notebooks do catálogo: guia recolhido no topo e uma interface
 
 ## 5. Versões de treino (como o M4 da development)
 
-- Cada treino é uma **versão** com pasta própria: `UNET_01/training_{id}_{shortname}_sentinel2/`.
+- Cada treino é uma **versão** com pasta própria, organizada por bioma e região: `UNET_01/{bioma}/{região}/training_{id}_{shortname}_sentinel2/` (ex.: `UNET_01/pantanal/pantanal_r1/training_001_pantanal_r1_sentinel2/`).
 - A pasta guarda chips, normalização, modelo, métricas, mapas e um `config.json` para reabrir a versão depois.
 - O **ID** é sugerido a partir do arquivo de amostras (`samples_01_…` → 01). O **shortname** é sugerido a partir da região (`pantanal_r1`).
 - A aba **Versões existentes** reabre um treino para avaliar, classificar ou comparar.
