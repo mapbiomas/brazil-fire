@@ -104,7 +104,7 @@ def print_inventory(cfg, inv, sample_files, report):
     notes = []
     if total < 100:
         notes.append(f"Poucos polígonos ({total}): com blocos de {cfg['BLOCK_KM']} km, a validação e o teste "
-                     "podem ficar com 1 ou 2 blocos. Acrescente meses em PERIODS, se possível.")
+                     "podem ficar com 1 ou 2 blocos. Acrescente amostras de outros meses no passo 2.1, se possível.")
     if n["polygons"] < 10:
         notes.append(f"Só {n['polygons']} polígonos de não-fogo: o modelo pode confundir água, sombra e "
                      "solo escuro com cicatriz de fogo.")
@@ -194,7 +194,7 @@ def resumo_chips(cfg, summary):
             efeito = ("O treino não roda sem validação." if s == "val"
                       else "Sem teste não há nota final honesta.")
             avisos.append(f"{SPLIT_NOME[s].upper()} SEM CHIPS: {motivo}. {efeito} "
-                          "Opções: acrescentar meses em PERIODS, reduzir BLOCK_KM (ex.: 10) ou "
+                          "Opções: acrescentar amostras de outros meses (passo 2.1), reduzir BLOCK_KM (ex.: 10) ou "
                           "conferir os polígonos.")
         elif c[s]["fire_px"] == 0 or c[s]["notfire_px"] == 0:
             avisos.append(f"{SPLIT_NOME[s]} tem só uma classe nos pixels rotulados: as métricas dessa "

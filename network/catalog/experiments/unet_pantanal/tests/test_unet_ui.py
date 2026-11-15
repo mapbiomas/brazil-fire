@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from unet_config import make_config, paths  # noqa: E402
 from unet_ui import (auto_shortname, available_periods, build_classificar, build_opcoes,  # noqa: E402
                      build_treino, config_from_saved, list_versions, mosaic_table, next_training_id,
-                     period_label, predict_keys, sample_choices, sample_id, train_keys)
+                     period_label, predict_keys, ready_keys, sample_choices, sample_id, train_keys)
 
 BASE = "mapbiomas-fire/sudamerica/brazil/CATALOG_01"
 CSV = "samples_01_pantanal_r1_2026_10.csv"
@@ -45,6 +45,13 @@ class TestListing(unittest.TestCase):
         self.assertEqual(train_keys(got), ["2026_10"])
         self.assertEqual(predict_keys(got), ["2026_09", "2026_10"])
         self.assertEqual(sample_choices(got), [(CSV, "2026_10")])  # 2027_01 não tem mosaico
+
+    def test_ready_keys(self):
+        got = available_periods(make_config(), ls=fake_ls)
+        ok, missing = ready_keys(got, ["red", "nir", "dayOfYear"])
+        self.assertEqual(ok, ["2026_10"])  # 2026_09 só tem red e dayOfYear
+        self.assertEqual(missing, {"2026_09": ["nir"]})
+        self.assertEqual(ready_keys(got, ["red", "dayOfYear"])[0], ["2026_10", "2026_09"])  # novos primeiro
 
     def test_label_flags_missing_bands(self):
         got = available_periods(make_config(), ls=fake_ls)
@@ -179,11 +186,16 @@ class TestWidgets(unittest.TestCase):
         other = build_treino(self.cfg, [CSV], ["red"], [], "3", "x")
         ui = ClassificarUI(self.cfg, self.listing, self.versions, loader=lambda name: other)
         self.assertEqual(ui.dd_version.value, "(configuração atual)")
-        self.assertIn("faltam bandas", ui.chk_pred[0].description)  # 2026_09 sem nir/swir2
+        self.assertEqual(ui.keys, ["2026_10"])  # 2026_09 só tem red e dayOfYear
+        self.assertIn("2026_09 (faltam nir, swir2)", ui.lbl_info.value)
+        self.assertTrue(ui.chk_pred[0].value)  # mês de treino já marcado
         ui.dd_version.value = "training_003_x_sentinel2"
         self.assertEqual(ui.cfg["BANDS"], ["red"])
-        self.assertIn("mosaico ✅", ui.chk_pred[0].description)  # o modelo 003 só precisa de red
-        ui.chk_pred[0].value = True
+        self.assertEqual(ui.keys, ["2026_10", "2026_09"])  # o modelo 003 só precisa de red
+        self.assertTrue(ui.chk_pred[0].value)  # a escolha anterior é mantida
+        ui._set_all(False)
+        self.assertEqual(ui.selected(), {"predict_periods": []})
+        ui._set_all(True)
         new = build_classificar(ui.cfg, **ui.selected())
         self.assertEqual(new["PREDICT_PERIODS"], ["2026_09", "2026_10"])
         self.assertEqual(new["MODEL_NAME"], "training_003_x_sentinel2")

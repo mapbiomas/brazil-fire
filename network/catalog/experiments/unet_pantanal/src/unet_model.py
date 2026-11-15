@@ -216,7 +216,7 @@ def train(cfg, logger=print):
             "blocos ou só com uma classe (só fogo ou só não-fogo), e seus chips não foram gerados.\n"
             "O que fazer: (1) volte ao passo 2 e veja a tabela de chips por divisão; (2) rode-o de novo "
             "com REFAZER_CHIPS = True (os chips já salvos são de uma execução anterior); (3) se ainda "
-            "faltar, acrescente meses em PERIODS ou reduza BLOCK_KM (ex.: 10).")
+            "faltar, acrescente amostras de outros meses no passo 2.1 ou reduza BLOCK_KM (ex.: 10).")
 
     model = build_unet(len(channel_names(cfg)), cfg["FILTERS"], cfg["BOTTOM_FILTERS"])
     M = masked_metric_class()

@@ -87,6 +87,18 @@ def sample_choices(listing):
     return sorted(out)
 
 
+def ready_keys(listing, bands_needed):
+    """Meses que podem ser classificados: têm COG de TODAS as bandas do modelo.
+
+    Devolve (meses prontos, do mais novo ao mais antigo; {mês: bandas que faltam} dos que têm mosaico incompleto).
+    """
+    need = set(bands_needed)
+    ok = sorted((k for k, i in listing.items() if i["bands"] and need <= i["bands"]), reverse=True)
+    missing = {k: sorted(need - i["bands"]) for k, i in sorted(listing.items(), reverse=True)
+               if i["bands"] and not need <= i["bands"]}
+    return ok, missing
+
+
 def _needed(cfg):
     return list(cfg["BANDS"]) + ([cfg["VALID_BAND"]] if cfg.get("VALID_BAND") else [])
 
@@ -259,8 +271,9 @@ class TreinoUI(_Base):
         self.choices = sample_choices(self.listing)
         self.period_of = dict(self.choices)
         pre = set(cfg.get("SAMPLE_FILES") or [])
-        if not pre:  # sem escolha anterior: arquivos dos períodos da configuração
-            pre = {n for n, p in self.choices if p in cfg["PERIODS"]}
+        if not pre and self.choices:  # sem escolha anterior: os arquivos do mês mais recente
+            last = max(p for _, p in self.choices)
+            pre = {n for n, p in self.choices if p == last}
         self.selected_samples = {n for n in pre if n in self.period_of}
 
         # --- amostras: dois painéis (disponíveis / selecionadas), como o M4 da development ---
@@ -407,7 +420,10 @@ class OpcoesUI(_Base):
 
 
 class ClassificarUI(_Base):
-    """Passo 6: versão do modelo e períodos de classificação (só precisam do mosaico)."""
+    """Passo 6: versão do modelo e meses a classificar, como o M5 do production.
+
+    Só aparecem meses com COG de todas as bandas do modelo escolhido (as definidas no treino).
+    """
 
     def __init__(self, cfg, listing=None, versions=None, loader=None):
         import ipywidgets as w
@@ -416,8 +432,9 @@ class ClassificarUI(_Base):
         self.listing = listing if listing is not None else available_periods(cfg)
         self.versions = versions if versions is not None else list_versions(cfg)
         self.loader = loader or (lambda name: load_version(cfg, name))
-        self.keys = predict_keys(self.listing)
         self.cfg0 = cfg
+        self.keys, self.chk_pred = [], []
+        self._first = set(cfg["PREDICT_PERIODS"])
         current = cfg["MODEL_NAME"] if cfg.get("TRAINING_ID") else "(configuração atual)"
         opts = list(self.versions)
         if current not in opts:
@@ -425,13 +442,16 @@ class ClassificarUI(_Base):
         self.dd_version = w.Dropdown(options=opts, value=current, description="Modelo:",
                                      layout=L(width="520px"), disabled=len(opts) < 2)
         self.dd_version.observe(lambda _: self._on_version(), names="value")
-        self.chk_pred = [w.Checkbox(value=k in cfg["PREDICT_PERIODS"], indent=False, layout=L(width="auto"))
-                         for k in self.keys]
+        self.lbl_info = w.HTML()
+        self.grid = w.GridBox(layout=L(grid_template_columns="repeat(4, 1fr)", width="100%"))
+        b_all = w.Button(description="Todos", icon="check-square", button_style="info", layout=L(width="90px"))
+        b_none = w.Button(description="Nenhum", icon="square-o", button_style="warning", layout=L(width="90px"))
+        b_all.on_click(lambda _: self._set_all(True))
+        b_none.on_click(lambda _: self._set_all(False))
         self.root = w.VBox([
             _box(w, "🏷️ Versão do modelo", "o treino (pasta training_...) cujo modelo vai classificar", [self.dd_version]),
-            _box(w, "🗺️ Períodos de CLASSIFICAÇÃO",
-                 "meses com mosaico; precisam ter as bandas do modelo escolhido", self.chk_pred or
-                 [w.HTML("❌ Nenhum mês tem mosaico no GCS.")])])
+            _box(w, "🗺️ Meses a CLASSIFICAR", "só os que têm COG de todas as bandas do modelo",
+                 [self.lbl_info, self.grid, w.HBox([b_all, b_none])])])
         self._on_version()
 
     def _on_version(self):
@@ -440,9 +460,26 @@ class ClassificarUI(_Base):
             self.cfg = self.loader(name)
         else:
             self.cfg = self.cfg0
+        prev = {k for k, c in zip(self.keys, self.chk_pred) if c.value} if self.chk_pred else self._first
         need = _needed(self.cfg)
-        for k, c in zip(self.keys, self.chk_pred):
-            c.description = period_label(k, self.listing[k], need, with_samples=False)
+        self.keys, missing = ready_keys(self.listing, need)
+        self.chk_pred = [self.w.Checkbox(value=k in prev, description=k, indent=False,
+                                         layout=self.w.Layout(width="auto", margin="0 5px 5px 0"))
+                         for k in self.keys]
+        self.grid.children = self.chk_pred
+        bands = ", ".join(need)
+        if self.keys:
+            info = f"✅ {len(self.keys)} mês(es) com COG de todas as bandas do modelo (<code>{bands}</code>)."
+        else:
+            info = f"❌ Nenhum mês tem COG de todas as bandas do modelo (<code>{bands}</code>)."
+        if missing:
+            hidden = "; ".join(f"{k} (faltam {', '.join(v)})" for k, v in missing.items())
+            info += f"<br><span style='color:#a15c00'>⚠️ Ocultos por falta de banda: {hidden}</span>"
+        self.lbl_info.value = info
+
+    def _set_all(self, value):
+        for c in self.chk_pred:
+            c.value = value
 
     def selected(self):
         return dict(predict_periods=[k for k, c in zip(self.keys, self.chk_pred) if c.value])

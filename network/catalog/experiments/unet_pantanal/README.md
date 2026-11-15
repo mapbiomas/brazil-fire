@@ -30,9 +30,10 @@ bands are not nodata and not all 0, and output band 2 stays -9999). The full
 band and index lists are kept commented in `src/unet_config.py` and in the
 notebook. With no indices, the MLP comparison has only A (bands) and C (U-Net).
 
-`PERIODS` are the months used for training (mosaic **and** samples needed);
-`PREDICT_PERIODS` are the months to classify (only the mosaic is needed;
-default = `PERIODS`).
+The training months (`PERIODS`) come from the sample files chosen in step 2.1
+(mosaic **and** samples needed). The months to classify (`PREDICT_PERIODS`) are
+chosen in step 6, among the months that have a COG of every band of the model.
+Neither is set in the config cell.
 
 A period is a catalog period key: `2026_10` (monthly) or `2024` (annual). The
 same code runs the annual Landsat collection with `CAMPAIGN="COLLECTION_06"`,
@@ -75,7 +76,7 @@ unet_pantanal/
 1. The monthly mosaics (catalog M1/M2) and samples (catalog M3) must be in GCS.
 2. Open the notebook in Colab with a **GPU** runtime. Use a fresh runtime:
    the catalog M4 trainer switches TensorFlow to v1 mode, which breaks Keras 2.
-3. Edit the config cell (`PERIODS`, `REGION`, `SAMPLE_GLOB` or `SAMPLE_FILES`)
+3. Edit the config cell (`REGION`, `SAMPLE_REGION`, bands)
    and run the cells in order. Each step saves its result in GCS, so a step
    can be re-run alone.
 
