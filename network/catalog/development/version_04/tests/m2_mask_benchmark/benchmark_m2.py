@@ -1,4 +1,4 @@
-"""Isolated, read-only GCS benchmark of the M2 country-mask contract."""
+"""Isolated M2 mask benchmark; national mode can write optional checkpoints."""
 import csv
 import hashlib
 import json
@@ -10,6 +10,518 @@ import time
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
+
+
+def check_disk_reserve(directory, reserve_bytes, required_bytes=0):
+    """Best-effort admission check; concurrent writers can still exhaust disk."""
+    if reserve_bytes < 0 or required_bytes < 0:
+        raise ValueError("Disk reserve and required bytes must be non-negative")
+    free = shutil.disk_usage(directory).free
+    if free - required_bytes < reserve_bytes:
+        raise RuntimeError("Insufficient free disk for operation and reserve")
+    return free
+
+
+def monitored_process(command, directory, reserve_bytes, interval=1.0, env=None, log_name="process"):
+    """Supervise an isolated POSIX process group; Windows uses best-effort tree cleanup."""
+    import psutil
+    import re
+    import signal
+    import subprocess
+
+    if interval <= 0 or not re.fullmatch(r"[a-z_]+", log_name):
+        raise ValueError("Invalid interval or log name")
+    check_disk_reserve(directory, reserve_bytes)
+    process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, env=env,
+                               start_new_session=(os.name == "posix"))
+    captured = bytearray()
+    def drain():
+        with process.stderr as stderr:
+            while True:
+                chunk = stderr.read(8192)
+                if not chunk:
+                    break
+                if len(captured) < 65536:
+                    captured.extend(chunk[:65536-len(captured)])
+    reader = threading.Thread(target=drain, daemon=True)
+    reader.start()
+    children = {}
+    try:
+        while process.poll() is None:
+            if os.name != "posix":
+                try:
+                    children.update({p.pid: p for p in psutil.Process(process.pid).children(recursive=True)})
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+            check_disk_reserve(directory, reserve_bytes)
+            time.sleep(interval)
+        if process.returncode:
+            raise subprocess.CalledProcessError(process.returncode, command)
+    finally:
+        if os.name == "posix":
+            # Group remains addressable after its leader exits, including reparented children.
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            time.sleep(0.1)
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        else:
+            try:
+                children.update({p.pid: p for p in psutil.Process(process.pid).children(recursive=True)})
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+            for child in children.values():
+                try:
+                    child.terminate()
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+            if process.poll() is None:
+                process.terminate()
+            _, alive = psutil.wait_procs(list(children.values()), timeout=3)
+            for child in alive:
+                try:
+                    child.kill()
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+        try:
+            process.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+        reader.join(timeout=2)
+        # Never persist arbitrary stderr, URLs, command arguments or exception text.
+        # Only emit fixed diagnostic labels selected from bounded stderr.
+        text = bytes(captured).lower()
+        labels = [label for needle, label in (
+            (b"permission denied", "permission denied"), (b"access denied", "access denied"),
+            (b"no space left", "disk full"), (b"disk full", "disk full"),
+            (b"no such file", "file not found"), (b"crc32c", "CRC32C integrity error"),
+            (b"insufficient free disk", "disk reserve reached"),
+            (b"output grid or dtype differs", "output grid or dtype differs"),
+            (b"rasterized mask differs from reference", "polygon mask validation failed"),
+            (b"output validity differs", "output validity validation failed"),
+            (b"output data differs", "output pixel validation failed"),
+            (b"source must have one non-alpha band", "unsupported source bands"),
+            (b"source has no crs", "source CRS missing"),
+            (b"incomplete gcs range", "incomplete download range"),
+            (b"source has an external mask sidecar", "external mask sidecar present; standalone TIFF required"),
+            (b"unable to check external mask sidecar", "external mask sidecar check failed; access not confirmed"),
+            (b"traceback", "Python exception"), (b"error", "error reported"))
+                  if needle in text]
+        try:
+            (Path(directory) / (log_name + ".log")).write_text(
+                "exit_code: " + str(process.returncode) + "\ndiagnostics: " +
+                (", ".join(labels) if labels else "no recognized stderr category") + "\n",
+                encoding="utf-8")
+        except OSError:
+            pass
+
+
+class Checkpoint:
+    """Conditional JSON checkpoint on a caller-provided, unique GCS blob."""
+
+    def __init__(self, blob):
+        self.blob = blob
+        self.generation = 0
+
+    def write(self, state):
+        # Restrict schema rather than attempting to redact unknown credentials.
+        import math
+        allowed = {"status", "stage", "elapsed_seconds", "stage_elapsed_seconds",
+                   "disk_free_bytes", "memory_available_bytes", "logical_cpus",
+                   "threads", "completed_stages"}
+        stages = {"download", "prepare", "mask", "application", "cog", "validation"}
+        if not isinstance(state, dict) or set(state) != allowed:
+            raise ValueError("Unsupported checkpoint fields")
+        def seconds(value):
+            return type(value) in (int, float) and math.isfinite(value) and value >= 0
+        completed = state["completed_stages"]
+        if (state["status"] not in {"running", "ok", "failed", "interrupted"}
+                or state["stage"] not in stages | {"complete"}
+                or not seconds(state["elapsed_seconds"])
+                or not seconds(state["stage_elapsed_seconds"])
+                or any(state[key] is not None and (type(state[key]) is not int or state[key] < 0)
+                       for key in ("disk_free_bytes", "memory_available_bytes"))
+                or any(type(state[key]) is not int or state[key] < 1
+                       for key in ("logical_cpus", "threads"))
+                or not isinstance(completed, dict) or set(completed) - stages
+                or any(not seconds(value) for value in completed.values())):
+            raise ValueError("Invalid checkpoint state")
+        self.blob.upload_from_string(json.dumps(state, allow_nan=False), content_type="application/json",
+                                     if_generation_match=self.generation, timeout=5, retry=None)
+        if self.blob.generation is None:
+            raise RuntimeError("GCS did not return a generation; checkpoint updates disabled")
+        self.generation = int(self.blob.generation)
+
+
+class CheckpointWriter:
+    """Periodic checkpoint worker; final result is confirmed, failed or pending."""
+
+    def __init__(self, checkpoint, state, interval=30, directory=None, logical_cpus=None, threads=1):
+        self.checkpoint = checkpoint
+        self.state = state
+        self.interval = interval
+        self.lock = threading.Lock()
+        self.stop = threading.Event()
+        self.result = "pending"
+        self.directory = directory
+        self.logical_cpus = logical_cpus or (os.cpu_count() or 1)
+        self.threads = threads
+        self.started = self.stage_started = time.monotonic()
+        self.finished_at = None
+        self.completed = {}
+        self.thread = threading.Thread(target=self._run, daemon=True)
+
+    def start(self):
+        self.thread.start()
+
+    def set_stage(self, stage):
+        with self.lock:
+            self.state["stage"] = stage
+            self.stage_started = time.monotonic()
+
+    def complete_stage(self, stage, seconds):
+        with self.lock:
+            self.completed[stage] = seconds
+
+    def snapshot(self):
+        import psutil
+        with self.lock:
+            now = self.finished_at if self.finished_at is not None else time.monotonic()
+            snapshot = {"status": self.state["status"], "stage": self.state["stage"],
+                        "elapsed_seconds": max(0, now - self.started),
+                        "stage_elapsed_seconds": max(0, now - self.stage_started),
+                        "logical_cpus": self.logical_cpus, "threads": self.threads,
+                        "completed_stages": dict(self.completed)}
+        try:
+            snapshot["disk_free_bytes"] = shutil.disk_usage(self.directory).free if self.directory else None
+        except OSError:
+            snapshot["disk_free_bytes"] = None
+        try:
+            snapshot["memory_available_bytes"] = psutil.virtual_memory().available
+        except Exception:
+            snapshot["memory_available_bytes"] = None
+        return snapshot
+
+    def _run(self):
+        while True:
+            try:
+                snapshot = self.snapshot()
+                self.checkpoint.write(snapshot)
+            except Exception:
+                self.result = "failed"
+                return
+            if self.stop.is_set() and snapshot["status"] != "running":
+                self.result = "confirmed"
+                return
+            self.stop.wait(self.interval)
+
+    def finish(self, status, timeout=7):
+        with self.lock:
+            self.state["status"] = status
+            self.finished_at = time.monotonic()
+        self.stop.set()
+        self.thread.join(timeout)
+        return "pending" if self.thread.is_alive() else self.result
+
+
+def cleanup_national(work, success, temp_owned=False):
+    """Unlink fixed names inside this run's scratch directory only."""
+    names = ["source.tif", "country_mask.tif", "masked.tif", "transformed.geojson", "stage_config.json"]
+    if not success:
+        names.append("result.tif")
+    for name in names:
+        try:
+            (Path(work) / name).unlink(missing_ok=True)
+        except OSError:
+            pass
+    if temp_owned:
+        temporary = Path(work) / "gdal_tmp"
+        try:
+            if temporary.is_symlink():
+                temporary.unlink()
+            elif temporary.exists():
+                shutil.rmtree(temporary)
+        except OSError:
+            pass
+
+
+def national_subprocess_env(work, threads, cache_mb):
+    """Keep temporary files within this run; do not mutate the parent environment."""
+    scratch = str((Path(work) / "gdal_tmp").resolve())
+    return dict(os.environ, TMPDIR=scratch, TMP=scratch, TEMP=scratch, CPL_TMPDIR=scratch,
+                GDAL_NUM_THREADS=str(threads), OMP_NUM_THREADS=str(threads), GDAL_CACHEMAX=str(cache_mb))
+
+
+def national_stage(stage, work, config):
+    """Local raster stages. Invoked in an independently supervised process."""
+    if stage == "download":
+        from google.cloud import storage
+        from urllib.parse import urlsplit
+        parts = urlsplit(config["gcs_uri"])
+        blob = storage.Client(project=config["gcs_project"]).bucket(parts.netloc).blob(parts.path.lstrip("/"))
+        national_download(blob, Path(work) / "source.tif", config["reserve_bytes"])
+        return
+    import numpy as np
+    import rasterio
+    from rasterio.enums import ColorInterp, MaskFlags
+    from rasterio.features import geometry_mask
+    from rasterio.shutil import copy as rio_copy
+    from rasterio.warp import transform_geom
+    from rasterio.windows import transform as window_transform
+
+    work = Path(work)
+    size = config["window_size"]
+    reserve = config["reserve_bytes"]
+    source, grid = work / "source.tif", work / "country_mask.tif"
+    masked, output = work / "masked.tif", work / "result.tif"
+    geometry = work / "transformed.geojson"
+    if stage == "prepare":
+        with open(config["geometry_path"], encoding="utf-8") as stream:
+            shapes = list(polygons(json.load(stream)))
+        if not shapes:
+            raise ValueError("No polygons")
+        with rasterio.open(source) as src:
+            if not src.crs:
+                raise ValueError("Source has no CRS")
+            bands = [i for i, color in enumerate(src.colorinterp, 1) if color != ColorInterp.alpha]
+            if len(bands) != 1:
+                raise ValueError("Source must have one non-alpha band")
+            shapes = [transform_geom(config["geometry_crs"], src.crs, shape) for shape in shapes]
+            profile = dict(driver="GTiff", width=src.width, height=src.height, count=1,
+                           crs=src.crs, transform=src.transform, dtype="uint8",
+                           tiled=True, blockxsize=size, blockysize=size, BIGTIFF="YES")
+            # Three uncompressed rasters plus an output, mask and overview allowance.
+            raw = src.width * src.height * (np.dtype(src.dtypes[bands[0]-1]).itemsize + 2)
+            check_disk_reserve(work, reserve, raw * 4)
+            geometry.write_text(json.dumps({
+                "type": "FeatureCollection",
+                "crs": {"type": "name", "properties": {"name": src.crs.to_wkt()}},
+                "features": [{"type": "Feature", "properties": {}, "geometry": shape}
+                             for shape in shapes]}), encoding="utf-8")
+            with rasterio.open(grid, "w", **profile):
+                pass
+    elif stage == "application":
+        with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True), rasterio.open(source) as src, rasterio.open(grid) as mask:
+            band = next(i for i, color in enumerate(src.colorinterp, 1) if color != ColorInterp.alpha)
+            profile = dict(driver="GTiff", width=src.width, height=src.height, count=1,
+                           crs=src.crs, transform=src.transform, dtype=src.dtypes[band-1],
+                           nodata=src.nodatavals[band-1], tiled=True, blockxsize=size,
+                           blockysize=size, compress="LZW", BIGTIFF="YES")
+            with rasterio.open(masked, "w", **profile) as dst:
+                for win in windows(src.width, src.height, size):
+                    check_disk_reserve(work, reserve)
+                    data = src.read(band, window=win)
+                    valid = (src.dataset_mask(window=win) > 0) & (mask.read(1, window=win) > 0)
+                    dst.write(data, 1, window=win)
+                    dst.write_mask(valid.astype("uint8") * 255, window=win)
+    elif stage == "cog":
+        rio_copy(masked, output, driver="COG", compress="LZW", BIGTIFF="YES",
+                 NUM_THREADS=str(config["threads"]), BLOCKSIZE=size)
+    elif stage == "validation":
+        with geometry.open(encoding="utf-8") as stream:
+            shapes = list(polygons(json.load(stream)))
+        with rasterio.open(source) as src, rasterio.open(grid) as mask, rasterio.open(output) as dst:
+            band = next(i for i, color in enumerate(src.colorinterp, 1) if color != ColorInterp.alpha)
+            if ((src.width, src.height, src.crs, src.transform, src.dtypes[band-1]) !=
+                    (dst.width, dst.height, dst.crs, dst.transform, dst.dtypes[0])):
+                raise ValueError("Output grid or dtype differs")
+            if (dst.count != 1 or ColorInterp.alpha in dst.colorinterp
+                    or MaskFlags.per_dataset not in dst.mask_flag_enums[0]
+                    or dst.tags(ns="IMAGE_STRUCTURE").get("LAYOUT") != "COG"
+                    or Path(str(output) + ".msk").exists()):
+                raise ValueError("Expected one-band COG with internal mask and no alpha")
+            with output.open("rb") as stream:
+                if stream.read(4) not in (b"II+\x00", b"MM\x00+"):
+                    raise ValueError("Output is not BigTIFF")
+            for win in windows(src.width, src.height, size):
+                check_disk_reserve(work, reserve)
+                inside = geometry_mask(shapes, out_shape=(int(win.height), int(win.width)),
+                                       transform=window_transform(win, src.transform), invert=True)
+                if not np.array_equal(inside, mask.read(1, window=win) > 0):
+                    raise ValueError("Rasterized mask differs from reference")
+                if not np.array_equal(inside & (src.dataset_mask(window=win) > 0),
+                                      dst.dataset_mask(window=win) > 0):
+                    raise ValueError("Output validity differs")
+                if not np.array_equal(src.read(band, window=win), dst.read(1, window=win), equal_nan=True):
+                    raise ValueError("Output data differs")
+    else:
+        raise ValueError("Unknown national stage")
+
+
+def ensure_no_external_mask(blob):
+    """Reject sidecar masks and fail closed when their absence cannot be checked."""
+    try:
+        exists = blob.bucket.blob(blob.name + ".msk").exists(timeout=30, retry=None)
+    except Exception:
+        raise RuntimeError("Unable to check external mask sidecar") from None
+    if exists:
+        raise RuntimeError("Source has an external mask sidecar; standalone TIFF required")
+
+
+def national_download(blob, path, reserve, chunk_bytes=8 * 1024 * 1024):
+    """Download a fixed object generation in bounded requests."""
+    import base64
+    import binascii
+    import google_crc32c
+
+    ensure_no_external_mask(blob)
+    blob.reload(timeout=60)
+    length, generation = int(blob.size), int(blob.generation)
+    if length <= 0 or generation <= 0 or chunk_bytes <= 0:
+        raise ValueError("Invalid object metadata or chunk size")
+    try:
+        expected = base64.b64decode(blob.crc32c, validate=True)
+    except (TypeError, ValueError, binascii.Error) as exc:
+        raise ValueError("Missing or invalid CRC32C metadata") from exc
+    if len(expected) != 4:
+        raise ValueError("Invalid CRC32C metadata")
+    checksum = google_crc32c.Checksum()
+    check_disk_reserve(path.parent, reserve, length)
+    with path.open("xb") as stream:
+        for start in range(0, length, chunk_bytes):
+            check_disk_reserve(path.parent, reserve, min(chunk_bytes, length - start))
+            end = min(length, start + chunk_bytes) - 1
+            data = blob.download_as_bytes(start=start, end=end, if_generation_match=generation,
+                                          timeout=60, raw_download=True)
+            if len(data) != end - start + 1:
+                raise IOError("Incomplete GCS range")
+            stream.write(data)
+            checksum.update(data)
+    if checksum.digest() != expected:
+        raise IOError("CRC32C mismatch")
+    ensure_no_external_mask(blob)
+    return length
+
+
+def run_national(config, client=None, stage_runner=None):
+    """Experimental single-scenario national run; no EE operations or raster uploads."""
+    import math
+    import psutil
+    import re
+    import subprocess
+    import sys
+    from urllib.parse import urlsplit
+
+    cfg = dict(config)
+    if not cfg.get("confirm_national") or cfg.get("label") not in ("FREE", "PRO"):
+        raise ValueError("National processing requires FREE/PRO and explicit confirmation")
+    if not isinstance(cfg.get("gcs_project"), str) or not cfg["gcs_project"].strip():
+        raise ValueError("Set an explicit GCS project")
+    parts = urlsplit(cfg["gcs_uri"])
+    if (parts.scheme != "gs" or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]", parts.netloc)
+            or not parts.path.strip("/") or parts.query or parts.fragment):
+        raise ValueError("Supply a specific gs:// object")
+    size, threads = int(cfg["window_size"]), int(cfg["threads"])
+    reserve = int(float(cfg["disk_reserve_gb"]) * 1024**3)
+    cpus = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else (os.cpu_count() or 1)
+    if (size < 16 or size > 4096 or size % 16 or threads < 1
+            or reserve < 0 or not cfg.get("geometry_crs")
+            or int(cfg.get("gdal_cache_mb", 128)) < 1
+            or float(cfg.get("checkpoint_interval_seconds", 30)) <= 0):
+        raise ValueError("Invalid window, thread budget, disk reserve or geometry CRS")
+    available_ram = psutil.virtual_memory().available
+    threads = min(threads, cpus)
+    max_window = int(math.sqrt(max(0, available_ram // (16 * 32)))) // 16 * 16
+    if max_window < 16 or available_ram < 32 * 1024 * 1024:
+        raise RuntimeError("Insufficient available memory for national processing")
+    size = min(size, max_window)
+    cache_mb = min(int(cfg.get("gdal_cache_mb", 128)), max(1, available_ram // (8 * 1024**2)))
+    if cfg.get("repeats", 1) != 1 or cfg.get("window_workers", [1]) != [1]:
+        raise ValueError("National mode supports one scenario and one repetition")
+    if not shutil.which("gdal_rasterize") and stage_runner is None:
+        raise RuntimeError("gdal_rasterize is required")
+    bucket = cfg.get("checkpoint_bucket", "")
+    prefix = cfg.get("checkpoint_prefix", "temp/registro_de_testes_de_mosaico").strip("/")
+    if bucket and (not prefix or "://" in bucket or "/" in bucket or ".." in prefix.split("/")):
+        raise ValueError("Invalid checkpoint bucket or prefix")
+    if client is None:
+        from google.cloud import storage
+        client = storage.Client(project=cfg["gcs_project"])
+    run_id = cfg["label"].lower() + "-" + uuid.uuid4().hex
+    work = (Path(cfg["work_root"]) / run_id).resolve()
+    work.mkdir(parents=True, exist_ok=False)
+    reserve = max(reserve, 0)
+    state = {"status": "running", "stage": "download"}
+    report = {"run_id": run_id, "status": "running", "stages": [],
+              "resources": {"window_size": size, "threads": threads, "gdal_cache_mb": cache_mb,
+                            "available_memory_at_start": available_ram},
+              "notes": "Experimental best effort. No disk or completion guarantee. Polygon mask does not hide pixel values. Standalone source must include its validity mask; external sidecars are not downloaded.",
+              "checkpoint": "disabled"}
+    checkpoint_writer = None
+    if bucket:
+        checkpoint = Checkpoint(client.bucket(bucket).blob(prefix + "/" + run_id + "/checkpoint.json"))
+        report["checkpoint"] = "pending"
+        checkpoint_writer = CheckpointWriter(checkpoint, state, float(cfg.get("checkpoint_interval_seconds", 30)),
+                                             directory=work, logical_cpus=cpus, threads=threads)
+    stage_config = {"window_size": size, "threads": threads, "reserve_bytes": reserve,
+                    "geometry_path": str(Path(cfg["geometry_path"]).resolve()),
+                    "geometry_crs": cfg["geometry_crs"], "gcs_uri": cfg["gcs_uri"],
+                    "gcs_project": cfg["gcs_project"]}
+    stage_config_path = work / "stage_config.json"
+    child_env = national_subprocess_env(work, threads, cache_mb)
+    def set_stage(stage):
+        if checkpoint_writer:
+            checkpoint_writer.set_stage(stage)
+        else:
+            state["stage"] = stage
+    def local_stage(stage):
+        set_stage(stage)
+        started = time.perf_counter()
+        if stage_runner is not None:
+            stage_runner(stage, work, stage_config)
+        else:
+            if stage == "mask":
+                command = ["gdal_rasterize", "-burn", "1", "-optim", "VECTOR",
+                           str(work / "transformed.geojson"), str(work / "country_mask.tif")]
+            else:
+                command = [sys.executable, str(Path(__file__).resolve()), "--national-stage",
+                           stage, str(work), str(stage_config_path)]
+            monitored_process(command, work, reserve, env=child_env, log_name=stage)
+        duration = time.perf_counter() - started
+        report["stages"].append({"stage": stage, "seconds": duration})
+        if checkpoint_writer:
+            checkpoint_writer.complete_stage(stage, duration)
+    temp_owned = False
+    try:
+        (work / "gdal_tmp").mkdir()
+        temp_owned = True
+        stage_config_path.write_text(json.dumps(stage_config), encoding="utf-8")
+        if checkpoint_writer:
+            checkpoint_writer.start()
+        started = time.perf_counter()
+        if stage_runner is None:
+            command = [sys.executable, str(Path(__file__).resolve()), "--national-stage",
+                       "download", str(work), str(stage_config_path)]
+            monitored_process(command, work, reserve, env=child_env, log_name="download")
+            report["input_bytes"] = (work / "source.tif").stat().st_size
+        else:
+            blob = client.bucket(parts.netloc).blob(parts.path.lstrip("/"))
+            report["input_bytes"] = national_download(blob, work / "source.tif", reserve)
+        duration = time.perf_counter() - started
+        report["stages"].append({"stage": "download", "seconds": duration})
+        if checkpoint_writer:
+            checkpoint_writer.complete_stage("download", duration)
+        for stage in ("prepare", "mask", "application", "cog", "validation"):
+            local_stage(stage)
+        set_stage("complete")
+        report["status"] = "ok"
+    except BaseException as exc:
+        report["status"] = "interrupted" if isinstance(exc, KeyboardInterrupt) else "failed"
+        report["error_type"] = type(exc).__name__
+        report["failed_stage"] = state["stage"]
+        raise
+    finally:
+        if checkpoint_writer and checkpoint_writer.thread.ident is not None:
+            report["checkpoint"] = checkpoint_writer.finish(report["status"])
+        cleanup_national(work, report["status"] == "ok", temp_owned=temp_owned)
+        (work / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+        print("National run directory:", work)
+    return report, work
 
 
 def worker_rounds(workers, repeats):
@@ -117,11 +629,15 @@ def run(config):
         raise ValueError('mode must be subset or national')
     if cfg['mode'] == 'national' and not cfg.get('confirm_national'):
         raise ValueError('National processing requires explicit confirmation')
+    if cfg['mode'] == 'national':
+        return run_national(cfg)
     size, threads = int(cfg['window_size']), int(cfg['threads'])
     workers = cfg.get('window_workers', [1, 2, 4])
     repeats = int(cfg.get('repeats', 1))
     if size < 16 or size > 4096 or size % 16 or threads < 1 or repeats < 1 or repeats > 10:
         raise ValueError('Invalid window size, GDAL threads or repeats')
+    if float(cfg['disk_reserve_gb']) < 0:
+        raise ValueError('disk_reserve_gb must be non-negative')
     if not workers or len(set(workers)) != len(workers) or any(type(x) is not int or x not in (1, 2, 4) for x in workers):
         raise ValueError('window_workers must be a unique nonempty subset of [1, 2, 4]')
     with open(cfg['geometry_path'], encoding='utf-8') as stream:
@@ -476,4 +992,9 @@ def self_test():
 
 
 if __name__ == "__main__":
-    self_test()
+    import sys
+    if len(sys.argv) == 5 and sys.argv[1] == "--national-stage":
+        with open(sys.argv[4], encoding="utf-8") as stream:
+            national_stage(sys.argv[2], sys.argv[3], json.load(stream))
+    else:
+        self_test()
