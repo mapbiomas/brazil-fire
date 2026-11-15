@@ -118,7 +118,7 @@ def resumo_chips(cfg, summary):
         print(f"   {SPLIT_NOME[s]:<11}{b.get(s, 0):>7}{cc.get('1', 0):>14}{cc.get('0', 0):>18}"
               f"{c[s]['chips']:>8}{c[s]['fire_px']:>10,}{c[s]['notfire_px']:>13,}   {SPLIT_PARA_QUE[s]}")
 
-    print("\n   ⚖️  Balanço de classes (pixels rotulados):")
+    print("\n   📊  Balanço de classes (pixels rotulados):")
     for s in ("train", "val", "test"):
         f_px, n_px = c[s]["fire_px"], c[s]["notfire_px"]
         tot = f_px + n_px
@@ -242,7 +242,7 @@ def resumo_treino(cfg, meta, model=None):
     h = meta["history"]
     ep, loss, vloss, iou, viou = _curvas(h)
     melhor = max(range(ep), key=lambda i: viou[i])
-    _cab(f"🏋️  TREINO  |  modelo {meta['model']}  |  {len(meta['channels'])} canais de entrada")
+    _cab(f"🧠  TREINO  |  modelo {meta['model']}  |  {len(meta['channels'])} canais de entrada")
     print("Como a U-Net funciona, em poucas palavras: um 'codificador' reduz a imagem em etapas para entender")
     print("o contexto (o que é cicatriz, o que é água); um 'decodificador' volta ao tamanho original,")
     print("reaproveitando por atalhos (skip connections) os detalhes finos de cada etapa. A saída é um")
@@ -359,7 +359,7 @@ def resumo_teste(unet_results):
 
 def resumo_comparacao(cfg, rows):
     """Passo 7: o que é comparado, como, e qual modelo ganhou (com cautela)."""
-    _cab("⚖️  COMPARAÇÃO  |  MLP por pixel  x  U-Net por chip")
+    _cab("📊  COMPARAÇÃO  |  MLP por pixel  x  U-Net por chip")
     print("O que é comparado:")
     print("   🔹 MLP (A) = a rede do catálogo (M4): camadas "
           f"{'-'.join(str(n) for n in cfg['MLP_LAYERS'])}. Ela vê só os valores dos canais de UM pixel por vez,")
