@@ -58,6 +58,16 @@ def available_periods(cfg, ls=None):
     return dict(sorted(out.items()))
 
 
+def train_keys(listing):
+    """Meses que servem para treino: têm mosaico E amostras."""
+    return [k for k, i in listing.items() if i["bands"] and i["samples"]]
+
+
+def predict_keys(listing):
+    """Meses que podem ser classificados: têm mosaico."""
+    return [k for k, i in listing.items() if i["bands"]]
+
+
 def _needed(cfg):
     return list(cfg["BANDS"]) + ([cfg["VALID_BAND"]] if cfg.get("VALID_BAND") else [])
 
@@ -155,7 +165,7 @@ class _Base:
 
     def _period_checks(self, selected, with_samples):
         w = self.w
-        keys = list(self.listing) or sorted(set(selected))
+        keys = train_keys(self.listing) if with_samples else predict_keys(self.listing)
         self.keys = keys
         need = _needed(self.cfg)
         return [w.Checkbox(value=k in selected,
@@ -180,13 +190,18 @@ class TreinoUI(_Base):
         w = self.w
         L = w.Layout
         self.chk_train = self._period_checks(cfg["PERIODS"], with_samples=True)
+        if not self.chk_train:
+            self.chk_train_view = [w.HTML("❌ Nenhum mês tem mosaico <b>e</b> amostras no GCS ainda.")]
+        else:
+            self.chk_train_view = self.chk_train
         self.chk_bands = [w.Checkbox(value=b in cfg["BANDS"], description=b, indent=False, layout=L(width="95px"))
                           for b in ALL_BANDS]
         self.chk_idx = [w.Checkbox(value=i in cfg["INDICES"], description=i, indent=False, layout=L(width="95px"))
                         for i in FULL_INDICES]
         self.root = w.VBox([
-            self._box("🏫 Períodos de TREINO", "meses com mosaico <b>e</b> amostras; os chips de todos treinam um só modelo",
-                      self.chk_train),
+            self._box("🏫 Períodos de TREINO",
+                      "só aparecem os meses com mosaico <b>e</b> amostras; os chips de todos treinam um só modelo",
+                      self.chk_train_view),
             self._box("🛰️ Bandas", "só as que existem no mosaico (veja os marcadores acima)",
                       [w.HBox(self.chk_bands, layout=L(flex_flow="row wrap"))]),
             self._box("🧮 Índices espectrais", "calculados das bandas; precisam das bandas de cada fórmula",

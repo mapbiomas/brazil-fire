@@ -7,7 +7,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from unet_config import make_config  # noqa: E402
 from unet_ui import (ClassificarUI, OpcoesUI, TreinoUI, available_periods, build_classificar,  # noqa: E402
-                     build_opcoes, build_treino, mosaic_table, period_label)
+                     build_opcoes, build_treino, mosaic_table, period_label,
+                     predict_keys, train_keys)
 
 BASE = "mapbiomas-fire/sudamerica/brazil/CATALOG_01"
 TREE = {
@@ -68,6 +69,14 @@ class TestBuilders(unittest.TestCase):
             build_classificar(make_config(), [])
 
 
+class TestKeys(unittest.TestCase):
+    def test_train_needs_samples_predict_needs_mosaic(self):
+        got = available_periods(make_config(), ls=fake_ls)
+        got["2027_01"] = {"bands": set(), "samples": ["x_2027_01.csv"]}  # amostra sem mosaico
+        self.assertEqual(train_keys(got), ["2026_10"])
+        self.assertEqual(predict_keys(got), ["2026_09", "2026_10"])
+
+
 class TestMosaicos(unittest.TestCase):
     def test_table(self):
         rows = mosaic_table(available_periods(make_config(), ls=fake_ls))
@@ -83,8 +92,7 @@ class TestWidgets(unittest.TestCase):
         cfg = make_config(PERIODS=["2026_10"], BANDS=["red", "nir", "swir2"], INDICES=["nbr"])
         ui = TreinoUI(cfg, listing=available_periods(cfg, ls=fake_ls))
         self.assertEqual(ui.selected(), dict(train_periods=["2026_10"], bands=["red", "nir", "swir2"], indices=["nbr"]))
-        ui.chk_train[0].value = True  # 2026_09
-        self.assertEqual(build_treino(ui.cfg, **ui.selected())["PERIODS"], ["2026_09", "2026_10"])
+        self.assertEqual(ui.keys, ["2026_10"])  # 2026_09 não tem amostras: não aparece no treino
 
     def test_classificar_and_opcoes(self):
         cfg = make_config()
