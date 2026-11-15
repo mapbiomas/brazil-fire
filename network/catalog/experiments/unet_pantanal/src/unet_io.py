@@ -170,7 +170,8 @@ def list_sample_files(cfg, period):
         missing = [n for n in wanted if n not in names]
         if missing:
             raise FileNotFoundError(f"Arquivos de amostra não encontrados em gs://{folder}: {missing}")
-        return wanted
+        # Só os arquivos deste período (data no fim do nome); sem data no nome, entram todos.
+        return [n for n in wanted if period_from_file_name(n) in ("", period)]
     pattern = cfg["SAMPLE_GLOB"].format(period=period, region=cfg["REGION"])
     return sorted(n for n in names if fnmatch.fnmatch(n, pattern))
 

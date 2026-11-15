@@ -63,6 +63,13 @@ DEFAULTS = {
     "MODEL": "unet",                 # "unet" | "mlp" (mlp = catalog M4/M5 notebook)
     "EXPERIMENT": "UNET_01",         # output folder inside the campaign
     "MODEL_NAME": "unet_monitor_pantanal_v1",
+    # Training version, as in the catalog M4 (training_{id}_{shortname}_{sensor}).
+    # When TRAINING_ID is set, every output of this training (chips, stats,
+    # model, reports, maps) goes to {EXPERIMENT}/training_{id}_{shortname}_{sensor}/
+    # and MODEL_NAME becomes that name. None = old layout ({EXPERIMENT}/ directly).
+    "TRAINING_ID": None,             # e.g. "001"
+    "SHORTNAME": None,               # e.g. "pantanal_r1_6b"
+    "COMMENT": "",
     # Region to classify: value of REGION_PROPERTY in the regions asset (case
     # sensitive; the error lists the options). Example: "Pantanal_r1".
     "REGION": "Pantanal_r1",
@@ -181,6 +188,8 @@ def validate_config(cfg):
     if not cfg["PERIODS"]:
         raise ValueError("PERIODS must list at least one period (e.g. ['2026_10']).")
     cfg["PERIODS"] = [period_info(p)[0] for p in cfg["PERIODS"]]
+    if cfg.get("TRAINING_ID"):
+        cfg["MODEL_NAME"] = version_name(cfg)
     cfg["PREDICT_PERIODS"] = [period_info(p)[0] for p in (cfg["PREDICT_PERIODS"] or cfg["PERIODS"])]
     return cfg
 
@@ -244,6 +253,16 @@ def split_chip_name(path):
     return period, split, shard
 
 
+def version_name(cfg):
+    """'training_001_pantanal_r1_6b_sentinel2' (as the catalog M4 model folders)."""
+    import re
+    tid = str(cfg["TRAINING_ID"]).strip()
+    if tid.isdigit():
+        tid = f"{int(tid):03d}"
+    short = re.sub(r"[^a-z0-9]+", "_", str(cfg.get("SHORTNAME") or region_slug(cfg)).lower()).strip("_")
+    return f"training_{tid}_{short}_{cfg['SENSOR'].lower()}"
+
+
 def channel_names(cfg):
     return list(cfg["BANDS"]) + list(cfg["INDICES"])
 
@@ -257,8 +276,13 @@ def paths(cfg):
     """
     campaign = f"{cfg['GCS_PREFIX']}/{cfg['CAMPAIGN']}"
     root = f"{campaign}/{cfg['EXPERIMENT']}"
+    experiment = root
+    if cfg.get("TRAINING_ID"):
+        root = f"{root}/{version_name(cfg)}"
     return {
         "bucket": cfg["BUCKET"],
+        "experiment": experiment,
+        "config": f"{root}/config.json",
         "samples": f"{campaign}/LIBRARY_SAMPLES",
         "root": root,
         "chips": f"{root}/chips",

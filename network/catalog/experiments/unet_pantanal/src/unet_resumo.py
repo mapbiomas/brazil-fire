@@ -30,16 +30,28 @@ def _cab(titulo):
 
 def print_config(cfg):
     """Resumo da configuração ativa (equivalente ao print_config do catálogo)."""
+    from unet_config import paths
     _cab(f"⚙️ CONFIGURAÇÃO  |  {cfg['COUNTRY']} / {cfg['CAMPAIGN']}  |  {cfg['SENSOR']} {cfg['MOSAIC']}")
-    print(f"   Região a classificar : {cfg['REGION']}   (amostras: {cfg.get('SAMPLE_REGION') or cfg['REGION']})")
-    print(f"   Períodos de treino   : {', '.join(cfg['PERIODS'])}")
-    print(f"   Períodos a classificar: {', '.join(cfg['PREDICT_PERIODS'])}")
-    print(f"   Bandas ({len(cfg['BANDS'])})          : {', '.join(cfg['BANDS'])}")
-    idx = ", ".join(cfg["INDICES"]) if cfg["INDICES"] else "nenhum"
-    print(f"   Índices ({len(cfg['INDICES'])})         : {idx}")
-    print(f"   Canais de entrada    : {len(cfg['BANDS']) + len(cfg['INDICES'])}")
-    print(f"   Chip / bloco         : {cfg['CHIP']} px / {cfg['BLOCK_KM']} km | treino {cfg['EPOCHS']} épocas, batch {cfg['BATCH']}")
-    print(f"   Saídas               : gs://{cfg['BUCKET']}/{cfg['GCS_PREFIX']}/{cfg['CAMPAIGN']}/{cfg['EXPERIMENT']}/")
+    linhas = []
+    if cfg.get("TRAINING_ID"):
+        linhas.append(("Versão do treino", cfg["MODEL_NAME"] + (f"  ({cfg['COMMENT']})" if cfg.get("COMMENT") else "")))
+    linhas += [
+        ("Região a classificar", f"{cfg['REGION']}   (amostras: {cfg.get('SAMPLE_REGION') or cfg['REGION']})"),
+    ]
+    if cfg.get("SAMPLE_FILES"):
+        linhas.append((f"Amostras ({len(cfg['SAMPLE_FILES'])})", ", ".join(cfg["SAMPLE_FILES"])))
+    linhas += [
+        ("Períodos de treino", ", ".join(cfg["PERIODS"])),
+        ("Períodos a classificar", ", ".join(cfg["PREDICT_PERIODS"])),
+        (f"Bandas ({len(cfg['BANDS'])})", ", ".join(cfg["BANDS"])),
+        (f"Índices ({len(cfg['INDICES'])})", ", ".join(cfg["INDICES"]) if cfg["INDICES"] else "nenhum"),
+        ("Canais de entrada", str(len(cfg["BANDS"]) + len(cfg["INDICES"]))),
+        ("Chip / bloco / treino", f"{cfg['CHIP']} px / {cfg['BLOCK_KM']} km / {cfg['EPOCHS']} épocas, batch {cfg['BATCH']}"),
+        ("Saídas", f"gs://{cfg['BUCKET']}/{paths(cfg)['root']}/"),
+    ]
+    w = max(len(k) for k, _ in linhas)
+    for k, v in linhas:
+        print(f"   {k.ljust(w)} : {v}")
     if set(cfg["PREDICT_PERIODS"]) - set(cfg["PERIODS"]):
         print("   ℹ️  Há períodos a classificar que não estão no treino: o modelo os mapeia sem ter visto suas amostras.")
     print()

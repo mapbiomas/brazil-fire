@@ -63,7 +63,7 @@ unet_pantanal/
     unet_predict.py   sliding-window inference over the region, COG upload
     unet_report.py    test metrics, MLP baseline, comparison table
     unet_resumo.py    didactic printed summaries of the notebook steps (Portuguese)
-    unet_ui.py        notebook widgets, one per step: train periods/bands (step 2), epochs (4), classify periods (6)
+    unet_ui.py        notebook widgets: step 2 new training (samples, bands, indices, version) or existing version; 4 epochs; 6 model + classify periods
   tests/test_unet_*.py                        unit tests
   docs/proposta_metodologia_unet_pantanal.md  slides outline: method proposal (Portuguese)
   docs/apresentacao_unet_pantanal.md          slides outline with results to fill (Portuguese)
@@ -92,9 +92,13 @@ notebook.
 
 Outputs, all inside `{GCS_PREFIX}/{CAMPAIGN}/{EXPERIMENT}/`
 (`EXPERIMENT` = `UNET_01` by default). The code refuses to write or delete
-anywhere else.
+anywhere else. Each training version chosen in step 2 (as the catalog M4:
+`training_{id}_{shortname}_{sensor}`) gets its own folder with the files below
+plus `config.json`, which reopens the version later. Without `TRAINING_ID`
+the files go directly in `{EXPERIMENT}/` (old layout).
 
 ```
+config.json                                 configuration of the version (samples, bands, indices, epochs)
 chips/{period}_{split}_{shard}.tfrecord.gz  raw features (reflectance + indices) and labels
 splits/blocks_{period}.gpkg                 blocks with train/val/test
 splits/region_{region}.geojson              cached region geometry
@@ -109,11 +113,12 @@ reports/comparison_{periods}.json           MLP A x MLP B x U-Net table
 
 ## How to add a region or period
 
-Change `REGION` and `PERIODS` in the config cell. `REGION` must match
+Choose the sample files, bands and a new version in step 2 of the notebook
+(the training periods come from the CSV names); choose the months to classify
+in step 6. `REGION` is set in the config cell. `REGION` must match
 `region_nam` in the regions asset and the `region` column of the samples
 (case-insensitive). Set `FILTER_SAMPLES_BY_REGION=False` if the samples do not
-carry the region. Use a new `MODEL_NAME` (or `EXPERIMENT`) for each new model
-so earlier results are kept.
+carry the region. A new version keeps earlier results in their own folders.
 
 ## Method in short
 
