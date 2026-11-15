@@ -18,8 +18,33 @@ def check_disk_reserve(directory, reserve_bytes, required_bytes=0):
         raise ValueError("Disk reserve and required bytes must be non-negative")
     free = shutil.disk_usage(directory).free
     if free - required_bytes < reserve_bytes:
-        raise RuntimeError("Insufficient free disk for operation and reserve")
+        raise RuntimeError("Insufficient free disk: free={} bytes, required={} bytes, reserve={} bytes"
+                           .format(free, required_bytes, reserve_bytes))
     return free
+
+
+def national_disk_estimate(width, height, bytes_per_pixel, source_bytes, free_bytes, reserve_bytes):
+    """Heuristic admission threshold after download, not an upper bound or guarantee."""
+    import math
+    pixels = width * height
+    if min(width, height, bytes_per_pixel, source_bytes) <= 0 or min(free_bytes, reserve_bytes) < 0:
+        raise ValueError("Invalid disk estimate inputs")
+    raw_data = pixels * bytes_per_pixel
+    # Source file size includes any internal mask/overviews, and may use a different
+    # codec. LZW output, validity masks and COG temporary files can differ greatly.
+    masked = math.ceil(source_bytes * 1.5 + pixels / 8)
+    cog_and_temporary = math.ceil(masked * 2)
+    mask = pixels  # uncompressed byte-mask reference, not a maximum for TIFF overhead
+    return {"pixels": pixels, "raw_data_bytes": raw_data, "source_bytes": source_bytes,
+            "source_bytes_per_raw_byte": source_bytes / raw_data,
+            "byte_mask_reference_bytes": mask, "estimated_masked_bytes": masked,
+            "estimated_cog_and_temporary_bytes": cog_and_temporary,
+            "estimated_additional_peak_bytes": mask + masked + cog_and_temporary,
+            "free_bytes": free_bytes, "reserve_bytes": reserve_bytes,
+            "note": ("Heuristic only: source size x 1.5 plus one bit per pixel for masked TIFF; "
+                     "two masked sizes for COG and temporary files, plus one byte per pixel "
+                     "for country mask. Compression, metadata and temporary usage vary; "
+                     "not an upper bound or completion guarantee. Used as a minimum admission threshold.")}
 
 
 def monitored_process(command, directory, reserve_bytes, interval=1.0, env=None, log_name="process"):
@@ -55,6 +80,7 @@ def monitored_process(command, directory, reserve_bytes, interval=1.0, env=None,
                     pass
             check_disk_reserve(directory, reserve_bytes)
             time.sleep(interval)
+        check_disk_reserve(directory, reserve_bytes)
         if process.returncode:
             raise subprocess.CalledProcessError(process.returncode, command)
     finally:
@@ -113,9 +139,14 @@ def monitored_process(command, directory, reserve_bytes, interval=1.0, env=None,
             (b"traceback", "Python exception"), (b"error", "error reported"))
                   if needle in text]
         try:
+            disk_details = re.search(
+                rb"insufficient free disk: free=(\d+) bytes, required=(\d+) bytes, reserve=(\d+) bytes",
+                text)
             (Path(directory) / (log_name + ".log")).write_text(
                 "exit_code: " + str(process.returncode) + "\ndiagnostics: " +
-                (", ".join(labels) if labels else "no recognized stderr category") + "\n",
+                (", ".join(labels) if labels else "no recognized stderr category") +
+                ("\ndisk_free_bytes: {}\ndisk_required_bytes: {}\ndisk_reserve_bytes: {}".format(
+                    *(int(value) for value in disk_details.groups())) if disk_details else "") + "\n",
                 encoding="utf-8")
         except OSError:
             pass
@@ -294,10 +325,14 @@ def national_stage(stage, work, config):
             shapes = [transform_geom(config["geometry_crs"], src.crs, shape) for shape in shapes]
             profile = dict(driver="GTiff", width=src.width, height=src.height, count=1,
                            crs=src.crs, transform=src.transform, dtype="uint8",
-                           tiled=True, blockxsize=size, blockysize=size, BIGTIFF="YES")
-            # Three uncompressed rasters plus an output, mask and overview allowance.
-            raw = src.width * src.height * (np.dtype(src.dtypes[bands[0]-1]).itemsize + 2)
-            check_disk_reserve(work, reserve, raw * 4)
+                           tiled=True, blockxsize=size, blockysize=size, BIGTIFF="YES",
+                           compress="LZW", SPARSE_OK="YES")
+            free = shutil.disk_usage(work).free
+            estimate = national_disk_estimate(src.width, src.height,
+                                              np.dtype(src.dtypes[bands[0]-1]).itemsize,
+                                              source.stat().st_size, free, reserve)
+            (work / "disk_estimate.json").write_text(json.dumps(estimate, indent=2), encoding="utf-8")
+            check_disk_reserve(work, reserve, estimate["estimated_additional_peak_bytes"])
             geometry.write_text(json.dumps({
                 "type": "FeatureCollection",
                 "crs": {"type": "name", "properties": {"name": src.crs.to_wkt()}},
@@ -508,14 +543,34 @@ def run_national(config, client=None, stage_runner=None):
             checkpoint_writer.complete_stage("download", duration)
         for stage in ("prepare", "mask", "application", "cog", "validation"):
             local_stage(stage)
+            if stage == "prepare":
+                estimate_path = work / "disk_estimate.json"
+                if estimate_path.exists():
+                    report["disk_estimate"] = json.loads(estimate_path.read_text(encoding="utf-8"))
+                    estimate = report["disk_estimate"]
+                    print("Disk estimate (minimum admission threshold, not a guarantee): additional={} bytes, "
+                          "free={} bytes, reserve={} bytes".format(
+                              estimate["estimated_additional_peak_bytes"], estimate["free_bytes"],
+                              estimate["reserve_bytes"]))
         set_stage("complete")
         report["status"] = "ok"
     except BaseException as exc:
         report["status"] = "interrupted" if isinstance(exc, KeyboardInterrupt) else "failed"
         report["error_type"] = type(exc).__name__
         report["failed_stage"] = state["stage"]
+        try:
+            report["disk_at_failure"] = {"free_bytes": shutil.disk_usage(work).free,
+                                         "reserve_bytes": reserve}
+        except OSError:
+            pass
         raise
     finally:
+        estimate_path = work / "disk_estimate.json"
+        if estimate_path.exists() and "disk_estimate" not in report:
+            try:
+                report["disk_estimate"] = json.loads(estimate_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, ValueError):
+                report["disk_estimate_error"] = "Disk estimate unavailable or invalid"
         if checkpoint_writer and checkpoint_writer.thread.ident is not None:
             report["checkpoint"] = checkpoint_writer.finish(report["status"])
         cleanup_national(work, report["status"] == "ok", temp_owned=temp_owned)

@@ -2,6 +2,7 @@
 import json
 import base64
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -38,6 +39,87 @@ class NationalSafetyTest(unittest.TestCase):
                 benchmark.check_disk_reserve(".", 40, 61)
             with self.assertRaises(ValueError):
                 benchmark.check_disk_reserve(".", -1)
+            with self.assertRaisesRegex(RuntimeError, r"free=100 bytes, required=61 bytes, reserve=40 bytes"):
+                benchmark.check_disk_reserve(".", 40, 61)
+
+    def test_estimate_uses_source_size_and_is_not_a_guarantee(self):
+        pixels, source, reserve = 28_766_214_368, 8_143_833_141, 10 * 1024**3
+        estimate = benchmark.national_disk_estimate(pixels, 1, 2, source, 107_381_436_416, reserve)
+        self.assertEqual(estimate["raw_data_bytes"], pixels * 2)
+        self.assertEqual(estimate["byte_mask_reference_bytes"], pixels)
+        self.assertGreater(estimate["estimated_additional_peak_bytes"], 0)
+        self.assertIn("not an upper bound", estimate["note"])
+        need = estimate["estimated_additional_peak_bytes"]
+        self.assertEqual(need, 76_200_793_892)
+        for free in (107_381_436_416, 234_209_320_960, need + reserve):
+            with patch.object(benchmark.shutil, "disk_usage", return_value=SimpleNamespace(free=free)):
+                self.assertEqual(benchmark.check_disk_reserve(".", reserve, need), free)
+        with patch.object(benchmark.shutil, "disk_usage", return_value=SimpleNamespace(free=need + reserve - 1)):
+            with self.assertRaisesRegex(RuntimeError, "Insufficient free disk"):
+                benchmark.check_disk_reserve(".", reserve, need)
+        larger = benchmark.national_disk_estimate(pixels, 1, 2, source * 2, 234_209_320_960, reserve)
+        self.assertGreater(larger["estimated_additional_peak_bytes"], estimate["estimated_additional_peak_bytes"])
+
+    def test_prepare_uses_sparse_compressed_mask_with_estimated_admission(self):
+        import numpy as np
+        import rasterio
+        from rasterio.transform import from_origin
+        with tempfile.TemporaryDirectory() as temporary:
+            work = Path(temporary)
+            with rasterio.open(work / "source.tif", "w", driver="GTiff", width=128, height=128,
+                               count=1, dtype="uint16", crs="EPSG:4326",
+                               transform=from_origin(0, 128, 1, 1)) as dst:
+                dst.write(np.zeros((128, 128), dtype="uint16"), 1)
+            geometry = work / "polygon.json"
+            geometry.write_text(json.dumps({"type": "Polygon", "coordinates":
+                                           [[[0, 0], [64, 0], [64, 128], [0, 128], [0, 0]]]}))
+            config = {"window_size": 16, "reserve_bytes": 100, "geometry_path": str(geometry),
+                      "geometry_crs": "EPSG:4326"}
+            estimate = benchmark.national_disk_estimate(128, 128, 2, (work / "source.tif").stat().st_size,
+                                                        0, 100)
+            need = estimate["estimated_additional_peak_bytes"]
+            # The old raw*4 admission needs 262144 bytes in addition to the reserve.
+            self.assertLess(need, 262144)
+            with patch.object(benchmark.shutil, "disk_usage", return_value=SimpleNamespace(free=100 + need - 1)):
+                with self.assertRaisesRegex(RuntimeError, "Insufficient free disk"):
+                    benchmark.national_stage("prepare", work, config)
+            self.assertFalse((work / "country_mask.tif").exists())
+            with patch.object(benchmark.shutil, "disk_usage", return_value=SimpleNamespace(free=100 + need)):
+                benchmark.national_stage("prepare", work, config)
+            estimate = json.loads((work / "disk_estimate.json").read_text())
+            self.assertEqual(estimate["estimated_additional_peak_bytes"], need)
+            with rasterio.open(work / "country_mask.tif", "r+") as dst:
+                self.assertEqual(dst.compression.value, "LZW")
+                self.assertFalse(dst.read(1).any())
+                dst.write(np.ones((16, 16), dtype="uint8"), 1,
+                          window=rasterio.windows.Window(0, 0, 16, 16))
+            with rasterio.open(work / "country_mask.tif") as src:
+                self.assertEqual(int(src.read(1).sum()), 256)
+
+    @unittest.skipUnless(shutil.which("gdal_rasterize"), "gdal_rasterize unavailable")
+    def test_gdal_rasterize_updates_sparse_lzw_mask(self):
+        import numpy as np
+        import rasterio
+        from rasterio.features import geometry_mask
+        from rasterio.transform import from_origin
+        with tempfile.TemporaryDirectory() as temporary:
+            work = Path(temporary)
+            shape = {"type": "Polygon", "coordinates":
+                     [[[0, 0], [32, 0], [32, 64], [0, 64], [0, 0]]]}
+            geometry = work / "polygon.json"
+            geometry.write_text(json.dumps(shape))
+            with rasterio.open(work / "source.tif", "w", driver="GTiff", width=64, height=64,
+                               count=1, dtype="uint8", crs="EPSG:4326",
+                               transform=from_origin(0, 64, 1, 1)) as dst:
+                dst.write(np.zeros((64, 64), dtype="uint8"), 1)
+            benchmark.national_stage("prepare", work, {"window_size": 16, "reserve_bytes": 0,
+                                     "geometry_path": str(geometry), "geometry_crs": "EPSG:4326"})
+            subprocess.run(["gdal_rasterize", "-burn", "1", "-optim", "VECTOR",
+                            str(work / "transformed.geojson"), str(work / "country_mask.tif")],
+                           check=True, capture_output=True)
+            with rasterio.open(work / "country_mask.tif") as src:
+                expected = geometry_mask([shape], out_shape=(64, 64), transform=src.transform, invert=True)
+                np.testing.assert_array_equal(src.read(1) > 0, expected)
 
     def test_checkpoint_conditions_isolation_and_secrets(self):
         blob = FakeBlob()
@@ -175,12 +257,14 @@ class NationalSafetyTest(unittest.TestCase):
             self.assertFalse((work / "masked.tif").exists())
             self.assertFalse((work / "gdal_tmp").exists())
             def interrupted(stage, work, stage_config):
+                (work / "disk_estimate.json").write_text('{"partial":', encoding="utf-8")
                 raise KeyboardInterrupt()
             with self.assertRaises(KeyboardInterrupt):
                 benchmark.run_national(config, client=client, stage_runner=interrupted)
             failed_work = next(p.resolve() for p in (root / "runs").iterdir() if p.resolve() != work)
             failed = json.loads((failed_work / "report.json").read_text())
             self.assertEqual(failed["status"], "interrupted")
+            self.assertEqual(failed["disk_estimate_error"], "Disk estimate unavailable or invalid")
             failed_checkpoint = json.loads(next(value.contents for value in client.output.blobs.values()
                                                 if json.loads(value.contents)["status"] == "interrupted"))
             self.assertEqual(failed_checkpoint["stage"], "prepare")
