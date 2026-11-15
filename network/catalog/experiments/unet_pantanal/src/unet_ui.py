@@ -1,12 +1,17 @@
-"""Interface (ipywidgets) para escolher períodos, bandas e opções antes de rodar a U-Net.
+"""Interfaces (ipywidgets) do notebook, uma por etapa, como no catálogo de produção.
 
-Segue o padrão do catálogo de produção (``run_ui`` → escolher → célula de disparo):
+Cada etapa mostra só a escolha que ela usa:
 
-    ui = run_ui(UCFG)          # mostra a interface
-    UCFG = apply_ui(ui)        # lê o que foi marcado e devolve a configuração
+    Passo 1  mostrar_mosaicos(cfg)                    lista os meses e as bandas existentes (sem escolher nada)
+    Passo 2  ui = run_ui_treino(cfg)                  períodos de TREINO, bandas e índices
+             cfg = apply_treino(ui)
+    Passo 4  ui = run_ui_opcoes(cfg)                  épocas e batch
+             cfg = apply_opcoes(ui)
+    Passo 6  ui = run_ui_classificar(cfg)             períodos de CLASSIFICAÇÃO
+             cfg = apply_classificar(ui)
 
-O que é lógica pura (listar períodos, montar a configuração) fica em funções
-sem widgets, para poder ser testada sem Colab.
+A lógica (listar períodos, montar a configuração) fica em funções sem widgets,
+para poder ser testada sem Colab.
 """
 import re
 
@@ -34,18 +39,17 @@ def available_periods(cfg, ls=None):
     P = paths(cfg)
     sensor, mosaic = cfg["SENSOR"].lower(), cfg["MOSAIC"].lower()
     out = {}
-    for periodicity in ("monthly",):
-        base = (f"{cfg['BUCKET']}/{cfg['GCS_PREFIX']}/LIBRARY_IMAGES/{sensor.upper()}/"
-                f"{PERIOD_FOLDERS[periodicity]}/{mosaic.upper()}")
-        for name in ls(base):
-            try:
-                key = period_info(name)[0]
-            except ValueError:
-                continue
-            files = ls(f"{base}/{name}/COG")
-            pat = re.compile(rf"image_.*_{mosaic}_(?P<band>[A-Za-z0-9]+)_{re.escape(key)}_cog\.tif$")
-            bands = {m.group("band") for m in (pat.match(f) for f in files) if m}
-            out.setdefault(key, {"bands": set(), "samples": []})["bands"] |= bands
+    base = (f"{cfg['BUCKET']}/{cfg['GCS_PREFIX']}/LIBRARY_IMAGES/{sensor.upper()}/"
+            f"{PERIOD_FOLDERS['monthly']}/{mosaic.upper()}")
+    for name in ls(base):
+        try:
+            key = period_info(name)[0]
+        except ValueError:
+            continue
+        files = ls(f"{base}/{name}/COG")
+        pat = re.compile(rf"image_.*_{mosaic}_(?P<band>[A-Za-z0-9]+)_{re.escape(key)}_cog\.tif$")
+        bands = {m.group("band") for m in (pat.match(f) for f in files) if m}
+        out.setdefault(key, {"bands": set(), "samples": []})["bands"] |= bands
     for name in ls(f"{P['bucket']}/{P['samples']}"):
         if name.endswith(".csv"):
             key = period_from_file_name(name)
@@ -54,7 +58,11 @@ def available_periods(cfg, ls=None):
     return dict(sorted(out.items()))
 
 
-def period_label(key, info, bands_needed):
+def _needed(cfg):
+    return list(cfg["BANDS"]) + ([cfg["VALID_BAND"]] if cfg.get("VALID_BAND") else [])
+
+
+def period_label(key, info, bands_needed, with_samples=True):
     """Texto de uma linha da lista de períodos (com marcadores)."""
     have = info["bands"]
     if not have:
@@ -63,13 +71,14 @@ def period_label(key, info, bands_needed):
         mos = "🛰️ mosaico ✅"
     else:
         mos = f"🛰️ faltam bandas: {', '.join(sorted(set(bands_needed) - have))} ⚠️"
+    if not with_samples:
+        return f"{key}   |   {mos}"
     amo = f"📄 {len(info['samples'])} arquivo(s) de amostras" if info["samples"] else "📄 sem amostras"
     return f"{key}   |   {mos}   |   {amo}"
 
 
-def build_config(base_cfg, train_periods, predict_periods, bands, indices, epochs, batch,
-                 valid_band_ok=True):
-    """Nova configuração a partir da escolha na interface (valida antes de devolver)."""
+def build_treino(cfg, train_periods, bands, indices):
+    """Configuração com períodos de treino, bandas e índices escolhidos (valida antes de devolver)."""
     if not train_periods:
         raise ValueError("Marque pelo menos um período de TREINO.")
     if not bands:
@@ -78,11 +87,52 @@ def build_config(base_cfg, train_periods, predict_periods, bands, indices, epoch
     if bad:
         need = {i: sorted(INDEX_BANDS[i] - set(bands)) for i in bad}
         raise ValueError(f"Índices sem as bandas necessárias: {need}. Marque as bandas ou desmarque os índices.")
-    over = {k: v for k, v in base_cfg.items()}
-    over.update(PERIODS=sorted(train_periods), PREDICT_PERIODS=sorted(predict_periods or train_periods),
+    over = dict(cfg)
+    over.update(PERIODS=sorted(train_periods),
                 BANDS=[b for b in ALL_BANDS if b in bands] + [b for b in bands if b not in ALL_BANDS],
-                INDICES=[i for i in FULL_INDICES if i in indices], EPOCHS=int(epochs), BATCH=int(batch))
+                INDICES=[i for i in FULL_INDICES if i in indices])
     return make_config(**over)
+
+
+def build_opcoes(cfg, epochs, batch):
+    if int(epochs) < 1 or int(batch) < 1:
+        raise ValueError("Épocas e batch precisam ser maiores que zero.")
+    over = dict(cfg)
+    over.update(EPOCHS=int(epochs), BATCH=int(batch))
+    return make_config(**over)
+
+
+def build_classificar(cfg, predict_periods):
+    if not predict_periods:
+        raise ValueError("Marque pelo menos um período de CLASSIFICAÇÃO.")
+    over = dict(cfg)
+    over.update(PREDICT_PERIODS=sorted(predict_periods))
+    return make_config(**over)
+
+
+def mosaic_table(listing, bands=None):
+    """Linhas de texto: período x bandas do mosaico (✅ existe / ·  falta)."""
+    cols = list(bands or ALL_BANDS) + ["dayOfYear"]
+    lines = ["período   " + " ".join(f"{c[:7]:>8}" for c in cols)]
+    for key, info in listing.items():
+        if info["bands"]:
+            lines.append(f"{key:<9} " + " ".join(f"{('✅' if c in info['bands'] else '·'):>7}" for c in cols))
+    return lines
+
+
+def mostrar_mosaicos(cfg, listing=None):
+    """Passo 1: mostra quais meses têm mosaico e quais bandas foram exportadas (só leitura)."""
+    from unet_resumo import _cab
+    listing = listing if listing is not None else available_periods(cfg)
+    _cab(f"📋 MOSAICOS DISPONÍVEIS  |  {cfg['SENSOR']} {cfg['MOSAIC']}  |  {cfg['COUNTRY']}")
+    print("Para que serve: ver quais meses já têm imagem exportada (M2) e com quais bandas, antes de escolher o treino.\n")
+    rows = mosaic_table(listing)
+    if len(rows) == 1:
+        print("❌ Nenhum mosaico encontrado nessa pasta do GCS. Confira país, sensor e mosaico na configuração.")
+        return listing
+    print("\n".join("   " + r for r in rows))
+    print("\n💡 Quando faltar uma banda, o mês só serve se você desmarcar essa banda no passo 2.")
+    return listing
 
 
 # ---------------------------------------------------------------------------
@@ -90,56 +140,31 @@ def build_config(base_cfg, train_periods, predict_periods, bands, indices, epoch
 # ---------------------------------------------------------------------------
 
 
-class ConfigUI:
+class _Base:
     def __init__(self, cfg, listing=None):
         import ipywidgets as widgets
         self.w = widgets
         self.cfg = cfg
         self.listing = listing if listing is not None else available_periods(cfg)
-        L = widgets.Layout
-        needed = list(cfg["BANDS"]) + ([cfg["VALID_BAND"]] if cfg.get("VALID_BAND") else [])
-
-        keys = list(self.listing) or sorted(set(cfg["PERIODS"]) | set(cfg["PREDICT_PERIODS"]))
-        self.listing = {k: self.listing.get(k, {"bands": set(), "samples": []}) for k in keys}
-
-        def checks(selected):
-            return [widgets.Checkbox(value=k in selected, description=period_label(k, self.listing[k], needed),
-                                     indent=False, layout=L(width="auto")) for k in keys]
-
-        self.chk_train = checks(cfg["PERIODS"])
-        self.chk_pred = checks(cfg["PREDICT_PERIODS"])
-        self.chk_bands = [widgets.Checkbox(value=b in cfg["BANDS"], description=b, indent=False,
-                                           layout=L(width="95px")) for b in ALL_BANDS]
-        self.chk_idx = [widgets.Checkbox(value=i in cfg["INDICES"], description=i, indent=False,
-                                         layout=L(width="95px")) for i in FULL_INDICES]
-        self.w_epochs = widgets.IntText(value=cfg["EPOCHS"], description="Épocas:", layout=L(width="160px"))
-        self.w_batch = widgets.IntText(value=cfg["BATCH"], description="Batch:", layout=L(width="160px"))
         self.out = widgets.Output()
 
-        def box(title, hint, items):
-            return widgets.VBox([widgets.HTML(f"<b>{title}</b><br><span style='color:#666'>{hint}</span>"),
-                                 *items], layout=L(border="1px solid #ddd", padding="8px", margin="4px 0"))
+    def _box(self, title, hint, items):
+        w = self.w
+        return w.VBox([w.HTML(f"<b>{title}</b><br><span style='color:#666'>{hint}</span>"), *items],
+                      layout=w.Layout(border="1px solid #ddd", padding="8px", margin="4px 0"))
 
-        self.root = widgets.VBox([
-            box("🏫 Períodos de TREINO", "meses com mosaico <b>e</b> amostras; os chips de todos treinam um só modelo",
-                self.chk_train),
-            box("🗺️ Períodos de CLASSIFICAÇÃO", "meses a mapear com o modelo treinado; só precisam do mosaico",
-                self.chk_pred),
-            box("🛰️ Bandas", "só as que existem no mosaico (veja os marcadores acima)",
-                [widgets.HBox(self.chk_bands, layout=L(flex_flow="row wrap"))]),
-            box("🧮 Índices espectrais", "calculados das bandas; precisam das bandas de cada fórmula",
-                [widgets.HBox(self.chk_idx, layout=L(flex_flow="row wrap"))]),
-            box("⚙️ Treino", "valores maiores = mais tempo", [widgets.HBox([self.w_epochs, self.w_batch])]),
-            self.out,
-        ])
+    def _period_checks(self, selected, with_samples):
+        w = self.w
+        keys = list(self.listing) or sorted(set(selected))
+        self.keys = keys
+        need = _needed(self.cfg)
+        return [w.Checkbox(value=k in selected,
+                           description=period_label(k, self.listing.get(k, {"bands": set(), "samples": []}),
+                                                    need, with_samples),
+                           indent=False, layout=w.Layout(width="auto")) for k in keys]
 
-    def selected(self):
-        keys = list(self.listing)
-        pick = lambda cs: [k for k, c in zip(keys, cs) if c.value]
-        return dict(train_periods=pick(self.chk_train), predict_periods=pick(self.chk_pred),
-                    bands=[c.description for c in self.chk_bands if c.value],
-                    indices=[c.description for c in self.chk_idx if c.value],
-                    epochs=self.w_epochs.value, batch=self.w_batch.value)
+    def _picked(self, checks):
+        return [k for k, c in zip(self.keys, checks) if c.value]
 
     def show(self):
         from IPython.display import display
@@ -147,14 +172,90 @@ class ConfigUI:
         return self
 
 
-def run_ui(cfg, listing=None):
-    """Mostra a interface de escolha (lê no GCS os períodos e bandas existentes)."""
-    return ConfigUI(cfg, listing).show()
+class TreinoUI(_Base):
+    """Passo 2: períodos de treino (com mosaico e amostras), bandas e índices."""
+
+    def __init__(self, cfg, listing=None):
+        super().__init__(cfg, listing)
+        w = self.w
+        L = w.Layout
+        self.chk_train = self._period_checks(cfg["PERIODS"], with_samples=True)
+        self.chk_bands = [w.Checkbox(value=b in cfg["BANDS"], description=b, indent=False, layout=L(width="95px"))
+                          for b in ALL_BANDS]
+        self.chk_idx = [w.Checkbox(value=i in cfg["INDICES"], description=i, indent=False, layout=L(width="95px"))
+                        for i in FULL_INDICES]
+        self.root = w.VBox([
+            self._box("🏫 Períodos de TREINO", "meses com mosaico <b>e</b> amostras; os chips de todos treinam um só modelo",
+                      self.chk_train),
+            self._box("🛰️ Bandas", "só as que existem no mosaico (veja os marcadores acima)",
+                      [w.HBox(self.chk_bands, layout=L(flex_flow="row wrap"))]),
+            self._box("🧮 Índices espectrais", "calculados das bandas; precisam das bandas de cada fórmula",
+                      [w.HBox(self.chk_idx, layout=L(flex_flow="row wrap"))]),
+            self.out])
+
+    def selected(self):
+        return dict(train_periods=self._picked(self.chk_train),
+                    bands=[c.description for c in self.chk_bands if c.value],
+                    indices=[c.description for c in self.chk_idx if c.value])
 
 
-def apply_ui(ui):
-    """Devolve a configuração com o que está marcado na interface e imprime o resumo."""
-    cfg = build_config(ui.cfg, **ui.selected())
+class OpcoesUI(_Base):
+    """Passo 4: épocas e batch."""
+
+    def __init__(self, cfg, listing=None):
+        import ipywidgets as widgets
+        self.w = widgets
+        self.cfg = cfg
+        L = widgets.Layout
+        self.w_epochs = widgets.IntText(value=cfg["EPOCHS"], description="Épocas:", layout=L(width="170px"))
+        self.w_batch = widgets.IntText(value=cfg["BATCH"], description="Batch:", layout=L(width="170px"))
+        self.root = self._box("⚙️ Treino", "mais épocas = mais tempo; batch 8 cabe na GPU T4 do Colab",
+                              [widgets.HBox([self.w_epochs, self.w_batch])])
+
+    def selected(self):
+        return dict(epochs=self.w_epochs.value, batch=self.w_batch.value)
+
+
+class ClassificarUI(_Base):
+    """Passo 6: períodos de classificação (só precisam do mosaico)."""
+
+    def __init__(self, cfg, listing=None):
+        super().__init__(cfg, listing)
+        self.chk_pred = self._period_checks(cfg["PREDICT_PERIODS"], with_samples=False)
+        self.root = self._box("🗺️ Períodos de CLASSIFICAÇÃO",
+                              "meses a mapear com o modelo treinado; só precisam do mosaico com as bandas do modelo",
+                              self.chk_pred)
+
+    def selected(self):
+        return dict(predict_periods=self._picked(self.chk_pred))
+
+
+def run_ui_treino(cfg, listing=None):
+    return TreinoUI(cfg, listing).show()
+
+
+def run_ui_opcoes(cfg):
+    return OpcoesUI(cfg).show()
+
+
+def run_ui_classificar(cfg, listing=None):
+    return ClassificarUI(cfg, listing).show()
+
+
+def apply_treino(ui):
+    cfg = build_treino(ui.cfg, **ui.selected())
     from unet_resumo import print_config
     print_config(cfg)
+    return cfg
+
+
+def apply_opcoes(ui):
+    cfg = build_opcoes(ui.cfg, **ui.selected())
+    print(f"⚙️ Treino: {cfg['EPOCHS']} épocas, batch {cfg['BATCH']}.")
+    return cfg
+
+
+def apply_classificar(ui):
+    cfg = build_classificar(ui.cfg, **ui.selected())
+    print(f"🗺️ Períodos a classificar: {', '.join(cfg['PREDICT_PERIODS'])}")
     return cfg

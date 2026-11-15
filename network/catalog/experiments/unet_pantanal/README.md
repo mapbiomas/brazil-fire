@@ -63,7 +63,7 @@ unet_pantanal/
     unet_predict.py   sliding-window inference over the region, COG upload
     unet_report.py    test metrics, MLP baseline, comparison table
     unet_resumo.py    didactic printed summaries of the notebook steps (Portuguese)
-    unet_ui.py        notebook widgets: choose train / classify periods, bands, indices, epochs
+    unet_ui.py        notebook widgets, one per step: train periods/bands (step 2), epochs (4), classify periods (6)
   tests/test_unet_*.py                        unit tests
   docs/proposta_metodologia_unet_pantanal.md  slides outline: method proposal (Portuguese)
   docs/apresentacao_unet_pantanal.md          slides outline with results to fill (Portuguese)

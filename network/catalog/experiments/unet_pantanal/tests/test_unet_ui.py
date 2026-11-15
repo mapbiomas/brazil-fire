@@ -6,7 +6,8 @@ import unittest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from unet_config import make_config  # noqa: E402
-from unet_ui import available_periods, build_config, period_label  # noqa: E402
+from unet_ui import (ClassificarUI, OpcoesUI, TreinoUI, available_periods, build_classificar,  # noqa: E402
+                     build_opcoes, build_treino, mosaic_table, period_label)
 
 BASE = "mapbiomas-fire/sudamerica/brazil/CATALOG_01"
 TREE = {
@@ -40,40 +41,59 @@ class TestAvailablePeriods(unittest.TestCase):
         self.assertIn("sem amostras", period_label("2026_09", got["2026_09"], ["red"]))
 
 
-class TestBuildConfig(unittest.TestCase):
-    def test_ok_and_orders_bands(self):
-        cfg = build_config(make_config(), ["2026_10"], [], ["swir2", "red", "nir", "blue"], ["nbr"], 30, 4)
+class TestBuilders(unittest.TestCase):
+    def test_treino_orders_bands(self):
+        cfg = build_treino(make_config(), ["2026_10"], ["swir2", "red", "nir", "blue"], ["nbr"])
         self.assertEqual(cfg["PERIODS"], ["2026_10"])
-        self.assertEqual(cfg["PREDICT_PERIODS"], ["2026_10"])  # vazio = mesmo do treino
         self.assertEqual(cfg["BANDS"], ["blue", "red", "nir", "swir2"])
-        self.assertEqual((cfg["EPOCHS"], cfg["BATCH"]), (30, 4))
+        self.assertEqual(cfg["INDICES"], ["nbr"])
 
-    def test_separate_predict_periods(self):
-        cfg = build_config(make_config(), ["2026_10"], ["2026_09", "2026_10"], ["red"], [], 5, 2)
-        self.assertEqual(cfg["PREDICT_PERIODS"], ["2026_09", "2026_10"])
-
-    def test_errors(self):
+    def test_treino_errors(self):
         with self.assertRaises(ValueError):
-            build_config(make_config(), [], [], ["red"], [], 5, 2)
+            build_treino(make_config(), [], ["red"], [])
         with self.assertRaises(ValueError):
-            build_config(make_config(), ["2026_10"], [], [], [], 5, 2)
+            build_treino(make_config(), ["2026_10"], [], [])
         with self.assertRaises(ValueError):  # índice sem as bandas dele
-            build_config(make_config(), ["2026_10"], [], ["red"], ["nbr"], 5, 2)
+            build_treino(make_config(), ["2026_10"], ["red"], ["nbr"])
+
+    def test_opcoes_and_classificar(self):
+        cfg = build_opcoes(make_config(), 30, 4)
+        self.assertEqual((cfg["EPOCHS"], cfg["BATCH"]), (30, 4))
+        with self.assertRaises(ValueError):
+            build_opcoes(make_config(), 0, 4)
+        cfg = build_classificar(make_config(), ["2026_10", "2026_09"])
+        self.assertEqual(cfg["PREDICT_PERIODS"], ["2026_09", "2026_10"])
+        self.assertEqual(cfg["PERIODS"], ["2026_10"])  # treino não muda
+        with self.assertRaises(ValueError):
+            build_classificar(make_config(), [])
+
+
+class TestMosaicos(unittest.TestCase):
+    def test_table(self):
+        rows = mosaic_table(available_periods(make_config(), ls=fake_ls))
+        self.assertEqual(len(rows), 3)
+        self.assertIn("2026_10", rows[2])
+        self.assertEqual(rows[2].count("✅"), 7)
+        self.assertEqual(rows[1].count("✅"), 1)
 
 
 @unittest.skipUnless(__import__("importlib").util.find_spec("ipywidgets"), "ipywidgets ausente")
 class TestWidgets(unittest.TestCase):
-    def test_selected_roundtrip(self):
-        from unet_ui import ConfigUI
+    def test_treino_roundtrip(self):
         cfg = make_config(PERIODS=["2026_10"], BANDS=["red", "nir", "swir2"], INDICES=["nbr"])
-        ui = ConfigUI(cfg, listing=available_periods(cfg, ls=fake_ls))
-        sel = ui.selected()
-        self.assertEqual(sel["train_periods"], ["2026_10"])
-        self.assertEqual(sel["bands"], ["red", "nir", "swir2"])
-        self.assertEqual(sel["indices"], ["nbr"])
-        ui.chk_pred[0].value = True  # 2026_09
-        new = build_config(ui.cfg, **ui.selected())
-        self.assertEqual(new["PREDICT_PERIODS"], ["2026_09", "2026_10"])
+        ui = TreinoUI(cfg, listing=available_periods(cfg, ls=fake_ls))
+        self.assertEqual(ui.selected(), dict(train_periods=["2026_10"], bands=["red", "nir", "swir2"], indices=["nbr"]))
+        ui.chk_train[0].value = True  # 2026_09
+        self.assertEqual(build_treino(ui.cfg, **ui.selected())["PERIODS"], ["2026_09", "2026_10"])
+
+    def test_classificar_and_opcoes(self):
+        cfg = make_config()
+        ui = ClassificarUI(cfg, listing=available_periods(cfg, ls=fake_ls))
+        ui.chk_pred[0].value = True
+        self.assertEqual(build_classificar(ui.cfg, **ui.selected())["PREDICT_PERIODS"], ["2026_09", "2026_10"])
+        op = OpcoesUI(cfg)
+        op.w_epochs.value = 12
+        self.assertEqual(build_opcoes(op.cfg, **op.selected())["EPOCHS"], 12)
 
 
 if __name__ == "__main__":
