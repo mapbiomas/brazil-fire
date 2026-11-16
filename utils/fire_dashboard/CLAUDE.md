@@ -71,6 +71,11 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 
 - Seletores de país mostram a coleção de cada país (`COLECOES`, lida em segundo plano por `gifRegiao`); Paraguai e Indonésia: "coleção não informada".
 - Mapa por território: sem bolhas; "Comparar anos" = ano B − ano A ou ano − média do período. Clique: contorno em destaque (halo) e zoom. "Baixar mapa (PNG)" (`baixarMapaPng`): copia tiles e canvas do Leaflet (`preferCanvas`, tiles com `crossOrigin`) e acrescenta título, legenda, escala, seta do norte e fonte. `L.control.scale` em todos os mapas.
+- Resolução do PNG: `PNG_ESC = 3`. Durante a cópia, `graficosEmAltaResolucao` redesenha os gráficos com `devicePixelRatio` 3 (Chart.js e o mapa de calor, via `canvas._redesenhar`) e depois volta ao normal; sem isso o PNG era a bitmap da tela esticada (borrada).
+- Eixo só de anos (gráficos anuais): fonte 2 pt menor e anos a 60° para caber todos os rótulos (`soAnos` em `chartConfig`).
+- Cada card tem também o botão direto "⬇ CSV" (além de Tabela → "Baixar tabela (CSV)").
+- Mapas interativos: `ligarFundoDoMapa` põe o seletor "Mapa de fundo" (cinza · branco · satélite Esri; guardado em `localStorage` "fogo:fundoMapa"; "branco" não carrega tiles). "⬇ Baixar mapa (PNG)" usa o mesmo menu de largura (`pngMenuHtml(i, true)` + `ligarMenuPngMapa`): `baixarMapaPng(..., largura)` redimensiona o `box` (altura proporcional, `zoomSnap` 0), reenquadra a mesma área, espera os tiles e restaura.
+- Aba Frequência: porcentagens sem casas decimais (`pctInt`; `pctInteiro` no spec e `rotulos: "pct0"`).
 - Largura do PNG (`pngMenuHtml`, `larguraEscolhida`): "⬇ PNG" abre um menu (como na tela · 480 · 720 · 1.100 px · outra de 320 a 2.400 px), guardado em `localStorage` "fogo:pngLargura". `baixarGraficoPng(root, card, largura)` põe essa largura no `.card-body`, chama `Chart.resize()`, espera 200 ms (por tempo, não `requestAnimationFrame`, que não vem com a aba em segundo plano), copia e restaura.
 - Gráficos anual e acumulado: vista "Horizontal" (barras deitadas, anos de cima para baixo) no seletor Barras · Horizontal · Linhas · Por bioma. `specNaVista` vira `kind: "hbar"` com altura de 17 px por ano; está em `VISTAS_DE_CORPO` porque a caixa muda de altura. A linha da média (dataset de linha) fica vertical sozinha com `indexAxis: "y"`.
 - Mapa por território (2026-11-11):

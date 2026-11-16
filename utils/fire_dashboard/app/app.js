@@ -2020,9 +2020,9 @@ async function loadFrequencia({ t, ini, fim }) {
       {
         label: "Frequência predominante",
         value: predominante?.value ? predominante.label : "—",
-        note: predominante?.value ? `${pct(safeDiv(predominante.value, total))} da área queimada · ${ha(predominante.value)}` : "",
+        note: predominante?.value ? `${pctInt(safeDiv(predominante.value, total))} da área queimada · ${ha(predominante.value)}` : "",
       },
-      { label: "Queimou 2 vezes ou mais", value: ha(total - umaVez), note: `${pct(safeDiv(total - umaVez, total))} da área queimada` },
+      { label: "Queimou 2 vezes ou mais", value: ha(total - umaVez), note: `${pctInt(safeDiv(total - umaVez, total))} da área queimada` },
     ],
     cards: [
       {
@@ -2032,7 +2032,7 @@ async function loadFrequencia({ t, ini, fim }) {
         alterna: "rosca",
         chart: {
           kind: "hbar",
-          labels: porFaixa.map((f) => `${f.label} · ${pct(safeDiv(f.value, total))}`),
+          labels: porFaixa.map((f) => `${f.label} · ${pctInt(safeDiv(f.value, total))}`),
           tooltipTitles: porFaixa.map((f) => f.label),
           values: porFaixa.map((f) => f.value),
           colors: porFaixa.map((f) => f.color),
@@ -2049,10 +2049,10 @@ async function loadFrequencia({ t, ini, fim }) {
           axisTitle: emPct ? "Participação na área queimada (%)" : "Área queimada (ha)",
           categoryTitle: "Número de vezes que queimou",
           labels: barras.map((c) => c.short),
-          tooltipTitles: barras.map((c) => `${c.label} · ${ha(c.value)} · ${pct(safeDiv(c.value, total))}`),
+          tooltipTitles: barras.map((c) => `${c.label} · ${ha(c.value)} · ${pctInt(safeDiv(c.value, total))}`),
           values: barras.map((c) => (emPct ? safeDiv(c.value, total) : c.value)),
           colors: barras.map((c) => c.color),
-          rotulos: emPct ? "pct" : "",
+          rotulos: emPct ? "pct0" : "", pctInteiro: true,
           height: 340,
         },
         rosca: [{ slices: barras.filter((b) => b.value > 0).map((b) => ({ label: b.label, value: b.value, color: b.color })) }],
@@ -3172,20 +3172,49 @@ const PNG_MIN = 320, PNG_MAX = 2400;
 function lerLarguraPng() {
   try { return JSON.parse(localStorage.getItem("fogo:pngLargura")) || { op: "", px: 900 }; } catch { return { op: "", px: 900 }; }
 }
-function pngMenuHtml(i) {
+// Nos mapas o mesmo menu usa data-mapa (em vez de data-acao) para não cair no clique do card.
+function pngMenuHtml(i, mapa = false) {
   const s = lerLarguraPng();
   const op = (v, rotulo) => `<label class="png-op"><input type="radio" name="pngw-${i}" value="${v}"${s.op === v ? " checked" : ""}> ${escapeHtml(rotulo)}</label>`;
+  const attr = mapa ? "data-mapa" : "data-acao";
   return `
           <div class="png-troca">
-            <button type="button" data-acao="png-menu" aria-expanded="false" title="Baixar gráfico (PNG)">⬇ PNG</button>
+            ${mapa
+    ? `<button type="button" class="md-botao" data-mapa="png-menu" aria-expanded="false">⬇ Baixar mapa (PNG)</button>`
+    : `<button type="button" data-acao="png-menu" aria-expanded="false" title="Baixar gráfico (PNG)">⬇ PNG</button>`}
             <div class="png-pop" hidden>
               <span class="cor-pop-titulo">Largura da imagem</span>
               ${PNG_LARGURAS.map(([v, r]) => op(v, r)).join("")}
               <label class="png-op"><input type="radio" name="pngw-${i}" value="outra"${s.op === "outra" ? " checked" : ""}> Outra:
                 <input type="number" class="png-px" min="${PNG_MIN}" max="${PNG_MAX}" step="10" value="${Number(s.px) || 900}" aria-label="Largura em pixels"> px</label>
-              <button type="button" class="png-baixar" data-acao="png">⬇ Baixar PNG</button>
+              <button type="button" class="png-baixar" ${attr}="png">⬇ Baixar PNG</button>
             </div>
           </div>`;
+}
+// Liga o menu de largura de um mapa: abre/fecha e, ao baixar, chama aoBaixar(largura ou null).
+function ligarMenuPngMapa(el, aoBaixar) {
+  el.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mapa]");
+    if (!b) return;
+    const troca = b.closest(".png-troca");
+    const pop = troca.querySelector(".png-pop");
+    const botao = troca.querySelector("[data-mapa='png-menu']");
+    if (b.dataset.mapa === "png-menu") {
+      pop.hidden = !pop.hidden;
+      botao.setAttribute("aria-expanded", String(!pop.hidden));
+      if (!pop.hidden) {
+        const s = lerLarguraPng();
+        const r = pop.querySelector(`input[type=radio][value="${s.op}"]`);
+        if (r) r.checked = true;
+        pop.querySelector(".png-px").value = Number(s.px) || 900;
+      }
+      return;
+    }
+    const largura = larguraEscolhida(troca);
+    pop.hidden = true;
+    botao.setAttribute("aria-expanded", "false");
+    aoBaixar(largura);
+  });
 }
 function larguraEscolhida(root) {
   const pop = root.querySelector(".png-pop");
@@ -3735,6 +3764,7 @@ function cardHtml(card, i, view) {
   const acoes = temDados ? `
         <div class="card-acoes">
           ${pngMenuHtml(i)}
+          <button type="button" data-acao="csv" title="Baixar os valores deste gráfico em planilha (CSV)">⬇ CSV</button>
           <button type="button" data-acao="tabela" aria-pressed="false" title="Ver a tabela com os valores">▦ Tabela</button>
         </div>` : "";
   const info = infoDoCard(card);
@@ -4279,6 +4309,42 @@ function doughnutHtml({ slices, centerLabel = "total" }) {
 
 // ---------- Mapa (Leaflet) ----------
 
+// Mapa de fundo escolhido pelo usuário (vale para todos os mapas e fica guardado no navegador).
+// Todos sem chave de API (o da CARTO passou a exigir chave). "branco" não usa tiles.
+const FUNDOS_MAPA = [["cinza", "Fundo cinza"], ["branco", "Fundo branco"], ["satelite", "Satélite"]];
+function lerFundoMapa() {
+  try { const f = localStorage.getItem("fogo:fundoMapa"); return FUNDOS_MAPA.some(([v]) => v === f) ? f : "cinza"; } catch { return "cinza"; }
+}
+function ligarFundoDoMapa(map, box, dark) {
+  const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services";
+  let camada = null;
+  const aplicar = (fundo) => {
+    if (camada) map.removeLayer(camada);
+    camada = null;
+    map._fundo = fundo;
+    box.classList.toggle("fundo-branco", fundo === "branco");
+    if (fundo === "branco") return;
+    const url = fundo === "satelite"
+      ? `${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`
+      : `${ESRI}/Canvas/${dark ? "World_Dark_Gray_Base" : "World_Light_Gray_Base"}/MapServer/tile/{z}/{y}/{x}`;
+    // zIndex 0: o fundo fica sempre embaixo das camadas de fogo, mesmo trocado depois.
+    camada = L.tileLayer(url, {
+      maxZoom: fundo === "satelite" ? 18 : 16,
+      zIndex: 0,
+      crossOrigin: "anonymous",
+      attribution: fundo === "satelite" ? "Tiles &copy; Esri &mdash; Esri, Maxar, Earthstar Geographics" : "Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap",
+    }).addTo(map);
+  };
+  aplicar(lerFundoMapa());
+  const ops = FUNDOS_MAPA.map(([v, r]) => `<option value="${v}"${v === map._fundo ? " selected" : ""}>${escapeHtml(r)}</option>`).join("");
+  controleNoMapa(map, "bottomleft", `<label class="md-fundo"><span>Mapa de fundo</span> <select aria-label="Mapa de fundo">${ops}</select></label>`, (div) => {
+    div.querySelector("select").addEventListener("change", (e) => {
+      try { localStorage.setItem("fogo:fundoMapa", e.target.value); } catch { /* sem armazenamento */ }
+      aplicar(e.target.value);
+    });
+  });
+}
+
 function renderMap(box, spec) {
   const dark = document.documentElement.dataset.theme === "dark" ||
     (document.documentElement.dataset.theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
@@ -4289,23 +4355,17 @@ function renderMap(box, spec) {
   state.map = map;
   L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
 
-  // Basemap sem chave de API (o da CARTO passou a exigir chave).
-  const canvas = dark ? "World_Dark_Gray_Base" : "World_Light_Gray_Base";
-  L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${canvas}/MapServer/tile/{z}/{y}/{x}`, {
-    maxZoom: 16,
-    crossOrigin: "anonymous",
-    attribution: "Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap",
-  }).addTo(map);
+  ligarFundoDoMapa(map, box, dark);
 
   if (spec.dinamico) return renderMapaDinamico(map, spec.dinamico, tokens, box);
   if (spec.choropleth) return renderChoropleth(map, spec.choropleth, tokens);
 
   const atribuicao = `MapBiomas Fogo · Coleção ${escapeHtml(state.conn.colecao || "?")}`;
   const principal = L.tileLayer(spec.tileUrl, { maxZoom: 18, opacity: 0.95, crossOrigin: "anonymous", attribution: atribuicao }).addTo(map);
-  controleNoMapa(map, "topright", `<button type="button" class="md-botao">⬇ Baixar mapa (PNG)</button>`, (div) => {
-    div.querySelector("button").addEventListener("click", () => {
+  controleNoMapa(map, "topright", pngMenuHtml(`m${Math.random().toString(36).slice(2, 7)}`, true), (div) => {
+    ligarMenuPngMapa(div, (largura) => {
       const card = box.closest(".card");
-      baixarMapaPng(map, box, card?.querySelector("h2")?.textContent?.replace("ⓘ", "").trim() || "Mapa", card?.querySelector(".legend-row"));
+      baixarMapaPng(map, box, card?.querySelector("h2")?.textContent?.replace("ⓘ", "").trim() || "Mapa", card?.querySelector(".legend-row"), largura);
     });
   });
   if (spec.modo === "sobrepor" && spec.tileUrl2) {
@@ -4675,7 +4735,7 @@ function renderMapaDinamico(map, spec, tokens, box) {
       <span class="md-busca-msg" aria-live="polite"></span>
     </div>` : ""}
     <div class="md-passo"><span class="md-num">${comBusca ? 4 : 3}</span><span class="md-rotulo">Baixar</span>
-      <button type="button" class="md-botao md-png">⬇ Baixar mapa (PNG)</button>
+      <span class="md-png">${pngMenuHtml(`md${root.dataset.card}`, true)}</span>
       <button type="button" class="md-botao md-csv" title="Planilha com o valor de cada ${nomeUnid} e a série anual">⬇ Baixar dados (CSV)</button>
     </div>`;
 
@@ -4710,12 +4770,12 @@ function renderMapaDinamico(map, spec, tokens, box) {
     desenhar();
   }
 
+  ligarMenuPngMapa(ctlBox, (largura) => baixarMapaPng(map, box, tituloIndicador(), legBox, largura));
   ctlBox.addEventListener("click", (e) => {
     const b = e.target.closest("button");
-    if (!b) return;
+    if (!b || b.dataset.mapa) return;
     if (b.classList.contains("md-play")) return alternarPlay();
     if (b.classList.contains("md-csv")) return baixarCsv();
-    if (b.classList.contains("md-png")) return baixarMapaPng(map, box, tituloIndicador(), legBox);
     const g = b.closest("[data-g]")?.dataset.g;
     if (!g || st[g] === b.dataset.v) return;
     pararPlay();
@@ -4866,7 +4926,45 @@ function itensDaLegenda(el) {
   }).filter((x) => x.label);
 }
 
-async function baixarMapaPng(map, box, titulo, legendaEl) {
+// Com largura escolhida: estreita (ou alarga) o mapa só durante a cópia, encaixa a mesma
+// área na nova largura, espera os tiles carregarem e depois devolve o mapa como estava.
+async function baixarMapaPng(map, box, titulo, legendaEl, largura = null) {
+  if (!largura || Math.abs(largura - box.clientWidth) < 2) return baixarMapaPngAgora(map, box, titulo, legendaEl);
+  const antes = box.style.cssText, centro = map.getCenter(), zoom = map.getZoom(), area = map.getBounds();
+  const esperarTiles = async () => {
+    await sleep(250);
+    for (let k = 0; k < 40; k++) {
+      let carregando = false;
+      map.eachLayer((l) => { if (l.isLoading?.()) carregando = true; });
+      if (!carregando) break;
+      await sleep(150);
+    }
+    await sleep(150);
+  };
+  try {
+    setStatus(tr("Preparando o mapa na largura escolhida…"));
+    // Mesma proporção do mapa da tela (altura acompanha a largura) e zoom fracionário,
+    // para a mesma área caber sem sobrar borda.
+    const alturaNova = Math.max(260, Math.round(box.clientHeight * largura / box.clientWidth));
+    box.style.width = `${largura}px`;
+    box.style.maxWidth = "none";
+    box.style.height = `${alturaNova}px`;
+    box.style.minHeight = "0";
+    map.options.zoomSnap = 0;
+    map.invalidateSize({ animate: false });
+    map.fitBounds(area, { animate: false });
+    await esperarTiles();
+    await baixarMapaPngAgora(map, box, titulo, legendaEl);
+  } finally {
+    map.options.zoomSnap = 1;
+    box.style.cssText = antes;
+    map.invalidateSize({ animate: false });
+    map.setView(centro, zoom, { animate: false });
+    setStatus("");
+  }
+}
+
+async function baixarMapaPngAgora(map, box, titulo, legendaEl) {
   const W = box.clientWidth, H = box.clientHeight;
   const pad = 16, cab = 58, esc = 2;
   const medir = document.createElement("canvas").getContext("2d");
@@ -4901,7 +4999,7 @@ async function baixarMapaPng(map, box, titulo, legendaEl) {
   ctx.beginPath();
   ctx.rect(pad, cab, W, H);
   ctx.clip();
-  ctx.fillStyle = resolveColor("var(--surface-muted)") || "#eeeeee";
+  ctx.fillStyle = map._fundo === "branco" ? "#ffffff" : resolveColor("var(--surface-muted)") || "#eeeeee";
   ctx.fillRect(pad, cab, W, H);
   for (const img of box.querySelectorAll(".leaflet-tile-pane img")) {
     if (!img.complete || !img.naturalWidth) continue;
@@ -4979,7 +5077,7 @@ async function baixarMapaPng(map, box, titulo, legendaEl) {
   }
   ctx.fillStyle = "#666666";
   ctx.font = "500 10px Montserrat, sans-serif";
-  ctx.fillText(tr(`Fonte: ${PAIS.marca} · plataforma.mapbiomas.org · mapa base Esri`), pad, cab + H + rodape - 12, W);
+  ctx.fillText(tr(`Fonte: ${PAIS.marca} · plataforma.mapbiomas.org${map._fundo === "branco" ? "" : " · mapa base Esri"}`), pad, cab + H + rodape - 12, W);
 
   try {
     const blob = await new Promise((resolve, reject) => cv.toBlob((b) => (b ? resolve(b) : reject(new Error("vazio"))), "image/png"));
@@ -5134,7 +5232,7 @@ function chartConfig(spec, t) {
   const stacked = spec.kind === "stacked" || spec.kind === "combo";
   const multi = stacked || spec.kind === "grouped";
   const valueOf = (ctx) => (horizontal ? ctx.parsed.x : ctx.parsed.y);
-  const fmtValor = spec.percent ? (v) => pct(v)
+  const fmtValor = spec.percent ? (v) => (spec.pctInteiro ? pctInt(v) : pct(v))
     : spec.unit === "Mha" ? (v) => mha(v, 2)
     : spec.unit === "mil" ? (v) => ha(v)
     : (v) => `${fmtFull.format(v)} ha`;
@@ -5162,7 +5260,7 @@ function chartConfig(spec, t) {
     beginAtZero: true,
     grid: { display: false },
     border: { display: true, color: t.text },
-    ticks: { color: t.text, maxTicksLimit: 6, font: { size: fonte, weight: pesoEixo }, callback: (v) => (spec.percent ? pct(v) : fmtCompact.format(v)) },
+    ticks: { color: t.text, maxTicksLimit: 6, font: { size: fonte, weight: pesoEixo }, callback: (v) => (spec.percent ? (spec.pctInteiro ? pctInt(v) : pct(v)) : fmtCompact.format(v)) },
   };
   if (spec.percent && stacked) valueAxis.max = 1;
   if (spec.unit === "Mha") {
@@ -5411,7 +5509,7 @@ function doughnutConfig({ slices }, t) {
 const rotulosBarrasPlugin = {
   id: "rotulosBarras",
   afterDatasetsDraw(chart, _args, opts) {
-    if (opts?.formato !== "pct" || chart.config.type !== "bar") return;
+    if (!["pct", "pct0"].includes(opts?.formato) || chart.config.type !== "bar") return;
     const ds = chart.data.datasets[0];
     if (!ds) return;
     const vals = ds.data.map((v) => Number(v) || 0);
@@ -5426,7 +5524,7 @@ const rotulosBarrasPlugin = {
     chart.getDatasetMeta(0).data.forEach((barra, i) => {
       const p = safeDiv(vals[i], tot);
       if (p < 0.005) return;
-      const txt = pct(p);
+      const txt = opts.formato === "pct0" ? pctInt(p) : pct(p);
       if (horizontal) ctx.fillText(txt, barra.x + 4, barra.y);
       else ctx.fillText(txt, barra.x, barra.y - 3);
     });
@@ -6479,6 +6577,9 @@ const fmtMhaEixo = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
 const mha = (v, casas = 1) =>
   `${new Intl.NumberFormat(LOCALE, { maximumFractionDigits: casas }).format((v || 0) / 1e6)} Mha`;
 const pct = (v) => fmtPct.format(Number.isFinite(v) ? v : 0);
+// Porcentagem inteira (aba Frequência): 5% em vez de 5,3%.
+const fmtPct0 = new Intl.NumberFormat(LOCALE, { style: "percent", maximumFractionDigits: 0 });
+const pctInt = (v) => fmtPct0.format(Number.isFinite(v) ? v : 0);
 const sum = (arr) => arr.reduce((s, v) => s + v, 0);
 const mean = (arr) => (arr.length ? sum(arr) / arr.length : 0);
 const safeDiv = (a, b) => (b ? a / b : 0);

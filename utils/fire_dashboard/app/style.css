@@ -1310,6 +1310,13 @@ a.md-botao { display: inline-block; text-decoration: none; }
   text-align: left;
 }
 .png-pop[hidden] { display: none; }
+.md-png { display: inline-flex; }
+.leaflet-container.fundo-branco { background: #ffffff; }
+.md-fundo { display: flex; align-items: center; gap: 6px; }
+.md-fundo select {
+  padding: 2px 6px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); color: var(--text); font: inherit; font-size: .78rem;
+}
 .png-op { display: flex; align-items: center; gap: 6px; margin: 4px 0; font-size: .8rem; color: var(--text); cursor: pointer; white-space: nowrap; }
 .png-px {
   width: 70px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 6px;
