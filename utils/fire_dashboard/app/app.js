@@ -2314,6 +2314,27 @@ async function loadUltimoFogo({ t, ini, fim }) {
     })
     .filter(Boolean);
 
+  // Proporção por períodos (como na figura do RAF): blocos de ~10 anos que começam em anos terminados
+  // em 4 (1985–1993, 1994–2003, 2004–2013, 2014–2025). Em períodos curtos, divide em partes iguais.
+  const anosPeriodo = range(ini, fim);
+  let cortes = anosPeriodo.filter((a) => a > ini && a % 10 === 4);
+  // Bloco curto demais (menos de 5 anos no fim, menos de 3 no início) é unido ao vizinho.
+  while (cortes.length && fim + 1 - cortes[cortes.length - 1] < 5) cortes.pop();
+  while (cortes.length && cortes[0] - ini < 3) cortes.shift();
+  if (cortes.length < 2 && anosPeriodo.length >= 4) {
+    const partes = Math.min(4, anosPeriodo.length);
+    cortes = Array.from({ length: partes - 1 }, (_, k) => ini + Math.round(((k + 1) * anosPeriodo.length) / partes));
+  }
+  const limites = [ini, ...cortes, fim + 1];
+  const CORES_PERIODO = { 1: ["#8c0b0f"], 2: ["#8c0b0f", "#00297f"], 3: ["#8c0b0f", "#d06a00", "#00297f"], 4: ["#8c0b0f", "#d06a00", "#00839c", "#00297f"] };
+  const nBlocos = Math.min(4, limites.length - 1);
+  const periodos = Array.from({ length: limites.length - 1 }, (_, k) => {
+    const a = limites[k], b = limites[k + 1] - 1;
+    return { a, b, label: a === b ? String(a) : `${a} – ${b}`, value: sum(dados.filter((d) => d.ano >= a && d.ano <= b).map((d) => d.value)) };
+  }).reverse(); // mais recente primeiro
+  periodos.forEach((p, k) => { p.color = (CORES_PERIODO[nBlocos] || CORES_PERIODO[4])[Math.min(k, nBlocos - 1)]; });
+  const tituloPeriodos = `Proporção da última ocorrência do fogo ${IDIOMA.id === "pt" ? `entre ${ini} e ${fim}` : `${ini}–${fim}`}`;
+
   return {
     kpis: [
       { label: `Área queimada pela última vez nos últimos 5 anos (${Math.max(ini, fim - 4)}–${fim})`, value: pct(safeDiv(recentes, total)), note: ha(recentes) },
@@ -2341,6 +2362,25 @@ async function loadUltimoFogo({ t, ini, fim }) {
       },
       {
         span: 6,
+        title: tituloPeriodos,
+        subtitle: "Parte da área queimada segundo o período do último fogo",
+        alterna: "rosca",
+        vistaPadrao: "rosca",
+        chart: {
+          kind: "bar",
+          percent: true,
+          axisTitle: "Participação na área queimada (%)",
+          categoryTitle: "Período do último fogo",
+          labels: periodos.map((p) => p.label),
+          tooltipTitles: periodos.map((p) => `${p.label} · ${ha(p.value)} · ${pct(safeDiv(p.value, total))}`),
+          values: periodos.map((p) => safeDiv(p.value, total)),
+          colors: periodos.map((p) => p.color),
+          rotulos: "pct",
+        },
+        rosca: [{ slices: periodos.filter((p) => p.value > 0).map((p) => ({ label: p.label, value: p.value, color: p.color })) }],
+      },
+      {
+        span: 6,
         title: "Tempo decorrido desde o último fogo",
         subtitle: `Em relação a ${fim}`,
         alterna: "rosca",
@@ -2353,7 +2393,7 @@ async function loadUltimoFogo({ t, ini, fim }) {
         },
       },
       {
-        span: 6,
+        span: 12,
         title: "Anos de último fogo com mais área",
         subtitle: "Top 5",
         ranking: {
