@@ -10,10 +10,15 @@ Same CRS, pixel size and pixel alignment as the mosaic.
 The region is classified in horizontal strips; each finished strip is saved in GCS
 ({predict}/parts/{name}/part_NNN.tif), so a Colab disconnection only loses the strip in
 progress: running the step again resumes from the next strip.
+
+Speed: the mosaic is read one row of windows at a time (one big read per band, bands in
+parallel threads, the next row prefetched) and the windows are prepared in worker threads
+while the GPU predicts the previous batch.
 """
 import math
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
@@ -129,6 +134,8 @@ def assemble_parts(final_path, profile, win, strips, part_path, tile):
     from rasterio.windows import Window
     total = [0, 0, 0]
     with rasterio.open(final_path, "w", **profile) as dst:
+        for i, nm in enumerate(BAND_NAMES, 1):
+            dst.set_band_description(i, nm)
         for k, srow, sh in strips:
             with rasterio.open(part_path(k)) as src:
                 tags = src.tags()
@@ -139,6 +146,33 @@ def assemble_parts(final_path, profile, win, strips, part_path, tile):
                     dst.write(src.read(window=Window(0, r, src.width, h)),
                               window=Window(0, srow - int(win.row_off) + r, src.width, h))
     return tuple(total)
+
+
+def split_rows(tiles):
+    """Agrupa as janelas por linha: [(row, [(row, col, h, w), ...]), ...], de cima para baixo."""
+    rows = {}
+    for tl in tiles:
+        rows.setdefault(tl[0], []).append(tl)
+    return sorted(rows.items())
+
+
+def block_geometry(row, tiles, tile, overlap):
+    """Bloco de leitura de UMA linha de janelas: (c_min, col_off, row_off, largura, altura).
+
+    Cobre as janelas dadas com a borda de sobreposição; cada janela é um recorte de
+    (tile + 2*overlap) colunas a partir de `col - c_min`.
+    """
+    c_min = min(tl[1] for tl in tiles)
+    c_max = max(tl[1] for tl in tiles)
+    return c_min, c_min - overlap, row - overlap, (c_max - c_min) + tile + 2 * overlap, tile + 2 * overlap
+
+
+def _gdal_tuning():
+    """Opções do GDAL para ler COGs do GCS (/vsigs/); o que o usuário já definiu é mantido."""
+    for k, v in {"GDAL_HTTP_MULTIPLEX": "YES", "GDAL_HTTP_MERGE_CONSECUTIVE_RANGES": "YES",
+                 "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR", "VSI_CACHE": "TRUE",
+                 "VSI_CACHE_SIZE": str(256 * 1024 * 1024), "GDAL_CACHEMAX": "512"}.items():
+        os.environ.setdefault(k, v)
 
 
 def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True, overwrite=False,
@@ -171,6 +205,7 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True, o
 
     T, O = cfg["INFER_TILE"], cfg["OVERLAP"]
     threshold = get_threshold(cfg, logger)
+    _gdal_tuning()
     reader = MosaicReader(cfg, period, logger)
     try:
         region = region_geometry(cfg, reader.crs, logger)
@@ -203,70 +238,129 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True, o
         bands, indices = cfg["BANDS"], cfg["INDICES"]
         t0 = time.time()
         n_done_tiles = 0
+        wait = {"leitura": 0.0, "preparo": 0.0, "gpu": 0.0}
+        strip_info = {k: (srow, sh) for k, srow, sh in strips}
+        work = [(k, row, tl) for k, _, _ in strips if k not in done for row, tl in split_rows(by_strip[k])]
+        n_cpu = max(2, min(4, os.cpu_count() or 2))
+        io_pool = ThreadPoolExecutor(max_workers=len(reader.all_bands)) if not reader.multiband else None
+        cpu_pool = ThreadPoolExecutor(max_workers=n_cpu)
+        row_exec = ThreadPoolExecutor(max_workers=1)
+        cur = {"k": None, "dst": None, "counts": None}
 
         def part_local(k):
             return os.path.join(tmp, f"{name}_{part_name(k)}")
 
-        for k, srow, sh in strips:
-            if k in done:
-                continue
-            counts = [0, 0, 0]  # válidos, queimados (>= limiar), prob > 0
+        def start_part(k):
+            srow, sh = strip_info[k]
             sprofile = dict(profile, height=sh,
                             transform=win_transform(Window(int(win.col_off), srow, W, sh), reader.transform))
-            with rasterio.open(part_local(k), "w", **sprofile) as dst:
-                for i, nm in enumerate(BAND_NAMES, 1):
-                    dst.set_band_description(i, nm)
-                batch = []
+            dst = rasterio.open(part_local(k), "w", **sprofile)
+            for i, nm in enumerate(BAND_NAMES, 1):
+                dst.set_band_description(i, nm)
+            cur.update(k=k, dst=dst, counts=[0, 0, 0])  # válidos, queimados (>= limiar), prob > 0
 
-                def flush():
-                    if not batch:
-                        return
-                    xb = np.stack([b["x"] for b in batch])
-                    prob = np.asarray(model.predict_on_batch(xb))[..., 0]
-                    for b, pr in zip(batch, prob):
-                        h, w = b["h"], b["w"]
-                        core = pr[O:O + h, O:O + w]
-                        bu, p, d = to_output(core, b["valid"], b["doy"], threshold)
-                        dwin = Window(b["col"] - int(win.col_off), b["row"] - srow, w, h)
-                        dst.write(bu, 1, window=dwin)
-                        dst.write(p, 2, window=dwin)
-                        dst.write(d, 3, window=dwin)
-                        counts[0] += int(b["valid"].sum())
-                        counts[1] += int((bu == 1).sum())
-                        counts[2] += int((p > 0).sum())
-                    batch.clear()
-
-                for row, col, h, w in by_strip[k]:
-                    n_done_tiles += 1
-                    if n_done_tiles % 200 == 0:
-                        el = time.time() - t0
-                        _log(logger, f"  [CLASSIFICAR] {n_done_tiles}/{todo_tiles} janelas | {el / 60:.1f} min | "
-                                     f"faltam ~{el / n_done_tiles * (todo_tiles - n_done_tiles) / 60:.1f} min")
-                    core_win = Window(col, row, w, h)
-                    core_tf = win_transform(core_win, reader.transform)
-                    if region_p is not None:
-                        from rasterio.windows import bounds as wb
-                        if not region_p.intersects(box(*wb(core_win, reader.transform))):
-                            continue
-                    in_win = Window(col - O, row - O, T + 2 * O, T + 2 * O)
-                    raw, valid = reader.read(in_win)
-                    core_valid = valid[O:O + h, O:O + w]
-                    if region is not None:
-                        core_valid &= geometry_mask([region], (h, w), core_tf, invert=True)
-                    if not core_valid.any():
-                        continue
-                    x = normalize(add_indices(scale_bands(raw, cfg["SCALE"], valid), bands, indices), stats)
-                    doy = reader.read_doy(core_win)
-                    batch.append({"x": x, "valid": core_valid, "doy": doy,
-                                  "row": row, "col": col, "h": h, "w": w})
-                    if len(batch) >= cfg["INFER_BATCH"]:
-                        flush()
-                flush()
-                dst.update_tags(valid_pixels=counts[0], burned_pixels=counts[1], prob_pixels=counts[2])
+        def finish_part():
+            if cur["dst"] is None:
+                return
+            c = cur["counts"]
+            cur["dst"].update_tags(valid_pixels=c[0], burned_pixels=c[1], prob_pixels=c[2])
+            cur["dst"].close()
+            cur["dst"] = None
             if upload_result:
-                upload(cfg, part_local(k), f"{parts_rel}/{part_name(k)}")
-                _log(logger, f"[CLASSIFICAR] faixa {k + 1}/{len(strips)} salva no GCS "
+                upload(cfg, part_local(cur["k"]), f"{parts_rel}/{part_name(cur['k'])}")
+                _log(logger, f"[CLASSIFICAR] faixa {cur['k'] + 1}/{len(strips)} salva no GCS "
                              f"({(time.time() - t0) / 60:.1f} min)")
+
+        def load_row(row, tiles):
+            """Lê de uma vez o bloco de uma linha de janelas (só as que tocam a região)."""
+            active = tiles
+            if region_p is not None:
+                from rasterio.windows import bounds as wb
+                active = [tl for tl in tiles if region_p.intersects(
+                    box(*wb(Window(tl[1], tl[0], tl[3], tl[2]), reader.transform)))]
+            if not active:
+                return {"tiles": []}
+            c_min, co, ro, bw, bh = block_geometry(row, active, T, O)
+            raw, valid, doy = reader.read_all(Window(co, ro, bw, bh), pool=io_pool)
+            return {"tiles": active, "c_min": c_min, "raw": raw, "valid": valid, "doy": doy}
+
+        def prep_tile(blk, tl):
+            """Recorta a janela do bloco e prepara a entrada da rede (roda em thread)."""
+            row, col, h, w = tl
+            x0 = col - blk["c_min"]
+            raw_t = blk["raw"][:, :, x0:x0 + T + 2 * O]
+            valid_t = blk["valid"][:, x0:x0 + T + 2 * O]
+            core_valid = valid_t[O:O + h, O:O + w].copy()
+            if region is not None:
+                from rasterio.windows import bounds as wb
+                core_win = Window(col, row, w, h)
+                if not region_p.contains(box(*wb(core_win, reader.transform))):  # só nas bordas da região
+                    core_valid &= geometry_mask([region], (h, w), win_transform(core_win, reader.transform),
+                                                invert=True)
+            if not core_valid.any():
+                return None
+            x = normalize(add_indices(scale_bands(raw_t, cfg["SCALE"], valid_t), bands, indices), stats)
+            doy = None if blk["doy"] is None else blk["doy"][O:O + h, x0 + O:x0 + O + w]
+            return {"x": x, "valid": core_valid, "doy": doy, "row": row, "col": col, "h": h, "w": w}
+
+        def predict_write(batch):
+            t1 = time.time()
+            srow = strip_info[cur["k"]][0]
+            xb = np.stack([b["x"] for b in batch])
+            prob = np.asarray(model.predict_on_batch(xb))[..., 0]
+            for b, pr in zip(batch, prob):
+                h, w = b["h"], b["w"]
+                bu, p, d = to_output(pr[O:O + h, O:O + w], b["valid"], b["doy"], threshold)
+                dwin = Window(b["col"] - int(win.col_off), b["row"] - srow, w, h)
+                cur["dst"].write(bu, 1, window=dwin)
+                cur["dst"].write(p, 2, window=dwin)
+                cur["dst"].write(d, 3, window=dwin)
+                cur["counts"][0] += int(b["valid"].sum())
+                cur["counts"][1] += int((bu == 1).sum())
+                cur["counts"][2] += int((p > 0).sum())
+            wait["gpu"] += time.time() - t1
+
+        def run_row(blk):
+            """Prepara as janelas em threads enquanto a GPU prediz o lote anterior."""
+            tiles, B = blk["tiles"], cfg["INFER_BATCH"]
+            groups = [tiles[i:i + B] for i in range(0, len(tiles), B)]
+            futs = [cpu_pool.submit(prep_tile, blk, tl) for tl in groups[0]]
+            for gi in range(len(groups)):
+                t1 = time.time()
+                items = [f.result() for f in futs]
+                wait["preparo"] += time.time() - t1
+                futs = ([cpu_pool.submit(prep_tile, blk, tl) for tl in groups[gi + 1]]
+                        if gi + 1 < len(groups) else [])
+                batch = [i for i in items if i is not None]
+                if batch:
+                    predict_write(batch)
+
+        try:
+            fut = row_exec.submit(load_row, work[0][1], work[0][2]) if work else None
+            for i, (k, row, tl) in enumerate(work):
+                t1 = time.time()
+                blk = fut.result()
+                wait["leitura"] += time.time() - t1
+                fut = row_exec.submit(load_row, work[i + 1][1], work[i + 1][2]) if i + 1 < len(work) else None
+                if cur["k"] != k:
+                    finish_part()
+                    start_part(k)
+                if blk["tiles"]:
+                    run_row(blk)
+                del blk
+                n_done_tiles += len(tl)
+                el = time.time() - t0
+                _log(logger, f"  [CLASSIFICAR] {n_done_tiles}/{todo_tiles} janelas | {el / 60:.1f} min | "
+                             f"faltam ~{el / n_done_tiles * (todo_tiles - n_done_tiles) / 60:.1f} min | espera: "
+                             f"leitura {wait['leitura']:.0f}s, preparo {wait['preparo']:.0f}s, GPU {wait['gpu']:.0f}s")
+            finish_part()
+        finally:
+            if cur["dst"] is not None:
+                cur["dst"].close()
+            row_exec.shutdown(wait=True, cancel_futures=True)
+            cpu_pool.shutdown(wait=True, cancel_futures=True)
+            if io_pool is not None:
+                io_pool.shutdown(wait=True, cancel_futures=True)
 
         # junta as faixas (as que já estavam no GCS são baixadas)
         for k, _, _ in strips:

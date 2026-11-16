@@ -114,17 +114,29 @@ class MosaicReader:
         out[r_a - r0:r_b - r0, c_a - c0:c_b - c0] = data
         return out
 
-    def read(self, window):
-        raw = np.stack([self.read_band(b, window) for b in self.bands])
-        if self.valid_band:
-            valid = self.read_band(self.valid_band, window) > 0
+    def read_all(self, window, pool=None):
+        """(raw, valid, doy): like read(), plus the dayOfYear window (None without VALID_BAND).
+
+        With a thread pool the bands are read in parallel (each band is its own file and handle).
+        """
+        names = self.all_bands
+        if pool is not None and not self.multiband:
+            arrs = list(pool.map(lambda b: self.read_band(b, window), names))
         else:
-            # No dayOfYear: outside the image / masked pixels are 0 in every band.
-            valid = np.any(raw > 0, axis=0)
+            arrs = [self.read_band(b, window) for b in names]
+        by = dict(zip(names, arrs))
+        raw = np.stack([by[b] for b in self.bands])
+        doy = by[self.valid_band] if self.valid_band else None
+        # No dayOfYear: outside the image / masked pixels are 0 in every band.
+        valid = (doy > 0) if doy is not None else np.any(raw > 0, axis=0)
         for b, arr in zip(self.bands, raw):
             nodata = self.sources[b].nodata
             if nodata is not None:
                 valid &= arr != nodata
+        return raw, valid, doy
+
+    def read(self, window):
+        raw, valid, _ = self.read_all(window)
         return raw, valid
 
     def read_doy(self, window):
