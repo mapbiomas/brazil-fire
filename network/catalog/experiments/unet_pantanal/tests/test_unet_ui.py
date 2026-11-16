@@ -205,6 +205,11 @@ class TestWidgets(unittest.TestCase):
         self.assertIn("GEE ✅", pub.chk[1].description)
         self.assertEqual(pub.selected(), ["2026_09"])  # só o que ainda não está no GEE
         self.assertEqual(PublicarUI(cfg, maps=[], assets=set()).selected(), [])  # versão sem mapas
+        from unet_ui import JuntarUI
+        jun = JuntarUI(cfg, status=[("2026_09", 36, 36), ("2026_10", 20, 36)])
+        self.assertEqual(jun.selected(), ["2026_09"])  # o incompleto fica desmarcado e bloqueado
+        self.assertTrue(jun.chk[1].disabled)
+        self.assertEqual(JuntarUI(cfg, status=[]).selected(), [])
         op = OpcoesUI(self.cfg)
         op.w_epochs.value = 12
         self.assertEqual(build_opcoes(op.cfg, **op.selected())["EPOCHS"], 12)

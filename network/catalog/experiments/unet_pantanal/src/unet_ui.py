@@ -485,8 +485,58 @@ class ClassificarUI(_Base):
         return dict(predict_periods=[k for k, c in zip(self.keys, self.chk_pred) if c.value])
 
 
+class JuntarUI(_Base):
+    """Passo 6.3: meses com faixas no GCS; marca os completos para juntar no mapa final."""
+
+    def __init__(self, cfg, status=None):
+        import ipywidgets as w
+        from unet_predict import assembly_status
+        self.w, self.cfg = w, cfg
+        L = w.Layout
+        self.status = status if status is not None else assembly_status(cfg)
+        self.chk = []
+        for period, done, total in self.status:
+            ok = done >= total
+            self.chk.append(w.Checkbox(
+                value=ok, disabled=not ok, indent=False, layout=L(width="auto"),
+                description=f"{period}  ·  faixas {done}/{total}  ·  " + ("✅ pronto para juntar" if ok else
+                                                                          "⏳ incompleto (rode o 6.2 de novo)")))
+        self.root = w.VBox([
+            _box(w, "🧩 Juntar as faixas em um mapa",
+                 f"versão {cfg['MODEL_NAME']}; cada mês vira um COG em <code>predict/</code>",
+                 self.chk or [w.HTML("Nenhum mês com faixas pendentes (ou o mapa já foi juntado). "
+                                     "Rode o 6.2 se ainda falta classificar.")])])
+
+    def selected(self):
+        return [s[0] for s, c in zip(self.status, self.chk) if c.value and not c.disabled]
+
+
+def run_ui_juntar(cfg, status=None):
+    return JuntarUI(cfg, status).show()
+
+
+def apply_juntar(ui, overwrite=False):
+    """Junta as faixas dos meses marcados (passo 6.3)."""
+    from unet_predict import assemble_map
+    out = {}
+    periods = ui.selected()
+    if not periods:
+        print("Nenhum mês marcado: nada a juntar.")
+        return out
+    for period in periods:
+        print(f"🧩 Juntando {period}...")
+        res = assemble_map(ui.cfg, period, overwrite=overwrite)
+        out[period] = res
+        if res.get("skipped"):
+            continue
+        print(f"Mapa de {period} salvo em {res['gcs']}")
+        print(f"   {res['valid_pixels']:,} pixels válidos | {res['burned_pixels']:,} queimados "
+              f"(limiar {res['threshold']:.2f}) | {res['minutes']} min")
+    return out
+
+
 class PublicarUI(_Base):
-    """Passo 6.3: mapas da versão no GCS e quais já estão no GEE (como o M6 do production)."""
+    """Passo 6.4: mapas da versão no GCS e quais já estão no GEE (como o M6 do production)."""
 
     def __init__(self, cfg, maps=None, assets=None):
         import ipywidgets as w
@@ -505,7 +555,7 @@ class PublicarUI(_Base):
         self.root = w.VBox([
             _box(w, "☁️ Mapas para subir ao GEE",
                  f"versão {cfg['MODEL_NAME']}; destino: <code>{dest}</code>",
-                 self.chk or [w.HTML("❌ Esta versão ainda não tem mapas em predict/. Rode o 6.2 antes.")])])
+                 self.chk or [w.HTML("❌ Esta versão ainda não tem mapas em predict/. Rode o 6.2 e o 6.3 antes.")])])
 
     def selected(self):
         return [p for p, c in zip(self.maps, self.chk) if c.value]

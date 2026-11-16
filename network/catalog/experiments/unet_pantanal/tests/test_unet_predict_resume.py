@@ -84,5 +84,21 @@ class TestResumeState(unittest.TestCase):
         self.assertEqual((done, deleted, written), (set(), [], [self.MANIFEST]))
 
 
+@unittest.skipUnless(HAVE, "numpy/rasterio ausentes")
+class TestAssemblyStatus(unittest.TestCase):
+    CFG = make_config(TRAINING_ID="1", SHORTNAME="pantanal_r1", REGION="Pantanal_r1")
+
+    def test_status(self):
+        P = unet_predict.paths(self.CFG)
+        root = f"gs://{P['bucket']}/{P['predict']}/parts"
+        man = {"col_off": 0, "row_off": 0, "width": 10, "height": 16, "tile": 4, "strip_rows": 2}  # 2 faixas
+        files = [f"{root}/pantanal_r1_2026_10_prob/{n}" for n in ("manifest.json", "part_000.tif", "part_001.tif")]
+        files += [f"{root}/pantanal_r1_2026_11_prob/{n}" for n in ("manifest.json", "part_000.tif")]
+        files += [f"{root}/pantanal_r1_2026_12_prob/part_000.tif"]  # sem manifesto: ignorado
+        files += [f"{root}/outra_2026_09_prob/manifest.json"]  # outra região: ignorada
+        got = unet_predict.assembly_status(self.CFG, files, {"2026_10": man, "2026_11": man})
+        self.assertEqual(got, [("2026_10", 2, 2), ("2026_11", 1, 2)])
+
+
 if __name__ == "__main__":
     unittest.main()

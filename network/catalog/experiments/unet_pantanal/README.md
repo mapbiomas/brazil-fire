@@ -109,7 +109,8 @@ splits/region_{region}.geojson              cached region geometry
 stats/norm_stats.json                       clip limits, mean and std (train chips only)
 models/{MODEL_NAME}.keras                   trained U-Net (+ _metadata.json, _history.csv)
 predict/{region}_{period}_prob.tif          COG, bands burned / prob / doy
-predict/parts/{region}_{period}_prob/       strips of the map in progress (resume after a disconnection; removed at the end)
+predict/parts/{region}_{period}_prob/       strips of the map (step 6.2; resume after a disconnection;
+                                            removed after step 6.3 joins them into the COG)
 reports/chips_{period}.json                 inventory, sample counts, dropped chips, overlaps
 reports/chips_preview_{period}.png          16 train chips with labels
 reports/metrics_{period}.json               test metrics

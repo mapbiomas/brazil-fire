@@ -175,12 +175,123 @@ def _gdal_tuning():
         os.environ.setdefault(k, v)
 
 
+def _finish(cfg, period, name, rel, parts_rel, profile, win, strips, T, threshold, t0, logger, upload_result, tmp):
+    """Junta as faixas (baixando as que faltam), faz o COG, sobe ao GCS e apaga as faixas."""
+    from rasterio.shutil import copy as rio_copy
+    P = paths(cfg)
+
+    def part_local(k):
+        return os.path.join(tmp, f"{name}_{part_name(k)}")
+
+    missing = [k for k, _, _ in strips if not os.path.exists(part_local(k))]
+    for n, k in enumerate(missing, 1):
+        _log(logger, f"[JUNTAR] baixando a faixa {k + 1}/{len(strips)} do GCS ({n}/{len(missing)})")
+        gcs.download(f"{P['bucket']}/{parts_rel}/{part_name(k)}", part_local(k))
+    _log(logger, f"[JUNTAR] juntando {len(strips)} faixas em um raster de {profile['width']}x{profile['height']} px")
+    local_tif = os.path.join(tmp, f"{name}_tmp.tif")
+    t1 = time.time()
+    n_valid, n_burned, n_prob = assemble_parts(local_tif, profile, win, strips, part_local, T)
+    _log(logger, f"[JUNTAR] faixas juntadas em {(time.time() - t1) / 60:.1f} min; convertendo para COG "
+                 f"(a parte mais demorada, sem mensagens até terminar)")
+    cog = os.path.join(tmp, f"{name}.tif")
+    t1 = time.time()
+    rio_copy(local_tif, cog, driver="COG", COMPRESS="DEFLATE", BIGTIFF="IF_SAFER")
+    os.remove(local_tif)
+    _log(logger, f"[JUNTAR] COG pronto em {(time.time() - t1) / 60:.1f} min "
+                 f"({os.path.getsize(cog) / 1e9:.2f} GB)")
+    summary = {"period": period, "model": cfg["MODEL_NAME"], "gcs": f"gs://{P['bucket']}/{rel}",
+               "valid_pixels": n_valid, "burned_pixels": n_burned, "pixels_prob_gt_0": n_prob,
+               "threshold": threshold, "bands": list(BAND_NAMES), "assembled": True,
+               "encoding": (f"burned: 1 if prob >= {threshold:.2f}, else 0; prob: probability int16 0-1000; "
+                            + ("doy: dayOfYear where prob > 0" if cfg.get("VALID_BAND") else
+                               "doy: empty (-9999), no dayOfYear band")) + "; nodata -9999",
+               "minutes": round((time.time() - t0) / 60, 1)}
+    if upload_result:
+        _log(logger, "[JUNTAR] enviando o COG ao GCS")
+        upload(cfg, cog, rel)
+        write_json(cfg, f"{P['reports']}/predict_{period}.json", summary)
+        delete_files(cfg, gcs.list_files(parts_rel))  # só depois do mapa final salvo
+    for k, _, _ in strips:
+        if os.path.exists(part_local(k)):
+            os.remove(part_local(k))
+    _log(logger, f"[JUNTAR] {period} -> {summary['gcs']}")
+    summary["local"] = cog
+    return summary
+
+
+def assembly_status(cfg, files=None, manifests=None):
+    """Meses com faixas no GCS: [(período, faixas prontas, faixas esperadas)], só os que têm manifesto."""
+    import re
+    P = paths(cfg)
+    parts_root = f"{P['predict']}/parts"
+    if files is None:
+        files = gcs.list_files(parts_root)
+    pat = re.compile(rf"/{re.escape(region_slug(cfg))}_(\d{{4}}(?:_\d{{2}})?)_prob/([^/]+)$")
+    found = {}
+    for f in files:
+        m = pat.search(f)
+        if m:
+            found.setdefault(m.group(1), set()).add(m.group(2))
+    out = []
+    for period in sorted(found):
+        names = found[period]
+        if "manifest.json" not in names:
+            continue
+        man = (manifests or {}).get(period)
+        if man is None:
+            man = read_json(f"{parts_root}/{region_slug(cfg)}_{period}_prob/manifest.json")
+        from rasterio.windows import Window
+        win = Window(man["col_off"], man["row_off"], man["width"], man["height"])
+        total = len(strip_plan(win, man["tile"], man["strip_rows"]))
+        done = len([n for n in names if n.startswith("part_") and n.endswith(".tif")])
+        out.append((period, done, total))
+    return out
+
+
+def assemble_map(cfg, period, logger=None, overwrite=False):
+    """Passo 6.3: junta as faixas salvas no GCS no COG final do mês (sem precisar do modelo nem da GPU)."""
+    from rasterio.windows import Window
+    from rasterio.windows import transform as win_transform
+    period = period_info(period)[0]
+    P = paths(cfg)
+    name = f"{region_slug(cfg)}_{period}_prob"
+    rel = f"{P['predict']}/{name}.tif"
+    parts_rel = f"{P['predict']}/parts/{name}"
+    if not overwrite and gcs.blob_exists(f"{P['bucket']}/{rel}"):
+        _log(logger, f"[JUNTAR] {period}: o mapa já existe no GCS, pulando")
+        return {"period": period, "gcs": f"gs://{P['bucket']}/{rel}", "skipped": True}
+    try:
+        man = read_json(f"{parts_rel}/manifest.json")
+    except Exception:
+        raise RuntimeError(f"{period}: não há faixas salvas em {parts_rel}. Rode o passo 6.2 antes.")
+    win = Window(man["col_off"], man["row_off"], man["width"], man["height"])
+    strips = strip_plan(win, man["tile"], man["strip_rows"])
+    have = {os.path.basename(f) for f in gcs.list_files(parts_rel)}
+    absent = [k + 1 for k, _, _ in strips if part_name(k) not in have]
+    if absent:
+        raise RuntimeError(f"{period}: faltam as faixas {absent} de {len(strips)}. Rode o passo 6.2 de novo "
+                           f"para terminar a classificação.")
+    reader = MosaicReader(cfg, period, logger)
+    try:
+        profile = {
+            "driver": "GTiff", "width": int(win.width), "height": int(win.height),
+            "count": 3, "dtype": "int16", "crs": reader.crs, "transform": win_transform(win, reader.transform),
+            "nodata": NODATA, "tiled": True, "blockxsize": 512, "blockysize": 512,
+            "compress": "deflate", "BIGTIFF": "IF_SAFER",
+        }
+    finally:
+        reader.close()
+    return _finish(cfg, period, name, rel, parts_rel, profile, win, strips, man["tile"],
+                   man.get("threshold", 0.5), time.time(), logger, True, local_dir("predict"))
+
+
 def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True, overwrite=False,
-                   strip_rows=STRIP_ROWS):
+                   strip_rows=STRIP_ROWS, assemble=True):
     """Classify the region of one period and upload a COG. Returns the summary dict.
 
     The result of every strip is saved in GCS as it finishes, and an existing final map is not
-    redone unless overwrite=True.
+    redone unless overwrite=True. With assemble=False the strips stay in GCS and the final COG is
+    made later by assemble_map() (notebook step 6.3).
     """
     import rasterio
     from rasterio.features import geometry_mask
@@ -362,32 +473,12 @@ def predict_mosaic(cfg, period, model, stats, logger=None, upload_result=True, o
             if io_pool is not None:
                 io_pool.shutdown(wait=True, cancel_futures=True)
 
-        # junta as faixas (as que já estavam no GCS são baixadas)
-        for k, _, _ in strips:
-            if not os.path.exists(part_local(k)):
-                gcs.download(f"{P['bucket']}/{parts_rel}/{part_name(k)}", part_local(k))
-        local_tif = os.path.join(tmp, f"{name}_tmp.tif")
-        n_valid, n_burned, n_prob = assemble_parts(local_tif, profile, win, strips, part_local, T)
-        cog = os.path.join(tmp, f"{name}.tif")
-        from rasterio.shutil import copy as rio_copy
-        rio_copy(local_tif, cog, driver="COG", COMPRESS="DEFLATE", BIGTIFF="IF_SAFER")
-        os.remove(local_tif)
-        summary = {"period": period, "model": cfg["MODEL_NAME"], "gcs": f"gs://{P['bucket']}/{rel}",
-                   "valid_pixels": n_valid, "burned_pixels": n_burned, "pixels_prob_gt_0": n_prob,
-                   "threshold": threshold, "bands": list(BAND_NAMES),
-                   "encoding": (f"burned: 1 if prob >= {threshold:.2f}, else 0; prob: probability int16 0-1000; "
-                                + ("doy: dayOfYear where prob > 0" if cfg.get("VALID_BAND") else
-                                   "doy: empty (-9999), no dayOfYear band")) + "; nodata -9999",
-                   "minutes": round((time.time() - t0) / 60, 1)}
-        if upload_result:
-            upload(cfg, cog, rel)
-            write_json(cfg, f"{P['reports']}/predict_{period}.json", summary)
-            delete_files(cfg, gcs.list_files(parts_rel))  # só depois do mapa final salvo
-        for k, _, _ in strips:
-            if os.path.exists(part_local(k)):
-                os.remove(part_local(k))
-        _log(logger, f"[CLASSIFICAR] {period} -> {summary['gcs']} ({summary['minutes']} min nesta sessão)")
-        summary["local"] = cog
-        return summary
+        if not assemble and upload_result:
+            _log(logger, f"[CLASSIFICAR] {period}: {len(strips)} faixas prontas no GCS "
+                         f"({(time.time() - t0) / 60:.1f} min nesta sessão). Falta juntar (passo 6.3).")
+            return {"period": period, "model": cfg["MODEL_NAME"], "assembled": False,
+                    "strips": len(strips), "minutes": round((time.time() - t0) / 60, 1)}
+        return _finish(cfg, period, name, rel, parts_rel, profile, win, strips, T, threshold, t0, logger,
+                       upload_result, tmp)
     finally:
         reader.close()
