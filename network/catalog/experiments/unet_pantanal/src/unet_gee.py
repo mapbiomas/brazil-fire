@@ -114,17 +114,22 @@ def publish(cfg, periods, logger=print, run=None):
     runs in the GEE Tasks tab).
     """
     import ee
-    run = run or (lambda cmd: subprocess.run(cmd, shell=True).returncode)
+    def default_run(cmd):
+        # captura a saída: no Colab a mensagem de erro do CLI não aparece na célula
+        r = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        out = ((r.stdout or "") + (r.stderr or "")).strip()
+        if r.returncode and out:
+            logger("      motivo: " + out[-1500:].replace("\n", "\n      "))
+        return r.returncode
+
+    run = run or default_run
     folders, collection = gee_folders(cfg)
-    for f in folders:
+    for kind, path in [("Folder", f) for f in folders] + [("ImageCollection", collection)]:
         try:
-            ee.data.createAsset({"type": "Folder"}, f)
-        except Exception:
-            pass  # já existe
-    try:
-        ee.data.createAsset({"type": "ImageCollection"}, collection)
-    except Exception:
-        pass
+            ee.data.createAsset({"type": kind}, path)
+        except Exception as e:
+            if "exist" not in str(e).lower():  # "já existe" é normal; o resto (permissão, projeto) importa
+                logger(f"   ⚠️ não foi possível criar {path}: {e}")
     done = {}
     for period in periods:
         aid = asset_id(cfg, period)
@@ -138,6 +143,10 @@ def publish(cfg, periods, logger=print, run=None):
         ok = run(upload_command(cfg, period, map_threshold(cfg, period))) == 0
         done[period] = ok
         logger(f"   {'✅ enviado' if ok else '❌ falhou'}: {period} → {aid}")
+    if not all(done.values()):
+        logger("💡 Se o motivo for credencial ou permissão: o CLI `earthengine` usa as credenciais do Colab, "
+               "então rode `earthengine authenticate` (ou `!earthengine --project "
+               f"{cfg['GEE_EXPORT_PROJECT']} ls`) para testar o acesso ao projeto.")
     if any(done.values()):
         logger("💡 A ingestão roda no GEE: acompanhe na aba Tasks do Code Editor (leva alguns minutos).")
     return done
