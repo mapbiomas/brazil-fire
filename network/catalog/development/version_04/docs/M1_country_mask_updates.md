@@ -21,11 +21,16 @@ invalid/nodata.
    directory, applies the country mask in fixed-size raster windows, writes a
    temporary replacement, and uploads it to the same object key. The old COG
    remains until the replacement upload succeeds. If only chunks exist, M2
-   assembles those chunks. If neither COG nor chunks exists, use the normal M1
-   export first.
+   assembles those chunks. Chunks without a COG display `READY` even if a
+   correction is pending; the pending entry is completed only after successful
+   assembly. If neither COG nor chunks exists, use the normal M1 export first.
 4. Temporary input/output rasters are removed after processing, including on
    failure. Refresh the module to see the completed item return to **OK**; a
    failed mask or assembly remains selectable for retry.
+
+The manifest is saved as a whole object; concurrent or stale UI sessions can
+overwrite each other's updates. Coordinate writers and do not mark ambiguous
+existing entries complete or remove them merely to change their label.
 
 M2 rasterizes the polygon parts of the configured country features on the
 original grid using `gdal_rasterize`, caches the raster mask locally for the

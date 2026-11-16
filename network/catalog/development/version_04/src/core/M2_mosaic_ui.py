@@ -375,8 +375,8 @@ class MosaicAssemblerUI(PipelineStepUI):
                     'has_chunks': has_chunks,
                 })
 
-                if country_update and (exists_cog or has_chunks):
-                    # A legacy COG/chunk update is explicitly selectable even
+                if country_update and exists_cog:
+                    # A legacy COG update is explicitly selectable even
                     # when edit mode is off; the ordinary M2 start cell runs it.
                     chk.disabled = False
                     cell = PipelineStepUI.make_status_cell(

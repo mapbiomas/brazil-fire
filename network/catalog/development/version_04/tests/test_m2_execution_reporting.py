@@ -10,6 +10,43 @@ import M2_mosaic_ui as ui_module
 
 
 class ExecutionReportingTests(unittest.TestCase):
+    def test_pending_update_grid_routes_chunks_and_cog(self):
+        for has_cog in (False, True):
+            with self.subTest(has_cog=has_cog):
+                ui = ui_module.MosaicAssemblerUI.__new__(ui_module.MosaicAssemblerUI)
+                ui.now, ui.years, ui.bands, ui.chk_dict = SimpleNamespace(), [2025], ['red'], {}
+                ui.state = {'cogs_monthly': ['mosaic'] if has_cog else [],
+                            'gcs_chunks': {'mosaic': ['red']}}
+                entry = {'country': 'testland', 'sensor': 'sentinel2', 'period': 'monthly',
+                         'mosaic': 'minnbr', 'period_key': '2025_01', 'band': 'red',
+                         'type': 'GCS', 'status': 'pending'}
+                ui.update_manifest = {'version': 1, 'items': [entry]}
+                ui._reload_current_tab = Mock()
+                period = SimpleNamespace(year=2025, key='2025_01', index=1, periodicity='monthly')
+                with patch.object(ui_module, 'CONFIG', {'country': 'testland', 'bucket': 'test'}), \
+                     patch.object(ui_module, 'list_periods', return_value=[period]), \
+                     patch.object(ui_module, 'get_sensor_start_year', return_value=2000), \
+                     patch.object(ui_module, 'period_state_key', return_value='cogs_monthly'), \
+                     patch.object(ui_module, 'mosaic_name_for_period', return_value='mosaic'), \
+                     patch.object(ui_module, 'period_cog_path', return_value='cogs'), \
+                     patch.object(ui_module, 'is_edit_mode', return_value=False), \
+                     patch.object(ui_module, 'cell_log'), \
+                     patch.object(ui_module, 'save_manifest'), \
+                     patch.object(ui_module.CacheManager, 'build_cache_from_gcs', return_value={}), \
+                     patch('M2_mosaic_logic.assemble_country_mosaic', return_value=['done']) as assemble, \
+                     patch('M2_mosaic_logic.mask_existing_country_cog', return_value=True) as mask:
+                    grid = ui._build_mosaic_grid('sentinel2', 'monthly', 'minnbr')
+                    self.assertIn('UPDATE' if has_cog else 'READY',
+                                  grid.children[1].children[2].children[1].value)
+                    checkbox = next(iter(ui.chk_dict.values()))
+                    self.assertFalse(checkbox.disabled)
+                    self.assertTrue(checkbox._meta['country_update'])
+                    checkbox.value = True
+                    ui_module.start_mosaic_assembly(ui)
+                self.assertEqual(assemble.call_count, 0 if has_cog else 1)
+                self.assertEqual(mask.call_count, 1 if has_cog else 0)
+                self.assertEqual(entry['status'], 'complete')
+
     def test_normal_chunk_grid_routes_to_assembly_without_manifest_update(self):
         ui = ui_module.MosaicAssemblerUI.__new__(ui_module.MosaicAssemblerUI)
         ui.now, ui.years, ui.bands, ui.chk_dict = SimpleNamespace(), [2025], ['red'], {}
