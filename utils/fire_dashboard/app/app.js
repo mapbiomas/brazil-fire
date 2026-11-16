@@ -3403,14 +3403,16 @@ function desenharCalor(canvas, d, tokens) {
   const medir = document.createElement("canvas").getContext("2d");
   medir.font = fonte;
   const rotW = Math.ceil(Math.max(...d.linhas.map((l) => medir.measureText(l).width))) + 10;
-  let geo = null, larguraFeita = 0;
+  let geo = null, larguraFeita = 0, dprFeito = 0;
+  canvas._redesenhar = desenhar; // o PNG pede um redesenho em alta resolução
 
   function desenhar() {
     if (!canvas.isConnected) return ro.disconnect();
     const W = box.clientWidth;
-    if (!W || W === larguraFeita) return;
+    const dpr = dprDoPng || window.devicePixelRatio || 1;
+    if (!W || (W === larguraFeita && dpr === dprFeito)) return;
     larguraFeita = W;
-    const dpr = window.devicePixelRatio || 1;
+    dprFeito = dpr;
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
     canvas.style.width = `${W}px`;
@@ -4083,14 +4085,41 @@ async function baixarGraficoPng(root, card, largura = null) {
   }
 }
 
+// Resolução do PNG: 3 pixels da imagem para cada pixel da tela (um card de 700 px vira ~2200 px).
+// Os gráficos são redesenhados nessa resolução só durante a cópia; antes eram copiados da tela
+// (1 pixel por pixel num monitor comum) e esticados, o que deixava a imagem borrada.
+const PNG_ESC = 3;
+let dprDoPng = 0;
+
+async function graficosEmAltaResolucao(canvases) {
+  const redesenhar = () => {
+    for (const c of canvases) {
+      const ch = Chart.getChart(c);
+      if (ch) {
+        ch.options.devicePixelRatio = dprDoPng || undefined;
+        ch.resize();
+        ch.update("none"); ch.draw();
+      } else c._redesenhar?.();
+    }
+  };
+  dprDoPng = PNG_ESC;
+  redesenhar();
+  return () => { dprDoPng = 0; redesenhar(); };
+}
+
 async function baixarGraficoPngAgora(root, card) {
   const body = root.querySelector(".card-body");
   const canvases = [...body.querySelectorAll("canvas")].filter((c) => c.offsetWidth);
+  const voltarResolucao = await graficosEmAltaResolucao(canvases);
+  try { await montarPng(root, card, body, canvases); } finally { voltarResolucao(); }
+}
+
+async function montarPng(root, card, body, canvases) {
   // Partes feitas em HTML (barras 100%, listas, destaques, legendas com valores) também vão para a imagem.
   const htmls = elementosHtmlDoPng(body);
   if (!canvases.length && !htmls.length) return setStatus(tr("Este card não tem gráfico para baixar; use a tabela."));
   const br = body.getBoundingClientRect();
-  const W = Math.ceil(br.width), pad = 16, cab = 52, esc = 2;
+  const W = Math.ceil(br.width), pad = 16, cab = 52, esc = PNG_ESC;
   const altura = Math.max(...[...canvases, ...htmls].map((c) => c.getBoundingClientRect().bottom)) - br.top + 4;
   const itens = itensDaLegenda(root.querySelector(".legend-row"));
   // Legenda da imagem igual à da tela: quase preta e em negrito (notas sem negrito).
@@ -5122,6 +5151,12 @@ function chartConfig(spec, t) {
     border: { display: true, color: t.text },
     ticks: { color: t.text, maxRotation: 0, autoSkip: !horizontal, autoSkipPadding: 12, font: { size: fonte, weight: pesoEixo } },
   };
+  // Eixo de anos em pé (gráfico anual, acumulado...): fonte menor e anos inclinados,
+  // para caber mais anos escritos (de preferência todos) em vez de pular de 3 em 3.
+  const soAnos = !horizontal && (spec.labels || []).length > 8 && spec.labels.every((l) => /^\d{4}$/.test(String(l)));
+  if (soAnos) {
+    Object.assign(categoryAxis.ticks, { minRotation: 60, maxRotation: 60, autoSkipPadding: 2, font: { size: fonte - 2, weight: pesoEixo } });
+  }
   const valueAxis = {
     stacked,
     beginAtZero: true,
