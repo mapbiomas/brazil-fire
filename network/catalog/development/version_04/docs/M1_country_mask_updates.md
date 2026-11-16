@@ -87,6 +87,25 @@ directory. The output can require substantial disk space, and the local Peru
 benchmark took over an hour per full-country band. Start with one band when
 validating a new Colab runtime; actual performance and disk needs vary.
 
+For each band, M2 removes local chunk copies and the VRT after the masked TIFF
+has been written and closed; for an existing COG it similarly removes the local
+source copy. Remote chunks are retained until the output passes local validation
+and its upload succeeds. GDAL subprocess temporary directories are isolated per
+job. The masked TIFF is still materialized and LZW compression and overview
+settings are unchanged.
+
+Before COG conversion, M2 compares free space with the masked TIFF size plus a
+reserve of 2 GiB. To change the reserve after M0 initialization, set
+`M0_auth_config.CONFIG['m2_cog_reserve_bytes']` to a non-negative integer number
+of bytes. Reinitializing M0 requires setting it again. This estimate may reject
+a conversion that would fit or allow one that later runs out of space; it does
+not reserve disk space or monitor conversion. If disk usage cannot be measured,
+conversion is not started. A rejected estimate affects that item, while an
+observed disk-full error stops further queue submissions; already running jobs
+are not cancelled. A small concurrency window remains around submission.
+If manifest persistence fails, stop and reconcile its remote state before retrying.
+Avoid concurrent sessions writing the same manifest or COG.
+
 The manifest identity is country, sensor, periodicity, mosaic method, period
 key, band and target. Campaign is deliberately excluded. M1's default
 `years=None` spans all available years; pass an explicit year range to work in

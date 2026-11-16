@@ -1,12 +1,15 @@
 print("\n>>> M2_mosaic_ui initializing (v7.0 Tabs) <<<")
 import traceback
+import errno
+import copy
+import threading
 import os
 import posixpath
 import re
 import shutil
 import sys
 import ipywidgets as widgets
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
 from M0_auth_config import CONFIG, GLOBAL_OPTS, mosaic_name_for_period, is_edit_mode, period_cog_path, get_sensor_start_year, resolve_years
 from M_periods import list_periods, period_state_key
@@ -682,6 +685,29 @@ def process_country_mosaic_item(item, manifest, logger=print, persist_manifest=T
     return result
 
 
+def _is_disk_full(error):
+    """Recognize OS and GDAL/subprocess disk-full errors, including causes."""
+    import M2_mosaic_logic
+    estimate_error = getattr(M2_mosaic_logic, 'COGSpaceEstimateExceeded', ())
+    seen = set()
+    while error is not None and id(error) not in seen:
+        seen.add(id(error))
+        # A conservative preflight estimate is not evidence of actual ENOSPC.
+        if isinstance(error, estimate_error):
+            error = error.__cause__ or error.__context__
+            continue
+        if getattr(error, 'errno', None) == errno.ENOSPC:
+            return True
+        for value in (str(error), getattr(error, 'stderr', None), getattr(error, 'output', None)):
+            if isinstance(value, bytes):
+                value = value.decode('utf-8', errors='replace')
+            if isinstance(value, str) and ('no space left on device' in value.lower()
+                                           or 'enospc' in value.lower()):
+                return True
+        error = error.__cause__ or error.__context__
+    return False
+
+
 def start_mosaic_assembly(ui_obj):
     selected = [chk._meta for chk in ui_obj.chk_dict.values() if chk.value]
     if not selected:
@@ -724,19 +750,28 @@ def start_mosaic_assembly(ui_obj):
     )
 
     manifest = getattr(ui_obj, 'update_manifest', {'version': 1, 'items': []})
-    manifest_changed = False
-    for item in selected:
-        if item.get('country_update'):
-            set_item_status(
-                manifest, item,
-                'masking_cog' if item.get('has_cog') else 'chunks_ready',
-            )
-            manifest_changed = True
-    if manifest_changed:
-        save_manifest(manifest)
-
-    succeeded = 0
+    succeeded = failed = unconfirmed = 0
+    disk_full = threading.Event()
+    scheduling_lock = threading.Lock()
+    persistence_failed = False
     prog = ProgressTracker(len(selected), "COG Assembly")
+    def persist_change(change):
+        nonlocal persistence_failed
+        if persistence_failed:
+            return False
+        try:
+            candidate = copy.deepcopy(manifest)
+            change(candidate)
+            save_manifest(candidate)
+        except Exception as error:
+            persistence_failed = True
+            message = f"Manifest persistence failed; no further writes or submissions: {error}"
+            print(f"[ERR] {message}")
+            cell_log(message, type='error')
+            return False
+        change(manifest)
+        return True
+
     def run_item(index, item):
         period_key = item.get('period_key') or (
             f"{item['year']}_{item['month']:02d}"
@@ -746,49 +781,97 @@ def start_mosaic_assembly(ui_obj):
             f"[{index}/{len(selected)}] Processing {item['sensor']} "
             f"{period_key} {item['band']}...", type='info',
         )
-        return process_country_mosaic_item(
-            item, manifest, logger=print, persist_manifest=False, gdal_threads=gdal_threads,
-        )
+        try:
+            return process_country_mosaic_item(
+                item, manifest, logger=print, persist_manifest=False, gdal_threads=gdal_threads,
+            )
+        except Exception as error:
+            if _is_disk_full(error):
+                disk_full.set()
+            raise
 
     with ThreadPoolExecutor(max_workers=worker_count) as executor:
-        future_items = {
-            executor.submit(
-                run_item, index, item,
-            ): (index, item)
-            for index, item in enumerate(selected, 1)
-        }
-        for future in as_completed(future_items):
-            index, item = future_items[future]
-            period_key = item.get('period_key') or (
-                f"{item['year']}_{item['month']:02d}"
-                if item['month'] else f"{item['year']}"
-            )
-            try:
-                if not future.result():
-                    raise RuntimeError('M2 did not produce an output COG.')
-                succeeded += 1
+        future_items = {}
+        next_index = 0
+        while future_items or (next_index < len(selected) and not disk_full.is_set()
+                               and not persistence_failed):
+            while (not disk_full.is_set() and not persistence_failed
+                   and next_index < len(selected) and len(future_items) < worker_count):
+                item = selected[next_index]
+                original_entry = find_item(manifest, item) if item.get('country_update') else None
+                previous = ({key: original_entry[key] for key in ('status', 'last_error')
+                             if key in original_entry} if original_entry is not None else None)
                 if item.get('country_update'):
-                    mark_item_complete(manifest, item)
-                    save_manifest(manifest)
-                cell_log(
-                    f"OK: {item['sensor']} {period_key} {item['band']}",
-                    type='success',
+                    status = 'masking_cog' if item.get('has_cog') else 'chunks_ready'
+                    if not persist_change(lambda data: set_item_status(data, item, status)):
+                        break
+                with scheduling_lock:
+                    stopped = disk_full.is_set()
+                    if not stopped:
+                        next_index += 1
+                        future_items[executor.submit(run_item, next_index, item)] = (next_index, item)
+                if stopped:
+                    if item.get('country_update'):
+                        def restore_unstarted(data):
+                            entry = find_item(data, item)
+                            if previous is None:
+                                if entry is not None:
+                                    data['items'].remove(entry)
+                            elif entry is not None:
+                                for key in ('status', 'last_error'):
+                                    entry.pop(key, None)
+                                entry.update(previous)
+                        if not persist_change(restore_unstarted):
+                            unconfirmed += 1
+                    break
+            if not future_items:
+                break
+            done, _ = wait(future_items, return_when=FIRST_COMPLETED)
+            for future in done:
+                index, item = future_items.pop(future)
+                period_key = item.get('period_key') or (
+                    f"{item['year']}_{item['month']:02d}"
+                    if item['month'] else f"{item['year']}"
                 )
-            except Exception as e:
-                print(f"[ERR] Failed {item['sensor']} {period_key} {item['band']}: {e}")
-                if item.get('country_update'):
-                    entry = set_item_status(manifest, item, 'pending')
-                    entry['last_error'] = str(e)
-                    save_manifest(manifest)
-                cell_log(
-                    f"Failed {item['sensor']} {period_key} {item['band']}: {e}",
-                    type='error',
-                )
-                traceback.print_exc()
-            finally:
-                prog.step()
-    print(f"\n[SUMMARY] Assembly completed: {succeeded}/{len(selected)} succeeded.")
-    cell_log(f"Assembly completed: {succeeded}/{len(selected)} | {prog.summary()}", type='success')
+                try:
+                    result = future.result()
+                    if not result:
+                        raise RuntimeError('M2 did not produce an output COG.')
+                except Exception as e:
+                    failed += 1
+                    print(f"[ERR] Failed {item['sensor']} {period_key} {item['band']}: {e}")
+                    if item.get('country_update'):
+                        def record_failure(data):
+                            entry = set_item_status(data, item, 'pending')
+                            entry['last_error'] = str(e)
+                        if not persist_change(record_failure):
+                            unconfirmed += 1
+                    cell_log(
+                        f"Failed {item['sensor']} {period_key} {item['band']}: {e}",
+                        type='error',
+                    )
+                    traceback.print_exc()
+                else:
+                    succeeded += 1
+                    confirmed = (not item.get('country_update')
+                                 or persist_change(lambda data: mark_item_complete(data, item)))
+                    if not confirmed:
+                        unconfirmed += 1
+                    cell_log(
+                        f"OK: {item['sensor']} {period_key} {item['band']}"
+                        + (" (manifest unconfirmed)" if not confirmed else ""),
+                        type='success' if confirmed else 'warning',
+                    )
+                finally:
+                    prog.step()
+    skipped = len(selected) - next_index
+    summary = (f"Assembly completed: {succeeded} succeeded, {failed} failed, "
+               f"{skipped} skipped, {unconfirmed} manifest unconfirmed"
+               + (" (disk full; not started)" if disk_full.is_set() else "")
+               + (" (manifest persistence failed)" if persistence_failed else ""))
+    print(f"\n[SUMMARY] {summary}.")
+    cell_log(f"{summary} | {prog.summary()}",
+             type='warning' if failed or skipped or persistence_failed else 'success')
 
     # The COGs were just uploaded: rescan GCS and redraw the active tab so they
     # appear as OK right away.

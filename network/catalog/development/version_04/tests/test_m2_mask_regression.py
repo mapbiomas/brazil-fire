@@ -42,7 +42,7 @@ class M2MaskRegression(unittest.TestCase):
         geometry = {'type': 'GeometryCollection', 'geometries': [polygon,
                     {'type': 'LineString', 'coordinates': [[3, 0], [3, 4]]}]}
         calls = []
-        def burn(args, label=None):
+        def burn(args, label=None, temp_dir=None):
             calls.append(args)
             with open(args[-2], encoding='utf-8') as f:
                 features = json.load(f)['features']
@@ -75,8 +75,10 @@ class M2MaskRegression(unittest.TestCase):
              patch('M_gcs.blob_exists', return_value=True), \
              patch.object(m2, 'get_temp_dir', return_value=directory), \
              patch.object(m2, 'check_m2_dependencies', return_value=[]), \
-             patch.object(m2, 'download'), patch.object(m2, '_country_geometry_geojson', return_value={}), \
-             patch.object(m2, 'mask_raster_to_country'), patch.object(m2, 'run_cmd') as command, \
+             patch.object(m2, 'download', side_effect=lambda remote, local: open(local, 'wb').close()), \
+             patch.object(m2, '_country_geometry_geojson', return_value={}), \
+             patch.object(m2, 'mask_raster_to_country', side_effect=lambda source, output, geometry: open(output, 'wb').close()), \
+             patch.object(m2, 'run_cmd') as command, \
              patch.object(m2, '_validate_masked_cog', side_effect=ValueError('invalid')), \
              patch.object(m2, 'upload') as upload, \
              patch('M1_update_manifest.complete_gcs_item') as complete:

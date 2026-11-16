@@ -1,7 +1,9 @@
 """Offline tests for safe discovery and GEE regional-mask repair planning."""
 
 import os
+import json
 import sys
+import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -52,6 +54,15 @@ class ClassificationIdentityTests(unittest.TestCase):
         self.assertEqual(item['region'], 'Region Alpha North')
         self.assertEqual(item['period'], '2025_09')
 
+    def test_gee_numeric_yyyymm_metadata_resolves_as_monthly_period(self):
+        item = repair.resolve_classification_identity(
+            'projects/test/assets/LIBRARY_CLASSIFICATIONS/REGIONAL/model_x/peru_region_2026_01',
+            {'model_id': 'model_x', 'region': 'Peru Region', 'period': 202601},
+            ['Peru Region'], 'MONITOR_DEV',
+        )
+
+        self.assertEqual(item['period'], '2026_01')
+
     def test_unresolvable_or_wrong_campaign_assets_are_skipped(self):
         root = f"{CONFIG['gee_campaigns_prefix']}/MONITOR_DEV/LIBRARY_CLASSIFICATIONS/REGIONAL/model_x/"
         self.assertIsNone(repair.resolve_classification_identity(
@@ -94,8 +105,120 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(inventory['skipped'], [])
         ee.batch.Export.image.toAsset.assert_not_called()
 
+    def test_catalog_campaign_loader_enumerates_active_campaigns_and_dev_variants(self):
+        with tempfile.TemporaryDirectory() as campaigns_dir:
+            monitor = {
+                'id': 'peru.monitor_01', 'country': 'peru',
+                'campaign': 'MONITOR_01', 'source': 'monitor', 'status': 'active',
+                'gee_project': 'mapbiomas-peru',
+                'gee_root': 'projects/mapbiomas-peru/assets/FIRE/CATALOG_01',
+                'asset_regions': 'projects/mapbiomas-peru/assets/FIRE/CATALOG_01/MONITOR_01/AUXILIARY/regions',
+            }
+            collection = {
+                **monitor, 'id': 'peru.collection_03', 'campaign': 'COLLECTION_03',
+                'source': 'collection', 'asset_regions': monitor['asset_regions'].replace(
+                    'MONITOR_01', 'COLLECTION_03',
+                ),
+            }
+            inactive = {**monitor, 'id': 'chile.monitor_01', 'country': 'chile', 'status': 'inactive'}
+            for record in (monitor, collection, inactive):
+                with open(os.path.join(campaigns_dir, record['id'] + '.json'), 'w', encoding='utf-8') as stream:
+                    json.dump(record, stream)
+
+            records = repair.load_catalog_campaigns(campaigns_dir, include_monitor_dev=['peru'])
+
+        self.assertEqual(
+            [(record['country'], record['campaign']) for record in records],
+            [('peru', 'COLLECTION_03'), ('peru', 'MONITOR_01'), ('peru', 'MONITOR_DEV')],
+        )
+        dev = next(record for record in records if record['campaign'] == 'MONITOR_DEV')
+        self.assertIn('/MONITOR_DEV/', dev['asset_regions'])
+        self.assertNotIn('/MONITOR_01/', dev['asset_regions'])
+
+    def test_catalog_loop_continues_after_campaign_discovery_error(self):
+        record = {
+            'id': 'peru.monitor_01', 'country': 'peru', 'campaign': 'MONITOR_01',
+            'source': 'monitor', 'status': 'active', 'gee_project': 'mapbiomas-peru',
+            'gee_root': 'projects/mapbiomas-peru/assets/FIRE/CATALOG_01',
+            'asset_regions': 'projects/mapbiomas-peru/assets/FIRE/CATALOG_01/MONITOR_01/AUXILIARY/regions',
+        }
+        with tempfile.TemporaryDirectory() as campaigns_dir:
+            with open(os.path.join(campaigns_dir, record['id'] + '.json'), 'w', encoding='utf-8') as stream:
+                json.dump(record, stream)
+            with patch.object(repair, 'discover_gee_classifications', side_effect=[
+                RuntimeError('missing dev region asset'), {'items': [{'asset_id': 'ok'}], 'skipped': []},
+            ]):
+                results = repair.discover_catalog_classifications(
+                    campaigns_dir, ee_api=MagicMock(), include_monitor_dev=['peru'],
+                    logger=lambda _: None,
+                )
+
+        self.assertIn('error', results[('peru', 'MONITOR_01')])
+        self.assertEqual(results[('peru', 'MONITOR_DEV')]['items'], [{'asset_id': 'ok'}])
+
 
 class ExportTaskTests(unittest.TestCase):
+    def test_masked_image_is_recast_to_ee_image_after_element_operations(self):
+        class Element:
+            def __init__(self, label):
+                self.label = label
+
+            def copyProperties(self, *_args):
+                return Element('copied-properties')
+
+            def set(self, *_args):
+                return Element('set-properties')
+
+        class ImageObject(Element):
+            def byte(self):
+                return self
+
+            def paint(self, *_args):
+                return self
+
+            def gt(self, *_args):
+                return self
+
+            def updateMask(self, *_args):
+                return self
+
+            def propertyNames(self):
+                result = MagicMock()
+                result.getInfo.return_value = []
+                return result
+
+        class FakeEE:
+            @staticmethod
+            def Image(value):
+                return ImageObject('image-cast')
+
+        source = ImageObject('source')
+        result = repair.build_region_masked_image(
+            FakeEE, source, object(), {
+                'region': 'Region Alpha', 'period': '2025_09',
+                'model_id': 'model_x', 'campaign': 'MONITOR_DEV',
+            },
+        )
+
+        self.assertIsInstance(result, ImageObject)
+
+    def test_mask_repair_does_not_coerce_existing_period_metadata_type(self):
+        ee = MagicMock()
+        image = ee.Image.return_value
+        image.propertyNames.return_value.getInfo.return_value = []
+
+        repair.build_region_masked_image(
+            ee, image, ee.FeatureCollection.return_value,
+            {
+                'region': 'Region Alpha', 'period': '2025_09',
+                'model_id': 'model_x', 'campaign': 'MONITOR_DEV',
+            },
+        )
+
+        properties_set = image.set.call_args.args[0]
+        self.assertNotIn('period', properties_set)
+        self.assertIn('region_mask_version', properties_set)
+
     def test_task_masks_region_preserves_properties_projection_and_overwrites_same_id(self):
         item = {
             'asset_id': 'projects/test/assets/model_x/Region_Alpha_2025_09',
@@ -122,7 +245,7 @@ class ExportTaskTests(unittest.TestCase):
         source.updateMask.assert_called_once()
         copied = source.updateMask.return_value.copyProperties
         copied.assert_any_call(source)
-        copied.return_value.copyProperties.assert_called_once_with(
+        source.copyProperties.assert_called_once_with(
             source, ['system:time_start', 'system:time_end'],
         )
         self.assertEqual(ee.batch.Export.image.toAsset.call_args.kwargs['assetId'], item['asset_id'])

@@ -428,7 +428,7 @@ class CountryCogMaskTests(unittest.TestCase):
 
         geometry = {'type': 'Polygon', 'coordinates': [[[0, 0], [3, 0], [3, 4], [0, 4], [0, 0]]]}
         calls = []
-        def rasterize_command(args, label=None):
+        def rasterize_command(args, label=None, temp_dir=None):
             calls.append(args)
             with rasterio.open(args[-1], 'r+') as target:
                 target.write(rasterize([geometry], out_shape=target.shape,
@@ -472,7 +472,7 @@ class CountryCogMaskTests(unittest.TestCase):
             with rasterio.open(source_path, 'w', **profile) as source:
                 source.write(np.full((4, 4), 7, dtype='uint8'), 1)
 
-            def rasterize_command(args, label=None):
+            def rasterize_command(args, label=None, temp_dir=None):
                 from rasterio.features import rasterize
                 with rasterio.open(args[-1], 'r+') as target:
                     target.write(rasterize([geometry], out_shape=target.shape,
@@ -501,9 +501,9 @@ class CountryCogMaskTests(unittest.TestCase):
              patch('M_gcs.blob_exists', return_value=True), \
              patch.object(M2_mosaic_logic, 'get_temp_dir', return_value=temp_dir), \
              patch.object(M2_mosaic_logic, 'check_m2_dependencies', return_value=[]), \
-             patch.object(M2_mosaic_logic, 'download') as download, \
+             patch.object(M2_mosaic_logic, 'download', side_effect=lambda remote, local: Path(local).write_bytes(b'source')) as download, \
              patch.object(M2_mosaic_logic, '_country_geometry_geojson', return_value={'type': 'Polygon'}), \
-             patch.object(M2_mosaic_logic, 'mask_raster_to_country') as mask, \
+             patch.object(M2_mosaic_logic, 'mask_raster_to_country', side_effect=lambda source, output, geometry: Path(output).write_bytes(b'masked')) as mask, \
              patch.object(M2_mosaic_logic, 'run_cmd') as build_cog, \
              patch.object(M2_mosaic_logic, '_validate_masked_cog'), \
              patch.object(M2_mosaic_logic, 'upload') as upload, \
@@ -529,14 +529,16 @@ class CountryCogMaskTests(unittest.TestCase):
              patch('M_gcs.blob_exists', return_value=True), \
              patch.object(M2_mosaic_logic, 'get_temp_dir', return_value=temp_dir), \
              patch.object(M2_mosaic_logic, 'check_m2_dependencies', return_value=[]), \
-             patch.object(M2_mosaic_logic, 'download'), \
+             patch.object(M2_mosaic_logic, 'download', side_effect=lambda remote, local: Path(local).write_bytes(b'source')), \
              patch.object(M2_mosaic_logic, '_country_geometry_geojson', return_value={}), \
              patch.object(M2_mosaic_logic, 'mask_raster_to_country', side_effect=RuntimeError('failed')), \
+             patch.object(M2_mosaic_logic.os, 'remove', wraps=M2_mosaic_logic.os.remove) as remove_local, \
              patch.object(M2_mosaic_logic, 'upload') as upload, \
              patch('M1_update_manifest.complete_gcs_item') as complete:
             with self.assertRaisesRegex(RuntimeError, 'failed'):
                 M2_mosaic_logic.mask_existing_country_cog('2025_01', 'red', 'sentinel2', 'minnbr')
             upload.assert_not_called()
+            remove_local.assert_not_called()
             complete.assert_not_called()
             self.assertEqual(list(Path(temp_dir).iterdir()), [])
 
@@ -550,9 +552,9 @@ class CountryCogMaskTests(unittest.TestCase):
              patch('M_gcs.blob_exists', return_value=True), \
              patch.object(M2_mosaic_logic, 'get_temp_dir', return_value=temp_dir), \
              patch.object(M2_mosaic_logic, 'check_m2_dependencies', return_value=[]), \
-             patch.object(M2_mosaic_logic, 'download'), \
+             patch.object(M2_mosaic_logic, 'download', side_effect=lambda remote, local: Path(local).write_bytes(b'source')), \
              patch.object(M2_mosaic_logic, '_country_geometry_geojson', return_value={}), \
-             patch.object(M2_mosaic_logic, 'mask_raster_to_country'), \
+             patch.object(M2_mosaic_logic, 'mask_raster_to_country', side_effect=lambda source, output, geometry: Path(output).write_bytes(b'masked')), \
              patch.object(M2_mosaic_logic, 'run_cmd'), \
              patch.object(M2_mosaic_logic, '_validate_masked_cog', side_effect=ValueError('invalid COG')), \
              patch.object(M2_mosaic_logic, 'upload') as upload, \

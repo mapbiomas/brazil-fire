@@ -6,9 +6,11 @@ intentionally a separate follow-up phase.
 
 import datetime
 import hashlib
+import json
 import re
+from pathlib import Path
 
-from M_periods import parse_period
+from M_periods import normalize_period, parse_period
 from M_regions import REGION_NAME_PROPERTY
 
 REPAIR_VERSION = 'source_region_v1'
@@ -67,7 +69,7 @@ def resolve_classification_identity(asset_id, properties, region_names, campaign
             normalized_suffix = _normalize_region_token(suffix)
             if not normalized_suffix.startswith(prefix):
                 continue
-            possible_period = normalized_suffix[len(prefix):]
+            possible_period = normalize_period(normalized_suffix[len(prefix):])
             try:
                 parsed = parse_period(possible_period)
             except (TypeError, ValueError):
@@ -79,7 +81,7 @@ def resolve_classification_identity(asset_id, properties, region_names, campaign
         period_key = period_key or parsed_key
 
     try:
-        period_key = parse_period(period_key).key
+        period_key = parse_period(normalize_period(period_key)).key
     except (TypeError, ValueError):
         return None
 
@@ -173,12 +175,100 @@ def discover_gee_classifications(campaign, config=None, ee_api=None):
     }
 
 
+def load_catalog_campaigns(campaigns_dir, include_monitor_dev=False):
+    """Load active v04 catalog campaign records as discovery configurations.
+
+    The catalog JSON is the source of country, campaign, GEE root, and region
+    asset paths. MONITOR_DEV is not a published catalog record, so optionally
+    derive it from each active Monitor campaign by changing only the campaign
+    segment of its region FeatureCollection path.
+    """
+    campaigns_dir = Path(campaigns_dir)
+    records = []
+    for path in sorted(campaigns_dir.glob('*.json')):
+        if path.name == 'index.json':
+            continue
+        with path.open(encoding='utf-8') as stream:
+            record = json.load(stream)
+        if record.get('status', 'active') != 'active':
+            continue
+        required = ('country', 'campaign', 'gee_project', 'gee_root', 'asset_regions')
+        missing = [key for key in required if not record.get(key)]
+        if missing:
+            raise ValueError(f"{path} is missing required catalog fields: {', '.join(missing)}")
+        records.append(record)
+
+    if include_monitor_dev:
+        if include_monitor_dev is True:
+            dev_countries = None
+        elif isinstance(include_monitor_dev, str):
+            dev_countries = {include_monitor_dev.casefold()}
+        else:
+            dev_countries = {str(country).casefold() for country in include_monitor_dev}
+        dev_records = []
+        for record in records:
+            if record.get('source') != 'monitor':
+                continue
+            if dev_countries is not None and record['country'].casefold() not in dev_countries:
+                continue
+            dev = dict(record)
+            dev['campaign'] = 'MONITOR_DEV'
+            dev['id'] = f"{record['country']}.monitor_dev"
+            dev['label'] = f"{record['country'].title()} - MONITOR_DEV"
+            marker = f"/{record['campaign']}/"
+            if marker not in record['asset_regions']:
+                # A catalog record with an unconventional auxiliary path
+                # cannot safely be transformed into the dev campaign path.
+                continue
+            dev['asset_regions'] = record['asset_regions'].replace(
+                marker, '/MONITOR_DEV/', 1,
+            )
+            dev_records.append(dev)
+        records.extend(dev_records)
+
+    return sorted(records, key=lambda record: (record['country'], record['campaign']))
+
+
+def discover_catalog_classifications(campaigns_dir, ee_api=None,
+                                     include_monitor_dev=False, logger=print):
+    """Read-only inventory across active catalog country/campaign records.
+
+    Returns results keyed by ``(country, campaign)``. One campaign failure is
+    recorded without preventing discovery of the remaining catalog entries.
+    """
+    records = load_catalog_campaigns(campaigns_dir, include_monitor_dev)
+    results = {}
+    for record in records:
+        key = (record['country'], record['campaign'])
+        config = {
+            'country': record['country'],
+            'gee_project': record['gee_project'],
+            'gee_campaigns_prefix': record['gee_root'],
+            'asset_regions': record['asset_regions'],
+        }
+        try:
+            result = discover_gee_classifications(
+                record['campaign'], config=config, ee_api=ee_api,
+            )
+            results[key] = {'record': record, **result}
+            logger(f"[INVENTORY] {key[0]}/{key[1]}: {len(result['items'])} images; "
+                   f"{len(result['skipped'])} skipped")
+        except Exception as error:
+            results[key] = {'record': record, 'error': str(error), 'items': [], 'skipped': []}
+            logger(f"[ERROR] {key[0]}/{key[1]}: {error}")
+    return results
+
+
 def build_region_masked_image(ee_api, source_image, region_features, item):
     """Mask to all features of one source region and carry image properties."""
     region_mask = (
         ee_api.Image(0).byte().paint(region_features, 1).gt(0)
     )
-    masked = source_image.updateMask(region_mask).copyProperties(source_image)
+    # Older Earth Engine Python APIs type copyProperties()/set() as Element;
+    # re-cast after each such operation so Export.image.toAsset gets an Image.
+    masked = ee_api.Image(
+        source_image.updateMask(region_mask).copyProperties(source_image)
+    )
 
     # copyProperties without an explicit list copies ordinary properties.
     # Preserve the time properties explicitly because they are system fields.
@@ -191,16 +281,14 @@ def build_region_masked_image(ee_api, source_image, region_features, item):
         if prop in available
     ]
     if system_time_properties:
-        masked = masked.copyProperties(source_image, system_time_properties)
+        masked = ee_api.Image(
+            masked.copyProperties(source_image, system_time_properties)
+        )
 
-    return masked.set({
+    return ee_api.Image(masked.set({
         'region_mask_version': REPAIR_VERSION,
         'region_masked_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        'region': item['region'],
-        'period': item['period'],
-        'model_id': item['model_id'],
-        'campaign': item['campaign'],
-    })
+    }))
 
 
 def task_description(item):

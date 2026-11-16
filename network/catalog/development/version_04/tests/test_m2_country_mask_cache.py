@@ -41,7 +41,7 @@ class CountryMaskCacheTests(unittest.TestCase):
             dst.write_mask(np.full((height, width), 255 if valid else 0, dtype='uint8'))
         return path
 
-    def burn(self, args, label=None):
+    def burn(self, args, label=None, temp_dir=None):
         with self.lock:
             self.counter += 1
         with open(args[-2], encoding='utf-8') as f:

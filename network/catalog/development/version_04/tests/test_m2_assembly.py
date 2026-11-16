@@ -48,13 +48,22 @@ def assembly_env(shards, upload_error=None, rm_error=None):
     tmp = tempfile.mkdtemp()
     upload_mock = MagicMock(side_effect=upload_error)
     rm_mock = MagicMock(side_effect=rm_error)
+    def command(args, label=None, temp_dir=None):
+        if args[0] == 'gdalbuildvrt':
+            with open(args[1], 'wb') as handle:
+                handle.write(b'vrt')
+
+    def mask(source, output, geometry):
+        with open(output, 'wb') as handle:
+            handle.write(b'masked')
+
     try:
         with patch.object(logic, 'list_gcs_files', return_value=shards), \
              patch.object(logic, 'download', side_effect=fake_download), \
-             patch.object(logic, 'run_cmd', return_value=None) as run_cmd_mock, \
+             patch.object(logic, 'run_cmd', side_effect=command) as run_cmd_mock, \
              patch.object(logic, 'upload', upload_mock), \
              patch.object(logic, 'rm_files', rm_mock), \
-             patch.object(logic, 'mask_raster_to_country', return_value='masked.tif') as mask_mock, \
+             patch.object(logic, 'mask_raster_to_country', side_effect=mask) as mask_mock, \
              patch.object(logic, '_validate_masked_cog'), \
              patch.object(logic, '_country_geometry_geojson', return_value={
                  'type': 'Polygon',
@@ -220,6 +229,85 @@ class AssemblyChunkCleanupTests(unittest.TestCase):
         upload_mock.assert_not_called()
         rm_mock.assert_not_called()
 
+    def test_previous_band_files_are_gone_before_next_band_download(self):
+        paths = {}
+        with assembly_env([shard('blue'), shard('green')]) as (upload_mock, rm_mock, cmd):
+            original_command = cmd.side_effect
+
+            def command(args, label=None, temp_dir=None):
+                if args[0] == 'gdal_translate':
+                    paths['blue' if 'blue' in label else 'green'] = args[-2:]
+                    self.assertTrue(os.path.exists(args[-2]))
+                    with open(args[-1], 'wb') as stream:
+                        stream.write(b'cog')
+                else:
+                    original_command(args, label=label, temp_dir=temp_dir)
+
+            def download(remote, local):
+                if remote == shard('green'):
+                    self.assertEqual(len(paths['blue']), 2)
+                    self.assertTrue(all(not os.path.exists(p) for p in paths['blue']))
+                fake_download(remote, local)
+
+            def validate(masked, cog):
+                self.assertTrue(os.path.exists(masked))
+                self.assertTrue(os.path.exists(cog))
+
+            def upload(cog, destination):
+                self.assertTrue(os.path.exists(cog))
+
+            cmd.side_effect = command
+            upload_mock.side_effect = upload
+            with patch.object(logic, 'download', side_effect=download), \
+                 patch.object(logic, '_validate_masked_cog', side_effect=validate):
+                result = assemble(['blue', 'green'])
+            self.assertTrue(all(not os.path.exists(p) for p in paths['green']))
+            self.assertEqual(len(result), 2)
+            self.assertEqual(rm_mock.call_count, 2)
+
+    def test_partial_band_files_removed_on_failure_before_job_cleanup(self):
+        for failing_step in ('mask', 'translate', 'validation', 'upload'):
+            with self.subTest(step=failing_step), \
+                 assembly_env([shard('blue')]) as (upload_mock, rm_mock, cmd):
+                created = []
+                real_rmtree = shutil.rmtree
+                original_command = cmd.side_effect
+
+                def command(args, label=None, temp_dir=None):
+                    if args[0] == 'gdal_translate':
+                        created.append(args[-1])
+                        with open(args[-1], 'wb') as stream:
+                            stream.write(b'partial cog')
+                        if failing_step == 'translate':
+                            raise RuntimeError(failing_step)
+                    else:
+                        original_command(args, label=label, temp_dir=temp_dir)
+
+                def mask(source, output, geometry):
+                    created.append(output)
+                    with open(output, 'wb') as stream:
+                        stream.write(b'partial mask')
+                    if failing_step == 'mask':
+                        raise RuntimeError(failing_step)
+
+                def cleanup(path, *args, **kwargs):
+                    # At job cleanup, the per-band finally must already have
+                    # removed every partial or completed band artifact.
+                    if os.path.basename(path).startswith('m2_'):
+                        self.assertTrue(all(not os.path.exists(p) for p in created))
+                    return real_rmtree(path, *args, **kwargs)
+
+                cmd.side_effect = command
+                upload_mock.side_effect = RuntimeError(failing_step) if failing_step == 'upload' else None
+                with patch.object(logic, 'mask_raster_to_country', side_effect=mask), \
+                     patch.object(logic, '_validate_masked_cog',
+                                  side_effect=RuntimeError(failing_step) if failing_step == 'validation' else None), \
+                     patch.object(shutil, 'rmtree', side_effect=cleanup):
+                    with self.assertRaisesRegex(RuntimeError, failing_step):
+                        assemble(['blue'])
+                self.assertTrue(created)
+                rm_mock.assert_not_called()
+
 
 class AssemblyRasterRegressionTests(unittest.TestCase):
     """Exercise M2 orchestration with local rasters, not real GCS or Earth Engine."""
@@ -258,7 +346,7 @@ class AssemblyRasterRegressionTests(unittest.TestCase):
             def download_chunk(remote, local):
                 shutil.copyfile(sources[remote], local)
 
-            def command(args, label=None):
+            def command(args, label=None, temp_dir=None):
                 events.append(args[0])
                 # Explicit zero nodata would discard valid zero-valued pixels.
                 self.assertNotIn('-srcnodata', args)
@@ -281,6 +369,8 @@ class AssemblyRasterRegressionTests(unittest.TestCase):
                         for dataset in datasets:
                             dataset.close()
                 elif args[0] == 'gdal_translate':
+                    self.assertFalse(os.path.exists(vrt))
+                    self.assertTrue(all(not os.path.exists(p) for p in downloaded))
                     self.assertEqual(args[args.index('-of') + 1], 'COG')
                     copy(args[-2], args[-1], driver='COG', COMPRESS='LZW')
                 else:
@@ -297,8 +387,16 @@ class AssemblyRasterRegressionTests(unittest.TestCase):
                 return path
 
             real_mask = logic.mask_raster_to_country
+            real_validate = logic._validate_masked_cog
+            downloaded = []
+            vrt = None
 
             def apply_mask(*args, **kwargs):
+                nonlocal vrt
+                vrt = args[0]
+                downloaded.extend(os.path.join(os.path.dirname(vrt), 'blue', os.path.basename(c))
+                                  for c in chunks)
+                self.assertTrue(all(os.path.exists(p) for p in downloaded))
                 events.append('mask')
                 return real_mask(*args, **kwargs)
 
@@ -311,6 +409,10 @@ class AssemblyRasterRegressionTests(unittest.TestCase):
                                                   [[True, False, True, False],
                                                    [True, True, True, False]])
 
+            def validate(source, output):
+                real_validate(source, output)
+                events.append('validate')
+
             def remove(remote):
                 events.append('remove')
                 self.assertEqual(remote, chunks)
@@ -321,6 +423,7 @@ class AssemblyRasterRegressionTests(unittest.TestCase):
                  patch.object(logic, '_cached_country_mask', side_effect=country_mask), \
                  patch.object(logic, '_country_geometry_geojson', return_value=geometry), \
                  patch.object(logic, 'mask_raster_to_country', side_effect=apply_mask), \
+                 patch.object(logic, '_validate_masked_cog', side_effect=validate), \
                  patch.object(logic, 'upload', side_effect=upload_cog), \
                  patch.object(logic, 'rm_files', side_effect=remove), \
                  patch.object(logic, 'check_m2_dependencies', return_value=[]), \
@@ -329,20 +432,24 @@ class AssemblyRasterRegressionTests(unittest.TestCase):
                 result = assemble(['blue'])
 
             self.assertEqual(len(result), 1)
-            self.assertEqual(events, ['gdalbuildvrt', 'mask', 'gdal_translate', 'upload', 'remove'])
+            self.assertEqual(events, ['gdalbuildvrt', 'mask', 'gdal_translate', 'validate',
+                                      'upload', 'remove'])
 
     def test_processing_failures_keep_chunks(self):
         for failing_step in ('gdalbuildvrt', 'mask', 'gdal_translate', 'validation'):
             with self.subTest(step=failing_step), \
                  assembly_env([shard('blue')]) as (upload_mock, rm_mock, run_cmd_mock):
-                def fail_command(args, label=None):
+                def fail_command(args, label=None, temp_dir=None):
                     if args[0] == failing_step:
                         raise RuntimeError(failing_step)
+                    if args[0] == 'gdalbuildvrt':
+                        with open(args[1], 'wb') as handle:
+                            handle.write(b'vrt')
 
                 run_cmd_mock.side_effect = fail_command
                 with patch.object(logic, 'mask_raster_to_country',
                                   side_effect=RuntimeError(failing_step) if failing_step == 'mask'
-                                  else None), \
+                                  else lambda source, output, geometry: open(output, 'wb').close()), \
                      patch.object(logic, '_validate_masked_cog',
                                   side_effect=RuntimeError(failing_step) if failing_step == 'validation'
                                   else None):
@@ -367,6 +474,127 @@ class RemoveFilesTests(unittest.TestCase):
         with patch.object(M_gcs, '_storage_client', return_value=client):
             M_gcs.rm_files([])
         client.bucket.assert_not_called()
+
+
+class LocalSpaceTests(unittest.TestCase):
+    def test_existing_cog_local_source_removed_only_after_mask_before_preflight(self):
+        events = []
+        with tempfile.TemporaryDirectory() as root, \
+             patch.object(logic, 'CONFIG', {'bucket': 'bucket', 'asset_regions': 'regions'}), \
+             patch.object(logic, 'period_cog_path', return_value='cogs'), \
+             patch.object(logic, 'mosaic_name_for_period', return_value='test'), \
+             patch('M_gcs.blob_exists', return_value=True), \
+             patch.object(logic, 'get_temp_dir', return_value=root), \
+             patch.object(logic, 'check_m2_dependencies', return_value=[]), \
+             patch.object(logic, '_country_geometry_geojson', return_value={}), \
+             patch.object(logic, 'rm_files') as remove_remote:
+            def download(remote, local):
+                events.append('download')
+                with open(local, 'wb') as stream:
+                    stream.write(b'source')
+
+            def mask(source, output, geometry):
+                self.assertTrue(os.path.exists(source))
+                with open(output, 'wb') as stream:
+                    stream.write(b'masked')
+                events.append('mask')
+
+            def preflight(masked, directory, logger):
+                self.assertFalse(os.path.exists(os.path.join(directory, 'test_cog.tif')))
+                self.assertTrue(os.path.exists(masked))
+                events.append('preflight')
+
+            with patch.object(logic, 'download', side_effect=download), \
+                 patch.object(logic, 'mask_raster_to_country', side_effect=mask), \
+                 patch.object(logic, '_cog_space_preflight', side_effect=preflight), \
+                 patch.object(logic, 'run_cmd', side_effect=lambda *a, **kw: events.append('convert')), \
+                 patch.object(logic, '_validate_masked_cog', side_effect=lambda *a: events.append('validate')), \
+                 patch.object(logic, 'upload', side_effect=lambda *a: events.append('upload')):
+                self.assertTrue(logic.mask_existing_country_cog(
+                    '2025_01', 'red', 'sentinel2', 'minnbr', update_manifest=False))
+            remove_remote.assert_not_called()
+        self.assertEqual(events, ['download', 'mask', 'preflight', 'convert', 'validate', 'upload'])
+
+    def test_subprocess_temp_environment_is_isolated_between_threads(self):
+        from concurrent.futures import ThreadPoolExecutor
+        import json
+        import threading
+
+        before = dict(os.environ)
+        barrier = threading.Barrier(2)
+        with tempfile.TemporaryDirectory() as root:
+            paths = [os.path.join(root, name) for name in ('a', 'b')]
+            for path in paths:
+                os.mkdir(path)
+
+            def run(path):
+                barrier.wait()
+                result = logic.run_cmd(
+                    [sys.executable, '-c',
+                     "import json,os; print(json.dumps([os.environ[k] for k in "
+                     "('CPL_TMPDIR','TMPDIR','TEMP','TMP')]))"],
+                    temp_dir=path,
+                )
+                return json.loads(result.stdout)
+
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                results = list(executor.map(run, paths))
+        self.assertEqual(results, [[path] * 4 for path in paths])
+        self.assertEqual(dict(os.environ), before)
+
+    def test_failure_does_not_change_parent_environment(self):
+        before = dict(os.environ)
+        with tempfile.TemporaryDirectory() as path:
+            with self.assertRaises(RuntimeError):
+                logic.run_cmd([sys.executable, '-c', 'import sys; sys.exit(1)'], temp_dir=path)
+        self.assertEqual(dict(os.environ), before)
+
+    def test_preflight_uses_default_reserve_and_masked_size(self):
+        with tempfile.TemporaryDirectory() as path:
+            masked = os.path.join(path, 'masked.tif')
+            with open(masked, 'wb') as stream:
+                stream.write(b'data')
+            threshold = 2 * 1024**3 + 4
+            with patch.object(M0_auth_config, 'CONFIG', {}), \
+                 patch('shutil.disk_usage', return_value=shutil._ntuple_diskusage(0, 0, threshold - 1)):
+                with self.assertRaisesRegex(RuntimeError, 'COG preflight heuristic') as caught:
+                    logic._cog_space_preflight(masked, path)
+                self.assertEqual(type(caught.exception).__name__, 'COGSpaceEstimateExceeded')
+                for value in (threshold - 1, 2 * 1024**3, 4):
+                    self.assertIn(str(value), str(caught.exception))
+            with patch.object(M0_auth_config, 'CONFIG', {}), \
+                 patch('shutil.disk_usage', return_value=shutil._ntuple_diskusage(0, 0, threshold)):
+                logic._cog_space_preflight(masked, path)
+
+    def test_preflight_configurable_reserve_and_invalid_values(self):
+        with tempfile.TemporaryDirectory() as path:
+            masked = os.path.join(path, 'masked.tif')
+            with open(masked, 'wb') as stream:
+                stream.write(b'data')
+            with patch.object(logic, 'CONFIG', {'m2_cog_reserve_bytes': 999}), \
+                 patch.object(M0_auth_config, 'CONFIG', {'m2_cog_reserve_bytes': 0}), \
+                 patch('shutil.disk_usage', return_value=shutil._ntuple_diskusage(0, 0, 4)):
+                logic._cog_space_preflight(masked, path)
+            for value in (-1, True, 1.5, '2', None):
+                with self.subTest(value=value), \
+                     patch.object(M0_auth_config, 'CONFIG', {'m2_cog_reserve_bytes': value}):
+                    with self.assertRaises(ValueError):
+                        logic._cog_space_preflight(masked, path)
+
+    def test_preflight_missing_size_fails_closed(self):
+        logger = MagicMock()
+        with tempfile.TemporaryDirectory() as path, \
+             patch.object(M0_auth_config, 'CONFIG', {'m2_cog_reserve_bytes': 10}), \
+             patch('shutil.disk_usage', return_value=shutil._ntuple_diskusage(0, 0, 9)):
+            with self.assertRaisesRegex(RuntimeError, 'Masked TIFF size unavailable'):
+                logic._cog_space_preflight(os.path.join(path, 'missing'), path, logger)
+
+    def test_preflight_unavailable_free_space_fails_closed(self):
+        logger = MagicMock()
+        with patch.object(M0_auth_config, 'CONFIG', {}), \
+             patch('shutil.disk_usage', side_effect=OSError('unavailable')):
+            with self.assertRaisesRegex(RuntimeError, 'free-space check unavailable'):
+                logic._cog_space_preflight('masked', 'work', logger)
 
 
 if __name__ == '__main__':

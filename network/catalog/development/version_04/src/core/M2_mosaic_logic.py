@@ -71,10 +71,15 @@ def check_m2_dependencies():
         missing.append('rasterio')
     return missing
 
-def run_cmd(args, label="Comando"):
+def run_cmd(args, label="Comando", temp_dir=None):
     """Envolve comando subprocess com traces mais seguros"""
     try:
-        res = subprocess.run(args, capture_output=True, text=True, check=True)
+        env = None
+        if temp_dir is not None:
+            env = os.environ.copy()
+            for name in ('CPL_TMPDIR', 'TMPDIR', 'TEMP', 'TMP'):
+                env[name] = temp_dir
+        res = subprocess.run(args, capture_output=True, text=True, check=True, env=env)
         return res
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Error in {label}: {e.stderr.strip() if e.stderr else e.stdout.strip()}")
@@ -291,7 +296,7 @@ def _cached_country_mask(source, features, block_size):
             with rasterio.open(staged_raster, 'w', **mask_profile):
                 pass
             run_cmd(['gdal_rasterize', '-burn', '1', '-optim', 'VECTOR',
-                     vector_path, staged_raster], label='Country mask rasterization')
+                     vector_path, staged_raster], label='Country mask rasterization', temp_dir=staging)
             os.replace(staged_raster, raster_path)
             if blob is not None and missing:
                 try:
@@ -385,6 +390,36 @@ def _cog_threads(value):
     return value
 
 
+class COGSpaceEstimateExceeded(RuntimeError):
+    """Estimated COG space exceeds available space, not an actual ENOSPC."""
+
+
+def _cog_space_preflight(masked_path, work_dir, logger=None):
+    """Check a configurable reserve plus an uncertain masked-TIFF size heuristic."""
+    import shutil
+    import M0_auth_config
+    reserve = (M0_auth_config.CONFIG or {}).get('m2_cog_reserve_bytes', 2 * 1024**3)
+    if isinstance(reserve, bool) or not isinstance(reserve, int) or reserve < 0:
+        raise ValueError('m2_cog_reserve_bytes must be a non-negative integer')
+    try:
+        free = shutil.disk_usage(work_dir).free
+    except OSError as exc:
+        raise RuntimeError(f"COG free-space check unavailable: {exc}") from exc
+    try:
+        source_size = os.path.getsize(masked_path)
+    except OSError as exc:
+        raise RuntimeError(f"Masked TIFF size unavailable: {exc}") from exc
+    estimate = source_size
+    details = (f"free={free} bytes, reserve={reserve} bytes, "
+               f"masked_size_estimate={source_size if source_size is not None else 'unknown'} bytes")
+    if logger:
+        logger(f"COG preflight: {details}. This heuristic can be insufficient or "
+               "conservative; output and GDAL temporary space are unknown.", "info")
+    if free < reserve + estimate:
+        raise COGSpaceEstimateExceeded(f"COG preflight heuristic: {details}; "
+                                       "estimated requirement exceeds free space (not a guarantee)")
+
+
 def mask_existing_country_cog(
     period_key, band, sensor, mosaic_method, logger=None, update_manifest=True, gdal_threads=2,
 ):
@@ -418,13 +453,15 @@ def mask_existing_country_cog(
         download(remote_uri, source_path)
         geometry = _country_geometry_geojson(CONFIG['asset_regions'])
         mask_raster_to_country(source_path, masked_path, geometry)
+        os.remove(source_path)
+        _cog_space_preflight(masked_path, work_dir, logger)
         data_type = BAND_DATATYPES.get(band_name, 'Int16')
         run_cmd([
             'gdal_translate', '-of', 'COG', '-ot', data_type,
             '-co', 'COMPRESS=LZW', '-co', 'PREDICTOR=2',
             '-co', f'NUM_THREADS={_cog_threads(gdal_threads)}', '-co', 'BIGTIFF=YES',
             masked_path, output_path,
-        ], label=f"COG country-mask update ({band_name})")
+        ], label=f"COG country-mask update ({band_name})", temp_dir=work_dir)
         _validate_masked_cog(masked_path, output_path)
         upload(output_path, f"{CONFIG['bucket']}/{cog_dir}/{cog_name}")
 
@@ -540,16 +577,22 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
                 if not local_shards: continue
 
                 vrt_path = os.path.join(tmp_path, f"{base_name}_{b_name}.vrt")
-                run_cmd(['gdalbuildvrt', vrt_path] + local_shards, label=f"VRT ({b_name})")
-                masked_path = os.path.join(tmp_path, f"{base_name}_{b_name}_country_mask.tif")
+                run_cmd(['gdalbuildvrt', vrt_path] + local_shards, label=f"VRT ({b_name})", temp_dir=tmp_path)
+                masked_path = os.path.join(band_tmp, f"{base_name}_{b_name}_country_mask.tif")
                 mask_raster_to_country(vrt_path, masked_path, country_geometry)
+                # The materialized mask no longer depends on the VRT or local shards.
+                # Remote shards remain intact until the COG is validated and uploaded.
+                for local_shard in local_shards:
+                    os.remove(local_shard)
+                os.remove(vrt_path)
+                _cog_space_preflight(masked_path, tmp_path, logger)
 
                 cog_base = (
                     mosaic_name_for_period(info.key, band=clean_b_name, sensor=s, mosaic=m_method)
                     if info else mosaic_name(year, month, period, clean_b_name, sensor=s, mosaic=m_method)
                 )
                 cog_remote_name = f"{cog_base}_cog.tif"
-                cog_local_path = os.path.join(tmp_path, cog_remote_name)
+                cog_local_path = os.path.join(band_tmp, cog_remote_name)
                 
                 dt = BAND_DATATYPES.get(clean_b_name, 'Int16')
                 
@@ -557,7 +600,7 @@ def assemble_country_mosaic(year, month=None, period='monthly', bands=None, sens
                     'gdal_translate', '-of', 'COG', '-ot', dt,
                     '-co', 'COMPRESS=LZW', '-co', 'PREDICTOR=2',
                     '-co', f'NUM_THREADS={_cog_threads(gdal_threads)}', '-co', 'BIGTIFF=YES', masked_path, cog_local_path
-                ], label=f"COG Conversion ({clean_b_name})")
+                ], label=f"COG Conversion ({clean_b_name})", temp_dir=tmp_path)
 
                 _validate_masked_cog(masked_path, cog_local_path)
                 dest = f"{CONFIG['bucket']}/{mosaic_prefix}/{cog_remote_name}"
