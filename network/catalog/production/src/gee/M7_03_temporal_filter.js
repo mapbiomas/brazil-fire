@@ -1,45 +1,75 @@
+// Preset: peru / MONITOR_01 / monthly
 /* ==============================================================================
-MAPBIOMAS FUEGO - MONITOR_01 - ft02_temporal_memory_filter
-Filtro Temporal de Memoria Mensual (Salida: ft02)
+MAPBIOMAS FUEGO - M7 - ft03
+Filtro Temporal de Memoria (Salida: ft03)
 
-📅 FECHA: 09/2026
-🏷️ VERSIÓN: 5.3 (Fix UI Title Bug & Robust Data Pipeline)
+📅 FECHA: 11/2026
+🏷️ VERSIÓN: 6.0 (multi-país, multi-campaña, mensual/anual)
+
+📌 ¿QUÉ HACE ESTE SCRIPT?
+1. Toma la colección filtrada por cobertura de suelo (ft02) como punto de partida.
+2. Analiza el historial reciente evaluando los períodos previos configurados.
+3. Identifica y elimina la sobreestimación por recurrencia/persistencia de cicatrices
+   que permanecen visibles durante períodos consecutivos pero corresponden al mismo evento.
+4. Genera la colección nacional filtrada por persistencia temporal (ft03) lista en Tasks.
+
+⚙️ PARÁMETROS A MODIFICAR POR EL USUARIO:
+- COUNTRY: key usada en las rutas (ej. 'peru', 'brazil', 'drc').
+- COUNTRY_LABEL: nombre para mostrar.
+- CAMPAIGN: campaña (ej. 'MONITOR_01', 'COLLECTION_02').
+- COLLECTION_BASE: propuesta de trabajo (ej. 'propuesta_a').
+- REGIONS_ASSET: asset de regiones (opcional; vacío usa el patrón estándar).
+- monthsToLookBack: meses atrás para campañas mensuales.
+- yearsToLookBack: años atrás para campañas anuales.
 ============================================================================== */
 
-var CATALOG_ROOT = 'projects/mapbiomas-peru/assets/FIRE/CATALOG_01';
-var CLASSIFICATIONS_ROOT = CATALOG_ROOT + '/MONITOR_01/LIBRARY_CLASSIFICATIONS/';
-var REGIONS = ee.FeatureCollection('projects/mapbiomas-peru/assets/FIRE/AUXILIARY_DATA/regiones_fuego_peru_v1');
+// 🌐 CONFIGURACIÓN DEL PAÍS Y RUTAS PRINCIPALES
+var COUNTRY = 'peru';
+var COUNTRY_LABEL = 'Peru';
+var CAMPAIGN = 'MONITOR_01';
+var COLLECTION_BASE = 'propuesta_a';
+
+var CATALOG_ROOT = 'projects/mapbiomas-' + COUNTRY + '/assets/FIRE/CATALOG_01';
+var CLASSIFICATIONS_ROOT = CATALOG_ROOT + '/' + CAMPAIGN + '/LIBRARY_CLASSIFICATIONS/';
+
+var REGIONS_ASSET = '';
+var REGIONS = REGIONS_ASSET ?
+    ee.FeatureCollection(REGIONS_ASSET) :
+    ee.FeatureCollection('projects/mapbiomas-' + COUNTRY + '/assets/FIRE/AUXILIARY_DATA/regiones_fuego_' + COUNTRY + '_v1');
 var SCALE = 10;
 
-// ⚙️ CONFIGURACIÓN DEL USUARIO
-
-// Nombre de la colección 
-var COLLECTION_BASE = 'propuesta_a';     
-
-// Cantidad de meses hacia atrás a revisar 
-// para evaluar la recurrencia de la cicatriz
-var monthsToLookBack = 4;                
+// ⚙️ CONFIGURACIÓN DEL USUARIO (MODIFICAR AQUÍ)
+var monthsToLookBack = 4; // campañas mensuales
+var yearsToLookBack = 1;  // campañas anuales
 
 // ------------------------------------------------------------------------------
-// CONFIGURACIÓN INTERNA Y RUTAS (ENTRADA: ft01 -> SALIDA: ft02)
+// CONFIGURACIÓN INTERNA Y RUTAS (ENTRADA: ft02 -> SALIDA: ft03)
 // ------------------------------------------------------------------------------
-var inputStage   = 'ft01';
-var outputStage  = 'ft02';
-var CAMPAIGN     = 'MONITOR_01';
+var inputStage   = 'ft02';
+var outputStage  = 'ft03';
 
 var filteredPath = CLASSIFICATIONS_ROOT + 'FILTERED/';
 var inputCollection  = filteredPath + COLLECTION_BASE + '/' + inputStage;
 var outputCollection = filteredPath + COLLECTION_BASE + '/' + outputStage;
 
-function setTimeProperties(image, periodName) {
+function isYearlyPeriod(periodName) {
+    return periodName.indexOf('_') === -1;
+}
+
+function periodStartEnd(periodName) {
     var parts = periodName.split('_');
     var y = parseInt(parts[0], 10);
-    var m = parseInt(parts[1], 10);
-    var start = ee.Date.fromYMD(y, m, 1);
-    var end = start.advance(1, 'month');
+    var m = parts.length > 1 ? parseInt(parts[1], 10) : null;
+    var start = m ? ee.Date.fromYMD(y, m, 1) : ee.Date.fromYMD(y, 1, 1);
+    var end = m ? start.advance(1, 'month') : start.advance(1, 'year');
+    return { start: start, end: end, periodicity: m ? 'monthly' : 'yearly' };
+}
+
+function setTimeProperties(image, periodName) {
+    var p = periodStartEnd(periodName);
     return image.set({
-        'system:time_start': start.millis(),
-        'system:time_end': end.millis()
+        'system:time_start': p.start.millis(),
+        'system:time_end': p.end.millis()
     });
 }
 
@@ -57,15 +87,19 @@ function ensureFolder(pathName) {
     }
 }
 
-function loadSentinelMosaic(periodName) {
+function loadPeriodMosaic(periodName) {
+    var yearly = isYearlyPeriod(periodName);
+    var sensor = yearly ? 'LANDSAT' : 'SENTINEL2';
+    var periodFolder = yearly ? 'YEARLY' : 'MONTHLY';
     var bands = ['swir1', 'nir', 'red'];
-    var mosaicPath = CATALOG_ROOT + '/LIBRARY_IMAGES/SENTINEL2/MONTHLY/MINNBR/';
+    var mosaicPath = CATALOG_ROOT + '/LIBRARY_IMAGES/' + sensor + '/' + periodFolder + '/MINNBR/';
+    var prefix = 'image_' + COUNTRY + '_fire_' + sensor.toLowerCase() + '_minnbr_';
     var mosaicImage = ee.Image().select();
 
     bands.forEach(function(b) {
         try {
             var bi = ee.ImageCollection(mosaicPath + b)
-                       .filter(ee.Filter.eq('system:index', 'image_peru_fire_sentinel2_minnbr_' + b + '_' + periodName))
+                       .filter(ee.Filter.eq('system:index', prefix + b + '_' + periodName))
                        .mosaic();
             mosaicImage = mosaicImage.addBands(ee.Image(ee.Algorithms.If(bi.bandNames().size().gt(0), bi, ee.Image(0).rename(b).updateMask(0))).select([0], [b]), null, true);
         } catch(e) {
@@ -78,19 +112,22 @@ function loadSentinelMosaic(periodName) {
         min: 3,
         max: 40,
         gamma: 0.85
-    }, periodName + ' | Mosaico S2 (SWIR1, NIR, RED)');
+    }, periodName + ' | Mosaico ' + sensor + ' (SWIR1, NIR, RED)');
 }
 
-function buildPreviousMonthsMaskServer(sourceImg, inputCol) {
+function buildPreviousPeriodsMaskServer(sourceImg, inputCol, periodName) {
     var currentDate = ee.Date(sourceImg.get('system:time_start'));
-    var startDate = currentDate.advance(-monthsToLookBack, 'month');
-    
+    var yearly = isYearlyPeriod(periodName);
+    var lookback = yearly ? yearsToLookBack : monthsToLookBack;
+    var unit = yearly ? 'year' : 'month';
+    var startDate = currentDate.advance(-lookback, unit);
+
     var pastCol = inputCol
         .filter(ee.Filter.gte('system:time_start', startDate.millis()))
         .filter(ee.Filter.lt('system:time_start', currentDate.millis()));
 
     var pastImageCount = pastCol.size();
-    
+
     var pastMask = ee.Image(ee.Algorithms.If(
         pastImageCount.gt(0),
         pastCol.map(function(img) { return img.select(0).unmask(0).gt(0); }).reduce(ee.Reducer.max()),
@@ -157,10 +194,12 @@ function buildLayerPanel(images, layerFactory) {
     return panel;
 }
 
-print('=== ft02 — Filtro Temporal de Memoria Mensual ===');
-print('Entrada (Input ft01): ' + inputCollection);
-print('Salida (Output ft02): ' + outputCollection);
-print('Meses a revisar hacia atrás: ' + monthsToLookBack + ' mes(es)');
+print('=== ft03 - Filtro Temporal de Memoria ===');
+print('País: ' + COUNTRY_LABEL + ' (' + COUNTRY + ')');
+print('Campaña: ' + CAMPAIGN + ' | Propuesta: ' + COLLECTION_BASE);
+print('Entrada (Input ft02): ' + inputCollection);
+print('Salida (Output ft03): ' + outputCollection);
+print('Meses atrás (mensual): ' + monthsToLookBack + ' | Años atrás (anual): ' + yearsToLookBack);
 
 ensureFolder('FILTERED/' + COLLECTION_BASE + '/' + inputStage);
 ensureFolder('FILTERED/' + COLLECTION_BASE + '/' + outputStage);
@@ -173,7 +212,7 @@ ee.data.listAssets(inputCollection, {}, function (result) {
     }
 
     if (images.length === 0) {
-        print('No se encontraron imágenes en la colección de entrada (ft01).');
+        print('No se encontraron imágenes en la colección de entrada (ft02).');
     } else {
         Map.addLayer(REGIONS.style({ color: 'ffffff', fillColor: '00000000', width: 1 }), {}, 'Límites de Regiones');
         Map.centerObject(REGIONS);
@@ -181,10 +220,11 @@ ee.data.listAssets(inputCollection, {}, function (result) {
         var eeInputCol = ee.ImageCollection(inputCollection).map(function(img) {
             var periodName = ee.String(img.get('system:index'));
             var parts = periodName.split('_');
+            var hasMonth = parts.size().gt(1);
             var y = ee.Number.parse(parts.get(0));
-            var m = ee.Number.parse(parts.get(1));
+            var m = ee.Number(ee.Algorithms.If(hasMonth, ee.Number.parse(parts.get(1)), 1));
             var start = ee.Date.fromYMD(y, m, 1);
-            var end = start.advance(1, 'month');
+            var end = ee.Date(ee.Algorithms.If(hasMonth, start.advance(1, 'month'), start.advance(1, 'year')));
             return img.set({
                 'system:time_start': start.millis(),
                 'system:time_end': end.millis()
@@ -195,7 +235,7 @@ ee.data.listAssets(inputCollection, {}, function (result) {
             var periodName = img.id.split('/').pop();
             var sourceImage = setTimeProperties(ee.Image(img.id), periodName);
 
-            var pastResult = buildPreviousMonthsMaskServer(sourceImage, eeInputCol);
+            var pastResult = buildPreviousPeriodsMaskServer(sourceImage, eeInputCol, periodName);
             
             var filteredImage = ee.Image(ee.Algorithms.If(
                 pastResult.hasPastData.gt(0),
@@ -203,9 +243,9 @@ ee.data.listAssets(inputCollection, {}, function (result) {
                 sourceImage
             ));
 
-            var mosaicLayer = loadSentinelMosaic(periodName);
-            var beforeLayer = ui.Map.Layer(sourceImage.select(0).selfMask(), { min: 0, max: 1000, palette: ['000000'] }, periodName + ' | ANTES (ft01 - Negro)');
-            var afterLayer  = ui.Map.Layer(filteredImage.select(0).selfMask(), { min: 0, max: 1000, palette: ['FF0000'] }, periodName + ' | DESPUÉS (ft02 - Rojo)');
+            var mosaicLayer = loadPeriodMosaic(periodName);
+            var beforeLayer = ui.Map.Layer(sourceImage.select(0).selfMask(), { min: 0, max: 1000, palette: ['000000'] }, periodName + ' | ANTES (ft02 - Negro)');
+            var afterLayer  = ui.Map.Layer(filteredImage.select(0).selfMask(), { min: 0, max: 1000, palette: ['FF0000'] }, periodName + ' | DESPUÉS (ft03 - Rojo)');
 
             return [
                 { layer: mosaicLayer },
@@ -219,7 +259,7 @@ ee.data.listAssets(inputCollection, {}, function (result) {
             var periodName = img.id.split('/').pop();
             var sourceImage = setTimeProperties(ee.Image(img.id), periodName);
 
-            var pastResult = buildPreviousMonthsMaskServer(sourceImage, eeInputCol);
+            var pastResult = buildPreviousPeriodsMaskServer(sourceImage, eeInputCol, periodName);
             
             var filteredImage = ee.Image(ee.Algorithms.If(
                 pastResult.hasPastData.gt(0),
@@ -227,19 +267,21 @@ ee.data.listAssets(inputCollection, {}, function (result) {
                 sourceImage
             ));
                 
-            filteredImage = setTimeProperties(filteredImage.copyProperties(sourceImage).set('filter_stage', 'ft02'), periodName);
+            filteredImage = setTimeProperties(filteredImage.copyProperties(sourceImage).set('filter_stage', 'ft03'), periodName);
 
             var destAsset = outputCollection + '/' + periodName;
+            var periodicityTag = isYearlyPeriod(periodName) ? 'ANNUAL' : 'MONTHLY';
+            var exportFlag = ('M7_ft03_' + COUNTRY.toUpperCase() + '_' + CAMPAIGN + '_' + COLLECTION_BASE + '_' + periodName + '_' + periodicityTag).replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 80);
 
             try {
                 ee.data.getAsset(destAsset);
                 print('  OK (Ya existe): ' + periodName);
             } catch (e) {
                 exportCount++;
-                print('  Exportando a Asset ft02: ' + periodName);
+                print('  Exportando a Asset ft03: ' + periodName);
                 Export.image.toAsset({
                     image: ee.Image(filteredImage).toInt16(),
-                    description: (CAMPAIGN + '_ft02_' + COLLECTION_BASE + '_' + periodName).substring(0, 80).replace(/[^a-zA-Z0-9_]/g, '_'),
+                    description: exportFlag,
                     assetId: destAsset,
                     pyramidingPolicy: 'mode',
                     region: REGIONS.geometry().bounds(),
@@ -248,7 +290,7 @@ ee.data.listAssets(inputCollection, {}, function (result) {
                 });
             }
         });
-        print('Total de imágenes listas para exportar a ft02: ' + exportCount);
+        print('Total de imágenes listas para exportar a ft03: ' + exportCount);
     }
 });
-print('=== ft02 finalizado ===');
+print('=== ft03 finalizado ===');

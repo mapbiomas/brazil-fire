@@ -1,22 +1,22 @@
-// MapBiomas Fire | M3 Sample Toolkit | v10
-// Multi-country sample collection, rescue and export
-/*
- * Purpose: v09b features + the unified UI system from M3_UI_Reference
- *          (one button language, SVG icons, border-only states).
- * Runtime: Google Earth Engine Code Editor.
- * Scope: Peru, Brazil, Bolivia, Colombia, Chile, Ecuador, Paraguay and Venezuela;
- *        historical sample rescue; Asset + GCS export.
- * Status: development.
- * Based on: M3_Toolkit_Monitor_Fuego_v09b.
- */
-
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var geometry = /* color: #98ff00 */ee.Geometry.MultiPoint(),
     fire = /* color: #ff0000 */ee.Geometry.MultiPoint(),
     notFire = /* color: #0000ff */ee.Geometry.MultiPoint();
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
+// MapBiomas Fire | M3 Sample Toolkit | v11
+// Multi-country sample collection, rescue and export
+/*
+ * Purpose: v10 features + a burned-probability threshold slider that filters
+ *          the classification layers (mirrors M7 ft01_probability_filter).
+ * Runtime: Google Earth Engine Code Editor.
+ * Scope: Peru, Brazil, Bolivia, Colombia, Chile, Ecuador, Paraguay and Venezuela;
+ *        historical sample rescue; Asset + GCS export.
+ * Status: production.
+ * Based on: M3_Toolkit_Monitor_Fuego_v10.
+ */
+
 /********************************************
-v10: Exclusive Tool for Sample Collection and Export (Vectors)
+v11: Exclusive Tool for Sample Collection and Export (Vectors)
 - Ultra-Compact UI and Margins (0~1px)
 - Dynamic Multi-Country (Chile, Peru...)
 - Automatic region search via .aggregate_array().distinct().sort()
@@ -144,7 +144,7 @@ var countryConfigs = {
     'Peru': {
         asset_regions: 'projects/mapbiomas-peru/assets/FIRE/AUXILIARY_DATA/regiones_fuego_peru_v1',
         // Monitor campaigns keep their own auxiliary folder; collection
-        // campaigns share the standard country regions (M7 ft01 default).
+        // campaigns share the standard country regions (M7 ft02 LULC default).
         getAssetRegions: function(campaign) {
             if (campaign === 'COLLECTION_03') return countryConfigs['Peru'].asset_regions;
             return CATALOG_ROOT + '/' + campaign + '/AUXILIARY/regiones_fuego_peru_v1';
@@ -957,6 +957,19 @@ var MONTHLY_START_YEAR = APP_CONFIG.monthlyStartYear || APP_CONFIG.startYear;
 
 var classCheckboxes = {};
 var classBandCheckboxes = {};
+// Minimum burned probability (%) shown on classification layers. The bands are
+// int16 0-1000; 0 keeps the product rule (probability >= 1). Same threshold
+// semantics as M7 ft01_probability_filter.
+var probThresholdPct = 0;
+function probThresholdValue() {
+    return Math.max(1, Math.round(probThresholdPct * 10));
+}
+function applyProbThreshold(img) {
+    return img.updateMask(img.select(0).gte(probThresholdValue()));
+}
+function probThresholdSuffix() {
+    return probThresholdPct > 0 ? ' >=' + probThresholdPct + '%' : '';
+}
 var hotspotAssetsCache = null;
 var hotspotAssetsPending = false;
 var resultSourceCheckboxes = {};
@@ -1231,7 +1244,8 @@ function user_interface() {
                 ? '1:' + (resultState.prepublic.periods || []).length : '0',
             ['cls', 'prb', 'doy'].filter(function (k) {
                 return classBandCheckboxes[k] && classBandCheckboxes[k].getValue();
-            }).join('')
+            }).join(''),
+            'p' + probThresholdValue()
         ].join('|');
     }
 
@@ -1404,9 +1418,9 @@ function user_interface() {
                         return col.filter(ee.Filter.stringContains('system:index', regionName))
                             .filter(ee.Filter.stringContains('system:index', dateStr)).mosaic();
                     });
-                    var img = ee.ImageCollection(regionImages).mosaic();
+                    var img = applyProbThreshold(ee.ImageCollection(regionImages).mosaic());
                     var prbImg = img.select([0], ['probability']).divide(10).toByte().selfMask().updateMask(spatialMask);
-                    var clsImg = img.select([0], ['probability']).gte(1).selfMask().updateMask(spatialMask);
+                    var clsImg = img.select([0], ['probability']).gte(50).selfMask().updateMask(spatialMask);
                     var doyImg = img.select([1], ['dayOfYear']).selfMask().updateMask(spatialMask);
 
                     // Ordem inversa: doy (base) → prb → cls (topo)
@@ -1416,7 +1430,7 @@ function user_interface() {
                         updateManagedLayer(lId,
                             doyImg,
                             { min: 1, max: 366, palette: DOY_PALETTE },
-                            modelId + ' doy ' + dateStr);
+                            modelId + ' doy ' + dateStr + probThresholdSuffix());
                     }
                     if (classBandPrb) {
                         var lId = 'class_' + modelId + '_' + dateStr + '_prb';
@@ -1424,7 +1438,7 @@ function user_interface() {
                         updateManagedLayer(lId,
                             prbImg,
                             { min: 0, max: 100, palette: PROB_PALETTE },
-                            modelId + ' prob ' + dateStr);
+                            modelId + ' prob ' + dateStr + probThresholdSuffix());
                     }
                     if (classBandCls) {
                         var lId = 'class_' + modelId + '_' + dateStr + '_cls';
@@ -1432,14 +1446,14 @@ function user_interface() {
                         updateManagedLayer(lId,
                             clsImg,
                             { min: 0, max: 1, palette: ['00000000', color] },
-                            modelId + ' ' + dateStr);
+                            modelId + ' ' + dateStr + probThresholdSuffix());
                     }
                 });
             }
 
             // --- CONSOLIDATED RESULTS (FILTERED / PRE_PUBLIC) ---
             function drawResult(basePath, key, label, color) {
-                var resultImg = ee.Image(basePath + dateStr);
+                var resultImg = applyProbThreshold(ee.Image(basePath + dateStr));
                 var resultColor = color || '#e6194b';
                 var prbImg = resultImg.select([0], ['probability']).divide(10).toByte().selfMask().updateMask(spatialMask);
                 var clsImg = resultImg.select([0], ['probability']).gte(1).selfMask().updateMask(spatialMask);
@@ -1453,7 +1467,7 @@ function user_interface() {
                     updateManagedLayer(lIdDoy,
                         doyImg,
                         { min: 1, max: 366, palette: DOY_PALETTE },
-                        label + ' doy');
+                        label + ' doy' + probThresholdSuffix());
                 }
                 if (classBandPrb) {
                     var lIdPrb = 'result_' + key + '_' + dateStr + '_prb';
@@ -1461,7 +1475,7 @@ function user_interface() {
                     updateManagedLayer(lIdPrb,
                         prbImg,
                         { min: 0, max: 100, palette: PROB_PALETTE },
-                        label + ' prob');
+                        label + ' prob' + probThresholdSuffix());
                 }
                 if (classBandCls) {
                     var lIdCls = 'result_' + key + '_' + dateStr + '_cls';
@@ -1469,7 +1483,7 @@ function user_interface() {
                     updateManagedLayer(lIdCls,
                         clsImg,
                         { min: 0, max: 1, palette: ['00000000', resultColor] },
-                        label);
+                        label + probThresholdSuffix());
                 }
             }
 
@@ -2668,7 +2682,23 @@ function loadSampleAssets(folderPath) {
         { id: 'doy', label: L.lbl_band_dayofyear, value: false, swatch: { color: NEUTRAL_SWATCH, glyph: RAMP_GLYPH }, onChange: function () { updateGradientLegends(); debouncedUpdateMosaic(); } }
     ]);
     classBandCheckboxes = drawerClassToggle.checkboxes;
-    subCabClass.content.add(drawerClassToggle.panel).add(classLegendPanel);
+
+    // Burned-probability threshold: pixels below it disappear from the
+    // classification, probability and day-of-year layers.
+    var probThresholdPanel = ui.Panel({
+        layout: ui.Panel.Layout.flow('vertical'),
+        style: { margin: '2px 0px', padding: '1px', backgroundColor: '#f9f9f9', stretch: 'horizontal' }
+    });
+    probThresholdPanel.add(ui.Label(L.lbl_prob_threshold, { fontSize: UI.size.sm, color: UI.color.text, margin: '0px 2px', backgroundColor: '#f9f9f9' }));
+    probThresholdPanel.add(ui.Slider({
+        min: 0, max: 100, step: 1, value: probThresholdPct,
+        onChange: function (value) {
+            probThresholdPct = value;
+            debouncedUpdateMosaic();
+        },
+        style: { stretch: 'horizontal', margin: '0px 2px', fontSize: UI.size.sm, backgroundColor: '#f9f9f9' }
+    }));
+    subCabClass.content.add(drawerClassToggle.panel).add(probThresholdPanel).add(classLegendPanel);
 
     // A. Regional classification models (M6).
     var subCabRegional = createCabinet(L.cab_class_regional, true, '2px 2px 2px 2px');
@@ -3815,6 +3845,7 @@ function translations(language) {
             lbl_bands: 'Bandas',
             lbl_band_classification: 'Clasificacion',
             lbl_band_probability: 'Probabilidad',
+            lbl_prob_threshold: 'Probabilidad mínima de quemado (%)',
             lbl_band_dayofyear: 'Dia del Ano',
             lbl_dashboard: 'Panel',
             placeholder_campaign: 'Seleccionar campana...',
@@ -3931,6 +3962,7 @@ function translations(language) {
             lbl_bands: 'Bandas',
             lbl_band_classification: 'Classificacao',
             lbl_band_probability: 'Probabilidade',
+            lbl_prob_threshold: 'Probabilidade mínima de queimado (%)',
             lbl_band_dayofyear: 'Dia do Ano',
             lbl_dashboard: 'Painel',
             placeholder_campaign: 'Selecionar campanha...',
@@ -4047,6 +4079,7 @@ function translations(language) {
             lbl_bands: 'Bands',
             lbl_band_classification: 'Classification',
             lbl_band_probability: 'Probability',
+            lbl_prob_threshold: 'Minimum burned probability (%)',
             lbl_band_dayofyear: 'Day of Year',
             lbl_dashboard: 'Dashboard',
             placeholder_campaign: 'Select campaign...',

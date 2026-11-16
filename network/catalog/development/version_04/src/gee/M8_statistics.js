@@ -3,45 +3,87 @@ MAPBIOMAS FUEGO - MONITOR_01 - M8
 Generador Universal de Estadísticas (Salida: CSV a GCS y/o Drive)
 
 📅 FECHA: 09/2026
-🏷️ VERSIÓN: 3.1 (Añadidas columnas year y month + Soporte Dual GCS/Drive)
+🏷️ VERSIÓN: 3.2 (Filtro de área quemada > 0 ha + Soporte Dual GCS/Drive)
 
 📌 ¿QUÉ HACE ESTE SCRIPT?
 1. Escanea la carpeta FILTERED/ y descubre colecciones y etapas disponibles (ft00, ft01, ft02).
 2. Para cada combinación (colección, región, período), calcula la superficie de observación
    y la superficie quemada cruzada por niveles de uso y cobertura de suelo (LULC).
-3. Utiliza MapBiomas Perú Colección 3 para el cruce de LULC.
-4. Exporta un archivo CSV unificado según la configuración: GCS, DRIVE o AMBOS (BOTH).
+3. Utiliza MapBiomas Perú Colección 4 para el cruce de LULC.
+4. Exporta un archivo CSV unificado filtrando únicamente los registros con área quemada mayor a cero.
 ============================================================================== */
 
 // ─── CONFIGURACIÓN GENERAL ──────────────────────────────────────────────────
 
-var CATALOG_ROOT = 'projects/mapbiomas-peru/assets/FIRE/CATALOG_01';
-var CLASSIFICATIONS_ROOT = CATALOG_ROOT + '/MONITOR_01/LIBRARY_CLASSIFICATIONS/';
-var FILTERED = CLASSIFICATIONS_ROOT + 'FILTERED/';
-var REGIONS = ee.FeatureCollection('projects/mapbiomas-peru/assets/FIRE/AUXILIARY_DATA/regiones_fuego_peru_v1');
-var REGION_PROPERTY = 'region_nam';
-var SCALE = 10;
+var COUNTRY = 'peru';
+var COUNTRY_LABEL = 'Peru';
+var CAMPAIGN = 'MONITOR_01';
 
-// Carga e integración de LULC (MapBiomas Perú Colección 4)
-var LULC = ee.Image('projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1');
+var CATALOG_ROOT = 'projects/mapbiomas-' + COUNTRY + '/assets/FIRE/CATALOG_01';
+var CLASSIFICATIONS_ROOT = CATALOG_ROOT + '/' + CAMPAIGN + '/LIBRARY_CLASSIFICATIONS/';
+var FILTERED = CLASSIFICATIONS_ROOT + 'FILTERED/';
+
+var REGIONS_ASSET = '';
+var REGIONS = REGIONS_ASSET ?
+    ee.FeatureCollection(REGIONS_ASSET) :
+    ee.FeatureCollection('projects/mapbiomas-' + COUNTRY + '/assets/FIRE/AUXILIARY_DATA/regiones_fuego_' + COUNTRY + '_v1');
+var REGION_PROPERTY = 'region_nam';
+
+// Escala condicionada al sensor de la campaña de entrada.
+var CAMPAIGN_SENSOR = {
+    MONITOR_01:    { sensor: 'SENTINEL2', scale: 10 },
+    COLLECTION_01: { sensor: 'LANDSAT',   scale: 30 },
+    COLLECTION_02: { sensor: 'LANDSAT',   scale: 30 },
+    COLLECTION_03: { sensor: 'LANDSAT',   scale: 30 },
+    COLLECTION_06: { sensor: 'LANDSAT',   scale: 30 }
+};
+var ACTIVE_SENSOR = CAMPAIGN_SENSOR[CAMPAIGN] ||
+    (CAMPAIGN.indexOf('COLLECTION') === 0 ? { sensor: 'LANDSAT', scale: 30 } : { sensor: 'SENTINEL2', scale: 10 });
+var SCALE = ACTIVE_SENSOR.scale;
+
+// Carga e integración de LULC (asset configurable por país)
+var LULC_ASSET = 'projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1';
+var LULC_LAST_YEAR = 2025;
+
+function assertLulcConfig() {
+    if (!LULC_ASSET) {
+        print('⚠ M8: LULC_ASSET no configurado para ' + COUNTRY_LABEL + ' (' + COUNTRY + ' / ' + CAMPAIGN + '). Complete LULC_ASSET y LULC_LAST_YEAR antes de ejecutar.');
+        throw new Error('LULC_ASSET no configurado para ' + COUNTRY_LABEL);
+    }
+    var bands;
+    try {
+        bands = ee.Image(LULC_ASSET).bandNames().getInfo() || [];
+    } catch (e) {
+        print('⚠ M8: no se pudo leer LULC_ASSET para ' + COUNTRY_LABEL + ': ' + LULC_ASSET + '.');
+        throw new Error('LULC_ASSET inválido para ' + COUNTRY_LABEL);
+    }
+    if (bands.indexOf('classification_' + LULC_LAST_YEAR) === -1) {
+        print('⚠ M8: ' + LULC_ASSET + ' no contiene classification_' + LULC_LAST_YEAR + '. Ajuste LULC_LAST_YEAR o el asset.');
+        throw new Error('classification_' + LULC_LAST_YEAR + ' ausente en LULC_ASSET');
+    }
+}
+assertLulcConfig();
+
+var LULC = ee.Image(LULC_ASSET);
 var currentYear = new Date().getFullYear();
 
-// Proyectar la clasificación de 2025 para los años actuales/futuros (2026+)
-for (var year = 2026; year <= currentYear; year++) {
-    LULC = LULC.addBands(LULC.select('classification_2025').rename('classification_' + year));
+// Proyectar la última clasificación LULC hacia años actuales/futuros
+for (var year = LULC_LAST_YEAR + 1; year <= currentYear; year++) {
+    LULC = LULC.addBands(LULC.select('classification_' + LULC_LAST_YEAR).rename('classification_' + year));
 }
+
 // Filtros opcionales — Dejar arrays vacíos para descubrimiento automático
 var COLLECTIONS = []; 
-var STAGES = ['ft00', 'ft01', 'ft02']; 
-var CAMPAIGN = 'MONITOR_01';
+var STAGES = ['ft00', 'ft01', 'ft02', 'ft03', 'ft04', 'ft05']; 
 
 // ⚙️ SELECCIÓN DEL DESTINO DE EXPORTACIÓN
 // Opciones válidas: 'GCS', 'DRIVE', o 'BOTH'
-var EXPORT_TARGET = 'BOTH';
+var EXPORT_TARGET = 'DRIVE';
 
 // Parámetros para Google Cloud Storage (GCS)
 var EXPORT_BUCKET = 'mapbiomas-fire';
-var EXPORT_PREFIX = 'sudamerica/peru/CATALOG_01/' + CAMPAIGN + '/LIBRARY_STATISTICS/';
+var EXPORT_REGION = (COUNTRY === 'indonesia') ? 'asia' : (COUNTRY === 'drc' ? 'africa' : 'sudamerica');
+var EXPORT_PREFIX = EXPORT_REGION + '/' + COUNTRY + '/CATALOG_01/' + CAMPAIGN + '/LIBRARY_STATISTICS/';
 
 // Parámetros para Google Drive
 var DRIVE_FOLDER = 'MAPBIOMAS_FIRE_STATISTICS';
@@ -218,6 +260,9 @@ function discoverPeriodsMap(col, stages, cb) {
 // ─── EJECUCIÓN PRINCIPAL ─────────────────────────────────────────────────────
 
 print('=== M8 — Generador Universal de Estadísticas ===');
+print('País: ' + COUNTRY_LABEL + ' (' + COUNTRY + ') | Campaña: ' + CAMPAIGN);
+print('Sensor: ' + ACTIVE_SENSOR.sensor + ' | Escala: ' + SCALE + ' m');
+print('LULC: ' + LULC_ASSET);
 print('Ruta de origen (FILTERED): ' + FILTERED);
 print('Modo de exportación seleccionado: ' + EXPORT_TARGET);
 
@@ -261,10 +306,15 @@ discoverCollections(function (collections) {
 
                 print('  [' + col + '] Procesando ' + periods.length + ' período(s) en etapas: ' + targetStages.join(', '));
 
+                var lulcBands = LULC.bandNames().getInfo() || [];
                 var allRowsList = [];
 
                 periods.forEach(function (periodName) {
                     var periodYear = extractYear(periodName);
+                    if (lulcBands.indexOf('classification_' + periodYear) === -1) {
+                        print('  ⚠ [' + col + '] Sin LULC classification_' + periodYear + '; período omitido: ' + periodName);
+                        return;
+                    }
                     var lulcYear = LULC.select('classification_' + periodYear);
                     var availStages = periodMap[periodName];
 
@@ -287,9 +337,11 @@ discoverCollections(function (collections) {
                                 'period': periodName,
                                 'year': yrStr,
                                 'month': moStr,
+                                'country': COUNTRY,
                                 'collection': col,
                                 'stage': stage,
                                 'campaign': CAMPAIGN,
+                                'periodicity': moStr ? 'monthly' : 'annual',
                                 'region_name': regName
                             });
                         });
@@ -298,12 +350,16 @@ discoverCollections(function (collections) {
                     });
                 });
 
-                var finalCollection = ee.FeatureCollection(allRowsList).flatten();
-                var fileName = 'm8_stats_' + col;
+                // 🎯 FILTRADO PRINCIPAL: Solo registros con área quemada > 0 ha
+                var finalCollection = ee.FeatureCollection(allRowsList)
+                    .flatten()
+                    .filter(ee.Filter.gt('area_burned_ha', 0));
+
+                var fileName = 'm8_stats_' + COUNTRY + '_' + CAMPAIGN + '_' + col;
+                var baseFlag = ('M8_' + COUNTRY + '_' + CAMPAIGN + '_' + col).replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 60);
                 var selectorsList = [
-                    'period', 'year', 'month', 'collection', 'stage', 'campaign', 'region_name',
-                    'lulc_id', 'lulc_nivel_0', 'lulc_nivel_1', 'lulc_nivel_2',
-                    'area_obs_ha', 'area_burned_ha'
+                    'period', 'year', 'month', 'country', 'collection', 'stage', 'campaign', 'periodicity', 'region_name',
+                    'lulc_id', 'lulc_nivel_0', 'lulc_nivel_1', 'lulc_nivel_2', 'area_burned_ha'
                 ];
 
                 // 1. Exportación a Cloud Storage (GCS)
@@ -311,7 +367,7 @@ discoverCollections(function (collections) {
                     var fullPathGCS = EXPORT_PREFIX + fileName;
                     Export.table.toCloudStorage({
                         collection: finalCollection,
-                        description: (CAMPAIGN + '_M8_GCS_' + col).substring(0, 80),
+                        description: (baseFlag + '_GCS').substring(0, 80),
                         bucket: EXPORT_BUCKET,
                         fileNamePrefix: fullPathGCS,
                         fileFormat: 'CSV',
@@ -325,7 +381,7 @@ discoverCollections(function (collections) {
                 if (EXPORT_TARGET === 'DRIVE' || EXPORT_TARGET === 'BOTH') {
                     Export.table.toDrive({
                         collection: finalCollection,
-                        description: (CAMPAIGN + '_M8_DRIVE_' + col).substring(0, 80),
+                        description: (baseFlag + '_DRIVE').substring(0, 80),
                         folder: DRIVE_FOLDER,
                         fileNamePrefix: fileName,
                         fileFormat: 'CSV',

@@ -1,9 +1,9 @@
 /********************************************
 MAPBIOMAS FUEGO - MONITOR_01 - M9_00
-Pre-Public Promotion (UI) — Redesign v5.4
+Pre-Public Promotion (UI) — Redesign v5.6
 
 📅 DATA: setembro 2026
-🏷️ VERSAO: 5.5
+🏷️ VERSAO: 5.6
 
 📌 SEÇÕES COM FUNDO COLORIDO (ordem vertical):
   CONFIG — cinza       (paises + campanhas + fechas)
@@ -30,17 +30,105 @@ Pre-Public Promotion (UI) — Redesign v5.4
 ********************************************/
 
 // ⚙️ CONFIGURACION DEL USUARIO
-var COUNTRY_ORDER = ['peru', 'chile', 'bolivia', 'colombia', 'paraguay', 'guyana'];
-var CAMPAIGNS = ['MONITOR_01', 'MONITOR_DEV'];
+// Inicio de datos por sensor (no por coleccion).
+var SENSORS = {
+    LANDSAT:   { startYear: 1985 },
+    SENTINEL2: { startYear: 2015 }
+};
 
 var COUNTRIES = {
-    chile:    { catalog: 'projects/mapbiomas-chile/assets/FIRE/CATALOG_01',    regions: 'projects/mapbiomas-chile/assets/FIRE/AUXILIARY_DATA/regiones_fuego_chile_v1',    mosaic: 'image_chile_fire_sentinel2_minnbr_' },
-    peru:     { catalog: 'projects/mapbiomas-peru/assets/FIRE/CATALOG_01',     regions: 'projects/mapbiomas-peru/assets/FIRE/AUXILIARY_DATA/regiones_fuego_peru_v1',     mosaic: 'image_peru_fire_sentinel2_minnbr_' },
-    bolivia:  { catalog: 'projects/mapbiomas-bolivia/assets/FIRE/CATALOG_01',  regions: 'projects/mapbiomas-bolivia/assets/FIRE/AUXILIARY_DATA/regiones_fuego_bolivia_v1',  mosaic: 'image_bolivia_fire_sentinel2_minnbr_' },
-    colombia: { catalog: 'projects/mapbiomas-colombia/assets/FIRE/CATALOG_01', regions: 'projects/mapbiomas-colombia/assets/FIRE/AUXILIARY_DATA/regiones_fuego_colombia_v1', mosaic: 'image_colombia_fire_sentinel2_minnbr_' },
-    paraguay: { catalog: 'projects/mapbiomas-paraguay/assets/FIRE/CATALOG_01', regions: 'projects/mapbiomas-paraguay/assets/FIRE/AUXILIARY_DATA/regiones_fuego_paraguay_v1', mosaic: 'image_paraguay_fire_sentinel2_minnbr_' },
-    guyana:   { catalog: 'projects/mapbiomas-guyana/assets/FIRE/CATALOG_01',   regions: 'projects/mapbiomas-guyana/assets/FIRE/AUXILIARY_DATA/regiones_fuego_guyana_v1',   mosaic: 'image_guyana_fire_sentinel2_minnbr_' }
+    peru: {
+        label: 'Peru',
+        catalog: 'projects/mapbiomas-peru/assets/FIRE/CATALOG_01',
+        regions: 'projects/mapbiomas-peru/assets/FIRE/AUXILIARY_DATA/regiones_fuego_peru_v1',
+        campaigns: [
+            { id: 'COLLECTION_03', periodicity: 'yearly',  sensor: 'LANDSAT' },
+            { id: 'MONITOR_01',    periodicity: 'monthly', sensor: 'SENTINEL2' }
+        ]
+    },
+    chile: {
+        label: 'Chile',
+        catalog: 'projects/mapbiomas-chile/assets/FIRE/CATALOG_01',
+        regions: 'projects/mapbiomas-chile/assets/FIRE/AUXILIARY_DATA/regiones_fuego_chile_v1',
+        campaigns: [
+            { id: 'COLLECTION_02', periodicity: 'yearly',  sensor: 'LANDSAT' },
+            { id: 'MONITOR_01',    periodicity: 'monthly', sensor: 'SENTINEL2' }
+        ]
+    },
+    bolivia: {
+        label: 'Bolivia',
+        catalog: 'projects/mapbiomas-bolivia/assets/FIRE/CATALOG_01',
+        regions: 'projects/mapbiomas-bolivia/assets/FIRE/AUXILIARY_DATA/regiones_fuego_bolivia_v1',
+        campaigns: [
+            { id: 'COLLECTION_02', periodicity: 'yearly',  sensor: 'LANDSAT' },
+            { id: 'MONITOR_01',    periodicity: 'monthly', sensor: 'SENTINEL2' }
+        ]
+    },
+    colombia: {
+        label: 'Colombia',
+        catalog: 'projects/mapbiomas-colombia/assets/FIRE/CATALOG_01',
+        regions: 'projects/mapbiomas-colombia/assets/FIRE/AUXILIARY_DATA/regiones_fuego_colombia_v1',
+        campaigns: [
+            { id: 'COLLECTION_02', periodicity: 'yearly',  sensor: 'LANDSAT' },
+            { id: 'MONITOR_01',    periodicity: 'monthly', sensor: 'SENTINEL2' }
+        ]
+    },
+    paraguay: {
+        label: 'Paraguay',
+        catalog: 'projects/mapbiomas-paraguay/assets/FIRE/CATALOG_01',
+        regions: 'projects/mapbiomas-paraguay/assets/FIRE/AUXILIARY_DATA/regiones_fuego_paraguay_v1',
+        campaigns: [
+            { id: 'COLLECTION_03', periodicity: 'yearly',  sensor: 'LANDSAT' },
+            { id: 'MONITOR_01',    periodicity: 'monthly', sensor: 'SENTINEL2' }
+        ]
+    },
+    brazil: {
+        label: 'Brazil',
+        catalog: 'projects/mapbiomas-brazil/assets/FIRE/CATALOG_01',
+        regions: ee.FeatureCollection('users/geomapeamentoipam/AUXILIAR/regioes_biomas_col2')
+            .map(function(f){
+                return f.set('region_name', f.getString('bioma').cat(' ').cat(f.get('region')));
+            }),
+        campaigns: [
+            { id: 'COLLECTION_06', periodicity: 'yearly',  sensor: 'LANDSAT' },
+            { id: 'MONITOR_01',    periodicity: 'monthly', sensor: 'SENTINEL2' }
+        ]
+    },
+    venezuela: {
+        label: 'Venezuela',
+        catalog: 'projects/mapbiomas-venezuela/assets/FIRE/CATALOG_01',
+        regions: 'projects/mapbiomas-venezuela/assets/FIRE/AUXILIARY_DATA/regiones_fuego_venezuela_v1',
+        campaigns: [
+            { id: 'COLLECTION_02', periodicity: 'yearly',  sensor: 'LANDSAT' },
+            { id: 'MONITOR_01',    periodicity: 'monthly', sensor: 'SENTINEL2' }
+        ]
+    },
+    indonesia: {
+        label: 'Indonesia',
+        catalog: 'projects/mapbiomas-indonesia/assets/FIRE/CATALOG_01',
+        regions: 'projects/mapbiomas-indonesia/assets/FIRE/AUXILIARY_DATA/regiones_fuego_indonesia_v1',
+        campaigns: [
+            { id: 'COLLECTION_03', periodicity: 'yearly',  sensor: 'LANDSAT' },
+            { id: 'MONITOR_01',    periodicity: 'monthly', sensor: 'SENTINEL2' }
+        ]
+    },
+    DRC: {
+        label: 'DRC',
+        catalog: 'projects/mapbiomas-drc/assets/FIRE/CATALOG_01',
+        regions: 'projects/mapbiomas-drc/assets/FIRE/AUXILIARY_DATA/regiones_fuego_drc_v1',
+        mosaicPrefix: 'image_drc_fire_landsat_minnbr_',
+        campaigns: [
+            { id: 'COLLECTION_01', periodicity: 'yearly', sensor: 'LANDSAT' }
+        ]
+    }
 };
+var COUNTRY_ORDER = ['peru', 'chile', 'bolivia', 'colombia', 'paraguay', 'brazil', 'venezuela', 'indonesia', 'DRC'];
+var CAMPAIGNS = [
+    'MONITOR_01',
+    'COLLECTION_01', 'COLLECTION_02', 'COLLECTION_03', 'COLLECTION_06'
+    // , 'COLLECTION_DEV'
+    // , 'MONITOR_DEV'
+];
 
 var SCALE = 10;
 var APP_LANG = 'es';
@@ -121,6 +209,42 @@ var countryBox, campaignBox, dateBox, candidatesBox, promoteBox, statusLabel, ex
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
+// Merge simples de objetos de estilo (GEE nao suporta spread operator)
+function mergeStyle(base, extra){
+    var out = {};
+    for(var k in base){out[k] = base[k];}
+    if(extra){for(var j in extra){out[j] = extra[j];}}
+    return out;
+}
+
+function countryCampaigns(country){
+    return (COUNTRIES[country] && COUNTRIES[country].campaigns) || [];
+}
+
+function campaignConf(country, camp){
+    var list = countryCampaigns(country);
+    var meta = null;
+    for(var i=0;i<list.length;i++){
+        if(list[i].id === camp){ meta = list[i]; break; }
+    }
+    if(!meta) meta = list[0] || { id: camp, periodicity: 'monthly', sensor: 'SENTINEL2' };
+    var sensor = meta.sensor || 'SENTINEL2';
+    var catalog = COUNTRIES[country].catalog;
+    return {
+        id: meta.id,
+        periodicity: meta.periodicity === 'yearly' ? 'yearly' : 'monthly',
+        sensor: sensor,
+        classRoot: catalog + '/' + meta.id + '/LIBRARY_CLASSIFICATIONS/',
+        imagesRoot: catalog + '/LIBRARY_IMAGES',
+        mosaicPrefix: meta.mosaicPrefix || COUNTRIES[country].mosaicPrefix || ('image_' + country + '_fire_' + sensor.toLowerCase() + '_minnbr_')
+    };
+}
+
+function regionsCollection(country){
+    var regions = COUNTRIES[country].regions;
+    return typeof regions === 'string' ? ee.FeatureCollection(regions) : regions;
+}
+
 function classificationsRoot(country, camp){return COUNTRIES[country].catalog+'/'+camp+'/LIBRARY_CLASSIFICATIONS/';}
 
 function prePublicPath(country, camp){return classificationsRoot(country, camp)+'PRE_PUBLIC/'+camp.toLowerCase()+'/';}
@@ -134,7 +258,9 @@ function activePairs(){
     Object.keys(enabledCountries).forEach(function(c){
         if(!enabledCountries[c])return;
         Object.keys(enabledCampaigns).forEach(function(camp){
-            if(enabledCampaigns[camp])pairs.push({country:c, camp:camp});
+            if(!enabledCampaigns[camp])return;
+            var has = countryCampaigns(c).some(function(x){ return x.id === camp; });
+            if(has)pairs.push({country:c, camp:camp});
         });
     });
     return pairs;
@@ -198,15 +324,17 @@ function updateRegionLayers(){
     Object.keys(enabledCountries).forEach(function(c){
         if(!enabledCountries[c])return;
         if(!first)first = c;
-        var fc = ee.FeatureCollection(COUNTRIES[c].regions);
-        manageMapLayer('regions_boundary_'+c, fc.style({color:'ffffff',fillColor:'00000000',width:1}), {}, 'Regiones '+c);
+        var fc = regionsCollection(c);
+        manageMapLayer('regions_boundary_'+c, fc.style({color:'ffffff',fillColor:'00000000',width:1}), {}, 'Regiones '+(COUNTRIES[c].label||c));
     });
-    if(first)mapWidget.centerObject(ee.FeatureCollection(COUNTRIES[first].regions));
+    if(first)mapWidget.centerObject(regionsCollection(first));
 }
 
-function loadMosaic(country, period){
-    var bs = COUNTRIES[country].catalog+'/LIBRARY_IMAGES/SENTINEL2/MONTHLY/MINNBR';
-    var prefix = COUNTRIES[country].mosaic || 'image_peru_fire_sentinel2_minnbr_';
+function loadMosaic(country, period, camp){
+    var conf = campaignConf(country, camp);
+    var periodFolder = conf.periodicity === 'yearly' ? 'YEARLY' : 'MONTHLY';
+    var bs = conf.imagesRoot+'/'+conf.sensor+'/'+periodFolder+'/MINNBR';
+    var prefix = conf.mosaicPrefix;
     var img = ee.Image().select();
     ['blue','green','red','nir','swir1','swir2'].forEach(function(b){
         try {
@@ -216,12 +344,12 @@ function loadMosaic(country, period){
             img = img.addBands(ee.Image(0).rename(b.toLowerCase()).updateMask(0),null,true);
         }
     });
-    manageMapLayer('mosaic_'+country+'_'+period, img, {
+    manageMapLayer('mosaic_'+country+'_'+conf.id+'_'+period, img, {
         bands: ['swir1', 'nir', 'red'],
         min: 5,
         max: 48,
         gamma: 1.1
-    }, 'Mosaico Sentinel-2 MinNBR '+period+' | '+country);
+    }, 'Mosaico '+conf.sensor+' MinNBR '+period+' | '+country);
 }
 
 // ─── SELECT / DESELECT CELL ─────────────────────────────────────────────────
@@ -230,9 +358,9 @@ function setCellSelected(country, camp, stage, proposal, period, v){
     var key = cellKey(country, camp, stage, proposal, period);
     selectedCells[key] = v;
     if(v){
-        loadMosaic(country, period);
-        var img = ee.Image(classificationsRoot(country, camp)+'FILTERED/'+proposal+'/'+stage+'/'+period).select('probability').selfMask();
-        manageMapLayer('cand_'+key, img, {min:0,max:1000,palette:[colorFor(stage, proposal)]}, 'Cand '+period+' | '+proposal+' | '+stage+' | '+camp+' | '+country);
+        loadMosaic(country, period, camp);
+        var img = ee.Image(classificationsRoot(country, camp)+'FILTERED/'+proposal+'/'+stage+'/'+period).select('probability');
+        manageMapLayer('cand_'+key, img, {palette:[colorFor(stage, proposal)]}, 'Cand '+period+' | '+proposal+' | '+stage+' | '+camp+' | '+country);
         // radio por linea: desmarcar otras propuestas de la misma fecha en este grid
         countryData[country][camp].proposals.forEach(function(p2){
             if(p2!==proposal){
@@ -249,7 +377,7 @@ function setCellSelected(country, camp, stage, proposal, period, v){
         var any = Object.keys(selectedCells).some(function(k){
             return selectedCells[k] && k.split('__')[4]===period;
         });
-        if(!any)removeMapLayer('mosaic_'+country+'_'+period);
+        if(!any)removeMapLayer('mosaic_'+country+'_'+camp+'_'+period);
     }
     updatePromoteSummary();
 }
@@ -497,7 +625,7 @@ function buildStageGrid(country, camp, stage, d){
     head.add(ui.Label(stage, STYLE.gridHeader));
     d.proposals.forEach(function(prop){
         var headPromoted = origin && origin.proposal===prop && origin.stage===stage;
-        var sw = ui.Label('', {backgroundColor:colorFor(stage, prop), ...STYLE.swatch});
+        var sw = ui.Label('', mergeStyle(STYLE.swatch, {backgroundColor:colorFor(stage, prop)}));
         head.add(sw);
         head.add(ui.Label(prop + (headPromoted?'  ✅':''), {fontSize:'10px',fontWeight:'bold',color:headPromoted?'#0f9d58':'#1a73e8',margin:'2px 4px'}));
     });
@@ -513,9 +641,9 @@ function buildStageGrid(country, camp, stage, d){
         }
         var cellPromoted = origin && origin.proposal===prop && origin.stage===stage;
         var key = cellKey(country, camp, stage, prop, selectedDate);
-        var sw = ui.Label('', {backgroundColor:colorFor(stage, prop), ...STYLE.swatch});
+        var sw = ui.Label('', {backgroundColor:colorFor(stage, prop)}, STYLE.swatch);
         row.add(sw);
-        if(cellPromoted){
+        if(cellPromoted){ 
             var viewCb = ui.Checkbox({label:'✅', value:!!viewChecks[key], style:STYLE.gridCell});
             viewCb.onChange(function(v){toggleViewPromoted(country, camp, stage, prop, selectedDate, key, v);});
             row.add(viewCb);
@@ -533,9 +661,9 @@ function buildStageGrid(country, camp, stage, d){
 function toggleViewPromoted(country, camp, stage, proposal, period, key, v){
     viewChecks[key] = v;
     if(v){
-        loadMosaic(country, period);
-        var img = ee.Image(prePublicPath(country, camp)+period).select('probability').selfMask();
-        manageMapLayer('promoted_'+key, img, {min:0,max:1000,palette:[colorFor(stage, proposal)]}, 'Promovido '+period+' | '+proposal+' | '+stage+' | '+camp+' | '+country);
+        loadMosaic(country, period, camp);
+        var img = ee.Image(prePublicPath(country, camp)+period).select('probability');
+        manageMapLayer('promoted_'+key, img, {palette:[colorFor(stage, proposal)]}, 'Promovido '+period+' | '+proposal+' | '+stage+' | '+camp+' | '+country);
     } else {
         removeMapLayer('promoted_'+key);
     }
@@ -710,6 +838,8 @@ function doPromote(cells){
                 'source_stage': stage,
                 'source_country': c,
                 'source_campaign': camp,
+                'source_periodicity': (period.indexOf('_') === -1 ? 'annual' : 'monthly'),
+                'source_period': period,
                 'promoted_date': new Date().toISOString().split('T')[0]
             };
             var ok = false;
@@ -746,9 +876,9 @@ function buildConfigSection(){
     section.add(ui.Label(L.cfg, STYLE.sectionTitle));
 
     section.add(ui.Label(L.country, STYLE.label));
-    countryBox = ui.Panel({layout:ui.Panel.Layout.flow('horizontal')});
+    countryBox = ui.Panel({layout:ui.Panel.Layout.flow('horizontal', true)});
     COUNTRY_ORDER.forEach(function(c, idx){
-        var cb = ui.Checkbox({label:c, value:idx===0, style:STYLE.gridCell});
+        var cb = ui.Checkbox({label:(COUNTRIES[c].label||c), value:idx===0, style:STYLE.gridCell});
         enabledCountries[c] = idx===0;
         cb.onChange(function(v){
             enabledCountries[c]=v;
@@ -761,7 +891,7 @@ function buildConfigSection(){
     section.add(countryBox);
 
     section.add(ui.Label(L.campaign, STYLE.label));
-    campaignBox = ui.Panel({layout:ui.Panel.Layout.flow('horizontal')});
+    campaignBox = ui.Panel({layout:ui.Panel.Layout.flow('horizontal', true)});
     CAMPAIGNS.forEach(function(c, idx){
         var cb = ui.Checkbox({label:c, value:idx===0, style:STYLE.gridCell});
         enabledCampaigns[c] = idx===0;

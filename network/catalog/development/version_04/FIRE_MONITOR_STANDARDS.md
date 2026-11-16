@@ -196,7 +196,7 @@ Assembles M5 tiles into regional mosaics, applies LULC mask and sieve filter, co
 
 ### M7 / M8 / M9 — Post-processing in GEE
 
-Ready; they run in the GEE Code Editor (mirrors in `src/gee/`). M7: ft00 national selection/merge, ft01 land-use mask + small patches, ft02 temporal filter. M8: statistics per stage and land use. M9: promotion to pre-official.
+Ready; they run in the GEE Code Editor (mirrors in `src/gee/`). M7: ft00 national selection/merge, ft01 burned-probability threshold, ft02 land-use mask + small patches, ft03 temporal filter. M8: statistics per stage and land use. M9: promotion to pre-official.
 
 ---
 

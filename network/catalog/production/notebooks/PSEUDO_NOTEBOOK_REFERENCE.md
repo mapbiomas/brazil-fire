@@ -22,7 +22,7 @@ Short guide to the pipeline. Run the sections in order: each module reads what t
 | **M4** | Colab | Trains the DNN | GCS `LIBRARY_MODELS/{model}/` |
 | **M5** | Colab | Classifies tiles | GCS `CLASSIFIED_TILES/` |
 | **M6** | Colab | Regional mosaics, stats, GEE upload | GCS `CLASSIFIED_REGION/`, `STATS/`; GEE `REGIONAL/` |
-| **M7** | GEE | ft00 national merge, ft01 land-use + small patches, ft02 temporal filter | GEE `FILTERED/` |
+| **M7** | GEE | ft00 national merge, ft01 probability threshold, ft02 land-use + small patches, ft03 temporal filter | GEE `FILTERED/` |
 | **M8** | GEE | Burned-area statistics per filter stage | tables |
 | **M9** | GEE | Promotion of the chosen version | pre-official collection |
 
@@ -55,7 +55,7 @@ GEE {gee_campaigns_prefix}/{campaign}/
     AUXILIARY/                          M0  fire regions
     LIBRARY_SAMPLES/                    M3  sample polygons
     LIBRARY_CLASSIFICATIONS/REGIONAL/   M6  probability + dayOfYear per region
-    LIBRARY_CLASSIFICATIONS/FILTERED/   M7  ft00, ft01, ft02
+    LIBRARY_CLASSIFICATIONS/FILTERED/   M7  ft00, ft01, ft02, ft03
 ```
 
 Model name: `training_{id}_{shortname}_{sensor}` (e.g. `training_0001_amazon_sentinel2`).
@@ -212,8 +212,9 @@ These steps are ready and run in the **GEE Code Editor**, not in this notebook. 
 | Step | What it does | GEE script |
 |---|---|---|
 | **M7 ft00** | Picks one model per region and merges them into a national image | [ft00_selection_merge](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/ft00_selection_merge) |
-| **M7 ft01** | Land-use mask + removal of small isolated patches | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft01_lulc_filters` |
-| **M7 ft02** | Temporal filter (consistency with previous periods) | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft02_temporal_filter` |
+| **M7 ft01** | Burned-area definition: keeps pixels with probability >= threshold (slider, 0 % = `probability >= 1`) | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft01_probability_filter` |
+| **M7 ft02** | Land-use mask + removal of small isolated patches | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft02_lulc_filters` |
+| **M7 ft03** | Temporal filter (consistency with previous periods) | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft03_temporal_filter` |
 | **M8** | Burned-area statistics per filter stage and land use | [M8_statistics](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M8/M8_statistics) |
 | **M9** | Promotes the chosen version to pre-official | [M9_00_promote_ui](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M9/M9_00_promote_ui) |
 

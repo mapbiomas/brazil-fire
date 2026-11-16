@@ -75,13 +75,13 @@ and promotion are handled by the GEE scripts (M7-M9).
 | **M4** | Train the DNN, evaluate and save weights/metrics | `M4_algorithms_dnn.py`, `M4_data_extractor.py`, `M4_ui.py` |
 | **M5** | Tile inference (probability + auxiliary band) | `M5_inference.py`, `M5_classifier.py`, `M5_classifier_ui.py` |
 | **M6** | Regional mosaic, consolidated stats, GEE upload | `M6_publisher.py`, `M6_ui.py` |
-| **M7** | GEE curation: ft00 selection/merge, ft01 LULC + isolated pixels, ft02 temporal memory | `src/gee/M7_*.js` |
+| **M7** | GEE curation: ft00 selection/merge, ft01 burned-probability threshold, ft02 LULC + isolated pixels, ft03 temporal memory | `src/gee/M7_*.js` |
 | **M8** | GEE statistics per stage and LULC | `src/gee/M8_statistics.js` |
 | **M9** | GEE promotion UI (pre-official) | `src/gee/M9_00_promote_ui.js` |
 
 > **M6 vs M7:** M6 publishes the regional product (mosaic + statistics + GEE
-> upload). LULC masking, isolated-pixel removal and the temporal filter live in
-> M7 (`ft01`/`ft02`). The old "curator" role is now the M9 promotion UI.
+> upload). The burned-probability threshold, LULC masking, isolated-pixel removal
+> and the temporal filter live in M7 (`ft01`/`ft02`/`ft03`). The old "curator" role is now the M9 promotion UI.
 
 ### GEE scripts (canonical source)
 
@@ -91,8 +91,9 @@ The `.js` files in this folder are mirrors. The canonical scripts live in the
 | Local file | GEE script |
 |---|---|
 | `M7_00_selection_merge.js` | [`5-MapBiomas-Fuego/M7/ft00_selection_merge`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/ft00_selection_merge) |
-| `M7_01_lulc_filters.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft01_lulc_filters` (e.g. [peru/MONITOR_01/monthly](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/peru/MONITOR_01/monthly/ft01_lulc_filters)) |
-| `M7_02_temporal_filter.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft02_temporal_filter` (e.g. [peru/MONITOR_01/monthly](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/peru/MONITOR_01/monthly/ft02_temporal_filter)) |
+| `M7_01_probability_filter.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft01_probability_filter` (e.g. [peru/MONITOR_01/monthly](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/peru/MONITOR_01/monthly/ft01_probability_filter)) |
+| `M7_02_lulc_filters.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft02_lulc_filters` (e.g. [peru/MONITOR_01/monthly](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/peru/MONITOR_01/monthly/ft02_lulc_filters)) |
+| `M7_03_temporal_filter.js` | `5-MapBiomas-Fuego/M7/{country}/{CAMPAIGN}/{monthly|yearly}/ft03_temporal_filter` (e.g. [peru/MONITOR_01/monthly](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M7/peru/MONITOR_01/monthly/ft03_temporal_filter)) |
 | `M8_statistics.js` | [`5-MapBiomas-Fuego/M8/M8_statistics`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M8/M8_statistics) |
 | `M9_00_promote_ui.js` | [`5-MapBiomas-Fuego/M9/M9_00_promote_ui`](https://code.earthengine.google.com/?scriptPath=users/mapbiomasworkspace1/mapbiomas-fire:5-MapBiomas-Fuego/M9/M9_00_promote_ui) |
 
