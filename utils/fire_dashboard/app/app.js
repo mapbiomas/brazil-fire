@@ -277,11 +277,12 @@ const LEGENDS = {
 // comparados). Conjunto validado (daltonismo e visão normal) junto com o
 // vermelho oficial "Total queimado"; a 3ª/4ª série repete a cor com traço.
 const SERIES_COLORS = [
-  { color: "#ff5340" }, // vermelho oficial "Total queimado" (o RAF destaca o ano em vermelho)
-  { color: "#2a78d6" },
-  { color: "#1baf7a" },
-  { color: "#2a78d6", dash: [6, 4] },
+  { color: "#c2552d" }, // terracota (o ano mais recente, em destaque)
+  { color: "#6b7d3a" }, // verde-oliva
+  { color: "#d39b2a" }, // ocre
+  { color: "#6d4a2f", dash: [6, 4] }, // marrom-terra tracejado
 ];
+const COR_MEDIA_MENSAL = "#8a7a66"; // média histórica (tom terroso, no lugar do cinza)
 
 // Cores dos biomas como nas figuras do RAF 2025 (identidade visual MapBiomas).
 const BIOMA_CORES = {
@@ -1590,7 +1591,9 @@ async function loadAnual({ t, ini, fim }) {
           ],
           legend: state.nivel === 0 ? naturalAntropico : ordenarPorGrupo(porClasse),
         },
-        alterna: "rosca",
+        // Com classes detalhadas há também a rosca dupla (anel de dentro: natural x antrópico; de fora: classes).
+        alterna: state.nivel === 0 || !porClasse.length ? "rosca" : "roscaDupla",
+        aneis: state.nivel === 0 ? null : aneisDeCobertura(ordenarPorGrupo(porClasse), naturalAntropico),
         rosca: [
           ...(naturalAntropico.length ? [{ titulo: "Natural x antrópico", slices: naturalAntropico, centerLabel: "queimados" }] : []),
           ...(state.nivel === 0 ? [] : [{ titulo: "Por classe", slices: ordenarPorGrupo(porClasse), centerLabel: "queimados" }]),
@@ -1834,21 +1837,21 @@ async function loadMensal({ t, ini, fim }) {
         span: 12,
         title: `Média mensal da área queimada ${ini}–${fim} · temporada ${rotuloJanela}`,
         subtitle: n > 1
-          ? `Área cinza = média (n = ${n} anos) · faixa clara = ± 1 desvio padrão · linhas = anos em destaque${cruza ? " · temporadas atravessam o ano (ex.: 2020/21)" : ""}`
+          ? `Área marrom = média (n = ${n} anos) · faixa clara = ± 1 desvio padrão · linhas = anos em destaque${cruza ? " · temporadas atravessam o ano (ex.: 2020/21)" : ""}`
           : "Escolha um período com mais de um ano para a média e o desvio padrão",
         chart: {
           kind: "band",
           height: 320,
           labels: curtos,
           tooltipTitles: mesesJ.map((m) => m.name),
-          mean: { label: `Média ${ini}–${fim}`, color: "var(--text-muted)", values: medias },
+          mean: { label: `Média ${ini}–${fim}`, color: COR_MEDIA_MENSAL, values: medias },
           upper: medias.map((m, i) => m + dps[i]),
           lower: medias.map((m, i) => Math.max(0, m - dps[i])),
           years: selecionados,
         },
         legend: [
-          { label: `Área queimada média ${ini}–${fim}`, color: "var(--text-muted)" },
-          { label: "± 1 desvio padrão", color: "var(--grid)" },
+          { label: `Área queimada média ${ini}–${fim}`, color: COR_MEDIA_MENSAL },
+          { label: "± 1 desvio padrão", color: "#e3d9c9" },
           ...selecionados.map((s) => ({ label: `Área queimada mensal em ${s.label}`, color: s.color, line: true, dash: !!s.dash })),
         ],
       },
@@ -2047,7 +2050,7 @@ async function loadFrequencia({ t, ini, fim }) {
           kind: "bar",
           percent: emPct,
           axisTitle: emPct ? "Participação na área queimada (%)" : "Área queimada (ha)",
-          categoryTitle: "Número de vezes que queimou",
+          categoryTitle: "Frequência da área queimada",
           labels: barras.map((c) => c.short),
           tooltipTitles: barras.map((c) => `${c.label} · ${ha(c.value)} · ${pctInt(safeDiv(c.value, total))}`),
           values: barras.map((c) => (emPct ? safeDiv(c.value, total) : c.value)),
@@ -2163,6 +2166,21 @@ function grupoCobertura(nome) {
 
 const ordenarPorGrupo = (classes) =>
   [...classes].sort((a, b) => grupoCobertura(a.label) - grupoCobertura(b.label) || b.value - a.value);
+
+// Rosca dupla: o anel de fora são as classes; o de dentro soma essas mesmas classes por grupo
+// (natural, antrópico, outros), então cada grupo ocupa exatamente o mesmo arco das suas classes.
+function aneisDeCobertura(classes, naturalAntropico) {
+  const cor = (re, padrao) => naturalAntropico.find((c) => re.test(c.label))?.color || padrao;
+  const grupos = [
+    { label: "Natural", color: cor(/natural/i, "#1f8d49") },
+    { label: "Antrópico", color: cor(/antr/i, "#ffd54f") },
+    { label: "Outros", color: "#9e9e9e" },
+  ];
+  const interno = grupos
+    .map((g, k) => ({ ...g, value: sum(classes.filter((c) => grupoCobertura(c.label) === k).map((c) => c.value)) }))
+    .filter((g) => g.value > 0);
+  return { interno, externo: classes, centerLabel: "queimados" };
+}
 
 // "entre 10.000 e 100.000 ha" -> "10 mil a 100 mil ha"; "menor que 250 ha" -> "Menor que 250 ha".
 function rafScarLabel(name) {
@@ -3260,13 +3278,14 @@ function renderView(view) {
 const VISTAS = {
   linhas: [["barras", "Barras"], ["linhas", "Linhas"]],
   rosca: [["barras", "Barras"], ["rosca", "Rosca"]],
+  roscaDupla: [["barras", "Barras"], ["rosca", "Rosca"], ["aneis", "Rosca dupla"]],
   anual: [["barras", "Barras"], ["horizontal", "Horizontal"], ["linhas", "Linhas"], ["biomas", `Por ${rot("bioma").toLowerCase()}`]],
   mensal: [["calor", "Mapa de calor"], ["boxplot", "Boxplot"], ["lista", "Lista"]],
 };
 
 // Vistas que trocam o corpo do card inteiro (não dá para só mudar o tipo do Chart.js).
 // "horizontal" entra aqui porque muda a altura da caixa do gráfico (um ano por linha).
-const VISTAS_DE_CORPO = ["rosca", "biomas", "calor", "boxplot", "lista", "horizontal"];
+const VISTAS_DE_CORPO = ["rosca", "aneis", "biomas", "calor", "boxplot", "lista", "horizontal"];
 
 const ICONE_VISTA = {
   horizontal: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 2h5.5a1 1 0 0 1 1 1v1.5a1 1 0 0 1-1 1H2zm0 4.25h11a1 1 0 0 1 1 1v1.5a1 1 0 0 1-1 1H2zm0 4.25h8a1 1 0 0 1 1 1V13a1 1 0 0 1-1 1H2z"/></svg>`,
@@ -3274,6 +3293,7 @@ const ICONE_VISTA = {
   linhas: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M1.5 12.5c2-1 2.6-5 4.5-5s2.2 2.5 4 2.5 2.5-4.5 4.5-7"/></svg>`,
   biomas: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 14v-3h3.5v3zm0-4V7.5h3.5V10zm4.75 4V9h3.5v5zm0-6V4h3.5v4zm4.75 6v-2.5H15V14zm0-3.5V6H15v4.5z"/></svg>`,
   rosca: `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.25" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="3"/><path fill="none" stroke="currentColor" stroke-width="3" d="M8 2.75A5.25 5.25 0 0 1 13.25 8"/></svg>`,
+  aneis: `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="2"/><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>`,
   calor: `<svg viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><rect x="1.5" y="1.5" width="3.8" height="3.8" opacity=".35"/><rect x="6.1" y="1.5" width="3.8" height="3.8"/><rect x="10.7" y="1.5" width="3.8" height="3.8" opacity=".6"/><rect x="1.5" y="6.1" width="3.8" height="3.8"/><rect x="6.1" y="6.1" width="3.8" height="3.8" opacity=".6"/><rect x="10.7" y="6.1" width="3.8" height="3.8" opacity=".35"/><rect x="1.5" y="10.7" width="3.8" height="3.8" opacity=".6"/><rect x="6.1" y="10.7" width="3.8" height="3.8" opacity=".35"/><rect x="10.7" y="10.7" width="3.8" height="3.8"/></g></svg>`,
   boxplot: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M4 1.5v3M4 11.5v3M2.5 1.5h3M2.5 14.5h3M12 3v2.5M12 10v3.5M10.5 3h3M10.5 13.5h3"/><rect x="2" y="4.5" width="4" height="7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="5.5" width="4" height="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path stroke="currentColor" stroke-width="1.5" d="M2 8h4M10 7.5h4"/></svg>`,
   lista: `<svg viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><rect x="1.5" y="2" width="13" height="2.4" rx="1"/><rect x="1.5" y="6.8" width="9" height="2.4" rx="1"/><rect x="1.5" y="11.6" width="5" height="2.4" rx="1"/></g></svg>`,
@@ -3398,6 +3418,11 @@ function montarGraficos(card, root, vista, tokens) {
   if (vista === "boxplot") {
     const cv = root.querySelector(".card-body canvas");
     if (cv) registrarGrafico(root, new Chart(cv, boxplotConfig(card.boxplot, tokens)));
+    return;
+  }
+  if (vista === "aneis") {
+    const cv = root.querySelector(".donut canvas");
+    if (cv) registrarGrafico(root, new Chart(cv, aneisConfig(card.aneis, tokens)));
     return;
   }
   if (vista === "rosca") {
@@ -3792,6 +3817,7 @@ function cardBodyHtml(card, vista) {
 
 function conteudoHtml(card, vista) {
   if (vista === "rosca") return roscasHtml(roscasDe(card));
+  if (vista === "aneis") return aneisHtml(card.aneis);
   if (vista === "calor") {
     if (!card.calor.linhas.length) return `<p class="empty">Sem dados para o período selecionado.</p>`;
     return `<div class="calor-box"><canvas role="img" aria-label="${escapeHtml(card.title)}"></canvas><div class="calor-dica" hidden></div></div>`;
@@ -3904,6 +3930,12 @@ function tabelaDoCard(root, card) {
         return [card.boxplot.nomes[j], ...[e.min, e.q1, e.med, e.q3, e.max, mean(vals)].map((v) => fmtV(v))];
       }),
     };
+  }
+  if (root._vista === "aneis" && card.aneis) {
+    const tot = sum(card.aneis.externo.map((s) => s.value));
+    const linhas = [["Natural x antrópico", card.aneis.interno], ["Por classe", card.aneis.externo]]
+      .flatMap(([grupo, fatias]) => fatias.map((s) => [grupo, s.label, fmtV(s.value), pct(safeDiv(s.value, tot))]));
+    return { colunas: ["Grupo", "Classe", "Área (ha)", "%"], linhas };
   }
   const charts = [...root.querySelectorAll(".card-body canvas")].map((c) => Chart.getChart(c)).filter(Boolean);
   const titulo = (ch) => ch.canvas.closest(".donut-grid > div")?.querySelector(".propbar-label")?.textContent?.trim()
@@ -4304,6 +4336,29 @@ function doughnutHtml({ slices, centerLabel = "total" }) {
         <div class="donut-center"><strong>${total >= 1e6 ? mha(total) : ha(total)}</strong><span>${escapeHtml(centerLabel)}</span></div>
       </div>
       <ul class="legend-list">${legend}</ul>
+    </div>`;
+}
+
+// Rosca dupla: legenda em dois blocos (grupos e classes) ao lado do gráfico.
+function aneisHtml({ interno, externo, centerLabel = "total" }) {
+  const total = sum(externo.map((s) => s.value));
+  const item = (s) => `
+    <li>
+      <i class="sw" style="--c:${s.color}"></i>
+      <span>${escapeHtml(s.label)}</span>
+      <span class="l-value">${ha(s.value)}</span>
+      <span class="l-share">${pct(safeDiv(s.value, total))}</span>
+    </li>`;
+  return `
+    <div class="donut donut-aneis">
+      <div class="donut-chart">
+        <canvas role="img" aria-label="Natural x antrópico (anel de dentro) e classes (anel de fora)"></canvas>
+        <div class="donut-center"><strong>${total >= 1e6 ? mha(total) : ha(total)}</strong><span>${escapeHtml(centerLabel)}</span></div>
+      </div>
+      <ul class="legend-list">
+        <li class="legend-head">Natural x antrópico</li>${interno.map(item).join("")}
+        <li class="legend-head">Por classe</li>${externo.map(item).join("")}
+      </ul>
     </div>`;
 }
 
@@ -5454,7 +5509,9 @@ function multiLineConfig(spec, t, options) {
     pointHoverRadius: 4,
     pointHoverBorderColor: t.surface,
     pointHoverBorderWidth: 2,
-    tension: 0,
+    // Faixa mensal: linhas suavizadas (monotone não ultrapassa os picos nem passa abaixo de 0).
+    tension: spec.kind === "band" ? 0.4 : 0,
+    cubicInterpolationMode: spec.kind === "band" ? "monotone" : "default",
     fill: false,
     ...extra,
   });
@@ -5463,7 +5520,7 @@ function multiLineConfig(spec, t, options) {
     // Como a Figura 13 do RAF: média histórica como área cinza; faixa ± 1 DP mais clara;
     // anos selecionados como linhas com marcadores.
     const cinza = resolveColor(spec.mean.color, t);
-    const limite = { borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, backgroundColor: withAlpha(cinza, 0.12), tension: 0 };
+    const limite = { borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, backgroundColor: withAlpha(cinza, 0.2), tension: 0.4, cubicInterpolationMode: "monotone" };
     datasets = [
       { ...limite, label: "Média + 1 DP", data: spec.upper, fill: false },
       { ...limite, label: "Média − 1 DP", data: spec.lower, fill: "-1" },
@@ -5505,6 +5562,36 @@ function doughnutConfig({ slices }, t) {
   };
 }
 
+// Duas roscas encaixadas: dataset 0 = anel de dentro (grupos), dataset 1 = anel de fora (classes).
+function aneisConfig({ interno, externo }, t) {
+  const options = baseOptions(t);
+  const total = sum(externo.map((s) => s.value));
+  options.interaction = { mode: "nearest", intersect: true };
+  options.cutout = "30%"; // buraco pequeno: os dois anéis ficam largos o bastante para a %
+  options.plugins.rotulosRosca = { total };
+  options.plugins.tooltip.callbacks = {
+    title: () => "",
+    label: (ctx) => {
+      const nome = ctx.dataset.etiquetas[ctx.dataIndex];
+      return ` ${tr(nome)}: ${fmtFull.format(ctx.parsed)} ha (${pct(safeDiv(ctx.parsed, total))})`;
+    },
+  };
+  const anel = (fatias) => ({
+    data: fatias.map((s) => s.value),
+    etiquetas: fatias.map((s) => s.label),
+    backgroundColor: fatias.map((s) => resolveColor(s.color, t)),
+    borderColor: t.surface,
+    borderWidth: 2,
+    hoverOffset: 4,
+  });
+  return {
+    type: "doughnut",
+    // No Chart.js o primeiro dataset é o anel de FORA: classes primeiro, grupos (natural x antrópico) por dentro.
+    data: { labels: externo.map((s) => s.label), datasets: [anel(externo), anel(interno)] },
+    options,
+  };
+}
+
 // % de cada barra sobre ela (gráficos com `rotulos: "pct"`; barras abaixo de 0,5% ficam sem rótulo).
 const rotulosBarrasPlugin = {
   id: "rotulosBarras",
@@ -5538,23 +5625,24 @@ const rotulosRoscaPlugin = {
   afterDatasetsDraw(chart, _args, opts) {
     if (chart.config.type !== "doughnut" || !opts?.total) return;
     const { ctx } = chart;
-    const meta = chart.getDatasetMeta(0);
     ctx.save();
     ctx.font = "600 12px Montserrat, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.lineJoin = "round";
-    meta.data.forEach((arco, i) => {
-      const v = chart.data.datasets[0].data[i];
-      const p = safeDiv(v, opts.total);
-      if (p < 0.04 || arco.hidden) return;
-      const { x, y } = arco.tooltipPosition();
-      const txt = pct(p);
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "rgba(0,0,0,0.45)";
-      ctx.strokeText(txt, x, y);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(txt, x, y);
+    // Uma rosca tem um anel; a rosca dupla tem dois (cada um soma o mesmo total).
+    chart.data.datasets.forEach((ds, d) => {
+      chart.getDatasetMeta(d).data.forEach((arco, i) => {
+        const p = safeDiv(ds.data[i], opts.total);
+        if (p < 0.04 || arco.hidden) return;
+        const { x, y } = arco.tooltipPosition();
+        const txt = pct(p);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(0,0,0,0.45)";
+        ctx.strokeText(txt, x, y);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(txt, x, y);
+      });
     });
     ctx.restore();
   },

@@ -1267,6 +1267,12 @@ a.md-botao { display: inline-block; text-decoration: none; }
 .donut .legend-list { flex: 1 1 330px; min-width: 0; }
 .legend-list li { grid-template-columns: 10px minmax(7em, 1fr) auto auto; column-gap: 10px; }
 .legend-list li > span:nth-child(2) { line-height: 1.3; }
+/* Rosca dupla: títulos dos dois blocos da legenda ocupam a linha toda; centro menor (buraco pequeno). */
+.legend-list li.legend-head { display: block; grid-column: 1 / -1; margin-top: 6px; font-weight: 600; color: var(--text); }
+.legend-list li.legend-head:first-child { margin-top: 0; }
+.donut-aneis .donut-chart { width: 340px; height: 340px; }
+.donut-aneis .donut-center strong { font-size: .95rem; }
+.donut-aneis .donut-center span { font-size: .62rem; }
 
 /* ---------- Botão ⓘ (explicação do card) ---------- */
 .card-info {
