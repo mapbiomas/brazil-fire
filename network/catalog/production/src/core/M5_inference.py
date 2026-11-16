@@ -5,13 +5,12 @@ import numpy as np
 import rasterio
 from rasterio.windows import Window, from_bounds
 from affine import Affine
-from shapely.geometry import shape, mapping
-from pyproj import Transformer
 from osgeo import gdal
 from M_lang import L as Lang
 from M0_auth_config import CONFIG, mosaic_name_for_period, period_cog_path, get_temp_dir, _gcs_download, _gcs_upload
 from M4_data_extractor import normalize
 from M_periods import parse_period
+from M5_spatial import classify_region_block, clip_geometry_to_cell, rasterize_region_mask
 
 BLOCK_SIZE = 4096
 
@@ -109,25 +108,9 @@ def build_band_paths(bands_config, period):
 
     return paths
 
-def _reproject_geometry(geom_coords, src_crs):
-    """Reprojecta geometria EPSG:4326 -> src_crs. Retorna (clip_geom, geom_bounds)."""
-    geom = shape(geom_coords)
-    if not (src_crs and str(src_crs).upper() != 'EPSG:4326'):
-        return [mapping(geom)], geom.bounds
-    transformer = Transformer.from_crs('EPSG:4326', src_crs, always_xy=True)
-    if hasattr(geom, 'geoms'):
-        xs, ys = [], []
-        for part in geom.geoms:
-            px, py = zip(*part.exterior.coords)
-            nx, ny = transformer.transform(list(px), list(py))
-            xs.extend(nx); ys.extend(ny)
-    else:
-        xs, ys = zip(*geom.exterior.coords)
-        nx, ny = transformer.transform(list(xs), list(ys))
-        xs, ys = nx, ny
-    return [mapping(geom)], (min(xs), min(ys), max(xs), max(ys))
-
-def classify_cell_with_cogs(cell_id, predict_fn, bands_config, norm_stats, out_gcs_path, band_paths, band_order, logger=None, worker_id=None):
+def classify_cell_with_cogs(cell_id, predict_fn, bands_config, norm_stats,
+                            out_gcs_path, band_paths, band_order,
+                            region_geometry, logger=None, worker_id=None):
     """Clasifica un tile cim-world usando COGs via /vsigs/ streaming en bloques.
 
     Lee los COGs directamente desde GCS (sin descargar) y procesa en
@@ -137,6 +120,7 @@ def classify_cell_with_cogs(cell_id, predict_fn, bands_config, norm_stats, out_g
     Args:
         band_paths: dict {banda: 'bucket/.../cog.tif'} com paths GCS relativos.
         band_order: orden de las bandas (del modelo), ej: ['nir','red','swir1','swir2'].
+        region_geometry: GeoJSON of the selected campaign region in EPSG:4326.
         worker_id: opcional, prefixo [W1] nos logs.
     """
     import ee
@@ -147,7 +131,7 @@ def classify_cell_with_cogs(cell_id, predict_fn, bands_config, norm_stats, out_g
 
     sources = {}
     try:
-        geom_coords = cell_geom.getInfo()
+        cell_geom_coords = cell_geom.getInfo()
 
         for b in band_order:
             vsig = f"/vsigs/{band_paths[b]}"
@@ -165,13 +149,21 @@ def classify_cell_with_cogs(cell_id, predict_fn, bands_config, norm_stats, out_g
         src_nodata = sources[band_order[0]].nodata or -9999
         src_width = sources[band_order[0]].width
         src_height = sources[band_order[0]].height
-        clip_geom, geom_bounds = _reproject_geometry(geom_coords, src_crs)
+        clip_geom, geom_bounds = clip_geometry_to_cell(
+            region_geometry, cell_geom_coords, src_crs,
+        )
+        if not clip_geom:
+            if logger:
+                logger(f"    [WARN] {cell_id} does not intersect the selected region")
+            return None
 
         window = from_bounds(*geom_bounds, transform=src_transform)
         win_col = max(0, int(math.floor(window.col_off)))
         win_row = max(0, int(math.floor(window.row_off)))
-        win_w = min(int(math.ceil(window.width)), src_width - win_col)
-        win_h = min(int(math.ceil(window.height)), src_height - win_row)
+        win_col_end = min(src_width, int(math.ceil(window.col_off + window.width)))
+        win_row_end = min(src_height, int(math.ceil(window.row_off + window.height)))
+        win_w = win_col_end - win_col
+        win_h = win_row_end - win_row
 
         if win_w <= 0 or win_h <= 0:
             if logger:
@@ -225,47 +217,33 @@ def classify_cell_with_cogs(cell_id, predict_fn, bands_config, norm_stats, out_g
                     hb, wb = bands_block[band_order[0]].shape
                     stack = np.stack([bands_block[b] for b in band_order], axis=-1)
                     if 'dayOfYear' in bands_block:
-                        valid_mask = bands_block['dayOfYear'] > 0
+                        data_valid_mask = bands_block['dayOfYear'] > 0
                     else:
-                        valid_mask = np.all(stack > src_nodata, axis=-1)
-                    n_valid = int(valid_mask.sum())
+                        data_valid_mask = np.all(stack > src_nodata, axis=-1)
 
-                    if n_valid == 0:
-                        dst.write(np.full((hb, wb), -9999, dtype=np.int16), 1, window=dst_win)
-                        dst.write(np.full((hb, wb), -9999, dtype=np.int16), 2, window=dst_win)
-                        continue
-
-                    X_norm = normalize(stack[valid_mask], norm_stats)
-                    if logger and n_valid > 0:
+                    block_transform = out_transform * Affine.translation(col, row)
+                    region_mask = rasterize_region_mask(
+                        clip_geom, out_shape=(hb, wb), transform=block_transform,
+                    )
+                    n_valid = int((data_valid_mask & region_mask).sum())
+                    if n_valid:
                         t0 = time.time()
-                    probs = predict_fn(X_norm)
-                    if logger and n_valid > 0:
+                    result = classify_region_block(
+                        stack, data_valid_mask, region_mask,
+                        bands_block.get('dayOfYear'), norm_stats,
+                        normalize_fn=normalize, predict_fn=predict_fn,
+                    )
+                    if logger and n_valid:
                         wid = f"[W{worker_id}] " if worker_id else ""
                         logger(f"    {wid}{cell_id}: block {block_idx}/{n_blocks} ({hb}x{wb}, {n_valid} px) predicted in {_fmt_time(time.time() - t0)}")
-                    if probs.ndim > 1 and probs.shape[1] == 1:
-                        probs = probs.flatten()
 
-                    output_prob = np.full((hb, wb), -9999, dtype=np.int16)
-                    output_doy = np.full((hb, wb), -9999, dtype=np.int16)
-                    output_prob[valid_mask] = np.round(probs * 1000).astype(np.int16)
-                    if 'dayOfYear' in bands_block:
-                        burned_2d = np.zeros((hb, wb), dtype=bool)
-                        burned_2d[valid_mask] = np.round(probs * 1000) > 0
-                        output_doy[burned_2d] = bands_block['dayOfYear'][burned_2d].astype(np.int16)
+                    dst.write(result['probability'], 1, window=dst_win)
+                    dst.write(result['day_of_year'], 2, window=dst_win)
 
-                    dst.write(output_prob, 1, window=dst_win)
-                    dst.write(output_doy, 2, window=dst_win)
-
-                    total_valid += n_valid
-                    # Product convention: any positive probability counts as
-                    # burned, using the same rounded int16 value stored in the
-                    # raster (band 1) and the dayOfYear mask (band 2).
-                    burned = np.round(probs * 1000) > 0
-                    n_burned = int(burned.sum())
-                    total_burned += n_burned
-                    if n_burned > 0:
-                        conf_sum += float(probs[burned].sum())
-                        conf_count += n_burned
+                    total_valid += result['valid_pixels']
+                    total_burned += result['burned_pixels']
+                    conf_sum += result['confidence_sum']
+                    conf_count += result['confidence_count']
 
         if total_valid == 0:
             if logger:

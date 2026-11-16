@@ -41,7 +41,8 @@ class ModelTrainer:
     def __init__(self, num_input, layers=None, lr=None, seed=42):
         _get_tf()
         self.num_input  = num_input
-        self.layers = layers or CONFIG.get('model_layers', [64, 32])
+        # Default = legacy network/version_02 topology (5 hidden layers).
+        self.layers = layers or CONFIG.get('model_layers', [7, 14, 7, 14, 7])
         self.lr     = lr     or CONFIG.get('model_lr', 0.001)
         self.seed       = seed
         self.graph      = None
@@ -76,12 +77,14 @@ class ModelTrainer:
         self.train_op = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
         self.saver    = tf.train.Saver()
 
-    def train(self, X_train, y_train, X_val=None, y_val=None, batch_size=None, n_iters=None, keep_prob=0.8, logger=None, update_chart_fn=None, snapshot_dir=None):
+    def train(self, X_train, y_train, X_val=None, y_val=None, batch_size=None, n_iters=None, keep_prob=1.0, logger=None, update_chart_fn=None, snapshot_dir=None):
+        # keep_prob=1.0 -> no dropout, as in legacy network/version_02. Dropout
+        # (0.8) on 7-neuron layers left probabilities far from 0/1.
         self._X_raw = X_train
         self._y_raw = y_train
-        
+
         batch_size = batch_size or CONFIG.get('model_batch', 1000)
-        n_iters    = n_iters    or CONFIG.get('model_iters', 5000)
+        n_iters    = n_iters    or CONFIG.get('model_iters', 7000)
         self._batch_size = batch_size
         self._n_iters = n_iters
         self._keep_prob = keep_prob

@@ -1,13 +1,235 @@
 print("\n>>> M2_mosaic_ui initializing (v7.0 Tabs) <<<")
 import traceback
+import errno
+import copy
+import threading
+import os
+import posixpath
+import re
+import shutil
+import sys
 import ipywidgets as widgets
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
 from M0_auth_config import CONFIG, GLOBAL_OPTS, mosaic_name_for_period, is_edit_mode, period_cog_path, get_sensor_start_year, resolve_years
 from M_periods import list_periods, period_state_key
 from M_cache import CacheManager
-from M_ui_components import PipelineStepUI, cell_log, ProgressTracker
+from M_ui_components import PipelineStepUI, cell_log, ProgressTracker, make_update_note
 from M_lang import L as Lang
 from M_mosaics import methods_for
+from M1_update_manifest import (
+    find_item, load_manifest, mark_item_complete, pending_item,
+    save_manifest, set_item_status,
+)
+
+# Provisional cap: full-size COGs compete for disk. Increase only after
+# representative end-to-end benchmarks.
+M2_MAX_WORKERS = 2
+# Avoid assuming that more compression threads necessarily improve throughput.
+M2_MAX_GDAL_THREADS = 8
+_CGROUP_UNKNOWN = object()
+
+
+def choose_m2_workers(selected_count, cpu_count, total_ram, available_ram, free_disk):
+    """Choose a conservative product concurrency from observed resources.
+
+    RAM and disk are in bytes. Unknown resources fall back to one worker;
+    these thresholds do not guarantee enough disk for a particular COG.
+    """
+    gib = 1024 ** 3
+    if selected_count <= 0:
+        return 0
+    if (cpu_count is not None and cpu_count >= 4
+            and total_ram is not None and total_ram >= 32 * gib
+            and available_ram is not None and available_ram >= 24 * gib
+            and free_disk is not None and free_disk >= 100 * gib):
+        return min(selected_count, M2_MAX_WORKERS, 2)
+    return 1
+
+
+def choose_gdal_threads(cpu_count, product_workers, available_ram):
+    """Budget CPUs and a conservative RAM reserve across GDAL products."""
+    cpu_budget = max(1, (cpu_count or 1) // max(1, product_workers))
+    if available_ram is None:
+        return 1
+    gib = 1024 ** 3
+    ram_budget = max(1, int(max(0, available_ram - 2 * gib) // (gib // 2)))
+    return max(1, min(M2_MAX_GDAL_THREADS, cpu_budget, ram_budget // max(1, product_workers)))
+
+
+def _read_resource_file(path):
+    try:
+        with open(path, encoding='utf-8') as stream:
+            return stream.read().strip()
+    except (OSError, UnicodeError):
+        return None
+
+
+def _resource_file_absent(path):
+    """Distinguish a missing root controller file from an unreadable one."""
+    try:
+        os.stat(path)
+    except FileNotFoundError:
+        return True
+    except OSError:
+        pass
+    return False
+
+
+def _cgroup_limits():
+    """Return visible cgroup CPU and memory limits, including parent limits.
+
+    Missing or inaccessible Linux cgroup files leave the corresponding limit
+    unknown. Fractional CPU quotas are rounded down, with a minimum of one.
+    """
+    memberships = _read_resource_file('/proc/self/cgroup')
+    mounts = _read_resource_file('/proc/self/mountinfo')
+    if memberships is None or mounts is None:
+        return (1, _CGROUP_UNKNOWN, None) if sys.platform.startswith('linux') else (None, None, None)
+    groups = {}
+    for line in memberships.splitlines():
+        parts = line.split(':', 2)
+        if len(parts) == 3 and parts[2].startswith('/'):
+            for controller in parts[1].split(','):
+                groups[controller] = posixpath.normpath(parts[2])
+        else:
+            return (1, _CGROUP_UNKNOWN, None)
+    if not groups and sys.platform.startswith('linux'):
+        return (1, _CGROUP_UNKNOWN, None)
+    cpu_limits, memory_limits, memory_available = [], [], []
+    memory_usage_unknown = False
+    cpu_unknown = memory_unknown = False
+    matched = set()
+    for line in mounts.splitlines():
+        left, separator, right = line.partition(' - ')
+        fields, fs = left.split(), right.split()
+        if not separator or len(fields) < 5 or len(fs) < 3 or fs[0] not in ('cgroup', 'cgroup2'):
+            continue
+        controllers = [''] if fs[0] == 'cgroup2' else fs[2].split(',')
+        root, mount = (re.sub(r'\\([0-7]{3})', lambda match: chr(int(match.group(1), 8)), value)
+                       for value in fields[3:5])
+        for controller in controllers:
+            if controller not in groups or controller not in ('', 'cpu', 'memory'):
+                continue
+            group = groups[controller]
+            root = posixpath.normpath(root)
+            if root != '/' and group != root and not group.startswith(root + '/'):
+                continue
+            matched.add(controller)
+            relative = group[len(root):].lstrip('/') if root != '/' else group.lstrip('/')
+            path = posixpath.join(mount, relative)
+            while True:
+                if controller in ('', 'cpu'):
+                    if controller == '':
+                        raw_cpu = _read_resource_file(posixpath.join(path, 'cpu.max'))
+                        # The actual cgroup2 root normally has no controller
+                        # limit files; a mounted subtree root is not exempt.
+                        if (raw_cpu is None and root == '/' and path == mount
+                                and _resource_file_absent(posixpath.join(path, 'cpu.max'))):
+                            raw_cpu = 'max 100000'
+                        value = (raw_cpu or '').split()
+                        quota, period = (value + [None, None])[:2]
+                    else:
+                        quota = _read_resource_file(posixpath.join(path, 'cpu.cfs_quota_us'))
+                        period = _read_resource_file(posixpath.join(path, 'cpu.cfs_period_us'))
+                    try:
+                        period = int(period)
+                        if period <= 0:
+                            raise ValueError('invalid period')
+                        if controller == '' and quota == 'max':
+                            pass
+                        elif controller == 'cpu' and quota == '-1':
+                            pass
+                        else:
+                            quota = int(quota)
+                            if quota <= 0:
+                                raise ValueError('invalid quota')
+                            cpu_limits.append(max(1, quota // period))
+                    except (ValueError, TypeError):
+                        cpu_unknown = True
+                if controller in ('', 'memory'):
+                    limit_name = 'memory.max' if controller == '' else 'memory.limit_in_bytes'
+                    usage_name = 'memory.current' if controller == '' else 'memory.usage_in_bytes'
+                    try:
+                        raw_limit = _read_resource_file(posixpath.join(path, limit_name))
+                        if (controller == '' and raw_limit is None and root == '/' and path == mount
+                                and _resource_file_absent(posixpath.join(path, limit_name))):
+                            raw_limit = 'max'
+                        if not (controller == '' and raw_limit == 'max'):
+                            limit = int(raw_limit)
+                            if limit < 0:
+                                raise ValueError('invalid memory limit')
+                            # cgroup v1 uses enormous sentinel values for unlimited.
+                            if controller == '' or limit < (1 << 60):
+                                memory_limits.append(limit)
+                                try:
+                                    usage = int(_read_resource_file(posixpath.join(path, usage_name)))
+                                    if usage >= 0:
+                                        memory_available.append(max(0, limit - usage))
+                                    else:
+                                        memory_usage_unknown = True
+                                except (ValueError, TypeError):
+                                    memory_usage_unknown = True
+                    except (ValueError, TypeError):
+                        memory_unknown = True
+                if path == mount:
+                    break
+                parent = posixpath.dirname(path)
+                if parent == path:
+                    break
+                path = parent
+    if '' in groups and '' not in matched:
+        cpu_unknown = memory_unknown = True
+    if 'cpu' in groups and 'cpu' not in matched:
+        cpu_unknown = True
+    if 'memory' in groups and 'memory' not in matched:
+        memory_unknown = True
+    return (1 if cpu_unknown else min(cpu_limits, default=None),
+            _CGROUP_UNKNOWN if memory_unknown else min(memory_limits, default=None),
+            None if memory_unknown or memory_usage_unknown else min(memory_available, default=None))
+
+
+def detect_m2_resources():
+    """Read actual runtime resources, not an assumed Colab subscription tier."""
+    try:
+        cpu = getattr(os, 'process_cpu_count', os.cpu_count)()
+    except (OSError, ValueError):
+        cpu = None
+    total = available = disk = None
+    try:
+        affinity = len(os.sched_getaffinity(0))
+        if affinity:
+            cpu = min(cpu, affinity) if cpu else affinity
+    except (AttributeError, OSError, ValueError):
+        pass
+    cpu_limit, memory_limit, memory_free = _cgroup_limits()
+    if cpu_limit is not None:
+        cpu = min(cpu, cpu_limit) if cpu else cpu_limit
+    try:
+        import psutil
+        memory = psutil.virtual_memory()
+        total, available = memory.total, memory.available
+        try:
+            affinity = getattr(psutil.Process(), 'cpu_affinity', None)
+            cpus = affinity() if affinity else []
+            if cpus:
+                cpu = min(cpu or len(cpus), len(cpus))
+        except (psutil.Error, OSError, AttributeError):
+            pass
+    except (ImportError, OSError, AttributeError):
+        pass
+    if memory_limit is _CGROUP_UNKNOWN:
+        total = available = None
+    elif memory_limit is not None:
+        total = min(total, memory_limit) if total is not None else memory_limit
+        # A limit without usage cannot safely establish available memory.
+        available = min(available, memory_free) if available is not None and memory_free is not None else None
+    try:
+        from M0_auth_config import get_temp_dir
+        disk = shutil.disk_usage(get_temp_dir()).free
+    except (OSError, ValueError):
+        pass
+    return cpu, total, available, disk
 
 class MosaicAssemblerUI(PipelineStepUI):
     def __init__(self, years=None):
@@ -50,6 +272,11 @@ class MosaicAssemblerUI(PipelineStepUI):
         self.years = resolve_years(self.requested_years)
         self.bands = CONFIG['bands_all']
         self.state = CacheManager.load() or {}
+        try:
+            self.update_manifest = load_manifest()
+        except Exception as e:
+            print(f"[WARN] M2 update manifest unavailable: {e}")
+            self.update_manifest = {'version': 1, 'items': []}
         # Chunks/COGs exported by earlier sessions live only in GCS. Rebuild the
         # cache when it is empty (fresh clone) or older than the TTL, so the
         # already-exported mosaics show up as READY/OK without a manual Sync.
@@ -131,7 +358,34 @@ class MosaicAssemblerUI(PipelineStepUI):
                 chk = widgets.Checkbox(value=False, indent=False, layout=L(width='18px', height='18px', margin='0'))
                 chk._meta = {'sensor': sensor, 'period': period, 'mosaic': mosaic_method, 'year': y, 'month': m, 'period_key': date_str, 'band': b}
 
-                if exists_cog:
+                update_entry = find_item(self.update_manifest, {
+                    'country': CONFIG['country'], 'sensor': sensor,
+                    'period': period, 'mosaic': mosaic_method,
+                    'period_key': date_str, 'band': b, 'type': 'GCS',
+                })
+                country_update = bool(update_entry and pending_item(
+                    self.update_manifest, {
+                        'country': CONFIG['country'], 'sensor': sensor,
+                        'period': period, 'mosaic': mosaic_method,
+                        'period_key': date_str, 'band': b, 'type': 'GCS',
+                    },
+                ))
+                chk._meta.update({
+                    'country': CONFIG['country'],
+                    'type': 'GCS',
+                    'country_update': country_update and (exists_cog or has_chunks),
+                    'has_cog': exists_cog,
+                    'has_chunks': has_chunks,
+                })
+
+                if country_update and exists_cog:
+                    # A legacy COG update is explicitly selectable even
+                    # when edit mode is off; the ordinary M2 start cell runs it.
+                    chk.disabled = False
+                    cell = PipelineStepUI.make_status_cell(
+                        chk, Lang.M1_UPDATE_LABEL, 'mfm-update', width='auto',
+                    )
+                elif exists_cog:
                     if not is_edit_mode(): chk.disabled = True
                     cog_dir = period_cog_path(date_str, mosaic=mosaic_method, sensor=sensor)
                     cog_file = f"{m_name}_cog.tif"
@@ -216,7 +470,10 @@ class MosaicAssemblerUI(PipelineStepUI):
         
         # Loader integrado ao rodapé
         footer = widgets.VBox([
-            widgets.HBox([btn_all, btn_none, self.btn_refresh, self.loader_html], layout=L(margin='15px 0', gap='10px', align_items='center'))
+            widgets.HBox([
+                btn_all, btn_none, self.btn_refresh,
+                make_update_note(Lang.M1_UPDATE_M2_NOTE), self.loader_html,
+            ], layout=L(margin='15px 0', gap='10px', align_items='center', flex_flow='row wrap'))
         ])
 
         # --- SISTEMA DE ABAS (TABS) ---
@@ -358,48 +615,263 @@ def run_ui(years=None):
     ui.hide_loader()
     return ui
 
+
+def process_country_mosaic_item(item, manifest, logger=print, persist_manifest=True,
+                                gdal_threads=2):
+    """Apply an M2 country-mask update or run the usual chunks assembly."""
+    from M2_mosaic_logic import assemble_country_mosaic, mask_existing_country_cog
+
+    period_key = item.get('period_key') or (
+        f"{item['year']}_{item['month']:02d}" if item.get('month') else str(item['year'])
+    )
+    country_update = item.get('country_update', False)
+    has_chunks = item.get('has_chunks', False)
+
+    if country_update and item.get('has_cog'):
+        if persist_manifest:
+            set_item_status(manifest, item, 'masking_cog')
+            save_manifest(manifest)
+        try:
+            updated = mask_existing_country_cog(
+                period_key, item['band'], item['sensor'], item['mosaic'],
+                logger=logger, update_manifest=persist_manifest, gdal_threads=gdal_threads,
+            )
+        except Exception as error:
+            if persist_manifest:
+                set_item_status(manifest, item, 'pending', last_error=str(error))
+                save_manifest(manifest)
+            raise
+        if updated:
+            if persist_manifest:
+                mark_item_complete(manifest, item)
+                save_manifest(manifest)
+            return [f"updated COG {period_key}/{item['band']}"]
+        if not has_chunks:
+            error = f"COG disappeared before update and no chunks are available: {period_key}/{item['band']}"
+            if persist_manifest:
+                set_item_status(manifest, item, 'pending', last_error=error)
+                save_manifest(manifest)
+            raise RuntimeError(error)
+
+    if country_update:
+        if not has_chunks:
+            error = f"No COG or chunks available for M2 update: {period_key}/{item['band']}"
+            if persist_manifest:
+                set_item_status(manifest, item, 'pending', last_error=error)
+                save_manifest(manifest)
+            raise RuntimeError(error)
+        if persist_manifest:
+            set_item_status(manifest, item, 'chunks_ready')
+            save_manifest(manifest)
+
+    result = assemble_country_mosaic(
+        year=item['year'], month=item['month'], period=item['period'],
+        sensor=item['sensor'], mosaic_method=item['mosaic'],
+        bands=[item['band']], period_key=period_key, logger=logger,
+        update_manifest=persist_manifest, gdal_threads=gdal_threads,
+    )
+    if country_update:
+        if not result:
+            error = f"M2 did not produce a COG for {period_key}/{item['band']}."
+            if persist_manifest:
+                set_item_status(manifest, item, 'pending', last_error=error)
+                save_manifest(manifest)
+            raise RuntimeError(error)
+        if persist_manifest:
+            set_item_status(
+                manifest, item, 'complete',
+            )
+            save_manifest(manifest)
+    return result
+
+
+def _is_disk_full(error):
+    """Recognize OS and GDAL/subprocess disk-full errors, including causes."""
+    import M2_mosaic_logic
+    estimate_error = getattr(M2_mosaic_logic, 'COGSpaceEstimateExceeded', ())
+    seen = set()
+    while error is not None and id(error) not in seen:
+        seen.add(id(error))
+        # A conservative preflight estimate is not evidence of actual ENOSPC.
+        if isinstance(error, estimate_error):
+            error = error.__cause__ or error.__context__
+            continue
+        if getattr(error, 'errno', None) == errno.ENOSPC:
+            return True
+        for value in (str(error), getattr(error, 'stderr', None), getattr(error, 'output', None)):
+            if isinstance(value, bytes):
+                value = value.decode('utf-8', errors='replace')
+            if isinstance(value, str) and ('no space left on device' in value.lower()
+                                           or 'enospc' in value.lower()):
+                return True
+        error = error.__cause__ or error.__context__
+    return False
+
+
 def start_mosaic_assembly(ui_obj):
     selected = [chk._meta for chk in ui_obj.chk_dict.values() if chk.value]
     if not selected:
         print("[WARNING] No mosaic selected.")
         cell_log("No mosaic selected.", type='warning')
         return
-    
-    print(f"[INFO] Starting assembly of {len(selected)} COG bands...")
-    cell_log(f"Starting assembly of {len(selected)} COG bands...", type='info')
-    
-    from M2_mosaic_logic import assemble_country_mosaic
 
-    succeeded = 0
-    prog = ProgressTracker(len(selected), "COG Assembly")
+    unique = []
+    seen = set()
     for item in selected:
         period_key = item.get('period_key') or (
-            f"{item['year']}_{item['month']:02d}" if item['month'] else f"{item['year']}"
+            f"{item['year']}_{item['month']:02d}" if item.get('month') else str(item['year'])
         )
-        d_label = period_key
+        destination = (str(item['sensor']).lower(), str(item['mosaic']).lower(),
+                       period_key, str(item['band']).lower())
+        if destination in seen:
+            print(f"[WARN] Duplicate destination ignored: {destination}")
+            continue
+        seen.add(destination)
+        unique.append(item)
+    selected = unique
+    
+    resources = detect_m2_resources()
+    worker_count = choose_m2_workers(len(selected), *resources)
+    cpu, total, available, free_disk = resources
+    gdal_threads = choose_gdal_threads(cpu, worker_count, available)
+    gib = 1024 ** 3
+    def format_gib(value):
+        return f"{value / gib:.1f} GiB" if value is not None else 'unknown'
+    print(f"[M2 resources] CPUs={cpu or 'unknown'} | RAM total={format_gib(total)} "
+          f"available={format_gib(available)} | temp free={format_gib(free_disk)} | "
+          f"product workers={worker_count} (GDAL: up to {gdal_threads} threads per product)")
+    print(
+        f"[INFO] Starting assembly of {len(selected)} COG bands "
+        f"with {worker_count} worker(s)..."
+    )
+    cell_log(
+        f"Starting assembly of {len(selected)} COG bands with {worker_count} worker(s)...",
+        type='info',
+    )
+
+    manifest = getattr(ui_obj, 'update_manifest', {'version': 1, 'items': []})
+    succeeded = failed = unconfirmed = 0
+    disk_full = threading.Event()
+    scheduling_lock = threading.Lock()
+    persistence_failed = False
+    prog = ProgressTracker(len(selected), "COG Assembly")
+    def persist_change(change):
+        nonlocal persistence_failed
+        if persistence_failed:
+            return False
         try:
-            cell_log(f"[{prog.completed+1}/{prog.total}] Processing {item['sensor']} {d_label} {item['band']}...", type='info')
-            
-            assemble_country_mosaic(
-                year=item['year'],
-                month=item['month'],
-                period=item['period'],
-                sensor=item['sensor'],
-                mosaic_method=item['mosaic'],
-                bands=[item['band']],
-                period_key=period_key,
-                logger=print
+            candidate = copy.deepcopy(manifest)
+            change(candidate)
+            save_manifest(candidate)
+        except Exception as error:
+            persistence_failed = True
+            message = f"Manifest persistence failed; no further writes or submissions: {error}"
+            print(f"[ERR] {message}")
+            cell_log(message, type='error')
+            return False
+        change(manifest)
+        return True
+
+    def run_item(index, item):
+        period_key = item.get('period_key') or (
+            f"{item['year']}_{item['month']:02d}"
+            if item.get('month') else f"{item['year']}"
+        )
+        cell_log(
+            f"[{index}/{len(selected)}] Processing {item['sensor']} "
+            f"{period_key} {item['band']}...", type='info',
+        )
+        try:
+            return process_country_mosaic_item(
+                item, manifest, logger=print, persist_manifest=False, gdal_threads=gdal_threads,
             )
-            succeeded += 1
-            cell_log(f"OK: {item['sensor']} {d_label} {item['band']}", type='success')
-        except Exception as e:
-            print(f"[ERR] Failed {item['sensor']} {d_label} {item['band']}: {e}")
-            cell_log(f"Failed {item['sensor']} {d_label} {item['band']}: {e}", type='error')
-            traceback.print_exc()
-        finally:
-            prog.step()
-    print(f"\n[SUMMARY] Assembly completed: {succeeded}/{len(selected)} succeeded.")
-    cell_log(f"Assembly completed: {succeeded}/{len(selected)} | {prog.summary()}", type='success')
+        except Exception as error:
+            if _is_disk_full(error):
+                disk_full.set()
+            raise
+
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        future_items = {}
+        next_index = 0
+        while future_items or (next_index < len(selected) and not disk_full.is_set()
+                               and not persistence_failed):
+            while (not disk_full.is_set() and not persistence_failed
+                   and next_index < len(selected) and len(future_items) < worker_count):
+                item = selected[next_index]
+                original_entry = find_item(manifest, item) if item.get('country_update') else None
+                previous = ({key: original_entry[key] for key in ('status', 'last_error')
+                             if key in original_entry} if original_entry is not None else None)
+                if item.get('country_update'):
+                    status = 'masking_cog' if item.get('has_cog') else 'chunks_ready'
+                    if not persist_change(lambda data: set_item_status(data, item, status)):
+                        break
+                with scheduling_lock:
+                    stopped = disk_full.is_set()
+                    if not stopped:
+                        next_index += 1
+                        future_items[executor.submit(run_item, next_index, item)] = (next_index, item)
+                if stopped:
+                    if item.get('country_update'):
+                        def restore_unstarted(data):
+                            entry = find_item(data, item)
+                            if previous is None:
+                                if entry is not None:
+                                    data['items'].remove(entry)
+                            elif entry is not None:
+                                for key in ('status', 'last_error'):
+                                    entry.pop(key, None)
+                                entry.update(previous)
+                        if not persist_change(restore_unstarted):
+                            unconfirmed += 1
+                    break
+            if not future_items:
+                break
+            done, _ = wait(future_items, return_when=FIRST_COMPLETED)
+            for future in done:
+                index, item = future_items.pop(future)
+                period_key = item.get('period_key') or (
+                    f"{item['year']}_{item['month']:02d}"
+                    if item['month'] else f"{item['year']}"
+                )
+                try:
+                    result = future.result()
+                    if not result:
+                        raise RuntimeError('M2 did not produce an output COG.')
+                except Exception as e:
+                    failed += 1
+                    print(f"[ERR] Failed {item['sensor']} {period_key} {item['band']}: {e}")
+                    if item.get('country_update'):
+                        def record_failure(data):
+                            entry = set_item_status(data, item, 'pending')
+                            entry['last_error'] = str(e)
+                        if not persist_change(record_failure):
+                            unconfirmed += 1
+                    cell_log(
+                        f"Failed {item['sensor']} {period_key} {item['band']}: {e}",
+                        type='error',
+                    )
+                    traceback.print_exc()
+                else:
+                    succeeded += 1
+                    confirmed = (not item.get('country_update')
+                                 or persist_change(lambda data: mark_item_complete(data, item)))
+                    if not confirmed:
+                        unconfirmed += 1
+                    cell_log(
+                        f"OK: {item['sensor']} {period_key} {item['band']}"
+                        + (" (manifest unconfirmed)" if not confirmed else ""),
+                        type='success' if confirmed else 'warning',
+                    )
+                finally:
+                    prog.step()
+    skipped = len(selected) - next_index
+    summary = (f"Assembly completed: {succeeded} succeeded, {failed} failed, "
+               f"{skipped} skipped, {unconfirmed} manifest unconfirmed"
+               + (" (disk full; not started)" if disk_full.is_set() else "")
+               + (" (manifest persistence failed)" if persistence_failed else ""))
+    print(f"\n[SUMMARY] {summary}.")
+    cell_log(f"{summary} | {prog.summary()}",
+             type='warning' if failed or skipped or persistence_failed else 'success')
 
     # The COGs were just uploaded: rescan GCS and redraw the active tab so they
     # appear as OK right away.

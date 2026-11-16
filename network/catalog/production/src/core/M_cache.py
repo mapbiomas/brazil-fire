@@ -332,6 +332,7 @@ class CacheManager:
             
             for fpath in all_files:
                 if not fpath.endswith('.tif'): continue
+                if '/.m1_updates/' in fpath.lower(): continue
                 
                 # Identifica se é COG ou Chunk
                 basename = fpath.split('/')[-1]

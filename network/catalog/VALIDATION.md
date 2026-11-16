@@ -10,10 +10,11 @@ runtime code tests run per version with `python -m unittest discover -s tests`.
 | `catalog/development/version_00/` | `classification_algorithms/A_0_1...` and notebook | Both point to `network/catalog/development/version_00/classification_algorithms` (Collection 1) |
 | `catalog/development/version_01/` | `classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb` | `A_0_1` and notebook point to `network/catalog/development/version_01/classification_algorithms` (Collection 2) |
 | `catalog/development/version_03/` | `notebooks/monitor_01_*.ipynb` and `collection_*.ipynb` | 14 notebooks; `repo_path = network/catalog/development/version_03/src/core`; 114 tests OK |
-| `catalog/production/` | `notebooks/monitor_01_*.ipynb` and `collection_*.ipynb` | 14 notebooks; `repo_path = network/catalog/production/src/core`; 114 tests OK |
+| `catalog/development/version_04/` | `notebooks/monitor_01_*.ipynb` and `collection_*.ipynb` | 16 notebooks + `validate_gcs_export.ipynb`; `repo_path = network/catalog/development/version_04/src/core`; 246 tests OK |
+| `catalog/production/` | `notebooks/monitor_01_*.ipynb` and `collection_*.ipynb` | Copy of `version_04` (2026-11-16); `repo_path = network/catalog/production/src/core`; 246 tests OK |
 
-Catalog `version_02` is reserved and has no folder. `version_04` was removed;
-`version_03` is now the active development copy and the stable reference.
+`version_04` is the active development copy and the source for `production/`
+(promoted 2026-11-16). `version_03` is kept as the previous stable reference.
 
 ## Commands
 
@@ -22,7 +23,7 @@ Catalog `version_02` is reserved and has no folder. `version_04` was removed;
 python -m unittest discover -s network/catalog/tests -v
 
 # Runtime code per catalog version
-python -m unittest discover -s network/catalog/development/version_03/tests
+python -m unittest discover -s network/catalog/development/version_04/tests
 python -m unittest discover -s network/catalog/production/tests
 ```
 

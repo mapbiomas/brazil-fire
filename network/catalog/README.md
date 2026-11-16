@@ -18,12 +18,12 @@ by the export/vectorization pipeline stay exactly the same.
 | `development/version_00` | Collection 1 legacy (moved from `network/version_01`) | Kept for compatibility; removal planned |
 | `development/version_01` | Collection 2 active (moved from `network/version_02`) | Kept for compatibility; removal planned |
 | `development/version_02` | Peru monitor pipeline (M0–M9, from `peru-fire/mapbiomas_fire_monitor/version_01`) | Reference copy + service-account auth |
-| `development/version_03` | campaign/target catalog | Active development + source for production |
-| `development/version_04` | copy of `version_03` with the legacy M4 network (5 layers 7-14-7-14-7, no dropout, 7000 iterations); burned rule unchanged | Testing |
-| `production/` | copy of `development/version_03` | Shipped release |
+| `development/version_03` | campaign/target catalog (previous production source) | Stable reference; frozen |
+| `development/version_04` | `version_03` + country-wide M1 mask, M2 updates/disk safeguards, region-restricted M5, legacy M4 network (7-14-7-14-7, no dropout, 7000 iterations); burned rule unchanged | Active development + source for production |
+| `production/` | copy of `development/version_04` | Shipped release |
 
-> `version_03` is the active development copy and the source for production.
-> `version_04` is under test; see its README for the changes.
+> `version_04` is the active development copy and the source for production
+> (promoted 2026-11-16). `version_03` is kept as the previous stable reference.
 
 ## Layout
 
@@ -33,13 +33,14 @@ network/catalog/
 ├── development/
 │   ├── version_00/   # Collection 1 (legacy)
 │   ├── version_01/   # Collection 2 (active)
-│   └── version_03/   # campaign/target catalog (active development)
+│   ├── version_03/   # campaign/target catalog (previous stable reference)
+│   └── version_04/   # campaign/target catalog (active development)
 │       ├── campaigns/  # one JSON per campaign + index.json
 │       ├── targets/    # one JSON per target (only burned_area enabled)
 │       ├── src/core/   # M_campaigns.py, M_targets.py, M_catalog.py + pipeline
 │       ├── notebooks/  # one thin notebook per country/campaign
 │       └── COLAB_LINKS.csv|txt
-└── production/       # copy of version_03 (shipped release)
+└── production/       # copy of version_04 (shipped release)
     ├── campaigns/
     ├── targets/
     ├── src/core/
@@ -48,9 +49,8 @@ network/catalog/
     └── PRODUCTION.md
 ```
 
-`.agents/` is our development workspace and is not shipped. `version_03` is the
-**active development copy and stable reference**; `production/` is the shipped
-copy of `version_03`.
+`.agents/` is our development workspace and is not shipped. `version_04` is the
+**active development copy**; `production/` is the shipped copy of `version_04`.
 
 ## Campaigns (7 countries)
 
@@ -105,7 +105,7 @@ The catalog covers eight countries; annual campaigns use **Collection 02**,
 except Brazil (**Collection 06**) and Paraguay and Peru (**Collection 03**).
 
 
-Development notebooks are under `development/version_03/notebooks/`. The public
+Development notebooks are under `development/version_04/notebooks/`. The public
 entry points are under `production/notebooks/`.
 
 ## Colab links
@@ -114,24 +114,25 @@ entry points are under `production/notebooks/`.
   [`production/COLAB_LINKS.csv`](./production/COLAB_LINKS.csv) and
   [`production/COLAB_LINKS.txt`](./production/COLAB_LINKS.txt).
 - Development (internal tests):
-  `development/version_03/COLAB_LINKS.csv`.
+  `development/version_04/COLAB_LINKS.csv`.
 
 ## Adding a campaign or target
 
-- New campaign: add `development/version_03/campaigns/{country}.{campaign}.json`
+- New campaign: add `development/version_04/campaigns/{country}.{campaign}.json`
   and, if desired, a notebook. No pipeline code changes.
-- New target: add `development/version_03/targets/{id}.json`. Only
+- New target: add `development/version_04/targets/{id}.json`. Only
   `task: "binary"` is implemented today; other tasks fail loudly until the
   profile is built.
 
 ## Release flow
 
-1. Edit `development/version_03`.
-2. Copy the `version_03` contents to `production/`.
+1. Edit `development/version_04`.
+2. Copy the `version_04` contents to `production/` (drop `REFERENCE.md`, keep
+   `PRODUCTION.md`) and rewrite `development/version_04` paths to `production`.
 3. Regenerate the production `COLAB_LINKS.csv`/`.txt`.
 4. M3 toolkit: the catalog ships the v10 snapshot
    (`5-Monitor-Fuego/M3/dev/M3_Toolkit_Monitor_Fuego_v10`). Copy it to
-   `development/version_03/src/core/M3_toolkit.js` and promote it with the rest;
+   `development/version_04/src/core/M3_toolkit.js` and promote it with the rest;
    `production` keeps an identical copy. The GEE link points to
    `5-MapBiomas-Fuego/M3/M3_Toolkit_MapBiomas_Fuego` (current production) as the
    live reference.
@@ -140,12 +141,12 @@ entry points are under `production/notebooks/`.
 
 `version_00` and `version_01` are kept only so existing scripts, notebooks and
 links continue to work. They will be removed after a public notice. New work
-must go to `version_03`. `version_02` is the Peru monitor pipeline
+must go to `version_04`. `version_02` is the Peru monitor pipeline
 (`peru-fire/mapbiomas_fire_monitor/version_01`) kept as a reference copy.
 
 ## Provenance
 
-`development/version_03/REFERENCE.md` records the source version/commit. The
+`development/version_04/REFERENCE.md` records the source version/commit. The
 original Peru baseline is `peru-fire/mapbiomas_fire_monitor/version_01` at
 `58897ca`, preserved in the peru-fire repository and in git history.
 

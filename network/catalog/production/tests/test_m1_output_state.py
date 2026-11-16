@@ -79,6 +79,22 @@ class OutputStateTests(unittest.TestCase):
             ('RUN', True),
         )
 
+    def test_pending_update_only_replaces_ok_for_gee_assets(self):
+        self.assertEqual(
+            resolve_output_state('GCS', True, True, False, False, update_pending=True),
+            ('OK', True),
+        )
+        self.assertEqual(
+            resolve_output_state('ASSET', False, False, True, False, update_pending=True),
+            ('UPDATE', True),
+        )
+
+    def test_update_never_overrides_active_task(self):
+        self.assertEqual(
+            resolve_output_state('GCS', True, False, False, True, update_pending=True),
+            ('RUN', True),
+        )
+
 
 class OutputLinkTests(unittest.TestCase):
     @classmethod

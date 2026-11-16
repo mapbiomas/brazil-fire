@@ -154,7 +154,7 @@ def _user_credentials():
     try:
         import google.colab
         from google.colab import auth
-        print("[AUTH] Google Colab detectado. Abrindo login (pop-up)...")
+        print("[AUTH] Colab login (pop-up)...")
         auth.authenticate_user()
     except ImportError:
         pass  # local: usa ADC
@@ -190,7 +190,7 @@ def authenticate(project=None):
         # 2) GEE — usa a CONTA DA PESSOA (ela já tem earthengine.writer nos países).
         try:
             ee.Initialize(project=project)
-            print(f"[GEE] Inicializado com a conta do usuário (projeto: {project}).")
+            print(f"[GEE] Initialized with user account | project: {project}")
         except Exception as exc:
             raise RuntimeError(
                 f"Falha ao inicializar o Earth Engine com a conta do usuário.\n"
@@ -211,28 +211,18 @@ def authenticate(project=None):
             )
             # Dispara a aquisição do token agora — pega erro de permissão já aqui.
             _GCS_CREDENTIALS.refresh(Request())
-            print(f"[GCS] Conta de serviço pronta para o bucket: {sa_email}")
+            print(f"[GCS] Service account ready | {sa_email}")
         except Exception as exc:
             detail = str(exc)
             if 'iam.serviceAccounts.getAccessToken' in detail:
                 print(
-                    "\n" + "=" * 64 + "\n"
-                    "⚠️  CONTA DE SERVIÇO INDISPONÍVEL (bucket)\n"
-                    "=" * 64 + "\n"
-                    "Sua conta não está no grupo que pode usar a conta de serviço.\n\n"
-                    "Para acessar o bucket, escolha UMA opção:\n"
-                    f"  1) Entrar no grupo de emails: {SERVICE_ACCOUNT_GROUP}\n"
-                    "     (peça ao administrador do grupo para te adicionar)\n"
-                    "  OU\n"
-                    f"  2) Pedir acesso direto ao bucket gs://{CONFIG['bucket']}\n"
-                    "     (papel 'Storage Object User' na sua conta)\n\n"
-                    "O Earth Engine continua funcionando com a sua conta.\n"
-                    "=" * 64
+                    "[GCS][WARN] Your account cannot use the service account.\n"
+                    f"  Fix: join {SERVICE_ACCOUNT_GROUP} or get 'Storage Object User' "
+                    f"on gs://{CONFIG['bucket']}. Earth Engine still works."
                 )
             else:
-                print(f"[GCS][WARN] Falha ao usar a conta de serviço: {exc}")
-            print("[GCS] Usando a sua conta no bucket por enquanto "
-                  "(se ela não tiver acesso, o bucket vai falhar).")
+                print(f"[GCS][WARN] Service account failed: {exc}")
+            print("[GCS] Falling back to your user account for the bucket.")
             _GCS_CREDENTIALS = source_credentials
     else:
         ee.Initialize(project=project)
@@ -240,7 +230,7 @@ def authenticate(project=None):
 
     from M_gcs import authenticate as _mgcs_auth
     _mgcs_auth()
-    print("[GCS] GCS authentication configured.")
+    print("[GCS] Authentication configured.")
 
     # Deferred cache sync — credenciais já prontas aqui
     try:
@@ -253,7 +243,7 @@ def authenticate(project=None):
         if not state.get('updated_at') or not has_cogs:
             CacheManager.build_full_cache()
     except Exception as e:
-        print(f"Cache sync deferred: {e}")
+        print(f"[CACHE] Sync deferred: {e}")
 
     _AUTHENTICATED = True
 
@@ -272,37 +262,28 @@ def verify_auth():
     ok_gee = False
     ok_gcs = False
 
-    print("\n" + "=" * 64)
-    print("VERIFICAÇÃO DE ACESSO (GEE: usuário | GCS: conta de serviço)")
-    print("=" * 64)
-
     # Earth Engine
     try:
         ee.Number(1).getInfo()
         ok_gee = True
-        print("  ✅ Earth Engine ..... OK")
     except Exception as exc:
-        print("  ❌ Earth Engine ..... FALHOU")
-        print(f"     {exc}")
+        print(f"[CHECK][ERROR] Earth Engine: {exc}")
 
     # Google Cloud Storage
     try:
         from M_gcs import _storage_client
         if _storage_client().bucket(CONFIG['bucket']).exists():
             ok_gcs = True
-            print(f"  ✅ GCS ({CONFIG['bucket']}) ..... OK")
         else:
-            print(f"  ❌ GCS ({CONFIG['bucket']}) ..... bucket não encontrado/acessível")
+            print(f"[CHECK][ERROR] GCS: gs://{CONFIG['bucket']} not found or not accessible")
     except Exception as exc:
-        print("  ❌ GCS ................ FALHOU")
-        print(f"     {exc}")
+        print(f"[CHECK][ERROR] GCS: {exc}")
 
-    print("-" * 64)
-    if ok_gee and ok_gcs:
-        print("  ✅ AUTENTICAÇÃO OK — pode seguir para os próximos módulos.")
-    else:
-        print("  ⚠️  Pendências acima. Corrija e rode o M0 de novo.")
-    print("=" * 64 + "\n")
+    def _status(ok):
+        return 'OK' if ok else 'FAILED'
+
+    hint = '' if ok_gee and ok_gcs else ' -> fix the errors above and run M0 again'
+    print(f"[CHECK] GEE: {_status(ok_gee)} | GCS ({CONFIG['bucket']}): {_status(ok_gcs)}{hint}")
 
     return {"gee": ok_gee, "gcs": ok_gcs}
 
@@ -443,7 +424,7 @@ def set_global_opts(
     mosaics_str = ', '.join(CONFIG['mosaic_methods'])
     sensor_str = ', '.join(str(s).upper() for s in requested_sensors)
     period_str = ', '.join(str(p).upper() for p in requested_periods)
-    print(f"Global options: Sensor(s): {sensor_str} | Period(s): {period_str} | Mosaics: {mosaics_str} | Campaign: {CONFIG['campaign']} | Task Flag: {personal_task_flag}")
+    print(f"[OPTS] {CONFIG['campaign']} | {sensor_str} {period_str} | mosaics {mosaics_str} | flag {personal_task_flag}")
 
     if clean_cache:
         try:
@@ -894,14 +875,15 @@ def print_config():
         return
     sensor_str = ', '.join(GLOBAL_OPTS['SENSOR']) if isinstance(GLOBAL_OPTS['SENSOR'], list) else str(GLOBAL_OPTS['SENSOR'])
     period_str = ', '.join(GLOBAL_OPTS['PERIODICITY']) if isinstance(GLOBAL_OPTS['PERIODICITY'], list) else str(GLOBAL_OPTS['PERIODICITY'])
-    print(f"Country: {CONFIG['country'].upper()}")
-    print(f"GEE Project: {CONFIG['gee_project']}")
-    print(f"Service Account: {CONFIG.get('service_account_email')}")
-    print(f"GCS Bucket: {CONFIG['bucket']}")
-    print(f"GCS Images: {CONFIG['gcs_library_images_prefix']}")
-    print(f"GCS Campaigns: {CONFIG['gcs_campaigns_prefix']}")
-    print(f"GEE Images: {CONFIG['gee_library_images_prefix']}")
-    print(f"GEE Campaigns: {CONFIG['gee_campaigns_prefix']}")
-    print(f"Campaign: {CONFIG['campaign']}")
-    print(f"Asset Regions: {CONFIG['asset_regions']}")
-    print(f"Sensor(s): {sensor_str} | Period(s): {period_str} | Task Flag: {GLOBAL_OPTS['PERSONAL_TASK_FLAG']}")
+    def _prefixes(images, campaigns):
+        # Images and campaigns usually share one prefix: print it once.
+        return images if images == campaigns else f"images {images} | campaigns {campaigns}"
+
+    print(f"[CONFIG] {CONFIG['country'].upper()} | {CONFIG['campaign']} | "
+          f"{sensor_str} {period_str} | flag {GLOBAL_OPTS['PERSONAL_TASK_FLAG']}")
+    print(f"[GEE] {CONFIG['gee_project']} | "
+          f"{_prefixes(CONFIG['gee_library_images_prefix'], CONFIG['gee_campaigns_prefix'])}")
+    print(f"[GCS] gs://{CONFIG['bucket']}/"
+          f"{_prefixes(CONFIG['gcs_library_images_prefix'], CONFIG['gcs_campaigns_prefix'])} | "
+          f"SA {CONFIG.get('service_account_email')}")
+    print(f"[REGIONS] {CONFIG['asset_regions']}")

@@ -1,11 +1,9 @@
-# MapBiomas Fire Monitor - Version 04 (testing)
+# MapBiomas Fire Monitor - Version 04 (active development)
 
-> **Based on `version_03`.** This folder is a copy of
-> [`../version_03/`](../version_03/) with the changes listed in
-> [Changes from version_03](#changes-from-version_03): the M4 network goes
-> back to the legacy `network/version_02` setup. The burned rule is unchanged.
-> Production still uses `version_03`. See [`../../README.md`](../../README.md)
-> for the catalog.
+> **Based on `version_03`.** Active development copy and source for
+> `production/` (promoted 2026-11-16). See
+> [Changes from version_03](#changes-from-version_03) and
+> [`../../README.md`](../../README.md) for the catalog.
 >
 > Colab links: [`COLAB_LINKS.csv`](./COLAB_LINKS.csv) /
 > [`COLAB_LINKS.txt`](./COLAB_LINKS.txt).
@@ -27,7 +25,19 @@ Full URLs are also available in [`COLAB_LINKS.csv`](./COLAB_LINKS.csv).
 
 ## Changes from version_03
 
-Everything not listed here is identical to `version_03`.
+Main differences from the previous production release (`version_03`):
+
+- **M1:** exports are masked by the full country geometry (`asset_regions`,
+  paint mask, no `clip`); existing GEE assets are overwritten in place and
+  existing GCS outputs are routed to M2 through a GCS-backed update manifest.
+  See `docs/M1_country_mask_updates.md`.
+- **M2:** country-mask rasterization on the unchanged COG grid, persisted
+  country masks, adaptive CPU/worker use, and disk safeguards (local shards and
+  VRT freed early, free-space preflight before COG conversion, stop on
+  disk-full).
+- **M5/M6:** classification restricted to the selected region; resumable GEE
+  regional mask repair (`M6_region_mask_repair.py`).
+- **M4:** legacy network, below.
 
 | Module | version_03 | version_04 |
 |---|---|---|

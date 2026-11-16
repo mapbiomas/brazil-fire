@@ -81,9 +81,9 @@ class ModelTrainerUI(PipelineStepUI):
         """Carrega os parâmetros de um modelo de volta para os widgets de configuração."""
         self.w_training_id.value = hp.get('training_id', '')
         self.w_shortname.value = hp.get('shortname', '')
-        self.w_layers.value = ",".join(map(str, hp.get('layers', [64, 32])))
+        self.w_layers.value = ",".join(map(str, hp.get('layers', [7, 14, 7, 14, 7])))
         self.w_lr.value = str(hp.get('lr', 0.001))
-        self.w_iters.value = str(hp.get('n_iters', 5000))
+        self.w_iters.value = str(hp.get('n_iters', 7000))
         self.w_batch.value = str(hp.get('batch_size', 1000))
         self.w_comment.value = hp.get('comment', '')
         
@@ -432,7 +432,7 @@ class ModelTrainerUI(PipelineStepUI):
         self.w_iters = widgets.Text(value="7000", description=Lang.ITERATIONS + ':', style={'description_width': '150px'}, layout=L(width='350px'))
         self.w_batch = widgets.Text(value="1000", description=Lang.BATCH_SIZE + ':', style={'description_width': '150px'}, layout=L(width='350px'))
         self.w_lr = widgets.Text(value="0.001", description=Lang.LEARNING_RATE + ':', style={'description_width': '150px'}, layout=L(width='350px'))
-        self.w_layers = widgets.Text(value="7, 14, 7", description=Lang.HIDDEN_LAYERS + ':', style={'description_width': '150px'}, layout=L(width='350px'))
+        self.w_layers = widgets.Text(value="7, 14, 7, 14, 7", description=Lang.HIDDEN_LAYERS + ':', style={'description_width': '150px'}, layout=L(width='350px'))
         
         return widgets.VBox([
             widgets.HBox([self.w_iters, self.w_batch], layout=L(gap='10px')),

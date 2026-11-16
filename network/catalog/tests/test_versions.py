@@ -151,10 +151,10 @@ class MonitorVersionPathsTests(unittest.TestCase):
             gee_urls.add(gee)
         self.assertEqual(len(gee_urls), 1)
 
-    def test_production_matches_version_03(self):
-        v03 = _campaigns(os.path.join(CATALOG, 'development', 'version_03'))
+    def test_production_matches_version_04(self):
+        v04 = _campaigns(os.path.join(CATALOG, "development", "version_04"))
         production = _campaigns(os.path.join(CATALOG, 'production'))
-        self.assertEqual(v03, production)
+        self.assertEqual(v04, production)
 
 
 if __name__ == '__main__':

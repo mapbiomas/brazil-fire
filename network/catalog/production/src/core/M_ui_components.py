@@ -3,6 +3,7 @@ Componentes de UI Base (Ipywidgets)
 MapBiomas Fire Monitor Pipeline - ASCII Version
 """
 import ipywidgets as widgets
+import html
 import time
 from IPython.display import display, clear_output
 from M_lang import L
@@ -19,6 +20,17 @@ def cell_log(message, type="info"):
     """Exibe mensagem colorida na célula atual (não dentro de um PipelineStepUI)."""
     color = THEME.get(type.upper(), THEME['DEFAULT'])
     display(widgets.HTML(f"<span style='color:{color}'>[{type.upper()}] {message}</span>"))
+
+
+def make_update_note(message):
+    """Blue, compact explanation shown beside each module's sync control."""
+    return widgets.HTML(
+        '<div style="background:#eaf3ff;border:1px solid #91caff;'
+        'border-left:4px solid #1677ff;border-radius:6px;padding:7px 11px;'
+        'color:#0958d9;font-size:11px;line-height:1.4;">'
+        f'<strong>{html.escape(message)}</strong></div>',
+        layout=widgets.Layout(flex='1 1 360px', min_width='290px'),
+    )
 
 class PipelineStepUI:
     """
@@ -132,8 +144,11 @@ class PipelineStepUI:
         return widgets.HTML('''<style>
             .mfm-ok   { background:#d4edda !important; border:1px solid #c3e6cb !important; }
             .mfm-run  { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
+            .mfm-update { background:#fff3cd !important; border:1px solid #ffeaa8 !important; }
+            .mfm-update span { color:#856404 !important; }
             .mfm-null { background:#f8f9fa !important; border:1px solid #dee2e6 !important; }
             .mfm-hdr  { font-size:11px; font-weight:700; color:#495057; text-align:center; }
+
         </style>''')
 
     @staticmethod

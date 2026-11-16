@@ -1,7 +1,8 @@
 # MapBiomas Fire Catalog - Production
 
-> **Production release.** Mirrors `development/version_03` (the active
-> development copy and stable reference). Do not edit; see `PRODUCTION.md`.
+> **Production release.** Mirrors `development/version_04`. Do not edit; see
+> `PRODUCTION.md`. The previous release mirrored `version_03`; see
+> [Changes from version_03](#changes-from-version_03).
 > See [`../README.md`](../README.md) for the catalog.
 >
 > Colab links: [`COLAB_LINKS.csv`](./COLAB_LINKS.csv) /
@@ -22,6 +23,37 @@
 
 Full URLs are also available in [`COLAB_LINKS.csv`](./COLAB_LINKS.csv).
 
+## Changes from version_03
+
+Main differences from the previous production release (`version_03`):
+
+- **M1:** exports are masked by the full country geometry (`asset_regions`,
+  paint mask, no `clip`); existing GEE assets are overwritten in place and
+  existing GCS outputs are routed to M2 through a GCS-backed update manifest.
+  See `docs/M1_country_mask_updates.md`.
+- **M2:** country-mask rasterization on the unchanged COG grid, persisted
+  country masks, adaptive CPU/worker use, and disk safeguards (local shards and
+  VRT freed early, free-space preflight before COG conversion, stop on
+  disk-full).
+- **M5/M6:** classification restricted to the selected region; resumable GEE
+  regional mask repair (`M6_region_mask_repair.py`).
+- **M4:** legacy network, below.
+
+| Module | version_03 | version_04 |
+|---|---|---|
+| **M4** hidden layers (UI default) | `7, 14, 7` | `7, 14, 7, 14, 7` (legacy `network/version_02`) |
+| **M4** dropout (not shown in the UI) | `keep_prob = 0.8` (20% of neurons turned off at each training step) | `keep_prob = 1.0` (dropout off, as in legacy `network/version_02`) |
+| **M4** fallbacks when a saved model has no value | `[64, 32]`, 5000 iterations | `[7, 14, 7, 14, 7]`, 7000 iterations |
+
+- The burned rule is the same as `version_03`: stored probability
+  (`round(p * 1000)`, 0-1000) `> 0` in M5/M6 and `.gt(0)` in the GEE scripts.
+  The probability band keeps every valid pixel, so a stricter cut (e.g.
+  `>= 50`, p >= 0.05) can still be tested later in GEE without re-classifying.
+- The M4 changes only take effect for newly trained models. M5 skips tiles that
+  already exist in GCS: train with a new model name (or delete the old tiles)
+  before re-classifying.
+- Tests: `tests/test_legacy_dnn.py`.
+
 ## Overview
 
 This folder contains the classification engine of the MapBiomas Fire Catalog.
@@ -39,7 +71,7 @@ and promotion are handled by the GEE scripts (M7-M9).
 | **M0** | Campaign/target resolution, authentication, paths | `M0_auth_config.py`, `M_campaigns.py`, `M_targets.py` |
 | **M1** | Export quality mosaics from GEE to GCS chunks | `M1_export_logic.py`, `M1_export_ui.py` |
 | **M2** | Assemble chunks into COGs, sync the cache, remove the source chunks | `M2_mosaic_logic.py`, `M2_mosaic_ui.py` |
-| **M3** | Collect training samples in GEE | `M3_toolkit.js`, `M3_sample_ui.py` |
+| **M3** | Collect training samples in GEE | `M3_toolkit.js` (v08 snapshot), `M3_sample_ui.py` |
 | **M4** | Train the DNN, evaluate and save weights/metrics | `M4_algorithms_dnn.py`, `M4_data_extractor.py`, `M4_ui.py` |
 | **M5** | Tile inference (probability + auxiliary band) | `M5_inference.py`, `M5_classifier.py`, `M5_classifier_ui.py` |
 | **M6** | Regional mosaic, consolidated stats, GEE upload | `M6_publisher.py`, `M6_ui.py` |
@@ -71,9 +103,8 @@ When a script changes in GEE, update the mirror in `src/gee/`.
 
 - Each tile stores **probability (int16, 0-1000)** and an auxiliary band
   (`dayOfYear` for `burned_area`).
-- Product convention: any positive probability counts as burned
-  (`probability > 0`), matching the GEE filters. Model evaluation in M4 still
-  uses 0.5, because that is a model-quality metric, not the product threshold.
+- Burned rule: `probability > 0`. Model evaluation in M4 still uses 0.5, because that is a
+  model-quality metric, not the product threshold.
 - Only `burned_area` is enabled today. Other targets require a profile in
   `targets/` and are rejected until implemented.
 

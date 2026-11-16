@@ -536,6 +536,9 @@ class L:
     EXPORT_START_BTN = "Start Export"
     EXPORT_SENT = "tasks sent."
     EXPORT_NONE_SEL = "No option selected for export."
+    M1_UPDATE_LABEL = "UPDATE"
+    M1_UPDATE_M1_NOTE = "Update: Re-export GEE assets with the country-wide mask, correcting exports previously limited only by bounds."
+    M1_UPDATE_M2_NOTE = "Update: Mask national COGs to the country boundary, correcting outputs created with bounds-only exports."
 
     M1_HEADER_TITLE = "M1 - Dispatcher"
     M1_HEADER_SUBTITLE = "Multi-sensor export interface"
@@ -1108,6 +1111,9 @@ STRINGS_ES = {
     "EXPORT_START_BTN": "Iniciar Exportación",
     "EXPORT_SENT": "tareas enviadas.",
     "EXPORT_NONE_SEL": "Ninguna opción seleccionada para exportación.",
+    "M1_UPDATE_LABEL": "UPDATE",
+    "M1_UPDATE_M1_NOTE": "Actualización: reexportar los assets GEE con la máscara nacional, corrigiendo exportaciones limitadas solo por bounds.",
+    "M1_UPDATE_M2_NOTE": "Actualización: enmascarar los COG nacionales con el límite del país, corrigiendo salidas creadas con exportaciones solo por bounds.",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Montaje de Mosaicos",
     "MOSAIC_SYNC": "Sincronizar Datos",
@@ -1703,6 +1709,9 @@ STRINGS_PT = {
     "EXPORT_START_BTN": "Iniciar Exportação",
     "EXPORT_SENT": "tarefas enviadas.",
     "EXPORT_NONE_SEL": "Nenhuma opção selecionada para exportação.",
+    "M1_UPDATE_LABEL": "UPDATE",
+    "M1_UPDATE_M1_NOTE": "Atualização: reexportar os assets GEE com a máscara do país, corrigindo exports antigos limitados apenas pelos bounds.",
+    "M1_UPDATE_M2_NOTE": "Atualização: mascarar os COGs nacionais pelo limite do país, corrigindo saídas geradas com exportação apenas pelos bounds.",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Montagem de Mosaicos",
     "MOSAIC_SYNC": "Sincronizar Dados",
@@ -2298,6 +2307,9 @@ STRINGS_FR = {
     "EXPORT_START_BTN": "Démarrer exportation",
     "EXPORT_SENT": "tâches envoyées.",
     "EXPORT_NONE_SEL": "Aucune option sélectionnée pour l'exportation.",
+    "M1_UPDATE_LABEL": "UPDATE",
+    "M1_UPDATE_M1_NOTE": "Mise à jour : réexporter les assets GEE avec le masque national, pour corriger les exports limités aux bounds.",
+    "M1_UPDATE_M2_NOTE": "Mise à jour : masquer les COG nationaux selon la limite du pays, pour corriger les exports basés uniquement sur les bounds.",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Assemblage de mosaïques",
     "MOSAIC_SYNC": "Synchroniser données",
@@ -2892,6 +2904,9 @@ STRINGS_ID = {
     "EXPORT_START_BTN": "Mulai Ekspor",
     "EXPORT_SENT": "tugas terkirim.",
     "EXPORT_NONE_SEL": "Tidak ada opsi dipilih untuk ekspor.",
+    "M1_UPDATE_LABEL": "UPDATE",
+    "M1_UPDATE_M1_NOTE": "Pembaruan: ekspor ulang asset GEE dengan masker negara untuk memperbaiki ekspor lama yang hanya dibatasi bounds.",
+    "M1_UPDATE_M2_NOTE": "Pembaruan: masker COG nasional ke batas negara untuk memperbaiki keluaran yang hanya memakai bounds.",
     # M2 - Mosaic
     "MOSAIC_TITLE": "Perakitan Mozaik",
     "MOSAIC_SYNC": "Sinkron Data",
