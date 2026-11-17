@@ -46,9 +46,9 @@ DEFAULTS = {
     "GCS_PREFIX": "sudamerica/brazil/CATALOG_01",   # holds LIBRARY_IMAGES and the campaigns
     "CAMPAIGN": "MONITOR_01",
     "GEE_PROJECT": "mapbiomas-brazil",
-    # Project that runs the ingestion tasks (earthengine upload) and owns the published maps.
+    # Project that RUNS the ingestion tasks (earthengine upload_manifest --project).
     "GEE_EXPORT_PROJECT": "mapbiomas-fire-485203",
-    # Asset root of the published maps; None = projects/{GEE_EXPORT_PROJECT}/assets/FIRE/CATALOG_01
+    # Asset root where the maps are STORED; None = projects/mapbiomas-{COUNTRY}/assets/FIRE/CATALOG_01
     "GEE_PREFIX": None,
     # Cut of the burned band of the map (0-1). None = best-F1 threshold of the validation
     # (reports/metrics_all.json, written in step 5).

@@ -11,15 +11,15 @@ from unet_gee import asset_id, classified_periods, gee_folders, manifest, map_pa
 
 CFG = make_config(TRAINING_ID="1", SHORTNAME="pantanal_r1", REGION="Pantanal_r1")
 VERSION = "training_001_pantanal_r1_sentinel2"
-PREFIX = "projects/mapbiomas-fire-485203/assets/FIRE/CATALOG_01/MONITOR_01/UNET_01"
+PREFIX = "projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/MONITOR_01/UNET_01"
 
 
 class TestGee(unittest.TestCase):
     def test_paths(self):
         folders, coll = gee_folders(CFG)
         self.assertEqual(folders[-1], f"{PREFIX}/pantanal")
-        self.assertEqual(folders[0], "projects/mapbiomas-fire-485203/assets/FIRE")  # pais ainda inexistentes
-        self.assertEqual(folders[1], "projects/mapbiomas-fire-485203/assets/FIRE/CATALOG_01")
+        self.assertEqual(folders[0], "projects/mapbiomas-brazil/assets/FIRE")  # pais ainda inexistentes
+        self.assertEqual(folders[1], "projects/mapbiomas-brazil/assets/FIRE/CATALOG_01")
         self.assertEqual(len(folders), 5)
         self.assertEqual(coll, f"{PREFIX}/pantanal/{VERSION}")
         self.assertEqual(asset_id(CFG, "2026_10"), f"{coll}/pantanal_r1_2026_10")

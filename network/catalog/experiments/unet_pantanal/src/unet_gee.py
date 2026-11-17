@@ -7,7 +7,7 @@ ImageCollection, one image per region and period, with time and model
 properties. An asset that already exists is replaced.
 
     {GEE_PREFIX}/{CAMPAIGN}/{EXPERIMENT}/{biome}/{version}/{region}_{period}
-    e.g. projects/mapbiomas-fire-485203/assets/FIRE/CATALOG_01/MONITOR_01/UNET_01/
+    e.g. projects/mapbiomas-brazil/assets/FIRE/CATALOG_01/MONITOR_01/UNET_01/
          pantanal/training_001_pantanal_r1_sentinel2/pantanal_r1_2026_10
 """
 import calendar
@@ -21,7 +21,9 @@ from unet_config import biome_slug, paths, period_info, region_slug
 
 
 def gee_prefix(cfg):
-    return cfg.get("GEE_PREFIX") or f"projects/{cfg['GEE_EXPORT_PROJECT']}/assets/FIRE/CATALOG_01"
+    """Where the maps are stored: projects/mapbiomas-{country}/assets/FIRE/CATALOG_01 (not the project that
+    runs the tasks, GEE_EXPORT_PROJECT)."""
+    return cfg.get("GEE_PREFIX") or f"projects/mapbiomas-{cfg['COUNTRY']}/assets/FIRE/CATALOG_01"
 
 
 def gee_folders(cfg):
