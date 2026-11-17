@@ -1,81 +1,81 @@
 ﻿id,pagina,tipo,contexto,pt,en,es,fr,ind,zh
-T0001,painel,html,<title>,Monitor global de fogo,,,,,
-T0002,painel,atributo,meta[content],"Área queimada, focos de calor e emissões por fogo no mundo, por continente, país e estado/província, mês a mês.",,,,,
-T0003,painel,html,<p>,"Área queimada, focos de calor e emissões por continente, país e estado/província, mês a mês. Página exploratória, não oficial.",,,,,
-T0004,painel,html,<b>,Área queimada,,,,,
-T0005,painel,html,<a>,": MODIS MCD64A1, agregada pelo GWIS (JRC/Copernicus) ↗",,,,,
-T0006,painel,html,<b>,Emissões,,,,,
-T0007,painel,html,<a>,": GFED, via GWIS ↗",,,,,
-T0008,painel,html,<b>,Focos de calor,,,,,
-T0009,painel,html,<a>,": NASA FIRMS, via Google Earth Engine ↗",,,,,
-T0010,painel,html,<div>,Carregando dados…,,,,,
-T0011,painel,html,<a>,Painel,,,,,
-T0012,painel,html,<a>,Método,,,,,
-T0013,painel,atributo,button[aria-label],Alternar tema claro/escuro,,,,,
-T0014,painel,html,<span>,Nível,,,,,
-T0015,painel,html,<span>,Indicador,,,,,
-T0016,painel,html,<span>,Ano,,,,,
-T0017,painel,html,<span>,Mês,,,,,
-T0018,painel,html,<span>,Continente,,,,,
-T0019,painel,html,<span>,País,,,,,
-T0020,painel,atributo,select[aria-label],Filtrar país,,,,,
-T0021,painel,html,<span>,Mostrar,,,,,
-T0022,painel,html,<p>,Variação contra o mesmo período do ano anterior.,,,,,
-T0023,painel,html,<button>,CSV,,,,,
-T0024,painel,html,<h2>,Mapa,,,,,
-T0025,painel,html,<button>,PNG,,,,,
-T0026,painel,html,<h2>,Ranking,,,,,
-T0027,painel,html,<h2>,Área queimada × focos,,,,,
-T0028,painel,atributo,div[aria-label],Linha,,,,,
-T0029,painel,html,<h2>,Cobertura queimada,,,,,
-T0030,painel,html,<p>,"Fonte: MCD64A1 por cobertura do solo, GWIS.",,,,,
-T0031,painel,html,<h2>,Sazonalidade,,,,,
-T0032,painel,html,<h2>,Série anual,,,,,
-T0033,painel,html,<p>,"Fonte: área queimada MCD64A1 e emissões GFED, ambas via GWIS.",,,,,
-T0034,painel,html,<summary>,Tabela completa do período,,,,,
-T0035,painel,html,<p>,"Todas as unidades do recorte, todos os indicadores.",,,,,
-T0036,painel,html,<h2>,Fontes,,,,,
-T0037,painel,html,<th>,Dado original,,,,,
-T0038,painel,html,<th>,Quem agregou,,,,,
-T0039,painel,html,<th>,Período,,,,,
-T0040,painel,html,<td>,"MODIS MCD64A1 (NASA), 500 m",,,,,
-T0041,painel,html,<a>,GWIS country profile,,,,,
-T0042,painel,html,<td>,"(JRC / Copernicus), por país, estado (GADM nível 1) e cobertura",,,,,
-T0043,painel,html,<td>,Área queimada VIIRS,,,,,
-T0044,painel,html,<td>,"VNP64 / VIIRS, 375 m",,,,,
-T0045,painel,html,<td>,GWIS,,,,,
-T0046,painel,html,<td>,"Emissões (CO₂, CH₄, PM2.5)",,,,,
-T0047,painel,html,<td>,GFED,,,,,
-T0048,painel,html,<td>,"NASA FIRMS (MODIS, 1 km)",,,,,
-T0049,painel,html,<td>,"Este painel, no Google Earth Engine",,,,,
-T0050,painel,html,<td>,Área queimada recente,,,,,
-T0051,painel,html,<td>,MODIS MCD64A1,,,,,
-T0052,painel,html,<td>,"Este painel, no Google Earth Engine (preliminar)",,,,,
-T0053,painel,html,<td>,após o fim do GWIS,,,,,
-T0054,painel,html,<p>,"Focos de calor = soma, no mês, dos pixels com fogo ativo em cada dia (pixels-dia). Não é o mesmo número dos boletins de “focos” de outros satélites, mas segue a mesma dinâmica.",,,,,
-T0055,painel,html,<h2>,Continentes e mapas,,,,,
-T0056,painel,html,<p>,"Continentes seguem o Natural Earth (a Rússia entra na Europa; América Central e Caribe em “América do Norte e Central”). O mapa de países usa Natural Earth 1:110m. O mapa de estados usa limites geoBoundaries ADM1 simplificados, casados por nome com as unidades GADM do GWIS. Unidades sem par aparecem em cinza.",,,,,
-T0057,painel,html,<h2>,Leitura,,,,,
-T0058,painel,html,<p>,"As setas do ranking mostram a mudança de posição em relação ao período anterior (mês anterior, ou ano anterior quando “Ano todo”).",,,,,
-T0059,painel,html,<b>,% do território,,,,,
-T0060,painel,html,<p>,só existe para países e continentes.,,,,,
-T0061,painel,html,<p>,"MCD64A1 subestima queimadas pequenas (< ~25 ha) e de sub-bosque; VIIRS (375 m) costuma detectar mais. Use para comparar unidades e meses, não como total absoluto.",,,,,
-T0062,painel,html,<h2>,Reprodução,,,,,
-T0063,painel,html,<p>,Código em,,,,,
-T0064,painel,html,<code>,global_analises/scripts/,,,,,
-T0065,painel,html,<p>,do repositório,,,,,
-T0066,painel,html,<a>,mapbiomas/brazil-fire,,,,,
-T0067,painel,js,"ba: { label: 'Área queimada', src:",MCD64A1 via GWIS,,,,,
-T0068,painel,js,ba_viirs: { label:,Área VIIRS,,,,,
-T0069,painel,js,"ba_viirs: { label: 'Área VIIRS', src:",VNP64 via GWIS,,,,,
-T0070,painel,js,"hotspots: { label: 'Focos de calor', src:",FIRMS via GEE,,,,,
-T0071,painel,js,"co2: { label: 'CO₂', src:",GFED via GWIS,,,,,
-T0072,painel,js,pm25: { label:,PM2.5,,,,,
-T0073,painel,js,"const COVERS = [['ba_forest',",Floresta,,,,,
-T0074,painel,js,"const COVERS = [['ba_forest', 'Floresta', '--c-forest'], ['ba_savanna',",Savana,,,,,
-T0075,painel,js,"Floresta', '--c-forest'], ['ba_savanna', 'Savana', '--c-savanna'], ['ba_grass',",Campo / arbustivo,,,,,
-T0076,painel,js,"a', '--c-savanna'], ['ba_grass', 'Campo / arbustivo', '--c-grass'], ['ba_crop',",Agricultura,,,,,
-T0077,painel,js,"arbustivo', '--c-grass'], ['ba_crop', 'Agricultura', '--c-crop'], ['ba_other',",Outros,,,,,
+T0001,painel,html,<title>,Monitor global de fogo,Global Fire Monitor,Monitor global de fuego,Moniteur mondial des incendies,Monitor Kebakaran Global,全球火灾监测
+T0002,painel,atributo,meta[content],"Área queimada, focos de calor e emissões por fogo no mundo, por continente, país e estado/província, mês a mês.","Burned area, active fires (hotspots) and fire emissions worldwide, by continent, country and state/province, month by month.","Área quemada, focos de calor y emisiones por fuego en el mundo, por continente, país y estado/provincia, mes a mes.","Surface brûlée, feux actifs (points chauds) et émissions dues aux incendies dans le monde, par continent, pays et État/province, mois par mois.","Area terbakar, titik api (hotspot), dan emisi kebakaran di dunia, menurut benua, negara, dan negara bagian/provinsi, bulan demi bulan.",全球按月、大洲、国家和州/省划分的烧毁面积、火点 (hotspots) 和火灾排放量。
+T0003,painel,html,<p>,"Área queimada, focos de calor e emissões por continente, país e estado/província, mês a mês. Página exploratória, não oficial.","Burned area, active fires (hotspots) and emissions by continent, country and state/province, month by month. Unofficial, exploratory page.","Área quemada, focos de calor y emisiones por continente, país y estado/provincia, mes a mes. Página exploratoria, no oficial.","Surface brûlée, feux actifs (points chauds) et émissions par continent, pays et État/province, mois par mois. Page exploratoire non officielle.","Area terbakar, titik api (hotspot), dan emisi menurut benua, negara, dan negara bagian/provinsi, bulan demi bulan. Halaman eksploratif tidak resmi.",按月、大洲、国家和州/省划分的烧毁面积、火点 (hotspots) 和排放量。非官方探索性页面。
+T0004,painel,html,<b>,Área queimada,Burned area,Área quemada,Surface brûlée,Area terbakar,烧毁面积
+T0005,painel,html,<a>,": MODIS MCD64A1, agregada pelo GWIS (JRC/Copernicus) ↗",": MODIS MCD64A1, aggregated by GWIS (JRC/Copernicus) ↗",": MODIS MCD64A1, agregada por GWIS (JRC/Copernicus) ↗"," : MODIS MCD64A1, agrégée par GWIS (JRC/Copernicus) ↗",": MODIS MCD64A1, diagregasi oleh GWIS (JRC/Copernicus) ↗",：MODIS MCD64A1，由 GWIS (JRC/Copernicus) 聚合 ↗
+T0006,painel,html,<b>,Emissões,Emissions,Emisiones,Émissions,Emisi,排放量
+T0007,painel,html,<a>,": GFED, via GWIS ↗",": GFED, via GWIS ↗",": GFED, a través de GWIS ↗"," : GFED, via GWIS ↗",": GFED, melalui GWIS ↗",：GFED，通过 GWIS ↗
+T0008,painel,html,<b>,Focos de calor,Active fires (hotspots),Focos de calor,Feux actifs (points chauds),Titik api (hotspot),火点 (hotspots)
+T0009,painel,html,<a>,": NASA FIRMS, via Google Earth Engine ↗",": NASA FIRMS, via Google Earth Engine ↗",": NASA FIRMS, a través de Google Earth Engine ↗"," : NASA FIRMS, via Google Earth Engine ↗",": NASA FIRMS, melalui Google Earth Engine ↗",：NASA FIRMS，通过 Google Earth Engine ↗
+T0010,painel,html,<div>,Carregando dados…,Loading data…,Cargando datos…,Chargement des données…,Memuat data…,正在加载数据…
+T0011,painel,html,<a>,Painel,Dashboard,Panel,Tableau de bord,Dasbor,仪表板
+T0012,painel,html,<a>,Método,Methods,Método,Méthode,Metode,方法
+T0013,painel,atributo,button[aria-label],Alternar tema claro/escuro,Toggle light/dark theme,Alternar tema claro/oscuro,Basculer thème clair/sombre,Ganti tema terang/gelap,切换浅色/深色主题
+T0014,painel,html,<span>,Nível,Level,Nivel,Niveau,Tingkat,级别
+T0015,painel,html,<span>,Indicador,Indicator,Indicador,Indicateur,Indikator,指标
+T0016,painel,html,<span>,Ano,Year,Año,Année,Tahun,年份
+T0017,painel,html,<span>,Mês,Month,Mes,Mois,Bulan,月份
+T0018,painel,html,<span>,Continente,Continent,Continente,Continent,Benua,大洲
+T0019,painel,html,<span>,País,Country,País,Pays,Negara,国家
+T0020,painel,atributo,select[aria-label],Filtrar país,Filter country,Filtrar país,Filtrer pays,Filter negara,筛选国家
+T0021,painel,html,<span>,Mostrar,Show,Mostrar,Afficher,Tampilkan,显示
+T0022,painel,html,<p>,Variação contra o mesmo período do ano anterior.,Variation compared to the same period previous year.,Variación frente al mismo período del año anterior.,Variation par rapport à la même période de l’année précédente.,Variasi dibandingkan periode yang sama tahun sebelumnya.,与上年同期相比的变化。
+T0023,painel,html,<button>,CSV,CSV,CSV,CSV,CSV,CSV
+T0024,painel,html,<h2>,Mapa,Map,Mapa,Carte,Peta,地图
+T0025,painel,html,<button>,PNG,PNG,PNG,PNG,PNG,PNG
+T0026,painel,html,<h2>,Ranking,Ranking,Ranking,Classement,Peringkat,排名
+T0027,painel,html,<h2>,Área queimada × focos,Burned area × hotspots,Área quemada × focos,Surface brûlée × points chauds,Area terbakar × hotspot,烧毁面积 × 火点
+T0028,painel,atributo,div[aria-label],Linha,Line,Línea,Ligne,Garis,折线
+T0029,painel,html,<h2>,Cobertura queimada,Burned cover,Cobertura quemada,Couverture brûlée,Tutupan lahan terbakar,烧毁覆盖类型
+T0030,painel,html,<p>,"Fonte: MCD64A1 por cobertura do solo, GWIS.","Source: MCD64A1 by land cover, GWIS.","Fuente: MCD64A1 por cobertura del suelo, GWIS.","Source : MCD64A1 par couverture du sol, GWIS.","Sumber: MCD64A1 menurut tutupan lahan, GWIS.",来源：按土地覆盖划分的 MCD64A1，GWIS。
+T0031,painel,html,<h2>,Sazonalidade,Seasonality,Estacionalidad,Saisonnalité,Musiman,季节性
+T0032,painel,html,<h2>,Série anual,Annual series,Serie anual,Série annuelle,Seri tahunan,年度序列
+T0033,painel,html,<p>,"Fonte: área queimada MCD64A1 e emissões GFED, ambas via GWIS.","Source: MCD64A1 burned area and GFED emissions, both via GWIS.","Fuente: área quemada MCD64A1 y emisiones GFED, ambas a través de GWIS.","Source : surface brûlée MCD64A1 et émissions GFED, les deux via GWIS.","Sumber: area terbakar MCD64A1 dan emisi GFED, keduanya melalui GWIS.",来源：MCD64A1 烧毁面积和 GFED 排放量，均通过 GWIS。
+T0034,painel,html,<summary>,Tabela completa do período,Full table for the period,Tabla completa del período,Tableau complet de la période,Tabel lengkap untuk periode ini,该期间完整数据表
+T0035,painel,html,<p>,"Todas as unidades do recorte, todos os indicadores.","All units in the selection, all indicators.","Todas las unidades de la selección, todos los indicadores.","Toutes les unités de la sélection, tous les indicateurs.","Semua unit pada pilihan, semua indikator.",选取范围内的所有单位，所有指标。
+T0036,painel,html,<h2>,Fontes,Sources,Fuentes,Sources,Sumber,来源
+T0037,painel,html,<th>,Dado original,Original data,Dato original,Donnée originale,Data asli,原始数据
+T0038,painel,html,<th>,Quem agregou,Aggregator,Quién agregó,Qui a agrégé,Agregator,数据整合方
+T0039,painel,html,<th>,Período,Period,Período,Période,Periode,期间
+T0040,painel,html,<td>,"MODIS MCD64A1 (NASA), 500 m","MODIS MCD64A1 (NASA), 500 m","MODIS MCD64A1 (NASA), 500 m","MODIS MCD64A1 (NASA), 500 m","MODIS MCD64A1 (NASA), 500 m","MODIS MCD64A1 (NASA), 500 m"
+T0041,painel,html,<a>,GWIS country profile,GWIS country profile,GWIS country profile,GWIS country profile,GWIS country profile,GWIS country profile
+T0042,painel,html,<td>,"(JRC / Copernicus), por país, estado (GADM nível 1) e cobertura","(JRC / Copernicus), by country, state (GADM level 1) and land cover","(JRC / Copernicus), por país, estado (GADM nivel 1) y cobertura","(JRC / Copernicus), par pays, État (GADM niveau 1) et couverture","(JRC / Copernicus), menurut negara, negara bagian (GADM level 1), dan tutupan lahan",(JRC / Copernicus)，按国家、州 (GADM 1 级) 和土地覆盖划分
+T0043,painel,html,<td>,Área queimada VIIRS,VIIRS burned area,Área quemada VIIRS,Surface brûlée VIIRS,Area terbakar VIIRS,VIIRS 烧毁面积
+T0044,painel,html,<td>,"VNP64 / VIIRS, 375 m","VNP64 / VIIRS, 375 m","VNP64 / VIIRS, 375 m","VNP64 / VIIRS, 375 m","VNP64 / VIIRS, 375 m","VNP64 / VIIRS, 375 m"
+T0045,painel,html,<td>,GWIS,GWIS,GWIS,GWIS,GWIS,GWIS
+T0046,painel,html,<td>,"Emissões (CO₂, CH₄, PM2.5)","Emissions (CO₂, CH₄, PM2.5)","Emisiones (CO₂, CH₄, PM2.5)","Émissions (CO₂, CH₄, PM2.5)","Emisi (CO₂, CH₄, PM2.5)","排放量 (CO₂, CH₄, PM2.5)"
+T0047,painel,html,<td>,GFED,GFED,GFED,GFED,GFED,GFED
+T0048,painel,html,<td>,"NASA FIRMS (MODIS, 1 km)","NASA FIRMS (MODIS, 1 km)","NASA FIRMS (MODIS, 1 km)","NASA FIRMS (MODIS, 1 km)","NASA FIRMS (MODIS, 1 km)","NASA FIRMS (MODIS, 1 km)"
+T0049,painel,html,<td>,"Este painel, no Google Earth Engine","This dashboard, in Google Earth Engine","Este panel, en Google Earth Engine","Ce tableau de bord, dans Google Earth Engine","Dasbor ini, di Google Earth Engine",此仪表板，位于 Google Earth Engine
+T0050,painel,html,<td>,Área queimada recente,Recent burned area,Área quemada reciente,Surface brûlée récente,Area terbakar terkini,近期烧毁面积
+T0051,painel,html,<td>,MODIS MCD64A1,MODIS MCD64A1,MODIS MCD64A1,MODIS MCD64A1,MODIS MCD64A1,MODIS MCD64A1
+T0052,painel,html,<td>,"Este painel, no Google Earth Engine (preliminar)","This dashboard, in Google Earth Engine (preliminary)","Este panel, en Google Earth Engine (preliminar)","Ce tableau de bord, dans Google Earth Engine (préliminaire)","Dasbor ini, di Google Earth Engine (awal)",此仪表板，位于 Google Earth Engine (初步)
+T0053,painel,html,<td>,após o fim do GWIS,after GWIS end,después del fin de GWIS,après la fin de GWIS,setelah periode GWIS,在 GWIS 结束之后
+T0054,painel,html,<p>,"Focos de calor = soma, no mês, dos pixels com fogo ativo em cada dia (pixels-dia). Não é o mesmo número dos boletins de “focos” de outros satélites, mas segue a mesma dinâmica.","Active fires (hotspots) = monthly sum of pixels with active fire each day (pixel-days). It is not the same number as ""hotspot"" reports from other satellites, but follows the same dynamics.","Focos de calor = suma, en el mes, de los píxeles con fuego activo cada día (píxeles-día). No es el mismo número de los boletines de ""focos"" de otros satélites, pero sigue la misma dinámica.","Feux actifs (points chauds) = somme, dans le mois, des pixels avec feu actif chaque jour (pixels-jour). Ce n'est pas le même nombre que les bulletins de « points chauds » d'autres satellites, mais suit la même dynamique.","Titik api (hotspot) = jumlah bulanan piksel dengan api aktif setiap hari (piksel-hari). Angkanya tidak sama dengan laporan ""hotspot"" dari satelit lain, tetapi mengikuti dinamika yang sama.",火点 (hotspots) = 本月每天存在活跃火灾的像素总和 (像素-天)。这与其他卫星报告的“火点”数量不同，但动态趋势相同。
+T0055,painel,html,<h2>,Continentes e mapas,Continents and maps,Continentes y mapas,Continents et cartes,Benua dan peta,大洲和地图
+T0056,painel,html,<p>,"Continentes seguem o Natural Earth (a Rússia entra na Europa; América Central e Caribe em “América do Norte e Central”). O mapa de países usa Natural Earth 1:110m. O mapa de estados usa limites geoBoundaries ADM1 simplificados, casados por nome com as unidades GADM do GWIS. Unidades sem par aparecem em cinza.","Continents follow Natural Earth (Russia is in Europe; Central America and Caribbean in ""North and Central America""). The countries map uses Natural Earth 1:110m. The states map uses simplified geoBoundaries ADM1 limits, matched by name with GWIS GADM units. Unmatched units appear in gray.","Los continentes siguen Natural Earth (Rusia entra en Europa; América Central y el Caribe en ""América del Norte y Central""). El mapa de países usa Natural Earth 1:110m. El mapa de estados usa límites geoBoundaries ADM1 simplificados, emparejados por nombre con las unidades GADM de GWIS. Las unidades sin par aparecen en gris.","Les continents suivent Natural Earth (la Russie est en Europe ; l'Amérique centrale et les Caraïbes dans « Amérique du Nord et centrale »). La carte des pays utilise Natural Earth 1:110m. La carte des États utilise des limites geoBoundaries ADM1 simplifiées, associées par nom aux unités GADM du GWIS. Les unités sans correspondance apparaissent en gris.","Benua mengikuti Natural Earth (Rusia masuk Eropa; Amerika Tengah dan Karibia masuk ""Amerika Utara dan Tengah""). Peta negara menggunakan Natural Earth 1:110m. Peta negara bagian menggunakan batas geoBoundaries ADM1 yang disederhanakan, disesuaikan namanya dengan unit GADM dari GWIS. Unit yang tidak cocok berwarna abu-abu.",大洲遵循 Natural Earth 标准 (俄罗斯归入欧洲；中美洲和加勒比海归入“北美和中美洲”)。国家地图使用 Natural Earth 1:110m。州地图使用简化的 geoBoundaries ADM1 边界，按名称与 GWIS 的 GADM 单位匹配。未匹配的单位显示为灰色。
+T0057,painel,html,<h2>,Leitura,Reading,Lectura,Lecture,Membaca,解读
+T0058,painel,html,<p>,"As setas do ranking mostram a mudança de posição em relação ao período anterior (mês anterior, ou ano anterior quando “Ano todo”).","Ranking arrows show the position change compared to the previous period (previous month, or previous year when ""Full year"").","Las flechas del ranking muestran el cambio de posición respecto al período anterior (mes anterior, o año anterior en ""Año completo"").","Les flèches du classement montrent le changement de position par rapport à la période précédente (mois précédent, ou année précédente pour « Année complète »).","Panah peringkat menunjukkan perubahan posisi dibandingkan periode sebelumnya (bulan sebelumnya, atau tahun sebelumnya saat ""Sepanjang tahun"").",排名箭头显示了与上一期间 (上个月，或选择“全年”时的上一年) 相比的位置变化。
+T0059,painel,html,<b>,% do território,% of territory,% del territorio,% du territoire,% dari wilayah,领土百分比
+T0060,painel,html,<p>,só existe para países e continentes.,only exists for countries and continents.,solo existe para países y continentes.,n'existe que pour les pays et les continents.,hanya berlaku untuk negara dan benua.,仅存在于国家和大洲。
+T0061,painel,html,<p>,"MCD64A1 subestima queimadas pequenas (< ~25 ha) e de sub-bosque; VIIRS (375 m) costuma detectar mais. Use para comparar unidades e meses, não como total absoluto.","MCD64A1 underestimates small fires (< ~25 ha) and understory fires; VIIRS (375 m) usually detects more. Use to compare units and months, not as an absolute total.","MCD64A1 subestima fuegos pequeños (< ~25 ha) y de sotobosque; VIIRS (375 m) suele detectar más. Úselo para comparar unidades y meses, no como total absoluto.","MCD64A1 sous-estime les petits incendies (< ~25 ha) et de sous-bois ; VIIRS (375 m) en détecte généralement plus. Utilisez pour comparer unités et mois, non comme total absolu.","MCD64A1 meremehkan kebakaran kecil (< ~25 ha) dan kebakaran bawah tajuk; VIIRS (375 m) biasanya mendeteksi lebih banyak. Gunakan untuk membandingkan unit dan bulan, bukan sebagai total mutlak.",MCD64A1 低估了小型火灾 (< ~25 公顷) 和林下火灾；VIIRS (375 米) 通常能检测到更多。用于比较不同单位和月份，而非作为绝对总数。
+T0062,painel,html,<h2>,Reprodução,Reproduction,Reproducción,Reproduction,Reproduksi,复现
+T0063,painel,html,<p>,Código em,Code at,Código en,Code dans,Kode di,代码见
+T0064,painel,html,<code>,global_analises/scripts/,global_analises/scripts/,global_analises/scripts/,global_analises/scripts/,global_analises/scripts/,global_analises/scripts/
+T0065,painel,html,<p>,do repositório,of the repository,del repositorio,du dépôt,dari repositori,，位于代码库
+T0066,painel,html,<a>,mapbiomas/brazil-fire,mapbiomas/brazil-fire,mapbiomas/brazil-fire,mapbiomas/brazil-fire,mapbiomas/brazil-fire,mapbiomas/brazil-fire
+T0067,painel,js,"ba: { label: 'Área queimada', src:",MCD64A1 via GWIS,MCD64A1 via GWIS,MCD64A1 a través de GWIS,MCD64A1 via GWIS,MCD64A1 melalui GWIS,MCD64A1 通过 GWIS
+T0068,painel,js,ba_viirs: { label:,Área VIIRS,VIIRS area,Área VIIRS,Surface VIIRS,Area VIIRS,VIIRS 面积
+T0069,painel,js,"ba_viirs: { label: 'Área VIIRS', src:",VNP64 via GWIS,VNP64 via GWIS,VNP64 a través de GWIS,VNP64 via GWIS,VNP64 melalui GWIS,VNP64 通过 GWIS
+T0070,painel,js,"hotspots: { label: 'Focos de calor', src:",FIRMS via GEE,FIRMS via GEE,FIRMS a través de GEE,FIRMS via GEE,FIRMS melalui GEE,FIRMS 通过 GEE
+T0071,painel,js,"co2: { label: 'CO₂', src:",GFED via GWIS,GFED via GWIS,GFED a través de GWIS,GFED via GWIS,GFED melalui GWIS,GFED 通过 GWIS
+T0072,painel,js,pm25: { label:,PM2.5,PM2.5,PM2.5,PM2.5,PM2.5,PM2.5
+T0073,painel,js,"const COVERS = [['ba_forest',",Floresta,Forest,Bosque,Forêt,Hutan,森林
+T0074,painel,js,"const COVERS = [['ba_forest', 'Floresta', '--c-forest'], ['ba_savanna',",Savana,Savanna,Sabana,Savane,Sabana,稀树草原
+T0075,painel,js,"Floresta', '--c-forest'], ['ba_savanna', 'Savana', '--c-savanna'], ['ba_grass',",Campo / arbustivo,Grassland / shrubland,Pastizal / matorral,Prairie / arbustes,Padang rumput / semak,草地/灌木丛
+T0076,painel,js,"a', '--c-savanna'], ['ba_grass', 'Campo / arbustivo', '--c-grass'], ['ba_crop',",Agricultura,Cropland,Agricultura,Agriculture,Pertanian,农业
+T0077,painel,js,"arbustivo', '--c-grass'], ['ba_crop', 'Agricultura', '--c-crop'], ['ba_other',",Outros,Other,Otros,Autres,Lainnya,其他
 T0078,painel,js,const CONTS = [,África,,,,,
 T0079,painel,js,"const CONTS = ['África',",América do Sul,,,,,
 T0080,painel,js,"const CONTS = ['África', 'América do Sul',",América do Norte e Central,,,,,
@@ -86,79 +86,79 @@ T0084,painel,js,const LEVELS = { cont:,Continentes,,,,,
 T0085,painel,js,"const LEVELS = { cont: 'Continentes', adm0:",Países,,,,,
 T0086,painel,js,"const LEVELS = { cont: 'Continentes', adm0: 'Países', adm1:",Estados,,,,,
 T0087,painel,js,"const LEVEL_NAMES = { cont: 'continentes', adm0:",países,,,,,
-T0088,painel,js,"const u = { ha: ['ha',",mil ha,,,,,
-T0089,painel,js,"const u = { ha: ['ha', 'mil ha', 'Mha'], t: ['t',",mil t,,,,,
-T0090,painel,js,const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia(,(prefers-color-scheme: dark),,,,,
-T0091,painel,js,return S.cont ||,Mundo,,,,,
-T0092,painel,js,const css =,"text{font:11px system-ui,'Segoe UI',sans-serif;fill:var(--muted)} .sphere{fill:none;stroke:var(--grid)} path.u{stroke:var(--border)} path.cb{fill:none;stroke:var(--cborder);opacity:.7} .hov{display:none}",,,,,
-T0093,painel,js,const svg =,{…} · Monitor global de fogo (exploratório),,,,,
-T0094,painel,js,try { await draw(); } catch (e) { console.error(e); $('content').innerHTML =,Erro ao carregar dados:,,,,,
-T0095,painel,js,const gee = META.gee ?, · focos FIRMS {…}–{…},,,,,
-T0096,painel,js,"os FIRMS ${META.gee.from.replace('-', '/')}–${META.gee.to.replace('-', '/')}` :", · focos de calor: processando no GEE,,,,,
-T0097,painel,js,$('meta').textContent =,Dados GWIS {…}–{…}{…},,,,,
-T0098,painel,js,"seg('fMonth', [{ value: 0, label:",Ano todo,,,,,
-T0099,painel,js,"seg('fCont', [{ value: '', label:",Todos,,,,,
-T0100,painel,js,"seg('fTop', [10, 20, 30, 50].map(n => ({ value: n, label:",Top ,,,,,
-T0101,painel,js,", 'MCD64A1 via GWIS'], ['hotspots', 'Focos de calor', 'FIRMS via GEE'], ['co2',",Emissão de CO₂,,,,,
-T0102,painel,js,"calor', 'FIRMS via GEE'], ['co2', 'Emissão de CO₂', 'GFED via GWIS'], ['pm25',",Emissão de PM2.5,,,,,
-T0103,painel,js,let note =,sem dado neste período,,,,,
-T0104,painel,js,if (p) { const d = (v - p) / p * 100; note =,vs. {…},,,,,
-T0105,painel,js,else note =,sem comparação com o ano anterior,,,,,
-T0106,painel,js,if (m === 'ba' && cur.__area) note +=, · {…}% do território,,,,,
-T0107,painel,js,DL[,kpis:csv,,,,,
-T0108,painel,js,DL['kpis:csv'] = () => saveCSV(,indicadores_{…},,,,,
-T0109,painel,js,$('rankTitle').textContent =,Top {…} {…} · {…},,,,,
-T0110,painel,js,$('rankSub').textContent =,{…}{…}. Setas: posição vs. {…}. Clique numa linha para ver nos gráficos.,,,,,
-T0111,painel,js,"nst mv = x => { const pp = prevPos.get(x.gid); return pp == null ? ['new', '•',",Fora do ranking no período anterior,,,,,
-T0112,painel,js,"['new', '•', 'Fora do ranking no período anterior'] : pp > x.pos ? ['up', '▲',",Subiu {…},,,,,
-T0113,painel,js,": pp > x.pos ? ['up', '▲', `Subiu ${pp - x.pos}`] : pp < x.pos ? ['down', '▼',",Caiu {…},,,,,
-T0114,painel,js,}).join('') ||,Sem dados no recorte.,,,,,
-T0115,painel,js,DL[,rank:csv,,,,,
-T0116,painel,js,DL['rank:csv'] = () => saveCSV(,ranking_{…},,,,,
-T0117,painel,js,DL[,rank:png,,,,,
-T0118,painel,js,"const lineOpts = [['hotspots',",Focos,,,,,
-T0119,painel,js,$('comboTitle').textContent =,Área queimada × {…} · {…},,,,,
-T0120,painel,js,$('comboSub').textContent =,"Mensal, {…} a {…}. Barras no eixo da esquerda, linha no da direita. Em destaque: período selecionado.",,,,,
-T0121,painel,js,$('comboLegend').innerHTML =,Área queimada (MCD64A1),,,,,
-T0122,painel,js,DL[,combo:csv,,,,,
-T0123,painel,js,DL['combo:csv'] = () => saveCSV(,mensal_{…},,,,,
-T0124,painel,js,DL[,combo:png,,,,,
-T0125,painel,js,$('coverTitle').textContent =,Cobertura queimada · {…},,,,,
-T0126,painel,js,$('coverSub').textContent = cv ?,"Área queimada por tipo de cobertura do solo, {…}.",,,,,
-T0127,painel,js,"b').textContent = cv ? `Área queimada por tipo de cobertura do solo, ${per}.` :",Sem quebra por cobertura neste período (só existe na base GWIS).,,,,,
-T0128,painel,js,DL[,cover:csv,,,,,
-T0129,painel,js,DL['cover:csv'] = () => saveCSV(,cobertura_{…},,,,,
-T0130,painel,js,DL[,cover:png,,,,,
-T0131,painel,js,$('seasonTitle').textContent =,Sazonalidade · {…} · {…},,,,,
-T0132,painel,js,$('seasonSub').textContent =,Cada linha é um ano; {…} em destaque.,,,,,
-T0133,painel,js,$('seasonLegend').innerHTML =,outros anos,,,,,
-T0134,painel,js,DL[,season:csv,,,,,
-T0135,painel,js,DL['season:csv'] = () => saveCSV(,sazonalidade_{…},,,,,
-T0136,painel,js,DL[,season:png,,,,,
-T0137,painel,js,"(y, 0).every(k => A0.rows.has(k)); return { x: y, lbl: String(y) + (full ? '' :", (parcial),,,,,
-T0138,painel,js,$('annualTitle').textContent =,Série anual · {…},,,,,
-T0139,painel,js,$('annualSub').textContent =,Área queimada (barras) e emissão de CO₂ (linha) por ano.,,,,,
-T0140,painel,js,queimada (barras) e emissão de CO₂ (linha) por ano.' + (M(keys.at(-1)) !== 12 ?, {…} incompleto.,,,,,
-T0141,painel,js,$('annualLegend').innerHTML =,CO₂ (GFED),,,,,
-T0142,painel,js,DL[,annual:csv,,,,,
-T0143,painel,js,DL['annual:csv'] = () => saveCSV(,anual_{…},,,,,
-T0144,painel,js,DL[,annual:png,,,,,
-T0145,painel,js,$('tbl').innerHTML =,Área queimada (ha),,,,,
-T0146,painel,js,$('tbl').innerHTML =,VIIRS (ha),,,,,
-T0147,painel,js,$('tbl').innerHTML =,% território,,,,,
-T0148,painel,js,$('tbl').innerHTML =,CO₂ (t),,,,,
-T0149,painel,js,$('tbl').innerHTML =,PM2.5 (t),,,,,
-T0150,painel,js,$('tbl').innerHTML =,Δ posição,,,,,
-T0151,painel,js,"const unitLabel = { cont: 'continente', adm0:",país,,,,,
-T0152,painel,js,$('mapTitle').textContent =,{…} por {…} · {…}{…},,,,,
-T0153,painel,js,$('mapSub').textContent = { cont:,Países pintados pelo total do seu continente. Clique para selecionar um continente.,,,,,
-T0154,painel,js,"dos pelo total do seu continente. Clique para selecionar um continente.', adm0:",Clique num país para vê-lo nos gráficos. Cores em 6 faixas com o mesmo número de unidades.,,,,,
-T0155,painel,js,"a vê-lo nos gráficos. Cores em 6 faixas com o mesmo número de unidades.', adm1:","Clique num estado/província para vê-lo nos gráficos. Cinza: sem dado, zero ou sem par entre os limites.",,,,,
-T0156,painel,js,const p = e.target.closest(,path.u,,,,,
-T0157,painel,js,,até {…},,,,,
-T0158,painel,js,,sem dado ou zero,,,,,
-T0159,painel,js,DL[,map:csv,,,,,
-T0160,painel,js,DL['map:csv'] = () => saveCSV(,mapa_{…},,,,,
-T0161,painel,js,DL[,map:png,,,,,
-T0162,painel,js,i =>,Área queimada: {…},,,,,
-T0163,painel,js,return,máximo: {…},,,,,
+T0088,painel,js,"const u = { ha: ['ha',",mil ha,thousand ha,mil ha,mille ha,ribu ha,千公顷
+T0089,painel,js,"const u = { ha: ['ha', 'mil ha', 'Mha'], t: ['t',",mil t,thousand t,mil t,mille t,ribu t,千吨
+T0090,painel,js,const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia(,(prefers-color-scheme: dark),(prefers-color-scheme: dark),(prefers-color-scheme: dark),(prefers-color-scheme: dark),(prefers-color-scheme: dark),(prefers-color-scheme: dark)
+T0091,painel,js,return S.cont ||,Mundo,World,Mundo,Monde,Dunia,世界
+T0092,painel,js,const css =,"text{font:11px system-ui,'Segoe UI',sans-serif;fill:var(--muted)} .sphere{fill:none;stroke:var(--grid)} path.u{stroke:var(--border)} path.cb{fill:none;stroke:var(--cborder);opacity:.7} .hov{display:none}","text{font:11px system-ui,'Segoe UI',sans-serif;fill:var(--muted)} .sphere{fill:none;stroke:var(--grid)} path.u{stroke:var(--border)} path.cb{fill:none;stroke:var(--cborder);opacity:.7} .hov{display:none}","text{font:11px system-ui,'Segoe UI',sans-serif;fill:var(--muted)} .sphere{fill:none;stroke:var(--grid)} path.u{stroke:var(--border)} path.cb{fill:none;stroke:var(--cborder);opacity:.7} .hov{display:none}","text{font:11px system-ui,'Segoe UI',sans-serif;fill:var(--muted)} .sphere{fill:none;stroke:var(--grid)} path.u{stroke:var(--border)} path.cb{fill:none;stroke:var(--cborder);opacity:.7} .hov{display:none}","text{font:11px system-ui,'Segoe UI',sans-serif;fill:var(--muted)} .sphere{fill:none;stroke:var(--grid)} path.u{stroke:var(--border)} path.cb{fill:none;stroke:var(--cborder);opacity:.7} .hov{display:none}","text{font:11px system-ui,'Segoe UI',sans-serif;fill:var(--muted)} .sphere{fill:none;stroke:var(--grid)} path.u{stroke:var(--border)} path.cb{fill:none;stroke:var(--cborder);opacity:.7} .hov{display:none}"
+T0093,painel,js,const svg =,{…} · Monitor global de fogo (exploratório),{…} · Global fire monitor (exploratory),{…} · Monitor global de fuego (exploratorio),{…} · Moniteur mondial des incendies (exploratoire),{…} · Monitor kebakaran global (eksploratif),{…} · 全球火灾监测 (探索性)
+T0094,painel,js,try { await draw(); } catch (e) { console.error(e); $('content').innerHTML =,Erro ao carregar dados:,Error loading data:,Error al cargar datos:,Erreur de chargement des données :,Kesalahan memuat data:,加载数据出错：
+T0095,painel,js,const gee = META.gee ?, · focos FIRMS {…}–{…}, · FIRMS hotspots {…}–{…}, · focos FIRMS {…}–{…}, · points chauds FIRMS {…}–{…}, · hotspot FIRMS {…}–{…}, · FIRMS 火点 {…}–{…}
+T0096,painel,js,"os FIRMS ${META.gee.from.replace('-', '/')}–${META.gee.to.replace('-', '/')}` :", · focos de calor: processando no GEE, · active fires (hotspots): processing in GEE, · focos de calor: procesando en GEE, · feux actifs (points chauds) : traitement dans GEE, · titik api (hotspot): memproses di GEE, · 火点 (hotspots)：正在 GEE 中处理
+T0097,painel,js,$('meta').textContent =,Dados GWIS {…}–{…}{…},GWIS data {…}–{…}{…},Datos GWIS {…}–{…}{…},Données GWIS {…}–{…}{…},Data GWIS {…}–{…}{…},GWIS 数据 {…}–{…}{…}
+T0098,painel,js,"seg('fMonth', [{ value: 0, label:",Ano todo,Full year,Año completo,Année complète,Sepanjang tahun,全年
+T0099,painel,js,"seg('fCont', [{ value: '', label:",Todos,All,Todos,Tous,Semua,全部
+T0100,painel,js,"seg('fTop', [10, 20, 30, 50].map(n => ({ value: n, label:",Top ,Top ,Top ,Top ,Top ,排名前 
+T0101,painel,js,", 'MCD64A1 via GWIS'], ['hotspots', 'Focos de calor', 'FIRMS via GEE'], ['co2',",Emissão de CO₂,CO₂ Emissions,Emisión de CO₂,Émission de CO₂,Emisi CO₂,CO₂ 排放量
+T0102,painel,js,"calor', 'FIRMS via GEE'], ['co2', 'Emissão de CO₂', 'GFED via GWIS'], ['pm25',",Emissão de PM2.5,PM2.5 Emissions,Emisión de PM2.5,Émission de PM2.5,Emisi PM2.5,PM2.5 排放量
+T0103,painel,js,let note =,sem dado neste período,no data in this period,sin datos en este período,aucune donnée pour cette période,tidak ada data pada periode ini,此期间无数据
+T0104,painel,js,if (p) { const d = (v - p) / p * 100; note =,vs. {…},vs. {…},vs. {…},vs {…},vs {…},对比 {…}
+T0105,painel,js,else note =,sem comparação com o ano anterior,no comparison with previous year,sin comparación con el año anterior,aucune comparaison avec l’année précédente,tidak ada perbandingan dengan tahun sebelumnya,无上一年对比
+T0106,painel,js,if (m === 'ba' && cur.__area) note +=, · {…}% do território, · {…}% of territory, · {…}% del territorio, · {…} % du territoire, · {…}% dari wilayah, · 领土面积的 {…}%
+T0107,painel,js,DL[,kpis:csv,kpis:csv,kpis:csv,kpis:csv,kpis:csv,kpis:csv
+T0108,painel,js,DL['kpis:csv'] = () => saveCSV(,indicadores_{…},indicators_{…},indicadores_{…},indicateurs_{…},indikator_{…},指标_{…}
+T0109,painel,js,$('rankTitle').textContent =,Top {…} {…} · {…},Top {…} {…} · {…},Top {…} {…} · {…},Top {…} {…} · {…},Top {…} {…} · {…},前 {…} {…} · {…}
+T0110,painel,js,$('rankSub').textContent =,{…}{…}. Setas: posição vs. {…}. Clique numa linha para ver nos gráficos.,{…}{…}. Arrows: position vs. {…}. Click a row to see in charts.,{…}{…}. Flechas: posición vs. {…}. Haga clic en una fila para ver en los gráficos.,{…}{…}. Flèches : position vs {…}. Cliquez sur une ligne pour voir dans les graphiques.,{…}{…}. Panah: posisi vs {…}. Klik baris untuk melihat di grafik.,{…}{…}。箭头：位置对比 {…}。点击某行可在图表中查看。
+T0111,painel,js,"nst mv = x => { const pp = prevPos.get(x.gid); return pp == null ? ['new', '•',",Fora do ranking no período anterior,Out of ranking in previous period,Fuera del ranking en el período anterior,Hors classement à la période précédente,Keluar dari peringkat pada periode sebelumnya,在上一期间未上榜
+T0112,painel,js,"['new', '•', 'Fora do ranking no período anterior'] : pp > x.pos ? ['up', '▲',",Subiu {…},Up {…},Subió {…},En hausse {…},Naik {…},上升 {…}
+T0113,painel,js,": pp > x.pos ? ['up', '▲', `Subiu ${pp - x.pos}`] : pp < x.pos ? ['down', '▼',",Caiu {…},Down {…},Cayó {…},En baisse {…},Turun {…},下降 {…}
+T0114,painel,js,}).join('') ||,Sem dados no recorte.,No data in the selection.,Sin datos en la selección.,Aucune donnée dans la sélection.,Tidak ada data pada pilihan.,选取范围内无数据。
+T0115,painel,js,DL[,rank:csv,rank:csv,rank:csv,rank:csv,rank:csv,rank:csv
+T0116,painel,js,DL['rank:csv'] = () => saveCSV(,ranking_{…},ranking_{…},ranking_{…},classement_{…},peringkat_{…},排名_{…}
+T0117,painel,js,DL[,rank:png,rank:png,rank:png,rank:png,rank:png,rank:png
+T0118,painel,js,"const lineOpts = [['hotspots',",Focos,Hotspots,Focos,Points chauds,Hotspot,火点
+T0119,painel,js,$('comboTitle').textContent =,Área queimada × {…} · {…},Burned area × {…} · {…},Área quemada × {…} · {…},Surface brûlée × {…} · {…},Area terbakar × {…} · {…},烧毁面积 × {…} · {…}
+T0120,painel,js,$('comboSub').textContent =,"Mensal, {…} a {…}. Barras no eixo da esquerda, linha no da direita. Em destaque: período selecionado.","Monthly, {…} to {…}. Bars on left axis, line on right axis. Highlighted: selected period.","Mensual, {…} a {…}. Barras en el eje izquierdo, línea en el derecho. Destacado: período seleccionado.","Mensuel, {…} à {…}. Barres sur l’axe gauche, ligne sur l’axe droit. En surbrillance : période sélectionnée.","Bulanan, {…} hingga {…}. Batang di sumbu kiri, garis di sumbu kanan. Disorot: periode yang dipilih.",按月，从 {…} 到 {…}。条形图在左轴，折线图在右轴。突出显示：选定期间。
+T0121,painel,js,$('comboLegend').innerHTML =,Área queimada (MCD64A1),Burned area (MCD64A1),Área quemada (MCD64A1),Surface brûlée (MCD64A1),Area terbakar (MCD64A1),烧毁面积 (MCD64A1)
+T0122,painel,js,DL[,combo:csv,combo:csv,combo:csv,combo:csv,combo:csv,combo:csv
+T0123,painel,js,DL['combo:csv'] = () => saveCSV(,mensal_{…},monthly_{…},mensual_{…},mensuel_{…},bulanan_{…},每月_{…}
+T0124,painel,js,DL[,combo:png,combo:png,combo:png,combo:png,combo:png,combo:png
+T0125,painel,js,$('coverTitle').textContent =,Cobertura queimada · {…},Burned cover · {…},Cobertura quemada · {…},Couverture brûlée · {…},Tutupan lahan terbakar · {…},烧毁覆盖类型 · {…}
+T0126,painel,js,$('coverSub').textContent = cv ?,"Área queimada por tipo de cobertura do solo, {…}.","Burned area by land cover type, {…}.","Área quemada por tipo de cobertura del suelo, {…}.","Surface brûlée par type de couverture du sol, {…}.","Area terbakar menurut jenis tutupan lahan, {…}.",按土地覆盖类型划分的烧毁面积，{…}。
+T0127,painel,js,"b').textContent = cv ? `Área queimada por tipo de cobertura do solo, ${per}.` :",Sem quebra por cobertura neste período (só existe na base GWIS).,No land cover breakdown in this period (only exists in GWIS data).,Sin desglose por cobertura en este período (solo existe en la base GWIS).,Aucune ventilation par couverture pour cette période (n’existe que dans la base GWIS).,Tidak ada rincian tutupan lahan pada periode ini (hanya ada di basis data GWIS).,此期间无土地覆盖细分 (仅存在于 GWIS 数据中)。
+T0128,painel,js,DL[,cover:csv,cover:csv,cover:csv,cover:csv,cover:csv,cover:csv
+T0129,painel,js,DL['cover:csv'] = () => saveCSV(,cobertura_{…},cover_{…},cobertura_{…},couverture_{…},tutupan_{…},覆盖类型_{…}
+T0130,painel,js,DL[,cover:png,cover:png,cover:png,cover:png,cover:png,cover:png
+T0131,painel,js,$('seasonTitle').textContent =,Sazonalidade · {…} · {…},Seasonality · {…} · {…},Estacionalidad · {…} · {…},Saisonnalité · {…} · {…},Musiman · {…} · {…},季节性 · {…} · {…}
+T0132,painel,js,$('seasonSub').textContent =,Cada linha é um ano; {…} em destaque.,Each line is a year; {…} highlighted.,Cada línea es un año; {…} destacado.,Chaque ligne est une année ; {…} en surbrillance.,Setiap garis adalah satu tahun; {…} disorot.,每条线代表一年；{…} 突出显示。
+T0133,painel,js,$('seasonLegend').innerHTML =,outros anos,other years,otros años,autres années,tahun lainnya,其他年份
+T0134,painel,js,DL[,season:csv,season:csv,season:csv,season:csv,season:csv,season:csv
+T0135,painel,js,DL['season:csv'] = () => saveCSV(,sazonalidade_{…},seasonality_{…},estacionalidad_{…},saisonnalité_{…},musiman_{…},季节性_{…}
+T0136,painel,js,DL[,season:png,season:png,season:png,season:png,season:png,season:png
+T0137,painel,js,"(y, 0).every(k => A0.rows.has(k)); return { x: y, lbl: String(y) + (full ? '' :", (parcial), (partial), (parcial), (partiel), (parsial), (部分)
+T0138,painel,js,$('annualTitle').textContent =,Série anual · {…},Annual series · {…},Serie anual · {…},Série annuelle · {…},Seri tahunan · {…},年度序列 · {…}
+T0139,painel,js,$('annualSub').textContent =,Área queimada (barras) e emissão de CO₂ (linha) por ano.,Burned area (bars) and CO₂ emissions (line) by year.,Área quemada (barras) y emisión de CO₂ (línea) por año.,Surface brûlée (barres) et émissions de CO₂ (ligne) par an.,Area terbakar (batang) dan emisi CO₂ (garis) per tahun.,每年烧毁面积 (条形图) 和 CO₂ 排放量 (折线图)。
+T0140,painel,js,queimada (barras) e emissão de CO₂ (linha) por ano.' + (M(keys.at(-1)) !== 12 ?, {…} incompleto., {…} incomplete., {…} incompleto., {…} incomplet., {…} tidak lengkap., {…} 数据不完整。
+T0141,painel,js,$('annualLegend').innerHTML =,CO₂ (GFED),CO₂ (GFED),CO₂ (GFED),CO₂ (GFED),CO₂ (GFED),CO₂ (GFED)
+T0142,painel,js,DL[,annual:csv,annual:csv,annual:csv,annual:csv,annual:csv,annual:csv
+T0143,painel,js,DL['annual:csv'] = () => saveCSV(,anual_{…},annual_{…},anual_{…},annuelle_{…},tahunan_{…},年度_{…}
+T0144,painel,js,DL[,annual:png,annual:png,annual:png,annual:png,annual:png,annual:png
+T0145,painel,js,$('tbl').innerHTML =,Área queimada (ha),Burned area (ha),Área quemada (ha),Surface brûlée (ha),Area terbakar (ha),烧毁面积 (公顷)
+T0146,painel,js,$('tbl').innerHTML =,VIIRS (ha),VIIRS (ha),VIIRS (ha),VIIRS (ha),VIIRS (ha),VIIRS (公顷)
+T0147,painel,js,$('tbl').innerHTML =,% território,% territory,% territorio,% territoire,% wilayah,领土百分比
+T0148,painel,js,$('tbl').innerHTML =,CO₂ (t),CO₂ (t),CO₂ (t),CO₂ (t),CO₂ (t),CO₂ (吨)
+T0149,painel,js,$('tbl').innerHTML =,PM2.5 (t),PM2.5 (t),PM2.5 (t),PM2.5 (t),PM2.5 (t),PM2.5 (吨)
+T0150,painel,js,$('tbl').innerHTML =,Δ posição,Δ position,Δ posición,Δ position,Δ posisi,Δ 位置
+T0151,painel,js,"const unitLabel = { cont: 'continente', adm0:",país,country,país,pays,negara,国家
+T0152,painel,js,$('mapTitle').textContent =,{…} por {…} · {…}{…},{…} by {…} · {…}{…},{…} por {…} · {…}{…},{…} par {…} · {…}{…},{…} menurut {…} · {…}{…},按 {…} 划分的 {…} · {…}{…}
+T0153,painel,js,$('mapSub').textContent = { cont:,Países pintados pelo total do seu continente. Clique para selecionar um continente.,Countries colored by their continent total. Click to select a continent.,Países pintados por el total de su continente. Haga clic para seleccionar un continente.,Pays colorés selon le total de leur continent. Cliquez pour sélectionner un continent.,Negara diwarnai berdasarkan total benuanya. Klik untuk memilih benua.,各国家按其所在大洲的总数着色。点击以选择大洲。
+T0154,painel,js,"dos pelo total do seu continente. Clique para selecionar um continente.', adm0:",Clique num país para vê-lo nos gráficos. Cores em 6 faixas com o mesmo número de unidades.,Click a country to view in charts. Colors in 6 bands with equal number of units.,Haga clic en un país para verlo en los gráficos. Colores en 6 bandas con el mismo número de unidades.,Cliquez sur un pays pour le voir dans les graphiques. Couleurs en 6 bandes avec le même nombre d’unités.,Klik sebuah negara untuk melihat di grafik. Warna dibagi dalam 6 rentang dengan jumlah unit yang sama.,点击某国家可在图表中查看。颜色分为6个等级，每个等级单位数量相同。
+T0155,painel,js,"a vê-lo nos gráficos. Cores em 6 faixas com o mesmo número de unidades.', adm1:","Clique num estado/província para vê-lo nos gráficos. Cinza: sem dado, zero ou sem par entre os limites.","Click a state/province to view in charts. Gray: no data, zero, or no match in boundaries.","Haga clic en un estado/provincia para verlo en los gráficos. Gris: sin datos, cero o sin par en los límites.","Cliquez sur un État/province pour le voir dans les graphiques. Gris : aucune donnée, zéro ou pas de correspondance dans les limites.","Klik sebuah negara bagian/provinsi untuk melihat di grafik. Abu-abu: tidak ada data, nol, atau tidak cocok dalam batas wilayah.",点击州/省可在图表中查看。灰色表示：无数据、为零，或边界未匹配。
+T0156,painel,js,const p = e.target.closest(,path.u,path.u,path.u,path.u,path.u,path.u
+T0157,painel,js,,até {…},through {…},hasta {…},jusqu’à {…},hingga {…},至 {…}
+T0158,painel,js,,sem dado ou zero,no data or zero,sin datos o cero,aucune donnée ou zéro,tidak ada data atau nol,无数据或零
+T0159,painel,js,DL[,map:csv,map:csv,map:csv,map:csv,map:csv,map:csv
+T0160,painel,js,DL['map:csv'] = () => saveCSV(,mapa_{…},map_{…},mapa_{…},carte_{…},peta_{…},地图_{…}
+T0161,painel,js,DL[,map:png,map:png,map:png,map:png,map:png,map:png
+T0162,painel,js,i =>,Área queimada: {…},Burned area: {…},Área quemada: {…},Surface brûlée : {…},Area terbakar: {…},烧毁面积：{…}
+T0163,painel,js,return,máximo: {…},maximum: {…},máximo: {…},maximum : {…},maksimum: {…},最大值：{…}

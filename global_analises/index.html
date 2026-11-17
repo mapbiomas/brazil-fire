@@ -182,6 +182,7 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
       <div class="meta" id="meta">Carregando dados…</div>
     </div>
     <div class="hdr-right">
+      <div class="seg small" id="fLang" aria-label="Idioma"></div>
       <nav class="tabs">
         <a href="#painel" id="tabPainel" aria-current="page">Painel</a>
         <a href="#metodo" id="tabMetodo">Método</a>
@@ -300,7 +301,8 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
 
 <script>
 (() => {
-  const MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const MONTHS_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  let MONTHS = MONTHS_PT.slice();
   const METRICS = {
     ba:       { label: 'Área queimada', src: 'MCD64A1 via GWIS', unit: 'ha' },
     ba_pct:   { label: '% do território', src: 'MCD64A1 via GWIS', unit: 'pct', noAdm1: true },
@@ -318,9 +320,71 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
   const S = { level: 'adm0', metric: 'ba', year: null, month: null, top: 20, cont: '', country: '', sel: null, line: 'hotspots' };
   const DL = {};
   const $ = id => document.getElementById(id);
-  const nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
-  const nf1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
-  const nf2 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
+  let nf0, nf1, nf2;
+  // ---------- idiomas ----------
+  const LANG_UI = { pt: 'PT', en: 'EN', es: 'ES', fr: 'FR', ind: 'ID', zh: '中文' };
+  const LOCALE = { pt: 'pt-BR', en: 'en-US', es: 'es-ES', fr: 'fr-FR', ind: 'id-ID', zh: 'zh-CN' };
+  const HTML_LANG = { pt: 'pt-BR', en: 'en', es: 'es', fr: 'fr', ind: 'id', zh: 'zh-CN' };
+  let I18N = null, LANG = 'pt', FRAG = null;
+  try { LANG = new URLSearchParams(location.search).get('lang') || localStorage.getItem('lang') || 'pt'; } catch (e) {}
+  if (!LOCALE[LANG]) LANG = 'pt';
+  const TR = s => { if (LANG === 'pt' || !I18N) return s; const v = I18N.t[s]; return (v && v[I18N.langs.indexOf(LANG) - 1]) || s; };
+  const cname = (iso, fallback) => { const c = I18N && I18N.countries[iso]; return (c && c[I18N.langs.indexOf(LANG)]) || fallback; };
+  function setNumbers() {
+    nf0 = new Intl.NumberFormat(LOCALE[LANG], { maximumFractionDigits: 0 });
+    nf1 = new Intl.NumberFormat(LOCALE[LANG], { maximumFractionDigits: 1 });
+    nf2 = new Intl.NumberFormat(LOCALE[LANG], { maximumFractionDigits: 2 });
+  }
+  setNumbers();
+  const LEVELS0 = {}, LN0 = {};
+  function applyLang() {
+    setNumbers();
+    MONTHS = MONTHS_PT.map(TR);
+    for (const m of Object.values(METRICS)) { m.label0 ??= m.label; m.label = TR(m.label0); }
+    for (const c of COVERS) { c[3] ??= c[1]; c[1] = TR(c[3]); }
+    for (const k in LEVELS) { LEVELS0[k] ??= LEVELS[k]; LEVELS[k] = TR(LEVELS0[k]); LN0[k] ??= LEVEL_NAMES[k]; LEVEL_NAMES[k] = TR(LN0[k]); }
+    if (A0) for (const u of A0.units.values()) u.name = cname(u.gid, u.name0);
+    for (const u of U1.values()) u.parent = cname(u.iso3, u.parent0);
+    document.documentElement.lang = HTML_LANG[LANG];
+    document.title = TR('Monitor global de fogo');
+    FRAG = null;
+  }
+  // traduz textos montados (pedaços de frase) direto no DOM, guardando o original em português
+  const ORIG = new WeakMap();
+  function fragRegex() {
+    if (FRAG || !I18N) return FRAG;
+    const keys = Object.keys(I18N.t).filter(k => k.length > 1 && k.trim()).sort((a, b) => b.length - a.length);
+    // borda de palavra só nas pontas que são letras (pedaços como '. Setas: ' ou 'Fonte: ' não precisam)
+    const isL = c => /\p{L}/u.test(c);
+    const pat = k => (isL(k[0]) ? '(?<!\\p{L})' : '') + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + (isL(k.at(-1)) ? '(?!\\p{L})' : '');
+    return (FRAG = new RegExp(keys.map(pat).join('|'), 'gu'));
+  }
+  function trText(o) {
+    const k = o.trim();
+    if (I18N.t[k] && TR(k) !== k) return o.replace(k, TR(k));
+    return o.replace(fragRegex(), m => TR(m));
+  }
+  function translateDOM(rootEl) {
+    if (!I18N) return;
+    const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('script,style') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+    const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const n of nodes) {
+      if (!ORIG.has(n)) ORIG.set(n, n.nodeValue);
+      const o = ORIG.get(n);
+      if (!o.trim()) continue;
+      const v = LANG === 'pt' ? o : trText(o);
+      if (n.nodeValue !== v) n.nodeValue = v;
+    }
+    rootEl.querySelectorAll('[title],[aria-label]').forEach(el => {
+      for (const a of ['title', 'aria-label']) {
+        if (!el.hasAttribute(a)) continue;
+        const key = 'data-pt-' + a;
+        if (!el.hasAttribute(key)) el.setAttribute(key, el.getAttribute(a));
+        const o = el.getAttribute(key);
+        el.setAttribute(a, LANG === 'pt' ? o : trText(o));
+      }
+    });
+  }
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const K = (y, m) => y * 100 + m, Y = k => Math.floor(k / 100), M = k => k % 100;
   const klbl = k => `${MONTHS[M(k) - 1]}/${Y(k)}`;
@@ -328,7 +392,7 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
   function fmt(v, unit, split) {
     if (v == null || isNaN(v)) return split ? ['–', ''] : '–';
     if (unit === 'pct') return split ? [nf2.format(v), '%'] : nf2.format(v) + '%';
-    const u = { ha: ['ha', 'mil ha', 'Mha'], t: ['t', 'mil t', 'Mt'], n: ['', 'mil', 'mi'] }[unit];
+    const u = (LANG === 'pt' ? { ha: ['ha', 'mil ha', 'Mha'], t: ['t', 'mil t', 'Mt'], n: ['', 'mil', 'mi'] } : { ha: ['ha', 'k ha', 'Mha'], t: ['t', 'kt', 'Mt'], n: ['', 'k', 'M'] })[unit];
     const [n, s] = v >= 1e6 ? [nf2.format(v / 1e6), u[2]] : v >= 1e4 ? [nf1.format(v / 1e3), u[1]] : [nf0.format(v), u[0]];
     return split ? [n, s] : (n + (s ? ' ' + s : ''));
   }
@@ -378,7 +442,7 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
     for (const r of rows) {
       if (!into.has(r.k)) into.set(r.k, new Map());
       into.get(r.k).set(r.gid, r);
-      if (!units.has(r.gid)) units.set(r.gid, { gid: r.gid, iso3: r.iso3, name: r.name, parent: r.parent, area: r.area });
+      if (!units.has(r.gid)) units.set(r.gid, { gid: r.gid, iso3: r.iso3, name: units === U1 ? r.name : cname(r.gid, r.name), name0: r.name, parent: r.parent ? cname(r.iso3, r.parent) : r.parent, parent0: r.parent, area: r.area });
       else if (r.area && !units.get(r.gid).area) units.get(r.gid).area = r.area;
     }
   }
@@ -387,7 +451,7 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
       const m = new Map(); index(await fetchCSV(`data/adm1/${y}.csv`), m, U1); A1[y] = m;
     }));
   }
-  const unitOf = (lvl, gid) => lvl === 'cont' ? { gid, name: gid } : (lvl === 'adm0' ? A0.units : U1).get(gid);
+  const unitOf = (lvl, gid) => lvl === 'cont' ? { gid, name: TR(gid) } : (lvl === 'adm0' ? A0.units : U1).get(gid);
 
   function sumRow(list) {
     const o = {}; let any = false;
@@ -440,7 +504,7 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
   function scopeName() {
     if (S.sel) return unitOf(S.level, S.sel)?.name || S.sel;
     if (S.country) return A0.units.get(S.country)?.name || S.country;
-    return S.cont || 'Mundo';
+    return TR(S.cont || 'Mundo');
   }
   const hasMetric = (m, keys) => keys.some(k => { const mm = A0.rows.get(k); if (!mm) return false; for (const r of mm.values()) if (m === 'ba_pct' ? r.area && r.ba != null : r[m] != null) return true; return false; });
 
@@ -502,7 +566,8 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
 
   async function draw() {
     if (!A0) {
-      [META, CONT] = await Promise.all([getJSON('data/meta.json'), getJSON('data/continents.json')]);
+      [META, CONT, I18N] = await Promise.all([getJSON('data/meta.json'), getJSON('data/continents.json'), getJSON('data/i18n.json').catch(() => null)]);
+      applyLang();
       A0 = { rows: new Map(), units: new Map() };
       index(await fetchCSV('data/adm0_monthly.csv'), A0.rows, A0.units);
       A0.keys = [...A0.rows.keys()].sort((a, b) => a - b);
@@ -523,11 +588,16 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
     $('meta').textContent = `Dados GWIS ${META.gwis.from.replace('-', '/')}–${META.gwis.to.replace('-', '/')}${gee}`;
 
     // controles
+    seg('fLang', Object.entries(LANG_UI).map(([v, l]) => ({ value: v, label: l, disabled: v !== 'pt' && !I18N })), LANG, v => {
+      LANG = v; try { localStorage.setItem('lang', v); } catch (e) {}
+      const q = new URLSearchParams(location.search); q.set('lang', v); history.replaceState(null, '', '?' + q + location.hash);
+      applyLang(); render();
+    });
     seg('fLevel', Object.entries(LEVELS).map(([v, l]) => ({ value: v, label: l })), S.level, v => { S.level = v; S.sel = null; if (v !== 'adm1') S.country = ''; render(); });
     seg('fMetric', Object.entries(METRICS).map(([k, m]) => ({ value: k, label: m.label, title: `${m.label} (${m.src})`, disabled: !metricOk(k) })), S.metric, v => { S.metric = v; render(); });
     seg('fYear', years.slice().reverse().map(y => ({ value: y, label: String(y), disabled: S.level === 'adm1' && y > adm1Max })), S.year, v => { S.year = v; render(); });
     seg('fMonth', [{ value: 0, label: 'Ano todo' }, ...MONTHS.map((m, i) => ({ value: i + 1, label: m, disabled: !A0.rows.has(K(S.year, i + 1)) }))], S.month, v => { S.month = v; render(); });
-    seg('fCont', [{ value: '', label: 'Todos' }, ...CONTS.map(c => ({ value: c, label: c }))], S.cont, v => { S.cont = v; S.country = ''; S.sel = null; render(); });
+    seg('fCont', [{ value: '', label: TR('Todos') }, ...CONTS.map(c => ({ value: c, label: TR(c) }))], S.cont, v => { S.cont = v; S.country = ''; S.sel = null; render(); });
     seg('fTop', [10, 20, 30, 50].map(n => ({ value: n, label: 'Top ' + n })), S.top, v => { S.top = v; render(); });
     $('gCont').hidden = S.level === 'cont';
     $('gCountry').hidden = S.level !== 'adm1';
@@ -646,7 +716,8 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
     const f0 = v => v == null ? '–' : nf0.format(v);
     $('tbl').innerHTML = `<thead><tr><th>#</th><th>${LEVELS[S.level]}</th><th>${S.level === 'adm1' ? 'País' : S.level === 'adm0' ? 'Continente' : ''}</th><th>Área queimada (ha)</th><th>VIIRS (ha)</th><th>Focos</th><th>% território</th><th>CO₂ (t)</th><th>PM2.5 (t)</th><th>Δ posição</th></tr></thead><tbody>` +
       rk.map(x => { const u = unitOf(S.level, x.gid), pp = prevPos.get(x.gid), r = x.r;
-        return `<tr><td>${x.pos}</td><td>${esc(u.name)}</td><td>${esc(S.level === 'adm1' ? u.parent : S.level === 'adm0' ? CONT[x.gid] : '')}</td><td>${f0(r.ba)}</td><td>${f0(r.ba_viirs)}</td><td>${f0(r.hotspots)}</td><td>${x.area && r.ba != null ? nf2.format(r.ba / x.area * 100) : '–'}</td><td>${f0(r.co2)}</td><td>${f0(r.pm25)}</td><td>${pp == null ? 'novo' : pp - x.pos > 0 ? '+' + (pp - x.pos) : pp - x.pos}</td></tr>`; }).join('') + '</tbody>';
+        return `<tr><td>${x.pos}</td><td>${esc(u.name)}</td><td>${esc(S.level === 'adm1' ? u.parent : S.level === 'adm0' ? TR(CONT[x.gid]) : '')}</td><td>${f0(r.ba)}</td><td>${f0(r.ba_viirs)}</td><td>${f0(r.hotspots)}</td><td>${x.area && r.ba != null ? nf2.format(r.ba / x.area * 100) : '–'}</td><td>${f0(r.co2)}</td><td>${f0(r.pm25)}</td><td>${pp == null ? 'novo' : pp - x.pos > 0 ? '+' + (pp - x.pos) : pp - x.pos}</td></tr>`; }).join('') + '</tbody>';
+    translateDOM(document.body);
   }
 
   // ---------- mapa (Equal Earth, sem dependências) ----------

@@ -1,53 +1,58 @@
 ﻿pt,en,es,fr,ind,zh,auto
-jan,,,,,,sim
-fev,,,,,,sim
-mar,,,,,,sim
-abr,,,,,,sim
-mai,,,,,,sim
-jun,,,,,,sim
-jul,,,,,,sim
-ago,,,,,,sim
-set,,,,,,sim
-out,,,,,,sim
-nov,,,,,,sim
-dez,,,,,,sim
-África,,,,,,sim
-América do Sul,,,,,,sim
-América do Norte e Central,,,,,,sim
-Ásia,,,,,,sim
-Europa,,,,,,sim
-Oceania,,,,,,sim
-Mundo,,,,,,sim
-Todos,,,,,,sim
-Continentes,,,,,,sim
-Países,,,,,,sim
-Estados,,,,,,sim
-continentes,,,,,,nao
-países,,,,,,nao
-estados/províncias,,,,,,nao
-continente,,,,,,nao
-país,,,,,,nao
-estado/província,,,,,,nao
-Floresta,,,,,,sim
-Savana,,,,,,sim
-Campo / arbustivo,,,,,,sim
-Agricultura,,,,,,sim
-Outros,,,,,,sim
-Área queimada,,,,,,sim
-% do território,,,,,,sim
-Área VIIRS,,,,,,sim
-Focos de calor,,,,,,sim
-Focos,,,,,,sim
-Ano todo,,,,,,sim
-mil,,,,,,nao
-mil ha,,,,,,sim
-mil t,,,,,,sim
-mi,,,,,,nao
-sem dado ou zero,,,,,,sim
-sem dado neste período,,,,,,sim
-novo,,,,,,sim
-média,,,,,,sim
-máximo,,,,,,sim
-parcial,,,,,,sim
-lugar,,,,,,sim
-até,,,,,,sim
+jan,Jan,ene,janv,Jan,1月,sim
+fev,Feb,feb,févr,Feb,2月,sim
+mar,Mar,mar,mars,Mar,3月,sim
+abr,Apr,abr,avr,Apr,4月,sim
+mai,May,may,mai,Mei,5月,sim
+jun,Jun,jun,juin,Jun,6月,sim
+jul,Jul,jul,juil,Jul,7月,sim
+ago,Aug,ago,août,Agu,8月,sim
+set,Sep,sep,sept,Sep,9月,sim
+out,Oct,oct,oct,Okt,10月,sim
+nov,Nov,nov,nov,Nov,11月,sim
+dez,Dec,dic,déc,Des,12月,sim
+África,Africa,África,Afrique,Afrika,非洲,sim
+América do Sul,South America,América del Sur,Amérique du Sud,Amerika Selatan,南美洲,sim
+América do Norte e Central,North and Central America,América del Norte y Central,Amérique du Nord et centrale,Amerika Utara dan Tengah,北美洲和中美洲,sim
+Ásia,Asia,Asia,Asie,Asia,亚洲,sim
+Europa,Europe,Europa,Europe,Eropa,欧洲,sim
+Oceania,Oceania,Oceanía,Océanie,Oseania,大洋洲,sim
+Mundo,World,Mundo,Monde,Dunia,全球,sim
+Todos,All,Todos,Tous,Semua,全部,sim
+Continentes,Continents,Continentes,Continents,Benua,大洲,sim
+Países,Countries,Países,Pays,Negara,国家,sim
+Estados,States,Estados,États,Provinsi,州/省,sim
+continentes,continents,continentes,continents,benua,大洲,nao
+países,countries,países,pays,negara,国家,nao
+estados/províncias,states/provinces,estados/provincias,États/provinces,provinsi,州/省,nao
+continente,continent,continente,continent,benua,大洲,nao
+país,country,país,pays,negara,国家,nao
+estado/província,state/province,estado/provincia,État/province,provinsi,州/省,nao
+Floresta,Forest,Bosque,Forêt,Hutan,森林,sim
+Savana,Savanna,Sabana,Savane,Sabana,稀树草原,sim
+Campo / arbustivo,Grassland / shrubland,Pastizal / matorral,Prairie / arbustes,Padang rumput / semak,草地 / 灌丛,sim
+Agricultura,Cropland,Agricultura,Cultures,Pertanian,农田,sim
+Outros,Other,Otros,Autres,Lainnya,其他,sim
+Área queimada,Burned area,Área quemada,Surface brûlée,Area terbakar,过火面积,sim
+% do território,% of territory,% del territorio,% du territoire,% wilayah,占国土比例,sim
+Área VIIRS,VIIRS area,Área VIIRS,Surface VIIRS,Area VIIRS,VIIRS 面积,sim
+Focos de calor,Active fires (hotspots),Focos de calor,Feux actifs,Titik panas,火点,sim
+Focos,Hotspots,Focos,Feux actifs,Titik panas,火点,sim
+Ano todo,Full year,Año completo,Année entière,Setahun penuh,全年,sim
+mil,k,mil,k,rb,千,nao
+mil ha,k ha,mil ha,k ha,rb ha,千公顷,sim
+mil t,kt,mil t,kt,rb t,千吨,sim
+mi,M,M,M,jt,百万,nao
+sem dado ou zero,no data or zero,sin datos o cero,pas de données ou zéro,tidak ada data atau nol,无数据或为零,sim
+sem dado neste período,no data for this period,sin datos en este período,pas de données pour cette période,tidak ada data pada periode ini,该时段无数据,sim
+novo,new,nuevo,nouveau,baru,新,sim
+média,mean,media,moyenne,rata-rata,平均,sim
+máximo,maximum,máximo,maximum,maksimum,最大值,sim
+parcial,partial,parcial,partiel,sebagian,不完整,sim
+lugar,place,lugar,place,peringkat,名,sim
+até,up to,hasta,jusqu’à,hingga,至,sim
+por,by,por,par,per,按,sim
+Fonte:,Source:,Fuente:,Source :,Sumber:,来源：,sim
+Limites:,Boundaries:,Límites:,Limites :,Batas:,边界：,sim
+"Mensal,","Monthly,","Mensual,","Mensuel,","Bulanan,",月度，,sim
+ a , to , a , à , hingga , 至 ,sim
