@@ -746,27 +746,34 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
 
   // ---------- frequência do fogo (área acumulada sem repetição 2001–Y) ----------
   const FCLS = [[1, 1, '1 vez', '--r2'], [2, 2, '2 vezes', '--r3'], [3, 5, '3–5 vezes', '--r4'], [6, 10, '6–10 vezes', '--r5'], [11, 99, '11 ou mais', '--r6']];
-  let FREQ = null;
-  async function loadFreq() {
-    if (FREQ !== null) return FREQ;
+  // países: data/freq_adm0.csv (f1…fn por ano); estados: data/freq_adm1.csv (só as classes c1…c5, limites geoBoundaries)
+  const FREQS = {};
+  async function loadFreq(lv) {
+    if (FREQS[lv] !== undefined) return FREQS[lv];
     try {
-      const r = await fetch('data/freq_adm0.csv'); if (!r.ok) throw new Error();
-      FREQ = new Map();  // ano final -> Map iso -> {area, once, f:[...]}
-      for (const o of parseCSV(await r.text())) {  // parser com aspas: há nomes de países com vírgula
+      const r = await fetch(`data/freq_${lv}.csv`); if (!r.ok) throw new Error();
+      const M = new Map(), U = new Map();  // ano final -> Map id -> {area, once, c:[5], f:[...]}
+      for (const o of parseCSV(await r.text())) {  // parser com aspas: há nomes com vírgula
         const end = +o.year_end, n = end - 2000;
-        if (!FREQ.has(end)) FREQ.set(end, new Map());
-        FREQ.get(end).set(o.gid, { area: +o.area_ha, once: +o.burned_once_ha, f: Array.from({ length: n }, (_, i) => +o['f' + (i + 1)] || 0) });
+        const f = o.f1 !== undefined ? Array.from({ length: n }, (_, i) => +o['f' + (i + 1)] || 0) : [];
+        const c = o.c1 !== undefined ? [1, 2, 3, 4, 5].map(i => +o['c' + i] || 0) : FCLS.map(([lo, hi]) => f.slice(lo - 1, hi).reduce((s, v) => s + v, 0));
+        if (!M.has(end)) M.set(end, new Map());
+        M.get(end).set(o.gid, { area: +o.area_ha, once: +o.burned_once_ha, c, f });
+        if (!U.has(o.gid)) U.set(o.gid, { iso3: o.iso3, name: o.name });
       }
-    } catch (e) { FREQ = false; }
-    return FREQ;
+      FREQS[lv] = { M, U };
+    } catch (e) { FREQS[lv] = false; }
+    return FREQS[lv];
   }
-  const addF = (a, b) => { a.area += b.area; a.once += b.once; b.f.forEach((v, i) => a.f[i] = (a.f[i] || 0) + v); return a; };
-  const zeroF = () => ({ area: 0, once: 0, f: [] });
-  const fclass = x => FCLS.map(([lo, hi]) => x.f.slice(lo - 1, hi).reduce((s, v) => s + v, 0));
+  const addF = (a, b) => { a.area += b.area; a.once += b.once; b.c.forEach((v, i) => a.c[i] += v); b.f.forEach((v, i) => a.f[i] = (a.f[i] || 0) + v); return a; };
+  const zeroF = () => ({ area: 0, once: 0, c: [0, 0, 0, 0, 0], f: [] });
+  const fclass = x => x.c;
+  let FD = null, FLV = 'adm0';  // dados e nível em uso no card
   function freqScope(end) {
-    const m = FREQ.get(end); if (!m) return null;
+    const m = FD.M.get(end); if (!m) return null;
     let test;
-    if (S.sel && S.level === 'adm0') test = iso => iso === S.sel;
+    if (FLV === 'adm1') test = S.fsel && FD.U.has(S.fsel) ? g => g === S.fsel : g => countryInScope(FD.U.get(g)?.iso3);
+    else if (S.sel && S.level === 'adm0') test = iso => iso === S.sel;
     else if (S.sel && S.level === 'cont') test = iso => CONT[iso] === S.sel;
     else if (S.sel && S.level === 'adm1') { const iso = U1.get(S.sel)?.iso3; test = g => g === iso; }
     else test = countryInScope;
@@ -774,7 +781,10 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
     return o;
   }
   async function drawFreq() {
-    const F = await loadFreq();
+    FLV = S.level === 'adm1' ? 'adm1' : 'adm0';
+    FD = await loadFreq(FLV);
+    if (!FD && FLV === 'adm1') { FLV = 'adm0'; FD = await loadFreq('adm0'); }  // estados ainda não processados
+    const F = FD && FD.M;
     $('freqCard').hidden = !F || !F.size;
     if (!F || !F.size) return;
     const ends = [...F.keys()].sort((a, b) => a - b), maxEnd = ends.at(-1);
@@ -785,30 +795,35 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
     rng.onchange = () => { const v = +rng.value; S.fend = F.has(v) ? v : ends.reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a); render(); };
     $('fFreqEndLbl').textContent = S.fend + (ends.length < maxEnd - ends[0] + 1 ? ` (${TR('disponíveis')}: ${ends.length}/${maxEnd - ends[0] + 1})` : '');
     seg('fFreqMode', [{ value: 'pct', label: '% do território' }, { value: 'ha', label: 'Área (ha)' }], S.fmode, v => { S.fmode = v; render(); });
-    const lvl = S.level === 'adm1' ? 'adm0' : S.level, per = `2001–${S.fend}`, m = F.get(S.fend);
-    // ranking: continentes ou países no recorte
+    const lvl = FLV === 'adm1' ? 'adm1' : (S.level === 'adm1' ? 'adm0' : S.level), per = `2001–${S.fend}`, m = F.get(S.fend);
+    // ranking: continentes, países ou estados no recorte
     const acc = new Map();
     for (const [g, x] of m) {
       if (lvl === 'cont') { if (!CONT[g]) continue; if (!acc.has(CONT[g])) acc.set(CONT[g], zeroF()); addF(acc.get(CONT[g]), x); }
+      else if (lvl === 'adm1') { if (countryInScope(FD.U.get(g)?.iso3)) acc.set(g, x); }
       else if (countryInScope(g)) acc.set(g, x);
     }
     const val = x => S.fmode === 'pct' ? (x.area ? x.once / x.area * 100 : 0) : x.once;
     const rk = [...acc].map(([g, x]) => ({ g, x, v: val(x) })).filter(r => r.v > 0).sort((a, b) => b.v - a.v);
     rk.forEach((r, i) => r.pos = i + 1);
     const shown = rk.slice(0, S.top), max = S.fmode === 'pct' ? 100 : (shown[0]?.v || 1);
-    const scope = scopeName();
+    const scope = lvl === 'adm1' && S.fsel && FD.U.has(S.fsel) ? FD.U.get(S.fsel).name : scopeName();
     $('freqTitle').textContent = `Frequência do fogo · área queimada ao menos uma vez · ${per}`;
-    $('freqSub').textContent = `Quanto de cada ${lvl === 'cont' ? 'continente' : 'país'} queimou pelo menos uma vez no período, sem contar duas vezes a mesma área. A cor mostra quantos anos a área queimou.`;
+    $('freqSub').textContent = `Quanto de cada ${{ cont: 'continente', adm0: 'país', adm1: 'estado/província' }[lvl]} queimou pelo menos uma vez no período, sem contar duas vezes a mesma área. A cor mostra quantos anos a área queimou.` +
+      (lvl === 'adm1' ? ' Estados pelos limites geoBoundaries (podem diferir dos nomes do GWIS).' : (S.level === 'adm1' ? ' Frequência por estado ainda em processamento: mostrando países.' : ''));
     $('freqLegend').innerHTML = FCLS.map(([, , l, c]) => `<li><i style="background:var(${c})"></i>${l}</li>`).join('');
-    const nameOf = g => lvl === 'cont' ? TR(g) : (A0.units.get(g)?.name || g);
+    const nameOf = g => lvl === 'cont' ? TR(g) : lvl === 'adm1' ? (FD.U.get(g)?.name || g) : (A0.units.get(g)?.name || g);
+    const tagOf = g => lvl === 'adm1' && !S.country ? ` <small>${esc(FD.U.get(g)?.iso3 || '')}</small>` : '';
+    const isOn = g => lvl === 'adm1' ? S.fsel === g : S.sel === g;
     $('freqRank').innerHTML = shown.map(r => {
       const cl = fclass(r.x), tot = r.x.once || 1, w = r.v / max * 100;
       const bar = cl.map((v, i) => `<span style="width:${v / tot * w}%;background:var(${FCLS[i][3]})" title="${FCLS[i][2]}: ${fmt(v, 'ha')}"></span>`).join('');
       const fig = S.fmode === 'pct' ? `${nf1.format(r.v)}%` : fmt(r.v, 'ha');
-      return `<button type="button" class="rrow${S.sel === r.g ? ' on' : ''}" data-g="${esc(r.g)}"><span class="pos">${r.pos}</span><span class="mv"></span><span class="nm" title="${esc(nameOf(r.g))}">${esc(nameOf(r.g))}</span><span class="bar">${bar}</span><span class="fig" title="${fmt(r.x.once, 'ha')} · ${nf1.format(r.x.area ? r.x.once / r.x.area * 100 : 0)}%">${fig}</span></button>`;
+      return `<button type="button" class="rrow${isOn(r.g) ? ' on' : ''}" data-g="${esc(r.g)}"><span class="pos">${r.pos}</span><span class="mv"></span><span class="nm" title="${esc(nameOf(r.g))}">${esc(nameOf(r.g))}${tagOf(r.g)}</span><span class="bar">${bar}</span><span class="fig" title="${fmt(r.x.once, 'ha')} · ${nf1.format(r.x.area ? r.x.once / r.x.area * 100 : 0)}%">${fig}</span></button>`;
     }).join('') || '<div class="empty">Sem dados no recorte.</div>';
     $('freqRank').querySelectorAll('.rrow').forEach(b => b.onclick = () => {
-      if (S.level === 'adm1') { S.country = S.country === b.dataset.g ? '' : b.dataset.g; S.sel = null; }
+      if (lvl === 'adm1') S.fsel = S.fsel === b.dataset.g ? null : b.dataset.g;  // estado geoBoundaries: seleção só no card
+      else if (S.level === 'adm1') { S.country = S.country === b.dataset.g ? '' : b.dataset.g; S.sel = null; }
       else S.sel = S.sel === b.dataset.g ? null : b.dataset.g;
       render();
     });
