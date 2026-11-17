@@ -679,6 +679,11 @@ body {
 }
 
 .propbar > span:last-child { box-shadow: none; }
+.propbar-alta { height: 64px; }
+.propbar-extremos {
+  display: flex; justify-content: space-between; margin-top: -2px;
+  font-size: 0.78rem; font-weight: 600; color: var(--text-2);
+}
 
 .propbars .legend-list {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

@@ -3910,7 +3910,7 @@ function conteudoHtml(card, vista) {
     // Uma barra só, dividida em fatias proporcionais (como a de uso e cobertura), com a lista de valores embaixo.
     const c = card.chart;
     const segments = c.values.map((v, k) => ({ label: c.labels[k], value: v, color: c.colors?.[k] || c.color }));
-    return propbarsHtml({ rows: [{ label: "", nomes: true, nomeMin: 0.1, segments }] });
+    return propbarsHtml({ rows: [{ label: "", nomes: true, nomeMin: 0.1, alta: true, extremos: [c.labels[0], c.labels[c.labels.length - 1]], segments }] });
   }
   if (vista === "calor") {
     if (!card.calor.linhas.length) return `<p class="empty">Sem dados para o período selecionado.</p>`;
@@ -4403,7 +4403,9 @@ function propbarsHtml({ rows, legend }) {
       const texto = r.nomes && p >= (r.nomeMin ?? 0.18) ? `${s.label} · ${pct(p)}` : p >= 0.06 ? pct(p) : "";
       return `<span style="flex:${p} 1 0;--c:${s.color};--fg:${textOn(s.color)}" title="${escapeHtml(`${s.label}: ${pct(p)} · ${ha(s.value)}`)}">${escapeHtml(texto)}</span>`;
     }).join("");
-    return `${r.label ? `<p class="propbar-label">${escapeHtml(r.label)}</p>` : ""}<div class="propbar" role="img" aria-label="${escapeHtml(r.label || "Proporção por classe")}">${segs}</div>`;
+    // extremos: rótulos de início e fim sob a barra (ex.: primeiro e último mês); alta: barra mais alta.
+    const extremos = r.extremos ? `<div class="propbar-extremos"><span>${escapeHtml(r.extremos[0])}</span><span>${escapeHtml(r.extremos[1])}</span></div>` : "";
+    return `${r.label ? `<p class="propbar-label">${escapeHtml(r.label)}</p>` : ""}<div class="propbar${r.alta ? " propbar-alta" : ""}" role="img" aria-label="${escapeHtml(r.label || "Proporção por classe")}">${segs}</div>${extremos}`;
   }).join("");
   const itens = legend || comDados[comDados.length - 1].segments;
   const totalLegenda = sum(itens.map((s) => s.value));
