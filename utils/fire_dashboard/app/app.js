@@ -2300,7 +2300,9 @@ async function loadUltimoFogo({ t, ini, fim }) {
     ...d, ano: d.item.ano, decorrido: fim - d.item.ano, color: corDecorrido(fim - d.item.ano),
   }));
   const total = sum(dados.map((d) => d.value));
+  // Área cuja ÚLTIMA ocorrência de fogo foi nos últimos 5 e nos últimos 10 anos (última década) do período.
   const recentes = sum(dados.filter((d) => d.decorrido <= 4).map((d) => d.value));
+  const ultimaDecada = sum(dados.filter((d) => d.decorrido <= 9).map((d) => d.value));
   // Ano mediano (ponderado pela área) do último fogo.
   let acumulado = 0;
   const mediano = dados.find((d) => (acumulado += d.value) >= total / 2);
@@ -2345,7 +2347,8 @@ async function loadUltimoFogo({ t, ini, fim }) {
       onChange: (v) => { state.ultimoFogoBlocos = v; loadCurrentTab(); },
     }],
     kpis: [
-      { label: `Área queimada pela última vez nos últimos 5 anos (${Math.max(ini, fim - 4)}–${fim})`, value: pct(safeDiv(recentes, total)), note: ha(recentes) },
+      { label: `Última ocorrência do fogo nos últimos 5 anos (${Math.max(ini, fim - 4)}–${fim})`, value: ha(recentes), note: `${pct(safeDiv(recentes, total))} da área queimada no período` },
+      { label: `Última ocorrência do fogo na última década, 10 anos (${Math.max(ini, fim - 9)}–${fim})`, value: ha(ultimaDecada), note: `${pct(safeDiv(ultimaDecada, total))} da área queimada no período` },
       { label: "Ano mediano do último fogo", value: mediano ? String(mediano.ano) : "—", note: "Metade da área queimou pela última vez até este ano" },
     ],
     cards: [
