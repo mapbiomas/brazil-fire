@@ -10,6 +10,8 @@ on:
       - "utils/fire_monitor_highlights/src/**"
       - "utils/fire_legends/app/**"
       - "utils/fire_dashboard/app/**"
+      - "global_analises/index.html"
+      - "global_analises/data/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -43,6 +45,9 @@ jobs:
           cp -r utils/fire_legends/app/. _site/legends/
           mkdir -p _site/dashboard
           cp -r utils/fire_dashboard/app/. _site/dashboard/
+          mkdir -p _site/global_analises
+          cp global_analises/index.html _site/global_analises/
+          cp -r global_analises/data _site/global_analises/
           cat > $app/index.html <<'EOF'
           <!doctype html>
           <meta charset="utf-8">
@@ -64,6 +69,7 @@ jobs:
             <li><a href="fire_monitor_highlights/">Boletim mensal / Boletín mensual</a></li>
             <li><a href="legends/">Legendas e paletas / Legends and palettes</a></li>
             <li><a href="dashboard/">Painel MapBiomas Fogo (8 países) / MapBiomas Fire dashboard (8 countries)</a></li>
+            <li><a href="global_analises/">Monitor global de fogo (exploratório) / Global fire monitor (exploratory)</a></li>
           </ul>
           EOF
       - uses: actions/configure-pages@v5
