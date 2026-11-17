@@ -83,7 +83,8 @@ def month_table(ym, level, uid_img, lookup):
         uid = d.get('uid')
         sums = ee.List(d.get('sum'))
         mt = ee.Feature(lookup.filter(ee.Filter.eq('uid', uid)).first())
-        return ee.Feature(None, {
+        # geometria fictícia: export para asset não aceita feature sem geometria
+        return ee.Feature(ee.Geometry.Point([0, 0]), {
             'level': level, 'gid': mt.get('gid'), 'iso3': mt.get('iso3'),
             'name': mt.get('name'), 'parent': mt.get('parent'),
             'year': y, 'month': m,
