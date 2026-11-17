@@ -19,7 +19,8 @@ var CONFIG = {
   level: 0,                       // 0 = países (ADM0) | 1 = estados/províncias (ADM1)
   months: ['2026-09'],            // 'YYYY-MM' — uma task por item
   driveFolder: 'mcd64a1_global',  // pasta no Google Drive
-  scale: 463.312716528            // pixel nativo do MCD64A1
+  scale: 463.312716528,           // pixel nativo do MCD64A1
+  taskTag: 'GLOBAL_ANALISES'      // nome das tasks: WS_IPAM_{taskTag}-{arquivo}
 };
 
 var BOUNDS = {
@@ -83,7 +84,7 @@ function exportMonth(ym) {
 
   var desc = 'mcd64a1_adm' + CONFIG.level + '_' + ym.replace('-', '_');
   Export.table.toDrive({
-    collection: rows, description: desc, fileNamePrefix: desc,
+    collection: rows, description: 'WS_IPAM_' + CONFIG.taskTag + '-' + desc, fileNamePrefix: desc,
     folder: CONFIG.driveFolder, fileFormat: 'CSV',
     selectors: ['level', 'gid', 'iso3', 'name', 'parent', 'year', 'month', 'burned_ha', 'area_ha']
   });

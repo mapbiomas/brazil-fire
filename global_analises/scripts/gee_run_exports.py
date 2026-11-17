@@ -18,6 +18,7 @@ PROJECT = 'mapbiomas-brazil'  # padrão; alternativa: mapbiomas-fire-485203
 FOLDER = None  # projects/<projeto>/assets/GLOBAL_ANALISES
 BOUNDS = {0: 'WM/geoLab/geoBoundaries/600/ADM0', 1: 'WM/geoLab/geoBoundaries/600/ADM1'}
 MODIS_SCALE = 463.312716528
+TASK_TAG = 'GLOBAL_ANALISES'  # nome das tasks: WS_IPAM_{TASK_TAG}-{arquivo}
 WORLD = None
 
 
@@ -126,9 +127,9 @@ def main():
             continue
         task = ee.batch.Export.table.toAsset(
             collection=month_table(ym, a.level, uid_img, lookup),
-            description=name, assetId=asset)
+            description=f'WS_IPAM_{TASK_TAG}-{name}', assetId=asset)
         task.start()
-        print('task', name, task.id)
+        print('task', f'WS_IPAM_{TASK_TAG}-{name}', task.id)
 
 
 if __name__ == '__main__':
