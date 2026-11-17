@@ -10,8 +10,10 @@ import pathlib
 
 import ee
 
+from ee_profiles import init
+
 PROJECT = 'mapbiomas-fire-485203'
-FOLDER = f'projects/{PROJECT}/assets/GLOBAL_ANALISES'
+FOLDER = None  # projects/<projeto>/assets/GLOBAL_ANALISES
 COLS = ['level', 'gid', 'iso3', 'name', 'parent', 'year', 'month', 'burned_ha', 'area_ha', 'hotspots']
 OUT = pathlib.Path(__file__).resolve().parent.parent / 'data'
 
@@ -19,8 +21,12 @@ OUT = pathlib.Path(__file__).resolve().parent.parent / 'data'
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--level', type=int, default=0, choices=[0, 1])
+    ap.add_argument('--account', help='perfil de ee_profiles.py (padrão: login padrão)')
+    ap.add_argument('--project', default=PROJECT, help='projeto Cloud registrado no Earth Engine')
     a = ap.parse_args()
-    ee.Initialize(project=PROJECT)
+    global FOLDER
+    init(a.account, a.project)
+    FOLDER = f'projects/{a.project}/assets/GLOBAL_ANALISES'
 
     prefix = f'{FOLDER}/mcd64a1_firms_adm{a.level}_'
     assets = sorted(x['id'] for x in ee.data.listAssets({'parent': FOLDER}).get('assets', [])

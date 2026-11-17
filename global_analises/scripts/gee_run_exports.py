@@ -12,8 +12,10 @@ import argparse
 
 import ee
 
+from ee_profiles import init
+
 PROJECT = 'mapbiomas-fire-485203'
-FOLDER = f'projects/{PROJECT}/assets/GLOBAL_ANALISES'
+FOLDER = None  # projects/<projeto>/assets/GLOBAL_ANALISES
 BOUNDS = {0: 'WM/geoLab/geoBoundaries/600/ADM0', 1: 'WM/geoLab/geoBoundaries/600/ADM1'}
 MODIS_SCALE = 463.312716528
 WORLD = None
@@ -95,12 +97,16 @@ def main():
     global WORLD
     ap = argparse.ArgumentParser()
     ap.add_argument('--level', type=int, default=0, choices=[0, 1])
+    ap.add_argument('--account', help='perfil de ee_profiles.py (padrão: login padrão)')
+    ap.add_argument('--project', default=PROJECT, help='projeto Cloud registrado no Earth Engine')
     ap.add_argument('--start', required=True)
     ap.add_argument('--end', required=True)
     ap.add_argument('--newest-first', action='store_true', default=True)
     a = ap.parse_args()
 
-    ee.Initialize(project=PROJECT)
+    global FOLDER
+    init(a.account, a.project)
+    FOLDER = f'projects/{a.project}/assets/GLOBAL_ANALISES'
     WORLD = ee.Geometry.Rectangle([-180, -60, 180, 85], None, False)
     try:
         ee.data.createAsset({'type': 'FOLDER'}, FOLDER)
