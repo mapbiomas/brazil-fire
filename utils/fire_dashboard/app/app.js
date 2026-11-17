@@ -447,7 +447,7 @@ async function apiGet(env, path, params, attempt = 1) {
   try {
     return await apiGetOnce(env, path, params);
   } catch (err) {
-    const transitorio = err.status === 429 || err.status >= 500 || err.naoJson;
+    const transitorio = err.status === 429 || err.status >= 500 || err.naoJson || /^Falha de rede/.test(err.message);
     if (!transitorio || attempt >= 3) throw err;
     await sleep(1500 * attempt);
     return apiGet(env, path, params, attempt + 1);
@@ -893,9 +893,22 @@ const tile2lat = (y, z) => (180 / Math.PI) * Math.atan(Math.sinh(Math.PI - (2 * 
 
 async function fetchTerritoryTile(env, categoryId, z, x, y) {
   const url = buildUrl(env, `/${CONFIG.region}/territories/tiles/${z}/${x}/${y}.mvt`, { categoryId });
-  const resp = await fetch(url);
-  if (!resp.ok) throw new ApiError(`HTTP ${resp.status} no tile ${z}/${x}/${y}`, resp.status);
-  return new Uint8Array(await resp.arrayBuffer());
+  // Muitos tiles em paralelo: uma falha de rede passageira ("Failed to fetch") derrubava o gráfico todo.
+  // Tenta de novo até 4 vezes, com espera crescente.
+  let ultimo;
+  for (let tentativa = 1; tentativa <= 4; tentativa++) {
+    try {
+      const resp = await fetch(url);
+      if (resp.ok) return new Uint8Array(await resp.arrayBuffer());
+      ultimo = new ApiError(`HTTP ${resp.status} no tile ${z}/${x}/${y}`, resp.status);
+      if (resp.status < 500 && resp.status !== 429) throw ultimo;
+    } catch (err) {
+      if (err === ultimo) throw err;
+      ultimo = err;
+    }
+    await sleep(800 * tentativa);
+  }
+  throw ultimo;
 }
 
 // Decodificador mínimo de Mapbox Vector Tile (protobuf) -> polígonos em lon/lat.
@@ -2483,6 +2496,8 @@ async function loadSeveridade({ t, ini, fim }) {
           tooltipTitles: porClasse.map((c) => `${c.label} · ${ha(c.value)}`),
           values: porClasse.map((c) => safeDiv(c.value, total)),
           colors: porClasse.map((c) => c.color),
+          rotulos: "texto",
+          rotulosTexto: porClasse.map((c) => (c.value >= 1e6 ? mha(c.value, 1) : ha(c.value))),
         },
       },
       {
@@ -5364,8 +5379,8 @@ function chartConfig(spec, t) {
   }
   const options = baseOptions(t);
   options.plugins.tabela = { percent: !!spec.percent }; // lido pela tabela sob demanda
-  options.plugins.rotulosBarras = { formato: spec.rotulos || "" }; // "pct": % de cada barra escrita sobre ela
-  if (spec.rotulos) options.layout = { padding: { top: 18, right: spec.kind === "hbar" ? 44 : 8 } }; // espaço para os rótulos
+  options.plugins.rotulosBarras = { formato: spec.rotulos || "", textos: spec.rotulosTexto, cores: spec.colors }; // "pct": % de cada barra escrita sobre ela
+  if (spec.rotulos) options.layout = { padding: { top: 18, right: spec.kind === "hbar" ? (spec.rotulos === "texto" ? 96 : 44) : 8 } }; // espaço para os rótulos
   const horizontal = spec.kind === "hbar";
   const stacked = spec.kind === "stacked" || spec.kind === "combo";
   const multi = stacked || spec.kind === "grouped";
@@ -5682,6 +5697,21 @@ function aneisConfig({ interno, externo }, t) {
 const rotulosBarrasPlugin = {
   id: "rotulosBarras",
   afterDatasetsDraw(chart, _args, opts) {
+    // "texto": rótulo livre no fim de cada barra, na cor da própria barra (ex.: "155,9 Mha").
+    if (opts?.formato === "texto" && chart.config.type === "bar" && opts.textos) {
+      const { ctx } = chart;
+      ctx.save();
+      ctx.font = "700 13px Montserrat, sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      chart.getDatasetMeta(0).data.forEach((barra, i) => {
+        if (!opts.textos[i]) return;
+        ctx.fillStyle = resolveColor(opts.cores?.[i]) || "#333";
+        ctx.fillText(opts.textos[i], barra.x + 6, barra.y);
+      });
+      ctx.restore();
+      return;
+    }
     if (!["pct", "pct0"].includes(opts?.formato) || chart.config.type !== "bar") return;
     const ds = chart.data.datasets[0];
     if (!ds) return;
