@@ -12,7 +12,7 @@ import ee
 
 from ee_profiles import init
 
-PROJECT = 'mapbiomas-fire-485203'
+PROJECT = 'mapbiomas-brazil'  # padrão; alternativa: mapbiomas-fire-485203
 FOLDER = None  # projects/<projeto>/assets/GLOBAL_ANALISES
 COLS = ['level', 'gid', 'iso3', 'name', 'parent', 'year', 'month', 'burned_ha', 'area_ha', 'hotspots']
 OUT = pathlib.Path(__file__).resolve().parent.parent / 'data'

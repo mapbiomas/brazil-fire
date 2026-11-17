@@ -14,7 +14,7 @@ import ee
 
 from ee_profiles import init
 
-PROJECT = 'mapbiomas-fire-485203'
+PROJECT = 'mapbiomas-brazil'  # padrão; alternativa: mapbiomas-fire-485203
 FOLDER = None  # projects/<projeto>/assets/GLOBAL_ANALISES
 BOUNDS = {0: 'WM/geoLab/geoBoundaries/600/ADM0', 1: 'WM/geoLab/geoBoundaries/600/ADM1'}
 MODIS_SCALE = 463.312716528

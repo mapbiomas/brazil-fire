@@ -21,9 +21,9 @@ Página: https://mapbiomas.github.io/brazil-fire/global_analises/
 # 1. GWIS: baixe os ZIPs de https://gwis.jrc.ec.europa.eu/apps/country.profile/downloads
 #    para global_analises/raw_gwis/ (fora do git): MCD64A1, MVP64, emission_gfed
 # 2. GEE: uma task por mês (focos + área queimada), exporta para assets
-python scripts/gee_run_exports.py --level 0 --start 2024-01 --end 2026-09
+python scripts/gee_run_exports.py --account workspace3 --project mapbiomas-brazil --level 0 --start 2024-01 --end 2026-09
 # 3. quando as tasks terminarem
-python scripts/fetch_assets_to_csv.py --level 0      # -> data/gee_adm0_monthly.csv
+python scripts/fetch_assets_to_csv.py --account workspace3 --level 0      # -> data/gee_adm0_monthly.csv
 # 4. monta os arquivos do painel
 python scripts/build_from_gwis.py
 ```
