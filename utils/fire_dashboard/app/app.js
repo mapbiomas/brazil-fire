@@ -1874,7 +1874,7 @@ async function loadMensal({ t, ini, fim }) {
         span: 12,
         title: `Distribuição mensal · soma ${ini}–${fim}`,
         subtitle: "Área queimada em cada mês somando todos os anos do período · % do total",
-        alterna: "rosca",
+        alterna: "roscaContinua",
         chart: {
           kind: "bar",
           axisTitle: "Área queimada (ha)",
@@ -3357,13 +3357,14 @@ const VISTAS = {
   linhas: [["barras", "Barras"], ["linhas", "Linhas"]],
   rosca: [["barras", "Barras"], ["rosca", "Rosca"]],
   roscaDupla: [["barras", "Barras"], ["rosca", "Rosca"], ["aneis", "Rosca dupla"]],
+  roscaContinua: [["barras", "Barras"], ["rosca", "Rosca"], ["continua", "Barra contínua"]],
   anual: [["barras", "Barras"], ["horizontal", "Horizontal"], ["linhas", "Linhas"], ["biomas", `Por ${rot("bioma").toLowerCase()}`]],
   mensal: [["calor", "Mapa de calor"], ["boxplot", "Boxplot"], ["lista", "Lista"]],
 };
 
 // Vistas que trocam o corpo do card inteiro (não dá para só mudar o tipo do Chart.js).
 // "horizontal" entra aqui porque muda a altura da caixa do gráfico (um ano por linha).
-const VISTAS_DE_CORPO = ["rosca", "aneis", "biomas", "calor", "boxplot", "lista", "horizontal"];
+const VISTAS_DE_CORPO = ["rosca", "aneis", "continua", "biomas", "calor", "boxplot", "lista", "horizontal"];
 
 const ICONE_VISTA = {
   horizontal: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 2h5.5a1 1 0 0 1 1 1v1.5a1 1 0 0 1-1 1H2zm0 4.25h11a1 1 0 0 1 1 1v1.5a1 1 0 0 1-1 1H2zm0 4.25h8a1 1 0 0 1 1 1V13a1 1 0 0 1-1 1H2z"/></svg>`,
@@ -3371,6 +3372,7 @@ const ICONE_VISTA = {
   linhas: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M1.5 12.5c2-1 2.6-5 4.5-5s2.2 2.5 4 2.5 2.5-4.5 4.5-7"/></svg>`,
   biomas: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 14v-3h3.5v3zm0-4V7.5h3.5V10zm4.75 4V9h3.5v5zm0-6V4h3.5v4zm4.75 6v-2.5H15V14zm0-3.5V6H15v4.5z"/></svg>`,
   rosca: `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.25" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="3"/><path fill="none" stroke="currentColor" stroke-width="3" d="M8 2.75A5.25 5.25 0 0 1 13.25 8"/></svg>`,
+  continua: `<svg viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><rect x="1" y="5.5" width="6" height="5" rx="1"/><rect x="7.6" y="5.5" width="3.4" height="5" opacity=".6"/><rect x="11.6" y="5.5" width="3.4" height="5" rx="1" opacity=".35"/></g></svg>`,
   aneis: `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="2"/><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>`,
   calor: `<svg viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><rect x="1.5" y="1.5" width="3.8" height="3.8" opacity=".35"/><rect x="6.1" y="1.5" width="3.8" height="3.8"/><rect x="10.7" y="1.5" width="3.8" height="3.8" opacity=".6"/><rect x="1.5" y="6.1" width="3.8" height="3.8"/><rect x="6.1" y="6.1" width="3.8" height="3.8" opacity=".6"/><rect x="10.7" y="6.1" width="3.8" height="3.8" opacity=".35"/><rect x="1.5" y="10.7" width="3.8" height="3.8" opacity=".6"/><rect x="6.1" y="10.7" width="3.8" height="3.8" opacity=".35"/><rect x="10.7" y="10.7" width="3.8" height="3.8"/></g></svg>`,
   boxplot: `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M4 1.5v3M4 11.5v3M2.5 1.5h3M2.5 14.5h3M12 3v2.5M12 10v3.5M10.5 3h3M10.5 13.5h3"/><rect x="2" y="4.5" width="4" height="7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="5.5" width="4" height="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path stroke="currentColor" stroke-width="1.5" d="M2 8h4M10 7.5h4"/></svg>`,
@@ -3904,6 +3906,12 @@ function cardBodyHtml(card, vista) {
 function conteudoHtml(card, vista) {
   if (vista === "rosca") return roscasHtml(roscasDe(card));
   if (vista === "aneis") return aneisHtml(card.aneis);
+  if (vista === "continua") {
+    // Uma barra só, dividida em fatias proporcionais (como a de uso e cobertura), com a lista de valores embaixo.
+    const c = card.chart;
+    const segments = c.values.map((v, k) => ({ label: c.labels[k], value: v, color: c.colors?.[k] || c.color }));
+    return propbarsHtml({ rows: [{ label: "", nomes: true, nomeMin: 0.1, segments }] });
+  }
   if (vista === "calor") {
     if (!card.calor.linhas.length) return `<p class="empty">Sem dados para o período selecionado.</p>`;
     return `<div class="calor-box"><canvas role="img" aria-label="${escapeHtml(card.title)}"></canvas><div class="calor-dica" hidden></div></div>`;
@@ -4016,6 +4024,10 @@ function tabelaDoCard(root, card) {
         return [card.boxplot.nomes[j], ...[e.min, e.q1, e.med, e.q3, e.max, mean(vals)].map((v) => fmtV(v))];
       }),
     };
+  }
+  if (root._vista === "continua" && card.chart) {
+    const c = card.chart, tot = sum(c.values);
+    return { colunas: ["", "Área (ha)", "%"], linhas: c.labels.map((l, k) => [String(l), fmtV(c.values[k]), pct(safeDiv(c.values[k], tot))]) };
   }
   if (root._vista === "aneis" && card.aneis) {
     const tot = sum(card.aneis.externo.map((s) => s.value));
@@ -4388,7 +4400,7 @@ function propbarsHtml({ rows, legend }) {
     const total = sum(r.segments.map((s) => s.value));
     const segs = r.segments.filter((s) => s.value > 0).map((s) => {
       const p = safeDiv(s.value, total);
-      const texto = r.nomes && p >= 0.18 ? `${s.label} · ${pct(p)}` : p >= 0.06 ? pct(p) : "";
+      const texto = r.nomes && p >= (r.nomeMin ?? 0.18) ? `${s.label} · ${pct(p)}` : p >= 0.06 ? pct(p) : "";
       return `<span style="flex:${p} 1 0;--c:${s.color};--fg:${textOn(s.color)}" title="${escapeHtml(`${s.label}: ${pct(p)} · ${ha(s.value)}`)}">${escapeHtml(texto)}</span>`;
     }).join("");
     return `${r.label ? `<p class="propbar-label">${escapeHtml(r.label)}</p>` : ""}<div class="propbar" role="img" aria-label="${escapeHtml(r.label || "Proporção por classe")}">${segs}</div>`;

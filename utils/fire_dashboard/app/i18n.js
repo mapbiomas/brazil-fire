@@ -597,6 +597,7 @@ const I18N_LINHAS = [
   ["cada", "cada una", "each", "masing-masing"],
   ["Períodos", "Períodos", "Periods", "Periode"],
   ["períodos", "períodos", "periods", "periode"],
+  ["Barra contínua", "Barra continua", "Continuous bar", "Bilah kontinu"],
   ["Rosca dupla","Dona doble", "Double doughnut", "Donat ganda"],
   ["Natural", "Natural", "Natural", "Alami"],
   ["Antrópico", "Antrópico", "Anthropic", "Antropogenik"],
