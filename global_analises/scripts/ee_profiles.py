@@ -6,6 +6,7 @@ e inicializa o ee com a conta escolhida, sem sobrescrever o login padrão.
 
 Linha de comando:
     python ee_profiles.py list                    # perfis salvos
+    python ee_profiles.py who                     # e-mail de cada perfil
     python ee_profiles.py save workspace2         # salva o login padrão atual como perfil
     python ee_profiles.py login workspace3        # abre o navegador, loga e salva como perfil
                                                   # (o login padrão anterior é restaurado)
@@ -45,6 +46,10 @@ def login(name):
     try:
         ee.Authenticate(force=True, auth_mode='localhost')
         save(name)
+        try:
+            print(f'>>> perfil "{name}" = {email(name)}  (se não for a conta esperada, rode login de novo)')
+        except Exception:  # noqa: BLE001
+            pass
     finally:
         if had:
             shutil.copy2(backup, DEFAULT)
@@ -55,9 +60,21 @@ def login(name):
 def credentials(name):
     from google.oauth2.credentials import Credentials
     d = json.loads(path(name).read_text())
-    return Credentials(None, refresh_token=d['refresh_token'], client_id=d['client_id'],
-                       client_secret=d['client_secret'], token_uri='https://oauth2.googleapis.com/token',
-                       scopes=d.get('scopes'))
+    # logins novos não gravam client_id/secret: usam o cliente padrão do Earth Engine
+    return Credentials(None, refresh_token=d['refresh_token'], client_id=d.get('client_id', ee.oauth.CLIENT_ID),
+                       client_secret=d.get('client_secret', ee.oauth.CLIENT_SECRET), token_uri='https://oauth2.googleapis.com/token',
+                       scopes=d.get('scopes', ee.oauth.SCOPES))
+
+
+def email(name):
+    """E-mail da conta do perfil (via Drive API, escopo que o login do ee já pede)."""
+    import google.auth.transport.requests as tr
+    import requests
+    c = credentials(name)
+    c.refresh(tr.Request())
+    r = requests.get('https://www.googleapis.com/drive/v3/about', headers={'Authorization': 'Bearer ' + c.token},
+                     params={'fields': 'user(emailAddress)'}, timeout=30).json()
+    return r.get('user', {}).get('emailAddress') or '?'
 
 
 def init(name=None, project=None):
@@ -70,13 +87,19 @@ def init(name=None, project=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('cmd', choices=['list', 'save', 'login', 'test'])
+    ap.add_argument('cmd', choices=['list', 'who', 'save', 'login', 'test'])
     ap.add_argument('name', nargs='?')
     ap.add_argument('--project')
     a = ap.parse_args()
     if a.cmd == 'list':
         for p in sorted(PROFILES.glob('*.json')):
             print(p.stem)
+    elif a.cmd == 'who':
+        for p in sorted(PROFILES.glob('*.json')):
+            try:
+                print(f'{p.stem:12s} {email(p.stem)}')
+            except Exception as e:  # noqa: BLE001
+                print(f'{p.stem:12s} (não identificado: {str(e)[:60]})')
     elif a.cmd == 'save':
         save(a.name)
     elif a.cmd == 'login':
