@@ -165,6 +165,9 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
 .msec table { margin: 8px 0; }
 .msec td, .msec th { text-align: left; white-space: normal; }
 .loading { opacity: .6; transition: opacity .15s; }
+.freqper { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.freqper input { flex: 1 1 240px; accent-color: var(--accent); }
+.freqper b { font-variant-numeric: tabular-nums; min-width: 3em; }
 [hidden] { display: none !important; }
 </style>
 </head>
@@ -263,6 +266,26 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
             <div class="chart" id="annual"></div>
             <div class="cfoot"><p class="src">Fonte: área queimada MCD64A1 e emissões GFED, ambas via GWIS.</p><div class="dls"><button class="dlbtn" type="button" data-dl="annual:csv">CSV</button><button class="dlbtn" type="button" data-dl="annual:png">PNG</button></div></div>
           </div>
+        </div>
+
+        <div class="card" id="freqCard" style="margin-bottom:16px" hidden>
+          <div class="card-head">
+            <div><h2 id="freqTitle">Frequência do fogo</h2><p class="sub" id="freqSub"></p></div>
+            <div class="seg small" id="fFreqMode"></div>
+          </div>
+          <div class="freqper"><span class="flabel">Período 2001–</span><input type="range" id="fFreqEnd" min="2001" max="2025" step="1" aria-label="Ano final do período"><b id="fFreqEndLbl"></b></div>
+          <div class="grid row2" style="margin-top:10px">
+            <div>
+              <ul class="legend" id="freqLegend"></ul>
+              <div class="rank" id="freqRank"></div>
+            </div>
+            <div>
+              <ul class="legend" id="freqCurveLegend"></ul>
+              <div class="chart" id="freqCurve"></div>
+              <p class="sub" id="freqCurveSub" style="margin-top:6px"></p>
+            </div>
+          </div>
+          <div class="cfoot"><p class="src">Fonte: MODIS MCD64A1 (500 m), calculado no Google Earth Engine. Frequência = número de anos em que o pixel queimou no período.</p><div class="dls"><button class="dlbtn" type="button" data-dl="freq:csv">CSV</button><button class="dlbtn" type="button" data-dl="freq:png">PNG</button><button class="dlbtn" type="button" data-dl="freqc:png">PNG curva</button></div></div>
         </div>
 
         <details class="card">
@@ -717,7 +740,94 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
     $('tbl').innerHTML = `<thead><tr><th>#</th><th>${LEVELS[S.level]}</th><th>${S.level === 'adm1' ? 'País' : S.level === 'adm0' ? 'Continente' : ''}</th><th>Área queimada (ha)</th><th>VIIRS (ha)</th><th>Focos</th><th>% território</th><th>CO₂ (t)</th><th>PM2.5 (t)</th><th>Δ posição</th></tr></thead><tbody>` +
       rk.map(x => { const u = unitOf(S.level, x.gid), pp = prevPos.get(x.gid), r = x.r;
         return `<tr><td>${x.pos}</td><td>${esc(u.name)}</td><td>${esc(S.level === 'adm1' ? u.parent : S.level === 'adm0' ? TR(CONT[x.gid]) : '')}</td><td>${f0(r.ba)}</td><td>${f0(r.ba_viirs)}</td><td>${f0(r.hotspots)}</td><td>${x.area && r.ba != null ? nf2.format(r.ba / x.area * 100) : '–'}</td><td>${f0(r.co2)}</td><td>${f0(r.pm25)}</td><td>${pp == null ? 'novo' : pp - x.pos > 0 ? '+' + (pp - x.pos) : pp - x.pos}</td></tr>`; }).join('') + '</tbody>';
+    await drawFreq();
     translateDOM(document.body);
+  }
+
+  // ---------- frequência do fogo (área acumulada sem repetição 2001–Y) ----------
+  const FCLS = [[1, 1, '1 vez', '--r2'], [2, 2, '2 vezes', '--r3'], [3, 5, '3–5 vezes', '--r4'], [6, 10, '6–10 vezes', '--r5'], [11, 99, '11 ou mais', '--r6']];
+  let FREQ = null;
+  async function loadFreq() {
+    if (FREQ !== null) return FREQ;
+    try {
+      const r = await fetch('data/freq_adm0.csv'); if (!r.ok) throw new Error();
+      FREQ = new Map();  // ano final -> Map iso -> {area, once, f:[...]}
+      for (const o of parseCSV(await r.text())) {  // parser com aspas: há nomes de países com vírgula
+        const end = +o.year_end, n = end - 2000;
+        if (!FREQ.has(end)) FREQ.set(end, new Map());
+        FREQ.get(end).set(o.gid, { area: +o.area_ha, once: +o.burned_once_ha, f: Array.from({ length: n }, (_, i) => +o['f' + (i + 1)] || 0) });
+      }
+    } catch (e) { FREQ = false; }
+    return FREQ;
+  }
+  const addF = (a, b) => { a.area += b.area; a.once += b.once; b.f.forEach((v, i) => a.f[i] = (a.f[i] || 0) + v); return a; };
+  const zeroF = () => ({ area: 0, once: 0, f: [] });
+  const fclass = x => FCLS.map(([lo, hi]) => x.f.slice(lo - 1, hi).reduce((s, v) => s + v, 0));
+  function freqScope(end) {
+    const m = FREQ.get(end); if (!m) return null;
+    let test;
+    if (S.sel && S.level === 'adm0') test = iso => iso === S.sel;
+    else if (S.sel && S.level === 'cont') test = iso => CONT[iso] === S.sel;
+    else if (S.sel && S.level === 'adm1') { const iso = U1.get(S.sel)?.iso3; test = g => g === iso; }
+    else test = countryInScope;
+    const o = zeroF(); for (const [g, x] of m) if (test(g)) addF(o, x);
+    return o;
+  }
+  async function drawFreq() {
+    const F = await loadFreq();
+    $('freqCard').hidden = !F || !F.size;
+    if (!F || !F.size) return;
+    const ends = [...F.keys()].sort((a, b) => a - b), maxEnd = ends.at(-1);
+    S.fend = S.fend && F.has(S.fend) ? S.fend : maxEnd;
+    S.fmode = S.fmode || 'pct';
+    const rng = $('fFreqEnd'); rng.min = ends[0]; rng.max = maxEnd; rng.value = S.fend;
+    rng.oninput = () => { $('fFreqEndLbl').textContent = rng.value; };
+    rng.onchange = () => { const v = +rng.value; S.fend = F.has(v) ? v : ends.reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a); render(); };
+    $('fFreqEndLbl').textContent = S.fend + (ends.length < maxEnd - ends[0] + 1 ? ` (${TR('disponíveis')}: ${ends.length}/${maxEnd - ends[0] + 1})` : '');
+    seg('fFreqMode', [{ value: 'pct', label: '% do território' }, { value: 'ha', label: 'Área (ha)' }], S.fmode, v => { S.fmode = v; render(); });
+    const lvl = S.level === 'adm1' ? 'adm0' : S.level, per = `2001–${S.fend}`, m = F.get(S.fend);
+    // ranking: continentes ou países no recorte
+    const acc = new Map();
+    for (const [g, x] of m) {
+      if (lvl === 'cont') { if (!CONT[g]) continue; if (!acc.has(CONT[g])) acc.set(CONT[g], zeroF()); addF(acc.get(CONT[g]), x); }
+      else if (countryInScope(g)) acc.set(g, x);
+    }
+    const val = x => S.fmode === 'pct' ? (x.area ? x.once / x.area * 100 : 0) : x.once;
+    const rk = [...acc].map(([g, x]) => ({ g, x, v: val(x) })).filter(r => r.v > 0).sort((a, b) => b.v - a.v);
+    rk.forEach((r, i) => r.pos = i + 1);
+    const shown = rk.slice(0, S.top), max = S.fmode === 'pct' ? 100 : (shown[0]?.v || 1);
+    const scope = scopeName();
+    $('freqTitle').textContent = `Frequência do fogo · área queimada ao menos uma vez · ${per}`;
+    $('freqSub').textContent = `Quanto de cada ${lvl === 'cont' ? 'continente' : 'país'} queimou pelo menos uma vez no período, sem contar duas vezes a mesma área. A cor mostra quantos anos a área queimou.`;
+    $('freqLegend').innerHTML = FCLS.map(([, , l, c]) => `<li><i style="background:var(${c})"></i>${l}</li>`).join('');
+    const nameOf = g => lvl === 'cont' ? TR(g) : (A0.units.get(g)?.name || g);
+    $('freqRank').innerHTML = shown.map(r => {
+      const cl = fclass(r.x), tot = r.x.once || 1, w = r.v / max * 100;
+      const bar = cl.map((v, i) => `<span style="width:${v / tot * w}%;background:var(${FCLS[i][3]})" title="${FCLS[i][2]}: ${fmt(v, 'ha')}"></span>`).join('');
+      const fig = S.fmode === 'pct' ? `${nf1.format(r.v)}%` : fmt(r.v, 'ha');
+      return `<button type="button" class="rrow${S.sel === r.g ? ' on' : ''}" data-g="${esc(r.g)}"><span class="pos">${r.pos}</span><span class="mv"></span><span class="nm" title="${esc(nameOf(r.g))}">${esc(nameOf(r.g))}</span><span class="bar">${bar}</span><span class="fig" title="${fmt(r.x.once, 'ha')} · ${nf1.format(r.x.area ? r.x.once / r.x.area * 100 : 0)}%">${fig}</span></button>`;
+    }).join('') || '<div class="empty">Sem dados no recorte.</div>';
+    $('freqRank').querySelectorAll('.rrow').forEach(b => b.onclick = () => {
+      if (S.level === 'adm1') { S.country = S.country === b.dataset.g ? '' : b.dataset.g; S.sel = null; }
+      else S.sel = S.sel === b.dataset.g ? null : b.dataset.g;
+      render();
+    });
+    // curva: área acumulada (barras) e % do território (linha) por ano final
+    const curve = ends.map(e => { const o = freqScope(e); return { x: e, lbl: `2001–${e}`, b: o?.once ?? null, l: o && o.area ? o.once / o.area * 100 : null, hi: e === S.fend, o }; });
+    $('freqCurveLegend').innerHTML = `<li><i style="background:var(--accent)"></i>${TR('Área queimada ao menos uma vez')}</li><li><i class="ln" style="background:var(--line)"></i>% do território</li>`;
+    combo($('freqCurve'), curve, { bUnit: 'ha', lUnit: 'pct', lName: '% do território', tick: e => (e - 2001) % 4 === 0 ? String(e) : '' });
+    const cs = freqScope(S.fend), ccl = cs ? fclass(cs) : [];
+    $('freqCurveSub').textContent = cs ? `${scope}, ${per}: ${fmt(cs.once, 'ha')} queimaram ao menos uma vez (${nf1.format(cs.once / cs.area * 100)}% do território); ${nf0.format(ccl[0] / cs.once * 100)}% dessa área queimou uma única vez e ${nf0.format((ccl[2] + ccl[3] + ccl[4]) / cs.once * 100)}% queimou 3 vezes ou mais.` : '';
+    DL['freq:csv'] = () => saveCSV(`frequencia_${lvl}_2001_${S.fend}`, ['posicao', 'id', 'nome', 'periodo', 'area_ha', 'queimada_ao_menos_1x_ha', 'pct_territorio', ...FCLS.map(c => 'freq_' + c[2].replace(/\W+/g, '_') + '_ha'), ...Array.from({ length: S.fend - 2000 }, (_, i) => `f${i + 1}_ha`)],
+      rk.map(r => [r.pos, r.g, nameOf(r.g), per, r.x.area, r.x.once, r.x.area ? r.x.once / r.x.area * 100 : null, ...fclass(r.x), ...r.x.f]));
+    DL['freq:png'] = () => {
+      const rowH = 22, W = 640, bx = 220, bw = W - bx - 98, H = shown.length * rowH + 4;
+      const body = shown.map((r, i) => { const y = i * rowH, cl = fclass(r.x), tot = r.x.once || 1, w = r.v / max * bw; let ox = bx, bars = '';
+        cl.forEach((v, j) => { const ww = v / tot * w; bars += `<rect x="${ox}" y="${y + 5}" width="${ww}" height="12" fill="var(${FCLS[j][3]})"/>`; ox += ww; });
+        return `<text x="22" y="${y + 15}" text-anchor="end">${r.pos}</text><text x="30" y="${y + 15}" style="fill:var(--ink)">${esc(nameOf(r.g).slice(0, 30))}</text><rect x="${bx}" y="${y + 5}" width="${bw}" height="12" fill="var(--grid)"/>${bars}<text x="${W - 4}" y="${y + 15}" text-anchor="end" style="fill:var(--ink-2)">${S.fmode === 'pct' ? nf1.format(r.v) + '%' : fmt(r.v, 'ha')}</text>`; }).join('');
+      savePNG(`frequencia_${lvl}_2001_${S.fend}`, tmpSVG(W, H, body), $('freqTitle').textContent, 'Fonte: MODIS MCD64A1, Google Earth Engine');
+    };
+    DL['freqc:png'] = () => savePNG(`frequencia_curva_2001_${S.fend}`, $('freqCurve').querySelector('svg'), `${TR('Área queimada ao menos uma vez')} · ${scope}`, 'Fonte: MODIS MCD64A1, Google Earth Engine');
   }
 
   // ---------- mapa (Equal Earth, sem dependências) ----------

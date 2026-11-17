@@ -56,3 +56,24 @@ Fonte:,Source:,Fuente:,Source :,Sumber:,来源：,sim
 Limites:,Boundaries:,Límites:,Limites :,Batas:,边界：,sim
 "Mensal,","Monthly,","Mensual,","Mensuel,","Bulanan,",月度，,sim
  a , to , a , à , hingga , 至 ,sim
+Idioma,Language,Idioma,Langue,Bahasa,语言,sim
+Frequência do fogo,Fire frequency,Frecuencia del fuego,Fréquence des feux,Frekuensi kebakaran,火灾频率,sim
+Período 2001–,Period 2001–,Período 2001–,Période 2001–,Periode 2001–,时段 2001–,sim
+Ano final do período,End year of the period,Año final del período,Année de fin de la période,Tahun akhir periode,时段结束年份,sim
+"Fonte: MODIS MCD64A1 (500 m), calculado no Google Earth Engine. Frequência = número de anos em que o pixel queimou no período.","Source: MODIS MCD64A1 (500 m), computed in Google Earth Engine. Frequency = number of years in which the pixel burned in the period.","Fuente: MODIS MCD64A1 (500 m), calculado en Google Earth Engine. Frecuencia = número de años en que el píxel se quemó en el período.","Source : MODIS MCD64A1 (500 m), calculé dans Google Earth Engine. Fréquence = nombre d’années où le pixel a brûlé au cours de la période.","Sumber: MODIS MCD64A1 (500 m), dihitung di Google Earth Engine. Frekuensi = jumlah tahun piksel terbakar dalam periode.",来源：MODIS MCD64A1（500 米），在 Google Earth Engine 中计算。频率 = 该时段内像元过火的年数。,sim
+PNG curva,PNG curve,PNG curva,PNG courbe,PNG kurva,PNG 曲线,sim
+Área (ha),Area (ha),Área (ha),Surface (ha),Luas (ha),面积（公顷）,sim
+Frequência do fogo · área queimada ao menos uma vez · ,Fire frequency · area burned at least once · ,Frecuencia del fuego · área quemada al menos una vez · ,Fréquence des feux · surface brûlée au moins une fois · ,Frekuensi kebakaran · area terbakar setidaknya sekali · ,火灾频率 · 至少过火一次的面积 · ,sim
+Quanto de cada ,How much of each ,Cuánto de cada ,Part de chaque ,Seberapa luas setiap ,每个,sim
+" queimou pelo menos uma vez no período, sem contar duas vezes a mesma área. A cor mostra quantos anos a área queimou."," burned at least once in the period, without counting the same area twice. Color shows how many years the area burned."," se quemó al menos una vez en el período, sin contar dos veces la misma área. El color muestra cuántos años se quemó el área."," a brûlé au moins une fois sur la période, sans compter deux fois la même surface. La couleur indique le nombre d’années de feu."," terbakar setidaknya sekali dalam periode, tanpa menghitung area yang sama dua kali. Warna menunjukkan berapa tahun area terbakar.",在该时段内至少过火一次的面积（同一区域不重复计算）。颜色表示该区域过火的年数。,sim
+ queimaram ao menos uma vez (, burned at least once (, se quemaron al menos una vez (, ont brûlé au moins une fois (, terbakar setidaknya sekali (, 至少过火一次（,sim
+% do território); ,% of territory); ,% del territorio); ,% du territoire) ; ,% wilayah); ,% 国土）；,sim
+% dessa área queimou uma única vez e ,% of that area burned only once and ,% de esa área se quemó una sola vez y ,% de cette surface n’a brûlé qu’une fois et ,% dari area itu terbakar hanya sekali dan ,% 的面积仅过火一次，,sim
+% queimou 3 vezes ou mais.,% burned 3 times or more.,% se quemó 3 veces o más.,% a brûlé 3 fois ou plus.,% terbakar 3 kali atau lebih.,% 过火 3 次或以上。,sim
+1 vez,once,1 vez,1 fois,1 kali,1 次,sim
+2 vezes,twice,2 veces,2 fois,2 kali,2 次,sim
+3–5 vezes,3–5 times,3–5 veces,3–5 fois,3–5 kali,3–5 次,sim
+6–10 vezes,6–10 times,6–10 veces,6–10 fois,6–10 kali,6–10 次,sim
+11 ou mais,11 or more,11 o más,11 ou plus,11 atau lebih,11 次及以上,sim
+Área queimada ao menos uma vez,Area burned at least once,Área quemada al menos una vez,Surface brûlée au moins une fois,Area terbakar setidaknya sekali,至少过火一次的面积,sim
+disponíveis,available,disponibles,disponibles,tersedia,可用,sim

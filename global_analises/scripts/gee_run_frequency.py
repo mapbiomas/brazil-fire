@@ -20,6 +20,7 @@ from gee_run_exports import BOUNDS, MODIS_SCALE, TASK_TAG, units_and_lookup
 
 PROJECT = 'mapbiomas-brazil'  # padrão; alternativa: mapbiomas-fire-485203
 FIRST = 2001
+STRIPS = 8  # faixas de longitude por redução (ver period_table)
 
 
 def annual_burned(y):
@@ -34,10 +35,18 @@ def period_table(end, level, uid_img, lookup, world):
     proj = ee.ImageCollection('MODIS/061/MCD64A1').first().select('BurnDate').projection()
     px = ee.Image.pixelArea().divide(1e4)
     bands = [px.multiply(freq.eq(k)).rename(f'f{k}') for k in range(1, n + 1)] + [px.rename('area')]
-    stack = ee.Image.cat(bands)
-    groups = ee.List(stack.addBands(uid_img).reduceRegion(
-        reducer=ee.Reducer.sum().repeat(n + 1).group(groupField=n + 1, groupName='uid'),
-        geometry=world, crs=proj, scale=MODIS_SCALE, maxPixels=1e13, tileScale=4).get('groups'))
+    stack = ee.Image.cat(bands).addBands(uid_img)
+    # o mundo inteiro numa redução só estoura o tempo nos períodos longos: reduz em faixas de
+    # longitude e grava uma linha por (unidade, faixa); o fetch soma as faixas
+    strips = [world] if world is not None and STRIPS == 1 else [
+        ee.Geometry.Rectangle([lo, -60, lo + 360 / STRIPS, 85], None, False) for lo in range(-180, 180, 360 // STRIPS)]
+    if world is not None and STRIPS > 1:
+        strips = [s.intersection(world, 1) for s in strips]
+    groups = ee.List([])
+    for g in strips:
+        groups = groups.cat(ee.List(stack.reduceRegion(
+            reducer=ee.Reducer.sum().repeat(n + 1).group(groupField=n + 1, groupName='uid'),
+            geometry=g, crs=proj, scale=MODIS_SCALE, maxPixels=1e13, tileScale=8).get('groups')))
 
     def row(d):
         d = ee.Dictionary(d)
