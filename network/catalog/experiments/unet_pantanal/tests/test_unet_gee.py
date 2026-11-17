@@ -7,7 +7,7 @@ import unittest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from unet_config import make_config  # noqa: E402
-from unet_gee import asset_id, classified_periods, gee_folders, map_path, time_props, upload_command  # noqa: E402
+from unet_gee import asset_id, classified_periods, gee_folders, manifest, map_path, time_props, upload_command  # noqa: E402
 
 CFG = make_config(TRAINING_ID="1", SHORTNAME="pantanal_r1", REGION="Pantanal_r1")
 VERSION = "training_001_pantanal_r1_sentinel2"
@@ -29,16 +29,18 @@ class TestGee(unittest.TestCase):
         self.assertEqual(t["time_end"] - t["time_start"], 31 * 86400 * 1000)
         self.assertEqual(time_props("2024")["month"], 0)
 
-    def test_command(self):
-        cmd = upload_command(CFG, "2026_10", 0.63)
-        self.assertTrue(cmd.startswith("earthengine --project mapbiomas-fire-485203 upload image "))
-        self.assertIn("--band_names=burned,prob,doy", cmd)
-        self.assertIn("--nodata_value=-9999", cmd)
-        self.assertIn("--property threshold=0.63", cmd)
-        for part in (f"--asset_id={PREFIX}/pantanal/{VERSION}/pantanal_r1_2026_10", "--pyramiding_policy=mode",
-                     f"--property model_id={VERSION}", "--property region=Pantanal_r1", "--property month=10"):
-            self.assertIn(part, cmd)
-        self.assertTrue(cmd.endswith("_2026_10_prob.tif"))
+    def test_manifest(self):
+        m = manifest(CFG, "2026_10", 0.63)
+        self.assertEqual(m["name"], f"{PREFIX}/pantanal/{VERSION}/pantanal_r1_2026_10")
+        self.assertEqual([b["id"] for b in m["bands"]], ["burned", "prob", "doy"])
+        self.assertEqual([b["tilesetBandIndex"] for b in m["bands"]], [0, 1, 2])
+        self.assertTrue(m["tilesets"][0]["sources"][0]["uris"][0].endswith("_2026_10_prob.tif"))
+        self.assertEqual((m["pyramidingPolicy"], m["missingData"]), ("MODE", {"values": [-9999]}))
+        self.assertEqual((m["startTime"], m["endTime"]), ("2026-10-01T00:00:00Z", "2026-11-01T00:00:00Z"))
+        for k, v in (("threshold", 0.63), ("model_id", VERSION), ("region", "Pantanal_r1"), ("month", 10)):
+            self.assertEqual(m["properties"][k], v)
+        self.assertEqual(upload_command(CFG, "m.json"),
+                         "earthengine --project mapbiomas-fire-485203 upload_manifest --force m.json")
 
     def test_classified_periods(self):
         names = ["pantanal_r1_2026_10_prob.tif", "pantanal_r1_2026_09_prob.tif", "outra_2026_10_prob.tif", "x.json"]

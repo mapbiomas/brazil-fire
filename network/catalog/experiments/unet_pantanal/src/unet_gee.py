@@ -2,7 +2,7 @@
 U-Net experiment - publish the classified maps to Google Earth Engine.
 
 Same approach as the production catalog M6 (``M6_publisher.upload_to_gee``):
-the ``earthengine upload image`` CLI ingests the COG straight from GCS into an
+the ``earthengine upload_manifest`` CLI ingests the COG straight from GCS into an
 ImageCollection, one image per region and period, with time and model
 properties. An asset that already exists is replaced.
 
@@ -12,6 +12,7 @@ properties. An asset that already exists is replaced.
 """
 import calendar
 import datetime
+import os
 import re
 import subprocess
 import time
@@ -67,10 +68,12 @@ def map_threshold(cfg, period):
         return None
 
 
-def upload_command(cfg, period, threshold=None):
-    """`earthengine upload image` command (as the production M6); bands burned, prob, doy."""
+def manifest(cfg, period, threshold=None):
+    """Manifesto de ingestão (`earthengine upload_manifest`): bandas burned, prob, doy com nome, MODE, nodata."""
     from unet_predict import BAND_NAMES
     t = time_props(period)
+    iso = lambda ms: datetime.datetime.fromtimestamp(ms / 1000, datetime.timezone.utc).strftime(  # noqa: E731
+        "%Y-%m-%dT%H:%M:%SZ")
     props = {
         "source": "mapbiomas-fire", "model": "unet", "model_id": cfg["MODEL_NAME"],
         "region": cfg["REGION"], "biome": biome_slug(cfg), "period": period_info(period)[0],
@@ -79,12 +82,20 @@ def upload_command(cfg, period, threshold=None):
     }
     if threshold is not None:
         props["threshold"] = round(float(threshold), 4)
-    prop_args = " ".join(f"--property {k}={v}" for k, v in props.items())
-    return (f"earthengine --project {cfg['GEE_EXPORT_PROJECT']} upload image "
-            f"--asset_id={asset_id(cfg, period)} --pyramiding_policy=mode --nodata_value=-9999 "
-            f"--band_names={','.join(BAND_NAMES)} "
-            f"--time_start {t['time_start']} --time_end {t['time_end']} "
-            f"{prop_args} {map_path(cfg, period)}")
+    return {
+        "name": asset_id(cfg, period),
+        "tilesets": [{"id": "t0", "sources": [{"uris": [map_path(cfg, period)]}]}],
+        "bands": [{"id": nm, "tilesetId": "t0", "tilesetBandIndex": i} for i, nm in enumerate(BAND_NAMES)],
+        "properties": props,
+        "startTime": iso(t["time_start"]), "endTime": iso(t["time_end"]),
+        "pyramidingPolicy": "MODE",
+        "missingData": {"values": [-9999]},
+    }
+
+
+def upload_command(cfg, manifest_path):
+    """`earthengine upload_manifest` (o `upload image` do CLI não aceita nomes de banda)."""
+    return f"earthengine --project {cfg['GEE_EXPORT_PROJECT']} upload_manifest --force {manifest_path}"
 
 
 def classified_periods(cfg, ls=None):
@@ -140,7 +151,12 @@ def publish(cfg, periods, logger=print, run=None):
             time.sleep(2)
         except Exception:
             pass
-        ok = run(upload_command(cfg, period, map_threshold(cfg, period))) == 0
+        import json
+        import tempfile
+        mpath = os.path.join(tempfile.mkdtemp(), f"{region_slug(cfg)}_{period_info(period)[0]}.json")
+        with open(mpath, "w", encoding="utf-8") as fh:
+            json.dump(manifest(cfg, period, map_threshold(cfg, period)), fh, indent=1)
+        ok = run(upload_command(cfg, mpath)) == 0
         done[period] = ok
         logger(f"   {'✅ enviado' if ok else '❌ falhou'}: {period} → {aid}")
     if not all(done.values()):
