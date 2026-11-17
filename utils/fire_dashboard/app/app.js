@@ -391,6 +391,7 @@ const state = {
   mapa: { tipo: "bruto", unidade: "estados", camada: "acumulado", visualizar: "biomas", camada2: "", cortina: "off", anoA: null, destaque: "off" },
   freqGrupo: "todas", // Frequência: "todas" (1 a N vezes), "15" (1 a 15 e 16+), "9" (1 a 9 e 10+)
   freqUnid: "ha", // Frequência: barras em hectares ou em % da área queimada
+  ultimoFogoBlocos: "4", // Último fogo: rosca em 4, 6 ou 8 períodos
   cicatrizClasse: "grandes", // Cicatriz: faixa da "proporção por ano" (índice da faixa ou "grandes")
   paletaBioma: "terrosa", // paleta da vista "Por bioma" (ver PALETAS_BIOMA)
   vistas: {}, // tipo escolhido em cada card com alternância ("aba:índice" -> "barras" | "linhas" | "rosca")
@@ -2314,28 +2315,35 @@ async function loadUltimoFogo({ t, ini, fim }) {
     })
     .filter(Boolean);
 
-  // Proporção por períodos (como na figura do RAF): blocos de ~10 anos que começam em anos terminados
-  // em 4 (1985–1993, 1994–2003, 2004–2013, 2014–2025). Em períodos curtos, divide em partes iguais.
+  // Proporção por períodos (como na figura do RAF). Com 4 períodos: blocos de ~10 anos que começam em anos
+  // terminados em 4 (1985–1993, 1994–2003, 2004–2013, 2014–2025); blocos curtos demais são unidos ao vizinho.
+  // Com 6 ou 8: o período é dividido em partes de tamanho parecido. A paleta é a mesma (vinho → laranja → azul-petróleo → marinho).
   const anosPeriodo = range(ini, fim);
+  const nPedido = Math.min(Number(state.ultimoFogoBlocos) || 4, anosPeriodo.length);
+  const iguais = (n) => Array.from({ length: n - 1 }, (_, k) => ini + Math.round(((k + 1) * anosPeriodo.length) / n));
   let cortes = anosPeriodo.filter((a) => a > ini && a % 10 === 4);
-  // Bloco curto demais (menos de 5 anos no fim, menos de 3 no início) é unido ao vizinho.
   while (cortes.length && fim + 1 - cortes[cortes.length - 1] < 5) cortes.pop();
   while (cortes.length && cortes[0] - ini < 3) cortes.shift();
-  if (cortes.length < 2 && anosPeriodo.length >= 4) {
-    const partes = Math.min(4, anosPeriodo.length);
-    cortes = Array.from({ length: partes - 1 }, (_, k) => ini + Math.round(((k + 1) * anosPeriodo.length) / partes));
-  }
+  if (nPedido !== 4 || (cortes.length < 2 && anosPeriodo.length >= 4)) cortes = iguais(nPedido === 4 ? Math.min(4, anosPeriodo.length) : nPedido);
   const limites = [ini, ...cortes, fim + 1];
-  const CORES_PERIODO = { 1: ["#8c0b0f"], 2: ["#8c0b0f", "#00297f"], 3: ["#8c0b0f", "#d06a00", "#00297f"], 4: ["#8c0b0f", "#d06a00", "#00839c", "#00297f"] };
-  const nBlocos = Math.min(4, limites.length - 1);
-  const periodos = Array.from({ length: limites.length - 1 }, (_, k) => {
+  const PALETA_PERIODO = ["#8c0b0f", "#d06a00", "#00839c", "#00297f"];
+  const nBlocos = limites.length - 1;
+  const periodos = Array.from({ length: nBlocos }, (_, k) => {
     const a = limites[k], b = limites[k + 1] - 1;
     return { a, b, label: a === b ? String(a) : `${a} – ${b}`, value: sum(dados.filter((d) => d.ano >= a && d.ano <= b).map((d) => d.value)) };
   }).reverse(); // mais recente primeiro
-  periodos.forEach((p, k) => { p.color = (CORES_PERIODO[nBlocos] || CORES_PERIODO[4])[Math.min(k, nBlocos - 1)]; });
-  const tituloPeriodos = `Proporção da última ocorrência do fogo ${IDIOMA.id === "pt" ? `entre ${ini} e ${fim}` : `${ini}–${fim}`}`;
+  periodos.forEach((p, k) => { p.color = rampColor(PALETA_PERIODO, nBlocos > 1 ? k / (nBlocos - 1) : 0); });  const tituloPeriodos = `Proporção da última ocorrência do fogo ${IDIOMA.id === "pt" ? `entre ${ini} e ${fim}` : `${ini}–${fim}`}`;
 
   return {
+    // Controle do card "Proporção da última ocorrência" (índice 1): quantos períodos mostrar.
+    toolbar: [{
+      type: "segmented",
+      card: 1,
+      label: "Períodos",
+      value: String(state.ultimoFogoBlocos),
+      options: ["4", "6", "8"].map((v) => ({ value: v, label: `${v} períodos` })),
+      onChange: (v) => { state.ultimoFogoBlocos = v; loadCurrentTab(); },
+    }],
     kpis: [
       { label: `Área queimada pela última vez nos últimos 5 anos (${Math.max(ini, fim - 4)}–${fim})`, value: pct(safeDiv(recentes, total)), note: ha(recentes) },
       { label: "Ano mediano do último fogo", value: mediano ? String(mediano.ano) : "—", note: "Metade da área queimou pela última vez até este ano" },
@@ -3463,6 +3471,12 @@ function montarGraficos(card, root, vista, tokens) {
   if (vista === "aneis") {
     const cv = root.querySelector(".donut canvas");
     if (cv) registrarGrafico(root, new Chart(cv, aneisConfig(card.aneis, tokens)));
+    root.querySelector("[data-aneis-agrupar]")?.addEventListener("change", (e) => {
+      try { localStorage.setItem("fogo:aneisAgrupar", e.target.checked ? "1" : "0"); } catch { /* sem armazenamento */ }
+      const ul = root.querySelector(".legend-aneis");
+      ul.innerHTML = aneisLegendaItens(card.aneis, e.target.checked);
+      traduzirNo(ul);
+    });
     return;
   }
   if (vista === "rosca") {
@@ -4061,7 +4075,7 @@ function eixosEscurosParaPng(canvases) {
 // texto no meio das roscas...) não estão em canvas. Para irem ao PNG, cada uma é redesenhada
 // na mesma posição da tela: fundo, borda e cada palavra do texto (a posição de cada palavra vem
 // do próprio navegador, então quebras de linha e alinhamentos saem iguais).
-const PNG_IGNORAR = ".legend-row, button, .cor-troca, .calor-dica, .tabela-wrap, .card-tabela-acoes, svg, canvas, [hidden]";
+const PNG_IGNORAR = ".legend-row, .aneis-opcao, button, .cor-troca, .calor-dica, .tabela-wrap, .card-tabela-acoes, svg, canvas, [hidden]";
 
 function elementosHtmlDoPng(body) {
   return [...body.querySelectorAll("*")].filter((el) => {
@@ -4379,29 +4393,41 @@ function doughnutHtml({ slices, centerLabel = "total" }) {
     </div>`;
 }
 
-// Rosca dupla: legenda em dois blocos (grupos e classes) ao lado do gráfico.
-function aneisHtml({ interno, externo, centerLabel = "total" }) {
+// Rosca dupla: legenda por grupo (NATURAL / ANTRÓPICO / OUTROS), com a classe, a área e a %,
+// e uma linha "Demais classes" para as que ficam abaixo de 0,5% (a pessoa pode desligar).
+const ANEIS_LIMITE = 0.005;
+const ANEIS_GRUPOS = ["Natural", "Antrópico", "Outros"];
+function aneisAgrupar() {
+  try { return localStorage.getItem("fogo:aneisAgrupar") !== "0"; } catch { return true; }
+}
+function aneisLegendaItens({ externo }, agrupar) {
   const total = sum(externo.map((s) => s.value));
-  const item = (s) => `
-    <li>
-      <i class="sw" style="--c:${s.color}"></i>
-      <span>${escapeHtml(s.label)}</span>
-      <span class="l-value">${ha(s.value)}</span>
-      <span class="l-share">${pct(safeDiv(s.value, total))}</span>
-    </li>`;
+  const valor = (v) => (total >= 1e6 ? mha(v, 1) : ha(v));
+  const linha = (s) => `
+    <li><i class="sw" style="--c:${s.color}"></i><span>${escapeHtml(s.label)}</span><span class="l-value">${valor(s.value)} · ${pct(safeDiv(s.value, total))}</span></li>`;
+  const pequena = (s) => agrupar && safeDiv(s.value, total) < ANEIS_LIMITE;
+  const blocos = ANEIS_GRUPOS.map((nome, k) => {
+    const classes = externo.filter((s) => grupoCobertura(s.label) === k && !pequena(s));
+    return classes.length ? `<li class="legend-head aneis-grupo">${nome}</li>${classes.map(linha).join("")}` : "";
+  }).join("");
+  const restantes = externo.filter(pequena);
+  const demais = restantes.length
+    ? `<li class="aneis-demais"><i class="sw" style="--c:#c9c9c9"></i><span>Demais classes</span><span class="l-value">&lt; ${pct(ANEIS_LIMITE)} cada</span></li>` : "";
+  return blocos + demais;
+}
+function aneisHtml(aneis) {
+  const agrupar = aneisAgrupar();
   return `
     <div class="donut donut-aneis">
       <div class="donut-chart">
         <canvas role="img" aria-label="Natural x antrópico (anel de dentro) e classes (anel de fora)"></canvas>
-        <div class="donut-center"><strong>${total >= 1e6 ? mha(total) : ha(total)}</strong><span>${escapeHtml(centerLabel)}</span></div>
       </div>
-      <ul class="legend-list">
-        <li class="legend-head">Natural x antrópico</li>${interno.map(item).join("")}
-        <li class="legend-head">Por classe</li>${externo.map(item).join("")}
-      </ul>
+      <div class="aneis-legenda">
+        <label class="aneis-opcao"><input type="checkbox" data-aneis-agrupar${agrupar ? " checked" : ""}> Juntar classes com menos de 0,5% em "Demais classes"</label>
+        <ul class="legend-list legend-aneis">${aneisLegendaItens(aneis, agrupar)}</ul>
+      </div>
     </div>`;
 }
-
 // ---------- Mapa (Leaflet) ----------
 
 // Mapa de fundo escolhido pelo usuário (vale para todos os mapas e fica guardado no navegador).
@@ -5607,7 +5633,7 @@ function aneisConfig({ interno, externo }, t) {
   const options = baseOptions(t);
   const total = sum(externo.map((s) => s.value));
   options.interaction = { mode: "nearest", intersect: true };
-  options.cutout = "30%"; // buraco pequeno: os dois anéis ficam largos o bastante para a %
+  options.cutout = 0; // sem buraco no meio: rosca dupla cheia (os dois anéis ocupam todo o círculo)
   options.plugins.rotulosRosca = { total };
   options.plugins.tooltip.callbacks = {
     title: () => "",
