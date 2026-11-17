@@ -25,7 +25,7 @@ from collections import defaultdict
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 RAW = ROOT / 'raw_gwis'
-DATA = ROOT / 'data'
+DATA = ROOT / 'app' / 'data'
 
 BA_COLS = {'forest': 'ba_forest', 'savannas': 'ba_savanna', 'shrublands_grasslands': 'ba_grass',
            'croplands': 'ba_crop', 'other': 'ba_other'}

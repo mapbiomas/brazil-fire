@@ -8,6 +8,7 @@ Supporting tools for the MapBiomas Fire network. Each folder is independent and 
 | [`mapbiomas_fire_export_and_vectorization/`](mapbiomas_fire_export_and_vectorization/) | MapBiomas Fogo: export, mosaic, publish and vectorization pipeline (Colab) | [Colab](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/utils/mapbiomas_fire_export_and_vectorization/mapbiomas_fire_export_and_vectorization.ipynb) |
 | [`fire_legends/`](fire_legends/) | Registry and web app of MapBiomas Fire legends and palettes | [App](https://mapbiomas.github.io/brazil-fire/legends/) |
 | [`fire_dashboard/`](fire_dashboard/) | Interactive dashboard of MapBiomas Fire for eight countries (Brazil, Argentina, Bolivia, Chile, Colombia, Paraguay, Peru, Indonesia; interface in Portuguese, Spanish, English and Bahasa Indonesia), filters by biome and administrative levels, maps and GIF factory | [App](https://mapbiomas.github.io/brazil-fire/dashboard/) |
+| [`fire_global_monitor/`](fire_global_monitor/) | Exploratory global fire monitor: burned area (MCD64A1 via GWIS), active fires (FIRMS), emissions (GFED) and fire frequency by continent, country and state/province; six interface languages | [App](https://mapbiomas.github.io/brazil-fire/global_analises/) |
 | [`mapbiomas_gif_factory/`](mapbiomas_gif_factory/) | Cartographic GIFs from Earth Engine images (Colab pilot) | — |
 | [`_base/`](_base/) | Shared logos, UI strings, templates and standards | — |
 

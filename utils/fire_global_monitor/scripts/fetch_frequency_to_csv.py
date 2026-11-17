@@ -18,7 +18,7 @@ import ee
 from ee_profiles import init
 
 PROJECT = 'mapbiomas-brazil'
-OUT = pathlib.Path(__file__).resolve().parent.parent / 'data'
+OUT = pathlib.Path(__file__).resolve().parent.parent / 'app' / 'data'
 MAXF = 25
 CLASSES = [(1, 1), (2, 2), (3, 5), (6, 10), (11, MAXF)]  # c1..c5 no arquivo de estados (mesmas classes do painel)
 

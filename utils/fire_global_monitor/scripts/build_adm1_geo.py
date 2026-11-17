@@ -18,7 +18,7 @@ from collections import defaultdict
 import ee
 
 PROJECT = 'mapbiomas-fire-485203'
-DATA = pathlib.Path(__file__).resolve().parent.parent / 'data'
+DATA = pathlib.Path(__file__).resolve().parent.parent / 'app' / 'data'
 TOL_M = 6000      # tolerância de simplificação
 BATCH = 250
 GENERIC = r'\b(province|provincia|state|estado|region|regione|departamento|department|departement|oblast|district|' \

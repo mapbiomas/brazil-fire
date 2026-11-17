@@ -46,7 +46,7 @@ def main():
 
     countries = {r['iso3']: [r['pt']] + [r[l] for l in LANGS] for r in rows('paises.csv')}
     out = {'langs': ['pt'] + LANGS, 't': t, 'countries': countries}
-    (ROOT / 'data' / 'i18n.json').write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+    (ROOT / 'app' / 'data' / 'i18n.json').write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     print('data/i18n.json:', len(t), 'textos ·', len(countries), 'países')
 
 

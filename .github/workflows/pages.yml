@@ -10,8 +10,7 @@ on:
       - "utils/fire_monitor_highlights/src/**"
       - "utils/fire_legends/app/**"
       - "utils/fire_dashboard/app/**"
-      - "global_analises/index.html"
-      - "global_analises/data/**"
+      - "utils/fire_global_monitor/app/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -46,8 +45,7 @@ jobs:
           mkdir -p _site/dashboard
           cp -r utils/fire_dashboard/app/. _site/dashboard/
           mkdir -p _site/global_analises
-          cp global_analises/index.html _site/global_analises/
-          cp -r global_analises/data _site/global_analises/
+          cp -r utils/fire_global_monitor/app/. _site/global_analises/
           cat > $app/index.html <<'EOF'
           <!doctype html>
           <meta charset="utf-8">

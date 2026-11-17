@@ -1,6 +1,6 @@
 """Extrai os textos visíveis (pt-BR) do painel global para a tabela de tradução.
 
-Uso: python i18n/extrair_textos.py   (dentro de global_analises/)
+Uso: python i18n/extrair_textos.py   (dentro de utils/fire_global_monitor/)
 Saída: i18n/textos_novos.csv, só com os textos que ainda não estão em i18n/traducoes.csv nem em
 i18n/extra.csv. Na primeira execução, gera i18n/traducoes.csv completo.
 Traduza as colunas de idioma (en, es, fr, ind, zh) e junte as linhas ao traducoes.csv.
@@ -133,7 +133,7 @@ class Page(HTMLParser):
 
 def main():
     col = Collector({})
-    src = (ROOT / "index.html").read_text(encoding="utf-8")
+    src = (ROOT / "app" / "index.html").read_text(encoding="utf-8")
     Page("painel", col).feed(src)
     for sc in re.findall(r"<script>([\s\S]*?)</script>", src):
         for pos, t in js_strings(sc):

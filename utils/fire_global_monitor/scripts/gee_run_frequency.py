@@ -20,7 +20,7 @@ from gee_run_exports import BOUNDS, MODIS_SCALE, TASK_TAG, units_and_lookup
 
 PROJECT = 'mapbiomas-brazil'  # padrão; alternativa: mapbiomas-fire-485203
 FIRST = 2001
-STRIPS = 8  # faixas de longitude por redução (ver period_table)
+STRIPS = 1  # faixas de longitude; >1 perdeu a faixa 135°E–180° e bordas (2026-11-17): não usar sem revisar
 
 
 def annual_burned(y):
