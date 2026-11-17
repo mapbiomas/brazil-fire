@@ -2574,7 +2574,14 @@ async function loadTerritorios({ ini, fim }) {
     const mun = await rankingPeriodo(c.catMunicipio, ini, fim, progresso(`Ranking de ${rot("municipio", true).toLowerCase()}`));
     setStatus("");
     const r = aplicarRecorte(mun.linhas.filter(escopo.filtro), escopo, ini, fim);
-    return { escopo, linhas: r.linhas, ultimo: mun.anos.length - 1, aviso: avisoRecorte(escopo, r) };
+    // Ranking por área acumulada (queimou ao menos uma vez no período), não pela soma dos anos:
+    // inteiros vêm do ranking do acumulado; os recortados por bioma/estado, da interseção.
+    const acumRk = await getRankingAcumulado(c.catMunicipio, ini, fim).catch(() => null);
+    const acumulado = r.linhas
+      .map((l) => ({ ...l, value: l.recortado ? (l.acum ?? l.value) : (acumRk?.get(l.id)?.value ?? l.value) }))
+      .filter((l) => l.value > 0)
+      .sort((a, b) => b.value - a.value);
+    return { escopo, linhas: r.linhas, acumulado, ultimo: mun.anos.length - 1, aviso: avisoRecorte(escopo, r) };
   })();
   municipios.catch(() => {});
 
@@ -2606,13 +2613,13 @@ async function loadTerritorios({ ini, fim }) {
       {
         span: 6,
         title: `${rot("municipio", true)} que mais queimaram no período`,
-        subtitle: `Soma das áreas anuais ${ini}–${fim} · top 10`,
+        subtitle: `Área queimada acumulada ${ini}–${fim} · top 10`,
         lazy: async (progress) => {
           progress(`Baixando ranking de ${rot("municipio", true).toLowerCase()}…`);
           const m = await municipios;
-          const base = sum(m.linhas.map((l) => l.value));
+          const base = sum(m.acumulado.map((l) => l.value));
           return {
-            chart: hbarRanking(m.linhas.slice(0, 10), vermelho, base, state.municipioId),
+            chart: hbarRanking(m.acumulado.slice(0, 10), vermelho, base, state.municipioId),
             note: `${m.escopo.rotulo} · % sobre o total desses ${rot("municipio", true).toLowerCase()}. ${m.aviso}`,
           };
         },
@@ -3815,7 +3822,8 @@ const INFO_CARDS = [
   [/^Área afetada por ano e classe de severidade$/, "Área afetada de cada ano dividida pela classe de severidade."],
   [/^Distribuição no período$/, "Parte da área afetada do período em cada classe de severidade."],
   [/^Proporção com severidade/, "Em cada ano, que parte da área afetada teve severidade igual ou maior que a classe indicada."],
-  [/que mais queimaram( no período)?$/, "Ranking pela soma das áreas queimadas em cada ano do período."],
+  [/ que mais queimaram no período$/, "Ranking pela área acumulada: o que queimou ao menos uma vez no período, sem contar duas vezes o que queimou em mais de um ano."],
+  [/que mais queimaram$/,"Ranking pela soma das áreas queimadas em cada ano do período."],
   [/que mais queimaram em \d{4}$/, "Ranking da área queimada no ano final do período."],
   [/^Variação em \d{4} em relação à média/, "Quanto a área queimada no ano final ficou acima (vermelho) ou abaixo (azul) da média dos anos anteriores do período, em cada território."],
   [/^Evolução anual: os 3 maiores/, "Série anual dos três territórios com mais área queimada no período."],
