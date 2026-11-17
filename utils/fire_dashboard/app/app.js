@@ -2402,7 +2402,7 @@ async function loadUltimoFogo({ t, ini, fim }) {
           colors: periodos.map((p) => p.color),
           rotulos: "pct",
         },
-        rosca: [{ slices: periodos.filter((p) => p.value > 0).map((p) => ({ label: p.label, value: p.value, color: p.color })) }],
+        rosca: [{ slices: periodos.filter((p) => p.value > 0).map((p) => ({ label: p.label, value: p.value, color: p.color })), semCentro: true }],
       },
       {
         span: 6,
