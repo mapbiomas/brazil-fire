@@ -321,7 +321,8 @@ const TERRITORY_COLORS = ["#2a78d6", "#eb6834", "#1baf7a"]; // 3 primeiras cores
 // Frequência: como na plataforma MapBiomas Fogo, amarelo/laranja claro (1 vez) -> vermelho -> púrpura escuro.
 // Amarelo claro → laranja → vermelho escuro → preto (a mesma escala do mapa de frequência do GEE, 41 passos).
 // Com poucas classes, rampColor pega pontos espaçados nessa escala.
-const FREQ_RAMP = ["#faf3cd", "#fdf1b0", "#fbe981", "#fae258", "#f9de44", "#f8d71f", "#f1ca1e", "#e9bc1c", "#e2af1a", "#daa118", "#d29316", "#cc8715", "#c57b14", "#bd6c12", "#b76011", "#b0540f", "#a8450d", "#9f360b", "#992a0a", "#921e08", "#8c1307", "#810004", "#770105", "#6a0306", "#600407", "#5a0508", "#4b0709", "#450709", "#3f0708", "#390608", "#330607", "#2d0506", "#270506", "#220505", "#1c0404", "#170404", "#120303", "#0d0203", "#080202", "#040101", "#020000"];
+// Os 3 primeiros passos (amarelos quase brancos) ficam de fora: as classes 1 e 2 ficavam claras demais no fundo branco.
+const FREQ_RAMP = [/* "#faf3cd", "#fdf1b0", "#fbe981", */ "#fae258", "#f9de44","#f8d71f", "#f1ca1e", "#e9bc1c", "#e2af1a", "#daa118", "#d29316", "#cc8715", "#c57b14", "#bd6c12", "#b76011", "#b0540f", "#a8450d", "#9f360b", "#992a0a", "#921e08", "#8c1307", "#810004", "#770105", "#6a0306", "#600407", "#5a0508", "#4b0709", "#450709", "#3f0708", "#390608", "#330607", "#2d0506", "#270506", "#220505", "#1c0404", "#170404", "#120303", "#0d0203", "#080202", "#040101", "#020000"];
 // Tempo desde o último fogo: quente = fogo recente; verde/azul = muito tempo sem fogo.
 const DECORRIDO_RAMP = ["#c62828", "#f46d43", "#fdae61", "#d9ef8b", "#66bd63", "#1a9850", "#2c7fb8", "#253494"];
 
