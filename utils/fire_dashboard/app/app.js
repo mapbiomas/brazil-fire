@@ -319,7 +319,9 @@ const TERRITORY_COLORS = ["#2a78d6", "#eb6834", "#1baf7a"]; // 3 primeiras cores
 
 // Degradês contínuos (interpolados em RGB entre as paradas, ver rampColor).
 // Frequência: como na plataforma MapBiomas Fogo, amarelo/laranja claro (1 vez) -> vermelho -> púrpura escuro.
-const FREQ_RAMP = ["#ffd76e", "#fdae61", "#f46d43", "#d73027", "#a50026", "#5e0b4a"];
+// Amarelo claro → laranja → vermelho escuro → preto (a mesma escala do mapa de frequência do GEE, 41 passos).
+// Com poucas classes, rampColor pega pontos espaçados nessa escala.
+const FREQ_RAMP = ["#faf3cd", "#fdf1b0", "#fbe981", "#fae258", "#f9de44", "#f8d71f", "#f1ca1e", "#e9bc1c", "#e2af1a", "#daa118", "#d29316", "#cc8715", "#c57b14", "#bd6c12", "#b76011", "#b0540f", "#a8450d", "#9f360b", "#992a0a", "#921e08", "#8c1307", "#810004", "#770105", "#6a0306", "#600407", "#5a0508", "#4b0709", "#450709", "#3f0708", "#390608", "#330607", "#2d0506", "#270506", "#220505", "#1c0404", "#170404", "#120303", "#0d0203", "#080202", "#040101", "#020000"];
 // Tempo desde o último fogo: quente = fogo recente; verde/azul = muito tempo sem fogo.
 const DECORRIDO_RAMP = ["#c62828", "#f46d43", "#fdae61", "#d9ef8b", "#66bd63", "#1a9850", "#2c7fb8", "#253494"];
 
@@ -1838,21 +1840,18 @@ async function loadMensal({ t, ini, fim }) {
         span: 12,
         title: `Média mensal da área queimada ${ini}–${fim} · temporada ${rotuloJanela}`,
         subtitle: n > 1
-          ? `Área marrom = média (n = ${n} anos) · faixa clara = ± 1 desvio padrão · linhas = anos em destaque${cruza ? " · temporadas atravessam o ano (ex.: 2020/21)" : ""}`
-          : "Escolha um período com mais de um ano para a média e o desvio padrão",
+          ? `Área marrom = média (n = ${n} anos) · linhas = anos em destaque${cruza ? " · temporadas atravessam o ano (ex.: 2020/21)" : ""}`
+          : "Escolha um período com mais de um ano para a média",
         chart: {
           kind: "band",
           height: 320,
           labels: curtos,
           tooltipTitles: mesesJ.map((m) => m.name),
           mean: { label: `Média ${ini}–${fim}`, color: COR_MEDIA_MENSAL, values: medias },
-          upper: medias.map((m, i) => m + dps[i]),
-          lower: medias.map((m, i) => Math.max(0, m - dps[i])),
           years: selecionados,
         },
         legend: [
           { label: `Área queimada média ${ini}–${fim}`, color: COR_MEDIA_MENSAL },
-          { label: "± 1 desvio padrão", color: "#e3d9c9" },
           ...selecionados.map((s) => ({ label: `Área queimada mensal em ${s.label}`, color: s.color, line: true, dash: !!s.dash })),
         ],
       },
@@ -1870,6 +1869,7 @@ async function loadMensal({ t, ini, fim }) {
           values: somas,
           colors: janela.map((k) => corMes(k)),
           rotulos: "pct",
+          semCentro: true,
         },
       },
       // 3. Soma do período e média de cada mês.
@@ -3282,7 +3282,11 @@ function ligarMenuPngMapa(el, aoBaixar) {
     const largura = larguraEscolhida(troca);
     pop.hidden = true;
     botao.setAttribute("aria-expanded", "false");
-    aoBaixar(largura);
+    // Se o download falhar, avisa na tela em vez de ficar sem resposta.
+    Promise.resolve().then(() => aoBaixar(largura)).catch((err) => {
+      console.error(err);
+      setStatus(tr("Não foi possível gerar a imagem do mapa. Tente outra largura."));
+    });
   });
 }
 function larguraEscolhida(root) {
@@ -3371,6 +3375,7 @@ function roscasDe(card) {
   const c = card.chart;
   const roscas = card.rosca || [{
     slices: c.values.map((v, k) => ({ label: c.tooltipTitles?.[k] || c.labels[k], value: v, color: c.colors?.[k] || c.color })),
+    semCentro: !!c.semCentro,
   }];
   return roscas.map((r) => ({ ...r, slices: r.slices.filter((s) => s.value > 0) })).filter((r) => r.slices.length);
 }
@@ -4376,7 +4381,7 @@ function propbarsHtml({ rows, legend }) {
   return `<div class="propbars">${barras}<ul class="legend-list">${lista}</ul></div>`;
 }
 
-function doughnutHtml({ slices, centerLabel = "total" }) {
+function doughnutHtml({ slices, centerLabel = "total", semCentro = false }) {
   if (!slices.length) return `<p class="empty">Sem área queimada no período selecionado.</p>`;
   const total = sum(slices.map((s) => s.value));
   const legend = slices.map((s) => `
@@ -4390,7 +4395,7 @@ function doughnutHtml({ slices, centerLabel = "total" }) {
     <div class="donut">
       <div class="donut-chart">
         <canvas role="img" aria-label="Distribuição por classe"></canvas>
-        <div class="donut-center"><strong>${total >= 1e6 ? mha(total) : ha(total)}</strong><span>${escapeHtml(centerLabel)}</span></div>
+        ${semCentro ? "" : `<div class="donut-center"><strong>${total >= 1e6 ? mha(total) : ha(total)}</strong><span>${escapeHtml(centerLabel)}</span></div>`}
       </div>
       <ul class="legend-list">${legend}</ul>
     </div>`;
@@ -5591,8 +5596,11 @@ function multiLineConfig(spec, t, options) {
     const cinza = resolveColor(spec.mean.color, t);
     const limite = { borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, backgroundColor: withAlpha(cinza, 0.2), tension: 0.4, cubicInterpolationMode: "monotone" };
     datasets = [
-      { ...limite, label: "Média + 1 DP", data: spec.upper, fill: false },
-      { ...limite, label: "Média − 1 DP", data: spec.lower, fill: "-1" },
+      // Faixa ± 1 DP só aparece se o gráfico trouxer upper/lower (hoje o gráfico mensal não traz).
+      ...(spec.upper ? [
+        { ...limite, label: "Média + 1 DP", data: spec.upper, fill: false },
+        { ...limite, label: "Média − 1 DP", data: spec.lower, fill: "-1" },
+      ] : []),
       line({ ...spec.mean, color: cinza }, { borderWidth: 1.5, fill: "origin", backgroundColor: withAlpha(cinza, 0.35) }),
       ...spec.years.map((s) => line(s, {
         borderWidth: 2.25, pointRadius: 3.5, pointBackgroundColor: s.color, pointBorderColor: t.surface, pointBorderWidth: 1.5,

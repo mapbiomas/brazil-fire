@@ -1325,6 +1325,10 @@ a.md-botao { display: inline-block; text-decoration: none; }
   text-align: left;
 }
 .png-pop[hidden] { display: none; }
+/* Os painéis do Leaflet têm z-index de 400 a 1000: sem isolar o mapa, eles passavam por cima
+   do menu de largura (que abre sobre o mapa) e o clique em "Baixar PNG" caía no mapa. */
+.leaflet-container { isolation: isolate; }
+.png-troca { z-index: 1100; }
 .md-png { display: inline-flex; }
 .leaflet-container.fundo-branco { background: #ffffff; }
 .md-fundo { display: flex; align-items: center; gap: 6px; }
