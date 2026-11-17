@@ -4397,7 +4397,7 @@ function doughnutHtml({ slices, centerLabel = "total" }) {
 }
 
 // Rosca dupla: legenda por grupo (NATURAL / ANTRÓPICO / OUTROS), com a classe, a área e a %,
-// e uma linha "Demais classes" para as que ficam abaixo de 0,5% (a pessoa pode desligar).
+// e uma linha "Outras classes" para as que ficam abaixo de 0,5% (a pessoa pode desligar).
 const ANEIS_LIMITE = 0.005;
 const ANEIS_GRUPOS = ["Natural", "Antrópico", "Outros"];
 function aneisAgrupar() {
@@ -4415,7 +4415,7 @@ function aneisLegendaItens({ externo }, agrupar) {
   }).join("");
   const restantes = externo.filter(pequena);
   const demais = restantes.length
-    ? `<li class="aneis-demais"><i class="sw" style="--c:#c9c9c9"></i><span>Demais classes</span><span class="l-value">&lt; ${pct(ANEIS_LIMITE)} cada</span></li>` : "";
+    ? `<li class="aneis-demais"><i class="sw" style="--c:#c9c9c9"></i><span>Outras classes</span><span class="l-value">&lt; ${pct(ANEIS_LIMITE)} cada</span></li>` : "";
   return blocos + demais;
 }
 function aneisHtml(aneis) {
@@ -4426,7 +4426,7 @@ function aneisHtml(aneis) {
         <canvas role="img" aria-label="Natural x antrópico (anel de dentro) e classes (anel de fora)"></canvas>
       </div>
       <div class="aneis-legenda">
-        <label class="aneis-opcao"><input type="checkbox" data-aneis-agrupar${agrupar ? " checked" : ""}> Juntar classes com menos de 0,5% em "Demais classes"</label>
+        <label class="aneis-opcao"><input type="checkbox" data-aneis-agrupar${agrupar ? " checked" : ""}> Juntar classes com menos de 0,5% em "Outras classes"</label>
         <ul class="legend-list legend-aneis">${aneisLegendaItens(aneis, agrupar)}</ul>
       </div>
     </div>`;
@@ -5636,7 +5636,7 @@ function aneisConfig({ interno, externo }, t) {
   const options = baseOptions(t);
   const total = sum(externo.map((s) => s.value));
   options.interaction = { mode: "nearest", intersect: true };
-  options.cutout = 0; // sem buraco no meio: rosca dupla cheia (os dois anéis ocupam todo o círculo)
+  options.cutout = "30%"; // buraco branco no meio (sem o valor do total)
   options.plugins.rotulosRosca = { total };
   options.plugins.tooltip.callbacks = {
     title: () => "",

@@ -591,7 +591,7 @@ const I18N_LINHAS = [
   ["Parte da área queimada segundo o período do último fogo", "Parte del área quemada según el período del último fuego", "Share of the burned area by period of the last fire", "Bagian area terbakar menurut periode api terakhir"],
   ["Período do último fogo", "Período del último fuego", "Period of the last fire", "Periode api terakhir"],
   ["Juntar classes com menos de 0,5% em", "Agrupar las clases con menos de 0,5% en", "Group classes below 0.5% into", "Gabungkan kelas di bawah 0,5% ke dalam"],
-  ["Demais classes", "Demás clases", "Other classes", "Kelas lainnya"],
+  ["Outras classes", "Otras clases", "Other classes", "Kelas lainnya"],
   ["cada", "cada una", "each", "masing-masing"],
   ["Períodos", "Períodos", "Periods", "Periode"],
   ["períodos", "períodos", "periods", "periode"],
