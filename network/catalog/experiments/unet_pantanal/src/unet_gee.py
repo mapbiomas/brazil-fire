@@ -25,11 +25,13 @@ def gee_prefix(cfg):
 
 
 def gee_folders(cfg):
-    """Folders to create (in order) and the version ImageCollection."""
-    base = f"{gee_prefix(cfg)}/{cfg['CAMPAIGN']}"
-    exp = f"{base}/{cfg['EXPERIMENT']}"
-    biome = f"{exp}/{biome_slug(cfg)}"
-    return [base, exp, biome], f"{biome}/{cfg['MODEL_NAME']}"
+    """Every folder to create, in order, from the first level under assets/ down to the biome, and the
+    version ImageCollection. The parents (FIRE, FIRE/CATALOG_01, ...) may not exist yet in a new project."""
+    biome = f"{gee_prefix(cfg)}/{cfg['CAMPAIGN']}/{cfg['EXPERIMENT']}/{biome_slug(cfg)}"
+    root, sep, rest = biome.partition("/assets/")
+    parts = rest.split("/")
+    folders = [f"{root}{sep}{'/'.join(parts[:n])}" for n in range(1, len(parts) + 1)]
+    return folders, f"{biome}/{cfg['MODEL_NAME']}"
 
 
 def asset_id(cfg, period):
@@ -139,7 +141,7 @@ def publish(cfg, periods, logger=print, run=None):
         try:
             ee.data.createAsset({"type": kind}, path)
         except Exception as e:
-            if "exist" not in str(e).lower():  # "já existe" é normal; o resto (permissão, projeto) importa
+            if "already exists" not in str(e).lower():  # "já existe" é normal; o resto (permissão, projeto) importa
                 logger(f"   ⚠️ não foi possível criar {path}: {e}")
     done = {}
     for period in periods:

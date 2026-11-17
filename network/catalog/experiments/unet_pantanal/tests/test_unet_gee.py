@@ -18,6 +18,9 @@ class TestGee(unittest.TestCase):
     def test_paths(self):
         folders, coll = gee_folders(CFG)
         self.assertEqual(folders[-1], f"{PREFIX}/pantanal")
+        self.assertEqual(folders[0], "projects/mapbiomas-fire-485203/assets/FIRE")  # pais ainda inexistentes
+        self.assertEqual(folders[1], "projects/mapbiomas-fire-485203/assets/FIRE/CATALOG_01")
+        self.assertEqual(len(folders), 5)
         self.assertEqual(coll, f"{PREFIX}/pantanal/{VERSION}")
         self.assertEqual(asset_id(CFG, "2026_10"), f"{coll}/pantanal_r1_2026_10")
         self.assertTrue(map_path(CFG, "2026_10").endswith(
