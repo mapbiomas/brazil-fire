@@ -1,0 +1,53 @@
+﻿pt,en,es,fr,ind,zh,auto
+jan,,,,,,sim
+fev,,,,,,sim
+mar,,,,,,sim
+abr,,,,,,sim
+mai,,,,,,sim
+jun,,,,,,sim
+jul,,,,,,sim
+ago,,,,,,sim
+set,,,,,,sim
+out,,,,,,sim
+nov,,,,,,sim
+dez,,,,,,sim
+África,,,,,,sim
+América do Sul,,,,,,sim
+América do Norte e Central,,,,,,sim
+Ásia,,,,,,sim
+Europa,,,,,,sim
+Oceania,,,,,,sim
+Mundo,,,,,,sim
+Todos,,,,,,sim
+Continentes,,,,,,sim
+Países,,,,,,sim
+Estados,,,,,,sim
+continentes,,,,,,nao
+países,,,,,,nao
+estados/províncias,,,,,,nao
+continente,,,,,,nao
+país,,,,,,nao
+estado/província,,,,,,nao
+Floresta,,,,,,sim
+Savana,,,,,,sim
+Campo / arbustivo,,,,,,sim
+Agricultura,,,,,,sim
+Outros,,,,,,sim
+Área queimada,,,,,,sim
+% do território,,,,,,sim
+Área VIIRS,,,,,,sim
+Focos de calor,,,,,,sim
+Focos,,,,,,sim
+Ano todo,,,,,,sim
+mil,,,,,,nao
+mil ha,,,,,,sim
+mil t,,,,,,sim
+mi,,,,,,nao
+sem dado ou zero,,,,,,sim
+sem dado neste período,,,,,,sim
+novo,,,,,,sim
+média,,,,,,sim
+máximo,,,,,,sim
+parcial,,,,,,sim
+lugar,,,,,,sim
+até,,,,,,sim
