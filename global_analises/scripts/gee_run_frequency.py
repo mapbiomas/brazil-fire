@@ -65,13 +65,16 @@ def period_table(end, level, uid_img, lookup, world):
 
 
 def main():
+    global STRIPS
     ap = argparse.ArgumentParser()
     ap.add_argument('--level', type=int, default=0, choices=[0, 1])
     ap.add_argument('--start', type=int, default=FIRST, help='primeiro ano final de período')
     ap.add_argument('--end', type=int, default=2025, help='último ano final de período')
     ap.add_argument('--account')
     ap.add_argument('--project', default=PROJECT)
+    ap.add_argument('--strips', type=int, default=STRIPS, help='faixas de longitude (mais faixas = menos timeout)')
     a = ap.parse_args()
+    STRIPS = a.strips
 
     init(a.account, a.project)
     folder = f'projects/{a.project}/assets/GLOBAL_ANALISES'

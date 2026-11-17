@@ -20,6 +20,7 @@ from ee_profiles import init
 PROJECT = 'mapbiomas-brazil'
 OUT = pathlib.Path(__file__).resolve().parent.parent / 'data'
 MAXF = 25
+CLASSES = [(1, 1), (2, 2), (3, 5), (6, 10), (11, MAXF)]  # c1..c5 no arquivo de estados (mesmas classes do painel)
 
 
 def main():
@@ -46,7 +47,8 @@ def main():
                     acc[k][c] += float(v or 0)
         print(aid.rsplit('/', 1)[-1], len(feats), 'linhas')
 
-    cols = ['gid', 'iso3', 'name', 'year_start', 'year_end', 'area_ha', 'burned_once_ha'] + [f'f{k}' for k in range(1, MAXF + 1)]
+    cols = ['gid', 'iso3', 'name', 'year_start', 'year_end', 'area_ha', 'burned_once_ha'] + (
+        [f'f{k}' for k in range(1, MAXF + 1)] if a.level == 0 else [f'c{i}' for i in range(1, len(CLASSES) + 1)])
     OUT.mkdir(exist_ok=True)
     path = OUT / f'freq_adm{a.level}.csv'
     with open(path, 'w', newline='', encoding='utf-8') as fh:
@@ -57,8 +59,11 @@ def main():
             if not d['burned_once_ha']:
                 continue
             n = end - 2001 + 1
-            w.writerow([gid, *meta[gid], 2001, end, round(d['area_ha']), round(d['burned_once_ha'])] +
-                       [round(d[f'f{k}']) if k <= n else '' for k in range(1, MAXF + 1)])
+            if a.level == 0:
+                tail = [round(d[f'f{k}']) if k <= n else '' for k in range(1, MAXF + 1)]
+            else:  # estados: só as classes, para o arquivo ficar leve
+                tail = [round(sum(d[f'f{k}'] for k in range(lo, min(hi, n) + 1))) for lo, hi in CLASSES]
+            w.writerow([gid, *meta[gid], 2001, end, round(d['area_ha']), round(d['burned_once_ha'])] + tail)
     print('gravado', path, 'períodos:', sorted({k[1] for k in acc}))
 
 
