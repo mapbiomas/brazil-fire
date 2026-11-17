@@ -67,6 +67,7 @@ unet_pantanal/
     unet_report.py    test metrics, MLP baseline, comparison table
     unet_resumo.py    didactic printed summaries of the notebook steps (Portuguese)
     unet_ui.py        notebook widgets: step 2 new training (samples, bands, indices, version) or existing version; 4 epochs; 6 model + classify periods
+    unet_app.py       notebook in 3 blocks with tabs: 1 Configuration (country > biome > region > training), 2 Training, 3 Classification
   tests/test_unet_*.py                        unit tests
   docs/unet_monitor_fogo.md                   slides outline: context, proposal and progress (Portuguese)
 ```
@@ -76,8 +77,10 @@ unet_pantanal/
 1. The monthly mosaics (catalog M1/M2) and samples (catalog M3) must be in GCS.
 2. Open the notebook in Colab with a **GPU** runtime. Use a fresh runtime:
    the catalog M4 trainer switches TensorFlow to v1 mode, which breaks Keras 2.
-3. Edit the config cell (`REGION`, `SAMPLE_REGION`, bands)
-   and run the cells in order. Each step saves its result in GCS, so a step
+3. Run the three code cells in order: **1 Configuration** (login; choose country, biome, region and a new or
+   existing training, then *Confirm*), **2 Training** (tabs: samples and version, parameters, train, metrics) and
+   **3 Classification** (tabs: model and months, classify, join the strips, publish to GEE). The buttons run the
+   steps inside the tabs. The notebook opens with the sections collapsed (Colab `collapsed_sections`). Each step saves its result in GCS, so a step
    can be re-run alone.
 
 Chips of every period in `PERIODS` train **one** model; validation and test

@@ -18,10 +18,19 @@ from unet_model import chip_files, labeled_pixels, split_histograms
 METRIC_KEYS = ("f1", "iou", "precision", "recall", "omission", "commission")
 
 
+def _curve(h_fire, h_not, step=0.05):
+    """F1, precision and recall at thresholds 0.05..0.95 (for the notebook plot)."""
+    ts = [round(float(t), 2) for t in np.arange(step, 1.0, step)]
+    ms = [metrics_at(h_fire, h_not, t) for t in ts]
+    return {"threshold": ts, **{k: [float(m[k]) for m in ms] for k in ("f1", "precision", "recall")}}
+
+
 def _summary(h_val_fire, h_val_not, h_te_fire, h_te_not):
     best = best_threshold(h_val_fire, h_val_not)
     thr = best["threshold"]
     return {
+        "val_curve": _curve(h_val_fire, h_val_not),
+        "test_curve": _curve(h_te_fire, h_te_not),
         "val_best_threshold": thr,
         "val_at_best": best,
         "test_at_best": metrics_at(h_te_fire, h_te_not, thr),
