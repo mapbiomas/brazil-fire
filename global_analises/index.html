@@ -508,7 +508,7 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
       A0.keys = [...A0.rows.keys()].sort((a, b) => a - b);
     }
     const keys = A0.keys, years = [...new Set(keys.map(Y))], adm1Max = Math.max(...META.adm1_years);
-    if (S.year == null) { const [y, m] = META.gwis.to.split('-').map(Number); S.year = y; S.month = m; }
+    if (S.year == null) { const [y, m] = META.gwis.to.split('-').map(Number); S.year = m === 12 ? y : y - 1; S.month = 0; }  // padrão: ano todo do último ano completo do GWIS
     if (S.level === 'adm1' && S.year > adm1Max) S.year = adm1Max;
     if (S.month && !A0.rows.has(K(S.year, S.month))) S.month = 0;
     const PK = periodKeys(S.year, S.month);
