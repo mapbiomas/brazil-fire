@@ -611,8 +611,8 @@ def abrir_treino(estado):
         tabs.set_title(i, t)
     cab = w.HTML(f"<b>Treino</b> · {estado.cfg['REGION']} · "
                  f"{'versão ' + estado.cfg['MODEL_NAME'] if estado.existente else 'novo treino'}")
+    estado.tabs_treino = tabs  # não devolve o widget: a célula o mostraria uma segunda vez
     display(w.VBox([cab, tabs]))
-    return tabs
 
 
 # --- bloco 3: classificação -----------------------------------------------------------------------------
@@ -701,5 +701,5 @@ def abrir_classificacao(estado):
     for i, t in enumerate(["1 Modelo e meses", "2 Classificar", "3 Juntar", "4 Publicar no GEE"]):
         tabs.set_title(i, t)
     cab = w.HTML(f"<b>Classificação</b> · {estado.cfg_class['REGION']} · modelo {estado.cfg_class['MODEL_NAME']}")
+    estado.tabs_class = tabs  # não devolve o widget: a célula o mostraria uma segunda vez
     display(w.VBox([cab, tabs]))
-    return tabs

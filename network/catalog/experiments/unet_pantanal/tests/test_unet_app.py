@@ -116,15 +116,18 @@ class TestWidgets(unittest.TestCase):
         estado = unet_app.Estado(CFG)
         estado.confirmado = True
         with mock.patch.object(unet_env, "ls", fake_ls):
-            treino = unet_app.abrir_treino(estado)
+            self.assertIsNone(unet_app.abrir_treino(estado))  # devolver o widget duplicaria a interface
+            treino = estado.tabs_treino
             self.assertEqual(len(treino.children), 4)
             self.assertEqual(treino.get_title(3), "4 Métricas")
-            clas = unet_app.abrir_classificacao(estado)
+            self.assertIsNone(unet_app.abrir_classificacao(estado))
+            clas = estado.tabs_class
             self.assertEqual(len(clas.children), 4)
             self.assertIsNotNone(estado.cfg_class)
         estado.existente = True
         with mock.patch.object(unet_env, "ls", fake_ls):
-            self.assertEqual(len(unet_app.abrir_treino(estado).children), 4)  # versão aberta: só o resumo na aba 1
+            unet_app.abrir_treino(estado)
+            self.assertEqual(len(estado.tabs_treino.children), 4)  # versão aberta: só o resumo na aba 1
 
     def test_blocks_wait_for_confirmation(self):
         estado = unet_app.Estado(CFG)
