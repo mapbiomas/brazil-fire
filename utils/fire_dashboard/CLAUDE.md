@@ -138,3 +138,4 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - **Menu de largura do PNG nos mapas:** `.leaflet-container` tem `isolation: isolate` e `.png-troca` z-index alto, senão os painéis do Leaflet (z-index 400–1000) cobrem o menu e o botão "Baixar PNG" não recebe o clique.
 - **Severidade:** o gráfico de barras da distribuição usa `rotulos: "texto"` + `rotulosTexto` (valor em Mha/ha no fim da barra, na cor da classe).
 - **Rede:** `fetchTerritoryTile` repete até 4 vezes e `apiGet` também repete "Falha de rede" (antes um "Failed to fetch" derrubava o ranking de municípios).
+- **PNG dos mapas:** `baixarMapaPng` sempre desenha o mapa em tamanho dobrado (`MAPA_PNG_K` = 2, zoom +1 e `L.Browser.retina`) e reduz na imagem final (3x): tiles com o dobro de detalhe e vetores nítidos. Os cards (gráficos, barras, roscas, mapa de calor) já saem em 3x via `PNG_ESC`.

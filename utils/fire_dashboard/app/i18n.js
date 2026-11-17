@@ -609,6 +609,7 @@ const I18N_LINHAS = [
   ["Fundo branco", "Fondo blanco", "White background", "Latar putih"],
   ["Satélite", "Satélite", "Satellite", "Satelit"],
   ["Não foi possível gerar a imagem do mapa. Tente outra largura.", "No se pudo generar la imagen del mapa. Pruebe otro ancho.", "Could not generate the map image. Try another width.", "Gambar peta tidak dapat dibuat. Coba lebar lain."],
+  ["Preparando o mapa em alta resolução…", "Preparando el mapa en alta resolución…", "Preparing the map in high resolution…", "Menyiapkan peta dalam resolusi tinggi…"],
   ["Preparando o mapa na largura escolhida…", "Preparando el mapa en el ancho elegido…", "Preparing the map at the chosen width…", "Menyiapkan peta dengan lebar yang dipilih…"],
   ["Horizontal", "Horizontal", "Horizontal", "Horizontal"],
   ["até 10%", "hasta 10%", "up to 10%", "hingga 10%"],

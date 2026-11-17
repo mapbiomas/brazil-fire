@@ -5096,33 +5096,39 @@ function itensDaLegenda(el) {
 // Com largura escolhida: estreita (ou alarga) o mapa só durante a cópia, encaixa a mesma
 // área na nova largura, espera os tiles carregarem e depois devolve o mapa como estava.
 async function baixarMapaPng(map, box, titulo, legendaEl, largura = null) {
-  if (!largura || Math.abs(largura - box.clientWidth) < 2) return baixarMapaPngAgora(map, box, titulo, legendaEl);
+  // Sempre desenha o mapa em tamanho dobrado (K): o zoom sobe um nível (tiles com o dobro de detalhe)
+  // e os vetores saem em canvas "retina". A imagem final tem o tamanho lógico pedido, só mais nítida.
+  const K = MAPA_PNG_K;
   const antes = box.style.cssText, centro = map.getCenter(), zoom = map.getZoom(), area = map.getBounds();
+  const retinaAntes = L.Browser.retina;
   const esperarTiles = async () => {
-    await sleep(250);
-    for (let k = 0; k < 40; k++) {
+    await sleep(300);
+    for (let k = 0; k < 60; k++) {
       let carregando = false;
       map.eachLayer((l) => { if (l.isLoading?.()) carregando = true; });
       if (!carregando) break;
       await sleep(150);
     }
-    await sleep(150);
+    await sleep(250);
   };
   try {
-    setStatus(tr("Preparando o mapa na largura escolhida…"));
+    setStatus(tr("Preparando o mapa em alta resolução…"));
     // Mesma proporção do mapa da tela (altura acompanha a largura) e zoom fracionário,
     // para a mesma área caber sem sobrar borda.
-    const alturaNova = Math.max(260, Math.round(box.clientHeight * largura / box.clientWidth));
-    box.style.width = `${largura}px`;
+    const larguraLogica = largura || box.clientWidth;
+    const alturaLogica = largura ? Math.max(260, Math.round(box.clientHeight * largura / box.clientWidth)) : box.clientHeight;
+    try { L.Browser.retina = true; } catch { /* sem retina: só os vetores ficam na resolução da tela */ }
+    box.style.width = `${larguraLogica * K}px`;
     box.style.maxWidth = "none";
-    box.style.height = `${alturaNova}px`;
+    box.style.height = `${alturaLogica * K}px`;
     box.style.minHeight = "0";
     map.options.zoomSnap = 0;
     map.invalidateSize({ animate: false });
     map.fitBounds(area, { animate: false });
     await esperarTiles();
-    await baixarMapaPngAgora(map, box, titulo, legendaEl);
+    await baixarMapaPngAgora(map, box, titulo, legendaEl, K);
   } finally {
+    try { L.Browser.retina = retinaAntes; } catch { /* nada */ }
     map.options.zoomSnap = 1;
     box.style.cssText = antes;
     map.invalidateSize({ animate: false });
@@ -5130,10 +5136,11 @@ async function baixarMapaPng(map, box, titulo, legendaEl, largura = null) {
     setStatus("");
   }
 }
-
-async function baixarMapaPngAgora(map, box, titulo, legendaEl) {
-  const W = box.clientWidth, H = box.clientHeight;
-  const pad = 16, cab = 58, esc = 2;
+const MAPA_PNG_K = 2;
+// k = quantas vezes a caixa do mapa está maior que a imagem final (ver baixarMapaPng).
+async function baixarMapaPngAgora(map, box, titulo, legendaEl, k = 1) {
+  const W = box.clientWidth / k, H = box.clientHeight / k; // tamanho lógico da imagem
+  const pad = 16, cab = 58, esc = 1.5 * k + (k === 1 ? 0.5 : 0); // 3x com k = 2 (2x como antes sem supersampling)
   const medir = document.createElement("canvas").getContext("2d");
   medir.font = "500 12px Montserrat, sans-serif";
   const itens = itensDaLegenda(legendaEl);
@@ -5161,6 +5168,7 @@ async function baixarMapaPngAgora(map, box, titulo, legendaEl) {
   ctx.fillText(tr(`${PAIS.marca}${state.conn?.colecao ? ` · Coleção ${state.conn.colecao}` : ""} · ${activeTerritory().nome} · ${state.ini}–${state.fim}`), pad, 46, W);
 
   // Mapa: tiles e canvas do Leaflet nas posições da tela.
+  // As medidas da caixa (px da tela) são k vezes maiores que as da imagem: desenha com escala 1/k.
   const mr = box.getBoundingClientRect();
   ctx.save();
   ctx.beginPath();
@@ -5168,6 +5176,9 @@ async function baixarMapaPngAgora(map, box, titulo, legendaEl) {
   ctx.clip();
   ctx.fillStyle = map._fundo === "branco" ? "#ffffff" : resolveColor("var(--surface-muted)") || "#eeeeee";
   ctx.fillRect(pad, cab, W, H);
+  ctx.translate(pad, cab);
+  ctx.scale(1 / k, 1 / k);
+  ctx.imageSmoothingQuality = "high";
   for (const img of box.querySelectorAll(".leaflet-tile-pane img")) {
     if (!img.complete || !img.naturalWidth) continue;
     const r = img.getBoundingClientRect();
@@ -5179,30 +5190,31 @@ async function baixarMapaPngAgora(map, box, titulo, legendaEl) {
         const o = camada.getBoundingClientRect();
         const [t, d, b, e] = m.slice(1).map(Number);
         ctx.beginPath();
-        ctx.rect(pad + o.left - mr.left + e, cab + o.top - mr.top + t, d - e, b - t);
+        ctx.rect(o.left - mr.left + e, o.top - mr.top + t, d - e, b - t);
         ctx.clip();
       }
     }
     ctx.globalAlpha = Number(getComputedStyle(camada || img).opacity) || 1;
-    ctx.drawImage(img, pad + r.left - mr.left, cab + r.top - mr.top, r.width, r.height);
+    ctx.drawImage(img, r.left - mr.left, r.top - mr.top, r.width, r.height);
     ctx.restore();
   }
   for (const c of box.querySelectorAll(".leaflet-pane canvas")) {
     const r = c.getBoundingClientRect();
-    ctx.drawImage(c, pad + r.left - mr.left, cab + r.top - mr.top, r.width, r.height);
+    ctx.drawImage(c, r.left - mr.left, r.top - mr.top, r.width, r.height);
   }
   const linhaCortina = box.querySelector(".cortina-linha");
   if (linhaCortina) {
     const r = linhaCortina.getBoundingClientRect();
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(pad + r.left - mr.left, cab, 3, H);
+    ctx.fillRect(r.left - mr.left, 0, 3 * k, H * k);
   }
   ctx.restore();
   ctx.strokeStyle = "#d0d0d0";
   ctx.strokeRect(pad + 0.5, cab + 0.5, W - 1, H - 1);
 
   // Barra de escala (canto inferior esquerdo do mapa).
-  const e = escalaDoMapa(map);
+  const e0 = escalaDoMapa(map, 120 * k); // medida em px da caixa (k vezes a da imagem)
+  const e = { ...e0, px: e0.px / k };
   const ex = pad + 12, ey = cab + H - 16;
   ctx.fillStyle = "rgba(255,255,255,0.85)";
   ctx.fillRect(ex - 6, ey - 20, e.px + 12 + 60, 28);
