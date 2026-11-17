@@ -4,52 +4,59 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Monitor global de fogo</title>
+<meta name="description" content="Área queimada, focos de calor e emissões por fogo no mundo, por continente, país e estado/província, mês a mês.">
 <style>
 :root {
   color-scheme: light;
-  --page: #f3ede2; --surface: #fbf8f2; --ink: #2a2119; --ink-2: #5b4a3b; --muted: #7d6b58;
-  --grid: #e6dccb; --axis: #cbbca4; --ring: rgba(70,50,30,0.12); --seam: rgba(70,50,30,0.35);
-  --accent: #9a4f26; --accent-weak: #ecd8c6; --on-accent: #fbf8f2;
-  --line: #2a78d6; --line2: #6250d6;
-  --c-forest: #1f8d49; --c-savanna: #eda100; --c-grass: #c9a35a; --c-crop: #e87ba4; --c-other: #9c8c78;
-  --up: #a12b2b; --down: #1f6b3a;
-  --r1: #f7ece2; --r2: #f0d4bb; --r3: #e5b08c; --r4: #d18659; --r5: #b05c31; --r6: #7d3818; --nodata: #d9d3cb;
+  --page: #f8f0eb; --surface: #fffaf7; --ink: #3b2724; --ink-2: #6e4c46; --muted: #93736c;
+  --grid: #f0e1da; --axis: #e0c7bd; --ring: rgba(120,60,45,0.12);
+  --accent: #c4573f; --accent-weak: #f8ddd4; --on-accent: #fffaf7;
+  --line: #4f8a8b; --line-weak: #d4e6e4;
+  --c-forest: #86b892; --c-savanna: #ebc47e; --c-grass: #dcb79c; --c-crop: #e9a3b2; --c-other: #c4b6ae;
+  --up: #b83a2b; --down: #3b7d58;
+  --r1: #fcebe5; --r2: #f7d1c4; --r3: #f0ae9a; --r4: #e48870; --r5: #cf6149; --r6: #a5402f; --nodata: #e6ded9;
+  --border: #fffaf7; --cborder: #8c6a62;
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #16120e; --surface: #201b16; --ink: #f2ece2; --ink-2: #cdbfac; --muted: #9c8c78;
-  --grid: #2f2821; --axis: #463b30; --ring: rgba(255,240,220,0.10); --seam: rgba(0,0,0,0.45);
-  --accent: #d98c5f; --accent-weak: #4d3222; --on-accent: #16120e;
-  --line: #3987e5; --line2: #9085e9;
-  --c-forest: #2fa35c; --c-savanna: #c98500; --c-grass: #b09050; --c-crop: #d55181; --c-other: #7d6b58;
-  --up: #e66767; --down: #4cbf72;
-  --r1: #33281f; --r2: #4e3324; --r3: #74432a; --r4: #a35b33; --r5: #d0804e; --r6: #f0b184; --nodata: #3a3632;
+  --page: #1a1312; --surface: #241a18; --ink: #f6ebe7; --ink-2: #d5bdb5; --muted: #a58a83;
+  --grid: #352725; --axis: #4e3833; --ring: rgba(255,225,215,0.10);
+  --accent: #ec8b72; --accent-weak: #4e2c25; --on-accent: #1a1312;
+  --line: #79c0bf; --line-weak: #24403f;
+  --c-forest: #6ea67b; --c-savanna: #d1a75c; --c-grass: #b99a80; --c-crop: #d5788c; --c-other: #8c7d75;
+  --up: #f07a68; --down: #6cc597;
+  --r1: #3b2522; --r2: #5a2e27; --r3: #823c2f; --r4: #b0503b; --r5: #dc7458; --r6: #f6aa90; --nodata: #2f2826;
+  --border: #241a18; --cborder: #d5bdb5;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --page: #16120e; --surface: #201b16; --ink: #f2ece2; --ink-2: #cdbfac; --muted: #9c8c78;
-    --grid: #2f2821; --axis: #463b30; --ring: rgba(255,240,220,0.10); --seam: rgba(0,0,0,0.45);
-    --accent: #d98c5f; --accent-weak: #4d3222; --on-accent: #16120e;
-    --line: #3987e5; --line2: #9085e9;
-    --c-forest: #2fa35c; --c-savanna: #c98500; --c-grass: #b09050; --c-crop: #d55181; --c-other: #7d6b58;
-    --up: #e66767; --down: #4cbf72;
-  --r1: #33281f; --r2: #4e3324; --r3: #74432a; --r4: #a35b33; --r5: #d0804e; --r6: #f0b184; --nodata: #3a3632;
+    --page: #1a1312; --surface: #241a18; --ink: #f6ebe7; --ink-2: #d5bdb5; --muted: #a58a83;
+    --grid: #352725; --axis: #4e3833; --ring: rgba(255,225,215,0.10);
+    --accent: #ec8b72; --accent-weak: #4e2c25; --on-accent: #1a1312;
+    --line: #79c0bf; --line-weak: #24403f;
+    --c-forest: #6ea67b; --c-savanna: #d1a75c; --c-grass: #b99a80; --c-crop: #d5788c; --c-other: #8c7d75;
+    --up: #f07a68; --down: #6cc597;
+    --r1: #3b2522; --r2: #5a2e27; --r3: #823c2f; --r4: #b0503b; --r5: #dc7458; --r6: #f6aa90; --nodata: #2f2826;
+    --border: #241a18; --cborder: #d5bdb5;
   }
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; background: var(--page); color: var(--ink);
-  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+html, body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
 .wrap { max-width: 1500px; margin: 0 auto; padding: 0 16px 48px; }
-header { padding: 28px 0 18px; display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
-header .titles { flex: 1 1 520px; }
+header { padding: 28px 0 14px; display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+header .titles { flex: 1 1 560px; }
 header h1 { margin: 0 0 6px; font-size: 24px; font-weight: 650; letter-spacing: -0.01em; }
-header p { margin: 0; color: var(--ink-2); max-width: 820px; }
+header p { margin: 0; color: var(--ink-2); max-width: 860px; }
+.sources { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.sources a { font-size: 12.5px; text-decoration: none; color: var(--ink); background: var(--accent-weak); border-radius: 999px; padding: 4px 11px; }
+.sources a b { font-weight: 650; }
+.sources a:hover { box-shadow: inset 0 0 0 1px var(--accent); }
 header .meta { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
 .hdr-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .tabs { display: flex; gap: 4px; }
-.tabs a, .themebtn { font: inherit; font-size: 13px; color: var(--ink-2); text-decoration: none; padding: 6px 12px; border-radius: 999px;
-  border: 1px solid var(--axis); background: var(--surface); cursor: pointer; }
+.tabs a, .themebtn { font: inherit; font-size: 13px; color: var(--ink-2); text-decoration: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--axis); background: var(--surface); cursor: pointer; }
 .tabs a[aria-current="page"] { background: var(--ink); border-color: var(--ink); color: var(--surface); font-weight: 600; }
 
 .layout { display: block; }
@@ -61,15 +68,14 @@ header .meta { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
 .fgroup { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .flabel { font-size: 11.5px; color: var(--muted); font-weight: 650; text-transform: uppercase; letter-spacing: .04em; }
 .seg { display: grid; gap: 4px; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); }
-.seg button { font: inherit; font-size: 12.5px; line-height: 1.15; padding: 6px 4px; min-height: 30px; color: var(--ink-2); background: var(--surface);
-  border: 1px solid var(--axis); border-radius: 7px; cursor: pointer; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seg button { font: inherit; font-size: 12.5px; line-height: 1.15; padding: 6px 4px; min-height: 30px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--axis); border-radius: 7px; cursor: pointer; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .seg button:hover { color: var(--ink); border-color: var(--muted); }
 .seg button[aria-pressed="true"] { color: var(--on-accent); background: var(--accent); border-color: var(--accent); font-weight: 600; }
 .seg button:disabled { opacity: .35; cursor: not-allowed; }
-.seg button:focus-visible, .tabs a:focus-visible, select:focus-visible, .rrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg button:focus-visible, .tabs a:focus-visible, select:focus-visible, .rrow:focus-visible, .dlbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .seg.small { display: flex; flex-wrap: wrap; } .seg.small button { padding: 4px 10px; min-height: 26px; border-radius: 999px; font-size: 12px; }
-#fLevel { --cols: 2; } #fMetric { --cols: 2; } #fMonth { --cols: 7; } #fTop { --cols: 4; } #fYear { --cols: 5; }
-#fMonth button:first-child { grid-column: span 7; }
+#fLevel { --cols: 3; } #fMetric { --cols: 2; } #fMonth { --cols: 7; } #fTop { --cols: 4; } #fYear { --cols: 5; } #fCont { --cols: 2; }
+#fMonth button:first-child, #fCont button:first-child { grid-column: 1 / -1; }
 select { font: inherit; font-size: 13px; color: var(--ink); background: var(--surface); border: 1px solid var(--axis); border-radius: 7px; padding: 6px 8px; width: 100%; }
 @media (min-width: 1100px) {
   .layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 20px; align-items: start; }
@@ -81,8 +87,9 @@ select { font: inherit; font-size: 13px; color: var(--ink); background: var(--su
 }
 
 .grid { display: grid; gap: 16px; }
-.kpis { grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; }
-.row2 { grid-template-columns: 1fr 1fr; margin-bottom: 16px; align-items: start; }
+.kpis { grid-template-columns: repeat(4, 1fr); }
+.row2 { grid-template-columns: 1fr 1fr; align-items: start; }
+.stackv { display: grid; gap: 16px; margin-bottom: 16px; }
 @media (max-width: 1250px) { .kpis { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 960px) { .row2 { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .kpis { grid-template-columns: 1fr; } }
@@ -91,15 +98,21 @@ select { font: inherit; font-size: 13px; color: var(--ink); background: var(--su
 .card-head > div:first-child { flex: 1 1 240px; min-width: 0; }
 .card h2 { margin: 0; font-size: 15px; font-weight: 620; }
 .card .sub { margin: 2px 0 12px; font-size: 12.5px; color: var(--muted); }
+.src { font-size: 11.5px; color: var(--muted); margin: 0; }
+.src a { color: var(--muted); }
+.cfoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.dls { display: flex; gap: 6px; }
+.dlbtn { font: inherit; font-size: 12px; color: var(--accent); background: var(--surface); border: 1px solid var(--axis); border-radius: 999px; padding: 4px 11px; cursor: pointer; white-space: nowrap; }
+.dlbtn:hover { border-color: var(--accent); background: var(--accent-weak); }
 .tile .label { font-size: 12.5px; color: var(--ink-2); }
 .tile .value { font-size: 28px; font-weight: 640; margin-top: 6px; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .tile .value small { font-size: 14px; font-weight: 500; color: var(--ink-2); margin-left: 4px; }
 .tile .note { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.tile .src { margin-top: 8px; }
 .delta { font-weight: 600; } .delta.up { color: var(--up); } .delta.down { color: var(--down); }
 
 .rank { display: grid; gap: 2px; }
-.rrow { display: grid; grid-template-columns: 28px 16px minmax(90px, 190px) 1fr 96px; gap: 8px; align-items: center; font-size: 13px; padding: 3px 4px;
-  border-radius: 6px; cursor: pointer; border: 0; background: none; color: inherit; font: inherit; text-align: left; width: 100%; }
+.rrow { display: grid; grid-template-columns: 28px 16px minmax(90px, 190px) 1fr 96px; gap: 8px; align-items: center; font-size: 13px; padding: 3px 4px; border-radius: 6px; cursor: pointer; border: 0; background: none; color: inherit; font: inherit; text-align: left; width: 100%; }
 .rrow:hover { background: var(--accent-weak); }
 .rrow.on { box-shadow: inset 0 0 0 1.5px var(--accent); }
 .rrow .pos { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
@@ -114,20 +127,30 @@ select { font: inherit; font-size: 13px; color: var(--ink); background: var(--su
 
 .chart { position: relative; }
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.chart text { fill: var(--muted); font-size: 11px; font-family: inherit; }
-.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--surface); font-size: 12px; padding: 6px 9px; border-radius: 6px;
-  white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); z-index: 5; line-height: 1.4; }
+.chart text, .map text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--surface); font-size: 12px; padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); z-index: 5; line-height: 1.4; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 8px; padding: 0; list-style: none; font-size: 12.5px; color: var(--ink-2); }
 .legend li { display: flex; align-items: center; gap: 6px; }
 .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
 .legend i.ln { height: 3px; border-radius: 2px; width: 16px; }
-.split { display: flex; height: 14px; border-radius: 4px; overflow: hidden; gap: 2px; margin: 4px 0 10px; }
+.split { display: flex; height: 16px; border-radius: 4px; overflow: hidden; gap: 2px; margin: 4px 0 10px; }
 .split span { display: block; height: 100%; }
-.note { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
-.dlrow { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-.dlbtn { font: inherit; font-size: 12.5px; color: var(--accent); background: var(--surface); border: 1px solid var(--axis); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
-.dlbtn:hover { border-color: var(--accent); }
+.map { position: relative; }
+.map svg { display: block; width: 100%; max-width: 1080px; margin: 0 auto; height: auto; }
+.map path.u { stroke: var(--border); stroke-width: .6; cursor: pointer; vector-effect: non-scaling-stroke; }
+.map path.u:hover { stroke: var(--ink); stroke-width: 1.2; }
+.map path.u.on { stroke: var(--ink); stroke-width: 2; }
+.map path.u.out { opacity: .35; }
+.map path.cb { fill: none; stroke: var(--cborder); stroke-width: .7; pointer-events: none; vector-effect: non-scaling-stroke; opacity: .7; }
+.map .sphere { fill: none; stroke: var(--grid); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.mlegend { display: flex; align-items: flex-start; margin-top: 8px; font-size: 11.5px; color: var(--muted); flex-wrap: wrap; row-gap: 6px; }
+.mlegend .sw { display: flex; flex-direction: column; min-width: 64px; }
+.mlegend .sw i { height: 10px; display: block; }
+.mlegend .sw span { padding-top: 3px; font-variant-numeric: tabular-nums; }
+.mlegend .nd { margin-left: 14px; display: flex; align-items: center; gap: 6px; }
+.mlegend .nd i { width: 14px; height: 10px; background: var(--nodata); display: inline-block; }
+
 .scroll { overflow: auto; max-height: 460px; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
@@ -139,19 +162,9 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
 .msec { max-width: 860px; }
 .msec h2 { font-size: 20px; margin: 22px 0 6px; }
 .msec p, .msec li { color: var(--ink-2); }
-.loading { opacity: .55; transition: opacity .15s; }
-.map { position: relative; }
-.map svg { display: block; width: 100%; max-width: 1080px; margin: 0 auto; height: auto; }
-.map path { stroke: var(--surface); stroke-width: .5; cursor: pointer; transition: opacity .1s; }
-.map path:hover { stroke: var(--ink); stroke-width: 1; }
-.map path.on { stroke: var(--ink); stroke-width: 1.6; }
-.map .sphere { fill: none; stroke: var(--grid); stroke-width: 1; cursor: default; }
-.mlegend { display: flex; align-items: center; gap: 0; margin-top: 8px; font-size: 11.5px; color: var(--muted); flex-wrap: wrap; }
-.mlegend .sw { display: flex; flex-direction: column; min-width: 64px; }
-.mlegend .sw i { height: 10px; display: block; }
-.mlegend .sw span { padding-top: 3px; font-variant-numeric: tabular-nums; }
-.mlegend .nd { margin-left: 14px; display: flex; align-items: center; gap: 6px; }
-.mlegend .nd i { width: 14px; height: 10px; background: var(--nodata); display: inline-block; }
+.msec table { margin: 8px 0; }
+.msec td, .msec th { text-align: left; white-space: normal; }
+.loading { opacity: .6; transition: opacity .15s; }
 [hidden] { display: none !important; }
 </style>
 </head>
@@ -160,7 +173,12 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
   <header>
     <div class="titles">
       <h1>Monitor global de fogo</h1>
-      <p>Área queimada, focos de calor e emissões por país e por estado/província, mês a mês. Página exploratória, não oficial.</p>
+      <p>Área queimada, focos de calor e emissões por continente, país e estado/província, mês a mês. Página exploratória, não oficial.</p>
+      <div class="sources">
+        <a href="https://gwis.jrc.ec.europa.eu/apps/country.profile/downloads" target="_blank" rel="noopener"><b>Área queimada</b>: MODIS MCD64A1, agregada pelo GWIS (JRC/Copernicus) ↗</a>
+        <a href="https://gwis.jrc.ec.europa.eu/apps/country.profile/downloads" target="_blank" rel="noopener"><b>Emissões</b>: GFED, via GWIS ↗</a>
+        <a href="https://firms.modaps.eosdis.nasa.gov/" target="_blank" rel="noopener"><b>Focos de calor</b>: NASA FIRMS, via Google Earth Engine ↗</a>
+      </div>
       <div class="meta" id="meta">Carregando dados…</div>
     </div>
     <div class="hdr-right">
@@ -178,31 +196,36 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
         <div class="fhead" id="slice"></div>
         <div class="fbody">
           <div class="fgroup"><span class="flabel">Nível</span><div class="seg" id="fLevel"></div></div>
-          <div class="fgroup"><span class="flabel">Indicador do ranking</span><div class="seg" id="fMetric"></div></div>
+          <div class="fgroup"><span class="flabel">Indicador</span><div class="seg" id="fMetric"></div></div>
           <div class="fgroup"><span class="flabel">Ano</span><div class="seg" id="fYear"></div></div>
           <div class="fgroup"><span class="flabel">Mês</span><div class="seg" id="fMonth"></div></div>
-          <div class="fgroup"><span class="flabel">Mostrar</span><div class="seg" id="fTop"></div></div>
+          <div class="fgroup" id="gCont"><span class="flabel">Continente</span><div class="seg" id="fCont"></div></div>
           <div class="fgroup" id="gCountry"><span class="flabel">País</span><select id="fCountry" aria-label="Filtrar país"></select></div>
+          <div class="fgroup"><span class="flabel">Mostrar</span><div class="seg" id="fTop"></div></div>
         </div>
       </aside>
 
       <div class="content" id="content">
-        <div class="grid kpis" id="kpis"></div>
+        <div class="stackv">
+          <div class="grid kpis" id="kpis"></div>
+          <div class="cfoot" style="margin-top:-6px"><p class="src">Variação contra o mesmo período do ano anterior.</p><div class="dls"><button class="dlbtn" type="button" data-dl="kpis:csv">CSV</button></div></div>
+        </div>
 
         <div class="card" style="margin-bottom:16px">
           <h2 id="mapTitle">Mapa</h2>
           <p class="sub" id="mapSub"></p>
           <div class="map" id="map"></div>
           <div class="mlegend" id="mapLegend"></div>
+          <div class="cfoot"><p class="src" id="mapSrc"></p><div class="dls"><button class="dlbtn" type="button" data-dl="map:csv">CSV</button><button class="dlbtn" type="button" data-dl="map:png">PNG</button></div></div>
         </div>
 
-        <div class="grid row2">
+        <div class="grid row2" style="margin-bottom:16px">
           <div class="card">
             <h2 id="rankTitle">Ranking</h2>
             <p class="sub" id="rankSub"></p>
             <ul class="legend" id="rankLegend"></ul>
             <div class="rank" id="rank"></div>
-            <div class="dlrow"><button class="dlbtn" id="dlRank" type="button">Baixar CSV</button></div>
+            <div class="cfoot"><p class="src" id="rankSrc"></p><div class="dls"><button class="dlbtn" type="button" data-dl="rank:csv">CSV</button><button class="dlbtn" type="button" data-dl="rank:png">PNG</button></div></div>
           </div>
           <div class="grid" style="align-content:start">
             <div class="card">
@@ -212,35 +235,39 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
               </div>
               <ul class="legend" id="comboLegend"></ul>
               <div class="chart" id="combo"></div>
+              <div class="cfoot"><p class="src" id="comboSrc"></p><div class="dls"><button class="dlbtn" type="button" data-dl="combo:csv">CSV</button><button class="dlbtn" type="button" data-dl="combo:png">PNG</button></div></div>
             </div>
             <div class="card">
-              <h2>Cobertura queimada</h2>
+              <h2 id="coverTitle">Cobertura queimada</h2>
               <p class="sub" id="coverSub"></p>
               <div class="split" id="coverSplit"></div>
               <ul class="legend" id="coverLegend"></ul>
+              <div class="cfoot"><p class="src">Fonte: MCD64A1 por cobertura do solo, GWIS.</p><div class="dls"><button class="dlbtn" type="button" data-dl="cover:csv">CSV</button><button class="dlbtn" type="button" data-dl="cover:png">PNG</button></div></div>
             </div>
           </div>
         </div>
 
-        <div class="grid row2">
+        <div class="grid row2" style="margin-bottom:16px">
           <div class="card">
-            <div class="card-head">
-              <div><h2>Sazonalidade</h2><p class="sub" id="seasonSub"></p></div>
-            </div>
+            <h2 id="seasonTitle">Sazonalidade</h2>
+            <p class="sub" id="seasonSub"></p>
             <ul class="legend" id="seasonLegend"></ul>
             <div class="chart" id="season"></div>
+            <div class="cfoot"><p class="src" id="seasonSrc"></p><div class="dls"><button class="dlbtn" type="button" data-dl="season:csv">CSV</button><button class="dlbtn" type="button" data-dl="season:png">PNG</button></div></div>
           </div>
           <div class="card">
             <h2 id="annualTitle">Série anual</h2>
             <p class="sub" id="annualSub"></p>
             <ul class="legend" id="annualLegend"></ul>
             <div class="chart" id="annual"></div>
+            <div class="cfoot"><p class="src">Fonte: área queimada MCD64A1 e emissões GFED, ambas via GWIS.</p><div class="dls"><button class="dlbtn" type="button" data-dl="annual:csv">CSV</button><button class="dlbtn" type="button" data-dl="annual:png">PNG</button></div></div>
           </div>
         </div>
 
         <details class="card">
           <summary style="cursor:pointer;font-weight:600">Tabela completa do período</summary>
           <div class="scroll" style="margin-top:12px"><table id="tbl"></table></div>
+          <div class="cfoot"><p class="src">Todas as unidades do recorte, todos os indicadores.</p><div class="dls"><button class="dlbtn" type="button" data-dl="rank:csv">CSV</button></div></div>
         </details>
       </div>
     </div>
@@ -249,17 +276,24 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
   <section id="metodo" hidden>
     <div class="msec">
       <h2>Fontes</h2>
-      <ul>
-        <li><b>Área queimada MCD64A1</b> (MODIS, 500 m) e <b>VNP64/VIIRS</b> — agregadas por país e por estado/província (GADM nível 1) e por cobertura (floresta, savana, campo/arbustivo, agricultura, outros) pelo <a href="https://gwis.jrc.ec.europa.eu/apps/country.profile/downloads">GWIS / JRC country profile</a>, 2002–2025 (VIIRS desde 2013).</li>
-        <li><b>Emissões</b> — GFED, também via GWIS (CO₂, CH₄, PM2.5, CO), em toneladas, 2002–2025.</li>
-        <li><b>Focos de calor</b> — FIRMS (MODIS, 1 km) no Google Earth Engine: soma, no mês, dos pixels com fogo ativo em cada dia (pixels-dia). Não é o mesmo número dos boletins de “focos” por satélite de referência, mas segue a mesma dinâmica.</li>
-        <li><b>Meses depois do fim do GWIS</b> — área queimada MCD64A1 calculada no Earth Engine (limites geoBoundaries), marcada como preliminar. Sem quebra por cobertura nem emissões.</li>
-      </ul>
+      <table>
+        <thead><tr><th>Indicador</th><th>Dado original</th><th>Quem agregou</th><th>Período</th></tr></thead>
+        <tbody>
+          <tr><td>Área queimada</td><td>MODIS MCD64A1 (NASA), 500 m</td><td><a href="https://gwis.jrc.ec.europa.eu/apps/country.profile/downloads">GWIS country profile</a> (JRC / Copernicus), por país, estado (GADM nível 1) e cobertura</td><td>2002–2025</td></tr>
+          <tr><td>Área queimada VIIRS</td><td>VNP64 / VIIRS, 375 m</td><td>GWIS</td><td>2013–2025</td></tr>
+          <tr><td>Emissões (CO₂, CH₄, PM2.5)</td><td>GFED</td><td>GWIS</td><td>2002–2025</td></tr>
+          <tr><td>Focos de calor</td><td>NASA FIRMS (MODIS, 1 km)</td><td>Este painel, no Google Earth Engine</td><td>2024+</td></tr>
+          <tr><td>Área queimada recente</td><td>MODIS MCD64A1</td><td>Este painel, no Google Earth Engine (preliminar)</td><td>após o fim do GWIS</td></tr>
+        </tbody>
+      </table>
+      <p>Focos de calor = soma, no mês, dos pixels com fogo ativo em cada dia (pixels-dia). Não é o mesmo número dos boletins de “focos” de outros satélites, mas segue a mesma dinâmica.</p>
+      <h2>Continentes e mapas</h2>
+      <p>Continentes seguem o Natural Earth (a Rússia entra na Europa; América Central e Caribe em “América do Norte e Central”). O mapa de países usa Natural Earth 1:110m. O mapa de estados usa limites geoBoundaries ADM1 simplificados, casados por nome com as unidades GADM do GWIS. Unidades sem par aparecem em cinza.</p>
       <h2>Leitura</h2>
-      <p>As setas do ranking mostram a mudança de posição em relação ao mesmo recorte do período anterior (mês anterior, ou ano anterior quando “Ano todo”). <b>% do território</b> só existe para países (área calculada no GEE).</p>
-      <p>MCD64A1 subestima queimadas pequenas (&lt; ~25 ha) e de sub-bosque; VIIRS (375 m) costuma detectar mais. Use para comparação entre unidades e meses, não como total absoluto.</p>
+      <p>As setas do ranking mostram a mudança de posição em relação ao período anterior (mês anterior, ou ano anterior quando “Ano todo”). <b>% do território</b> só existe para países e continentes.</p>
+      <p>MCD64A1 subestima queimadas pequenas (&lt; ~25 ha) e de sub-bosque; VIIRS (375 m) costuma detectar mais. Use para comparar unidades e meses, não como total absoluto.</p>
       <h2>Reprodução</h2>
-      <p>Código em <code>global_analises/scripts/</code>: <code>build_from_gwis.py</code> (ZIPs do GWIS → <code>data/</code>), <code>gee_run_exports.py</code> + <code>fetch_assets_to_csv.py</code> (focos e meses recentes, uma task por mês).</p>
+      <p>Código em <code>global_analises/scripts/</code> do repositório <a href="https://github.com/mapbiomas/brazil-fire/tree/main/global_analises">mapbiomas/brazil-fire</a>.</p>
     </div>
   </section>
 </div>
@@ -268,18 +302,21 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
 (() => {
   const MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const METRICS = {
-    ba:       { label: 'Área queimada', short: 'MCD64A1', unit: 'ha' },
-    ba_pct:   { label: '% do território', short: 'MCD64A1', unit: 'pct', adm0only: true },
-    ba_viirs: { label: 'Área VIIRS', short: 'VNP64', unit: 'ha' },
-    hotspots: { label: 'Focos de calor', short: 'FIRMS', unit: 'n' },
-    co2:      { label: 'CO₂', short: 'GFED', unit: 't' },
-    ch4:      { label: 'CH₄', short: 'GFED', unit: 't' },
-    pm25:     { label: 'PM2.5', short: 'GFED', unit: 't' },
+    ba:       { label: 'Área queimada', src: 'MCD64A1 via GWIS', unit: 'ha' },
+    ba_pct:   { label: '% do território', src: 'MCD64A1 via GWIS', unit: 'pct', noAdm1: true },
+    ba_viirs: { label: 'Área VIIRS', src: 'VNP64 via GWIS', unit: 'ha' },
+    hotspots: { label: 'Focos de calor', src: 'FIRMS via GEE', unit: 'n', noAdm1: true },
+    co2:      { label: 'CO₂', src: 'GFED via GWIS', unit: 't' },
+    ch4:      { label: 'CH₄', src: 'GFED via GWIS', unit: 't' },
+    pm25:     { label: 'PM2.5', src: 'GFED via GWIS', unit: 't' },
   };
-  const COVERS = [['ba_forest', 'Floresta', '--c-forest'], ['ba_savanna', 'Savana', '--c-savanna'], ['ba_grass', 'Campo / arbustivo', '--c-grass'],
-                  ['ba_crop', 'Agricultura', '--c-crop'], ['ba_other', 'Outros', '--c-other']];
+  const COVERS = [['ba_forest', 'Floresta', '--c-forest'], ['ba_savanna', 'Savana', '--c-savanna'], ['ba_grass', 'Campo / arbustivo', '--c-grass'], ['ba_crop', 'Agricultura', '--c-crop'], ['ba_other', 'Outros', '--c-other']];
+  const CONTS = ['África', 'América do Sul', 'América do Norte e Central', 'Ásia', 'Europa', 'Oceania'];
+  const LEVELS = { cont: 'Continentes', adm0: 'Países', adm1: 'Estados' };
+  const LEVEL_NAMES = { cont: 'continentes', adm0: 'países', adm1: 'estados/províncias' };
   const NUM = ['ba','ba_forest','ba_savanna','ba_grass','ba_crop','ba_other','ba_viirs','co2','ch4','pm25','co','hotspots','area'];
-  const S = { level: 0, metric: 'ba', year: null, month: null, top: 20, country: '', sel: null, line: 'hotspots' };
+  const S = { level: 'adm0', metric: 'ba', year: null, month: null, top: 20, cont: '', country: '', sel: null, line: 'hotspots' };
+  const DL = {};
   const $ = id => document.getElementById(id);
   const nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
   const nf1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
@@ -287,14 +324,13 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const K = (y, m) => y * 100 + m, Y = k => Math.floor(k / 100), M = k => k % 100;
   const klbl = k => `${MONTHS[M(k) - 1]}/${Y(k)}`;
-  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
-  function fmt(v, unit, short) {
-    if (v == null || isNaN(v)) return '–';
-    if (unit === 'pct') return nf2.format(v) + '%';
+  function fmt(v, unit, split) {
+    if (v == null || isNaN(v)) return split ? ['–', ''] : '–';
+    if (unit === 'pct') return split ? [nf2.format(v), '%'] : nf2.format(v) + '%';
     const u = { ha: ['ha', 'mil ha', 'Mha'], t: ['t', 'mil t', 'Mt'], n: ['', 'mil', 'mi'] }[unit];
     const [n, s] = v >= 1e6 ? [nf2.format(v / 1e6), u[2]] : v >= 1e4 ? [nf1.format(v / 1e3), u[1]] : [nf0.format(v), u[0]];
-    return short ? [n, s] : (n + (s ? ' ' + s : ''));
+    return split ? [n, s] : (n + (s ? ' ' + s : ''));
   }
   const fmtM = (v, m) => fmt(v, METRICS[m].unit);
 
@@ -305,7 +341,6 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
     const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
     root.dataset.theme = dark ? 'light' : 'dark';
     try { localStorage.setItem('theme', root.dataset.theme); } catch (e) {}
-    render();
   };
   function route() {
     const m = location.hash === '#metodo';
@@ -334,68 +369,115 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
       return o;
     });
   }
+  const getJSON = async url => { const r = await fetch(url); if (!r.ok) throw new Error(url + ' (' + r.status + ')'); return r.json(); };
   const fetchCSV = async url => { const r = await fetch(url); if (!r.ok) throw new Error(url + ' (' + r.status + ')'); return parseCSV(await r.text()); };
 
-  let META, A0;             // A0: {rows: Map k -> Map gid -> row, units, keys}
-  const A1 = {};            // ano -> Map k -> Map gid -> row
+  let META, A0, CONT;
+  const A1 = {}, U1 = new Map();
   function index(rows, into, units) {
     for (const r of rows) {
       if (!into.has(r.k)) into.set(r.k, new Map());
       into.get(r.k).set(r.gid, r);
-      if (units && !units.has(r.gid)) units.set(r.gid, { gid: r.gid, iso3: r.iso3, name: r.name, parent: r.parent, area: r.area });
-      else if (units && r.area && !units.get(r.gid).area) units.get(r.gid).area = r.area;
+      if (!units.has(r.gid)) units.set(r.gid, { gid: r.gid, iso3: r.iso3, name: r.name, parent: r.parent, area: r.area });
+      else if (r.area && !units.get(r.gid).area) units.get(r.gid).area = r.area;
     }
   }
-  const U1 = new Map();
   async function ensureAdm1(years) {
     await Promise.all(years.filter(y => META.adm1_years.includes(y) && !A1[y]).map(async y => {
       const m = new Map(); index(await fetchCSV(`data/adm1/${y}.csv`), m, U1); A1[y] = m;
     }));
   }
-  const rowsAt = k => S.level === 0 ? A0.rows.get(k) : A1[Y(k)]?.get(k);
-  const unit = gid => (S.level === 0 ? A0.units : U1).get(gid);
+  const unitOf = (lvl, gid) => lvl === 'cont' ? { gid, name: gid } : (lvl === 'adm0' ? A0.units : U1).get(gid);
 
-  // valor de uma linha para uma métrica
-  function val(r, m, u) {
-    if (!r) return null;
-    if (m === 'ba_pct') return r.ba != null && u?.area ? r.ba / u.area * 100 : null;
-    return r[m];
-  }
-  // agrega meses de um período (mês único ou ano todo)
-  const periodKeys = (y, mo) => mo ? [K(y, mo)] : Array.from({ length: 12 }, (_, i) => K(y, i + 1));
-  function sumRow(rowsList) {
+  function sumRow(list) {
     const o = {}; let any = false;
-    for (const r of rowsList) if (r) { any = true; for (const c of NUM) if (c !== 'area' && r[c] != null) o[c] = (o[c] || 0) + r[c]; }
+    for (const r of list) if (r) { any = true; for (const c of NUM) if (c !== 'area' && r[c] != null) o[c] = (o[c] || 0) + r[c]; }
     return any ? o : null;
   }
-  const inScope = gid => !S.country || (S.level === 1 ? unit(gid)?.parent === S.country : gid === S.country);
+  const periodKeys = (y, mo) => mo ? [K(y, mo)] : Array.from({ length: 12 }, (_, i) => K(y, i + 1));
+  // países no recorte geográfico (filtros de continente/país; ignora a seleção)
+  const countryInScope = iso => S.country ? iso === S.country : (!S.cont || CONT[iso] === S.cont);
+  const contArea = c => { let a = 0; for (const u of A0.units.values()) if (CONT[u.gid] === c && u.area) a += u.area; return a || null; };
 
-  // total do recorte (mundo, país, ou unidade selecionada) num período — sempre pela base de países quando possível
-  function scopeRow(keys) {
-    if (S.sel && S.level === 1) return sumRow(keys.map(k => A1[Y(k)]?.get(k)?.get(S.sel)));
-    const gid = S.sel || (S.country ? A0.byName.get(S.country) : null);
-    const list = [];
-    for (const k of keys) {
-      const m = A0.rows.get(k); if (!m) continue;
-      if (gid) list.push(m.get(gid)); else for (const r of m.values()) list.push(r);
-    }
-    const o = sumRow(list);
-    if (o && gid) o.__area = A0.units.get(gid)?.area;
-    return o;
-  }
-
-  function ranking(keys, metric) {
+  // ranking de um nível num período
+  function ranking(keys, metric, lvl = S.level) {
     const acc = new Map();
-    for (const k of keys) { const m = rowsAt(k); if (!m) continue;
-      for (const [gid, r] of m) { if (!inScope(gid)) continue; if (!acc.has(gid)) acc.set(gid, []); acc.get(gid).push(r); } }
+    const push = (g, r) => { if (!acc.has(g)) acc.set(g, []); acc.get(g).push(r); };
+    for (const k of keys) {
+      const m = lvl === 'adm1' ? A1[Y(k)]?.get(k) : A0.rows.get(k);
+      if (!m) continue;
+      for (const [gid, r] of m) {
+        if (lvl === 'cont') { if (CONT[gid]) push(CONT[gid], r); continue; }
+        const iso = lvl === 'adm1' ? U1.get(gid)?.iso3 : gid;
+        if (!countryInScope(iso)) continue;
+        push(gid, r);
+      }
+    }
     const out = [];
     for (const [gid, list] of acc) {
-      const r = sumRow(list), v = val(r, metric, unit(gid));
-      if (v != null && v > 0) out.push({ gid, r, v });
+      const r = sumRow(list);
+      const area = lvl === 'cont' ? contArea(gid) : lvl === 'adm0' ? A0.units.get(gid)?.area : null;
+      const v = metric === 'ba_pct' ? (r?.ba != null && area ? r.ba / area * 100 : null) : r?.[metric];
+      if (v != null && v > 0) out.push({ gid, r, v, area });
     }
     out.sort((a, b) => b.v - a.v); out.forEach((x, i) => x.pos = i + 1);
     return out;
   }
+
+  // linha agregada do recorte (seleção > país > continente > mundo)
+  function scopeRow(keys) {
+    if (S.sel && S.level === 'adm1') return sumRow(keys.map(k => A1[Y(k)]?.get(k)?.get(S.sel)));
+    let test;
+    if (S.sel && S.level === 'adm0') test = iso => iso === S.sel;
+    else if (S.sel && S.level === 'cont') test = iso => CONT[iso] === S.sel;
+    else test = countryInScope;
+    const list = [];
+    for (const k of keys) { const m = A0.rows.get(k); if (m) for (const [g, r] of m) if (test(g)) list.push(r); }
+    const o = sumRow(list);
+    if (o) { let a = 0; for (const u of A0.units.values()) if (test(u.gid) && u.area) a += u.area; o.__area = a || null; }
+    return o;
+  }
+  function scopeName() {
+    if (S.sel) return unitOf(S.level, S.sel)?.name || S.sel;
+    if (S.country) return A0.units.get(S.country)?.name || S.country;
+    return S.cont || 'Mundo';
+  }
+  const hasMetric = (m, keys) => keys.some(k => { const mm = A0.rows.get(k); if (!mm) return false; for (const r of mm.values()) if (m === 'ba_pct' ? r.area && r.ba != null : r[m] != null) return true; return false; });
+
+  // ---------- downloads ----------
+  function saveBlob(blob, name) {
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name });
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function saveCSV(name, head, rows) {
+    const q = v => v == null ? '' : (typeof v === 'number' ? (Number.isInteger(v) ? v : +v.toFixed(4)) : /[",\n]/.test(v) ? `"${String(v).replace(/"/g, '""')}"` : v);
+    saveBlob(new Blob(['﻿' + [head, ...rows].map(r => r.map(q).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }), name + '.csv');
+  }
+  function resolveVars(s) {
+    const cs = getComputedStyle(root);
+    return s.replace(/var\((--[\w-]+)\)/g, (_, v) => cs.getPropertyValue(v).trim() || '#999');
+  }
+  // SVG -> PNG, com título e fonte embutidos
+  function savePNG(name, svgEl, title, source) {
+    const vb = svgEl.viewBox.baseVal, W = vb.width, H = vb.height, pad = 16, top = 44, bot = 26;
+    const css = `text{font:11px system-ui,'Segoe UI',sans-serif;fill:var(--muted)} .sphere{fill:none;stroke:var(--grid)} path.u{stroke:var(--border)} path.cb{fill:none;stroke:var(--cborder);opacity:.7} .hov{display:none}`;
+    const inner = svgEl.innerHTML.replace(/vector-effect="[^"]*"/g, '');
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W + 2 * pad}" height="${H + top + bot}" viewBox="0 0 ${W + 2 * pad} ${H + top + bot}">
+      <style>${css}</style><rect width="100%" height="100%" fill="var(--surface)"/>
+      <text x="${pad}" y="26" style="font:600 15px system-ui,'Segoe UI',sans-serif;fill:var(--ink)">${esc(title)}</text>
+      <svg x="${pad}" y="${top}" width="${W}" height="${H}" viewBox="${vb.x} ${vb.y} ${W} ${H}">${inner}</svg>
+      <text x="${pad}" y="${H + top + 18}">${esc(source)} · Monitor global de fogo (exploratório)</text></svg>`;
+    const img = new Image(), sc = 2;
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = (W + 2 * pad) * sc; c.height = (H + top + bot) * sc;
+      const ctx = c.getContext('2d'); ctx.scale(sc, sc); ctx.drawImage(img, 0, 0);
+      c.toBlob(b => saveBlob(b, name + '.png'), 'image/png');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(resolveVars(svg));
+  }
+  const tmpSVG = (w, h, body) => { const d = document.createElement('div'); d.innerHTML = `<svg viewBox="0 0 ${w} ${h}">${body}</svg>`; return d.firstChild; };
+  document.addEventListener('click', e => { const b = e.target.closest('[data-dl]'); if (b && DL[b.dataset.dl]) DL[b.dataset.dl](); });
+  const fileTag = () => `${S.level}_${S.metric}_${S.month ? S.year + '_' + String(S.month).padStart(2, '0') : S.year}${S.cont ? '_' + S.cont.normalize('NFD').replace(/[^\w]/g, '') : ''}${S.country ? '_' + S.country : ''}`;
 
   // ---------- controles ----------
   function seg(id, items, cur, on) {
@@ -407,161 +489,201 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
       b.onclick = () => on(it.value); el.appendChild(b);
     }
   }
-  const has = (m, keys) => keys.some(k => { const mm = A0.rows.get(k); if (!mm) return false; for (const r of mm.values()) if (m === 'ba_pct' ? r.area : r[m] != null) return true; return false; });
 
   // ---------- render ----------
-  let busy = false;
+  let busy = false, again = false;
   async function render() {
-    if (busy) return; busy = true;
+    if (busy) { again = true; return; }
+    busy = true;
     try { await draw(); } catch (e) { console.error(e); $('content').innerHTML = `<div class="card empty">Erro ao carregar dados: <code>${esc(e.message)}</code></div>`; }
     busy = false;
+    if (again) { again = false; render(); }
   }
 
   async function draw() {
     if (!A0) {
-      META = await (await fetch('data/meta.json')).json();
-      const rows = await fetchCSV('data/adm0_monthly.csv');
-      A0 = { rows: new Map(), units: new Map(), byName: new Map() };
-      index(rows, A0.rows, A0.units);
-      for (const u of A0.units.values()) A0.byName.set(u.name, u.gid);
+      [META, CONT] = await Promise.all([getJSON('data/meta.json'), getJSON('data/continents.json')]);
+      A0 = { rows: new Map(), units: new Map() };
+      index(await fetchCSV('data/adm0_monthly.csv'), A0.rows, A0.units);
       A0.keys = [...A0.rows.keys()].sort((a, b) => a - b);
     }
-    const keys = A0.keys, years = [...new Set(keys.map(Y))];
-    if (S.year == null) { const last = META.gwis.to.split('-').map(Number); S.year = last[0]; S.month = last[1]; }
-    if (S.level === 1 && S.year > Math.max(...META.adm1_years)) S.year = Math.max(...META.adm1_years);
-    const yearOk = y => S.level === 0 || META.adm1_years.includes(y);
+    const keys = A0.keys, years = [...new Set(keys.map(Y))], adm1Max = Math.max(...META.adm1_years);
+    if (S.year == null) { const [y, m] = META.gwis.to.split('-').map(Number); S.year = y; S.month = m; }
+    if (S.level === 'adm1' && S.year > adm1Max) S.year = adm1Max;
     if (S.month && !A0.rows.has(K(S.year, S.month))) S.month = 0;
     const PK = periodKeys(S.year, S.month);
     const prevPK = S.month ? [S.month === 1 ? K(S.year - 1, 12) : K(S.year, S.month - 1)] : periodKeys(S.year - 1, 0);
     const lyPK = periodKeys(S.year - 1, S.month);
-    if (S.level === 1) { document.body.classList.add('loading'); await ensureAdm1([S.year, S.year - 1]); document.body.classList.remove('loading'); }
-    if (!has(S.metric, PK) || (S.level === 1 && METRICS[S.metric].adm0only) || (S.level === 1 && S.metric === 'hotspots')) S.metric = 'ba';
+    if (S.level === 'adm1') { document.body.classList.add('loading'); await ensureAdm1([...new Set([S.year, Y(prevPK[0])])]); document.body.classList.remove('loading'); }
+    const metricOk = m => hasMetric(m, PK) && !(S.level === 'adm1' && METRICS[m].noAdm1);
+    if (!metricOk(S.metric)) S.metric = 'ba';
+    if (S.level === 'cont') { S.cont = ''; S.country = ''; }
 
-    const gee = META.gee ? ` · focos FIRMS ${META.gee.from.replace('-', '/')}–${META.gee.to.replace('-', '/')} (GEE)` : ' · focos de calor: processando no GEE';
-    $('meta').textContent = `GWIS: área queimada e emissões ${META.gwis.from.replace('-', '/')}–${META.gwis.to.replace('-', '/')}${gee}`;
+    const gee = META.gee ? ` · focos FIRMS ${META.gee.from.replace('-', '/')}–${META.gee.to.replace('-', '/')}` : ' · focos de calor: processando no GEE';
+    $('meta').textContent = `Dados GWIS ${META.gwis.from.replace('-', '/')}–${META.gwis.to.replace('-', '/')}${gee}`;
 
     // controles
-    seg('fLevel', [{ value: 0, label: 'Países' }, { value: 1, label: 'Estados / províncias' }], S.level, v => { S.level = v; S.sel = null; S.country = ''; render(); });
-    seg('fMetric', Object.entries(METRICS).map(([k, m]) => ({ value: k, label: m.label, title: `${m.label} (${m.short})`,
-      disabled: !has(k, PK) || (S.level === 1 && (m.adm0only || k === 'hotspots')) })), S.metric, v => { S.metric = v; render(); });
-    seg('fYear', years.slice().reverse().map(y => ({ value: y, label: String(y), disabled: !yearOk(y) })), S.year, v => { S.year = v; render(); });
+    seg('fLevel', Object.entries(LEVELS).map(([v, l]) => ({ value: v, label: l })), S.level, v => { S.level = v; S.sel = null; if (v !== 'adm1') S.country = ''; render(); });
+    seg('fMetric', Object.entries(METRICS).map(([k, m]) => ({ value: k, label: m.label, title: `${m.label} (${m.src})`, disabled: !metricOk(k) })), S.metric, v => { S.metric = v; render(); });
+    seg('fYear', years.slice().reverse().map(y => ({ value: y, label: String(y), disabled: S.level === 'adm1' && y > adm1Max })), S.year, v => { S.year = v; render(); });
     seg('fMonth', [{ value: 0, label: 'Ano todo' }, ...MONTHS.map((m, i) => ({ value: i + 1, label: m, disabled: !A0.rows.has(K(S.year, i + 1)) }))], S.month, v => { S.month = v; render(); });
+    seg('fCont', [{ value: '', label: 'Todos' }, ...CONTS.map(c => ({ value: c, label: c }))], S.cont, v => { S.cont = v; S.country = ''; S.sel = null; render(); });
     seg('fTop', [10, 20, 30, 50].map(n => ({ value: n, label: 'Top ' + n })), S.top, v => { S.top = v; render(); });
-    const cs = [...A0.units.values()].map(u => u.name).sort((a, b) => a.localeCompare(b));
-    $('fCountry').innerHTML = `<option value="">${S.level ? 'Mundo inteiro' : 'Todos'}</option>` + cs.map(c => `<option${c === S.country ? ' selected' : ''}>${esc(c)}</option>`).join('');
+    $('gCont').hidden = S.level === 'cont';
+    $('gCountry').hidden = S.level !== 'adm1';
+    const cs = [...A0.units.values()].filter(u => !S.cont || CONT[u.gid] === S.cont).sort((a, b) => a.name.localeCompare(b.name));
+    $('fCountry').innerHTML = `<option value="">${S.cont ? 'Todos de ' + esc(S.cont) : 'Todos'}</option>` + cs.map(u => `<option value="${u.gid}"${u.gid === S.country ? ' selected' : ''}>${esc(u.name)}</option>`).join('');
     $('fCountry').onchange = e => { S.country = e.target.value; S.sel = null; render(); };
-    $('gCountry').hidden = S.level === 0;
 
     const per = S.month ? klbl(PK[0]) : String(S.year);
-    const scopeName = S.sel ? unit(S.sel)?.name : (S.country || 'Mundo');
-    $('slice').innerHTML = `<b>${esc(scopeName)}</b> · <b>${per}</b> · ${S.level ? 'estados/províncias' : 'países'} · ranking por ${METRICS[S.metric].label}`;
+    const scope = scopeName(), mLbl = METRICS[S.metric].label;
+    $('slice').innerHTML = `<b>${esc(scope)}</b> · <b>${per}</b> · ${LEVEL_NAMES[S.level]} · ${esc(mLbl)}`;
 
     // KPIs
     const cur = scopeRow(PK), ly = scopeRow(lyPK);
-    const kp = [['ba', 'Área queimada'], ['hotspots', 'Focos de calor'], ['co2', 'Emissão de CO₂'], ['pm25', 'Emissão de PM2.5']];
-    $('kpis').innerHTML = kp.map(([m, lbl]) => {
+    const kp = [['ba', 'Área queimada', 'MCD64A1 via GWIS'], ['hotspots', 'Focos de calor', 'FIRMS via GEE'], ['co2', 'Emissão de CO₂', 'GFED via GWIS'], ['pm25', 'Emissão de PM2.5', 'GFED via GWIS']];
+    $('kpis').innerHTML = kp.map(([m, lbl, src]) => {
       const v = cur?.[m], p = ly?.[m];
-      const [n, s] = v == null ? ['–', ''] : fmt(v, METRICS[m].unit, true);
+      const [n, s] = fmt(v, METRICS[m].unit, true);
       let note = 'sem dado neste período';
       if (v != null) {
         if (p) { const d = (v - p) / p * 100; note = `<span class="delta ${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : ''}${nf1.format(d)}%</span> vs. ${S.month ? klbl(lyPK[0]) : S.year - 1}`; }
         else note = 'sem comparação com o ano anterior';
         if (m === 'ba' && cur.__area) note += ` · ${nf2.format(v / cur.__area * 100)}% do território`;
       }
-      return `<div class="card tile"><div class="label">${lbl} · ${esc(scopeName)} · ${per}</div><div class="value">${n}<small>${s}</small></div><div class="note">${note}</div></div>`;
+      return `<div class="card tile"><div class="label">${lbl} · ${esc(scope)} · ${per}</div><div class="value">${n}<small>${s}</small></div><div class="note">${note}</div><p class="src">${src}</p></div>`;
     }).join('');
+    DL['kpis:csv'] = () => saveCSV(`indicadores_${fileTag()}`, ['recorte', 'periodo', 'indicador', 'fonte', 'valor', 'valor_ano_anterior'],
+      kp.map(([m, lbl, src]) => [scope, per, lbl, src, cur?.[m] ?? null, ly?.[m] ?? null]));
 
-    await drawMap(PK);
+    await drawMap(PK, per);
 
     // ranking
     const rk = ranking(PK, S.metric), prevPos = new Map(ranking(prevPK, S.metric).map(x => [x.gid, x.pos]));
     const shown = rk.slice(0, S.top), max = shown[0]?.v || 1;
-    const stackCover = (S.metric === 'ba') && shown.some(x => x.r.ba_forest != null);
-    $('rankTitle').textContent = `Top ${S.top} ${S.level ? 'estados/províncias' : 'países'} · ${METRICS[S.metric].label}`;
-    $('rankSub').textContent = `${per}${S.country && S.level ? ' · ' + S.country : ''}. Setas: posição vs. ${S.month ? klbl(prevPK[0]) : S.year - 1}. Clique numa linha para ver a unidade nos gráficos.`;
+    const stackCover = S.metric === 'ba' && shown.some(x => x.r.ba_forest != null);
+    $('rankTitle').textContent = `Top ${Math.min(S.top, rk.length)} ${LEVEL_NAMES[S.level]} · ${mLbl}`;
+    $('rankSub').textContent = `${per}${S.level !== 'cont' && scope !== 'Mundo' ? ' · ' + scope : ''}. Setas: posição vs. ${S.month ? klbl(prevPK[0]) : S.year - 1}. Clique numa linha para ver nos gráficos.`;
+    $('rankSrc').textContent = `Fonte: ${METRICS[S.metric].src}.`;
     $('rankLegend').innerHTML = stackCover ? COVERS.map(([, l, c]) => `<li><i style="background:var(${c})"></i>${l}</li>`).join('') : '';
+    const mv = x => { const pp = prevPos.get(x.gid); return pp == null ? ['new', '•', 'Fora do ranking no período anterior'] : pp > x.pos ? ['up', '▲', `Subiu ${pp - x.pos}`] : pp < x.pos ? ['down', '▼', `Caiu ${x.pos - pp}`] : ['', '', '']; };
     $('rank').innerHTML = shown.map(x => {
-      const u = unit(x.gid), pp = prevPos.get(x.gid);
-      const mv = pp == null ? '<span class="mv new" title="Fora do ranking no período anterior">•</span>'
-        : pp > x.pos ? `<span class="mv up" title="Subiu ${pp - x.pos}">▲</span>`
-        : pp < x.pos ? `<span class="mv down" title="Caiu ${x.pos - pp}">▼</span>` : '<span class="mv"></span>';
-      const w = x.v / max * 100;
-      const bar = stackCover ? COVERS.map(([c, , col]) => `<span style="width:${(x.r[c] || 0) / x.r.ba * w}%;background:var(${col})"></span>`).join('')
-        : `<span style="width:${w}%;background:var(--accent)"></span>`;
-      return `<button type="button" class="rrow${S.sel === x.gid ? ' on' : ''}" data-gid="${esc(x.gid)}">
-        <span class="pos">${x.pos}</span>${mv}
-        <span class="nm" title="${esc(u.name)}${u.parent ? ' — ' + esc(u.parent) : ''}">${esc(u.name)}${S.level && !S.country ? ` <small>${esc(u.iso3)}</small>` : ''}</span>
-        <span class="bar">${bar}</span><span class="fig">${fmtM(x.v, S.metric)}</span></button>`;
+      const u = unitOf(S.level, x.gid), [mc, ms, mt] = mv(x), w = x.v / max * 100;
+      const bar = stackCover ? COVERS.map(([c, , col]) => `<span style="width:${(x.r[c] || 0) / x.r.ba * w}%;background:var(${col})"></span>`).join('') : `<span style="width:${w}%;background:var(--accent)"></span>`;
+      const tag = S.level === 'adm1' && !S.country ? ` <small>${esc(u.iso3)}</small>` : '';
+      return `<button type="button" class="rrow${S.sel === x.gid ? ' on' : ''}" data-gid="${esc(x.gid)}"><span class="pos">${x.pos}</span><span class="mv ${mc}" title="${mt}">${ms}</span>
+        <span class="nm" title="${esc(u.name)}${u.parent ? ' — ' + esc(u.parent) : ''}">${esc(u.name)}${tag}</span><span class="bar">${bar}</span><span class="fig">${fmtM(x.v, S.metric)}</span></button>`;
     }).join('') || '<div class="empty">Sem dados no recorte.</div>';
     $('rank').querySelectorAll('.rrow').forEach(b => b.onclick = () => { S.sel = S.sel === b.dataset.gid ? null : b.dataset.gid; render(); });
-    $('dlRank').onclick = () => download(rk, per);
+    const rankHead = ['posicao', 'delta_posicao', 'id', 'nome', 'pais', 'continente', 'periodo', 'area_queimada_ha', 'area_viirs_ha', 'focos', 'co2_t', 'ch4_t', 'pm25_t', 'pct_territorio', ...COVERS.map(c => c[0] + '_ha')];
+    DL['rank:csv'] = () => saveCSV(`ranking_${fileTag()}`, rankHead, rk.map(x => { const u = unitOf(S.level, x.gid), pp = prevPos.get(x.gid), r = x.r;
+      return [x.pos, pp == null ? null : pp - x.pos, x.gid, u.name, u.parent || (S.level === 'adm0' ? u.name : ''), S.level === 'cont' ? x.gid : CONT[S.level === 'adm1' ? u.iso3 : x.gid], per,
+        r.ba, r.ba_viirs, r.hotspots, r.co2, r.ch4, r.pm25, x.area && r.ba != null ? r.ba / x.area * 100 : null, ...COVERS.map(c => r[c[0]])]; }));
+    DL['rank:png'] = () => {
+      const rowH = 22, W = 640, nameW = 190, figW = 90, bx = 30 + nameW, bw = W - bx - figW - 8, H = shown.length * rowH + 4;
+      const body = shown.map((x, i) => { const u = unitOf(S.level, x.gid), y = i * rowH, w = x.v / max * bw;
+        let bars = '';
+        if (stackCover) { let ox = bx; for (const [c, , col] of COVERS) { const ww = (x.r[c] || 0) / x.r.ba * w; bars += `<rect x="${ox}" y="${y + 5}" width="${ww}" height="12" fill="var(${col})"/>`; ox += ww; } }
+        else bars = `<rect x="${bx}" y="${y + 5}" width="${w}" height="12" rx="2" fill="var(--accent)"/>`;
+        return `<text x="22" y="${y + 15}" text-anchor="end">${x.pos}</text><text x="30" y="${y + 15}" style="fill:var(--ink)">${esc(u.name.slice(0, 30))}</text><rect x="${bx}" y="${y + 5}" width="${bw}" height="12" rx="2" fill="var(--grid)"/>${bars}<text x="${W - 4}" y="${y + 15}" text-anchor="end" style="fill:var(--ink-2)">${fmtM(x.v, S.metric)}</text>`; }).join('');
+      savePNG(`ranking_${fileTag()}`, tmpSVG(W, H, body), `${$('rankTitle').textContent} · ${per}`, `Fonte: ${METRICS[S.metric].src}`);
+    };
 
-    // combo: barras = área queimada; linha = focos / CO2 (36 meses até o mês selecionado ou fim do ano)
+    // combo: barras = área queimada; linha = focos / CO2 / VIIRS
     const endK = S.month ? PK[0] : K(S.year, 12);
-    let win = keys.filter(k => k <= endK).slice(-36);
-    if (S.level === 1 && S.sel) { await ensureAdm1([...new Set(win.map(Y))]); }
+    const win = keys.filter(k => k <= endK).slice(-36);
+    if (S.level === 'adm1' && S.sel) await ensureAdm1([...new Set(win.map(Y))]);
     const series = win.map(k => ({ k, r: scopeRow([k]) }));
     const lineOpts = [['hotspots', 'Focos'], ['co2', 'CO₂'], ['ba_viirs', 'Área VIIRS']].filter(([m]) => series.some(s => s.r?.[m] != null));
     if (!lineOpts.some(([m]) => m === S.line)) S.line = lineOpts[0]?.[0] || 'co2';
     seg('fLine', lineOpts.map(([v, l]) => ({ value: v, label: 'Linha: ' + l })), S.line, v => { S.line = v; render(); });
-    $('comboTitle').textContent = `Área queimada × ${METRICS[S.line].label} · ${scopeName}`;
-    $('comboSub').textContent = `Mensal, ${klbl(win[0])} a ${klbl(win.at(-1))}. Barras no eixo da esquerda, linha no da direita. Destaque: período selecionado.`;
-    $('comboLegend').innerHTML = `<li><i style="background:var(--accent)"></i>Área queimada (MCD64A1)</li><li><i class="ln" style="background:var(--line)"></i>${METRICS[S.line].label} (${METRICS[S.line].short})</li>`;
-    combo($('combo'), series.map(s => ({ x: s.k, lbl: klbl(s.k), b: s.r?.ba ?? null, l: s.r?.[S.line] ?? null, hi: PK.includes(s.k) })),
-      { bUnit: 'ha', lUnit: METRICS[S.line].unit, lName: METRICS[S.line].label, tick: k => M(k) === 1 ? String(Y(k)) : (M(k) === 7 ? 'jul' : '') });
+    const lM = METRICS[S.line];
+    $('comboTitle').textContent = `Área queimada × ${lM.label} · ${scope}`;
+    $('comboSub').textContent = `Mensal, ${klbl(win[0])} a ${klbl(win.at(-1))}. Barras no eixo da esquerda, linha no da direita. Em destaque: período selecionado.`;
+    $('comboSrc').textContent = `Fonte: barras MCD64A1 via GWIS; linha ${lM.src}.`;
+    $('comboLegend').innerHTML = `<li><i style="background:var(--accent)"></i>Área queimada (MCD64A1)</li><li><i class="ln" style="background:var(--line)"></i>${lM.label} (${lM.src})</li>`;
+    const cdata = series.map(s => ({ x: s.k, lbl: klbl(s.k), b: s.r?.ba ?? null, l: s.r?.[S.line] ?? null, hi: PK.includes(s.k) }));
+    combo($('combo'), cdata, { bUnit: 'ha', lUnit: lM.unit, lName: lM.label, tick: k => M(k) === 1 ? String(Y(k)) : (M(k) === 7 ? 'jul' : '') });
+    DL['combo:csv'] = () => saveCSV(`mensal_${fileTag()}`, ['recorte', 'ano', 'mes', 'area_queimada_ha', 'area_viirs_ha', 'focos', 'co2_t', 'ch4_t', 'pm25_t'], series.map(s => [scope, Y(s.k), M(s.k), s.r?.ba, s.r?.ba_viirs, s.r?.hotspots, s.r?.co2, s.r?.ch4, s.r?.pm25]));
+    DL['combo:png'] = () => savePNG(`mensal_${fileTag()}`, $('combo').querySelector('svg'), $('comboTitle').textContent, $('comboSrc').textContent);
 
     // cobertura
     const cv = cur && cur.ba_forest != null ? cur : null;
-    $('coverSub').textContent = cv ? `Área queimada por tipo de cobertura · ${scopeName} · ${per} (GWIS).` : 'Sem quebra por cobertura neste período (só disponível na base GWIS).';
+    $('coverTitle').textContent = `Cobertura queimada · ${scope}`;
+    $('coverSub').textContent = cv ? `Área queimada por tipo de cobertura do solo, ${per}.` : 'Sem quebra por cobertura neste período (só existe na base GWIS).';
     $('coverSplit').innerHTML = cv ? COVERS.map(([c, l, col]) => `<span title="${l}: ${fmt(cv[c], 'ha')}" style="flex:${cv[c] || 0} 0 0;background:var(${col})"></span>`).join('') : '';
-    $('coverLegend').innerHTML = cv ? COVERS.map(([c, l, col]) => `<li><i style="background:var(${col})"></i>${l} <b>${nf0.format((cv[c] || 0) / (cv.ba || 1) * 100)}%</b></li>`).join('') : '';
+    $('coverLegend').innerHTML = cv ? COVERS.map(([c, l, col]) => `<li><i style="background:var(${col})"></i>${l} <b>${nf0.format((cv[c] || 0) / (cv.ba || 1) * 100)}%</b> · ${fmt(cv[c], 'ha')}</li>`).join('') : '';
+    DL['cover:csv'] = () => saveCSV(`cobertura_${fileTag()}`, ['recorte', 'periodo', 'cobertura', 'area_queimada_ha', 'pct'], cv ? COVERS.map(([c, l]) => [scope, per, l, cv[c], (cv[c] || 0) / cv.ba * 100]) : []);
+    DL['cover:png'] = () => { if (!cv) return; let x = 0, body = ''; const W = 600;
+      COVERS.forEach(([c, l, col], i) => { const w = (cv[c] || 0) / cv.ba * W; body += `<rect x="${x}" y="0" width="${Math.max(0, w - 1)}" height="22" fill="var(${col})"/>`; x += w;
+        body += `<rect x="${(i % 3) * 200}" y="${36 + Math.floor(i / 3) * 20}" width="10" height="10" rx="2" fill="var(${col})"/><text x="${(i % 3) * 200 + 16}" y="${45 + Math.floor(i / 3) * 20}" style="fill:var(--ink-2)">${l}: ${nf0.format((cv[c] || 0) / cv.ba * 100)}% · ${fmt(cv[c], 'ha')}</text>`; });
+      savePNG(`cobertura_${fileTag()}`, tmpSVG(W, 80, body), `${$('coverTitle').textContent} · ${per}`, 'Fonte: MCD64A1 por cobertura do solo, GWIS'); };
 
-    // sazonalidade: uma linha por ano, métrica do ranking
+    // sazonalidade
     const sm = S.metric === 'ba_pct' ? 'ba' : S.metric;
-    const sYears = (S.level === 1 && S.sel) ? [S.year - 1, S.year].filter(y => A1[y]) : years;
-    const lines = sYears.map(y => ({ y, pts: Array.from({ length: 12 }, (_, i) => { const r = A0.rows.has(K(y, i + 1)) ? scopeRow([K(y, i + 1)]) : null; return r?.[sm] ?? null; }) }))
-      .filter(l => l.pts.some(v => v != null));
-    const valid = lines.filter(l => l.y !== S.year && l.pts.filter(v => v != null).length === 12);
+    const sYears = (S.level === 'adm1' && S.sel) ? [...new Set(win.map(Y))].filter(y => A1[y]) : years;
+    const lines = sYears.map(y => ({ y, pts: Array.from({ length: 12 }, (_, i) => { const k = K(y, i + 1); if (!A0.rows.has(k)) return null; const r = scopeRow([k]); return r?.[sm] ?? null; }) })).filter(l => l.pts.some(v => v != null));
+    const valid = lines.filter(l => l.y !== S.year && l.pts.every(v => v != null));
     const mean = valid.length ? Array.from({ length: 12 }, (_, i) => valid.reduce((s, l) => s + l.pts[i], 0) / valid.length) : null;
-    $('seasonSub').textContent = `${METRICS[sm].label} por mês · ${scopeName}. Cada linha é um ano; ${S.year} em destaque.`;
+    $('seasonTitle').textContent = `Sazonalidade · ${METRICS[sm].label} · ${scope}`;
+    $('seasonSub').textContent = `Cada linha é um ano; ${S.year} em destaque.`;
+    $('seasonSrc').textContent = `Fonte: ${METRICS[sm].src}.`;
     $('seasonLegend').innerHTML = `<li><i class="ln" style="background:var(--accent)"></i>${S.year}</li>${mean ? `<li><i class="ln" style="background:var(--ink-2)"></i>média ${valid[0].y}–${valid.at(-1).y}</li>` : ''}<li><i class="ln" style="background:var(--axis)"></i>outros anos</li>`;
     seasonChart($('season'), lines, mean, METRICS[sm].unit);
+    DL['season:csv'] = () => saveCSV(`sazonalidade_${fileTag()}`, ['recorte', 'indicador', 'ano', ...MONTHS], [...lines.map(l => [scope, METRICS[sm].label, l.y, ...l.pts]), ...(mean ? [[scope, METRICS[sm].label, 'media', ...mean]] : [])]);
+    DL['season:png'] = () => savePNG(`sazonalidade_${fileTag()}`, $('season').querySelector('svg'), $('seasonTitle').textContent, $('seasonSrc').textContent);
 
-    // anual: barras área queimada + linha CO2
-    const aYears = (S.level === 1 && S.sel) ? sYears : years;
-    const ann = aYears.map(y => { const r = scopeRow(periodKeys(y, 0)); const full = periodKeys(y, 0).every(k => A0.rows.has(k)); return { x: y, lbl: String(y) + (full ? '' : ' (parcial)'), b: r?.ba ?? null, l: r?.co2 ?? null, hi: y === S.year }; });
-    $('annualTitle').textContent = `Série anual · ${scopeName}`;
-    $('annualSub').textContent = 'Área queimada (barras) e emissão de CO₂ GFED (linha) por ano.' + (keys.at(-1) % 100 !== 12 ? ` ${Y(keys.at(-1))} incompleto.` : '');
-    $('annualLegend').innerHTML = `<li><i style="background:var(--accent)"></i>Área queimada</li><li><i class="ln" style="background:var(--line)"></i>CO₂</li>`;
-    combo($('annual'), ann, { bUnit: 'ha', lUnit: 't', lName: 'CO₂', tick: y => aYears.length <= 12 || y % 4 === 0 ? String(y) : '' });
+    // anual
+    const ann = sYears.map(y => { const r = scopeRow(periodKeys(y, 0)); const full = periodKeys(y, 0).every(k => A0.rows.has(k)); return { x: y, lbl: String(y) + (full ? '' : ' (parcial)'), b: r?.ba ?? null, l: r?.co2 ?? null, hi: y === S.year, r }; });
+    $('annualTitle').textContent = `Série anual · ${scope}`;
+    $('annualSub').textContent = 'Área queimada (barras) e emissão de CO₂ (linha) por ano.' + (M(keys.at(-1)) !== 12 ? ` ${Y(keys.at(-1))} incompleto.` : '');
+    $('annualLegend').innerHTML = `<li><i style="background:var(--accent)"></i>Área queimada (MCD64A1)</li><li><i class="ln" style="background:var(--line)"></i>CO₂ (GFED)</li>`;
+    combo($('annual'), ann, { bUnit: 'ha', lUnit: 't', lName: 'CO₂', tick: y => sYears.length <= 12 || y % 4 === 0 ? String(y) : '' });
+    DL['annual:csv'] = () => saveCSV(`anual_${fileTag()}`, ['recorte', 'ano', 'area_queimada_ha', 'area_viirs_ha', 'focos', 'co2_t', 'ch4_t', 'pm25_t'], ann.map(a => [scope, a.x, a.r?.ba, a.r?.ba_viirs, a.r?.hotspots, a.r?.co2, a.r?.ch4, a.r?.pm25]));
+    DL['annual:png'] = () => savePNG(`anual_${fileTag()}`, $('annual').querySelector('svg'), $('annualTitle').textContent, 'Fonte: MCD64A1 e GFED via GWIS');
 
     // tabela
-    $('tbl').innerHTML = `<thead><tr><th>#</th><th>${S.level ? 'Unidade' : 'País'}</th><th>${S.level ? 'País' : 'ISO3'}</th><th>Área queimada (ha)</th><th>VIIRS (ha)</th>${S.level ? '' : '<th>Focos</th><th>% território</th>'}<th>CO₂ (t)</th><th>PM2.5 (t)</th><th>Δ posição</th></tr></thead><tbody>` +
-      rk.map(x => { const u = unit(x.gid), pp = prevPos.get(x.gid), r = x.r, f = v => v == null ? '–' : nf0.format(v);
-        return `<tr><td>${x.pos}</td><td>${esc(u.name)}</td><td>${esc(S.level ? u.parent : u.iso3)}</td><td>${f(r.ba)}</td><td>${f(r.ba_viirs)}</td>${S.level ? '' : `<td>${f(r.hotspots)}</td><td>${u.area && r.ba != null ? nf2.format(r.ba / u.area * 100) : '–'}</td>`}<td>${f(r.co2)}</td><td>${f(r.pm25)}</td><td>${pp == null ? 'novo' : pp - x.pos > 0 ? '+' + (pp - x.pos) : pp - x.pos}</td></tr>`; }).join('') + '</tbody>';
+    const f0 = v => v == null ? '–' : nf0.format(v);
+    $('tbl').innerHTML = `<thead><tr><th>#</th><th>${LEVELS[S.level]}</th><th>${S.level === 'adm1' ? 'País' : S.level === 'adm0' ? 'Continente' : ''}</th><th>Área queimada (ha)</th><th>VIIRS (ha)</th><th>Focos</th><th>% território</th><th>CO₂ (t)</th><th>PM2.5 (t)</th><th>Δ posição</th></tr></thead><tbody>` +
+      rk.map(x => { const u = unitOf(S.level, x.gid), pp = prevPos.get(x.gid), r = x.r;
+        return `<tr><td>${x.pos}</td><td>${esc(u.name)}</td><td>${esc(S.level === 'adm1' ? u.parent : S.level === 'adm0' ? CONT[x.gid] : '')}</td><td>${f0(r.ba)}</td><td>${f0(r.ba_viirs)}</td><td>${f0(r.hotspots)}</td><td>${x.area && r.ba != null ? nf2.format(r.ba / x.area * 100) : '–'}</td><td>${f0(r.co2)}</td><td>${f0(r.pm25)}</td><td>${pp == null ? 'novo' : pp - x.pos > 0 ? '+' + (pp - x.pos) : pp - x.pos}</td></tr>`; }).join('') + '</tbody>';
   }
 
   // ---------- mapa (Equal Earth, sem dependências) ----------
-  let WORLD = null;
   const ALIAS = { KOS: 'XKO', CYN: 'XNC' };
+  const GEO = {};
   function equalEarth(lon, lat) {
-    const A1 = 1.340264, A2 = -0.081106, A3 = 0.000893, A4 = 0.003796, Mq = Math.sqrt(3) / 2;
+    const A1c = 1.340264, A2 = -0.081106, A3 = 0.000893, A4 = 0.003796, Mq = Math.sqrt(3) / 2;
     const l = lon * Math.PI / 180, th = Math.asin(Mq * Math.sin(lat * Math.PI / 180)), t2 = th * th, t6 = t2 * t2 * t2;
-    return [l * Math.cos(th) / (Mq * (A1 + 3 * A2 * t2 + t6 * (7 * A3 + 9 * A4 * t2))), th * (A1 + A2 * t2 + t6 * (A3 + A4 * t2))];
+    return [l * Math.cos(th) / (Mq * (A1c + 3 * A2 * t2 + t6 * (7 * A3 + 9 * A4 * t2))), th * (A1c + A2 * t2 + t6 * (A3 + A4 * t2))];
   }
-  async function loadWorld() {
-    if (WORLD) return WORLD;
-    const feats = await (await fetch('data/world_110m.json')).json();
-    const sc = 960 / (2 * equalEarth(180, 0)[0]), ymax = equalEarth(0, 84)[1], ymin = equalEarth(0, -58)[1];
-    const H = Math.ceil((ymax - ymin) * sc) + 4;
-    const pr = (lo, la) => { const [x, y] = equalEarth(lo, Math.max(-58, la)); return [(x * sc + 480).toFixed(1), ((ymax - y) * sc + 2).toFixed(1)]; };
+  const SC = 960 / (2 * equalEarth(180, 0)[0]), YMAX = equalEarth(0, 84)[1], YMIN = equalEarth(0, -58)[1], MAP_H = Math.ceil((YMAX - YMIN) * SC) + 4;
+  const proj = (lo, la) => { const [x, y] = equalEarth(lo, Math.max(-58, Math.min(84, la))); return [x * SC + 480, (YMAX - y) * SC + 2]; };
+  function prep(feats, isWorld) {
     for (const f of feats) {
-      f.iso = ALIAS[f.iso] || f.iso;
-      f.d = f.p.map(poly => poly.map(ring => 'M' + ring.map(([lo, la]) => pr(lo, la).join(',')).join('L') + 'Z').join('')).join('');
+      if (isWorld) f.iso = ALIAS[f.iso] || f.iso;
+      f.parts = f.p.map(poly => {
+        let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+        const d = poly.map(ring => 'M' + ring.map(([lo, la]) => { const [x, y] = proj(lo, la); if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; return x.toFixed(1) + ',' + y.toFixed(1); }).join('L') + 'Z').join('');
+        return { d, bb: [x0, y0, x1, y1], a: (x1 - x0) * (y1 - y0) };
+      });
+      f.d = f.parts.map(p => p.d).join('');
+      const big = Math.max(...f.parts.map(p => p.a));
+      f.core = f.parts.filter(p => p.a >= big * 0.2).map(p => p.bb);  // ignora ilhas e territórios distantes no enquadramento
+      delete f.p; delete f.parts;
     }
-    let sph = 'M' + Array.from({ length: 181 }, (_, i) => pr(-180, 90 - i).join(',')).join('L');
-    sph += 'L' + Array.from({ length: 181 }, (_, i) => pr(180, -90 + i).join(',')).join('L') + 'Z';
-    return (WORLD = { feats, H, sph });
+    return feats;
+  }
+  async function geo(name) {
+    if (!GEO[name]) GEO[name] = prep(await getJSON(`data/${name}.json`), name === 'world_110m');
+    return GEO[name];
+  }
+  let SPHERE = null;
+  function sphere() {
+    if (SPHERE) return SPHERE;
+    const a = Array.from({ length: 181 }, (_, i) => proj(-180, 90 - i).map(v => v.toFixed(1)).join(','));
+    const b = Array.from({ length: 181 }, (_, i) => proj(180, -90 + i).map(v => v.toFixed(1)).join(','));
+    return (SPHERE = 'M' + a.join('L') + 'L' + b.join('L') + 'Z');
   }
   function breaks(values, n) {
     const v = values.filter(x => x > 0).sort((a, b) => a - b);
@@ -570,78 +692,116 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
     for (let i = 1; i < n; i++) out.push(v[Math.floor(i / n * (v.length - 1))]);
     return [...new Set(out)];
   }
-  async function drawMap(PK) {
-    const W0 = await loadWorld();
-    // mapa sempre por país; em modo estados, usa a mesma métrica no total do país
-    let m = S.metric;
-    const keep = S.level; S.level = 0;
-    const cc = S.country; S.country = '';
-    const rk = ranking(PK, m);
-    S.level = keep; S.country = cc;
-    const vals = new Map(rk.map(x => [x.gid, x]));
-    const br = breaks(rk.map(x => x.v), 6), cls = v => { let i = 0; while (i < br.length && v > br[i]) i++; return i + 1; };
-    const per = S.month ? klbl(PK[0]) : String(S.year);
-    const selIso = S.level === 0 ? S.sel : (S.country ? A0.byName.get(S.country) : null);
-    $('mapTitle').textContent = `${METRICS[m].label} por país · ${per}`;
-    $('mapSub').textContent = S.level === 0 ? 'Clique num país para vê-lo nos gráficos. Cores por sextis entre os países com valor.' : 'Clique num país para listar os estados/províncias dele.';
-    let g = `<path class="sphere" d="${W0.sph}"/>`;
-    for (const f of W0.feats) {
-      const x = vals.get(f.iso);
-      g += `<path data-iso="${f.iso}" class="${f.iso === selIso ? 'on' : ''}" d="${f.d}" fill="${x ? `var(--r${cls(x.v)})` : 'var(--nodata)'}"/>`;
+  function viewFor(bbs) {
+    if (!bbs.length) return [0, 0, 960, MAP_H];
+    let [x0, y0, x1, y1] = [1e9, 1e9, -1e9, -1e9];
+    for (const b of bbs) { x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
+    let w = x1 - x0, h = y1 - y0; const pad = Math.max(w, h) * 0.06 + 4;
+    x0 -= pad; y0 -= pad; w += 2 * pad; h += 2 * pad;
+    const ar = 960 / MAP_H;
+    if (w / h > ar) { const nh = w / ar; y0 -= (nh - h) / 2; h = nh; } else { const nw = h * ar; x0 -= (nw - w) / 2; w = nw; }
+    if (w >= 960) return [0, 0, 960, MAP_H];
+    return [x0, y0, w, h];
+  }
+
+  async function drawMap(PK, per) {
+    const countries = await geo('world_110m');
+    const lvl = S.level, m = S.metric;
+    let units, keyOf;
+    if (lvl === 'adm1') {
+      $('map').classList.add('loading');
+      try { units = await geo('adm1_geo'); } catch (e) { units = []; }
+      $('map').classList.remove('loading');
+      keyOf = f => f.gid;
+    } else {
+      units = countries;
+      keyOf = lvl === 'cont' ? f => CONT[f.iso] : f => f.iso;
     }
-    $('map').innerHTML = `<svg viewBox="0 0 960 ${W0.H}" role="img" aria-label="Mapa de ${esc(METRICS[m].label)} por país">${g}</svg><div class="tip" hidden></div>`;
+    const vals = new Map(ranking(PK, m, lvl).map(x => [x.gid, x]));
+    const br = breaks([...vals.values()].map(x => x.v), 6);
+    const cls = v => { let i = 0; while (i < br.length && v > br[i]) i++; return i + 1; };
+    // enquadramento no país ou continente filtrado
+    let focus = [];
+    if (S.country) focus = countries.filter(f => f.iso === S.country);
+    else if (S.cont && lvl !== 'cont') focus = countries.filter(f => CONT[f.iso] === S.cont);
+    const vb = viewFor(focus.flatMap(f => f.core));
+    const zoom = 960 / vb[2];
+    const unitLabel = { cont: 'continente', adm0: 'país', adm1: 'estado/província' }[lvl];
+    $('mapTitle').textContent = `${METRICS[m].label} por ${unitLabel} · ${per}${focus.length ? ' · ' + (S.country ? A0.units.get(S.country)?.name : S.cont) : ''}`;
+    $('mapSub').textContent = { cont: 'Países pintados pelo total do seu continente. Clique para selecionar um continente.', adm0: 'Clique num país para vê-lo nos gráficos. Cores em 6 faixas com o mesmo número de unidades.', adm1: 'Clique num estado/província para vê-lo nos gráficos. Cinza: sem dado, zero ou sem par entre os limites.' }[lvl];
+    $('mapSrc').textContent = `Fonte: ${METRICS[m].src}. Limites: ${lvl === 'adm1' ? 'geoBoundaries ADM1 simplificado e ' : ''}Natural Earth.`;
+    let g = `<path class="sphere" d="${sphere()}"/>`;
+    units.forEach((f, i) => {
+      const k = keyOf(f), x = k ? vals.get(k) : null, out = !countryInScope(f.iso) && lvl !== 'cont';
+      g += `<path class="u${S.sel && k === S.sel ? ' on' : ''}${out ? ' out' : ''}" data-i="${i}" d="${f.d}" fill="${x && !out ? `var(--r${cls(x.v)})` : 'var(--nodata)'}"/>`;
+    });
+    if (lvl === 'adm1') for (const f of countries) g += `<path class="cb" d="${f.d}"/>`;
+    $('map').innerHTML = `<svg viewBox="${vb.map(v => v.toFixed(1)).join(' ')}" role="img" aria-label="Mapa de ${esc(METRICS[m].label)}">${g}</svg><div class="tip" hidden></div>`;
     const svg = $('map').querySelector('svg'), tip = $('map').querySelector('.tip');
+    const label = f => { const k = keyOf(f);
+      if (lvl === 'cont') return `${k || f.name}`;
+      if (lvl === 'adm0') return A0.units.get(k)?.name || f.name;
+      const u = U1.get(k); return u ? `${u.name} (${u.parent})` : `${f.name} (${f.iso})${k ? '' : ' · sem par GADM'}`; };
     svg.addEventListener('mousemove', e => {
-      const p = e.target.closest('path[data-iso]'); if (!p) { tip.hidden = true; return; }
-      const f = W0.feats.find(q => q.iso === p.dataset.iso), x = vals.get(p.dataset.iso), u = A0.units.get(p.dataset.iso);
-      const eb = $('map').getBoundingClientRect();
+      const p = e.target.closest('path.u'); if (!p) { tip.hidden = true; return; }
+      const f = units[+p.dataset.i], x = vals.get(keyOf(f)), eb = $('map').getBoundingClientRect();
       tip.hidden = false;
-      tip.innerHTML = `<b>${esc(u?.name || f.name)}</b><br>${x ? `${fmtM(x.v, m)} · ${x.pos}º lugar` : 'sem dado / zero'}`;
-      tip.style.left = Math.min(Math.max(e.clientX - eb.left, 70), eb.width - 70) + 'px'; tip.style.top = (e.clientY - eb.top) + 'px';
+      tip.innerHTML = `<b>${esc(label(f))}</b><br>${x ? `${fmtM(x.v, m)} · ${x.pos}º lugar` : 'sem dado ou zero'}`;
+      tip.style.left = Math.min(Math.max(e.clientX - eb.left, 80), eb.width - 80) + 'px'; tip.style.top = (e.clientY - eb.top) + 'px';
     });
     svg.addEventListener('mouseleave', () => tip.hidden = true);
     svg.addEventListener('click', e => {
-      const p = e.target.closest('path[data-iso]'); if (!p || !A0.units.has(p.dataset.iso)) return;
-      const iso = p.dataset.iso;
-      if (S.level === 0) S.sel = S.sel === iso ? null : iso;
-      else { const nm = A0.units.get(iso).name; S.country = S.country === nm ? '' : nm; S.sel = null; }
+      const p = e.target.closest('path.u'); if (!p) return;
+      const k = keyOf(units[+p.dataset.i]);
+      if (!k || !vals.has(k) && !(lvl === 'adm0' && A0.units.has(k))) return;
+      S.sel = S.sel === k ? null : k;
       render();
     });
-    const edges = [0, ...br, Math.max(...rk.map(x => x.v), 0)];
-    $('mapLegend').innerHTML = edges.slice(0, -1).map((a, i) => `<div class="sw"><i style="background:var(--r${i + 1})"></i><span>${i ? '' : ''}${fmtM(a, m)}</span></div>`).join('') +
+    const allV = [...vals.values()].map(x => x.v), edges = [0, ...br, allV.length ? Math.max(...allV) : 0];
+    $('mapLegend').innerHTML = edges.slice(0, -1).map((a, i) => `<div class="sw"><i style="background:var(--r${i + 1})"></i><span>${fmtM(a, m)}</span></div>`).join('') +
       `<div class="sw" style="margin-left:10px;min-width:0"><i style="background:transparent"></i><span>até ${fmtM(edges.at(-1), m)}</span></div><div class="nd"><i></i>sem dado ou zero</div>`;
+    const mapRows = [...vals.values()].sort((a, b) => a.pos - b.pos);
+    DL['map:csv'] = () => saveCSV(`mapa_${fileTag()}`, ['posicao', 'id', 'nome', 'periodo', 'indicador', 'valor', 'faixa'], mapRows.map(x => [x.pos, x.gid, unitOf(lvl, x.gid)?.name, per, METRICS[m].label, x.v, cls(x.v)]));
+    DL['map:png'] = () => {
+      const W = 960, H = Math.round(960 * vb[3] / vb[2]);
+      let inner = svg.innerHTML.replace(/<path class="u/g, `<path stroke-width="${(0.6 / zoom).toFixed(3)}" class="u`).replace(/<path class="cb"/g, `<path stroke-width="${(0.7 / zoom).toFixed(3)}" class="cb"`);
+      inner = `<g transform="scale(${zoom}) translate(${-vb[0]},${-vb[1]})">${inner}</g>`;
+      inner += edges.slice(0, -1).map((a, i) => `<rect x="${i * 74 + 6}" y="${H - 30}" width="70" height="9" fill="var(--r${i + 1})"/><text x="${i * 74 + 6}" y="${H - 8}" style="font-size:10px">${fmtM(a, m)}</text>`).join('');
+      savePNG(`mapa_${fileTag()}`, tmpSVG(W, H, inner), $('mapTitle').textContent, $('mapSrc').textContent);
+    };
   }
 
   // ---------- gráficos (SVG) ----------
   function niceMax(v) { if (!v) return 1; const p = 10 ** Math.floor(Math.log10(v)); for (const s of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (s * p >= v) return s * p; }
-  function tipOn(el, svg, items, text) {
-    const tip = el.querySelector('.tip');
+  function hover(el, svg, pick, text) {
+    const tip = el.querySelector('.tip'), hov = svg.querySelector('.hov');
     svg.addEventListener('mousemove', e => {
       const box = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal, x = (e.clientX - box.left) / box.width * vb.width;
-      const i = items(x); if (i == null) { tip.hidden = true; return; }
-      tip.hidden = false; tip.innerHTML = text(i);
+      const r = pick(x); if (r == null) { tip.hidden = true; hov.setAttribute('visibility', 'hidden'); return; }
+      hov.setAttribute('x1', r.x); hov.setAttribute('x2', r.x); hov.setAttribute('visibility', 'visible');
+      tip.hidden = false; tip.innerHTML = text(r.i);
       const eb = el.getBoundingClientRect();
-      tip.style.left = Math.min(Math.max(e.clientX - eb.left, 70), eb.width - 70) + 'px'; tip.style.top = (e.clientY - eb.top) + 'px';
+      tip.style.left = Math.min(Math.max(e.clientX - eb.left, 80), eb.width - 80) + 'px'; tip.style.top = (e.clientY - eb.top) + 'px';
     });
-    svg.addEventListener('mouseleave', () => tip.hidden = true);
+    svg.addEventListener('mouseleave', () => { tip.hidden = true; hov.setAttribute('visibility', 'hidden'); });
   }
 
   function combo(el, data, o) {
     const W = 640, H = 250, L = 52, R = 52, T = 22, B = 24, n = data.length;
     const bMax = niceMax(Math.max(0, ...data.map(d => d.b || 0))), lMax = niceMax(Math.max(0, ...data.map(d => d.l || 0)));
     const bw = (W - L - R) / n, yb = v => T + (H - T - B) * (1 - v / bMax), yl = v => T + (H - T - B) * (1 - v / lMax);
+    const hasL = data.some(d => d.l != null);
     let g = '';
     for (let i = 0; i <= 4; i++) {
       const yy = T + (H - T - B) * (1 - i / 4);
-      g += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/>`;
-      g += `<text x="${L - 6}" y="${yy + 3}" text-anchor="end">${fmt(bMax * i / 4, o.bUnit, true)[0]}</text>`;
-      if (data.some(d => d.l != null)) g += `<text x="${W - R + 6}" y="${yy + 3}" style="fill:var(--line)">${fmt(lMax * i / 4, o.lUnit, true)[0]}</text>`;
+      g += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/><text x="${L - 6}" y="${yy + 3}" text-anchor="end">${fmt(bMax * i / 4, o.bUnit, true)[0]}</text>`;
+      if (hasL) g += `<text x="${W - R + 6}" y="${yy + 3}" style="fill:var(--line)">${fmt(lMax * i / 4, o.lUnit, true)[0]}</text>`;
     }
     g += `<text x="${L - 6}" y="${T - 12}" text-anchor="end" style="font-size:10px">${fmt(bMax, o.bUnit, true)[1]}</text>`;
-    g += `<text x="${W - R + 6}" y="${T - 12}" style="font-size:10px;fill:var(--line)">${fmt(lMax, o.lUnit, true)[1]}</text>`;
+    if (hasL) g += `<text x="${W - R + 6}" y="${T - 12}" style="font-size:10px;fill:var(--line)">${fmt(lMax, o.lUnit, true)[1]}</text>`;
     data.forEach((d, i) => {
       const x = L + i * bw;
-      if (d.b != null) g += `<rect x="${x + bw * 0.14}" y="${yb(d.b)}" width="${bw * 0.72}" height="${Math.max(0, H - B - yb(d.b))}" rx="2" fill="var(--accent)" opacity="${d.hi ? 1 : 0.45}"/>`;
+      if (d.b != null) g += `<rect x="${x + bw * 0.14}" y="${yb(d.b)}" width="${bw * 0.72}" height="${Math.max(0, H - B - yb(d.b))}" rx="2" fill="var(--accent)" opacity="${d.hi ? 1 : 0.42}"/>`;
       const t = o.tick(d.x); if (t) g += `<text x="${x + bw / 2}" y="${H - 7}" text-anchor="middle">${t}</text>`;
     });
     let path = '', pen = false;
@@ -650,11 +810,8 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
     data.forEach((d, i) => { if (d.l != null) g += `<circle cx="${L + (i + 0.5) * bw}" cy="${yl(d.l)}" r="${d.hi ? 4 : 2.2}" fill="var(--line)" stroke="var(--surface)" stroke-width="${d.hi ? 1.5 : 0}"/>`; });
     g += `<line class="hov" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--ink-2)" stroke-dasharray="2 3" visibility="hidden"/>`;
     el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Barras de área queimada com linha de ${esc(o.lName)}">${g}</svg><div class="tip" hidden></div>`;
-    const svg = el.querySelector('svg'), hov = svg.querySelector('.hov');
-    tipOn(el, svg, x => { const i = Math.floor((x - L) / bw); if (i < 0 || i >= n) { hov.setAttribute('visibility', 'hidden'); return null; }
-      const cx = L + (i + 0.5) * bw; hov.setAttribute('x1', cx); hov.setAttribute('x2', cx); hov.setAttribute('visibility', 'visible'); return i; },
+    hover(el, el.querySelector('svg'), x => { const i = Math.floor((x - L) / bw); return i < 0 || i >= n ? null : { i, x: L + (i + 0.5) * bw }; },
       i => `<b>${data[i].lbl}</b><br>Área queimada: ${fmt(data[i].b, o.bUnit)}<br>${esc(o.lName)}: ${fmt(data[i].l, o.lUnit)}`);
-    svg.addEventListener('mouseleave', () => hov.setAttribute('visibility', 'hidden'));
   }
 
   function seasonChart(el, lines, mean, unitK) {
@@ -667,30 +824,16 @@ code { font-size: 12px; background: var(--accent-weak); padding: 1px 5px; border
     g += `<text x="${L - 6}" y="${T - 12}" text-anchor="end" style="font-size:10px">${fmt(max, unitK, true)[1]}</text>`;
     MONTHS.forEach((m, i) => g += `<text x="${x(i)}" y="${H - 7}" text-anchor="middle">${m}</text>`);
     const pathOf = pts => { let p = '', pen = false; pts.forEach((v, i) => { if (v == null) { pen = false; return; } p += `${pen ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`; pen = true; }); return p; };
-    for (const l of lines) if (l.y !== S.year) g += `<path d="${pathOf(l.pts)}" fill="none" stroke="var(--axis)" stroke-width="1.2" opacity=".8"/>`;
+    for (const l of lines) if (l.y !== S.year) g += `<path d="${pathOf(l.pts)}" fill="none" stroke="var(--axis)" stroke-width="1.2"/>`;
     if (mean) g += `<path d="${pathOf(mean)}" fill="none" stroke="var(--ink-2)" stroke-width="1.6" stroke-dasharray="5 4"/>`;
     const cur = lines.find(l => l.y === S.year);
     if (cur) { g += `<path d="${pathOf(cur.pts)}" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linejoin="round"/>`;
       cur.pts.forEach((v, i) => { if (v != null) g += `<circle cx="${x(i)}" cy="${y(v)}" r="${i + 1 === S.month ? 4.5 : 2.5}" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.5"/>`; }); }
     g += `<line class="hov" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--ink-2)" stroke-dasharray="2 3" visibility="hidden"/>`;
     el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sazonalidade por ano">${g}</svg><div class="tip" hidden></div>`;
-    const svg = el.querySelector('svg'), hov = svg.querySelector('.hov');
-    tipOn(el, svg, px => { const i = Math.round((px - L) / step); if (i < 0 || i > 11) { hov.setAttribute('visibility', 'hidden'); return null; }
-      hov.setAttribute('x1', x(i)); hov.setAttribute('x2', x(i)); hov.setAttribute('visibility', 'visible'); return i; },
-      i => { const ranked = lines.filter(l => l.pts[i] != null).sort((a, b) => b.pts[i] - a.pts[i]);
-        const pos = ranked.findIndex(l => l.y === S.year);
-        return `<b>${MONTHS[i]}</b><br>${S.year}: ${fmt(cur?.pts[i], unitK)}${pos >= 0 ? ` (${pos + 1}º de ${ranked.length} anos)` : ''}${mean ? `<br>média: ${fmt(mean[i], unitK)}` : ''}<br>máx.: ${ranked[0] ? ranked[0].y + ' · ' + fmt(ranked[0].pts[i], unitK) : '–'}`; });
-    svg.addEventListener('mouseleave', () => hov.setAttribute('visibility', 'hidden'));
-  }
-
-  function download(rk, per) {
-    const head = 'rank,gid,iso3,name,parent,period,burned_ha,burned_viirs_ha,hotspots,co2_t,ch4_t,pm25_t,ba_forest_ha,ba_savanna_ha,ba_grass_ha,ba_crop_ha,ba_other_ha';
-    const q = s => `"${String(s ?? '').replace(/"/g, '""')}"`, n = v => v == null ? '' : Math.round(v);
-    const lines = rk.map(x => { const u = unit(x.gid), r = x.r;
-      return [x.pos, u.gid, u.iso3, q(u.name), q(u.parent), per, n(r.ba), n(r.ba_viirs), n(r.hotspots), n(r.co2), n(r.ch4), n(r.pm25), n(r.ba_forest), n(r.ba_savanna), n(r.ba_grass), n(r.ba_crop), n(r.ba_other)].join(','); });
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([head + '\n' + lines.join('\n')], { type: 'text/csv' })),
-      download: `ranking_fogo_${S.level ? 'adm1' : 'paises'}_${per.replace('/', '_')}_${S.metric}.csv` });
-    a.click(); URL.revokeObjectURL(a.href);
+    hover(el, el.querySelector('svg'), px => { const i = Math.round((px - L) / step); return i < 0 || i > 11 ? null : { i, x: x(i) }; },
+      i => { const ranked = lines.filter(l => l.pts[i] != null).sort((a, b) => b.pts[i] - a.pts[i]), pos = ranked.findIndex(l => l.y === S.year);
+        return `<b>${MONTHS[i]}</b><br>${S.year}: ${fmt(cur?.pts[i], unitK)}${pos >= 0 ? ` (${pos + 1}º de ${ranked.length} anos)` : ''}${mean ? `<br>média: ${fmt(mean[i], unitK)}` : ''}<br>máximo: ${ranked[0] ? ranked[0].y + ' · ' + fmt(ranked[0].pts[i], unitK) : '–'}`; });
   }
 
   render();
