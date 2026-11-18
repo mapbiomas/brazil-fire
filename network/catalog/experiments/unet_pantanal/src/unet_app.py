@@ -513,7 +513,7 @@ def _tab_treinar(w, estado):
     _bind(w, btns, out, b5, tudo)
     hint = w.HTML("<span style='color:#666'>Use GPU (T4): na CPU o treino é muito lento. Cada etapa grava o resultado "
                   "no GCS, então dá para repetir só a que falhou.</span>")
-    return w.VBox([hint, chk, w.HBox([b1, b2, b3]), w.HBox([b4, b5]), out])
+    return w.VBox([hint, b1, chk, b5, w.HBox([b2, b3, b4]), out])
 
 
 def _show_results(estado, results):
