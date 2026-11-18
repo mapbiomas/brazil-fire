@@ -3118,8 +3118,6 @@ async function baixarMapaPNG() {
   o.fillText($('x-mapa-t').textContent, pad + 12, 29);
   o.fillStyle = C.ink2; o.font = '500 11px Montserrat, sans-serif';
   o.fillText($('x-mapa-s').textContent, pad + 12, 46);
-  o.textAlign = 'right'; o.fillStyle = C.red; o.font = '800 11px Montserrat, sans-serif';
-  o.fillText('MAPBIOMAS FOGO · MONITOR DO FOGO', larg + pad, 29);
   o.textAlign = 'left';
   const mx = pad + (larg - W) / 2;
   o.drawImage(mc, mx, head, W, H);
@@ -3168,10 +3166,6 @@ function baixarPNG(id) {
   c.fillStyle = C.ink2;
   c.font = `500 ${11 * s}px Montserrat, sans-serif`;
   c.fillText(X.resumo, pad + 12 * s, pad + 33 * s);
-  c.textAlign = 'right';
-  c.fillStyle = C.red;
-  c.font = `800 ${11 * s}px Montserrat, sans-serif`;
-  c.fillText('MAPBIOMAS FOGO · MONITOR DO FOGO', out.width - pad, pad + 15 * s);
   c.textAlign = 'left';
   c.drawImage(cv, pad, head);
   if (leg) {
