@@ -679,6 +679,19 @@ body {
 }
 
 .propbar > span:last-child { box-shadow: none; }
+.dest-manchete { margin: 0 0 14px; font-size: 1.15rem; font-weight: 700; line-height: 1.4; color: var(--text); }
+.dest-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.dest-cartao { position: relative; display: grid; gap: 4px; padding: 14px 14px 12px; border-radius: 12px; background: var(--surface-muted); border: 1px solid var(--border); }
+.dest-cartao h3 { margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--text-2); padding-right: 64px; }
+.dest-cartao .dest-grande { font-size: 1.5rem; line-height: 1.15; color: var(--text); }
+.dest-cartao p { margin: 0; font-size: 0.84rem; line-height: 1.45; color: var(--text-2); }
+.dest-selo { position: absolute; top: 12px; right: 12px; padding: 2px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; background: #d8dce2; color: #2a2f36; }
+.dest-mudou { border-color: #e8492f; }
+.dest-mudou .dest-selo { background: #e8492f; color: #fff; }
+.dest-indicio { border-color: #e0a100; }
+.dest-indicio .dest-selo { background: #f5c542; color: #3a2c00; }
+.dest-estavel .dest-selo { background: #cfe8d5; color: #1c5a2f; }
+.dest-sub { margin: 20px 0 8px; font-size: 0.85rem; font-weight: 700; color: var(--text); }
 .destaques { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .destaques li { display: grid; gap: 2px; padding: 8px 0 8px 14px; border-left: 3px solid var(--brand, #e8492f); }
 .destaques strong { font-size: 0.9rem; color: var(--text); }
