@@ -2577,6 +2577,7 @@ function camadaCalor(url) {
 }
 function legCalor() {
   return CALOR_RAMPA.map((c, i) => `<span><i style="background:${c}"></i>${['muito baixa', 'baixa', 'média', 'alta', 'muito alta'][i]}</span>`).join('')
+    + '<span><i style="background:transparent;box-shadow:inset 0 0 0 2px #000000"></i>limite do recorte</span>'
     + '<span>concentração de área queimada (mapa de calor)</span>';
 }
 function camadas(m, f, d) {
@@ -2599,7 +2600,8 @@ function camadas(m, f, d) {
     // crossOrigin: as imagens podem ir para o PNG do mapa. O mapa de calor é recolorido (camadaCalor).
     poe(m, d.modo === 'calor' ? camadaCalor(d.url) : L.tileLayer(d.url, { zIndex: 3, maxZoom: 16, crossOrigin: 'anonymous' }));
   }
-  poe(m, mvt(`/api/territories/shape/tiles/${sub}`, { fill: false, color: C.redD, weight: 1.6 }, 5));
+  // No mapa de calor o limite vai em preto: o vermelho se perde sobre as manchas.
+  poe(m, mvt(`/api/territories/shape/tiles/${sub}`, { fill: false, color: d.modo === 'calor' ? '#000000' : C.redD, weight: d.modo === 'calor' ? 1.8 : 1.6 }, 5));
 }
 
 async function xMapa(f, vivo, rankP) {
@@ -3093,7 +3095,7 @@ async function baixarMapaPNG() {
   const leg = [...$('x-mapa-leg').querySelectorAll('span')].map(sp => {
     const i = sp.querySelector('i');
     const cs = i ? getComputedStyle(i) : null;
-    return { cor: cs && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' ? cs.backgroundColor : null, borda: cs && cs.boxShadow !== 'none' ? C.redD : null, txt: sp.textContent.trim() };
+    return { cor: cs && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' ? cs.backgroundColor : null, borda: cs && cs.boxShadow !== 'none' ? (cs.boxShadow.match(/rgba?\([^)]*\)/) || [C.redD])[0] : null, txt: sp.textContent.trim() };
   }).filter(l => l.txt);
   const pad = 18, larg = Math.max(W, 640), med = document.createElement('canvas').getContext('2d');
   med.font = '500 11px Montserrat, sans-serif';
