@@ -288,6 +288,7 @@ Hashtags:
 - `&ref=media` — usa a média histórica como base de comparação (padrão: ano anterior).
 - `&anom=1` — abre o Top 15 só com os territórios acima da média histórica (implica `ref=media`).
 - `&o=alta` — ordena o Top 15 pelo maior aumento em ha contra a referência (padrão: maior área).
+- `&fd=sat` (ou `topo`, `escuro`, `branco`) — fundo do mapa do painel (padrão: cinza claro da Esri). O mapa mostra escala e norte na tela; o PNG desenha os seus e cita o fundo na fonte.
 
 ---
 

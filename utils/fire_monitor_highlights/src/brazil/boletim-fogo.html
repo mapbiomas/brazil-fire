@@ -335,6 +335,7 @@
   .cal-w canvas { display: block; width: 100%; }
   .cal-leg { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; font-size: 11px; color: var(--ink2); }
   .cal-leg .g { width: 160px; height: 8px; border-radius: 2px; background: linear-gradient(90deg, #FFF3F1, #F8B1AA, #F06A61, #E94030, #A82416); }
+  .leaflet-control.norte { background: rgba(255,255,255,.85); border-radius: 50%; width: 34px; height: 34px; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
   .x-mopts { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; margin-top: 12px; }
   .x-maps { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 8px; }
   .x-mapw { position: relative; min-width: 0; }
@@ -750,6 +751,15 @@
           <option value="area">Área queimada (ha)</option>
           <option value="var">Variação % vs. ano anterior</option>
           <option value="var-media">Variação % vs. média histórica</option>
+        </select>
+      </label>
+      <label class="x-campo">Fundo
+        <select id="x-fundo">
+          <option value="cinza">Cinza claro</option>
+          <option value="sat">Satélite</option>
+          <option value="topo">Topográfico</option>
+          <option value="escuro">Escuro</option>
+          <option value="branco">Sem fundo (branco)</option>
         </select>
       </label>
     </div>
@@ -1843,6 +1853,7 @@ function lerHash() {
     // Ordem do Top 15: 'area' (maior área queimada) ou 'alta' (maior aumento em ha contra a referência).
     ordem: h.get('o') === 'alta' ? 'alta' : 'area',
     modo: ['sub', 'fogo', 'calor'].includes(h.get('mp')) ? h.get('mp') : '',
+    fundo: Object.hasOwn(FUNDOS, h.get('fd') || '') ? h.get('fd') : 'cinza',
     metrica: h.get('m') === 'var' ? 'var' : 'area',
     nivel: [1, 2, 3, 4].includes(int('nv')) ? int('nv') : 2
   };
@@ -1856,6 +1867,7 @@ function salvarHash() {
   if (f.anom) p.set('anom', '1');
   if (f.ordem === 'alta') p.set('o', 'alta');
   if (f.modo) p.set('mp', f.modo);
+  if (f.fundo && f.fundo !== 'cinza') p.set('fd', f.fundo);
   if (f.metrica === 'var') p.set('m', 'var');
   if (f.nivel !== 2) p.set('nv', f.nivel);
   history.replaceState(null, '', `#explorer?${p}`);
@@ -1946,6 +1958,8 @@ function ligarEventos() {
     refazer('x-saz', 'x-acu', 'x-anual');
   });
   $('x-modo').addEventListener('click', e => { const b = e.target.closest('[data-modo]'); if (b) { f().modo = b.dataset.modo; refazer('x-mapa'); } });
+  $('x-fundo').value = f().fundo;
+  $('x-fundo').addEventListener('change', e => { f().fundo = e.target.value; salvarHash(); if (X.m1) trocarFundo(X.m1, f().fundo); });
   $('x-metrica').addEventListener('change', () => {
     const v = $('x-metrica').value, x = f();
     const base = v === 'var-media' ? 'media' : '';
@@ -2476,10 +2490,36 @@ function pintarCalendario(cv, M, anoDest, ini, fim, o = {}) {
 }
 
 /* ---------- mapa ---------- */
+// Fundos do mapa interativo (todos com CORS, para irem para o PNG). Escolha no hash: fd=.
+const FUNDOS = {
+  cinza: { url: ESRI, attr: 'Mapa base © Esri' },
+  sat: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: 'Imagem © Esri, Maxar, Earthstar Geographics' },
+  topo: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attr: 'Mapa base © Esri' },
+  escuro: { url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', attr: '© OpenStreetMap, © CARTO' },
+  branco: { url: null, attr: '' }
+};
+function trocarFundo(m, k) {
+  const fd = FUNDOS[k] || FUNDOS.cinza;
+  if (m._fundo) m.removeLayer(m._fundo);
+  m._fundo = fd.url ? L.tileLayer(fd.url, { attribution: fd.attr, maxZoom: 16, crossOrigin: 'anonymous', zIndex: 0 }).addTo(m) : null;
+  m.getContainer().style.background = k === 'branco' ? '#FFFFFF' : k === 'escuro' ? '#1F1F1F' : '';
+  m._fundoAttr = fd.attr;
+}
+// Seta do norte na tela (o PNG desenha a sua própria).
+const NorteCtl = window.L && L.Control.extend({
+  options: { position: 'topright' },
+  onAdd() {
+    const d = L.DomUtil.create('div', 'norte');
+    d.innerHTML = '<svg width="22" height="30" viewBox="0 0 22 30" aria-label="Norte"><path d="M11 1 L18 21 L11 17 Z" fill="#1F1F1F"/><path d="M11 1 L4 21 L11 17 Z" fill="#9E9E9E"/><text x="11" y="29" text-anchor="middle" font-size="9" font-weight="700" fill="#1F1F1F" font-family="Montserrat, sans-serif">N</text></svg>';
+    return d;
+  }
+});
 function novoMapa(id) {
   const m = L.map(id, { zoomSnap: .25, zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false });
   m.attributionControl.setPrefix(false);
-  L.tileLayer(ESRI, { attribution: 'Mapa base © Esri', maxZoom: 16, crossOrigin: 'anonymous' }).addTo(m);
+  trocarFundo(m, X.f?.fundo);
+  L.control.scale({ position: 'bottomleft', imperial: false, maxWidth: 120 }).addTo(m);
+  if (NorteCtl) new NorteCtl().addTo(m);
   m._cam = [];
   return m;
 }
@@ -2892,7 +2932,7 @@ function xForaNormal(M, f) {
   const lim = Math.max(3.3 * passo, ...difs.map(d => Math.abs(d) + 15));
   mkChart('x-fn', 'xc-fn', {
     type: 'bar',
-    data: { labels: anos.map(String), datasets: [{ data: difs, backgroundColor: anos.map(y => y === f.ano ? C.fire : C.gray), borderRadius: 2, barPercentage: .55 }] },
+    data: { labels: anos.map(String), datasets: [{ data: difs, backgroundColor: anos.map(y => y === f.ano ? C.fire : C.gray), borderRadius: 2, barPercentage: .4, maxBarThickness: 36 }] },
     plugins: [faixasNormal],
     options: {
       maintainAspectRatio: false,
@@ -3008,7 +3048,8 @@ async function baixarMapaPNG() {
   mc.width = W * s; mc.height = H * s;
   const c = mc.getContext('2d');
   c.scale(s, s);
-  c.fillStyle = '#F2F2F2';
+  const fundoCor = getComputedStyle(box).backgroundColor;
+  c.fillStyle = fundoCor && fundoCor !== 'rgba(0, 0, 0, 0)' ? fundoCor : '#F2F2F2';
   c.fillRect(0, 0, W, H);
   try {
     itens.forEach(({ el }, i) => {
@@ -3094,7 +3135,7 @@ async function baixarMapaPNG() {
     o.fillText(l.txt, tx, y);
   });
   o.fillStyle = C.muted; o.font = '500 9.5px Montserrat, sans-serif';
-  o.fillText(`Fonte: MapBiomas Fogo · Monitor do Fogo (${API.replace('https://', '')}) · Mapa base © Esri`, pad, head + H + legH + foot / 2);
+  o.fillText(`Fonte: MapBiomas Fogo · Monitor do Fogo (${API.replace('https://', '')})${m._fundoAttr ? ` · ${m._fundoAttr}` : ''}`, pad, head + H + legH + foot / 2);
   try {
     const blob = await new Promise(r => out.toBlob(r, 'image/png'));
     if (blob) baixar(arquivo('mapa.png'), blob);
