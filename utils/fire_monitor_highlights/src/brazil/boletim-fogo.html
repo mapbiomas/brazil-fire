@@ -2393,7 +2393,7 @@ function xAcu(M, f) {
   const S = Object.fromEntries(P.anos.map(y => [y, acum(M[y])]));
   const st = estat(S, f);
   const labels = range(a, b).map(m => cap(MES[m - 1]));
-  $('x-acu-t').textContent = noTerr(a === b ? `Área queimada em ${MES_L[a - 1]}` : `Área queimada acumulada de ${MES_L[a - 1]} a ${MES_L[b - 1]}`, f);
+  $('x-acu-t').textContent = noTerr(a === b ? `Área queimada em ${MES_L[a - 1]}` : 'Área queimada acumulada', f);
   const k = S[f.ano].reduce((u, v, i) => v != null ? i : u, -1);
   if (k >= 0 && st[k]) {
     const d = pct(S[f.ano][k], st[k].avg);
@@ -2411,8 +2411,7 @@ function xAcu(M, f) {
 function xAnual(M, f) {
   const anos = P.anos, vals = anos.map(y => somaP(M[y], f.ini, f.fim));
   const parcial = y => y === P.Y && f.fim > P.M;
-  $('x-anual-t').textContent = noTerr(f.ini === f.fim ? `Área queimada em ${MES_L[f.ini - 1]}, por ano`
-    : f.ini === 1 && f.fim === 12 ? 'Área queimada no ano' : `Área queimada de ${MES_L[f.ini - 1]} a ${MES_L[f.fim - 1]}, por ano`, f);
+  $('x-anual-t').textContent = noTerr(f.ini === f.fim ? `Área queimada em ${MES_L[f.ini - 1]}, por ano` : 'Área queimada por ano', f);
   const media = vals.filter((_, i) => anos[i] !== f.ano && !parcial(anos[i]));
   const med = media.length ? media.reduce((s, x) => s + x, 0) / media.length : null;
   $('x-anual-s').textContent = (med ? `Média dos demais anos: ${haC(med)}.` : '') + (anos.some(parcial) ? ` ${P.Y} ainda está incompleto (dados até ${MES_L[P.M - 1]}).` : '');
@@ -3036,7 +3035,7 @@ async function baixarMapaPNG() {
   const m = X.m1;
   if (!m) return;
   const box = m.getContainer(), br = box.getBoundingClientRect();
-  const W = Math.round(br.width), H = Math.round(br.height), s = 2;
+  const W = Math.round(br.width), H = Math.round(br.height), s = 3;
   const dentro = r => r.width && r.right > br.left && r.left < br.right && r.bottom > br.top && r.top < br.bottom;
   const els = [...box.querySelectorAll('.leaflet-pane img.leaflet-tile, .leaflet-pane svg.leaflet-tile, .leaflet-pane canvas')]
     .filter(el => dentro(el.getBoundingClientRect()) && (el.tagName !== 'IMG' || (el.complete && el.naturalWidth)));
@@ -3134,7 +3133,7 @@ async function baixarMapaPNG() {
     o.fillStyle = C.ink2;
     o.fillText(l.txt, tx, y);
   });
-  o.fillStyle = C.muted; o.font = '500 9.5px Montserrat, sans-serif';
+  o.fillStyle = '#000000'; o.font = '500 9.5px Montserrat, sans-serif';
   o.fillText(`Fonte: MapBiomas Fogo · Monitor do Fogo (${API.replace('https://', '')})${m._fundoAttr ? ` · ${m._fundoAttr}` : ''}`, pad, head + H + legH + foot / 2);
   try {
     const blob = await new Promise(r => out.toBlob(r, 'image/png'));
@@ -3182,11 +3181,11 @@ function baixarPNG(id) {
     });
     c.textBaseline = 'alphabetic';
   }
-  c.fillStyle = C.muted;
+  c.fillStyle = '#000000';
   c.font = `500 ${9.5 * s}px Montserrat, sans-serif`;
   c.fillText(API_MODO === 'dev'
-    ? 'Fonte: API dev do Monitor do Fogo (dev-fogo.geodatin.com), dados de teste. Área queimada, não focos de calor.'
-    : 'Fonte: MapBiomas Monitor do Fogo (plataforma.monitorfogo.mapbiomas.org). Área queimada, não focos de calor.', pad, out.height - 11 * s);
+    ? 'Fonte: API dev do Monitor do Fogo (dev-fogo.geodatin.com), dados de teste.'
+    : 'Fonte: MapBiomas Monitor do Fogo (plataforma.monitorfogo.mapbiomas.org).', pad, out.height - 11 * s);
   out.toBlob(b => b && baixar(`${arquivo(X.dl[id].nome)}.png`, b), 'image/png');
 }
 async function copiarLink() {
