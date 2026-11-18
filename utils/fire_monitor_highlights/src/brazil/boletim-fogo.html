@@ -1107,13 +1107,13 @@ const topLabels = {
     if (!o.indices) return;
     const { ctx, chartArea } = chart, meta = chart.getDatasetMeta(0);
     ctx.save();
-    ctx.font = '700 8.5px Montserrat, sans-serif';
+    ctx.font = '700 11px Montserrat, sans-serif';
     ctx.textAlign = 'center';
     ctx.lineJoin = 'round';
     // Contorno branco: o rótulo continua legível quando cruza a linha da média.
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = '#FFFFFF';
-    ctx.fillStyle = C.ink2;
+    ctx.fillStyle = C.ink;
     const colocados = [];
     o.indices.forEach(i => {
       const el = meta.data[i], v = chart.data.datasets[0].data[i];
@@ -1121,16 +1121,16 @@ const topLabels = {
       const txt = o.fmt(v, i), w = ctx.measureText(txt).width;
       const l = el.x - w / 2, r = el.x + w / 2;
       // Nunca desenha acima da área do gráfico (o rótulo seria cortado).
-      let y = Math.max(el.y - 5, chartArea.top + 9);
+      let y = Math.max(el.y - 6, chartArea.top + 12);
       // Se encostar no rótulo anterior, sobe um degrau em vez de desaparecer.
       for (let k = 0; k < 3; k++) {
-        const bate = colocados.some(p => l < p.r + 2 && r > p.l - 2 && y - 9 < p.b && y > p.t);
+        const bate = colocados.some(p => l < p.r + 2 && r > p.l - 2 && y - 12 < p.b && y > p.t);
         if (!bate) break;
-        y -= 11;
+        y -= 14;
       }
       ctx.strokeText(txt, el.x, y);
       ctx.fillText(txt, el.x, y);
-      colocados.push({ l, r, t: y - 9, b: y + 2 });
+      colocados.push({ l, r, t: y - 12, b: y + 2 });
     });
     ctx.restore();
   }
@@ -1262,7 +1262,7 @@ function yearChart(id, anos, vals, Y) {
     plugins: [linhaMedia, topLabels],
     options: {
       maintainAspectRatio: false,
-      layout: { padding: { top: 26, right: 52 } },
+      layout: { padding: { top: 32, right: 60 } },
       plugins: {
         legend: { display: false },
         linhaMedia: { v: med, txt: med == null ? '' : U.f(med) },
@@ -2422,7 +2422,7 @@ function xAnual(M, f) {
     data: { labels: anos.map(y => parcial(y) ? `${y}*` : String(y)), datasets: [{ data: vals, backgroundColor: anos.map(y => corAno(f, y) || C.gray), borderRadius: 3, barPercentage: .78 }] },
     plugins: [topLabels],
     options: {
-      maintainAspectRatio: false, layout: { padding: { top: 16 } },
+      maintainAspectRatio: false, layout: { padding: { top: 24 } },
       plugins: { legend: { display: false }, topLabels: { indices: vals.map((_, i) => i), fmt: (v, i) => anos[i] === f.ano ? U.f(v) : U.n(v) }, tooltip: { callbacks: { label: c => ` ${haC(c.raw)}` } } },
       scales: {
         x: { grid: { display: false }, border: { display: true, color: C.ink }, ticks: { font: { size: 13, weight: '600' }, color: c => anos[c.index] === f.ano ? C.redD : C.ink2 }, title: { ...axT('Ano'), font: { size: 13, weight: '700' } } },
