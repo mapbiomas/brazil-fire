@@ -1531,21 +1531,86 @@ async function loadAnual({ t, ini, fim }) {
   if (classeSel && blocosCob.length >= 2) {
     const totalAno = new Map(anos.map((a) => [a.ano, a.area]));
     const doBlocoCob = blocosCob.map((b) => anosClasses.filter((a) => a.ano >= b.ini && a.ano <= b.fim && totalAno.get(a.ano) > 0));
+    const partAno = (a) => safeDiv(a.valores.get(classeSel.item.pixelValue) || 0, totalAno.get(a.ano));
+    const porBloco = doBlocoCob.map((as) => as.map(partAno));
+    // Testes: Kruskal-Wallis (períodos diferentes?), Mann-Kendall (tendência ano a ano), Mann-Whitney (último período x anteriores).
+    const T = (pt, es, en, id) => porIdioma({ pt, es, en, id });
+    const nf3 = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+    const fmtP = (p) => (p < 0.001 ? `p < ${nf3.format(0.001)}` : `p = ${nf3.format(p)}`);
+    const veredito = (p) => (p < 0.05
+      ? T("estatisticamente significativo", "estadísticamente significativo", "statistically significant", "signifikan secara statistik")
+      : p < 0.1
+        ? T("indício fraco, não conclusivo", "indicio débil, no concluyente", "weak evidence, inconclusive", "bukti lemah, belum meyakinkan")
+        : T("sem evidência estatística de mudança", "sin evidencia estadística de cambio", "no statistical evidence of change", "tidak ada bukti statistik perubahan"));
+    const kw = estKruskalWallis(porBloco);
+    const serieCls = anosClasses.filter((a) => totalAno.get(a.ano) > 0).map(partAno);
+    const mk = estMannKendall(serieCls);
+    const ultimos = porBloco[porBloco.length - 1], anteriores = porBloco.slice(0, -1).flat();
+    const mw = estMannWhitney(ultimos, anteriores);
+    const medPrim = mediana(porBloco[0]), medUlt = mediana(ultimos), medAnt = mediana(anteriores);
+    const subiu = medUlt >= medPrim;
+    const tom = !kw ? "estavel" : kw.p < 0.05 ? "mudou" : kw.p < 0.1 ? "indicio" : "estavel";
+    const nome = classeSel.label;
+    const p1 = blocosCob[0].label, pn = blocosCob[blocosCob.length - 1].label;
+    const faixa = `${pct(medPrim)} → ${pct(medUlt)}`;
+    const manchete = tom === "mudou"
+      ? T(`A participação de ${nome} na área queimada ${subiu ? "aumentou" : "diminuiu"} entre os períodos: a mediana passou de ${pct(medPrim)} (${p1}) para ${pct(medUlt)} (${pn}), diferença estatisticamente significativa.`,
+        `La participación de ${nome} en el área quemada ${subiu ? "aumentó" : "disminuyó"} entre los períodos: la mediana pasó de ${pct(medPrim)} (${p1}) a ${pct(medUlt)} (${pn}), diferencia estadísticamente significativa.`,
+        `The share of ${nome} in burned area ${subiu ? "increased" : "decreased"} across periods: the median went from ${pct(medPrim)} (${p1}) to ${pct(medUlt)} (${pn}), a statistically significant difference.`,
+        `Porsi ${nome} pada area terbakar ${subiu ? "naik" : "turun"} antarperiode: median dari ${pct(medPrim)} (${p1}) menjadi ${pct(medUlt)} (${pn}), perbedaan signifikan secara statistik.`)
+      : tom === "indicio"
+        ? T(`Há indício de que a participação de ${nome} na área queimada ${subiu ? "aumentou" : "diminuiu"} (mediana de ${pct(medPrim)} em ${p1} para ${pct(medUlt)} em ${pn}), mas a diferença ainda não é conclusiva.`,
+          `Hay indicios de que la participación de ${nome} en el área quemada ${subiu ? "aumentó" : "disminuyó"} (mediana de ${pct(medPrim)} en ${p1} a ${pct(medUlt)} en ${pn}), pero la diferencia aún no es concluyente.`,
+          `There is a hint that the share of ${nome} in burned area ${subiu ? "increased" : "decreased"} (median from ${pct(medPrim)} in ${p1} to ${pct(medUlt)} in ${pn}), but the difference is not yet conclusive.`,
+          `Ada indikasi porsi ${nome} pada area terbakar ${subiu ? "naik" : "turun"} (median dari ${pct(medPrim)} pada ${p1} menjadi ${pct(medUlt)} pada ${pn}), tetapi perbedaannya belum meyakinkan.`)
+        : T(`A participação de ${nome} na área queimada não mudou de forma comprovada entre os períodos (mediana de ${pct(medPrim)} em ${p1} e ${pct(medUlt)} em ${pn}); as diferenças cabem na variação natural de ano para ano.`,
+          `La participación de ${nome} en el área quemada no cambió de forma comprobada entre los períodos (mediana de ${pct(medPrim)} en ${p1} y ${pct(medUlt)} en ${pn}); las diferencias caben en la variación natural entre años.`,
+          `The share of ${nome} in burned area did not change in a proven way across periods (median ${pct(medPrim)} in ${p1} and ${pct(medUlt)} in ${pn}); the differences fit the normal year-to-year variation.`,
+          `Porsi ${nome} pada area terbakar tidak berubah secara terbukti antarperiode (median ${pct(medPrim)} pada ${p1} dan ${pct(medUlt)} pada ${pn}); perbedaannya masih dalam variasi antartahun.`);
+    const itens = [];
+    if (kw) itens.push({
+      titulo: T("Diferença entre os períodos (Kruskal-Wallis)", "Diferencia entre períodos (Kruskal-Wallis)", "Difference between periods (Kruskal-Wallis)", "Perbedaan antarperiode (Kruskal-Wallis)"),
+      texto: `${fmtP(kw.p)} · ${veredito(kw.p)}`,
+    });
+    if (mk) {
+      const porDecada = mk.sen * 10;
+      itens.push({
+        titulo: T("Tendência ano a ano (Mann-Kendall)", "Tendencia año a año (Mann-Kendall)", "Year-to-year trend (Mann-Kendall)", "Tren antartahun (Mann-Kendall)"),
+        texto: `${porDecada >= 0 ? "+" : "−"}${pct(Math.abs(porDecada))} ${T("por década", "por década", "per decade", "per dekade")} · ${fmtP(mk.p)} · ${veredito(mk.p)}`,
+      });
+    }
+    if (mw) itens.push({
+      titulo: T(`Último período (${pn}) × anteriores (Mann-Whitney)`, `Último período (${pn}) × anteriores (Mann-Whitney)`, `Latest period (${pn}) × earlier (Mann-Whitney)`, `Periode terakhir (${pn}) × sebelumnya (Mann-Whitney)`),
+      texto: `${T("mediana", "mediana", "median", "median")} ${pct(medUlt)} × ${pct(medAnt)} · ${fmtP(mw.p)} · ${veredito(mw.p)}`,
+    });
+    const lado = {
+      tom,
+      selo: { mudou: T("Mudou", "Cambió", "Changed", "Berubah"), indicio: T("Indício", "Indicio", "Hint", "Indikasi"), estavel: T("Estável", "Estable", "Stable", "Stabil") }[tom],
+      grande: faixa,
+      manchete,
+      itens,
+    };
     cardPorPeriodo = {
       span: 12,
       title: `Variação por período da área queimada em ${classeSel.label}`,
       subtitle: `${rotuloNivel} · participação da classe na área queimada de cada ano; cada caixa reúne os anos de um período (blocos de 10 anos)`,
       boxplotFixo: {
         percent: true,
+        horizontal: true,
+        pvalor: kw ? fmtP(kw.p).replace(/ /g, "") : "",
+        lado,
         labels: blocosCob.map((b) => b.label),
         nomes: blocosCob.map((b) => b.label),
         cores: blocosCob.map(() => classeSel.color),
-        porMes: doBlocoCob.map((as) => as.map((a) => safeDiv(a.valores.get(classeSel.item.pixelValue) || 0, totalAno.get(a.ano)))),
+        porMes: porBloco,
         anos: doBlocoCob.map((as) => as.map((a) => String(a.ano))),
         axisTitle: "Participação na área queimada do ano (%)",
         categoryTitle: "Intervalo de tempo",
       },
-      legend: [{ label: "Caixa = metade central dos anos do período (do 1º ao 3º quartil) · traço = mediana · hastes = menor e maior valor típicos · pontos = anos fora do comum (além de 1,5 vez a altura da caixa)", note: true }],
+      legend: [
+        { label: "Caixa = metade central dos anos do período (do 1º ao 3º quartil) · traço = mediana · hastes = menor e maior valor típicos · pontos = anos fora do comum (além de 1,5 vez a altura da caixa)", note: true },
+        { label: "p no canto do gráfico = teste de Kruskal-Wallis entre os períodos. Testes não paramétricos, sem correção para autocorrelação entre anos: indicam evidência, não provam causa.", note: true },
+      ],
     };
   }
   const comMha = Math.max(0, ...anos.map((a) => a.area)) >= 1e6;
@@ -1652,7 +1717,15 @@ async function loadAnual({ t, ini, fim }) {
     ],
   };
   if (cardPorPeriodo) {
-    // Escolha da classe (dentro do nível de legenda já escolhido) para o boxplot por período.
+    // No próprio card: primeiro o nível de legenda (1, 2, 3...), depois a classe dentro do nível.
+    view.toolbar.push({
+      type: "segmented",
+      card: 5,
+      label: "Nível de legenda",
+      value: state.nivel,
+      options: niveis.map((n) => ({ value: n, label: String(n), title: n === 0 ? "Nível 0 · Natural e antrópico" : `Nível ${n} da legenda de cobertura` })),
+      onChange: (v) => { state.nivel = Number(v); loadCurrentTab(); },
+    });
     view.toolbar.push({
       type: "select",
       card: 5,
@@ -2361,6 +2434,53 @@ function estMannWhitney(a, b) {
   const sd = Math.sqrt((n1 * n2 / 12) * ((N + 1) - corr / (N * (N - 1))));
   const z = sd > 0 ? (U1 - mu - 0.5 * Math.sign(U1 - mu)) / sd : 0;
   return { p: pDuasCaudas(z) };
+}
+// Qui-quadrado (cauda superior) via gama incompleta regularizada, para o Kruskal-Wallis.
+function lnGama(x) {
+  const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+  let y = x, tmp = x + 5.5;
+  tmp -= (x + 0.5) * Math.log(tmp);
+  let ser = 1.000000000190015;
+  for (const cj of c) ser += cj / ++y;
+  return -tmp + Math.log(2.5066282746310005 * ser / x);
+}
+function gamaQ(a, x) {
+  if (x <= 0) return 1;
+  if (x < a + 1) {
+    let ap = a, del = 1 / a, soma = del;
+    for (let n = 0; n < 200; n++) { ap += 1; del *= x / ap; soma += del; if (Math.abs(del) < Math.abs(soma) * 1e-12) break; }
+    return Math.max(0, 1 - soma * Math.exp(-x + a * Math.log(x) - lnGama(a)));
+  }
+  let b = x + 1 - a, c = 1e300, d = 1 / b, h = d;
+  for (let i = 1; i < 200; i++) {
+    const an = -i * (i - a);
+    b += 2; d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300;
+    c = b + an / c; if (Math.abs(c) < 1e-300) c = 1e-300;
+    d = 1 / d; const del = d * c; h *= del;
+    if (Math.abs(del - 1) < 1e-12) break;
+  }
+  return Math.min(1, Math.exp(-x + a * Math.log(x) - lnGama(a)) * h);
+}
+// Kruskal-Wallis: os grupos (períodos) vêm da mesma distribuição? (com correção de empates)
+function estKruskalWallis(grupos) {
+  const gs = grupos.filter((g) => g.length >= 3);
+  if (gs.length < 2) return null;
+  const todos = gs.flatMap((g, k) => g.map((v) => ({ v, k }))).sort((x, y) => x.v - y.v);
+  const N = todos.length, R = gs.map(() => 0);
+  let corr = 0;
+  for (let i = 0; i < N;) {
+    let j = i;
+    while (j + 1 < N && todos[j + 1].v === todos[i].v) j++;
+    const tt = j - i + 1, rank = (i + j + 2) / 2;
+    for (let q = i; q <= j; q++) R[todos[q].k] += rank;
+    corr += tt ** 3 - tt;
+    i = j + 1;
+  }
+  let H = (12 / (N * (N + 1))) * R.reduce((s, r, k) => s + (r * r) / gs[k].length, 0) - 3 * (N + 1);
+  const cf = 1 - corr / (N ** 3 - N);
+  if (cf <= 0) return null;
+  H /= cf;
+  return { p: gamaQ((gs.length - 1) / 2, H / 2), H };
 }
 const mediana = (xs) => {
   const s = [...xs].sort((x, y) => x - y), m = s.length;
@@ -4000,7 +4120,7 @@ function boxplotConfig(b, t) {
   const est = b.porMes.map((vals, i) => estatBox(vals, Array.isArray(b.anos?.[0]) ? b.anos[i] : b.anos));
   // b.percent: valores são frações (participação na área queimada), eixo em % em vez de Mha.
   const cfg = chartConfig(b.percent ? {
-    kind: "bar", labels: b.labels, tooltipTitles: b.nomes, values: est.map((e) => e.max), colors: b.cores,
+    kind: b.horizontal ? "hbar" : "bar", labels: b.labels, tooltipTitles: b.nomes, values: est.map((e) => e.max), colors: b.cores,
     percent: true, axisTitle: b.axisTitle, categoryTitle: b.categoryTitle,
   } : {
     kind: "bar", labels: b.labels, tooltipTitles: b.nomes, values: est.map((e) => e.max), colors: b.cores, // max: só para escolher Mha ou mil ha (os dados são trocados abaixo)
@@ -4009,13 +4129,14 @@ function boxplotConfig(b, t) {
   const ds = cfg.data.datasets[0];
   ds.data = est.map((e) => [e.q1, e.q3]);
   ds.label = "Boxplot";
-  ds.backgroundColor = b.cores.map((c) => { const h = resolveColor(c, t); return /^#[0-9a-f]{6}$/i.test(h) ? `${h}99` : h; });
+  ds.backgroundColor = b.cores.map((c) => { const h = resolveColor(c, t); return /^#[0-9a-f]{6}$/i.test(h) ? `${h}${b.horizontal ? "dd" : "99"}` : h; });
   ds.borderColor = b.cores.map((c) => resolveColor(c, t));
   ds.borderWidth = 1.5;
   ds.borderRadius = 2;
   ds.borderSkipped = false;
   ds.barPercentage = 0.6;
-  cfg.options.scales.y.suggestedMax = Math.max(0, ...est.map((e) => e.max)) * 1.04;
+  cfg.options.scales[b.horizontal ? "x" : "y"].suggestedMax = Math.max(0, ...est.map((e) => e.max)) * 1.04;
+  if (b.horizontal) { ds.barPercentage = 0.7; ds.categoryPercentage = 0.9; ds.maxBarThickness = 64; }
   // Sem animação: as hastes (plugin) são desenhadas já na posição final; caixas animadas ficariam descoladas.
   cfg.options.animation = false;
   const fmt = b.percent ? (v) => pct(v) : (v) => ha(v);
@@ -4036,6 +4157,37 @@ function boxplotConfig(b, t) {
       const y = chart.scales.y;
       const ctx = chart.ctx;
       ctx.save();
+      if (b.horizontal) {
+        const xs = chart.scales.x;
+        meta.data.forEach((bar, k) => {
+          const e = est[k];
+          const h = bar.height, cy = bar.y, cap = h * 0.35;
+          const px = (v) => xs.getPixelForValue(v);
+          ctx.strokeStyle = t.text;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(px(e.q3), cy); ctx.lineTo(px(e.hi), cy);
+          ctx.moveTo(px(e.hi), cy - cap / 2); ctx.lineTo(px(e.hi), cy + cap / 2);
+          ctx.moveTo(px(e.q1), cy); ctx.lineTo(px(e.lo), cy);
+          ctx.moveTo(px(e.lo), cy - cap / 2); ctx.lineTo(px(e.lo), cy + cap / 2);
+          ctx.stroke();
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(px(e.med), cy - h / 2); ctx.lineTo(px(e.med), cy + h / 2);
+          ctx.stroke();
+          ctx.lineWidth = 1.2;
+          for (const o of e.fora) { ctx.beginPath(); ctx.arc(px(o.v), cy, 3, 0, 2 * Math.PI); ctx.stroke(); }
+        });
+        if (b.pvalor) {
+          const a = chart.chartArea;
+          ctx.fillStyle = t.text;
+          ctx.font = "700 14px Montserrat, sans-serif";
+          ctx.textAlign = "right"; ctx.textBaseline = "top";
+          ctx.fillText(b.pvalor, a.right - 6, a.top + 4);
+        }
+        ctx.restore();
+        return;
+      }
       meta.data.forEach((bar, k) => {
         const e = est[k];
         const w = bar.width, x = bar.x, cap = w * 0.35;
@@ -4291,7 +4443,19 @@ function conteudoHtml(card, vista) {
       ${d.detalhes.length ? `<h3 class="dest-sub">${escapeHtml(d.tituloDetalhes)}</h3>
       <ul class="destaques">${d.detalhes.map((x) => `<li><strong>${escapeHtml(x.titulo)}</strong><span>${escapeHtml(x.texto)}</span></li>`).join("")}</ul>` : ""}`;
   }
-  if (card.boxplotFixo) return chartBoxHtml({ labels: card.boxplotFixo.labels, height: 360 }, card.title);
+  if (card.boxplotFixo) {
+    const b = card.boxplotFixo;
+    const graf = chartBoxHtml({ labels: b.labels, height: b.horizontal ? Math.max(300, b.labels.length * 78 + 90) : 360 }, card.title);
+    if (!b.lado) return graf;
+    const L = b.lado;
+    return `<div class="box-lado"><div class="box-graf">${graf}</div>
+      <aside class="box-destaque dest-${L.tom}">
+        <span class="dest-selo">${escapeHtml(L.selo)}</span>
+        <strong class="dest-grande">${escapeHtml(L.grande)}</strong>
+        <p class="dest-manchete">${escapeHtml(L.manchete)}</p>
+        <ul class="destaques">${L.itens.map((x) => `<li><strong>${escapeHtml(x.titulo)}</strong><span>${escapeHtml(x.texto)}</span></li>`).join("")}</ul>
+      </aside></div>`;
+  }
   if (card.calorFixo) {
     if (!card.calorFixo.linhas.length) return `<p class="empty">Sem dados para o período selecionado.</p>`;
     return `<div class="calor-box"><canvas role="img" aria-label="${escapeHtml(card.title)}"></canvas><div class="calor-dica" hidden></div></div>`;

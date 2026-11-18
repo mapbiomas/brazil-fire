@@ -696,6 +696,17 @@ body {
 .destaques li { display: grid; gap: 2px; padding: 8px 0 8px 14px; border-left: 3px solid var(--brand, #e8492f); }
 .destaques strong { font-size: 0.9rem; color: var(--text); }
 .destaques span { font-size: 0.88rem; line-height: 1.5; color: var(--text-2); }
+/* Boxplot por período com destaque ao lado (uso e cobertura) */
+.box-lado { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr); gap: 18px; align-items: start; }
+.box-graf { min-width: 0; }
+.box-destaque { position: relative; display: grid; gap: 8px; padding: 16px 16px 14px; border-radius: 12px; background: var(--surface-muted); border: 1px solid var(--border); }
+.box-destaque .dest-grande { font-size: 1.6rem; line-height: 1.15; color: var(--text); padding-right: 72px; }
+.box-destaque .dest-manchete { margin: 0; font-size: 0.95rem; font-weight: 600; }
+.box-destaque .destaques { gap: 8px; }
+.box-destaque .destaques li { padding: 4px 0 4px 10px; }
+.box-destaque .destaques strong { font-size: 0.8rem; }
+.box-destaque .destaques span { font-size: 0.82rem; }
+@media (max-width: 860px) { .box-lado { grid-template-columns: 1fr; } }
 .propbar-alta { height: 64px; }
 .propbar-extremos {
   display: flex; justify-content: space-between; margin-top: -2px;
