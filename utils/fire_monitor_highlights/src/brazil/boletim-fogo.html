@@ -2545,8 +2545,9 @@ let CALOR_LUT_ = null;
 const calorLut = () => CALOR_LUT_ ||= (() => {
   const cor = d3.interpolateRgbBasis(CALOR_RAMPA), lut = new Uint8ClampedArray(256 * 4);
   for (let a = 0; a < 256; a++) {
-    const t = Math.min(1, a / CALOR_ALFA_MAX), c = d3.rgb(cor(t));
-    lut.set([c.r, c.g, c.b, a < 6 ? 0 : Math.round(255 * (.45 + .5 * t))], a * 4);
+    // Curva com gama (<1): os tons baixos ganham contraste, para o mapa afastado não virar uma mancha só.
+    const t0 = Math.min(1, a / CALOR_ALFA_MAX), t = Math.pow(t0, .6), c = d3.rgb(cor(t));
+    lut.set([c.r, c.g, c.b, a < 6 ? 0 : Math.round(255 * (.5 + .5 * t))], a * 4);
   }
   return lut;
 })();
