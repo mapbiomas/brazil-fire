@@ -1706,9 +1706,9 @@ async function d5Mapa(D) {
 /* ==========================================================
    DESTAQUE DINÂMICO
    ========================================================== */
-// Vermelho MapBiomas Fogo para o ano escolhido; verde-azulado, ocre e marrom (tons da legenda MapBiomas)
-// para os comparados. Quatro tons terrosos não se separam bem para daltônicos, por isso o traço também muda.
-const SER = ['#D32F2F', '#2A9D8F', '#C79A1E', '#7A5900'];
+// Vermelho MapBiomas Fogo para o ano escolhido; tons terrosos para os comparados: marrom, ocre e verde-oliva
+// Quatro tons terrosos não se separam bem para daltônicos, por isso o traço também muda.
+const SER = ['#D32F2F', '#8B5E3C', '#C79A1E', '#6B7A35'];
 const DASH = [[], [], [7, 4], [2, 3]];
 const BANDA = 'rgba(138, 138, 138, .18)';
 const CAL_RAMP = ['#FFF3F1', '#F8B1AA', '#F06A61', '#E94030', '#A82416'];
@@ -2286,10 +2286,9 @@ const corAno = (f, y) => y === f.ano ? SER[0] : f.anosCmp.includes(y) ? SER[1 + 
 const linhaAno = (label, data, cor, w, dash = []) => ({ label, data, borderColor: cor, backgroundColor: cor, borderWidth: w, borderDash: dash, pointRadius: w > 2 ? 3 : 2, pointHoverRadius: 5, tension: .25 });
 const linhasCmp = (f, S) => f.anosCmp.map((y, i) => linhaAno(String(y), S[y], SER[1 + i], 2, DASH[1 + i]));
 const axT = text => ({ display: true, text, color: C.ink2, font: { size: 11, weight: '600' }, padding: { top: 4, bottom: 2 } });
+// Referência dos demais anos: só a linha da média (a faixa mín.–máx. foi retirada; o mín. e o máx. seguem no tooltip e no CSV).
 function dsReferencia(st) {
   return [
-    { label: '_min', data: st.map(s => s?.min ?? null), borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, fill: false },
-    { label: 'Faixa dos demais anos (mín.–máx.)', data: st.map(s => s?.max ?? null), borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, backgroundColor: BANDA, borderColor: BANDA, fill: '-1' },
     { label: 'Média dos demais anos', data: st.map(s => s?.avg ?? null), borderColor: '#8C8C8C', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 3 }
   ];
 }
@@ -2362,7 +2361,7 @@ function xSaz(M, f) {
   const ds = [...dsReferencia(st), ...linhasCmp(f, M), linhaAno(String(f.ano), M[f.ano], SER[0], 3)];
   const outros = P.anos.filter(y => y !== f.ano);
   $('x-saz-t').textContent = noTerr('Área queimada mês a mês, por ano', f);
-  $('x-saz-s').textContent = `Cada linha é um ano. A faixa cinza vai do menor ao maior valor de cada mês nos demais anos (${outros[0]}–${outros[outros.length - 1]}).`;
+  $('x-saz-s').textContent = `Cada linha é um ano. A linha cinza é a média de cada mês nos demais anos (${outros[0]}–${outros[outros.length - 1]}).`;
   mkChart('x-saz', 'xc-saz', {
     type: 'line', data: { labels: MES.map(cap), datasets: ds }, plugins: [faixaPeriodo],
     options: opLinha('Área queimada (ha)', 'Mês', st, { faixaPeriodo: { de: f.ini - 1, ate: f.fim - 1 } }, unid(maxNum(ds.flatMap(d => d.data))))
