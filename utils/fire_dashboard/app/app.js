@@ -1524,6 +1524,30 @@ async function loadAnual({ t, ini, fim }) {
     values: anosClasses.map((a) => a.valores.get(c.item.pixelValue) || 0),
   }));
   const rotuloNivel = state.nivel === 0 ? "Nível 0 · natural e antrópico" : `Nível ${state.nivel} da legenda oficial de uso e cobertura`;
+  // Boxplot por período (blocos de 10 anos) da participação de UMA classe na área queimada de cada ano.
+  const blocosCob = blocosDePeriodo(anosClasses.map((a) => a.ano));
+  const classeSel = porClasse.find((c) => String(c.item.pixelValue) === String(state.coberturaClasse)) || maxBy(porClasse, (c) => c.value);
+  let cardPorPeriodo = null;
+  if (classeSel && blocosCob.length >= 2) {
+    const totalAno = new Map(anos.map((a) => [a.ano, a.area]));
+    const doBlocoCob = blocosCob.map((b) => anosClasses.filter((a) => a.ano >= b.ini && a.ano <= b.fim && totalAno.get(a.ano) > 0));
+    cardPorPeriodo = {
+      span: 12,
+      title: `Variação por período da área queimada em ${classeSel.label}`,
+      subtitle: `${rotuloNivel} · participação da classe na área queimada de cada ano; cada caixa reúne os anos de um período (blocos de 10 anos)`,
+      boxplotFixo: {
+        percent: true,
+        labels: blocosCob.map((b) => b.label),
+        nomes: blocosCob.map((b) => b.label),
+        cores: blocosCob.map(() => classeSel.color),
+        porMes: doBlocoCob.map((as) => as.map((a) => safeDiv(a.valores.get(classeSel.item.pixelValue) || 0, totalAno.get(a.ano)))),
+        anos: doBlocoCob.map((as) => as.map((a) => String(a.ano))),
+        axisTitle: "Participação na área queimada do ano (%)",
+        categoryTitle: "Intervalo de tempo",
+      },
+      legend: [{ label: "Caixa = metade central dos anos do período (do 1º ao 3º quartil) · traço = mediana · hastes = menor e maior valor típicos · pontos = anos fora do comum (além de 1,5 vez a altura da caixa)", note: true }],
+    };
+  }
   const comMha = Math.max(0, ...anos.map((a) => a.area)) >= 1e6;
   const view = {
     toolbar: [{
@@ -1624,8 +1648,20 @@ async function loadAnual({ t, ini, fim }) {
         chart: { kind: "stacked", labels: anosClasses.map((a) => String(a.ano)), series: serie },
         legend: serie.map((s) => ({ label: s.label, color: s.color })),
       },
+      ...(cardPorPeriodo ? [cardPorPeriodo] : []),
     ],
   };
+  if (cardPorPeriodo) {
+    // Escolha da classe (dentro do nível de legenda já escolhido) para o boxplot por período.
+    view.toolbar.push({
+      type: "select",
+      card: 5,
+      label: "Classe",
+      value: String(classeSel.item.pixelValue),
+      options: porClasse.map((c) => ({ value: String(c.item.pixelValue), label: c.label })),
+      onChange: (v) => { state.coberturaClasse = v; loadCurrentTab(); },
+    });
+  }
   // Sem legenda de cobertura no país: só os cards da área anual (série e anos que mais queimaram).
   return semCobertura ? { ...view, toolbar: [], cards: view.cards.filter((c) => c.base) } : view;
 }
@@ -1964,6 +2000,27 @@ async function loadMensal({ t, ini, fim }) {
           };
         },
       },
+      // 6. Mapa de calor por período (série toda em blocos de ~10 anos), com a % de cada mês dentro do período.
+      ...(() => {
+        const blocos = blocosDePeriodo(temporadas.map((s) => s.ano));
+        if (blocos.length < 2) return [];
+        const linhasPer = blocos.map((b) => temporadas.filter((s) => s.ano >= b.ini && s.ano <= b.fim));
+        const valores = linhasPer.map((ss) => janela.map((_, j) => sum(ss.map((s) => s.vals[j]))));
+        return [{
+          span: 12,
+          title: `Área queimada por período e mês · ${ini}–${fim}`,
+          subtitle: "Soma dos anos de cada período (blocos de 10 anos) · cor = área queimada · número = % do total do período em cada mês (a partir de 10%)",
+          calorFixo: {
+            linhas: blocos.map((b) => b.label),
+            colunas: curtos,
+            nomes: mesesJ.map((m) => m.name),
+            valores,
+            rotulos: valores.map((linha) => { const tot = sum(linha); return linha.map((v) => (safeDiv(v, tot) >= 0.1 ? pctInt(safeDiv(v, tot)) : "")); }),
+            tituloEscala: "Área queimada no período",
+            celula: 56,
+          },
+        }];
+      })(),
     ],
   };
 }
@@ -2083,6 +2140,21 @@ async function loadFrequencia({ t, ini, fim }) {
     ],
   };
 }
+// Divide uma lista de anos em blocos de 10 anos a partir do primeiro (o último, se tiver menos
+// de 5 anos, se junta ao anterior). Usado nos gráficos "por período" (década a década).
+function blocosDePeriodo(anos, tam = 10) {
+  const blocos = [];
+  for (let i = 0; i < anos.length; i += tam) {
+    const fatia = anos.slice(i, i + tam);
+    blocos.push({ ini: fatia[0], fim: fatia[fatia.length - 1] });
+  }
+  if (blocos.length > 1 && blocos.at(-1).fim - blocos.at(-1).ini + 1 < 5) {
+    const ultimo = blocos.pop();
+    blocos.at(-1).fim = ultimo.fim;
+  }
+  return blocos.map((b) => ({ ...b, label: `${b.ini}-${b.fim}` }));
+}
+
 async function loadCicatriz({ t, ini, fim }) {
   const legenda = await getLegend("cicatriz");
   const subclasses = levelItems(legenda, 1);
@@ -2108,6 +2180,44 @@ async function loadCicatriz({ t, ini, fim }) {
   const rotuloAlvo = state.cicatrizClasse === "grandes" ? `${grandes[0]?.label.replace(/ a .*/, "")} ha ou mais` : alvo.map((g) => g.label).join(" e ");
   const somaGrandes = (valores) => sum(alvo.map((g) => somaGrupo(g, valores)));
   const anosComFogo = anos.filter((a) => a.area > 0);
+
+  // Variação por período (blocos de ~10 anos) da proporção da área em cicatrizes da(s) faixa(s) escolhida(s),
+  // comparada com a média histórica do período inteiro. A API traz área por faixa (não o número de
+  // cicatrizes), por isso a medida é a proporção da área, e não o tamanho médio de cada cicatriz.
+  const blocos = blocosDePeriodo(range(ini, fim));
+  const doBloco = (b) => anos.filter((a) => a.ano >= b.ini && a.ano <= b.fim);
+  const propBloco = blocos.map((b) => ({ ...b, share: safeDiv(sum(doBloco(b).map((a) => somaGrandes(a.valores))), sum(doBloco(b).map((a) => a.area))) }));
+  const propTotal = safeDiv(sum(anos.map((a) => somaGrandes(a.valores))), sum(anos.map((a) => a.area)));
+  const difBloco = propBloco.map((b) => safeDiv(b.share, propTotal) - 1);
+  const limiteDif = Math.max(0.2, ...difBloco.map(Math.abs));
+  const corDif = (d) => rampColor(["#1a9850", "#91cf60", "#d9ef8b", "#ffffbf", "#fee08b", "#fc8d59", "#d73027"], (d + limiteDif) / (2 * limiteDif));
+  const sinalPct = (v) => `${v > 0 ? "+" : ""}${pct(v)}`;
+  const cardVariacao = propBloco.length >= 2 && propTotal > 0 ? [{
+    span: 12,
+    title: `Variação por período da proporção em cicatrizes de ${rotuloAlvo}`,
+    subtitle: `Proporção da área queimada em cicatrizes de ${rotuloAlvo} em cada período, comparada com a média ${ini}–${fim}`,
+    chart: {
+      kind: "bar",
+      percent: true,
+      sinal: true,
+      barraLarga: true,
+      height: 360,
+      axisTitle: "Diferença em relação à média histórica (%)",
+      categoryTitle: "Intervalo de tempo",
+      labels: propBloco.map((b) => b.label),
+      tooltipExtra: propBloco.map((b) => `Proporção no período: ${pct(b.share)}`),
+      values: difBloco,
+      colors: difBloco.map(corDif),
+      rotulos: "texto",
+      rotulosTexto: difBloco.map(sinalPct),
+      rotulosCorFixa: true,
+    },
+    legend: [
+      { label: `Média histórica ${ini}–${fim}: ${pct(propTotal)} da área queimada em cicatrizes de ${rotuloAlvo}`, note: true },
+      { label: `Diferença entre o último e o primeiro período: ${(propBloco.at(-1).share - propBloco[0].share) > 0 ? "+" : ""}${pct(propBloco.at(-1).share - propBloco[0].share).replace("%", "")} p.p. (${sinalPct(safeDiv(propBloco.at(-1).share, propBloco[0].share) - 1)})`, note: true },
+      { label: "Verde = abaixo da média histórica · vermelho = acima", note: true },
+    ],
+  }] : [];
 
   return {
     kpis: [
@@ -2158,6 +2268,7 @@ async function loadCicatriz({ t, ini, fim }) {
           color: alvo[alvo.length - 1]?.color,
         },
       },
+      ...cardVariacao,
     ],
     toolbar: [{
       type: "select",
@@ -3465,6 +3576,12 @@ function descartarGraficos(root) {
 
 function montarGraficos(card, root, vista, tokens) {
   root._vista = vista;
+  if (card.calorFixo) return desenharCalor(root.querySelector(".calor-box canvas"), card.calorFixo, tokens);
+  if (card.boxplotFixo) {
+    const cv = root.querySelector(".card-body canvas");
+    if (cv) registrarGrafico(root, new Chart(cv, boxplotConfig(card.boxplotFixo, tokens)));
+    return;
+  }
   const troca = root.querySelector(".cor-troca");
   if (troca) troca.hidden = vista === "biomas"; // a vista por bioma tem paletas próprias
   if (vista === "biomas") {
@@ -3538,7 +3655,7 @@ function desenharCalor(canvas, d, tokens) {
   const vazio = resolveColor("var(--surface-muted)");
   const cor = (v) => (v > 0 && max > 0 ? rampColor(CALOR_RAMP, Math.sqrt(v / max)) : vazio);
   const fonte = "600 11px Montserrat, sans-serif";
-  const cellH = nL > 30 ? 14 : nL > 15 ? 18 : 24;
+  const cellH = d.celula || (nL > 30 ? 14 : nL > 15 ? 18 : 24);
   const topo = 22, base = 46;
   const H = topo + nL * cellH + base;
   const medir = document.createElement("canvas").getContext("2d");
@@ -3577,6 +3694,26 @@ function desenharCalor(canvas, d, tokens) {
         ctx.fillRect(rotW + j * cellW + 0.5, topo + i * cellH + 0.5, cellW - 1, cellH - 1);
       }
     }
+    // Números dentro das células (ex.: % do mês no período), com contorno claro para ler sobre qualquer cor.
+    if (d.rotulos) {
+      ctx.font = "700 13px Montserrat, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = 3;
+      for (let i = 0; i < nL; i++) {
+        for (let j = 0; j < nC; j++) {
+          const txt = d.rotulos[i][j];
+          if (!txt) continue;
+          const px = rotW + (j + 0.5) * cellW, py = topo + (i + 0.5) * cellH;
+          ctx.strokeStyle = "rgba(255,255,255,0.9)";
+          ctx.strokeText(txt, px, py);
+          ctx.fillStyle = "#1f1f1f";
+          ctx.fillText(txt, px, py);
+        }
+      }
+      ctx.font = fonte;
+    }
     // Legenda da escala: degradê com 0, ¼ do máximo, máximo (posições pela raiz quadrada).
     const lx = rotW, ly = topo + nL * cellH + 14, lw = Math.min(320, W - rotW - 8), lh = 10;
     const grad = ctx.createLinearGradient(lx, 0, lx + lw, 0);
@@ -3592,7 +3729,7 @@ function desenharCalor(canvas, d, tokens) {
     ctx.textAlign = "right";
     ctx.fillText(haCurto(max), lx + lw, ly + lh + 4);
     ctx.textAlign = "left";
-    if (lx + lw + 12 < W - 120) ctx.fillText(tr("Área queimada no mês"), lx + lw + 12, ly - 1);
+    if (lx + lw + 12 < W - 120) ctx.fillText(tr(d.tituloEscala || "Área queimada no mês"), lx + lw + 12, ly - 1);
     geo = { cellW };
   }
 
@@ -3632,8 +3769,13 @@ function estatBox(vals, rotulos) {
 }
 
 function boxplotConfig(b, t) {
-  const est = b.porMes.map((vals) => estatBox(vals, b.anos));
-  const cfg = chartConfig({
+  // b.anos: um rótulo por valor (mesmo vetor para todas as caixas) ou um vetor por caixa.
+  const est = b.porMes.map((vals, i) => estatBox(vals, Array.isArray(b.anos?.[0]) ? b.anos[i] : b.anos));
+  // b.percent: valores são frações (participação na área queimada), eixo em % em vez de Mha.
+  const cfg = chartConfig(b.percent ? {
+    kind: "bar", labels: b.labels, tooltipTitles: b.nomes, values: est.map((e) => e.max), colors: b.cores,
+    percent: true, axisTitle: b.axisTitle, categoryTitle: b.categoryTitle,
+  } : {
     kind: "bar", labels: b.labels, tooltipTitles: b.nomes, values: est.map((e) => e.max), colors: b.cores, // max: só para escolher Mha ou mil ha (os dados são trocados abaixo)
     unit: "Mha", axisTitle: "Área queimada no mês (Mha)",
   }, t);
@@ -3649,7 +3791,8 @@ function boxplotConfig(b, t) {
   cfg.options.scales.y.suggestedMax = Math.max(0, ...est.map((e) => e.max)) * 1.04;
   // Sem animação: as hastes (plugin) são desenhadas já na posição final; caixas animadas ficariam descoladas.
   cfg.options.animation = false;
-  const fmt = (v) => ha(v);
+  const fmt = b.percent ? (v) => pct(v) : (v) => ha(v);
+  const fmtCurto = b.percent ? (v) => pct(v) : haCurto;
   cfg.options.plugins.tooltip.callbacks.label = (ctx) => {
     const e = est[ctx.dataIndex];
     return [` ${tr("Máximo")}: ${fmt(e.max)}`, ` ${tr("3º quartil")}: ${fmt(e.q3)}`, ` ${tr("Mediana")}: ${fmt(e.med)}`,
@@ -3657,7 +3800,7 @@ function boxplotConfig(b, t) {
   };
   cfg.options.plugins.tooltip.callbacks.afterLabel = (ctx) => {
     const fora = est[ctx.dataIndex].fora;
-    return fora.length ? ` ${tr("Anos fora do comum")}: ${fora.slice(-4).reverse().map((x) => `${x.r} (${haCurto(x.v)})`).join(", ")}` : "";
+    return fora.length ? ` ${tr("Anos fora do comum")}: ${fora.slice(-4).reverse().map((x) => `${x.r} (${fmtCurto(x.v)})`).join(", ")}` : "";
   };
   cfg.plugins = [...(cfg.plugins || []), {
     id: "boxplotMarcas",
@@ -3825,6 +3968,9 @@ const INFO_CARDS = [
   [/^Proporção mensal da área queimada por/, "Para cada território, que parte da área queimada no período ocorreu em cada mês. Permite comparar o calendário do fogo entre territórios."],
   [/^Faixas de frequência$/, "Quantas vezes cada lugar queimou no período, agrupado em faixas. Áreas que queimam muitas vezes indicam uso repetido do fogo ou vegetação que convive com o fogo."],
   [/^Área queimada por classe de frequência$/, "Área em cada número de vezes que queimou no período. Em %, mostra a parte da área queimada do período em cada classe."],
+  [/^Variação por período da proporção em cicatrizes/, "Para cada período de 10 anos, quanto a proporção da área queimada nessas cicatrizes ficou acima (vermelho) ou abaixo (verde) da média de todo o período. Usa a proporção da área, porque a API não informa o número de cicatrizes (não dá para calcular o tamanho médio de cada uma)."],
+  [/^Variação por período da área queimada em/, "Em cada ano, que parte da área queimada estava na classe escolhida. Cada caixa reúne os anos de um período de 10 anos: a metade central dos anos fica dentro da caixa, o traço é a mediana. Escolha o nível da legenda e a classe."],
+  [/^Área queimada por período e mês/, "Soma da área queimada em cada mês, dentro de cada período de 10 anos. Quanto mais escuro, mais área. O número é a parte do total do período que queimou naquele mês."],
   [/^Área queimada por ano e tamanho de cicatriz$/, "Área queimada de cada ano dividida pelo tamanho da cicatriz (mancha contínua de área queimada). Cicatrizes grandes costumam vir de incêndios que fugiram do controle."],
   [/^Distribuição por faixa de tamanho$/, "Parte da área queimada do período em cada faixa de tamanho de cicatriz."],
   [/^Proporção por ano em cicatrizes/, "Em cada ano, que parte da área queimada estava em cicatrizes da faixa de tamanho escolhida."],
@@ -3873,7 +4019,7 @@ function cardHtml(card, i, view) {
   const toggle = card.alterna ? vistaToggleHtml(card, i) : "";
   // Baixar o gráfico (PNG) e abrir a tabela (sob demanda) em todo card com dados.
   const temDados = !card.map && !card.custom && !card.tabela &&
-    (card.chart || card.rosca || card.ranking || card.propbars || card.lazy || card.topcards || card.doughnut);
+    (card.chart || card.rosca || card.ranking || card.propbars || card.lazy || card.topcards || card.doughnut || card.calorFixo || card.boxplotFixo);
   const acoes = temDados ? `
         <div class="card-acoes">
           ${pngMenuHtml(i)}
@@ -3904,6 +4050,11 @@ function cardBodyHtml(card, vista) {
 }
 
 function conteudoHtml(card, vista) {
+  if (card.boxplotFixo) return chartBoxHtml({ labels: card.boxplotFixo.labels, height: 360 }, card.title);
+  if (card.calorFixo) {
+    if (!card.calorFixo.linhas.length) return `<p class="empty">Sem dados para o período selecionado.</p>`;
+    return `<div class="calor-box"><canvas role="img" aria-label="${escapeHtml(card.title)}"></canvas><div class="calor-dica" hidden></div></div>`;
+  }
   if (vista === "rosca") return roscasHtml(roscasDe(card));
   if (vista === "aneis") return aneisHtml(card.aneis);
   if (vista === "continua") {
@@ -4013,8 +4164,19 @@ function tabelaDoCard(root, card) {
   const fmtV = (v, pctc) => (v == null || Number.isNaN(v) ? "—" : pctc ? pct(v) : fmtFull.format(Math.round(v)));
   const res = root._res || {};
   // Mapa de calor: ano × mês. Boxplot: estatísticas de cada mês.
-  if (root._vista === "calor" && card.calor) {
-    return { colunas: ["", ...card.calor.nomes.map((m) => `${m} (ha)`)], linhas: card.calor.linhas.map((l, i) => [l, ...card.calor.valores[i].map((v) => fmtV(v))]) };
+  if (card.boxplotFixo) {
+    const b = card.boxplotFixo;
+    return {
+      colunas: ["", "Mínimo (%)", "1º quartil (%)", "Mediana (%)", "3º quartil (%)", "Máximo (%)", "Média (%)"],
+      linhas: b.porMes.map((vals, j) => {
+        const e = estatBox(vals, b.anos[j]);
+        return [b.nomes[j], ...[e.min, e.q1, e.med, e.q3, e.max, mean(vals)].map((v) => pct(v))];
+      }),
+    };
+  }
+  const calorTab = card.calorFixo || (root._vista === "calor" && card.calor);
+  if (calorTab) {
+    return { colunas: ["", ...calorTab.nomes.map((m) => `${m} (ha)`)], linhas: calorTab.linhas.map((l, i) => [l, ...calorTab.valores[i].map((v) => fmtV(v))]) };
   }
   if (root._vista === "boxplot" && card.boxplot) {
     return {
@@ -4433,7 +4595,7 @@ function doughnutHtml({ slices, centerLabel = "total", semCentro = false }) {
     <div class="donut">
       <div class="donut-chart">
         <canvas role="img" aria-label="Distribuição por classe"></canvas>
-        ${semCentro ? "" : `<div class="donut-center"><strong>${total >= 1e6 ? mha(total) : ha(total)}</strong><span>${escapeHtml(centerLabel)}</span></div>`}
+        ${/* sem valor no meio da rosca (pedido): só o furo branco; semCentro/centerLabel ficam por compatibilidade */ ""}
       </div>
       <ul class="legend-list">${legend}</ul>
     </div>`;
@@ -5405,13 +5567,13 @@ function chartConfig(spec, t) {
   }
   const options = baseOptions(t);
   options.plugins.tabela = { percent: !!spec.percent }; // lido pela tabela sob demanda
-  options.plugins.rotulosBarras = { formato: spec.rotulos || "", textos: spec.rotulosTexto, cores: spec.colors }; // "pct": % de cada barra escrita sobre ela
-  if (spec.rotulos) options.layout = { padding: { top: 18, right: spec.kind === "hbar" ? (spec.rotulos === "texto" ? 96 : 44) : 8 } }; // espaço para os rótulos
+  options.plugins.rotulosBarras = { formato: spec.rotulos || "", textos: spec.rotulosTexto, cores: spec.colors, corFixa: !!spec.rotulosCorFixa }; // "pct": % de cada barra escrita sobre ela
+  if (spec.rotulos) options.layout = { padding: { top: 18, bottom: spec.sinal ? 18 : 0, right: spec.kind === "hbar" ? (spec.rotulos === "texto" ? 96 : 44) : 8 } }; // espaço para os rótulos
   const horizontal = spec.kind === "hbar";
   const stacked = spec.kind === "stacked" || spec.kind === "combo";
   const multi = stacked || spec.kind === "grouped";
   const valueOf = (ctx) => (horizontal ? ctx.parsed.x : ctx.parsed.y);
-  const fmtValor = spec.percent ? (v) => (spec.pctInteiro ? pctInt(v) : pct(v))
+  const fmtValor = spec.percent ? (v) => `${spec.sinal && v > 0 ? "+" : ""}${spec.pctInteiro ? pctInt(v) : pct(v)}`
     : spec.unit === "Mha" ? (v) => mha(v, 2)
     : spec.unit === "mil" ? (v) => ha(v)
     : (v) => `${fmtFull.format(v)} ha`;
@@ -5442,6 +5604,7 @@ function chartConfig(spec, t) {
     ticks: { color: t.text, maxTicksLimit: 6, font: { size: fonte, weight: pesoEixo }, callback: (v) => (spec.percent ? (spec.pctInteiro ? pctInt(v) : pct(v)) : fmtCompact.format(v)) },
   };
   if (spec.percent && stacked) valueAxis.max = 1;
+  if (spec.sinal) valueAxis.grace = "8%"; // folga para os rótulos das barras acima e abaixo do zero
   if (spec.unit === "Mha") {
     valueAxis.ticks.callback = (v) => fmtMhaEixo.format(v / 1e6);
   } else if (spec.unit === "mil") {
@@ -5480,7 +5643,7 @@ function chartConfig(spec, t) {
   if (spec.kind === "line") return lineConfig(spec, t, options);
   if (spec.kind === "band" || spec.kind === "multiline") return multiLineConfig(spec, t, options);
 
-  const barStyle = { maxBarThickness: 24, barPercentage: 0.85, categoryPercentage: 0.9 };
+  const barStyle = { maxBarThickness: spec.barraLarga ? 96 : 24, barPercentage: 0.85, categoryPercentage: 0.9 };
   let datasets;
   if (spec.kind === "grouped") {
     // Barras lado a lado por categoria (ex.: % mensal de cada bioma, como a Figura 14 do RAF).
@@ -5728,12 +5891,16 @@ const rotulosBarrasPlugin = {
       const { ctx } = chart;
       ctx.save();
       ctx.font = "700 13px Montserrat, sans-serif";
-      ctx.textAlign = "left";
+      const emPe = chart.options.indexAxis !== "y"; // barras em pé: rótulo em cima (ou embaixo, se negativa)
+      ctx.textAlign = emPe ? "center" : "left";
       ctx.textBaseline = "middle";
       chart.getDatasetMeta(0).data.forEach((barra, i) => {
         if (!opts.textos[i]) return;
-        ctx.fillStyle = resolveColor(opts.cores?.[i]) || "#333";
-        ctx.fillText(opts.textos[i], barra.x + 6, barra.y);
+        ctx.fillStyle = opts.corFixa ? (resolveColor("var(--text)") || "#222") : (resolveColor(opts.cores?.[i]) || "#333");
+        if (!emPe) return ctx.fillText(opts.textos[i], barra.x + 6, barra.y);
+        const negativa = Number(chart.data.datasets[0].data[i]) < 0;
+        ctx.textBaseline = negativa ? "top" : "bottom";
+        ctx.fillText(opts.textos[i], barra.x, barra.y + (negativa ? 4 : -4));
       });
       ctx.restore();
       return;
