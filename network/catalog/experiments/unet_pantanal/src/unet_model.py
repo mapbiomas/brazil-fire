@@ -89,9 +89,10 @@ def make_dataset(files, stats, cfg, training):
     ds = ds.map(_parse_fn(n_ch), num_parallel_calls=tf.data.AUTOTUNE)
     ds = ds.map(lambda x, y: (tf_normalize(x, stats), y), num_parallel_calls=tf.data.AUTOTUNE)
     if training:
-        ds = ds.shuffle(2048, seed=cfg["SEED"], reshuffle_each_iteration=True)
+        # buffer pequeno: cada chip tem 256x256x12 float32 (~3 MB); 2048 chips = ~6 GB de RAM e estouraria o Colab
+        ds = ds.shuffle(cfg.get("SHUFFLE_BUFFER", 256), seed=cfg["SEED"], reshuffle_each_iteration=True)
         ds = ds.map(_augment, num_parallel_calls=tf.data.AUTOTUNE)
-    return ds.batch(cfg["BATCH"]).prefetch(tf.data.AUTOTUNE)
+    return ds.batch(cfg["BATCH"]).prefetch(2)  # prefetch fixo: AUTOTUNE pode encher a RAM
 
 
 # ---------------------------------------------------------------------------
