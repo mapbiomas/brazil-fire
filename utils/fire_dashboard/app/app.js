@@ -2006,6 +2006,122 @@ async function loadMensal({ t, ini, fim }) {
         if (blocos.length < 2) return [];
         const linhasPer = blocos.map((b) => temporadas.filter((s) => s.ano >= b.ini && s.ano <= b.fim));
         const valores = linhasPer.map((ss) => janela.map((_, j) => sum(ss.map((s) => s.vals[j]))));
+        // Destaques: o padrão mudou? (pico, concentração, deslocamento da temporada) + testes estatísticos.
+        const nomeM = (j) => mesesJ[j].name.toLowerCase();
+        const comFogo = temporadas.filter((s) => sum(s.vals) > 0);
+        const centro = (s) => safeDiv(sum(s.vals.map((v, j) => v * (j + 1))), sum(s.vals));
+        const ultB = blocos[blocos.length - 1], primB = blocos[0];
+        const agreg = (b) => janela.map((_, j) => sum(temporadas.filter((s) => s.ano >= b.ini && s.ano <= b.fim).map((s) => s.vals[j])));
+        const vPrim = agreg(primB), vUlt = agreg(ultB);
+        const antes = { ini: primB.ini, fim: ultB.ini - 1 };
+        const vAntes = agreg(antes);
+        const par = (vs) => safeDiv(1, sum(vs)); // 1/total, para virar participação
+        const picoDe = (vs) => vs.indexOf(Math.max(...vs));
+        const pPrim = picoDe(vPrim), pUlt = picoDe(vUlt);
+        const veredito = (p) => (p < 0.05
+          ? porIdioma({ pt: "estatisticamente significativo", es: "estadísticamente significativo", en: "statistically significant", id: "signifikan secara statistik" })
+          : p < 0.1
+            ? porIdioma({ pt: "indício fraco, não conclusivo", es: "indicio débil, no concluyente", en: "weak evidence, inconclusive", id: "bukti lemah, belum meyakinkan" })
+            : porIdioma({ pt: "sem evidência estatística de mudança", es: "sin evidencia estadística de cambio", en: "no statistical evidence of change", id: "tidak ada bukti statistik perubahan" }));
+        const nf3 = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+        const fmtP = (p) => (p < 0.001 ? `p < ${nf3.format(0.001)}` : `p = ${nf3.format(p)}`);
+        const dest = [];
+        // 1. Mês de pico
+        dest.push({
+          titulo: porIdioma({ pt: "Mês de pico", es: "Mes de pico", en: "Peak month", id: "Bulan puncak" }),
+          texto: pPrim === pUlt
+            ? porIdioma({
+              pt: `O pico segue em ${nomeM(pPrim)} nos dois extremos da série: ${pctInt(vPrim[pPrim] * par(vPrim))} da área do período em ${primB.label} e ${pctInt(vUlt[pUlt] * par(vUlt))} em ${ultB.label}.`,
+              es: `El pico sigue en ${nomeM(pPrim)} en los dos extremos de la serie: ${pctInt(vPrim[pPrim] * par(vPrim))} del área del período en ${primB.label} y ${pctInt(vUlt[pUlt] * par(vUlt))} en ${ultB.label}.`,
+              en: `The peak remains in ${nomeM(pPrim)} at both ends of the series: ${pctInt(vPrim[pPrim] * par(vPrim))} of the period's area in ${primB.label} and ${pctInt(vUlt[pUlt] * par(vUlt))} in ${ultB.label}.`,
+              id: `Puncak tetap pada ${nomeM(pPrim)} di kedua ujung deret: ${pctInt(vPrim[pPrim] * par(vPrim))} area periode pada ${primB.label} dan ${pctInt(vUlt[pUlt] * par(vUlt))} pada ${ultB.label}.`,
+            })
+            : porIdioma({
+              pt: `O pico mudou de ${nomeM(pPrim)} (${primB.label}) para ${nomeM(pUlt)} (${ultB.label}).`,
+              es: `El pico cambió de ${nomeM(pPrim)} (${primB.label}) a ${nomeM(pUlt)} (${ultB.label}).`,
+              en: `The peak moved from ${nomeM(pPrim)} (${primB.label}) to ${nomeM(pUlt)} (${ultB.label}).`,
+              id: `Puncak berpindah dari ${nomeM(pPrim)} (${primB.label}) ke ${nomeM(pUlt)} (${ultB.label}).`,
+            }),
+        });
+        // 2. Concentração no trimestre de pico (+ teste: último período × anteriores)
+        if (trimestre) {
+          const iT = trimestre.i;
+          const partTri = (vs) => safeDiv(vs[iT] + vs[iT + 1] + vs[iT + 2], sum(vs));
+          const anoTri = (s) => safeDiv(s.vals[iT] + s.vals[iT + 1] + s.vals[iT + 2], sum(s.vals));
+          const mw = estMannWhitney(comFogo.filter((s) => s.ano >= ultB.ini).map(anoTri), comFogo.filter((s) => s.ano < ultB.ini).map(anoTri));
+          const a = partTri(vPrim), b = partTri(vUlt);
+          const dpp = Math.round((b - a) * 100);
+          dest.push({
+            titulo: porIdioma({ pt: `Concentração no trimestre ${nomeTri}`, es: `Concentración en el trimestre ${nomeTri}`, en: `Concentration in the ${nomeTri} quarter`, id: `Konsentrasi pada triwulan ${nomeTri}` }),
+            texto: porIdioma({
+              pt: `A parte da área queimada no trimestre foi de ${pctInt(a)} em ${primB.label} e de ${pctInt(b)} em ${ultB.label} (${dpp > 0 ? "+" : ""}${dpp} p.p.).`,
+              es: `La parte del área quemada en el trimestre fue de ${pctInt(a)} en ${primB.label} y de ${pctInt(b)} en ${ultB.label} (${dpp > 0 ? "+" : ""}${dpp} p.p.).`,
+              en: `The share of burned area in the quarter was ${pctInt(a)} in ${primB.label} and ${pctInt(b)} in ${ultB.label} (${dpp > 0 ? "+" : ""}${dpp} p.p.).`,
+              id: `Porsi area terbakar pada triwulan itu adalah ${pctInt(a)} pada ${primB.label} dan ${pctInt(b)} pada ${ultB.label} (${dpp > 0 ? "+" : ""}${dpp} p.p.).`,
+            }) + (mw ? " " + porIdioma({
+              pt: `Último período × anteriores, ano a ano (Mann-Whitney, ${fmtP(mw.p)}): ${veredito(mw.p)}.`,
+              es: `Último período × anteriores, año a año (Mann-Whitney, ${fmtP(mw.p)}): ${veredito(mw.p)}.`,
+              en: `Last period × earlier ones, year by year (Mann-Whitney, ${fmtP(mw.p)}): ${veredito(mw.p)}.`,
+              id: `Periode terakhir × sebelumnya, tahun demi tahun (Mann-Whitney, ${fmtP(mw.p)}): ${veredito(mw.p)}.`,
+            }) : ""),
+          });
+        }
+        // 3. Deslocamento da temporada: tendência do "centro" (média dos meses ponderada pela área), ano a ano
+        const mk = estMannKendall(comFogo.map(centro));
+        if (mk) {
+          const dec = mk.sen * 10; // meses por década
+          const adiant = dec < 0;
+          const abs = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 2 }).format(Math.abs(dec));
+          const mwC = estMannWhitney(comFogo.filter((s) => s.ano >= ultB.ini).map(centro), comFogo.filter((s) => s.ano < ultB.ini).map(centro));
+          dest.push({
+            titulo: porIdioma({ pt: "Deslocamento da temporada", es: "Desplazamiento de la temporada", en: "Season shift", id: "Pergeseran musim" }),
+            texto: porIdioma({
+              pt: mk.p < 0.1
+                ? `O centro da temporada (média dos meses ponderada pela área) ${adiant ? "adiantou" : "atrasou"} cerca de ${abs} mês por década (Mann-Kendall com inclinação de Sen, ${fmtP(mk.p)}): ${veredito(mk.p)}.`
+                : `O centro da temporada (média dos meses ponderada pela área) ficou estável: ${abs} mês por década (Mann-Kendall com inclinação de Sen, ${fmtP(mk.p)}): ${veredito(mk.p)}.`,
+              es: mk.p < 0.1
+                ? `El centro de la temporada (promedio de los meses ponderado por el área) se ${adiant ? "adelantó" : "retrasó"} cerca de ${abs} mes por década (Mann-Kendall con pendiente de Sen, ${fmtP(mk.p)}): ${veredito(mk.p)}.`
+                : `El centro de la temporada (promedio de los meses ponderado por el área) se mantuvo estable: ${abs} mes por década (Mann-Kendall con pendiente de Sen, ${fmtP(mk.p)}): ${veredito(mk.p)}.`,
+              en: mk.p < 0.1
+                ? `The season's center (area-weighted mean month) moved ${adiant ? "earlier" : "later"} by about ${abs} month per decade (Mann-Kendall with Sen's slope, ${fmtP(mk.p)}): ${veredito(mk.p)}.`
+                : `The season's center (area-weighted mean month) stayed stable: ${abs} month per decade (Mann-Kendall with Sen's slope, ${fmtP(mk.p)}): ${veredito(mk.p)}.`,
+              id: mk.p < 0.1
+                ? `Pusat musim (rata-rata bulan berbobot area) bergeser ${adiant ? "lebih awal" : "lebih lambat"} sekitar ${abs} bulan per dekade (Mann-Kendall dengan kemiringan Sen, ${fmtP(mk.p)}): ${veredito(mk.p)}.`
+                : `Pusat musim (rata-rata bulan berbobot area) stabil: ${abs} bulan per dekade (Mann-Kendall dengan kemiringan Sen, ${fmtP(mk.p)}): ${veredito(mk.p)}.`,
+            }) + (mwC ? " " + (() => {
+              const tarde = mediana(comFogo.filter((s) => s.ano >= ultB.ini).map(centro)) > mediana(comFogo.filter((s) => s.ano < ultB.ini).map(centro));
+              const claro = mwC.p < 0.1;
+              return porIdioma({
+                pt: `${ultB.label} × anteriores${claro ? `: o centro foi ${tarde ? "mais tarde" : "mais cedo"}` : ": sem diferença clara no centro"} (Mann-Whitney, ${fmtP(mwC.p)}): ${veredito(mwC.p)}.`,
+                es: `${ultB.label} × anteriores${claro ? `: el centro fue ${tarde ? "más tardío" : "más temprano"}` : ": sin diferencia clara en el centro"} (Mann-Whitney, ${fmtP(mwC.p)}): ${veredito(mwC.p)}.`,
+                en: `${ultB.label} × earlier ones${claro ? `: the center was ${tarde ? "later" : "earlier"}` : ": no clear difference in the center"} (Mann-Whitney, ${fmtP(mwC.p)}): ${veredito(mwC.p)}.`,
+                id: `${ultB.label} × sebelumnya${claro ? `: pusatnya ${tarde ? "lebih lambat" : "lebih awal"}` : ": tidak ada perbedaan jelas pada pusat"} (Mann-Whitney, ${fmtP(mwC.p)}): ${veredito(mwC.p)}.`,
+              });
+            })() : ""),
+          });
+        }
+        // 4. Meses que mais ganharam e perderam participação no último período
+        if (antes.fim >= antes.ini) {
+          const dif = janela.map((_, j) => (vUlt[j] * par(vUlt) - vAntes[j] * par(vAntes)) * 100);
+          const jGanho = dif.indexOf(Math.max(...dif)), jPerda = dif.indexOf(Math.min(...dif));
+          const p1 = (v) => `${v > 0 ? "+" : ""}${Math.round(v)}`;
+          dest.push({
+            titulo: porIdioma({ pt: `Mudança em ${ultB.label}`, es: `Cambio en ${ultB.label}`, en: `Change in ${ultB.label}`, id: `Perubahan pada ${ultB.label}` }),
+            texto: porIdioma({
+              pt: `Em relação a ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} ganhou ${p1(dif[jGanho])} p.p. de participação no total do período e ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "perdeu " + p1(-dif[jPerda]).replace("+", "") : "mudou " + p1(dif[jPerda])} p.p.`,
+              es: `En relación con ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} ganó ${p1(dif[jGanho])} p.p. de participación en el total del período y ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "perdió " + p1(-dif[jPerda]).replace("+", "") : "cambió " + p1(dif[jPerda])} p.p.`,
+              en: `Compared with ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} gained ${p1(dif[jGanho])} p.p. of the period total and ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "lost " + p1(-dif[jPerda]).replace("+", "") : "changed " + p1(dif[jPerda])} p.p.`,
+              id: `Dibandingkan ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} naik ${p1(dif[jGanho])} p.p. dari total periode dan ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "turun " + p1(-dif[jPerda]).replace("+", "") : "berubah " + p1(dif[jPerda])} p.p.`,
+            }),
+          });
+        }
+        const cardDestaques = dest.length ? [{
+          span: 12,
+          title: "Destaques: o padrão mensal mudou?",
+          subtitle: "Comparação entre períodos e testes estatísticos sobre os anos da série",
+          destaques: dest,
+          legend: [{ label: "Testes não paramétricos (Mann-Kendall, Mann-Whitney) sobre as temporadas, com p-valor de duas caudas; p < 0,05 = significativo. Não corrigem autocorrelação entre anos: leia como indício, não como prova.", note: true }],
+        }] : [];
         return [{
           span: 12,
           title: `Área queimada por período e mês · ${ini}–${fim}`,
@@ -2019,7 +2135,7 @@ async function loadMensal({ t, ini, fim }) {
             tituloEscala: "Área queimada no período",
             celula: 56,
           },
-        }];
+        }, ...cardDestaques];
       })(),
     ],
   };
@@ -2140,6 +2256,65 @@ async function loadFrequencia({ t, ini, fim }) {
     ],
   };
 }
+// ---------- Estatística simples (testes não paramétricos, aproximação normal) ----------
+function normalCdf(z) {
+  // Abramowitz-Stegun 7.1.26 (erro < 1,5e-7)
+  const t = 1 / (1 + 0.3275911 * Math.abs(z) / Math.SQRT2);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-(z * z) / 2);
+  return z >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
+}
+const pDuasCaudas = (z) => Math.min(1, 2 * (1 - normalCdf(Math.abs(z))));
+
+// Mann-Kendall (tendência monotônica numa série em ordem do tempo) + inclinação de Sen (unidade por passo).
+function estMannKendall(xs) {
+  const n = xs.length;
+  if (n < 8) return null;
+  let S = 0;
+  const inclin = [];
+  for (let i = 0; i < n - 1; i++) {
+    for (let j = i + 1; j < n; j++) {
+      S += Math.sign(xs[j] - xs[i]);
+      inclin.push((xs[j] - xs[i]) / (j - i));
+    }
+  }
+  const grupos = new Map();
+  xs.forEach((v) => grupos.set(v, (grupos.get(v) || 0) + 1));
+  let varS = n * (n - 1) * (2 * n + 5);
+  grupos.forEach((t) => { if (t > 1) varS -= t * (t - 1) * (2 * t + 5); });
+  varS /= 18;
+  const z = varS > 0 ? (S - Math.sign(S)) / Math.sqrt(varS) : 0;
+  inclin.sort((a, b) => a - b);
+  const m = inclin.length;
+  const sen = m % 2 ? inclin[(m - 1) / 2] : (inclin[m / 2 - 1] + inclin[m / 2]) / 2;
+  return { p: pDuasCaudas(z), sen };
+}
+
+// Mann-Whitney (duas amostras independentes; correção de empates e de continuidade).
+function estMannWhitney(a, b) {
+  const n1 = a.length, n2 = b.length;
+  if (n1 < 3 || n2 < 3) return null;
+  const todos = [...a.map((v) => ({ v, g: 1 })), ...b.map((v) => ({ v, g: 2 }))].sort((x, y) => x.v - y.v);
+  let R1 = 0, corr = 0;
+  for (let i = 0; i < todos.length;) {
+    let j = i;
+    while (j + 1 < todos.length && todos[j + 1].v === todos[i].v) j++;
+    const t = j - i + 1, rank = (i + j + 2) / 2;
+    for (let k = i; k <= j; k++) if (todos[k].g === 1) R1 += rank;
+    corr += t ** 3 - t;
+    i = j + 1;
+  }
+  const N = n1 + n2;
+  const U1 = R1 - (n1 * (n1 + 1)) / 2;
+  const mu = (n1 * n2) / 2;
+  const sd = Math.sqrt((n1 * n2 / 12) * ((N + 1) - corr / (N * (N - 1))));
+  const z = sd > 0 ? (U1 - mu - 0.5 * Math.sign(U1 - mu)) / sd : 0;
+  return { p: pDuasCaudas(z) };
+}
+const mediana = (xs) => {
+  const s = [...xs].sort((x, y) => x - y), m = s.length;
+  return m ? (m % 2 ? s[(m - 1) / 2] : (s[m / 2 - 1] + s[m / 2]) / 2) : 0;
+};
+
 // Divide uma lista de anos em blocos de 10 anos a partir do primeiro (o último, se tiver menos
 // de 5 anos, se junta ao anterior). Usado nos gráficos "por período" (década a década).
 function blocosDePeriodo(anos, tam = 10) {
@@ -4050,6 +4225,9 @@ function cardBodyHtml(card, vista) {
 }
 
 function conteudoHtml(card, vista) {
+  if (card.destaques) {
+    return `<ul class="destaques">${card.destaques.map((d) => `<li><strong>${escapeHtml(d.titulo)}</strong><span>${escapeHtml(d.texto)}</span></li>`).join("")}</ul>`;
+  }
   if (card.boxplotFixo) return chartBoxHtml({ labels: card.boxplotFixo.labels, height: 360 }, card.title);
   if (card.calorFixo) {
     if (!card.calorFixo.linhas.length) return `<p class="empty">Sem dados para o período selecionado.</p>`;
