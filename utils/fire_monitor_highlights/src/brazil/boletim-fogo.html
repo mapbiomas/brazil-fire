@@ -809,7 +809,7 @@
     </div>
     <p class="cs" id="x-fn-z-t"></p>
     <p class="cs" id="x-fn-z-s"></p>
-    <div class="ch"><canvas id="xc-fn" role="img" aria-label="Barras com a diferença da área queimada de cada ano em relação à média, sobre as faixas de normalidade"></canvas></div>
+    <div class="ch" style="max-width:640px"><canvas id="xc-fn" role="img" aria-label="Barras com a diferença da área queimada de cada ano em relação à média, sobre as faixas de normalidade"></canvas></div>
     <div class="leg" id="x-fn-leg"></div>
   </section>
 
@@ -2143,10 +2143,11 @@ function atualizarControles() {
   $('x-aviso').textContent = parcial
     ? `Ainda não há dados depois de ${MES_L[P.M - 1]} de ${P.Y}. As comparações com outros anos usam o período inteiro escolhido e por isso ficam desiguais.`
     : '';
+  // Na tela segue com a classe de cobertura; nos downloads (X.resumo) só aparece quando há um filtro.
   const cob = f.cob ? `só ${cobNome(f).toLowerCase()}` : 'todas as classes de cobertura';
-  X.resumo = `${f.label} · ${mesesTxt(f)} · ${cob}`;
+  X.resumo = `${f.label} · ${mesesTxt(f)}${f.cob ? ` · ${cob}` : ''}`;
   $('x-per-t').textContent = `${f.label}: ${mesesTxt(f)}`;
-  $('x-ph-desc').textContent = X.resumo;
+  $('x-ph-desc').textContent = `${f.label} · ${mesesTxt(f)} · ${cob}`;
 }
 
 /* ---------- busca e distribuição dos dados ---------- */
@@ -2293,7 +2294,9 @@ function estat(series, f) {
   const n = series[f.ano].length;
   return range(0, n - 1).map(i => {
     const v = P.anos.filter(y => y !== f.ano).map(y => series[y][i]).filter(x => x != null);
-    return v.length ? { avg: v.reduce((s, x) => s + x, 0) / v.length, min: Math.min(...v), max: Math.max(...v) } : null;
+    if (!v.length) return null;
+    const avg = v.reduce((s, x) => s + x, 0) / v.length;
+    return { avg, sd: v.length > 1 ? Math.sqrt(v.reduce((s, x) => s + (x - avg) ** 2, 0) / (v.length - 1)) : 0, min: Math.min(...v), max: Math.max(...v) };
   });
 }
 const corAno = (f, y) => y === f.ano ? SER[0] : f.anosCmp.includes(y) ? SER[1 + f.anosCmp.indexOf(y)] : null;
@@ -2301,9 +2304,15 @@ const linhaAno = (label, data, cor, w, dash = []) => ({ label, data, borderColor
 const linhasCmp = (f, S) => f.anosCmp.map((y, i) => linhaAno(String(y), S[y], SER[1 + i], 2, DASH[1 + i]));
 const axT = text => ({ display: true, text, color: C.ink2, font: { size: 12, weight: '700' }, padding: { top: 4, bottom: 2 } });
 // Referência dos demais anos: só a linha da média (a faixa mín.–máx. foi retirada; o mín. e o máx. seguem no tooltip e no CSV).
-function dsReferencia(st) {
+function dsReferencia(st, comFaixa = false) {
+  const media = { label: 'Média dos demais anos', data: st.map(s => s?.avg ?? null), borderColor: '#8C8C8C', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 3 };
+  if (!comFaixa) return [media];
+  // Faixa de ±1 desvio padrão: o de baixo preenche até o de cima (fill '+1'); só o de cima aparece na legenda.
+  const cor = 'rgba(140, 140, 140, .18)';
   return [
-    { label: 'Média dos demais anos', data: st.map(s => s?.avg ?? null), borderColor: '#8C8C8C', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 3 }
+    { label: '_faixa_inf', data: st.map(s => s ? s.avg - s.sd : null), borderWidth: 0, pointRadius: 0, backgroundColor: cor, fill: '+1' },
+    { label: 'Faixa: ±1 desvio padrão', data: st.map(s => s ? s.avg + s.sd : null), borderWidth: 0, pointRadius: 0, backgroundColor: cor, fill: false },
+    media
   ];
 }
 // Faixa clara atrás dos meses do período escolhido.
@@ -2317,10 +2326,6 @@ const faixaPeriodo = {
     ctx.save();
     ctx.fillStyle = 'rgba(233, 64, 48, .04)';
     ctx.fillRect(x0, a.top, x1 - x0, a.bottom - a.top);
-    ctx.fillStyle = C.redD;
-    ctx.font = '600 9.5px Montserrat, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('período escolhido', x0 + 4, a.top + 11);
     ctx.restore();
   }
 };
@@ -2372,13 +2377,13 @@ const noTerr = (t, f) => f.label ? `${t} · ${f.label}` : t;
 function xSaz(M, f) {
   chipsAnos(f);
   const st = estat(M, f);
-  const ds = [...dsReferencia(st), ...linhasCmp(f, M), linhaAno(String(f.ano), M[f.ano], SER[0], 3)];
+  const ds = [...dsReferencia(st, true), ...linhasCmp(f, M), linhaAno(String(f.ano), M[f.ano], SER[0], 3)];
   const outros = P.anos.filter(y => y !== f.ano);
   $('x-saz-t').textContent = noTerr('Área queimada mês a mês, por ano', f);
-  $('x-saz-s').textContent = `Cada linha é um ano. A linha cinza é a média de cada mês nos demais anos (${outros[0]}–${outros[outros.length - 1]}).`;
+  $('x-saz-s').textContent = `Cada linha é um ano. A linha cinza é a média de cada mês nos demais anos (${outros[0]}–${outros[outros.length - 1]}), e a faixa cinza mostra ±1 desvio padrão.`;
   mkChart('x-saz', 'xc-saz', {
     type: 'line', data: { labels: MES.map(cap), datasets: ds }, plugins: [faixaPeriodo],
-    options: opLinha('Área queimada (ha)', 'Mês', st, { faixaPeriodo: { de: f.ini - 1, ate: f.fim - 1 } }, unid(maxNum(ds.flatMap(d => d.data))))
+    options: opLinha('Área queimada (ha)', 'Mês', st, { faixaPeriodo: { de: f.ini - 1, ate: f.fim - 1 } }, unid(maxNum(ds.filter(d => !/^(_|Faixa)/.test(d.label)).flatMap(d => d.data))))
   });
   setDl('x-saz', {
     nome: 'sazonalidade', cols: ['mes', ...P.anos.map(String), 'media_demais_anos', 'minimo_demais_anos', 'maximo_demais_anos'],
@@ -2934,7 +2939,7 @@ function xForaNormal(M, f) {
   const lim = Math.max(3.3 * passo, ...difs.map(d => Math.abs(d) + 15));
   mkChart('x-fn', 'xc-fn', {
     type: 'bar',
-    data: { labels: anos.map(String), datasets: [{ data: difs, backgroundColor: anos.map(y => y === f.ano ? C.fire : C.gray), borderRadius: 2, barPercentage: .4, maxBarThickness: 36 }] },
+    data: { labels: anos.map(String), datasets: [{ data: difs, backgroundColor: anos.map(y => y === f.ano ? C.fire : C.gray), borderRadius: 2, barPercentage: .72, maxBarThickness: 64 }] },
     plugins: [faixasNormal],
     options: {
       maintainAspectRatio: false,
