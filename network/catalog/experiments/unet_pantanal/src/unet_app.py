@@ -216,6 +216,9 @@ class Estado:
         self.meta = None
 
 
+MIN_TEMPO = 5   # só mostra o tempo de etapas com 5 s ou mais
+
+
 def fmt_tempo(seconds):
     """Tempo decorrido legível: '45 s', '12 min 05 s' (menos de 60 min) ou '1 h 07 min'."""
     sec = int(round(seconds))
@@ -232,7 +235,8 @@ def _etapa(nome, fn, *args, **kw):
     try:
         return fn(*args, **kw)
     finally:
-        print(f"⏱️ {nome}: {fmt_tempo(time.time() - t0)}")
+        if time.time() - t0 >= MIN_TEMPO:
+            print(f"⏱️ {nome}: {fmt_tempo(time.time() - t0)}")
 
 
 def _run(out, fn, *args, **kw):
@@ -248,7 +252,8 @@ def _run(out, fn, *args, **kw):
             if os.environ.get("UNET_DEBUG"):
                 traceback.print_exc()
         finally:
-            print(f"⏱️ Tempo decorrido: {fmt_tempo(time.time() - t0)}")
+            if time.time() - t0 >= MIN_TEMPO:   # passos instantâneos (ex.: confirmar) não precisam do tempo
+                print(f"⏱️ Tempo decorrido: {fmt_tempo(time.time() - t0)}")
     return None
 
 
