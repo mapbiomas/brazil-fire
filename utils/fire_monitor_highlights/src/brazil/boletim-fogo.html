@@ -2299,7 +2299,7 @@ function estat(series, f) {
 const corAno = (f, y) => y === f.ano ? SER[0] : f.anosCmp.includes(y) ? SER[1 + f.anosCmp.indexOf(y)] : null;
 const linhaAno = (label, data, cor, w, dash = []) => ({ label, data, borderColor: cor, backgroundColor: cor, borderWidth: w, borderDash: dash, pointRadius: w > 2 ? 3 : 2, pointHoverRadius: 5, tension: .25 });
 const linhasCmp = (f, S) => f.anosCmp.map((y, i) => linhaAno(String(y), S[y], SER[1 + i], 2, DASH[1 + i]));
-const axT = text => ({ display: true, text, color: C.ink2, font: { size: 11, weight: '600' }, padding: { top: 4, bottom: 2 } });
+const axT = text => ({ display: true, text, color: C.ink2, font: { size: 12, weight: '700' }, padding: { top: 4, bottom: 2 } });
 // Referência dos demais anos: só a linha da média (a faixa mín.–máx. foi retirada; o mín. e o máx. seguem no tooltip e no CSV).
 function dsReferencia(st) {
   return [
@@ -2352,8 +2352,8 @@ function opLinha(yT, xT, st, extraPlugins = {}, U = unid(0)) {
       ...extraPlugins
     },
     scales: {
-      x: { grid: { display: false }, border: { color: C.line }, ticks: { font: { size: 11 } }, title: axT(xT) },
-      y: yAxis({ ticks: { callback: U.t, font: { size: 11 }, maxTicksLimit: 6 }, title: axT(yT) })
+      x: { grid: { display: false }, border: { color: C.line }, ticks: { font: { size: 12, weight: '600' } }, title: axT(xT) },
+      y: yAxis({ ticks: { callback: U.t, font: { size: 12, weight: '600' }, maxTicksLimit: 6 }, title: axT(yT) })
     }
   };
 }
@@ -2425,8 +2425,8 @@ function xAnual(M, f) {
       maintainAspectRatio: false, layout: { padding: { top: 16 } },
       plugins: { legend: { display: false }, topLabels: { indices: vals.map((_, i) => i), fmt: (v, i) => anos[i] === f.ano ? U.f(v) : U.n(v) }, tooltip: { callbacks: { label: c => ` ${haC(c.raw)}` } } },
       scales: {
-        x: { grid: { display: false }, border: { color: C.line }, ticks: { font: { size: 11 }, color: c => anos[c.index] === f.ano ? C.redD : C.muted }, title: axT('Ano') },
-        y: yAxis({ ticks: { callback: U.t, font: { size: 11 }, maxTicksLimit: 5 }, title: axT(eixoHa(U)) })
+        x: { grid: { display: false }, border: { display: true, color: C.ink }, ticks: { font: { size: 13, weight: '600' }, color: c => anos[c.index] === f.ano ? C.redD : C.ink2 }, title: { ...axT('Ano'), font: { size: 13, weight: '700' } } },
+        y: yAxis({ grid: { display: false }, border: { display: true, color: C.ink }, ticks: { callback: U.t, font: { size: 13, weight: '600' }, maxTicksLimit: 5, color: C.ink2 }, title: { ...axT(eixoHa(U)), font: { size: 13, weight: '700' } } })
       }
     }
   });
@@ -2834,8 +2834,8 @@ function xUsoAno(lcs, tr, f) {
         }
       },
       scales: {
-        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }, color: c => anos[c.index] === f.ano ? C.redD : C.ink2 }, title: axT('Ano') },
-        y: yAxis({ stacked: true, ticks: { callback: U.t, font: { size: 11 }, maxTicksLimit: 6 }, title: axT(eixoHa(U)) })
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 12, weight: '600' }, color: c => anos[c.index] === f.ano ? C.redD : C.ink2 }, title: axT('Ano') },
+        y: yAxis({ stacked: true, ticks: { callback: U.t, font: { size: 12, weight: '600' }, maxTicksLimit: 6 }, title: axT(eixoHa(U)) })
       }
     }
   });
@@ -2941,9 +2941,9 @@ function xForaNormal(M, f) {
       layout: { padding: { top: 6 } },
       plugins: { legend: { display: false }, faixasNormal: { passo }, tooltip: { callbacks: { label: c => ` ${pctTxt(c.raw)} da média · ${haC(vals[c.dataIndex])}` } } },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 9.5 }, color: c => anos[c.index] === f.ano ? C.redD : C.ink2 }, title: axTitle('Ano') },
+        x: { grid: { display: false }, ticks: { font: { size: 10.5, weight: '600' }, color: c => anos[c.index] === f.ano ? C.redD : C.ink2 }, title: axTitle('Ano') },
         y: { min: -Math.min(lim, 100), max: lim, grid: { color: 'rgba(0,0,0,.06)' }, border: { display: false },
-          ticks: { font: { size: 9 }, maxTicksLimit: 7, callback: x => `${x > 0 ? '+' : ''}${Math.round(x)}%` }, title: axTitle('Diferença da média') }
+          ticks: { font: { size: 10, weight: '600' }, maxTicksLimit: 7, callback: x => `${x > 0 ? '+' : ''}${Math.round(x)}%` }, title: axTitle('Diferença da média') }
       }
     }
   });
