@@ -191,6 +191,31 @@ def _gpu_available():
     return bool(_tf().config.list_physical_devices("GPU"))
 
 
+def _progress_callback(tf, logger, epochs):
+    """Uma linha por época (tempo e métricas) e um aviso a cada 100 passos, para ver que está rodando."""
+    import time
+
+    class Progress(tf.keras.callbacks.Callback):
+        def on_train_begin(self, logs=None):
+            self.t_all = time.time()
+
+        def on_epoch_begin(self, epoch, logs=None):
+            self.t0 = time.time()
+            logger(f"[TREINO] época {epoch + 1}/{epochs} iniciada...")
+
+        def on_train_batch_end(self, batch, logs=None):
+            if (batch + 1) % 100 == 0:
+                logger(f"   ... {batch + 1} passos ({time.time() - self.t0:.0f} s)")
+
+        def on_epoch_end(self, epoch, logs=None):
+            lg = logs or {}
+            keys = ("loss", "iou_fire", "f1_fire", "val_loss", "val_iou_fire", "val_f1_fire")
+            vals = " | ".join(f"{k} {lg[k]:.3f}" for k in keys if k in lg)
+            logger(f"[TREINO] época {epoch + 1}/{epochs} em {time.time() - self.t0:.0f} s | {vals}")
+
+    return Progress()
+
+
 def train(cfg, logger=print):
     """Train the U-Net on the train chips, early-stop on val IoU, save to GCS."""
     tf = _tf()
@@ -236,9 +261,14 @@ def train(cfg, logger=print):
                                            save_best_only=True),
         tf.keras.callbacks.CSVLogger(os.path.join(out_dir, "history.csv")),
     ]
+    callbacks.append(_progress_callback(tf, logger, cfg["EPOCHS"]))
+    logger(f"[TREINO] {len(tr)} arquivo(s) de chips de treino e {len(va)} de validação | "
+           f"até {cfg['EPOCHS']} épocas, lote {cfg['BATCH']}, parada após {cfg['PATIENCE']} sem melhora")
+    logger("[TREINO] começando: a 1ª época demora mais (lê os chips do disco e compila o modelo); "
+           "depois aparece uma linha por época.")
     hist = model.fit(make_dataset(tr, stats, cfg, True),
                      validation_data=make_dataset(va, stats, cfg, False),
-                     epochs=cfg["EPOCHS"], callbacks=callbacks, verbose=2)
+                     epochs=cfg["EPOCHS"], callbacks=callbacks, verbose=0)
     model.save(best)  # best weights restored by EarlyStopping
 
     rel = f"{P['models']}/{cfg['MODEL_NAME']}.keras"
