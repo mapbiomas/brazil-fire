@@ -27,6 +27,10 @@ class TestPure(unittest.TestCase):
         self.assertEqual(unet_app.regions_by_biome(["Pantanal_r1", "Cerrado_r2", "Cerrado_r1", "Cerrado_r1"]),
                          {"Cerrado": ["Cerrado_r1", "Cerrado_r2"], "Pantanal": ["Pantanal_r1"]})
 
+    def test_fmt_tempo(self):
+        f = unet_app.fmt_tempo
+        self.assertEqual((f(5), f(125), f(3599), f(4020), f(7260)), ("5 s", "2 min 05 s", "59 min 59 s", "1 h 07 min", "2 h 01 min"))
+
     def values(self, **over):
         v = dict(EPOCHS=30, BATCH=4, LR=5e-5, PATIENCE=5, FILTERS=[16, 32, 64, 128], MIXED_PRECISION=True,
                  CHIP=256, POINTS_PER_POLYGON=4, BLOCK_KM=25, SPLIT=(0.7, 0.15, 0.15), SEED=42, OVERLAP=16,

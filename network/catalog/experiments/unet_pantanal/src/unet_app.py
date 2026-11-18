@@ -12,6 +12,7 @@ A lógica sem widgets (montar parâmetros, cartões de métricas) fica em funç�
 """
 import copy
 import os
+import time
 import traceback
 
 from unet_config import biome_slug, make_config, paths
@@ -215,9 +216,30 @@ class Estado:
         self.meta = None
 
 
+def fmt_tempo(seconds):
+    """Tempo decorrido legível: '45 s', '12 min 05 s' (menos de 60 min) ou '1 h 07 min'."""
+    sec = int(round(seconds))
+    if sec < 60:
+        return f"{sec} s"
+    if sec < 3600:
+        return f"{sec // 60} min {sec % 60:02d} s"
+    return f"{sec // 3600} h {(sec % 3600) // 60:02d} min"
+
+
+def _etapa(nome, fn, *args, **kw):
+    """Roda uma etapa e imprime quanto tempo ela levou (também quando dá erro)."""
+    t0 = time.time()
+    try:
+        return fn(*args, **kw)
+    finally:
+        print(f"⏱️ {nome}: {fmt_tempo(time.time() - t0)}")
+
+
 def _run(out, fn, *args, **kw):
-    """Roda `fn` mostrando tudo (prints e figuras) dentro do Output da aba; erros viram uma mensagem clara."""
+    """Roda `fn` mostrando tudo (prints e figuras) dentro do Output da aba; erros viram uma mensagem clara.
+    No fim mostra o tempo decorrido."""
     out.clear_output()
+    t0 = time.time()
     with out:
         try:
             return fn(*args, **kw)
@@ -225,6 +247,8 @@ def _run(out, fn, *args, **kw):
             print(f"❌ {type(e).__name__}: {e}")
             if os.environ.get("UNET_DEBUG"):
                 traceback.print_exc()
+        finally:
+            print(f"⏱️ Tempo decorrido: {fmt_tempo(time.time() - t0)}")
     return None
 
 
@@ -469,7 +493,7 @@ def _passo_chips(cfg, refazer):
     from unet_io import local_dir
     from unet_resumo import resumo_chips
     for period in cfg["PERIODS"]:
-        summary = build_chips(cfg, period, overwrite=refazer)
+        summary = _etapa(f"chips {period}", build_chips, cfg, period, overwrite=refazer)
         resumo_chips(cfg, summary)
         if not summary.get("skipped"):
             png = os.path.join(local_dir("reports"), f"chips_preview_{period}.png")
@@ -507,9 +531,9 @@ def _tab_treinar(w, estado):
     _bind(w, btns, out, b4, lambda: _passo_treinar(estado, estado.cfg))
 
     def tudo():
-        _passo_chips(estado.cfg, chk.value)
-        _passo_stats(estado.cfg)
-        _passo_treinar(estado, estado.cfg)
+        _etapa("2. Criar chips", _passo_chips, estado.cfg, chk.value)
+        _etapa("3. Estatísticas", _passo_stats, estado.cfg)
+        _etapa("4. Treino", _passo_treinar, estado, estado.cfg)
     _bind(w, btns, out, b5, tudo)
     hint = w.HTML("<span style='color:#666'>Use GPU (T4): na CPU o treino é muito lento. Cada etapa grava o resultado "
                   "no GCS, então dá para repetir só a que falhou.</span>")
