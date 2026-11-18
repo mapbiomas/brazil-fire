@@ -2098,10 +2098,10 @@ async function loadMensal({ t, ini, fim }) {
             tom,
             titulo: T(`Concentração em ${nomeTri}`, `Concentración en ${nomeTri}`, `Concentration in ${nomeTri}`, `Konsentrasi pada ${nomeTri}`),
             grande: `${pctInt(tri.a)} → ${pctInt(tri.b)}`,
-            texto: T(`A parte da área queimada nesses três meses foi de ${pctInt(tri.a)} em ${primB.label} e ${pctInt(tri.b)} em ${ultB.label} (${pp(dpp)} p.p.)${tom === "estavel" ? ", variação dentro do que se espera por acaso" : ""}.`,
-              `La parte del área quemada en esos tres meses fue de ${pctInt(tri.a)} en ${primB.label} y ${pctInt(tri.b)} en ${ultB.label} (${pp(dpp)} p.p.)${tom === "estavel" ? ", variación dentro de lo esperable por azar" : ""}.`,
-              `The share of burned area in those three months was ${pctInt(tri.a)} in ${primB.label} and ${pctInt(tri.b)} in ${ultB.label} (${pp(dpp)} p.p.)${tom === "estavel" ? ", a change within what chance would produce" : ""}.`,
-              `Porsi area terbakar pada tiga bulan itu ${pctInt(tri.a)} pada ${primB.label} dan ${pctInt(tri.b)} pada ${ultB.label} (${pp(dpp)} p.p.)${tom === "estavel" ? ", perubahan dalam batas kebetulan" : ""}.`),
+            texto: T(`A parte da área queimada nesses três meses foi de ${pctInt(tri.a)} em ${primB.label} e ${pctInt(tri.b)} em ${ultB.label} (${pp(dpp)}%)${tom === "estavel" ? ", variação dentro do que se espera por acaso" : ""}.`,
+              `La parte del área quemada en esos tres meses fue de ${pctInt(tri.a)} en ${primB.label} y ${pctInt(tri.b)} en ${ultB.label} (${pp(dpp)}%)${tom === "estavel" ? ", variación dentro de lo esperable por azar" : ""}.`,
+              `The share of burned area in those three months was ${pctInt(tri.a)} in ${primB.label} and ${pctInt(tri.b)} in ${ultB.label} (${pp(dpp)}%)${tom === "estavel" ? ", a change within what chance would produce" : ""}.`,
+              `Porsi area terbakar pada tiga bulan itu ${pctInt(tri.a)} pada ${primB.label} dan ${pctInt(tri.b)} pada ${ultB.label} (${pp(dpp)}%)${tom === "estavel" ? ", perubahan dalam batas kebetulan" : ""}.`),
           });
         }
         if (jGanho >= 0) {
@@ -2109,11 +2109,11 @@ async function loadMensal({ t, ini, fim }) {
           resumo.push({
             tom: grande ? "mudou" : "estavel",
             titulo: T(`Meses que mudaram em ${ultB.label}`, `Meses que cambiaron en ${ultB.label}`, `Months that changed in ${ultB.label}`, `Bulan yang berubah pada ${ultB.label}`),
-            grande: `${nomeM(jGanho)} ${pp(dif[jGanho])} p.p.`,
-            texto: T(`Em relação a ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} ganhou ${pp(dif[jGanho])} p.p. de participação no total do período e ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "perdeu " + Math.round(-dif[jPerda]) : "mudou " + pp(dif[jPerda])} p.p.`,
-              `En relación con ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} ganó ${pp(dif[jGanho])} p.p. de participación en el total del período y ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "perdió " + Math.round(-dif[jPerda]) : "cambió " + pp(dif[jPerda])} p.p.`,
-              `Compared with ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} gained ${pp(dif[jGanho])} p.p. of the period total and ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "lost " + Math.round(-dif[jPerda]) : "changed " + pp(dif[jPerda])} p.p.`,
-              `Dibandingkan ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} naik ${pp(dif[jGanho])} p.p. dari total periode dan ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "turun " + Math.round(-dif[jPerda]) : "berubah " + pp(dif[jPerda])} p.p.`),
+            grande: `${nomeM(jGanho)} ${pp(dif[jGanho])}%`,
+            texto: T(`Em relação a ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} ganhou ${pp(dif[jGanho])}% de participação no total do período e ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "perdeu " + Math.round(-dif[jPerda]) : "mudou " + pp(dif[jPerda])}%`,
+              `En relación con ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} ganó ${pp(dif[jGanho])}% de participación en el total del período y ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "perdió " + Math.round(-dif[jPerda]) : "cambió " + pp(dif[jPerda])}%`,
+              `Compared with ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} gained ${pp(dif[jGanho])}% of the period total and ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "lost " + Math.round(-dif[jPerda]) : "changed " + pp(dif[jPerda])}%`,
+              `Dibandingkan ${antes.ini}–${antes.fim}, ${nomeM(jGanho)} naik ${pp(dif[jGanho])}% dari total periode dan ${nomeM(jPerda)} ${dif[jPerda] < 0 ? "turun " + Math.round(-dif[jPerda]) : "berubah " + pp(dif[jPerda])}%`),
           });
         }
         resumo.forEach((r) => { r.selo = seloDe(r.tom); });
@@ -2130,10 +2130,10 @@ async function loadMensal({ t, ini, fim }) {
         } else if ((mk && mk.p < 0.1) || (mwC && mwC.p < 0.1)) {
           manchete = T("Talvez: há indício de mudança no calendário do fogo, mas ainda inconclusivo.", "Quizás: hay indicio de cambio en el calendario del fuego, pero aún no concluyente.", "Maybe: there is a hint of change in the fire calendar, but it is still inconclusive.", "Mungkin: ada indikasi perubahan kalender api, tetapi belum meyakinkan.");
         } else if (compMudou) {
-          manchete = T(`O calendário geral não mudou de forma comprovada, mas a composição entre meses variou (${nomeM(jGanho)} ${pp(dif[jGanho])} p.p. em ${ultB.label}).`,
-            `El calendario general no cambió de forma comprobada, pero la composición entre meses varió (${nomeM(jGanho)} ${pp(dif[jGanho])} p.p. en ${ultB.label}).`,
-            `The overall calendar did not change in a proven way, but the mix between months varied (${nomeM(jGanho)} ${pp(dif[jGanho])} p.p. in ${ultB.label}).`,
-            `Kalender umum tidak berubah secara terbukti, tetapi komposisi antarbulan bervariasi (${nomeM(jGanho)} ${pp(dif[jGanho])} p.p. pada ${ultB.label}).`);
+          manchete = T(`O calendário geral não mudou de forma comprovada, mas a composição entre meses variou (${nomeM(jGanho)} ${pp(dif[jGanho])}% em ${ultB.label}).`,
+            `El calendario general no cambió de forma comprobada, pero la composición entre meses varió (${nomeM(jGanho)} ${pp(dif[jGanho])}% en ${ultB.label}).`,
+            `The overall calendar did not change in a proven way, but the mix between months varied (${nomeM(jGanho)} ${pp(dif[jGanho])}% in ${ultB.label}).`,
+            `Kalender umum tidak berubah secara terbukti, tetapi komposisi antarbulan bervariasi (${nomeM(jGanho)} ${pp(dif[jGanho])}% pada ${ultB.label}).`);
         } else {
           manchete = T("Não: o padrão mensal do fogo se manteve estável ao longo da série.", "No: el patrón mensual del fuego se mantuvo estable a lo largo de la serie.", "No: the monthly fire pattern stayed stable over the series.", "Tidak: pola bulanan api tetap stabil sepanjang deret.");
         }
@@ -2441,7 +2441,7 @@ async function loadCicatriz({ t, ini, fim }) {
     },
     legend: [
       { label: `Média histórica ${ini}–${fim}: ${pct(propTotal)} da área queimada em cicatrizes de ${rotuloAlvo}`, note: true },
-      { label: `Diferença entre o último e o primeiro período: ${(propBloco.at(-1).share - propBloco[0].share) > 0 ? "+" : ""}${pct(propBloco.at(-1).share - propBloco[0].share).replace("%", "")} p.p. (${sinalPct(safeDiv(propBloco.at(-1).share, propBloco[0].share) - 1)})`, note: true },
+      { label: `Diferença entre o último e o primeiro período: ${(propBloco.at(-1).share - propBloco[0].share) > 0 ? "+" : ""}${pct(propBloco.at(-1).share - propBloco[0].share).replace("%", "")}% (${sinalPct(safeDiv(propBloco.at(-1).share, propBloco[0].share) - 1)})`, note: true },
       { label: "Verde = abaixo da média histórica · vermelho = acima", note: true },
     ],
   }] : [];
