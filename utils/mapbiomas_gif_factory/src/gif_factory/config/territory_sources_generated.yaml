@@ -1,0 +1,1154 @@
+# ARQUIVO GERADO por sync/territory_sync.py a partir das categorias de território da
+# Plataforma MapBiomas. Não edite à mão: rode o script de novo.
+argentina:
+  name: Argentina
+  sources:
+  - label: Pais
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/argentina/territories/PAIS_IGN_2026_B0DE1384/6e22759b-db35-40d9-b8b4-302fd9e7e8dd
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+    restricted: true
+  - label: Provincias
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/argentina/territories/PROVINCIAS_IGN_2026_43074545/83460dd3-d499-4c38-9677-da7970a9b1bf
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+    restricted: true
+  - label: Cuencas hidrográficas
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/argentina/territories/CUENCAS_HIDROGRAFICAS_COHIFE_2024_2770A5D7/787d8414-5332-49b0-8ed2-e986cb01ec0c
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Aglomerados y ciudades
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/argentina/territories/AGLOMERADOS_Y_CIUDADES_9A8186A6/5f528a10-a4aa-4d72-ab0a-791376b6d0df
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Áreas protegidas nacionais
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/ARGENTINA/WORKSPACE/PROTECTED_AREAS_NACIONALES/PROTECTED_AREAS_NACIONALES_v5
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Áreas protegidas subnacionais
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/ARGENTINA/WORKSPACE/PROTECTED_AREA_SUBNATIONAL/PROTECTED_AREA_SUBNATIONAL_v5
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Ecorregiones
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/argentina/territories/ECORREGIONES_ADMINISTRACION_DE_PARQUES_NACIONALES_2024_5F97E9F8/0fab7e34-5dd9-43b1-9ea9-61bff681c0a7
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Áreas Importantes para la Conservación de las Aves
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/argentina/territories/AREAS_IMPORTANTES_PARA_LA_CONSERVACION_DE_LAS_AVES_DI_GIACOMO_2007_9E8754F9/d81c1207-1c30-4cb9-88aa-76f28f0e17f4
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Glaciares cubiertos y de escombros
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/argentina/territories/INVENTARIO_NACIONAL_DE_GLACIARES_IANIGLA_2018_D88DE6F9/8a24f782-3775-4240-a6d7-185aa1c9a14f
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+bolivia:
+  name: Bolívia
+  sources:
+  - label: Pais (ina, 2020)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/PAIS_INA_2020_05A56A7B/56395e3d-5269-4c1f-803f-2d63643b33eb
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NOMBRE
+    restricted: true
+  - label: Departamento
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/DEPARTAMENTO_NUEVO_7BF39B7A/dec62ea8-d549-415b-9563-246d5dd2fa89
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Municipio
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/MUNICIPIO_NUEVO_9BD3107B/75aa6b3b-a8ba-4b7e-9fa8-029969e179e1
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Areas protegidas Nacionales
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/AREAS_PROTEGIDAS_NACIONALES_NUEVO_18D17041/2d6a24ff-630d-454e-95fe-03f642c85b63
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Areas protegidas Subnacionales (nuevo)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/AREAS_PROTEGIDAS_SUBNACIONALES_NUEVO_A1280F9E/adcc9b73-104c-4b9f-bc5f-e6b174623d25
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Território Indígena
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BOLIVIA/WORKSPACE/INDIGENOUS_TERRITORIES/INDIGENOUS_TERRITORIES_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Sitios Ramsar
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/SITIOS_RAMSAR_NUEVO_C7658245/2512f3d5-2613-4373-b6df-4ad68eb47406
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Ecorregiones
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/ECORREGIONES_NUEVO_E914AA54/12cf96cb-4dcf-4c06-a2b6-e00646f2e6ab
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Biomas
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/BIOMAS_NUEVO_E367910F/570a7e0d-ddf3-47d2-8bd5-d073b04339a1
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Autorizacion transitoria especial
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/AUTORIZACION_TRANSITORIA_ESPECIAL_NUEVO_88836DE9/ed99ca9d-5e2a-44a0-af41-25727e62e782
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Tierras Produccion Forestal Permanente
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/TIERRAS_PRODUCCION_FORESTAL_PERMANENTE_NUEVO_7C38AC26/c4ac3e4c-1692-4b45-af55-1ae88b39a9da
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Cuenca hidrografica nivel 1
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/CUENCA_HIDROGRAFICA_NIVEL_1_NUEVO_D75FCFD2/412fe0f6-0c1b-4f92-bca8-d323ae56ad86
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Cuenca hidrografica nivel 2
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/CUENCA_HIDROGRAFICA_NIVEL_2_NUEVO_36BB7471/53565905-3498-40ac-bc46-a948fa6607dc
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Cuenca hidrografica nivel 3
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/CUENCA_HIDROGRAFICA_NIVEL_3_NUEVO_E4A3A4D2/bec5f9d4-0873-4b49-917d-796d4639465d
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Cordilleras
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/bolivia/territories/CORDILLERAS_981DF0D5/1b018b9d-ab8d-4a03-ad88-7c654dd18e31
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+chile:
+  name: Chile
+  sources:
+  - label: País
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHILE/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v4
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Região
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHILE/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v6
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Província
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHILE/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v6
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Comuna
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHILE/WORKSPACE/POLITICAL_LEVEL_4/POLITICAL_LEVEL_4_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacias Hidrográficas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHILE/WORKSPACE/BASIN_LEVEL_1/BASIN_LEVEL_1_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Sub-bacias Hidrográficas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHILE/WORKSPACE/BASIN_LEVEL_2/BASIN_LEVEL_2_v6
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Área Nacional Protegida
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHILE/WORKSPACE/NATIONAL_PROTECTED_AREAS/NATIONAL_PROTECTED_AREAS_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Ecorregião
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHILE/WORKSPACE/ECORREGION/ECORREGION_v5
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Macrozones Glaciológicas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHILE/WORKSPACE/GLACIER_MACROZONES/GLACIER_MACROZONES_v9
+    id_field: FEATURE_ID
+    name_field: NAME
+colombia:
+  name: Colômbia
+  sources:
+  - label: País
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/colombia/territories/NIVEL_POLITICO_1_702287F6/a8e40af2-14e4-4286-8ba2-498ebbd6213f
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Regiões
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/CONTRY_REGIONS/CONTRY_REGIONS_v5
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Departamento
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Município e ETI
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Biomas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/BIOMES/BIOMES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Sítios Ramsar
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/RAMSAR_SITES/RAMSAR_SITES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Nível Político - 1
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/colombia/territories/NIVEL_POLITICO_1_0C5BADC9/a8e40af2-14e4-4286-8ba2-498ebbd6213f
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Áreas Protegidas Departamentais
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/PROTECTED_AREAS_DEPTALES/PROTECTED_AREAS_DEPTALES_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Áreas Protegidas Nacionais
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/PROTECTED_AREAS_NACIONALES/PROTECTED_AREAS_NACIONALES_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Zonas de Reserva Camponesa
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/ZONAS_DE_RESERVA_CAMPESINA/ZONAS_DE_RESERVA_CAMPESINA_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Resguardos Indígenas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/RESGUARDOS_INDIGENAS/RESGUARDOS_INDIGENAS_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacia Hidrográfica Nível 1
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/BASIN_LEVEL_1/BASIN_LEVEL_1_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Bacia Hidrográfica Nível 2
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/BASIN_LEVEL_2/BASIN_LEVEL_2_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Bacia Hidrográfica Nível 3
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/BASIN_LEVEL_3/BASIN_LEVEL_3_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Limite RAISG
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/RAISG_AMAZON_COUNTRY/RAISG_AMAZON_COUNTRY_v2
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Reservas Florestais (Lei 2)
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/RESERVAS_FORESTALES_LEY_2/RESERVAS_FORESTALES_LEY_2_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Páramos
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/PARAMOS/PARAMOS_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Limites CAR
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/LIMITES_CAR/LIMITES_CAR_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Conselhos Comunitários
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/CONSEJOS_COMUNITARIOS/CONSEJOS_COMUNITARIOS_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Floresta Seca Tropical
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/BOSQUE_SECO_TROPICAL/BOSQUE_SECO_TROPICAL_v4
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Geleiras
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/GLACIARES/GLACIARES_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Complexo Geleiras
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/COMPLEJO_GLACIARES/COMPLEJO_GLACIARES_v2
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Chocó Biogeográfico
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/COLOMBIA/WORKSPACE/CHOCO_BIOGEOGRAFICO/CHOCO_BIOGEOGRAFICO_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Proyectos licenciados (ANLA, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/colombia/territories/PROYECTOS_LICENCIADOS_ANLA_2026_C25E1446/0f679079-e1f0-4180-acde-5151fa8f44dd
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+    restricted: true
+  - label: Proyectos evaluación (ANLA, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/colombia/territories/PROYECTOS_EVALUACION_ANLA_2026_5170B037/062f4d2c-f812-4190-a874-862ad4af9d33
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+    restricted: true
+  - label: Títulos Mineros Vigentes (ANM, 2023)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/colombia/territories/TITULOS_MINEROS_VIGENTES_ANM_2023_5D5EED32/fd8078f4-ba1e-483f-bac5-31756eb5e18a
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+    restricted: true
+  - label: Solicitudes Mineras Vigentes (ANM, 2023)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/colombia/territories/SOLICITUDES_MINERAS_VIGENTES_ANM_2023_D4B207A7/e9ccd70a-8e46-4cc3-a9c1-b086001c6fbf
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+    restricted: true
+  - label: Límite Amazonía (SINCHI, 2022)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/colombia/territories/LIMITE_AMAZONIA_8F5DFCDF/66669ca1-ee59-45f0-bba8-05dfba0ae81f
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME_STD
+    restricted: true
+ecuador:
+  name: Equador
+  sources:
+  - label: Pais (CONALI, 2024)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/PAIS_CONALI_2024_FAF4EE04/871e971c-59d4-4eb7-9af1-c4f1fb7d660b
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Parroquia (CONALI, 2024)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/PARROQUIA_CONALI_2024_16528A13/e11f1da6-00f0-48c1-8169-53c0aa261b60
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Biomas (EcoCiencia, 2024)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/BIOMAS_ECICIENCIA_2024_2C65C1BF/44f5b978-80b3-41a8-86d6-94cf156f90a2
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+    restricted: true
+  - label: Sitios Ramsar (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/SITIOS_RAMSAR_MAE_2026_CAE05452/29b95d96-5a61-499a-9589-4169bf3298e1
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+  - label: Reserva de la Biosfera (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/RESERVA_DE_LA_BIOSFERA_MAE_2026_16D2A0C7/490cabb0-5ce2-454d-b199-3d7c79822d1f
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+  - label: Territorios Indígenas (EcoCiencia, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/TERRITORIOS_INDIGENAS_ECOCIENCIA_2026_8CFAA0EC/647ebbfa-f6cc-4e15-8f36-1fdf30944363
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+  - label: Área Natural Protegida Provincial (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/AREA_NATURAL_PROTEGIDA_PROVINCIAL_MAE_2026_66FF5A2E/faa3cd39-771c-496f-bfe4-8dd0f449decf
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Sistema Nacional de Áreas Protegidas (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/SISTEMA_NACIONAL_DE_AREAS_PROTEGIDAS_MAE_2026_234E88B5/833e9c0a-e0c7-453f-adac-617735f6c434
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+  - label: Unidad Hodrográfica 1 (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/UNIDAD_HODROGRAFICA_1_MAE_2026_B8FBE324/ebfe31f0-6216-491a-9a93-a73e62be17c4
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Unidad Hodrográfica 2 (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/UNIDAD_HODROGRAFICA_2_MAE_2026_2BC487D5/5353231c-691c-4e69-86a7-b15f412e1834
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Unidad Hodrográfica 3 (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/UNIDAD_HODROGRAFICA_3_MAE_2026_AD92BA80/c493a6f2-ee44-4b74-913c-2a06dd7f6ea1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Unidad Hodrográfica 4 (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/UNIDAD_HODROGRAFICA_4_MAE_2026_9C10B7CB/e58a34e0-4888-4c52-b24c-3370345e1902
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Glaciares (EcoCiencia, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/GLACIARES_ECOCIENCIA_2026_9955AE63/d6bb6f20-1645-4c38-a1e7-45af02236cf2
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Límite RAISG (EcoCiencia, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/LIMITE_RAISG_ECOCIENCIA_2026_A4F3560D/68995b92-fd7f-4417-a269-773bc15acb7f
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NOMBRE
+  - label: Corredor de Conectividad (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/CORREDOR_DE_CONECTIVIDAD_MAE_2026_95D544CD/aafa307f-9254-4ab3-8e64-b43085c6046a
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+  - label: Límite del Biocorredor Amazónico (TNC, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/LIMITE_DEL_BIOCORREDOR_AMAZONICO_TNC_2026_B7C6E76C/5c81818f-55ae-4335-8e17-5c64ce64b72c
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Bosque Protectores (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/BOSQUE_PROTECTORES_MAE_2026_B077057C/ee1b57fb-7883-4ddb-b5f1-6869964f0b18
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+  - label: Zonas de Protección Amazónica (EcoCiencia, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/ZONAS_DE_PROTECCION_AMAZONICA_ECOCIENCIA_2026_A39314DE/1ef84470-65da-452d-bdd7-41fe1e51911a
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+  - label: Zona de Recarga Hídrica (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/ZONA_DE_RECARGA_HIDRICA_MAE_2026_1BB0281F/7b44a9cd-2ba5-41d1-8a2c-cafc2f3555a4
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NOMBRE
+  - label: Áreas de Protección Hídrica (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/AREAS_DE_PROTECCION_HIDRICA_MAE_2026_047EE9CE/2ac301b3-352c-4075-91b0-a374673d2959
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+  - label: Demarcación Hidrográfica (MAE, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/DEMARCACION_HIDROGRAFICA_MAE_2026_0ED02A8A/c3397dc7-a5a8-46a7-91c9-6c08276c60f8
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Área de Conservacióin y Uso Sostenible Privadas (EcoCiencia, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/ecuador/territories/AREA_DE_CONSERVACIOIN_Y_USO_SOSTENIBLE_PRIVADAS_ECOCIENCIA_2026_1F76723C/9ae6bdec-5b30-4558-9598-8ad7cbeb1c0b
+    id_field: FEATURE_ID
+    name_field: NAME
+indonesia:
+  name: Indonésia
+  sources:
+  - label: Country Limit
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v4
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Island Group
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Province
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: District
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/POLITICAL_LEVEL_4/POLITICAL_LEVEL_4_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Sub-District
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/POLITICAL_LEVEL_5/POLITICAL_LEVEL_5_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Village
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/POLITICAL_LEVEL_6/POLITICAL_LEVEL_6_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Watershed
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/WATERSHED/WATERSHED_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Wallacea
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/INDONESIA/WORKSPACE/WALLACEA/WALLACEA_v2
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Social Forestry Area
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/SOCIAL_FORESTRY_AREA/SOCIAL_FORESTRY_AREA_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: New National Capital
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/NEW_NATIONAL_CAPITAL/NEW_NATIONAL_CAPITAL_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Peatland Ecological Zone
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/PEATLAND_ECOLOGICAL_ZONE/PEATLAND_ECOLOGICAL_ZONE_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Indigenous Forest
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/indonesia/territories/INDIGENOUS_FOREST_CBFC237B/fddbe3a3-f06a-4250-8ee2-44ce84400e47
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Forest Moratorium
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/indonesia/territories/FOREST_MORATORIUM_FF756321/dda68a69-0880-4a45-839b-19a3d308a9c6
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Sumatran Tiger Habitat
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/SUMATRAN_TIGER_HABITAT/SUMATRAN_TIGER_HABITAT_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Sumatran Rhino Habitat
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/RHINOCEROS_HABITAT/RHINOCEROS_HABITAT_v2
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Sumatran Elephant Habitat
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/SUMATRAN_ELEPHANT_HABITAT/SUMATRAN_ELEPHANT_HABITAT_v1
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Restoration Area
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/RESTORATION_AREA/RESTORATION_AREA_v1
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Orangutan Habitat
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/ORANGUTAN_HABITAT/ORANGUTAN_HABITAT_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: National Park
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/NATIONAL_PARK/NATIONAL_PARK_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Key Biodiversity Area
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/KEY_BIODIVERSITY_AREA/KEY_BIODIVERSITY_AREA_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Other Conservation Area
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/OTHER_CONSERVATION_AREA/OTHER_CONSERVATION_AREA_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Oil Palm Concession
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/INDONESIA/WORKSPACE/OIL_PALM_CONCESSION/OIL_PALM_CONCESSION_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Mining Concession
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/indonesia/territories/MINING_CONCESSION_F95E0270/0eef385f-ed33-474c-bef4-6cc3489aafc1
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Forestry Concession
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/indonesia/territories/FORESTRY_CONCESSION_053AB565/99f7aeb8-6b38-48e4-93ee-1f2a841e340b
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Fisheries Management Area
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/indonesia/territories/FISHERIES_MANAGEMENT_AREA_4C242F57/3dd66201-07c6-401e-bb34-073922bfaa35
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+mexico:
+  name: México
+  sources:
+  - label: País
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v1
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Estado
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Municipio
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Ecorregión
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/ECORREGION/ECORREGION_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Sitios RAMSAR
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/RAMSAR_SITES/RAMSAR_SITES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Áreas Protegidas Federales
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/PROTECTED_AREA_SUBNATIONAL/PROTECTED_AREA_SUBNATIONAL_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Cuencas Hidrográficas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/BASIN_LEVEL_1/BASIN_LEVEL_1_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Subcuencas hidrográficas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/BASIN_LEVEL_2/BASIN_LEVEL_2_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Zonas metropolitanas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/METROPOLITAN_REGIONS/METROPOLITAN_REGIONS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Áreas Claves para la Biodiversidad
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/KEY_BIODIVERSITY_AREAS/KEY_BIODIVERSITY_AREAS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Regiones hidrológicas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/HYDROGRAPHIC_REGIONS/HYDROGRAPHIC_REGIONS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Sitios de Atención Prioritaria para la Conservación
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/PRIORITY_CONSERVATION_SITES/PRIORITY_CONSERVATION_SITES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Acuíferos
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/MEXICO/WORKSPACE/AQUIFERS/AQUIFERS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+paraguay:
+  name: Paraguai
+  sources:
+  - label: Nível Político 1 (Serviço Nacional de Cadastro, 2024)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/paraguay/territories/NIVEL_POLITICO_1_SERVICIO_NACIONAL_DE_CATASTRO_2024_1C3C87EF/1b0759e9-76c6-4b3d-9127-db1772da0683
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME_STD
+  - label: Nível Político 2 (Serviço Nacional de Cadastro, 2024)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/paraguay/territories/NIVEL_POLITICO_2_SERVICIO_NACIONAL_DE_CATASTRO_2024_BF678EE7/968a3bcd-e17a-4dc1-9fdc-a95a39c3e770
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Nível Político 3 (Serviço Nacional de Cadastro, 2024)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/paraguay/territories/NIVEL_POLITICO_3_SERVICIO_NACIONAL_DE_CATASTRO_2024_F0C8BC32/002a36c2-4bba-498a-bbd1-a7945d730651
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Sítios Ramsar (WWF, 2013)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/paraguay/territories/SITIOS_RAMSAR_WWF_2013_A5FE46D6/3aff578c-ff21-4963-9a69-be4d93b81ab1
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Reserva da Biosfera (Ministério do Meio Ambiente e Desenvolvimento Sustentável, 2022)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/paraguay/territories/RESERVA_DE_LA_BIOSFERA_MINISTERIO_DEL_AMBIENTE_Y_DESARROLLO_SOSTENIBLE_2022_FC4291BD/d7f52f57-d24c-4113-9e6e-09903433d45f
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Área Silvestre Protegida (Ministério do Meio Ambiente e Desenvolvimento Sustentável, 2022)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/paraguay/territories/AREA_SILVESTRE_PROTEGIDA_MINISTERIO_DEL_AMBIENTE_Y_DESARROLLO_SOSTENIBLE_2022_7DDE49F3/e16a8ee9-24c4-44c8-88b0-4b6b2dc86d1d
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Territórios Indígenas (Federação pela Autodeterminação dos Povos Indígenas, 2017)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/paraguay/territories/TERRITORIOS_INDIGENAS_FEDERACION_POR_LA_AUTODETERMINACION_DE_LOS_PUEBLOS_INDIGENAS_2017_812392F7/0e281a13-900f-4d1c-ad64-cf572f14a326
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Ecorregiões Dinerstein (DINERTTEIN, 1995)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/paraguay/territories/ECORREGIONES_DINERSTEIN_DINERTTEIN_1995_5BDBA83B/1f599108-9da4-4b94-adc4-4f5746d7889a
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Ecorregiões Paraguai (SEAM, 2013)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/paraguay/territories/ECORREGIONES_PARAGUAY_SEAM_2013_576969F6/02c84b77-2754-42fc-a847-8127997ba4b0
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Bacias do Paraguai (PHI–DMH–DINAC/UNESCO (1992)/ SEAM-DGPCRH (2012))
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/paraguay/territories/CUENCAS_DEL_PARAGUAY_PHI_DMH_DINAC_UNESCO_1992_SEAM_DGPCRH_2012_C7CAEEB9/a12b862f-8bc2-436e-a6cf-35dcce9fa7fc
+    id_field: FEATURE_ID
+    name_field: NOMBRE
+    restricted: true
+  - label: Key Biodiversity Areas - Paraguai (BirdLife International, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/paraguay/territories/KEY_BIODIVERSITY_AREAS_PARAGUAY_BIRDLIFE_INTERNATIONAL_2026_1D3FAC97/c013e774-24a0-47ec-8b0c-ca86b2277ff9
+    id_field: FEATURE_ID
+    name_field: INTNAME
+    restricted: true
+peru:
+  name: Peru
+  sources:
+  - label: País
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v1
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Bioma
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/BIOMES/BIOMES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Região
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Província (INEI, 2023)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/peru/territories/PROVINCIA_INEI_2023_2872D1EA/9cf995f7-c34f-4f10-be1d-8260df6b1da6
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+    restricted: true
+  - label: Ecorregião
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/ECORREGION/ECORREGION_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Reserva da Biosfera
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/RESERVA_DA_BIOSFERA/RESERVA_DA_BIOSFERA_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacia Hidrográfica Nível 1
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/BASIN_LEVEL_1/BASIN_LEVEL_1_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacia Hidrográfica Nível 2
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/BASIN_LEVEL_2/BASIN_LEVEL_2_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacia Hidrográfica Nível 3
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/BASIN_LEVEL_3/BASIN_LEVEL_3_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Reserva Indígena
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/peru/territories/RESERVA_INDIGENA_6E4F75E5/faf9488e-579f-484b-93d6-25bfdff3b107
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Região Geográfica
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/REGION_GEOGRAFICA/REGION_GEOGRAFICA_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacia Hidrográfica Nível 4
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/BASIN_LEVEL_4/BASIN_LEVEL_4_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Comunidade Nativa Titulada
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/TITLED_NATIVE_COMMUNITY/TITLED_NATIVE_COMMUNITY_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Solicitação de titulação
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/peru/territories/SOLICITUD_DE_TITULACION_4ACD554F/675c0402-f60a-4325-9ebb-456fc6783311
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Reserva Territorial
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/LAND_RESERVE/LAND_RESERVE_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Comunidade Camponesa Reconhecida
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/RECOGNIZED_PEASANT_COMMUNITY/RECOGNIZED_PEASANT_COMMUNITY_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Área Natural Protegida
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/peru/territories/AREA_NATURAL_PROTEGIDA_76E84300/a3d27bcf-5e0b-4321-8ce9-91e369030435
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Área de Conservação Regional
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/REGIONAL_CONSERVATION_AREAS/REGIONAL_CONSERVATION_AREAS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Área de Conservação Privada
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/PRIVATE_CONSERVATION_AREAS/PRIVATE_CONSERVATION_AREAS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Ecozona
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/ECOZONE/ECOZONE_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Concessão Florestal para Produção Madeireira
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/TIMBER_CONCESSION/TIMBER_CONCESSION_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Zona de Amortecimento
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/peru/territories/ZONA_DE_AMORTIGUAMIENTO_7FAB1B05/e378dcab-fca7-4bdc-95fd-07ec69cb3d17
+    id_field: FEATURE_ID
+    name_field: NAME_STD
+  - label: Ecossistema Frágil
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/FRAGILE_ECOSYSTEM/FRAGILE_ECOSYSTEM_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Floresta de Produção Permanente
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/PERMANENT_PRODUCTION_FOREST/PERMANENT_PRODUCTION_FOREST_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Floresta Local
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/LOCAL_FOREST/LOCAL_FOREST_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Concessão de Área de Manejo de Vida Silvestre
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/WILDLIFE_MANAGEMENT_AREA_CONCESSION/WILDLIFE_MANAGEMENT_AREA_CONCESSION_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Concessão para Conservação
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/CONSERVATION_CONCESSION/CONSERVATION_CONCESSION_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Concessão para Ecoturismo
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/ECOTOURISM_CONCESSION/ECOTOURISM_CONCESSION_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Concessão para Florestamento e Reflorestamento
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/AFFORESTATION_AND_REFORESTATION_CONCESSION/AFFORESTATION_AND_REFORESTATION_CONCESSION_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Cordilheiras
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/PERU/WORKSPACE/MOUNTAIN_RANGES/MOUNTAIN_RANGES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+uruguay:
+  name: Uruguai
+  sources:
+  - label: Município
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/URUGUAY/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacia Nível 1
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/URUGUAY/WORKSPACE/BASIN_LEVEL_1/BASIN_LEVEL_1_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacia Nível 2
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/URUGUAY/WORKSPACE/BASIN_LEVEL_2/BASIN_LEVEL_2_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Departamento
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/URUGUAY/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v4
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Ecorregião
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/URUGUAY/WORKSPACE/ECORREGION/ECORREGION_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: País
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/URUGUAY/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v4
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+venezuela:
+  name: Venezuela
+  sources:
+  - label: País
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/VENEZUELA/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v4
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Bioma
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/VENEZUELA/WORKSPACE/BIOMES/BIOMES_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Estado
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/VENEZUELA/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v5
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Município
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/VENEZUELA/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v4
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacia hidrográfica
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/VENEZUELA/WORKSPACE/BASIN_LEVEL_1_PNRH/BASIN_LEVEL_1_PNRH_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Regiões administrativas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/VENEZUELA/WORKSPACE/ADMINISTRATIVE_REGIONS/ADMINISTRATIVE_REGIONS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Regiões fisiográficas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/VENEZUELA/WORKSPACE/PHYSIOGRAPHIC_REGIONS/PHYSIOGRAPHIC_REGIONS_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Territórios indígenas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/VENEZUELA/WORKSPACE/INDIGENOUS_TERRITORIES/INDIGENOUS_TERRITORIES_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Venezuela e áreas marinhas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/VENEZUELA/WORKSPACE/VENEZUELA_AND_MARINE_AREAS/VENEZUELA_AND_MARINE_AREAS_v2
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Áreas protegidas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/VENEZUELA/WORKSPACE/PROTECTED_AREA/PROTECTED_AREA_v5
+    id_field: FEATURE_ID
+    name_field: NAME
+suriname:
+  name: Suriname
+  sources:
+  - label: Country
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/SURINAME/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v7
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: District
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/SURINAME/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Ecoregion
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/SURINAME/WORKSPACE/ECORREGION/ECORREGION_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Hydrography
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/SURINAME/WORKSPACE/DEMARCACION_HIDROGRAFICA/DEMARCACION_HIDROGRAFICA_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Indigenous and Tribal Living Area
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/SURINAME/WORKSPACE/INDIGENOUS_TERRITORIES/INDIGENOUS_TERRITORIES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Protected Areas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/SURINAME/WORKSPACE/PROTECTED_AREA/PROTECTED_AREA_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: RAMSAR Sites
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/SURINAME/WORKSPACE/RAMSAR_SITES/RAMSAR_SITES_v7
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Resort
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/SURINAME/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: River Basins
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/SURINAME/WORKSPACE/BASIN_LEVEL_1/BASIN_LEVEL_1_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: UNESCO Heritage Sites
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/SURINAME/WORKSPACE/PROTECTED_AREAS_NACIONALES/PROTECTED_AREAS_NACIONALES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+chaco:
+  name: Chaco
+  sources:
+  - label: Bioma
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHACO/WORKSPACE/BIOMES/BIOMES_v3
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: País
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHACO/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Nível político 2
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHACO/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Nível político 3
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHACO/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Sítios ramsar
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHACO/WORKSPACE/RAMSAR_SITES/RAMSAR_SITES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Áreas protegidas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/CHACO/WORKSPACE/PROTECTED_AREA/PROTECTED_AREA_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+pampa:
+  name: Pampa (trinacional)
+  sources:
+  - label: Bioma
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAMPA/WORKSPACE/BIOMES/BIOMES_v1
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: País
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAMPA/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Nível Político 2
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAMPA/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Nível Político 3
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAMPA/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Áreas protegidas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAMPA/WORKSPACE/PROTECTED_AREAS/PROTECTED_AREAS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Ecorregião
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAMPA/WORKSPACE/ECORREGION/ECORREGION_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Territórios Indígenas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAMPA/WORKSPACE/INDIGENOUS_TERRITORIES/INDIGENOUS_TERRITORIES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Quilombo
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAMPA/WORKSPACE/QUILOMBOS/QUILOMBOS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacia hidrográfica
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAMPA/WORKSPACE/WATERSHED/WATERSHED_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+pan_amazonia:
+  name: Pan-Amazônia
+  sources:
+  - label: RAISG
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAN-AMAZONIA/WORKSPACE/LIMITERAISG/LIMITERAISG_v4
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Bioma
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAN-AMAZONIA/WORKSPACE/BIOMES_ALL/BIOMES_ALL_v5
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bacia Nível 1
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAN-AMAZONIA/WORKSPACE/CUENCAS_NIVEL_1_ALL/CUENCAS_NIVEL_1_ALL_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Territórios Indígenas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAN-AMAZONIA/WORKSPACE/INDIGENOUS_TERRITORIES/INDIGENOUS_TERRITORIES_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Áreas Protegidas Departamentais
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAN-AMAZONIA/WORKSPACE/PROTECTED_AREAS_DEPTALES/PROTECTED_AREAS_DEPTALES_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Área Protegida Nacional
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PAN-AMAZONIA/WORKSPACE/PROTECTED_AREAS_NACIONALES/PROTECTED_AREAS_NACIONALES_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+bosque_atlantico:
+  name: Mata Atlântica (trinacional)
+  sources:
+  - label: Bacia Nível 2
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/ATLANTIC-FOREST/WORKSPACE/BASIN_LEVEL_2/BASIN_LEVEL_2_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Bioma
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/ATLANTIC-FOREST/WORKSPACE/BIOMES/BIOMES_v1
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Nível Político 1
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/ATLANTIC-FOREST/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Nível Político 2
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/ATLANTIC-FOREST/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Nível Político 3
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/ATLANTIC-FOREST/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Reserva da Biosfera
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/ATLANTIC-FOREST/WORKSPACE/RESERVA_DA_BIOSFERA/RESERVA_DA_BIOSFERA_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Território Indígena
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/ATLANTIC-FOREST/WORKSPACE/INDIGENOUS_TERRITORIES/INDIGENOUS_TERRITORIES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Áreas Protegidas Nacionais
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/ATLANTIC-FOREST/WORKSPACE/NATIONAL_PROTECTED_AREAS/NATIONAL_PROTECTED_AREAS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+brasil:
+  name: Brasil
+  sources:
+  - label: Brasil (IBGE, 2025)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/brazil/territories/BRASIL_IBGE_2025_D71F57FE/cc8a1562-88be-4106-8701-34da9e3a3a40
+    id_field: FEATURE_ID
+    whole: true
+  - label: Bioma
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/BIOMES/BIOMES_v4
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Sistema Costeiro e Marinho
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/brazil/territories/SISTEMA_COSTEIRO_E_MARINHO_IBGE_2025_DB52694B/b545395d-1b7c-4f1a-bec1-0c438526c179
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NOME
+  - label: DHN250 - Nível 1 - Divisão Hidrográfica Nacional
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/BRAZIL/WORKSPACE/DHN250_LEVEL_1/DHN250_LEVEL_1_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: DHN250 - Nível 2 - Divisão Hidrográfica Nacional
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/BRAZIL/WORKSPACE/DHN250_LEVEL_2/DHN250_LEVEL_2_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: DHN250 - Nível 3 -Divisão Hidrográfica Nacional
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/BRAZIL/WORKSPACE/DHN250_LEVEL_3/DHN250_LEVEL_3_v4
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Unidade de Gestão de Recursos Hídricos
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/BRAZIL/WORKSPACE/UGRHS/UGRHS_v3
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: AMACRO
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/BRAZIL/WORKSPACE/AMACRO/AMACRO_v3
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Lei da Mata Atlântica 1:1.000.000
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/BRAZIL/WORKSPACE/ATLANTIC_FOREST_LAW/ATLANTIC_FOREST_LAW_v3
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Amazônia Legal
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/BRAZIL/WORKSPACE/LEGAL_AMAZON/LEGAL_AMAZON_v3
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: MATOPIBA
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/BRAZIL/WORKSPACE/MATOPIBA/MATOPIBA_v3
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Áreas prioritárias para Biodiversidade
+    asset: projects/mapbiomas-territories/assets/TERRITORIES-STAGING/BRAZIL/WORKSPACE/AREAS_PRIORITARIAS_DO_MMA_2018/AREAS_PRIORITARIAS_DO_MMA_2018_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Regiões Metropolitanas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/METROPOLITAN_REGIONS/METROPOLITAN_REGIONS_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Concentrações Urbanas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/URBAN_CONCENTRATION/URBAN_CONCENTRATION_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Unidade de Conservação Marinha
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/MARINE_CONSERVATION_UNIT/MARINE_CONSERVATION_UNIT_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Setor Censitário
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/CENSUS_TRACTS/CENSUS_TRACTS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Favelas e Comunidades Urbanas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/SLUMS_AND_POOR_URBAN_COMMUNITIES/SLUMS_AND_POOR_URBAN_COMMUNITIES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Distritos Municipais
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/MUNICIPAL_DISTRICTS/MUNICIPAL_DISTRICTS_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Setores Censitários Urbanos
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/URBAN_CENSUS_TRACTS/URBAN_CENSUS_TRACTS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Setores Censitários Rurais
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/RURAL_CENSUS_TRACTS/RURAL_CENSUS_TRACTS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Setores de Risco IBGE
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/RISK_SECTORS_BATER_IBGE/RISK_SECTORS_BATER_IBGE_v2
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Comitê de Bacias Estadual
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/STATE_COMMITTEE/STATE_COMMITTEE_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Comitê de Bacias Federal
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/FEDERAL_COMMITTEE/FEDERAL_COMMITTEE_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Regiões Hidrográficas
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/HYDROGRAPHIC_REGIONS/HYDROGRAPHIC_REGIONS_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Unidades Estaduais de Planejamento e Gestão de Recursos Hídricos
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/STATE_UNITS_PLANNING_MANAGEMENT_WATER_RESOURCES/STATE_UNITS_PLANNING_MANAGEMENT_WATER_RESOURCES_v1
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Quilombos
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/brazil/territories/QUILOMBOS_INCRA_2026_C57B5884/ff433ee4-7137-4845-aa3d-42f66d2b7823
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Terras Indígenas
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/brazil/territories/TERRAS_INDIGENAS_FUNAI_2026_F7F13F79/8b94c232-c551-4dd1-ac0c-2b40145db021
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Planalto da BAP
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/brazil/territories/PLANALTO_DA_BAP_ANA_2021_D4F5966E/9cfd02e1-f425-41e1-8364-240a8dbf1b68
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NAME
+  - label: Florestas Públicas não Destinadas (tipo B)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/brazil/territories/FLORESTAS_PUBLICAS_NAO_DESTINADAS_TIPO_B_MMA_2026_FA7D29E9/1f8935c8-0c73-42e2-a3d9-ceb8e063da2d
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Concessões Florestais
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/brazil/territories/CONCESSOES_FLORESTAIS_MMA_2026_61E001B1/5fd69700-34cf-42a5-a563-d290eaec7839
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Reserva da Biosfera (RBMA, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/brazil/territories/RESERVA_DA_BIOSFERA_RBMA_2026_A597F0B9/a1cce443-608c-4a32-b313-9918e04e11dd
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Municipios Prioritários da Amazônia (MMA, 2026)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/brazil/territories/MUNICIPIOS_PRIORITARIOS_DA_AMAZONIA_MMA_2026_26694C97/a2f415d9-1408-4c4b-9d02-8e6b6455d202
+    id_field: FEATURE_ID
+    name_field: NAME
+  - label: Assentamentos
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/brazil/territories/ASSENTAMENTOS_8733D41F/3c5dcfaf-7fc9-481b-ab43-cad405158648
+    id_field: FEATURE_ID
+    name_field: NAME
+    restricted: true
+  - label: Key Biodiversity Areas (KBA) www.keybiodiversityareas.org
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/brazil/territories/DIGITAL_BOUNDARIES_OF_KEY_BIODIVERSITY_AREAS_KBA_WWW_KEYBIODIVERSITYAREAS_ORG_46E9DD5D/66e33807-7290-4feb-a2d2-66b2f0254309
+    id_field: FEATURE_ID
+    name_field: INTNAME
+    restricted: true
+  - label: Semiárido (ANA, 2017)
+    asset: projects/mapbiomas-territories/assets/PLATFORM/production/mapbiomas/brazil/territories/SEMIARIDO_ANA_2017_72C3DCA6/c22571a6-ba46-401b-9ddd-71f069dcc696
+    id_field: FEATURE_ID
+    whole: true
+    name_field: NOME
+    restricted: true
+drc:
+  name: RD Congo
+  sources:
+  - label: Country
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/democratic-republic-of-congo/territories/COUNTRY_2C5ABC07/063b9848-f8cb-404c-9eb9-58916a987b89
+    id_field: FEATURE_ID
+    whole: true
+  - label: Biomes
+    asset: projects/mapbiomas-territories/assets/PLATFORM/demo/mapbiomas/democratic-republic-of-congo/territories/BIOMES_4EF31B8F/0506d11e-1522-4f5b-8843-52d1539240e5
+    id_field: FEATURE_ID
+    name_field: NAME
