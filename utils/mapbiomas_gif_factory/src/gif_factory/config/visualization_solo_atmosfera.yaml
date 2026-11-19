@@ -1,0 +1,155 @@
+# Estilos de Solo (Coleção 3) e Atmosfera (Coleção 1).
+#
+# Solo: cópia fiel das paletas e legendas oficiais do MapBiomas Solo
+#   (soil_legends_source/collection_03beta_legends.js, repositório mapbiomas/brazil-soil).
+# Atmosfera: o MapBiomas Atmosfera não publica paletas; as escalas abaixo são propostas
+#   pela Fábrica (ColorBrewer), calibradas nos percentis 2–98% do Brasil em 2024.
+visualizations:
+  soil_carbon_col3:
+    name: Estoque de carbono orgânico do solo
+    min: 0
+    max: 90
+    palette: ['ffffe5', 'fff7bc', 'fee391', 'fec44f', 'fe9929', 'ec7014', 'cc4c02', '993404', '662506']
+    label: Carbono orgânico (t/ha)
+    unit: t/ha
+    cmap_type: sequential
+  soil_sand_col3:
+    name: Fração de areia
+    min: 0
+    max: 100
+    palette: ['fef0d9', 'fdd49e', 'fdbb84', 'fc8d59', 'ef6548', 'd7301f', '990000']
+    label: Areia (%)
+    unit: '%'
+    cmap_type: sequential
+  soil_silt_col3:
+    name: Fração de silte
+    min: 0
+    max: 100
+    palette: ['edf8fb', 'b2e2e2', '66c2a4', '2ca25f', '006d2c']
+    label: Silte (%)
+    unit: '%'
+    cmap_type: sequential
+  soil_clay_col3:
+    name: Fração de argila
+    min: 0
+    max: 100
+    palette: ['fff7ec', 'fee8c8', 'fdd49e', 'fdbb84', 'fc8d59', 'e34a33', 'b30000']
+    label: Argila (%)
+    unit: '%'
+    cmap_type: sequential
+  soil_texture_l1:
+    name: Grupamento textural
+    min: 0
+    max: 6
+    palette: ['0080ff', '707070', 'a83800', 'aa8686', 'b5d6ae', 'fffe73', 'd7c5a5']
+    discrete_labels: [Não observado, Fragmentos de rocha, Muito argilosa, Argilosa, Siltosa, Arenosa, Média]
+    label: Grupamento textural
+    cmap_type: categorical
+  soil_texture_l2:
+    name: Subgrupamento textural
+    min: 0
+    max: 9
+    palette: ['0080ff', '707070', 'a83800', 'aa8686', 'f4a582', 'b5d6ae', 'd7c5a5', 'f8d488', 'e4b074', 'fffe73']
+    discrete_labels: [Não observado, Fragmentos de rocha, Muito argilosa, Argilosa, Média-argilosa, Siltosa,
+                      Média-siltosa, Média-arenosa, Arenosa-média, Muito arenosa]
+    label: Subgrupamento textural
+    cmap_type: categorical
+  soil_texture_l3:
+    name: Classe textural
+    min: 0
+    max: 14
+    palette: ['0080ff', '707070', 'a83800', 'aa8686', '3481a7', 'e9a9a9', '80b1d3', 'c994c7', 'f4a582',
+              'd7c5a5', 'f8d488', 'e4b074', 'fffe73', 'abba7c', 'b5d6ae']
+    discrete_labels: [Não observado, Fragmentos de rocha, Muito argilosa, Argilosa, Argilo siltosa,
+                      Franco argilosa, Franco argilo siltosa, Argilo arenosa, Franco argilo arenosa, Franca,
+                      Franco arenosa, Areia franca, Areia, Franco siltosa, Silte]
+    label: Classe textural
+    cmap_type: categorical
+
+  atm_precipitation_annual:
+    name: Precipitação anual
+    min: 500
+    max: 3000
+    palette: ['f7fbff', 'deebf7', 'c6dbef', '9ecae1', '6baed6', '4292c6', '2171b5', '08519c', '08306b']
+    label: Precipitação (mm/ano)
+    unit: mm
+    cmap_type: sequential
+  atm_air_temperature_max:
+    name: Temperatura máxima do ar
+    min: 26
+    max: 38
+    palette: &temperatura ['313695', '4575b4', '74add1', 'abd9e9', 'e0f3f8', 'ffffbf', 'fee090', 'fdae61', 'f46d43', 'd73027', 'a50026']
+    label: Temperatura máxima (°C)
+    unit: °C
+    cmap_type: sequential
+  atm_air_temperature_mean:
+    name: Temperatura média do ar
+    min: 16
+    max: 30
+    palette: *temperatura
+    label: Temperatura média (°C)
+    unit: °C
+    cmap_type: sequential
+  atm_air_temperature_min:
+    name: Temperatura mínima do ar
+    min: 6
+    max: 26
+    palette: *temperatura
+    label: Temperatura mínima (°C)
+    unit: °C
+    cmap_type: sequential
+  atm_surface_temperature:
+    name: Temperatura da superfície
+    min: 16
+    max: 32
+    palette: *temperatura
+    label: Temperatura da superfície (°C)
+    unit: °C
+    cmap_type: sequential
+  atm_pm2p5:
+    name: Material particulado fino (PM2.5)
+    min: 0
+    max: 60
+    palette: &particulado ['ffffcc', 'ffeda0', 'fed976', 'feb24c', 'fd8d3c', 'fc4e2a', 'e31a1c', 'bd0026', '800026']
+    label: PM2.5 (µg/m³)
+    unit: µg/m³
+    cmap_type: sequential
+  atm_pm10:
+    name: Material particulado (PM10)
+    min: 0
+    max: 80
+    palette: *particulado
+    label: PM10 (µg/m³)
+    unit: µg/m³
+    cmap_type: sequential
+  atm_rain_free_days:
+    name: Dias sem chuva
+    min: 0
+    max: 300
+    palette: ['ffffe5', 'fff7bc', 'fee391', 'fec44f', 'fe9929', 'ec7014', 'cc4c02', '993404', '662506']
+    label: Dias sem chuva no ano
+    unit: dias
+    cmap_type: sequential
+  atm_persistent_rain:
+    name: Dias de chuva persistente
+    min: 0
+    max: 40
+    palette: ['f7fcfd', 'e0ecf4', 'bfd3e6', '9ebcda', '8c96c6', '8c6bb1', '88419d', '6e016b']
+    label: Dias com mais de 60 mm em 3 dias
+    unit: dias
+    cmap_type: sequential
+  atm_vapor_pressure_deficit:
+    name: Déficit de pressão de vapor
+    min: 0.3
+    max: 2.0
+    palette: ['fff5eb', 'fee6ce', 'fdd0a2', 'fdae6b', 'fd8d3c', 'f16913', 'd94801', '8c2d04']
+    label: Déficit de pressão de vapor (kPa)
+    unit: kPa
+    cmap_type: sequential
+  atm_water_availability:
+    name: Disponibilidade hídrica
+    min: -20
+    max: 120
+    palette: ['543005', '8c510a', 'bf812d', 'dfc27d', 'f6e8c3', 'c7eae5', '80cdc1', '35978f', '01665a']
+    label: Disponibilidade hídrica (maior = mais água)
+    cmap_type: sequential

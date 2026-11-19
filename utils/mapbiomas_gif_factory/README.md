@@ -25,9 +25,12 @@ pip install "git+https://github.com/mapbiomas/brazil-fire.git@<branch>#subdirect
 
 The map catalog comes from `src/gif_factory/config/`, ported from the local project (`mapbiomas-ia/FABRICA DE GIFS/config`). Each product there is defined once: asset or processor, band slicing, and the visualization key (palette, legend, min/max) in `visualization.yaml`. Catalog products run through the same pipeline as the local project, so maps come out with the same design and colors.
 
-- 120 products: Brasil (Fire 3 and 5, LULC 9 to 11, Degradation 9, 10.1 and 11, Soil, Oeste Baiano), Peru (Fire 2), Paraguay (Fire 1) and DR Congo (LULC 1).
+- 138 products: Brasil (Fire 3 and 5, LULC 9 to 11, Degradation 9, 10.1 and 11, Soil 3, Atmosphere 1, Oeste Baiano), Peru (Fire 2), Paraguay (Fire 1) and DR Congo (LULC 1).
+- Soil collection 3 includes products animated **by depth** instead of by year (`axis: depth`: clay, sand and silt fractions from 0–10 to 90–100 cm; textural group, subgroup and class from 0–10 to 60–100 cm), with the official MapBiomas Solo palettes copied to `soil_legends_source/` from `mapbiomas/brazil-soil`.
+- Atmosphere collection 1 (annual precipitation, air and surface temperature, PM2.5, PM10, rain-free days, persistent rain, vapor pressure deficit, water availability) is **beta**: the data is official, but MapBiomas Atmosfera publishes no palettes, so the colors are proposed by the factory. Products that pick one image of a collection use `collection_filter: {property, value}`.
 - `config/catalog_status.yaml` sets each product's status: **validado** (shown by default), **beta** (shown only when "Mostrar mapas beta" is ticked) or **pendente** (hidden). Without an entry, a product is validado.
 - To add or fix a product, edit the collection YAML in `config/initiatives/<initiative>/collections/` and, if needed, add a style to `visualization.yaml`.
+- `python validation/legend_check.py` compares the catalog's class styles with the official legends: land cover against the MapBiomas Platform API (`prd.plataforma.mapbiomas.org/api/v1`, which publishes pixel value, name, color and level per initiative) and fire products against `fire_legends_source/`. Known, intentional differences are listed in the script with their reason; anything else fails the check.
 - `python validation/catalog_review.py` checks every product against Earth Engine (access, bands, processor) and writes a contact sheet with a thumbnail and legend per product to `validation/catalog_review/<UTC>/index.html`.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/utils/mapbiomas_gif_factory/notebooks/piloto.ipynb)

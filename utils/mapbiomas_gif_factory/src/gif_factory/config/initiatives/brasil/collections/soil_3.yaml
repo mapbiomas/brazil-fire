@@ -1,0 +1,45 @@
+name: "Solo — Coleção 3"
+description: "MapBiomas Solo Coleção 3 - Brasil: carbono orgânico (anual) e textura por profundidade"
+dataset: brasil_soil_col3
+title_collection: "MapBiomas Solo · Coleção 3"
+project: mapbiomas-brazil
+category: soil
+collection: 3
+# Paletas e legendas: soil_legends_source/collection_03beta_legends.js
+# (MapBiomas Solo, repositório mapbiomas/brazil-soil).
+products:
+  carbon:
+    name: "Estoque de carbono orgânico do solo"
+    asset: "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_carbon_v1"
+    temporal_range: [1985, 2024]
+    visualization: "soil_carbon_col3"
+  clay_fraction:
+    name: "Fração de argila por profundidade"
+    asset: "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_clay_fraction_v1"
+    axis: depth
+    visualization: "soil_clay_col3"
+  sand_fraction:
+    name: "Fração de areia por profundidade"
+    asset: "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_sand_fraction_v1"
+    axis: depth
+    visualization: "soil_sand_col3"
+  silt_fraction:
+    name: "Fração de silte por profundidade"
+    asset: "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_silt_fraction_v1"
+    axis: depth
+    visualization: "soil_silt_col3"
+  textural_group:
+    name: "Grupamento textural por profundidade"
+    asset: "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_textural_group_v1"
+    axis: depth
+    visualization: "soil_texture_l1"
+  textural_subgroup:
+    name: "Subgrupamento textural por profundidade"
+    asset: "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_textural_subgroup_v1"
+    axis: depth
+    visualization: "soil_texture_l2"
+  textural_class:
+    name: "Classe textural por profundidade"
+    asset: "projects/mapbiomas-public/assets/brazil/soil/collection3/mapbiomas_brazil_collection3_soil_textural_class_v1"
+    axis: depth
+    visualization: "soil_texture_l3"

@@ -13,3 +13,6 @@ categories:
   soil:
     label: "Solo"
     color: "#8D6E63"
+  atmosphere:
+    label: "Atmosfera"
+    color: "#4292C6"
