@@ -5,6 +5,8 @@ quadro é recalibrado com o que já rodou na sessão (`Calibration`).
 """
 from threading import Lock
 
+from .i18n import _
+
 SECONDS_PER_FRAME = 10.0      # baixar do Earth Engine + montar o quadro
 SECONDS_PER_COMBO = 30.0      # consultas, legenda, GIF e publicação
 DEFAULT_FRAMES = 40           # quando ainda não se sabe quantos anos o mapa tem
@@ -49,15 +51,15 @@ def batch(frames_per_combo, kinds, workers=1, per_frame=None, to_drive=False):
 def human_time(seconds):
     seconds = int(round(seconds))
     if seconds < 60:
-        return "menos de 1 minuto"
+        return _("menos de 1 minuto")
     minutes = seconds // 60
     if minutes < 60:
-        return f"{minutes} min"
+        return _("{n} min", n=minutes)
     hours, minutes = divmod(minutes, 60)
     if hours < 24:
-        return f"{hours} h" + (f" {minutes:02d} min" if minutes else "")
+        return _("{n} h", n=hours) + (" " + _("{n} min", n=f"{minutes:02d}") if minutes else "")
     days, hours = divmod(hours, 24)
-    return f"{days} dia(s)" + (f" e {hours} h" if hours else "")
+    return _("{n} dia(s)", n=days) + (" " + _("e {n} h", n=hours) if hours else "")
 
 
 def about(seconds):
@@ -68,7 +70,7 @@ def about(seconds):
 
 def human_size(mb):
     if mb < 1:
-        return "menos de 1 MB"
+        return _("menos de 1 MB")
     if mb < 1024:
         return f"{mb:.0f} MB"
     return f"{mb / 1024:.1f} GB"
@@ -78,24 +80,25 @@ def mood(seconds):
     """(emoji, frase, nível) — nível 0 tranquilo, 1 pense bem, 2 repense."""
     minutes = seconds / 60
     if minutes < 3:
-        return "☕", "Mais rápido que passar um café.", 0
+        return "☕", _("Mais rápido que passar um café."), 0
     if minutes < 20:
-        return "☕", "Dá tempo de um café e uma boa conversa.", 0
+        return "☕", _("Dá tempo de um café e uma boa conversa."), 0
     if minutes < 60:
-        return "🍲", "Dá para almoçar enquanto os mapas brotam.", 0
+        return "🍲", _("Dá para almoçar enquanto os mapas brotam."), 0
     if minutes < 4 * 60:
-        return "⏳", ("Uma tarde inteira. Deixe a aba do Colab aberta: o Colab gratuito desconecta "
-                     "depois de cerca de 90 min sem interação."), 1
+        return "⏳", _("Uma tarde inteira. Deixe a aba do Colab aberta: o Colab gratuito desconecta "
+                       "depois de cerca de 90 min sem interação."), 1
     if minutes < 12 * 60:
-        return "🌙", ("Uma noite inteira. Pense bem: o Colab gratuito costuma encerrar sessões em até "
-                     "12 h. Dividir em lotes menores é mais seguro."), 2
-    return "🗓️", ("Dias! Mais do que uma sessão do Colab aguenta. Escolha menos anos, territórios ou "
-                  "tipos de arquivo, ou divida em vários lotes."), 2
+        return "🌙", _("Uma noite inteira. Pense bem: o Colab gratuito costuma encerrar sessões em até "
+                       "12 h. Dividir em lotes menores é mais seguro."), 2
+    return "🗓️", _("Dias! Mais do que uma sessão do Colab aguenta. Escolha menos anos, territórios ou "
+                    "tipos de arquivo, ou divida em vários lotes."), 2
 
 
 def size_note(saved_mb, to_drive):
     if to_drive and saved_mb / 1024 > DRIVE_FREE_GB * 0.5:
-        return (f"Isso é mais da metade dos {DRIVE_FREE_GB} GB do Drive gratuito. Confira o espaço livre antes.", 2)
+        return (_("Isso é mais da metade dos {n} GB do Drive gratuito. Confira o espaço livre antes.",
+                  n=DRIVE_FREE_GB), 2)
     if saved_mb > 1024:
-        return ("Mais de 1 GB: baixar tudo em .zip pode demorar.", 1)
+        return (_("Mais de 1 GB: baixar tudo em .zip pode demorar."), 1)
     return ("", 0)

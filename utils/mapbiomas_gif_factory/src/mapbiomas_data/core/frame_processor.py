@@ -16,6 +16,15 @@ def _lerp_color(c1: Tuple[int, int, int], c2: Tuple[int, int, int], t: float) ->
     return tuple(int(a + (b - a) * t) for a, b in zip(c1, c2))
 
 
+# Textos fixos desenhados nos quadros; gif_factory.i18n troca pelos do idioma escolhido.
+TEXTS = {
+    "Composição RGB:": "Composição RGB:",
+    "bandas:": "bandas:",
+    "Sem vegetação": "Sem vegetação",
+    "Cada mancha de vegetação possui uma cor única": "Cada mancha de vegetação possui uma cor única",
+}
+
+
 def _find_font() -> Optional[str]:
     candidates = [
         "C:\\Windows\\Fonts\\Arial.ttf",
@@ -65,10 +74,10 @@ def _render_rgb_legend(draw: ImageDraw.Draw, width: int, y: int, margin: int,
     line1_h = draw.textbbox((0, 0), "Ag", font=font_title)[3] + 8
     line2_h = draw.textbbox((0, 0), "Ag", font=font_detail)[3] + 8
 
-    draw.text((margin, y), "Composição RGB:", font=font_title, fill=(0, 0, 0))
+    draw.text((margin, y), TEXTS["Composição RGB:"], font=font_title, fill=(0, 0, 0))
 
     y2 = y + line1_h
-    detail_prefix = f"  min: {int(vmin)}, max: {int(vmax)}, bandas:"
+    detail_prefix = f"  min: {int(vmin)}, max: {int(vmax)}, {TEXTS['bandas:']}"
     prefix_w = draw.textbbox((0, 0), detail_prefix, font=font_detail)[2]
 
     draw.text((margin, y2), "  " + detail_prefix.lstrip(), font=font_detail, fill=(0, 0, 0))
@@ -330,6 +339,19 @@ class FrameProcessor:
 
     @staticmethod
     def _wrap_text(draw: ImageDraw.Draw, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> List[str]:
+        if any("\u2e80" <= ch <= "\u9fff" or "\uf900" <= ch <= "\ufaff" for ch in text):
+            # Mandarim não separa palavras com espaço: quebra por caractere.
+            lines, cur = [], ""
+            for ch in text:
+                test = cur + ch
+                if not cur or draw.textbbox((0, 0), test, font=font)[2] <= max_width:
+                    cur = test
+                else:
+                    lines.append(cur.rstrip())
+                    cur = ch.lstrip()
+            if cur:
+                lines.append(cur)
+            return lines or [""]
         words = text.split()
         if not words:
             return [""]
@@ -630,8 +652,8 @@ class FrameProcessor:
                 by = ly + 5
                 draw.rectangle([bx, by, bx + box_size, by + box_size], fill=(128, 128, 128))
                 draw.rectangle([bx, by, bx + box_size, by + box_size], outline=(100, 100, 100), width=2)
-                draw.text((bx + box_size + 10, by), "Sem vegetação", font=tfont, fill=(0, 0, 0))
-                draw.text((margin, by + box_size + 10), "Cada mancha de vegetação possui uma cor única", font=tfont, fill=(0, 0, 0))
+                draw.text((bx + box_size + 10, by), TEXTS["Sem vegetação"], font=tfont, fill=(0, 0, 0))
+                draw.text((margin, by + box_size + 10), TEXTS["Cada mancha de vegetação possui uma cor única"], font=tfont, fill=(0, 0, 0))
             elif is_discrete:
                 col_w = (width - 2 * margin) // cols
                 for idx, (color, lbl) in enumerate(entries):

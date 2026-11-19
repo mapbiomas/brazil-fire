@@ -14,6 +14,8 @@ from html import escape
 import ipywidgets as w
 from IPython.display import display
 
+from .i18n import _
+
 def _ee():
     import ee
     return ee
@@ -25,20 +27,21 @@ def explain(error, project):
     low = text.lower()
     project = escape(str(project or ""))
     if "please authorize" in low or "earthengine authenticate" in low:
-        return ("Falta autorizar o Earth Engine",
-                "Rode a célula 1 de novo e aceite o pedido de acesso do Google.")
+        return (_("Falta autorizar o Earth Engine"),
+                _("Rode a célula 1 de novo e aceite o pedido de acesso do Google."))
     if "user_project_denied" in low or "does not have required permission" in low or "permission_denied" in low:
-        return (f"Sua conta não tem acesso ao projeto “{project}”",
-                "Digite abaixo outro projeto do Earth Engine que a sua conta usa, ou peça acesso a quem administra esse projeto.")
+        return (_("Sua conta não tem acesso ao projeto “{projeto}”", projeto=project),
+                _("Digite abaixo outro projeto do Earth Engine que a sua conta usa, ou peça acesso a quem "
+                  "administra esse projeto."))
     if "not registered" in low or "not been used" in low or "is disabled" in low or "not enabled" in low:
-        return (f"O projeto “{project}” não está habilitado para o Earth Engine",
-                "Digite outro projeto abaixo ou registre este em code.earthengine.google.com/register.")
+        return (_("O projeto “{projeto}” não está habilitado para o Earth Engine", projeto=project),
+                _("Digite outro projeto abaixo ou registre este em code.earthengine.google.com/register."))
     if "not found" in low or "does not exist" in low:
-        return (f"O projeto “{project}” não foi encontrado",
-                "Confira o nome ou digite outro projeto abaixo.")
+        return (_("O projeto “{projeto}” não foi encontrado", projeto=project),
+                _("Confira o nome ou digite outro projeto abaixo."))
     if "no project" in low or "project is required" in low:
-        return ("Falta informar o projeto", "Digite abaixo um projeto do Earth Engine que a sua conta usa.")
-    return ("Não foi possível conectar ao Earth Engine", escape(text.splitlines()[0][:300]) if text else "")
+        return (_("Falta informar o projeto"), _("Digite abaixo um projeto do Earth Engine que a sua conta usa."))
+    return (_("Não foi possível conectar ao Earth Engine"), escape(text.splitlines()[0][:300]) if text else "")
 
 
 def needs_auth(error):
@@ -55,9 +58,9 @@ class Connection:
         self._initialize = initialize or (lambda p: _ee().Initialize(project=p))
         self._authenticate = authenticate or (lambda: _ee().Authenticate())
         self.message = w.HTML()
-        self.typed = w.Text(placeholder="ID do projeto (ex.: meu-projeto-gee)", description="Projeto:",
+        self.typed = w.Text(placeholder=_("ID do projeto (ex.: meu-projeto-gee)"), description=_("Projeto:"),
                             style={"description_width": "70px"}, layout=w.Layout(width="420px", display="none"))
-        self.use = w.Button(description="Usar este projeto", icon="check", button_style="success",
+        self.use = w.Button(description=_("Usar este projeto"), icon="check", button_style="success",
                             layout=w.Layout(display="none", width="180px"))
         self.use.on_click(lambda _b: self.try_project(self.typed.value))
         self.typed.on_submit(lambda _t: self.try_project(self.typed.value))
@@ -73,7 +76,8 @@ class Connection:
 
     def connect(self):
         if not self.project:
-            self._say("#96702a", "Falta informar o projeto", "Digite abaixo um projeto do Earth Engine que a sua conta usa.")
+            self._say("#96702a", _("Falta informar o projeto"),
+                      _("Digite abaixo um projeto do Earth Engine que a sua conta usa."))
             self.offer_project_field()
             return self
         try:
@@ -91,7 +95,7 @@ class Connection:
 
     def _connected(self):
         self.ok = True
-        self._say("#5f8160", f"✓ Conectado ao Earth Engine · projeto {escape(self.project)}")
+        self._say("#5f8160", "✓ " + _("Conectado ao Earth Engine · projeto {projeto}", projeto=escape(self.project)))
         for widget in (self.typed, self.use):
             widget.layout.display = "none"
         return self
@@ -109,9 +113,9 @@ class Connection:
     def offer_project_field(self):
         self.typed.layout.display = ""
         self.use.layout.display = ""
-        self.message.value += ("<div style='font-size:12px;color:#7a6c5c;margin:2px 0 4px'>O ID aparece no topo de "
-                               "console.cloud.google.com ou em code.earthengine.google.com. Depois de conectar, "
-                               "rode a célula 2.</div>")
+        self.message.value += ("<div style='font-size:12px;color:#7a6c5c;margin:2px 0 4px'>"
+                               + _("O ID aparece no topo de console.cloud.google.com ou em code.earthengine.google.com. "
+                                   "Depois de conectar, rode a célula 2.") + "</div>")
 
     def try_project(self, project):
         project = (project or "").strip()
@@ -123,15 +127,16 @@ class Connection:
         except Exception as exc:
             return self._failed(exc)
         self._connected()
-        self.message.value += ("<div style='font-size:12px;color:#7a6c5c'>Pronto: agora rode a célula 2. "
-                               f"Para não escolher de novo, escreva <code>{escape(project)}</code> em GEE_PROJECT.</div>")
+        self.message.value += ("<div style='font-size:12px;color:#7a6c5c'>"
+                               + _("Pronto: agora rode a célula 2. Para não escolher de novo, escreva {projeto} em "
+                                   "GEE_PROJECT.", projeto=f"<code>{escape(project)}</code>") + "</div>")
         return self
 
     def require(self):
         """Projeto conectado, ou uma mensagem clara de que falta conectar."""
         if not self.ok:
-            raise RuntimeError("O Earth Engine ainda não está conectado. Digite um projeto na célula 1 "
-                               "e clique em “Usar este projeto”.")
+            raise RuntimeError(_("O Earth Engine ainda não está conectado. Digite um projeto na célula 1 "
+                                 "e clique em “Usar este projeto”."))
         return self.project
 
 

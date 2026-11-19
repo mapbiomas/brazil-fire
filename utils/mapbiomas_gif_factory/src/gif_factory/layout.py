@@ -32,6 +32,10 @@ def combination_path(origin, layer, territory):
         spec = [{k: line.get(k) for k in ("asset", "filter", "geometry", "color", "width")} for line in lines]
         digest = hashlib.sha256(json.dumps(spec, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:6]
         folder = f"{folder}_linhas_{digest}"
+    lang = str(layer.get("map_lang") or "pt")
+    if lang != "pt":
+        # Mapas em outro idioma: pasta própria (ex.: Tocantins_en).
+        folder = f"{folder}_{safe_name(lang)}"
     return product_path(origin, layer) / folder
 
 

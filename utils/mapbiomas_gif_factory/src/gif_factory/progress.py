@@ -2,6 +2,8 @@
 from threading import RLock
 from time import monotonic
 
+from .i18n import _
+
 
 class ProgressState:
     def __init__(self, total, clock=monotonic):
@@ -31,24 +33,27 @@ class ProgressState:
     def update(self, kind, *args):
         with self.lock:
             if kind == "discovered":
-                self.stage, self.detail = "Preparando download", f"{len(args[0])} unidades encontradas"
+                self.stage, self.detail = "Preparando download", _("{n} unidades encontradas", n=len(args[0]))
                 self.frame_total = len(args[0])
             elif kind == "frame_start":
                 index, total, band = args
                 self.stage = "Baixando frames"
                 self.frame_index, self.frame_total = index, total
-                self.detail = f"Frame {index} de {total} — {band}"
+                self.detail = _("Frame {i} de {n}", i=index, n=total) + f" — {band}"
             elif kind == "frame_done":
                 index, total, band, elapsed = args
                 self.frame_done += 1
                 self.samples.append(elapsed)
-                self.detail = f"Frame {index} de {total} concluído — {band}"
+                self.detail = _("Frame {i} de {n} concluído", i=index, n=total) + f" — {band}"
             elif kind == "frame_retry":
                 index, total, band, attempt, maximum, wait, error = args
-                self.detail = f"Frame {index} de {total} — {band}: tentativa {attempt} de {maximum} falhou; nova tentativa em {wait}s: {error}"
+                self.detail = (_("Frame {i} de {n}", i=index, n=total) + f" — {band}: "
+                               + _("tentativa {a} de {m} falhou; nova tentativa em {s}s:", a=attempt, m=maximum, s=wait)
+                               + f" {error}")
             elif kind == "frame_failed":
                 index, total, band, error = args
-                self.detail = f"Frame {index} de {total} — {band}: falhou após as tentativas: {error}"
+                self.detail = (_("Frame {i} de {n}", i=index, n=total) + f" — {band}: "
+                               + _("falhou após as tentativas:") + f" {error}")
             elif kind == "stage":
                 self.stage, self.detail = args[0], ""
 

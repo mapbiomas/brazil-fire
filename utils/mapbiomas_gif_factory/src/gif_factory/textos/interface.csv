@@ -1,0 +1,312 @@
+﻿pt,en,es,fr,id,zh,onde
+1 · Mapa,,,,,,app.py:27
+2 · Território,,,,,,app.py:27
+3 · Período e saídas,,,,,,app.py:27
+4 · Gerar,,,,,,app.py:27
+5 · Biblioteca,,,,,,app.py:27
+GIF animado,,,,,,app.py:30
+Colagem (anos lado a lado),,,,,,app.py:30
+Imagens de cada ano (mapa completo),,,,,,app.py:31
+Imagens de cada ano sem moldura,,,,,,app.py:32
+Imagens de cada ano com ano e escala,,,,,,app.py:33
+Meus territórios,,,,,,app.py:36
+Meus mapas,,,,,,app.py:37
+Recorte,,,,,,app.py:38
+Linha,,,,,,app.py:38
+Preto,,,,,,app.py:39
+Branco,,,,,,app.py:39
+Amarelo,,,,,,app.py:39
+Terracota,,,,,,app.py:40
+Cinza,,,,,,app.py:40
+Azul,,,,,,app.py:40
+Vermelho,,,,,,app.py:40
+Fina,,,,,,app.py:41
+Média,,,,,,app.py:41
+Grossa,,,,,,app.py:41
+Buscar,,,,,,app.py:42
+Desenhar no mapa,,,,,,app.py:42
+Enviar arquivo,,,,,,app.py:42
+Asset do GEE,,,,,,app.py:42
+Estilo do catálogo,,,,,,app.py:43
+Minhas cores,,,,,,app.py:43
++ {n} classes,,,,,,app.py:63
+escala contínua,,,,,,app.py:121
+Os cartões aparecem aqui assim que o lote começar.,,,,,,app.py:177
+Voltar,,,,,,app.py:185
+Avançar,,,,,,app.py:186
+Fábrica de GIFs MapBiomas,,,,,,app.py:193
+"Escolha o mapa, o território e o período. Nada aqui exige programação.",,,,,,app.py:194
+Avançar: {passo},,,,,,app.py:223
+{nome} em {cor},,,,,,app.py:238
+cor própria,,,,,,app.py:238
+nenhum,,,,,,app.py:245
+ e mais {n},,,,,,app.py:247
+todos os anos,,,,,,app.py:248
+Mapas:,,,,,,app.py:260
+Territórios:,,,,,,app.py:260
+Linhas:,,,,,,app.py:261
+Período:,,,,,,app.py:262
+Arquivos:,,,,,,app.py:262
+no seu Drive,,,,,,app.py:288
+nesta sessão do Colab,,,,,,app.py:288
+calculada com o ritmo real desta sessão,,,,,,app.py:289
+estimativa média; fica mais precisa depois da primeira combinação,,,,,,app.py:290
+", {n} ao mesmo tempo",,,,,,app.py:291
+📦 ~{final} de arquivos finais {onde} · ~{trabalho} de arquivos de trabalho temporários,,,,,,app.py:292
+para {n} quadro(s),,,,,,app.py:297
+o que já existir é pulado e termina antes,,,,,,app.py:302
+Iniciativa:,,,,,,app.py:309
+"Buscar mapa (ex.: frequência, cobertura nível 2)",,,,,,app.py:310
+Tema:,,,,,,app.py:312
+Coleção:,,,,,,app.py:313
+Mostrar mapas beta (em revisão),,,,,,app.py:314
+Clique em um mapa para ver a legenda.,,,,,,app.py:316
+Novo mapa a partir de um asset,,,,,,app.py:324
+Para mapas beta ou fora do catálogo,,,,,,app.py:325
+Legenda,,,,,,app.py:333
+Qual mapa?,,,,,,app.py:335
+Escolha um ou mais mapas. Eles serão gerados para cada território escolhido no passo 2.,,,,,,app.py:335
+projects/.../assets/minha_imagem,,,,,,app.py:341
+Asset:,,,,,,app.py:341
+Ler asset,,,,,,app.py:343
+Nome que aparece no título do mapa,,,,,,app.py:345
+Nome:,,,,,,app.py:345
+Estilo:,,,,,,app.py:351
+Mínimo:,,,,,,app.py:353
+Máximo:,,,,,,app.py:354
+Detectar valores,,,,,,app.py:355
+"ex.: ffffff, ffcc00, 990000",,,,,,app.py:356
+Cores:,,,,,,app.py:356
+"opcional: um rótulo por cor (ex.: Baixo, Médio, Alto)",,,,,,app.py:358
+Rótulos:,,,,,,app.py:359
+opcional: título da legenda,,,,,,app.py:360
+Legenda:,,,,,,app.py:360
+Ver prévia,,,,,,app.py:361
+Salvar em Meus mapas,,,,,,app.py:362
+Os mapas salvos ficam no seu Drive e voltam nas próximas sessões.,,,,,,app.py:375
+Sem Drive conectado: o mapa salvo vale só nesta sessão.,,,,,,app.py:376
+Cole o asset de uma imagem (uma banda por ano) ou de uma coleção (uma imagem por ano). Os anos são detectados sozinhos.,,,,,,app.py:377
+Novo mapa,,,,,,app.py:380
+Cores e legenda,,,,,,app.py:383
+Escolha um estilo do catálogo ou use 'Minhas cores'.,,,,,,app.py:410
+sem anos no nome das bandas,,,,,,app.py:432
+sequência por profundidade,,,,,,app.py:434
+Imagem,,,,,,app.py:436
+Coleção,,,,,,app.py:436
+{tipo} com {n} período(s),,,,,,app.py:437
+Lendo o asset…,,,,,,app.py:441
+Valores encontrados no último período: {low} a {high}.,,,,,,app.py:447
+Calculando valores…,,,,,,app.py:448
+área do asset,,,,,,app.py:456
+Gerando prévia…,,,,,,app.py:461
+“{nome}” salvo em Meus mapas e escolhido. Ele já pode ser gerado como qualquer outro mapa.,,,,,,app.py:469
+Gerenciar meus mapas,,,,,,app.py:494
+Remover,,,,,,app.py:496
+Proposta para o catálogo,,,,,,app.py:497
+Todos,,,,,,app.py:531
+Todas,,,,,,app.py:536
+Coleção {c},,,,,,app.py:536
+Nenhum mapa com esses filtros.,,,,,,app.py:565
+"Composição colorida (RGB): as cores vêm das bandas, sem legenda.",,,,,,app.py:590
+Base:,,,,,,app.py:598
+Tipo:,,,,,,app.py:602
+"Digite parte do nome (ex.: são félix, yanomami, chapada)",,,,,,app.py:603
+Juntar os itens marcados em um único recorte,,,,,,app.py:606
+Adicionar,,,,,,app.py:607
+Apagar dos meus territórios,,,,,,app.py:608
+Camada inteira como linhas,,,,,,app.py:615
+Ex.: todos os biomas ou todos os estados desenhados sobre o mapa,,,,,,app.py:616
+Nome da área (ex.: Entorno do Parque X),,,,,,app.py:623
+Adicionar área desenhada,,,,,,app.py:624
+Desenhe com o retângulo ou o polígono no canto do mapa (vários desenhos viram uma área só).,,,,,,app.py:625
+Escolher arquivo,,,,,,app.py:630
+Nome da área (opcional),,,,,,app.py:631
+Adicionar arquivo,,,,,,app.py:632
+"GeoJSON, KML, GeoPackage ou shapefile em .zip (todas as feições viram uma área só).",,,,,,app.py:633
+projects/meu-projeto/assets/minha_area,,,,,,app.py:637
+"opcional, ex.: NM_MUN",,,,,,app.py:639
+Campo:,,,,,,app.py:639
+"opcional, valores separados por vírgula",,,,,,app.py:640
+Valor:,,,,,,app.py:640
+Adicionar asset,,,,,,app.py:642
+A conta conectada precisa ter acesso de leitura ao asset (FeatureCollection).,,,,,,app.py:643
+Territórios escolhidos,,,,,,app.py:661
+"Mapa indisponível (ipyleaflet não instalado). A busca, o arquivo e o asset continuam funcionando.",,,,,,app.py:663
+Onde?,,,,,,app.py:666
+Escolha um ou mais territórios. Cada mapa será gerado para cada território.,,,,,,app.py:666
+Salvos por você,,,,,,app.py:696
+"Nenhum território salvo ainda. Áreas desenhadas, arquivos e assets adicionados ficam guardados aqui.",,,,,,app.py:719
+Buscando…,,,,,,app.py:732
+Nenhum resultado.,,,,,,app.py:740
+Não foi possível buscar:,,,,,,app.py:743
+Marque pelo menos um item da lista.,,,,,,app.py:779
+{n} território(s) adicionado(s).,,,,,,app.py:787
+Não foi possível guardar o território:,,,,,,app.py:799
+Marque os territórios salvos que quer apagar.,,,,,,app.py:805
+{n} território(s) apagado(s) dos seus salvos.,,,,,,app.py:809
+Área desenhada,,,,,,app.py:816
+Área adicionada. Desenhe outra se quiser.,,,,,,app.py:820
+Escolha um arquivo primeiro.,,,,,,app.py:829
+{nome} adicionado.,,,,,,app.py:835
+O asset (ou o filtro) não retornou nenhuma feição.,,,,,,app.py:845
+{nome} adicionado ({n} feição(ões)).,,,,,,app.py:847
+Não foi possível usar o asset:,,,,,,app.py:849
+Filtra o mapa: gera uma combinação,,,,,,app.py:876
+Desenha o contorno sobre o mapa,,,,,,app.py:877
+"<b>Recorte</b> filtra o mapa (uma combinação por recorte). <b>Linha</b> desenha o contorno sobre todos os recortes, na cor e espessura escolhidas.",,,,,,app.py:892
+Nenhum ainda.,,,,,,app.py:894
+"Escolha uma base oficial (ex.: Brasil) e o tipo (ex.: Bioma, Estado).",,,,,,app.py:911
+{camada} (todos),,,,,,app.py:913
+{nome} adicionado como linhas. Troque a cor e a espessura na lista ao lado.,,,,,,app.py:916
+Essa camada já está na lista.,,,,,,app.py:919
+Não foi possível mostrar no mapa:,,,,,,app.py:947
+Todos os anos disponíveis,,,,,,app.py:953
+Anos:,,,,,,app.py:954
+Opções avançadas,,,,,,app.py:961
+Salvar no meu Google Drive,,,,,,app.py:962
+Pasta:,,,,,,app.py:963
+ (sugerido),,,,,,app.py:967
+Simultâneas:,,,,,,app.py:968
+"Ambiente: {ambiente}. Mais combinações ao mesmo tempo terminam antes, mas usam mais memória.",,,,,,app.py:972
+Idioma:,,,,,,app.py:974
+Quando e como?,,,,,,app.py:989
+Período,,,,,,app.py:990
+Arquivos,,,,,,app.py:991
+Idioma dos mapas,,,,,,app.py:992
+Destino,,,,,,app.py:993
+Prévia,,,,,,app.py:994
+"primeiro mapa e primeiro território, último ano escolhido",,,,,,app.py:995
+O Drive não está conectado. Rode a célula 1 de novo ou desmarque esta opção (os arquivos ficam só nesta sessão).,,,,,,app.py:1008
+Os arquivos ficam na sua pasta do Drive e o que já existir não é refeito.,,,,,,app.py:1011
+Os arquivos ficam só nesta sessão do Colab e somem quando ela fechar. Baixe-os no passo 4.,,,,,,app.py:1014
+Consultando os anos disponíveis…,,,,,,app.py:1022
+Disponível: {inicio}–{fim}.,,,,,,app.py:1051
+Escolha um mapa e um território primeiro.,,,,,,app.py:1068
+Marque pelo menos um território como Recorte.,,,,,,app.py:1074
+"Prévia rápida, sem moldura, legenda ou título; o arquivo final terá o layout completo.",,,,,,app.py:1082
+Prévia indisponível:,,,,,,app.py:1088
+Verificar o que já existe,,,,,,app.py:1096
+Gerar,,,,,,app.py:1098
+Conferir e gerar,,,,,,app.py:1103
+Vitrine do lote,,,,,,app.py:1106
+"os cartões se atualizam enquanto gera; clique em Abrir para ver, copiar o caminho ou baixar",,,,,,app.py:1107
+todos os territórios estão como Linha; marque pelo menos um como Recorte (passo 2),,,,,,app.py:1132
+falta escolher pelo menos um mapa (passo 1) e um território (passo 2),,,,,,app.py:1134
+Não dá para gerar ainda: {motivo}.,,,,,,app.py:1136
+… e mais {n}.,,,,,,app.py:1141
+{n} combinação(ões),,,,,,app.py:1142
+mapa × território,,,,,,app.py:1143
+Mapa,,,,,,app.py:1144
+Território,,,,,,app.py:1145
+"Escolha mapa, território e tipo de arquivo.",,,,,,app.py:1151
+Verificando…,,,,,,app.py:1153
+Meu Drive,,,,,,app.py:1190
+Esta sessão do Colab,,,,,,app.py:1191
+Atualizar,,,,,,app.py:1194
+Filtrar por mapa ou território,,,,,,app.py:1195
+Nenhum resultado encontrado nesta pasta.,,,,,,app.py:1198
+Biblioteca,,,,,,app.py:1204
+"Tudo o que já foi gerado, na pasta do Drive (passo 3) ou nesta sessão. Abra um cartão para ver a animação, copiar o caminho ou baixar.",,,,,,app.py:1204
+O Drive não está conectado nesta sessão. Rode a célula 1 com o Drive ou veja “Esta sessão do Colab”.,,,,,,app.py:1217
+Procurando em {pasta}…,,,,,,app.py:1222
+{n} resultado(s) em,,,,,,app.py:1227
+Falta autorizar o Earth Engine,,,,,,connect.py:30
+Rode a célula 1 de novo e aceite o pedido de acesso do Google.,,,,,,connect.py:31
+Sua conta não tem acesso ao projeto “{projeto}”,,,,,,connect.py:33
+"Digite abaixo outro projeto do Earth Engine que a sua conta usa, ou peça acesso a quem administra esse projeto.",,,,,,connect.py:34
+O projeto “{projeto}” não está habilitado para o Earth Engine,,,,,,connect.py:37
+Digite outro projeto abaixo ou registre este em code.earthengine.google.com/register.,,,,,,connect.py:38
+O projeto “{projeto}” não foi encontrado,,,,,,connect.py:40
+Confira o nome ou digite outro projeto abaixo.,,,,,,connect.py:41
+Falta informar o projeto,,,,,,connect.py:43
+Digite abaixo um projeto do Earth Engine que a sua conta usa.,,,,,,connect.py:43
+Não foi possível conectar ao Earth Engine,,,,,,connect.py:44
+ID do projeto (ex.: meu-projeto-gee),,,,,,connect.py:61
+Projeto:,,,,,,connect.py:61
+Usar este projeto,,,,,,connect.py:63
+Conectado ao Earth Engine · projeto {projeto},,,,,,connect.py:98
+"O ID aparece no topo de console.cloud.google.com ou em code.earthengine.google.com. Depois de conectar, rode a célula 2.",,,,,,connect.py:117
+"Pronto: agora rode a célula 2. Para não escolher de novo, escreva {projeto} em GEE_PROJECT.",,,,,,connect.py:131
+O Earth Engine ainda não está conectado. Digite um projeto na célula 1 e clique em “Usar este projeto”.,,,,,,connect.py:138
+menos de 1 minuto,,,,,,estimate.py:54
+{n} min,,,,,,estimate.py:57
+{n} h,,,,,,estimate.py:60
+{n} dia(s),,,,,,estimate.py:62
+e {n} h,,,,,,estimate.py:62
+menos de 1 MB,,,,,,estimate.py:73
+Mais rápido que passar um café.,,,,,,estimate.py:83
+Dá tempo de um café e uma boa conversa.,,,,,,estimate.py:85
+Dá para almoçar enquanto os mapas brotam.,,,,,,estimate.py:87
+Uma tarde inteira. Deixe a aba do Colab aberta: o Colab gratuito desconecta depois de cerca de 90 min sem interação.,,,,,,estimate.py:89
+Uma noite inteira. Pense bem: o Colab gratuito costuma encerrar sessões em até 12 h. Dividir em lotes menores é mais seguro.,,,,,,estimate.py:92
+"Dias! Mais do que uma sessão do Colab aguenta. Escolha menos anos, territórios ou tipos de arquivo, ou divida em vários lotes.",,,,,,estimate.py:94
+Isso é mais da metade dos {n} GB do Drive gratuito. Confira o espaço livre antes.,,,,,,estimate.py:100
+Mais de 1 GB: baixar tudo em .zip pode demorar.,,,,,,estimate.py:103
+Na fila,,,,,,gallery.py:19
+Gerando,,,,,,gallery.py:20
+Pronto,,,,,,gallery.py:21
+Já existia,,,,,,gallery.py:22
+Falhou,,,,,,gallery.py:23
+Prontos,,,,,,gallery.py:24
+Em andamento,,,,,,gallery.py:24
+Falhas,,,,,,gallery.py:25
+Colagem,,,,,,gallery.py:26
+Mapa completo de cada ano,,,,,,gallery.py:26
+Cada ano com ano e escala,,,,,,gallery.py:27
+Cada ano sem moldura,,,,,,gallery.py:27
+Outros,,,,,,gallery.py:28
+Abrir,,,,,,gallery.py:126
+Baixar tudo desta combinação (.zip),,,,,,gallery.py:195
+Baixar,,,,,,gallery.py:210
+… e mais {n} (no .zip),,,,,,gallery.py:215
+Nada por aqui ainda.,,,,,,gallery.py:235
+Baixar tudo (.zip),,,,,,gallery.py:241
+Fechar,,,,,,gallery.py:281
+{feitos} de {total} prontos,,,,,,gallery.py:298
+{n} unidades encontradas,,,,,,progress.py:36
+Frame {i} de {n},,,,,,progress.py:42
+Frame {i} de {n} concluído,,,,,,progress.py:47
+tentativa {a} de {m} falhou; nova tentativa em {s}s:,,,,,,progress.py:51
+falhou após as tentativas:,,,,,,progress.py:56
+✓ Já existe,,,,,,runner.py:24
+◐ Incompleto (será completado),,,,,,runner.py:24
+○ Será gerado,,,,,,runner.py:25
+⚠ Verificar pasta,,,,,,runner.py:25
+Preparando lote,,,,,,runner.py:27
+Preparando combinação,,,,,,runner.py:27
+Preparando download,,,,,,runner.py:27
+Baixando frames,,,,,,runner.py:27
+Consultando períodos e biblioteca,,,,,,runner.py:28
+Preparando frames cartográficos,,,,,,runner.py:28
+"Preparando mapas com ano, escala e norte",,,,,,runner.py:29
+Montando colagens,,,,,,runner.py:29
+Gerando GIF principal,,,,,,runner.py:29
+Gerando GIFs especiais,,,,,,runner.py:30
+Finalizando frames e GIFs,,,,,,runner.py:30
+Organizando arquivos selecionados,,,,,,runner.py:30
+Enviando ao Drive,,,,,,runner.py:31
+Publicando arquivos,,,,,,runner.py:31
+Preparando,,,,,,runner.py:31
+Pronto.,,,,,,runner.py:65
+Lote:,,,,,,runner.py:66
+Cultivando mapas…,,,,,,runner.py:73
+Registro detalhado,,,,,,runner.py:79
+O Google Drive não está conectado; desmarque o Drive ou rode a célula 1 de novo.,,,,,,runner.py:85
+Já existe um lote em andamento.,,,,,,runner.py:107
+Erro ao iniciar o lote:,,,,,,runner.py:122
+"Escolha ao menos um mapa, um território e um tipo de arquivo.",,,,,,runner.py:128
+Seleção inválida:,,,,,,runner.py:135
+INICIANDO,,,,,,runner.py:139
+preparando lote...,,,,,,runner.py:139
+faltam ~{tempo},,,,,,runner.py:177
+{n} ao mesmo tempo,,,,,,runner.py:180
+{feitas} de {total} combinações processadas,,,,,,runner.py:181
+LOTE EM ANDAMENTO,,,,,,runner.py:182
+✓ LOTE CONCLUÍDO,,,,,,runner.py:289
+⚠ CONCLUÍDO COM FALHAS,,,,,,runner.py:290
+✕ LOTE FALHOU,,,,,,runner.py:290
+no Google Drive,,,,,,runner.py:291
+"{ok} gerado(s), {existentes} já disponível(is), {falhas} falha(s)",,,,,,runner.py:293
+Tempo total:,,,,,,runner.py:296
+(mais a cópia nesta sessão),,,,,,runner.py:298
+Volume: {salvos} salvos{copias} · {trabalho} de arquivos de trabalho em {pasta},,,,,,runner.py:299
