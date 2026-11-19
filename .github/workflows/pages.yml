@@ -1,18 +1,13 @@
 # Publishes static apps from utils/ to GitHub Pages:
 #   https://mapbiomas.github.io/brazil-fire/<app>/
-# To add another page, copy its files into _site/<app>/ in the "Assemble site" step.
+# To add another page, copy its files into _site/<app>/ in the "Assemble site" step
+# and add a card to utils/fire_showcase/app/index.html (the root page).
 name: Publish GitHub Pages
 
 on:
+  # Every push to main: the repository map (utils/fire_repo_map) must match the current tree.
   push:
     branches: [main]
-    paths:
-      - "utils/fire_monitor_highlights/src/**"
-      - "utils/fire_legends/app/**"
-      - "utils/fire_dashboard/app/**"
-      - "global_analises/index.html"
-      - "global_analises/data/**"
-      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -45,6 +40,9 @@ jobs:
           cp -r utils/fire_legends/app/. _site/legends/
           mkdir -p _site/dashboard
           cp -r utils/fire_dashboard/app/. _site/dashboard/
+          python3 utils/fire_repo_map/build_repo_map.py
+          mkdir -p _site/repo_map
+          cp -r utils/fire_repo_map/app/. _site/repo_map/
           mkdir -p _site/global_analises
           cp global_analises/index.html _site/global_analises/
           cp -r global_analises/data _site/global_analises/
@@ -59,19 +57,8 @@ jobs:
             <li><a href="peru/">Perú · Boletín del Monitor de Fuego</a></li>
           </ul>
           EOF
-          cat > _site/index.html <<'EOF'
-          <!doctype html>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>MapBiomas Fire</title>
-          <h1>MapBiomas Fire</h1>
-          <ul>
-            <li><a href="fire_monitor_highlights/">Boletim mensal / Boletín mensual</a></li>
-            <li><a href="legends/">Legendas e paletas / Legends and palettes</a></li>
-            <li><a href="dashboard/">Painel MapBiomas Fogo (8 países) / MapBiomas Fire dashboard (8 countries)</a></li>
-            <li><a href="global_analises/">Monitor global de fogo (exploratório) / Global fire monitor (exploratory)</a></li>
-          </ul>
-          EOF
+          # Root page: showcase of the apps above, with the repository map tab.
+          cp -r utils/fire_showcase/app/. _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

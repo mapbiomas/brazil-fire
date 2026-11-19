@@ -6,7 +6,7 @@
 - `network/` — generalized algorithms and structures to share the MapBiomas Fire methodology with other countries (`network/catalog/`: campaigns, Colab notebooks, shared `src/core`).
 - `mapbiomas_fire_collections/` — legacy and active processing for Brazilian fire collections (`collection_04`, `collection_05`).
 - `mapbiomas_fire_monitor/` — continuous fire monitoring (`version_01`, `version_02`).
-- `utils/` — supporting tools (`fire_monitor_highlights`, `fire_legends`, `fire_dashboard`, `mapbiomas_gif_factory`); see `utils/README.md`. Shared standards (logos, i18n strings, templates, docs) live in `utils/_base/`; see `utils/_base/README.md`.
+- `utils/` — supporting tools (`fire_monitor_highlights`, `fire_legends`, `fire_dashboard`, `fire_showcase` — root page of GitHub Pages, `fire_repo_map`, `mapbiomas_gif_factory`); see `utils/README.md`. Shared standards (logos, i18n strings, templates, docs) live in `utils/_base/`; see `utils/_base/README.md`.
 - Root files: `README.md`, `GUIDE_CREDENTIALS_SETUP.md`, `PLANNING_COLLECTION_04.md`, `requirements.txt`.
 
 ## Build, Test, and Development Commands
@@ -17,6 +17,7 @@ There is no single build system. Each folder runs on its own (Google Earth Engin
 - Legends registry: `python utils/fire_legends/build_legends.py` (validate and regenerate), tests with `python -m unittest discover -s utils/fire_legends/tests`
 - `utils/fire_monitor_highlights`: static HTML, open `src/<country>/*.html` in a browser (no build).
 - `utils/fire_dashboard` (eight countries, pt/es/en interface plus Bahasa for Indonesia; country list in `PAISES`, translations in `app/i18n.js`): static HTML, open `app/index.html` in a browser (no build); syntax check with `node --check utils/fire_dashboard/app/app.js`.
+- `utils/fire_repo_map`: `python utils/fire_repo_map/build_repo_map.py` regenerates `app/repo_map.json` (the Pages workflow runs it on every push).
 - `utils/mapbiomas_gif_factory`: see its `README.md` (Colab notebook, `pyproject.toml`).
 
 ## Coding Style & Naming Conventions
