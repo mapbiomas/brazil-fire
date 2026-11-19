@@ -1,0 +1,57 @@
+name: "Degradation — Collection 9"
+description: "MapBiomas Degradation Indicators Collection 9 - Brasil"
+dataset: brasil_degradation_col9
+project: mapbiomas-brazil
+category: degradation
+collection: 9
+products:
+  edge_area:
+    name: "Edge Area (30-1000m)"
+    processor: "build_edge_area"
+    bands: ["edge_area"]
+    visualization: "edge_area"
+  fragment_size:
+    name: "Fragment Size (3-75ha)"
+    processor: "build_fragment_size"
+    bands: ["fragment_size"]
+    visualization: "patch_size"
+  distance_100ha:
+    name: "Isolation Distance (100ha)"
+    processor: "build_distance_100ha"
+    bands: ["distance_100ha"]
+    visualization: "distances"
+  distance_500ha:
+    name: "Isolation Distance (500ha)"
+    processor: "build_distance_500ha"
+    bands: ["distance_500ha"]
+    visualization: "distances"
+  distance_1000ha:
+    name: "Isolation Distance (1000ha)"
+    processor: "build_distance_1000ha"
+    bands: ["distance_1000ha"]
+    visualization: "distances"
+  secondary_vegetation_coverage:
+    name: "Secondary Vegetation Coverage"
+    processor: "build_secondary_vegetation_coverage"
+    bands: ["secondary_coverage"]
+    visualization: "lulc"
+  secondary_vegetation_age:
+    name: "Secondary Vegetation Age"
+    processor: "build_secondary_vegetation_age"
+    bands: ["secondary_age"]
+    visualization: "secondary_vegetation_age"
+  fire_frequency:
+    name: "Degradation Fire Frequency"
+    processor: "build_fire_frequency"
+    bands: ["fire_freq"]
+    visualization: "frequency"
+  fire_age:
+    name: "Degradation Fire Age"
+    processor: "build_fire_age"
+    bands: ["fire_age"]
+    visualization: "fire_age"
+  accumulated_burned_coverage:
+    name: "Degradation Accumulated Burned Coverage"
+    processor: "build_accumulated_burned_coverage"
+    bands: ["accum_burned"]
+    visualization: "lulc"

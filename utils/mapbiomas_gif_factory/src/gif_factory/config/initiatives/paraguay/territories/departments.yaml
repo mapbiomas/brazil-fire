@@ -1,0 +1,123 @@
+name: "Departments"
+description: "Paraguay departments"
+type: departments
+territories:
+  alto_paraguay:
+    name: "Alto Paraguay"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Alto Paraguay"]
+  boqueron:
+    name: "Boquerón"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Boqueron"]
+  presidente_hayes:
+    name: "Presidente Hayes"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Presidente Hayes"]
+  concepcion:
+    name: "Concepción"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Concepcion"]
+  san_pedro:
+    name: "San Pedro"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["San Pedro"]
+  cordillera:
+    name: "Cordillera"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Cordillera"]
+  guaira:
+    name: "Guairá"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Guaira"]
+  caaguazu:
+    name: "Caaguazú"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Caaguazu"]
+  caazapa:
+    name: "Caazapá"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Caazapa"]
+  itapua:
+    name: "Itapúa"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Itapua"]
+  misiones:
+    name: "Misiones"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Misiones"]
+  paraguari:
+    name: "Paraguarí"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Paraguari"]
+  alto_parana:
+    name: "Alto Paraná"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Alto Parana"]
+  central:
+    name: "Central"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Central"]
+  neembucu:
+    name: "Ñeembucú"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Neembucu"]
+  amambay:
+    name: "Amambay"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Amambay"]
+  canindeyu:
+    name: "Canindeyú"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Canindeyu"]

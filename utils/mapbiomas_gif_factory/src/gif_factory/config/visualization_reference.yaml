@@ -1,0 +1,933 @@
+# =============================================================================
+# REFERÊNCIA GERAL DE VISUALIZAÇÕES — MapBiomas Fábrica de GIFs
+# =============================================================================
+# legend_type: "colorbar" (gradiente contínuo) | "legenda" (classes discretas)
+# classes: lista de {value, label, color}  (para legenda)
+# colorbar_ticks: ticks sugeridos (para colorbar)
+# band_pattern: nome genérico das bandas ({YYYY} = ano, {band} = nome da banda)
+# used_by: produtos que usam esta visualização
+# =============================================================================
+
+visualization_reference:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # FOGO
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  fire:
+    name: "Fogo - Binário"
+    legend_type: "legenda"
+    cmap_type: "binary"
+    min: 0
+    max: 1
+    palette:
+      - "fdfdfd"
+      - "800000"
+    label: "Pixel queimado"
+    classes:
+      - value: 0
+        label: "Não queimado"
+        color: "fdfdfd"
+      - value: 1
+        label: "Queimado"
+        color: "800000"
+    band_pattern: "{YYYY}"
+    used_by:
+      - dataset: brasil_fire_col3
+        products:
+          - id: annual_burned
+            temporal: [1985, 2023]
+          - id: accumulated_burned
+            temporal: [1985, 2023]
+          - id: time_after_fire
+            temporal: null
+          - id: time_before_fire
+            temporal: null
+      - dataset: paraguay_fire_col1
+        products:
+          - id: annual_burned
+            temporal: [1998, 2023]
+          - id: accumulated_burned
+            temporal: [1998, 2023]
+
+  monthly:
+    name: "Fogo - Mês"
+    legend_type: "colorbar"
+    cmap_type: "sequential"
+    min: 0
+    max: 12
+    label: "Mês de queimada (1=Jan, 12=Dez)"
+    palette:
+      - "fdfdfd"
+      - "55E3E6"
+      - "27d3c3"
+      - "00c29b"
+      - "19b06f"
+      - "08cf26"
+      - "53e300"
+      - "dbc900"
+      - "ff8800"
+      - "ff3c00"
+      - "df2a02"
+      - "c01702"
+      - "a10000"
+    colorbar_ticks:
+      - value: 0
+        label: "Sem fogo"
+      - value: 1
+        label: "Jan"
+      - value: 2
+        label: "Fev"
+      - value: 3
+        label: "Mar"
+      - value: 4
+        label: "Abr"
+      - value: 5
+        label: "Mai"
+      - value: 6
+        label: "Jun"
+      - value: 7
+        label: "Jul"
+      - value: 8
+        label: "Ago"
+      - value: 9
+        label: "Set"
+      - value: 10
+        label: "Out"
+      - value: 11
+        label: "Nov"
+      - value: 12
+        label: "Dez"
+    band_pattern: "{YYYY}"
+    used_by:
+      - dataset: brasil_fire_col3
+        products:
+          - id: monthly_burned
+            temporal: [1985, 2023]
+      - dataset: paraguay_fire_col1
+        products:
+          - id: monthly_burned
+            temporal: [1998, 2023]
+
+  frequency:
+    name: "Fogo - Frequência"
+    legend_type: "colorbar"
+    cmap_type: "sequential"
+    min: 0
+    max: 11
+    label: "Frequência de queimadas (1985-2023)"
+    palette:
+      - "fdfdfd"
+      - "faf3cd"
+      - "fce68d"
+      - "f9de44"
+      - "f6d51d"
+      - "e9bc1c"
+      - "cc8715"
+      - "b76011"
+      - "9f360b"
+      - "810004"
+      - "4b0709"
+      - "080202"
+    colorbar_ticks:
+      - value: 0
+        label: "0"
+      - value: 2
+        label: "2"
+      - value: 4
+        label: "4"
+      - value: 6
+        label: "6"
+      - value: 8
+        label: "8"
+      - value: 11
+        label: "11+"
+    band_pattern: "frequency"
+    used_by:
+      - dataset: brasil_fire_col3
+        products:
+          - id: fire_frequency
+            temporal: [1985, 2023]
+            bands_slice: [0, 39]
+      - dataset: brasil_degradation_col9
+        products:
+          - id: fire_frequency
+            temporal: null
+
+  frequency_col101:
+    name: "Fogo - Frequência (Degradação)"
+    legend_type: "colorbar"
+    cmap_type: "sequential"
+    min: 0
+    max: 40
+    label: "Frequência de fogo (1985-2024)"
+    palette:
+      - "fdfdfd"
+      - "faf3cd"
+      - "f8ea94"
+      - "f6e154"
+      - "f4d81d"
+      - "e9bc1c"
+      - "d99d18"
+      - "cc8715"
+      - "bf7012"
+      - "b2560f"
+      - "a43e0c"
+      - "962809"
+      - "881806"
+      - "7a0b04"
+      - "6c0705"
+      - "5e0807"
+      - "500809"
+      - "42070a"
+      - "34060b"
+      - "28050b"
+      - "1c0408"
+      - "140306"
+      - "0c0204"
+      - "080203"
+      - "040101"
+    colorbar_ticks:
+      - value: 0
+        label: "0"
+      - value: 10
+        label: "10"
+      - value: 20
+        label: "20"
+      - value: 30
+        label: "30"
+      - value: 40
+        label: "40"
+    band_pattern: "frequency"
+    used_by:
+      - dataset: brasil_degradation_col10_1
+        products:
+          - id: fire_frequency
+            temporal: [1985, 2024]
+            processor: "decode_fire_frequency_col101 (÷100, round)"
+
+  frequency_paraguay:
+    name: "Fogo - Frequência (Paraguai)"
+    legend_type: "colorbar"
+    cmap_type: "sequential"
+    min: 0
+    max: 26
+    label: "Frequência de queimadas (Paraguai)"
+    palette:
+      - "ffffff"
+      - "faf3cd"
+      - "fced97"
+      - "fae154"
+      - "f8d823"
+      - "eec41d"
+      - "e1ae1a"
+      - "d49616"
+      - "ca8315"
+      - "bd6c12"
+      - "b25810"
+      - "a6420d"
+      - "9a2b0a"
+      - "8f1807"
+      - "800004"
+      - "6d0306"
+      - "5d0407"
+      - "4b0709"
+      - "410708"
+      - "370608"
+      - "2e0506"
+      - "240505"
+      - "1b0404"
+      - "130303"
+      - "0b0203"
+      - "040101"
+    colorbar_ticks:
+      - value: 0
+        label: "0"
+      - value: 5
+        label: "5"
+      - value: 10
+        label: "10"
+      - value: 15
+        label: "15"
+      - value: 20
+        label: "20"
+      - value: 26
+        label: "26"
+    band_pattern: "frequency"
+    used_by:
+      - dataset: paraguay_fire_col1
+        products:
+          - id: fire_frequency
+            temporal: [1998, 2023]
+
+  scar_size_range:
+    name: "Tamanho da Cicatriz"
+    legend_type: "legenda"
+    cmap_type: "sequential"
+    min: 0
+    max: 10
+    label: "Classe de tamanho"
+    palette:
+      - "ffffff"
+      - "d0ae35"
+      - "d08d29"
+      - "cc6c28"
+      - "c2482e"
+      - "b31e35"
+      - "931f28"
+      - "741e1d"
+      - "571a14"
+      - "3c150b"
+      - "240d00"
+    classes:
+      - value: 0
+        label: "Sem fogo"
+        color: "ffffff"
+      - value: 1
+        label: "< 1 ha"
+        color: "d0ae35"
+      - value: 2
+        label: "1-5 ha"
+        color: "d08d29"
+      - value: 3
+        label: "5-10 ha"
+        color: "cc6c28"
+      - value: 4
+        label: "10-50 ha"
+        color: "c2482e"
+      - value: 5
+        label: "50-100 ha"
+        color: "b31e35"
+      - value: 6
+        label: "100-500 ha"
+        color: "931f28"
+      - value: 7
+        label: "500-1000 ha"
+        color: "741e1d"
+      - value: 8
+        label: "1000-5000 ha"
+        color: "571a14"
+      - value: 9
+        label: "5000-10000 ha"
+        color: "3c150b"
+      - value: 10
+        label: "> 10000 ha"
+        color: "240d00"
+    band_pattern: "size_range"
+    used_by:
+      - dataset: brasil_fire_col3
+        products:
+          - id: scar_size_range
+            temporal: null
+
+  year_last_fire:
+    name: "Ano do Último Fogo"
+    legend_type: "colorbar"
+    cmap_type: "sequential"
+    min: 1985
+    max: 2022
+    label: "Ano"
+    band_pattern: "year"
+    used_by:
+      - dataset: brasil_fire_col3
+        products:
+          - id: year_last_fire
+            temporal: [1985, 2022]
+
+  year_next_fire:
+    name: "Ano do Próximo Fogo"
+    legend_type: "colorbar"
+    cmap_type: "sequential"
+    min: 1986
+    max: 2023
+    label: "Ano"
+    band_pattern: "year"
+    used_by:
+      - dataset: brasil_fire_col3
+        products:
+          - id: year_next_fire
+            temporal: [1986, 2023]
+
+  fire_age:
+    name: "Idade do Fogo"
+    legend_type: "colorbar"
+    cmap_type: "sequential"
+    min: 0
+    max: 39
+    label: "Anos desde o fogo"
+    palette:
+      - "ffffff"
+      - "800000"
+      - "800000"
+      - "850708"
+      - "8B0E0F"
+      - "901417"
+      - "961B1E"
+      - "9B2226"
+      - "9F2222"
+      - "A3211E"
+      - "A6211A"
+      - "AA2016"
+      - "AE2012"
+      - "B42E0F"
+      - "B93C0C"
+      - "BF4B08"
+      - "C45905"
+      - "CA6702"
+      - "BF7C27"
+      - "B4924D"
+      - "AAA772"
+      - "9FBD98"
+      - "94D2BD"
+      - "78C5B5"
+      - "5DB9AD"
+      - "41ACA6"
+      - "26A09E"
+      - "0A9294"
+      - "008998"
+      - "007D96"
+      - "007292"
+      - "00688C"
+      - "005E86"
+      - "00557F"
+      - "004C7B"
+      - "004080"
+      - "003781"
+      - "002D81"
+      - "00227F"
+      - "00147D"
+      - "000079"
+    colorbar_ticks:
+      - value: 0
+        label: "0 (atual)"
+      - value: 10
+        label: "10 anos"
+      - value: 20
+        label: "20 anos"
+      - value: 30
+        label: "30 anos"
+      - value: 39
+        label: "39 anos"
+    band_pattern: "years"
+    used_by:
+      - dataset: brasil_fire_col3
+        products:
+          - id: time_after_fire
+            temporal: null
+          - id: time_before_fire
+            temporal: null
+      - dataset: brasil_degradation_col9
+        products:
+          - id: fire_age
+            temporal: null
+            processor: "build_fire_age (÷100)"
+      - dataset: brasil_degradation_col10_1
+        products:
+          - id: fire_age
+            temporal: [1985, 2024]
+            processor: "decode_fire_age_col101 (÷100, round)"
+          - id: edge_age
+            temporal: [1985, 2024]
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # USO E COBERTURA
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  lulc:
+    name: "Uso e Cobertura"
+    legend_type: "legenda"
+    cmap_type: "categorical"
+    min: 0
+    max: 62
+    label: "Classe de uso"
+    band_pattern: "{YYYY}"
+    used_by:
+      - dataset: brasil_lulc_col9
+        products:
+          - id: integration
+            temporal: [1985, 2023]
+      - dataset: brasil_lulc_col10
+        products:
+          - id: integration
+            temporal: [1985, 2024]
+      - dataset: brasil_fire_col3
+        products:
+          - id: annual_burned_coverage
+            temporal: [1985, 2023]
+          - id: accumulated_burned_coverage
+            temporal: [1985, 2023]
+      - dataset: brasil_degradation_col9
+        products:
+          - id: secondary_vegetation_coverage
+            temporal: null
+          - id: accumulated_burned_coverage
+            temporal: null
+
+  def_seco:
+    name: "Desmatamento e Vegetação Secundária"
+    legend_type: "legenda"
+    cmap_type: "categorical"
+    min: 0
+    max: 7
+    label: "Classe"
+    palette:
+      - "ffffff"
+      - "fff6bf"
+      - "127622"
+      - "56d117"
+      - "ea1c1c"
+      - "6fc4b7"
+      - "ffb66c"
+      - "8c8c8c"
+    classes:
+      - value: 0
+        label: "Sem informação"
+        color: "ffffff"
+      - value: 1
+        label: "Não observado"
+        color: "fff6bf"
+      - value: 2
+        label: "Vegetação Secundária (acum.)"
+        color: "127622"
+      - value: 3
+        label: "Vegetação Secundária (ano)"
+        color: "56d117"
+      - value: 4
+        label: "Desmatamento (ano)"
+        color: "ea1c1c"
+      - value: 5
+        label: "Desmatamento (acum.)"
+        color: "6fc4b7"
+      - value: 6
+        label: "Mineração (acum.)"
+        color: "ffb66c"
+      - value: 7
+        label: "Área Urbanizada (acum.)"
+        color: "8c8c8c"
+    band_pattern: "deforestation"
+    used_by:
+      - dataset: brasil_lulc_col9
+        products:
+          - id: deforestation_secondary
+            temporal: null
+      - dataset: brasil_lulc_col10
+        products:
+          - id: deforestation_secondary
+            temporal: null
+
+  natural_vegetation:
+    name: "Vegetação Natural"
+    legend_type: "legenda"
+    cmap_type: "categorical"
+    min: 0
+    max: 50
+    label: "Classe de vegetação natural"
+    band_pattern: "secondary_coverage"
+    used_by:
+      - dataset: brasil_degradation_col10_1
+        products:
+          - id: secondary_vegetation_coverage
+            temporal: [1985, 2024]
+            processor: "build_secondary_vegetation_coverage_col101 (mod 100)"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SOLO
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  soc:
+    name: "Carbono Orgânico do Solo"
+    legend_type: "colorbar"
+    cmap_type: "sequential"
+    min: -1
+    max: 80
+    label: "t/ha"
+    unit: "t/ha"
+    band_pattern: "soc"
+    used_by:
+      - dataset: brasil_soil
+        products:
+          - id: soc
+            temporal: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DEGRADAÇÃO
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  edge_area:
+    name: "Proximidade de Borda (Col9)"
+    legend_type: "legenda"
+    cmap_type: "sequential"
+    min: 0
+    max: 9
+    label: "Distância de borda (m)"
+    palette:
+      - "55604B"
+      - "FF0001"
+      - "32CD32"
+      - "19B06F"
+      - "6FA8DC"
+      - "0B5394"
+      - "A64D79"
+      - "F54CA9"
+      - "55604B"
+    classes:
+      - value: 0
+        label: "Vegetação Natural (sem borda)"
+        color: "55604B"
+      - value: 1
+        label: "0-30 m"
+        color: "FF0001"
+      - value: 2
+        label: "30-60 m"
+        color: "32CD32"
+      - value: 3
+        label: "60-90 m"
+        color: "19B06F"
+      - value: 4
+        label: "90-120 m"
+        color: "6FA8DC"
+      - value: 5
+        label: "120-150 m"
+        color: "0B5394"
+      - value: 6
+        label: "150-300 m"
+        color: "A64D79"
+      - value: 7
+        label: "300-600 m"
+        color: "F54CA9"
+      - value: 8
+        label: "600-1000 m"
+        color: "55604B"
+      - value: 9
+        label: "Não vegetação"
+        color: "55604B"
+    band_pattern: "edge_area"
+    used_by:
+      - dataset: brasil_degradation_col9
+        products:
+          - id: edge_area
+            temporal: null
+            processor: "build_edge_area"
+
+  edge_area_col101:
+    name: "Distância da Borda"
+    legend_type: "legenda"
+    cmap_type: "categorical"
+    min: 0
+    max: 8
+    label: "Distância da borda (m)"
+    unit: "m"
+    palette:
+      - "808080"
+      - "33A02C"
+      - "B2DF8A"
+      - "D6F033"
+      - "FFD700"
+      - "FF8C00"
+      - "E31A1C"
+      - "A059A0"
+      - "6A0DED"
+    classes:
+      - value: 0
+        label: "Sem vegetação"
+        color: "808080"
+      - value: 1
+        label: "<= 30 m"
+        color: "33A02C"
+      - value: 2
+        label: "<= 60 m"
+        color: "B2DF8A"
+      - value: 3
+        label: "<= 90 m"
+        color: "D6F033"
+      - value: 4
+        label: "<= 120 m"
+        color: "FFD700"
+      - value: 5
+        label: "<= 150 m"
+        color: "FF8C00"
+      - value: 6
+        label: "<= 300 m"
+        color: "E31A1C"
+      - value: 7
+        label: "<= 600 m"
+        color: "A059A0"
+      - value: 8
+        label: "<= 1000 m"
+        color: "6A0DED"
+    band_pattern: "edge"
+    used_by:
+      - dataset: brasil_degradation_col10_1
+        products:
+          - id: edge_area
+            temporal: [1985, 2024]
+            processor: "decode_edge_area_col101"
+
+  patch_size:
+    name: "Tamanho de Fragmento"
+    legend_type: "legenda"
+    cmap_type: "categorical"
+    min: 0
+    max: 7
+    label: "Tamanho do fragmento (ha)"
+    palette:
+      - "A9A9A9"
+      - "E50C08"
+      - "FFAA5F"
+      - "32CD32"
+      - "19B06F"
+      - "6FA8DC"
+      - "0B5394"
+      - "A9A9A9"
+    classes:
+      - value: 0
+        label: "Não observado"
+        color: "A9A9A9"
+      - value: 1
+        label: "< 3 ha"
+        color: "E50C08"
+      - value: 2
+        label: "3-5 ha"
+        color: "FFAA5F"
+      - value: 3
+        label: "5-10 ha"
+        color: "32CD32"
+      - value: 4
+        label: "10-25 ha"
+        color: "19B06F"
+      - value: 5
+        label: "25-50 ha"
+        color: "6FA8DC"
+      - value: 6
+        label: "50-75 ha"
+        color: "0B5394"
+      - value: 7
+        label: "> 75 ha"
+        color: "A9A9A9"
+    band_pattern: "fragment_size (col9) / size (col10.1)"
+    used_by:
+      - dataset: brasil_degradation_col9
+        products:
+          - id: fragment_size
+            temporal: null
+            processor: "build_fragment_size"
+      - dataset: brasil_degradation_col10_1
+        products:
+          - id: patch_size
+            temporal: [1985, 2024]
+
+  morphology:
+    name: "Morfologia do Fragmento"
+    legend_type: "legenda"
+    cmap_type: "categorical"
+    min: 0
+    max: 6
+    label: "Classe morfológica"
+    palette:
+      - "808080"
+      - "34662B"
+      - "9BCFB3"
+      - "46A9B1"
+      - "FFCC4A"
+      - "F6B0CB"
+      - "A9DBEB"
+    classes:
+      - value: 0
+        label: "Sem vegetação"
+        color: "808080"
+        desc: "Área sem vegetação"
+      - value: 1
+        label: "Núcleo"
+        color: "34662B"
+        desc: "Área interior do fragmento"
+      - value: 2
+        label: "Borda"
+        color: "9BCFB3"
+        desc: "Periferia do fragmento (adjacente à matriz)"
+      - value: 3
+        label: "Perfuração"
+        color: "46A9B1"
+        desc: "Área não-floresta dentro do núcleo"
+      - value: 4
+        label: "Mancha"
+        color: "FFCC4A"
+        desc: "Fragmento pequeno sem núcleo"
+      - value: 5
+        label: "Laço"
+        color: "F6B0CB"
+        desc: "Conexão entre fragmentos"
+      - value: 6
+        label: "Ponte"
+        color: "A9DBEB"
+        desc: "Conexão entre fragmentos maiores"
+    band_pattern: "morphology"
+    used_by:
+      - dataset: brasil_degradation_col10_1
+        products:
+          - id: landscape_morphology
+            temporal: [1985, 2024]
+
+  distances:
+    name: "Distância de Isolamento"
+    legend_type: "legenda"
+    cmap_type: "sequential"
+    min: 0
+    max: 12
+    label: "Classe de distância"
+    palette:
+      - "55604B"
+      - "000080"
+      - "0000ff"
+      - "8080ff"
+      - "008000"
+      - "00ff00"
+      - "80ff80"
+      - "800000"
+      - "ff0000"
+      - "FF8080"
+      - "55604B"
+      - "55604B"
+      - "55604B"
+    classes:
+      - value: 0
+        label: "Sem vegetação natural"
+        color: "55604B"
+      - value: 1
+        label: "0.5-5 km (frag ≥100ha)"
+        color: "000080"
+      - value: 2
+        label: "0.5-5 km (frag 50-100ha)"
+        color: "0000ff"
+      - value: 3
+        label: "0.5-5 km (frag 25-50ha)"
+        color: "8080ff"
+      - value: 4
+        label: "5-10 km (frag ≥100ha)"
+        color: "008000"
+      - value: 5
+        label: "5-10 km (frag 50-100ha)"
+        color: "00ff00"
+      - value: 6
+        label: "5-10 km (frag 25-50ha)"
+        color: "80ff80"
+      - value: 7
+        label: "10-20 km (frag ≥100ha)"
+        color: "800000"
+      - value: 8
+        label: "10-20 km (frag 50-100ha)"
+        color: "ff0000"
+      - value: 9
+        label: "10-20 km (frag 25-50ha)"
+        color: "FF8080"
+      - value: 10
+        label: "Mascarado (frag >100ha)"
+        color: "55604B"
+      - value: 11
+        label: "Mascarado (frag >500ha)"
+        color: "55604B"
+      - value: 12
+        label: "Mascarado (frag >1000ha)"
+        color: "55604B"
+    band_pattern: "distance_Xha"
+    used_by:
+      - dataset: brasil_degradation_col9
+        products:
+          - id: distance_100ha
+            temporal: null
+            processor: "build_distance_100ha"
+          - id: distance_500ha
+            temporal: null
+            processor: "build_distance_500ha"
+          - id: distance_1000ha
+            temporal: null
+            processor: "build_distance_1000ha"
+
+  secondary_vegetation_age:
+    name: "Idade da Vegetação Secundária"
+    legend_type: "colorbar"
+    cmap_type: "sequential"
+    min: 0
+    max: 39
+    label: "Idade (anos)"
+    unit: "anos"
+    palette:
+      - "808080"
+      - "505050"
+      - "f3f6c2"
+      - "f1f69a"
+      - "eff672"
+      - "eef64a"
+      - "ecf622"
+      - "d7f622"
+      - "c2f622"
+      - "adf622"
+      - "93f622"
+      - "79f622"
+      - "6ff622"
+      - "62f625"
+      - "58f627"
+      - "4ef629"
+      - "40f62b"
+      - "36f62d"
+      - "2cf62f"
+      - "22f631"
+      - "22e72d"
+      - "22dd2a"
+      - "22c925"
+      - "23b520"
+      - "23ab1d"
+      - "23a11b"
+      - "239718"
+      - "238814"
+      - "237e12"
+      - "247510"
+      - "246b0d"
+      - "24660c"
+      - "24630b"
+      - "255808"
+    colorbar_ticks:
+      - value: 0
+        label: "0"
+      - value: 10
+        label: "10 anos"
+      - value: 20
+        label: "20 anos"
+      - value: 30
+        label: "30 anos"
+      - value: 39
+        label: "39+"
+    band_pattern: "secondary_age"
+    used_by:
+      - dataset: brasil_degradation_col9
+        products:
+          - id: secondary_vegetation_age
+            temporal: null
+            processor: "build_secondary_vegetation_age (÷100)"
+      - dataset: brasil_degradation_col10_1
+        products:
+          - id: secondary_vegetation_age
+            temporal: [1985, 2024]
+            processor: "decode_secondary_vegetation_age_col101 (÷100, round)"
+      - dataset: brasil_lulc_col9
+        products:
+          - id: secondary_vegetation_age
+            temporal: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # OUTROS
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  random:
+    name: "Cores Aleatórias"
+    legend_type: "legenda"
+    cmap_type: "binary"
+    min: 0
+    max: 1
+    label: "ID do Fragmento"
+    description: "Cada fragmento recebe uma cor aleatória — sem legenda fixa"
+    band_pattern: "patch_id"
+    used_by:
+      - dataset: brasil_degradation_col10_1
+        products:
+          - id: patch_id
+            temporal: [1985, 2024]

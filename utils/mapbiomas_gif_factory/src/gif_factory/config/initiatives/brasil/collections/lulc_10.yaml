@@ -1,0 +1,33 @@
+name: "Land Use and Cover — Collection 10"
+description: "MapBiomas Land Use and Cover Collection 10 - Brasil"
+dataset: brasil_lulc_col10
+project: mapbiomas-brazil
+category: land_cover
+collection: 10
+products:
+  integration:
+    name: "Land Use and Cover Classification v2"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_integration_v2"
+    bands: ["classification"]
+    temporal_range: [1985, 2024]
+    visualization: "lulc"
+  deforestation_secondary:
+    name: "Deforestation and Secondary Vegetation v2"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_deforestation_secondary_vegetation_v2"
+    bands: ["deforestation"]
+    visualization: "def_seco"
+  irrigated_agriculture:
+    name: "Irrigated Agriculture v2"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_agriculture_irrigation_systems_v2"
+    bands: ["irrigated"]
+    visualization: "lulc"
+  mined_substance:
+    name: "Mining Areas v3"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_mining_substances_v3"
+    bands: ["mining"]
+    visualization: "lulc"
+  pasture_quality:
+    name: "Pasture Vigor"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection10/mapbiomas_brazil_collection10_pasture_vigor_v1"
+    bands: ["vigor"]
+    visualization: "lulc"

@@ -1,0 +1,17 @@
+name: "Country"
+description: "Brazil national territory"
+type: countries
+territories:
+  pais_brasil:
+    name: "Brasil"
+    name_en: "Brazil"
+    source: "FAO/GAUL/2015/level0"
+    filter: "ADM0_NAME == 'Brazil'"
+    bbox: [-74.0, -34.0, -34.0, 5.0]
+  pais_brasil_biomes:
+    name: "Brasil - Biomas"
+    name_en: "Brazil - Biomes"
+    source: "FAO/GAUL/2015/level0"
+    filter: "ADM0_NAME == 'Brazil'"
+    bbox: [-74.0, -34.0, -34.0, 5.0]
+    overlay_source: "projects/ee-ipam/assets/IBGE/limite_biomas_IBGE_2026"

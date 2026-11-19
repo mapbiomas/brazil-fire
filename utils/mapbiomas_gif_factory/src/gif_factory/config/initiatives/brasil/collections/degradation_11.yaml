@@ -1,0 +1,21 @@
+name: "Degradação — Coleção 11"
+description: "MapBiomas Brasil · Módulo de Degradação · Coleção 11"
+dataset: brasil_degradation_col11
+project: mapbiomas-brazil
+category: degradation
+collection: 11
+products:
+  edge_area:
+    name: "Distância até a Borda"
+    description: "Distância de cada pixel até a borda mais próxima da vegetação nativa, em metros (30–6990 m)"
+    asset: "projects/mapbiomas-brazil/assets/DEGRADATION/COLLECTION-11/public/degradation_edge_area_col11_v1"
+    temporal_range: [1985, 2025]
+    visualization: "edge_area_col11"
+
+  edge_area_1000m:
+    name: "Distância até a Borda (até 1000 m)"
+    description: "Versão categórica em 8 classes de 30 a 1000 m; valores acima de 1000 m são omitidos do mapa"
+    asset: "projects/mapbiomas-brazil/assets/DEGRADATION/COLLECTION-11/public/degradation_edge_area_col11_v1"
+    processor: "decode_edge_area_1000m_col11"
+    temporal_range: [1985, 2025]
+    visualization: "edge_area_1000m"

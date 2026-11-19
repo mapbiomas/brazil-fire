@@ -1,0 +1,43 @@
+name: "Fire — Collection 1"
+description: "MapBiomas Fire Collection 1 - Paraguay"
+dataset: paraguay_fire_col1
+project: mapbiomas-paraguay
+category: fire
+collection: 1
+products:
+  annual_burned:
+    name: "Annual Burned Area"
+    asset: "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_annual_burned_v1"
+    bands: ["annual_burned"]
+    temporal_range: [1998, 2023]
+    visualization: "fire"
+  annual_burned_coverage:
+    name: "Annual Burned Coverage"
+    asset: "projects/mapbiomas-public/assets/paraguay/fire/collection1/mapbiomas_paraguay_fire_collection1_annual_burned_coverage_v1"
+    bands: ["coverage"]
+    temporal_range: [1998, 2023]
+    visualization: "lulc"
+  monthly_burned:
+    name: "Monthly Burned Area"
+    asset: "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_monthly_burned_v1"
+    bands: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+    temporal_range: [1998, 2023]
+    visualization: "monthly"
+  fire_frequency:
+    name: "Fire Frequency"
+    asset: "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_frequency_burned_v1"
+    bands: ["frequency"]
+    temporal_range: [1998, 2023]
+    visualization: "frequency_paraguay"
+  accumulated_burned:
+    name: "Accumulated Burned Area"
+    asset: "projects/mapbiomas-paraguay/assets/FIRE/COLLECTION1/FINAL_PRODUCTS/mapbiomas_paraguay_fire_collection1_accumulated_burned_v1"
+    bands: ["accumulated"]
+    temporal_range: [1998, 2023]
+    visualization: "fire"
+  accumulated_burned_coverage:
+    name: "Accumulated Burned Coverage"
+    asset: "projects/mapbiomas-public/assets/paraguay/fire/collection1/mapbiomas_paraguay_fire_collection1_accumulated_burned_coverage_v1"
+    bands: ["coverage"]
+    temporal_range: [1998, 2023]
+    visualization: "lulc"

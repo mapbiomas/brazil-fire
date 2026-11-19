@@ -114,6 +114,9 @@ class TerritoryManager:
           aspect: relacao largura/altura para o quadro (ex: 1.78 p/ paisagem 16:9)
         O retangulo resultante (center): altura = 2*buffer_m, largura = altura*aspect.
         """
+        if "type" in geometry and "coordinates" in geometry:
+            # GeoJSON (área desenhada no mapa ou arquivo enviado).
+            return ee.FeatureCollection([ee.Feature(ee.Geometry(geometry))])
         if "bbox" in geometry:
             rect = ee.Geometry.Rectangle(geometry["bbox"])
             return ee.FeatureCollection([ee.Feature(rect)])

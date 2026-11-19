@@ -1,0 +1,10 @@
+name: "País"
+description: "Perú sin recorte por bioma"
+type: countries
+territories:
+  peru:
+    name: "Perú"
+    type: countries
+    description: "Perú sin recorte por bioma"
+    source: "FAO/GAUL/2015/level0"
+    filter: "ADM0_NAME == 'Peru'"

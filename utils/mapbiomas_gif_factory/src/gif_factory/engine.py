@@ -14,6 +14,14 @@ def validate(layers, territories):
                                    ("território", territories, ("id", "name", "asset"))):
         ids = set()
         for item in items:
+            if label == "camada" and is_catalog(item):
+                missing = [key for key in ("id", "name", "dataset", "product") if not item.get(key)]
+                if missing:
+                    raise ValueError(f"camada de catálogo: campos ausentes: {', '.join(missing)}")
+                if item["id"] in ids:
+                    raise ValueError(f"camada: id repetido: {item['id']}")
+                ids.add(item["id"])
+                continue
             if item.get("enabled", True) is False:
                 if not item.get("id") or not item.get("name") or not item.get("reason"):
                     raise ValueError(f"{label}: item pendente precisa de id, name e reason")
@@ -21,7 +29,8 @@ def validate(layers, territories):
                     raise ValueError(f"{label}: id inválido ou repetido: {item['id']}")
                 ids.add(item["id"])
                 continue
-            missing = [key for key in required if not item.get(key)]
+            missing = [key for key in required if not item.get(key)
+                       and not (label == "território" and key == "asset" and item.get("geometry"))]
             if missing:
                 raise ValueError(f"{label}: campos ausentes: {', '.join(missing)}")
             if not re.fullmatch(r"[A-Za-z0-9_-]+", item["id"]) or item["id"] in ids:
@@ -62,18 +71,69 @@ class NotebookConfig:
         viz.setdefault("label", layer.get("legend_label", ""))
         product = {"name": layer["name"], "asset": layer["asset"], "bands": layer.get("bands", []), "visualization": "notebook", "start_year": layer.get("start_year"), "end_year": layer.get("end_year"), "bands_slice": layer.get("bands_slice"), "year_offset": layer.get("year_offset", 0), "axis": layer.get("axis", "time")}
         self.datasets = {"notebook": {"products": {layer["id"]: product}, "title_collection": layer.get("collection_title", "")}}
-        entry = {"name": territory["name"], "source": territory["asset"]}
-        if territory.get("filter"):
-            filt = territory["filter"]
-            values = filt["values"] if "values" in filt else [filt["value"]]
-            entry["filter_in"] = {"field": filt["field"], "values": values}
-        self.territories = {"biomes": {territory["id"]: entry}}
+        self.territories = _territory_entries(territory)
         self.visualizations = {"notebook": viz}
         self.categories = {}
         self.ee_project_id = project
 
     def get_processing_config(self, key):
         return {"gif_creation": {"frame_duration": 300, "loop_count": 1000, "quality": 95}}.get(key, {})
+
+
+def is_catalog(layer):
+    return layer.get("source") == "catalog"
+
+
+def _territory_entries(territory):
+    if not territory:
+        return {"biomes": {}}
+    if territory.get("geometry"):
+        return {"biomes": {territory["id"]: {"name": territory["name"], "geometry": territory["geometry"]}}}
+    entry = {"name": territory["name"], "source": territory["asset"]}
+    if territory.get("filter"):
+        filt = territory["filter"]
+        values = filt["values"] if "values" in filt else [filt["value"]]
+        entry["filter_in"] = {"field": filt["field"], "values": values}
+    return {"biomes": {territory["id"]: entry}}
+
+
+class CatalogConfig:
+    """Configuração do projeto local para um produto do catálogo.
+
+    Produto, processador e visualização vêm de `gif_factory/config`; só o
+    território (escolhido na interface) e o período são injetados.
+    """
+    def __init__(self, layer, territory, project):
+        from .catalog import config_loader
+        base = config_loader()
+        dataset = base.datasets[layer["dataset"]]
+        product = dict(dataset["products"][layer["product"]])
+        for key in ("start_year", "end_year"):
+            if layer.get(key) is not None:
+                product[key] = layer[key]
+        if layer.get("bands"):
+            product["bands"] = list(layer["bands"])
+        self.dataset_id, self.product_id = layer["dataset"], layer["product"]
+        self.product = product
+        self.datasets = {self.dataset_id: dict(dataset, products={self.product_id: product})}
+        self.territories = _territory_entries(territory)
+        self.visualizations = base.visualizations
+        self.categories = base.categories
+        self.ee_project_id = project
+
+    def get_processing_config(self, key):
+        return {"gif_creation": {"frame_duration": 300, "loop_count": 1000, "quality": 95}}.get(key, {})
+
+
+def catalog_image(layer, project=None):
+    """Imagem do produto do catálogo, com processador e bands_slice aplicados."""
+    from mapbiomas_data.core.pipeline import Pipeline
+    config = CatalogConfig(dict(layer, bands=None), None, project)
+    image = Pipeline(config)._load_product_image(config.product)
+    bands_slice = config.product.get("bands_slice")
+    if bands_slice and len(bands_slice) == 2:
+        image = image.slice(bands_slice[0], bands_slice[1])
+    return image, config.product
 
 
 def asset_type(layer):
@@ -234,6 +294,17 @@ def load_image(layer):
 
 
 def discover(layer):
+    if is_catalog(layer):
+        image, product = catalog_image(layer)
+        available = image.bandNames().getInfo()
+        axis = product.get("axis", "time")
+        # Como no projeto local: bandas do YAML que não existem são ignoradas.
+        configured = [b for b in product.get("bands") or [] if b in available] or None
+        grouped = bool(product.get("rgb"))
+        all_bands = resolve_bands(available, configured, axis=axis, grouped=grouped)
+        selected = resolve_bands(available, layer.get("bands") or configured,
+                                 layer.get("start_year"), layer.get("end_year"), axis=axis, grouped=grouped)
+        return all_bands, selected
     layer = prepare_layer(layer)
     image = load_image(layer)
     available = image.bandNames().getInfo()
@@ -245,17 +316,27 @@ def discover(layer):
 
 def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, project=None, on_progress=None, work_dir=None, variant="completo"):
     from mapbiomas_data.core.pipeline import Pipeline
-    layer = prepare_layer(layer)
+    catalog = is_catalog(layer)
+    if not catalog:
+        layer = prepare_layer(layer)
     validate([layer], [territory])
     if not project:
         raise ValueError("Informe o projeto Earth Engine usado na autenticação.")
     out = Path(root)
-    config = NotebookConfig(layer, territory, project)
-    pipeline = Pipeline(config)
-    # load_image applies bands_slice itself (also used by discover); prevent
-    # the pipeline from applying that same slice a second time.
-    config.datasets["notebook"]["products"][layer["id"]]["bands_slice"] = None
-    pipeline._load_product_image = lambda _: load_image(layer)
+    if catalog:
+        # Produto do catálogo: o pipeline carrega asset/processador e aplica
+        # bands_slice e a visualização exatamente como no projeto local.
+        config = CatalogConfig(layer, territory, project)
+        pipeline = Pipeline(config)
+        dataset_id, product_id = config.dataset_id, config.product_id
+    else:
+        config = NotebookConfig(layer, territory, project)
+        pipeline = Pipeline(config)
+        # load_image applies bands_slice itself (also used by discover); prevent
+        # the pipeline from applying that same slice a second time.
+        config.datasets["notebook"]["products"][layer["id"]]["bands_slice"] = None
+        pipeline._load_product_image = lambda _: load_image(layer)
+        dataset_id, product_id = "notebook", layer["id"]
     if on_progress:
         def notify(*args):
             try:
@@ -273,7 +354,7 @@ def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, pr
         Path(work_dir).mkdir(parents=True, exist_ok=False)
     context = nullcontext(str(work_dir)) if work_dir is not None else TemporaryDirectory(prefix="gif_factory_")
     with context as tmp:
-        result = pipeline.run("notebook", layer["id"], territory["id"], output_dir=tmp,
+        result = pipeline.run(dataset_id, product_id, territory["id"], output_dir=tmp,
                               create_collage="colagem" in kinds, add_labels=True,
                               vertical_dimension=dimension)
         if result.get("status") != "success":

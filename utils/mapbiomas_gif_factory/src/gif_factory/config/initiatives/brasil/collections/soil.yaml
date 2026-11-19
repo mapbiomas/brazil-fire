@@ -1,0 +1,15 @@
+name: "Soil Organic Carbon"
+description: "MapBiomas Soil Organic Carbon - Brasil"
+dataset: brasil_soil
+project: mapbiomas-brazil
+category: soil
+collection: null
+products:
+  soc:
+    name: "Soil Organic Carbon (0-30 cm)"
+    asset: "projects/mapbiomas-workspace/SOLOS/PRODUTOS_BETA/soil_organic_carbon-0_30_cm_t_ha-beta_2_1"
+    bands: ["soc"]
+    asset_type: "image_collection"
+    mosaic: true
+    mask_value: -2
+    visualization: "soc"

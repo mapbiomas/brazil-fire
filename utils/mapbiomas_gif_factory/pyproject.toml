@@ -1,15 +1,43 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mapbiomas-gif-factory"
-version = "0.1.0"
+version = "0.2.0"
+description = "Animated GIFs, collages and yearly maps of MapBiomas products for any territory, from Google Colab, without programming."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Wallace Vieira da Silva" }]
 requires-python = ">=3.10"
-dependencies = ["earthengine-api>=1.4", "Pillow>=9.5", "requests>=2.28", "ipywidgets>=8", "pyyaml>=6"]
+keywords = ["mapbiomas", "earth-engine", "gif", "maps", "fire", "land-cover", "colab"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Jupyter",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: Portuguese (Brazilian)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+dependencies = [
+    "earthengine-api>=1.4",
+    "Pillow>=9.5",
+    "requests>=2.28",
+    "ipywidgets>=8",
+    "pyyaml>=6",
+    "ipyleaflet>=0.17",
+]
+
+[project.urls]
+Homepage = "https://github.com/mapbiomas/brazil-fire/tree/main/utils/mapbiomas_gif_factory"
+Source = "https://github.com/mapbiomas/brazil-fire/tree/main/utils/mapbiomas_gif_factory"
+Issues = "https://github.com/mapbiomas/brazil-fire/issues"
+Colab = "https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/utils/mapbiomas_gif_factory/notebooks/piloto.ipynb"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-gif_factory = ["reference_inventory.json", "legends.json", "vera_fire_legends.json"]
+gif_factory = ["reference_inventory.json", "legends.json", "vera_fire_legends.json", "config/*.yaml", "config/initiatives/*/*.yaml", "config/initiatives/*/*/*.yaml"]

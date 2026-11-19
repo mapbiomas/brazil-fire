@@ -1,0 +1,15 @@
+# Category definitions for MapBiomas GIF Factory
+# Referenced by collections/*.yaml via the `category` field.
+categories:
+  fire:
+    label: "Fogo"
+    color: "#FF5722"
+  land_cover:
+    label: "Uso do Solo"
+    color: "#4CAF50"
+  degradation:
+    label: "Degradação"
+    color: "#795548"
+  soil:
+    label: "Solo"
+    color: "#8D6E63"

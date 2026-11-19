@@ -1,0 +1,43 @@
+name: "Land Use and Cover — Collection 9"
+description: "MapBiomas Land Use and Cover Collection 9 - Brasil"
+dataset: brasil_lulc_col9
+project: mapbiomas-brazil
+category: land_cover
+collection: 9
+products:
+  integration:
+    name: "Land Use and Cover Classification"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection9/mapbiomas_collection90_integration_v1"
+    bands: ["classification"]
+    temporal_range: [1985, 2023]
+    visualization: "lulc"
+  deforestation_secondary:
+    name: "Deforestation and Secondary Vegetation"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection9/mapbiomas_collection90_deforestation_secondary_vegetation_v1"
+    bands: ["deforestation"]
+    visualization: "def_seco"
+  irrigated_agriculture:
+    name: "Irrigated Agriculture"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection9/mapbiomas_collection90_irrigated_agriculture_v1"
+    bands: ["irrigated"]
+    visualization: "lulc"
+  mined_substance:
+    name: "Mining Areas"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection9/mapbiomas_collection90_mined_substance_v1"
+    bands: ["mining"]
+    visualization: "lulc"
+  pasture_quality:
+    name: "Pasture Quality"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection9/mapbiomas_collection90_pasture_quality_v1"
+    bands: ["quality"]
+    visualization: "lulc"
+  secondary_vegetation_age:
+    name: "Secondary Vegetation Age"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection9/mapbiomas_collection90_secondary_vegetation_age_v1"
+    bands: ["age"]
+    visualization: "secondary_vegetation_age"
+  quality:
+    name: "Land Cover Quality"
+    asset: "projects/mapbiomas-public/assets/brazil/lulc/collection9/mapbiomas_collection90_quality_v1"
+    bands: ["quality"]
+    visualization: "lulc"

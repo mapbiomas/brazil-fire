@@ -1,0 +1,51 @@
+name: "Regions"
+description: "Custom Brazilian regions"
+type: regions
+territories:
+  regiao_matopiba_cerrado:
+    name: "MATOPIBA no Cerrado"
+    name_en: "MATOPIBA in Cerrado"
+    source: "users/dh-conciani/vectors/matopiba_lapig_cerrado"
+    bbox: [-50.0, -16.0, -41.0, -2.0]
+  regiao_matopiba:
+    name: "MATOPIBA"
+    name_en: "MATOPIBA"
+    source: "projects/mapbiomas-workspace/AUXILIAR/ESTATISTICAS/COLECAO8/VERSAO-1/matopiba"
+    bbox: [-50.0, -16.0, -41.0, -2.0]
+  regiao_centro_oeste:
+    name: "Centro-Oeste"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_REGIAO == 'CENTRO-OESTE'"
+  regiao_nordeste:
+    name: "Nordeste"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_REGIAO == 'NORDESTE'"
+  regiao_norte:
+    name: "Norte"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_REGIAO == 'NORTE'"
+  regiao_sudeste:
+    name: "Sudeste"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_REGIAO == 'SUDESTE'"
+  regiao_sul:
+    name: "Sul"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_REGIAO == 'SUL'"
+  regiao_bap:
+    name: "BAP"
+    name_en: "BAP"
+    source: "projects/ee-arcplan/assets/bap_pantanal_planalto"
+    bbox: [-58.0, -22.0, -55.0, -17.0]
+  regiao_bap_planalto:
+    name: "BAP Planalto"
+    name_en: "BAP Planalto"
+    source: "projects/ee-arcplan/assets/bap_pantanal_planalto"
+    filter: "name_pt_br == 'Planalto'"
+    bbox: [-58.0, -22.0, -55.0, -17.0]
+  oeste_baiano:
+    name: "Oeste Baiano"
+    name_en: "Western Bahia"
+    geometry:
+      bbox: [-44.22593743286713, -11.10766924156219, -44.051885214950076, -10.934961838348839]
+    bbox: [-44.22593743286713, -11.10766924156219, -44.051885214950076, -10.934961838348839]

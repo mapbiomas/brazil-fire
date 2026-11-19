@@ -1,0 +1,26 @@
+name: "Land Use and Cover — Collection 1"
+description: "MapBiomas Land Use and Cover Collection 1 - Democratic Republic of the Congo"
+title_collection: "MapBiomas Collection 1"
+dataset: drc_lulc_col1
+project: mapbiomas-drc
+category: land_cover
+collection: 1
+products:
+  nivel0:
+    name: "Couverture et Utilisation des Terres (Niveau 0)"
+    asset: "projects/mapbiomas-public/assets/drc/lulc/collection1/mapbiomas_drc_collection1_coverage_v1"
+    processor: "decode_drc_lulc_nivel0"
+    temporal_range: [2000, 2025]
+    visualization: "lulc_drc_nivel0"
+  nivel1:
+    name: "Couverture et Utilisation des Terres (Niveau 1)"
+    asset: "projects/mapbiomas-public/assets/drc/lulc/collection1/mapbiomas_drc_collection1_coverage_v1"
+    processor: "decode_drc_lulc_nivel1"
+    temporal_range: [2000, 2025]
+    visualization: "lulc_drc_nivel1"
+  nivel2:
+    name: "Couverture et Utilisation des Terres (Niveau 2)"
+    asset: "projects/mapbiomas-public/assets/drc/lulc/collection1/mapbiomas_drc_collection1_coverage_v1"
+    processor: "decode_drc_lulc_nivel2"
+    temporal_range: [2000, 2025]
+    visualization: "lulc_drc_nivel2"

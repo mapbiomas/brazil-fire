@@ -1,0 +1,147 @@
+name: "Fire — Collection 5"
+description: "MapBiomas Fire Collection 5 - Brasil"
+dataset: brasil_fire_col5
+project: mapbiomas-brazil
+category: fire
+collection: 5
+products:
+  annual_burned:
+    name: "Área queimada anual"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_v1"
+    temporal_range: [1985, 2025]
+    visualization: "fire"
+  monthly_burned:
+    name: "Distribuição mensal da área queimada"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_monthly_burned_v1"
+    processor: "decode_monthly_burned_col5"
+    temporal_range: [1985, 2025]
+    visualization: "fire_col5_monthly"
+  scar_size_range:
+    name: "Tamanho das cicatrizes de fogo"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_scar_size_range_v1"
+    temporal_range: [1985, 2025]
+    visualization: "scar_size_range"
+  accumulated_burned:
+    name: "Área queimada acumulada"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_v1"
+    temporal_range: [1985, 2025]
+    bands_slice: [0, 41]
+    visualization: "fire"
+  fire_frequency:
+    name: "Frequência da área queimada"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_fire_frequency_v1"
+    temporal_range: [1985, 2025]
+    bands_slice: [0, 41]
+    visualization: "fire_col5_frequency"
+  year_last_fire:
+    name: "Última ocorrência do fogo"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_year_last_fire_v1"
+    temporal_range: [1985, 2025]
+    visualization: "fire_col5_year_last_fire"
+  time_after_fire:
+    name: "Tempo desde a última ocorrência do fogo"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_time_after_fire_v1"
+    temporal_range: [1985, 2025]
+    visualization: "fire_col5_time_after_fire"
+  unprecedented_fire:
+    name: "Área queimada inédita"
+    processor: "decode_unprecedented_fire"
+    temporal_range: [1985, 2024]
+    visualization: "unprecedented_fire"
+  annual_burned_coverage_nivel0:
+    name: "Área queimada por classe de cobertura e uso da terra - Anual - Nível 0 (Natural/Antrópico)"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    processor: "decode_annual_burned_coverage_nivel0"
+    visualization: "coverage_nivel0"
+  annual_burned_coverage_nivel1:
+    name: "Área queimada por classe de cobertura e uso da terra - Anual - Nível 1"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    processor: "decode_annual_burned_coverage_nivel1"
+    visualization: "coverage_nivel1"
+  annual_burned_coverage_nivel1_1:
+    name: "Área queimada por classe de cobertura e uso da terra - Anual - Nível 1.1"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    processor: "decode_annual_burned_coverage_nivel1_1"
+    visualization: "coverage_nivel1_1"
+  annual_burned_coverage_nivel2:
+    name: "Área queimada por classe de cobertura e uso da terra - Anual - Nível 2"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    processor: "decode_annual_burned_coverage_nivel2"
+    visualization: "coverage_nivel2"
+  annual_burned_coverage_nivel3:
+    name: "Área queimada por classe de cobertura e uso da terra - Anual - Nível 3"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    processor: "decode_annual_burned_coverage_nivel3"
+    visualization: "coverage_nivel3"
+  annual_burned_coverage_nivel4:
+    name: "Área queimada por classe de cobertura e uso da terra - Anual - Nível 4"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_annual_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    visualization: "coverage_nivel4"
+  accumulated_burned_coverage_nivel0:
+    name: "Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 0 (Natural/Antrópico)"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    bands_slice: [0, 41]
+    processor: "decode_accumulated_burned_coverage_nivel0"
+    visualization: "coverage_nivel0"
+  accumulated_burned_coverage_nivel1:
+    name: "Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 1"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    bands_slice: [0, 41]
+    processor: "decode_accumulated_burned_coverage_nivel1"
+    visualization: "coverage_nivel1"
+  accumulated_burned_coverage_nivel1_1:
+    name: "Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 1.1"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    bands_slice: [0, 41]
+    processor: "decode_accumulated_burned_coverage_nivel1_1"
+    visualization: "coverage_nivel1_1"
+  accumulated_burned_coverage_nivel2:
+    name: "Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 2"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    bands_slice: [0, 41]
+    processor: "decode_accumulated_burned_coverage_nivel2"
+    visualization: "coverage_nivel2"
+  accumulated_burned_coverage_nivel3:
+    name: "Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 3"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    bands_slice: [0, 41]
+    processor: "decode_accumulated_burned_coverage_nivel3"
+    visualization: "coverage_nivel3"
+  accumulated_burned_coverage_nivel4:
+    name: "Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 4"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection5/mapbiomas_fire_collection5_accumulated_burned_coverage_v1"
+    temporal_range: [1985, 2025]
+    bands_slice: [0, 41]
+    visualization: "coverage_nivel4"
+  severity:
+    name: "Severidade potencial das áreas queimadas"
+    processor: "build_severity_col5"
+    temporal_range: [1985, 2025]
+    visualization: "fire_col5_severity"
+  fire_return_interval:
+    name: "Intervalo de retorno do fogo"
+    processor: "decode_return_interval_discrete"
+    temporal_range: [1985, 2025]
+    visualization: "fire_col5_return_interval"
+  mean_fire_return_interval:
+    name: "Intervalo médio de retorno do fogo"
+    processor: "decode_mean_return_interval_discrete"
+    temporal_range: [1985, 2025]
+    visualization: "fire_col5_return_interval"
+  nbr_min:
+    name: "Mosaico NBR mínimo (Landsat)"
+    processor: "build_nbr_min_mosaic"
+    temporal_range: [1985, 2025]
+    visualization: "nbr_min"
+    rgb: true

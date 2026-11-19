@@ -66,14 +66,14 @@ INITIATIVES = {
     "brasil": "Brasil", "peru": "Peru", "paraguay": "Paraguai",
     "argentina": "Argentina", "bolivia": "Bolívia", "chile": "Chile",
     "colombia": "Colômbia", "ecuador": "Equador", "indonesia": "Indonésia",
-    "venezuela": "Venezuela",
+    "venezuela": "Venezuela", "drc": "RD Congo",
 }
 
 LANGUAGES = {
     "brasil": "pt",
     "peru": "es", "paraguay": "es", "argentina": "es", "bolivia": "es",
     "chile": "es", "colombia": "es", "ecuador": "es", "venezuela": "es",
-    "indonesia": "en",
+    "indonesia": "en", "drc": "en",
 }
 
 THEME_CANON = {
@@ -97,6 +97,7 @@ THEME_LABELS = {
     "climate_risk": {"pt": "Risco climático", "es": "Riesgo climático", "en": "Climate risk"},
     "urban": {"pt": "Urbano", "es": "Urbano", "en": "Urban"},
     "degradation": {"pt": "Degradação", "es": "Degradación", "en": "Degradation"},
+    "satellite": {"pt": "Imagens de satélite", "es": "Imágenes satelitales", "en": "Satellite imagery"},
 }
 
 

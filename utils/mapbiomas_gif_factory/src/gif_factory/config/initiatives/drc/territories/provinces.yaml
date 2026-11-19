@@ -1,0 +1,186 @@
+name: "Provinces"
+description: "DRC provinces (ADM1) - 26 provinces, geoBoundaries"
+type: departments
+territories:
+  drc_kinshasa:
+    name: "Kinshasa, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Kinshasa"]
+  drc_kongo_central:
+    name: "Kongo Central, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Kongo-Central"]
+  drc_kwango:
+    name: "Kwango, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Kwango"]
+  drc_kwilu:
+    name: "Kwilu, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Kwilu"]
+  drc_mai_ndombe:
+    name: "Mai-Ndombe, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Mai-Ndombe"]
+  drc_equateur:
+    name: "Equateur, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["\u00C9quateur"]
+  drc_nord_ubangi:
+    name: "Nord-Ubangi, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Nord-Ubangi"]
+  drc_sud_ubangi:
+    name: "Sud-Ubangi, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Sud-Ubangi"]
+  drc_mongala:
+    name: "Mongala, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Mongala"]
+  drc_tshuapa:
+    name: "Tshuapa, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Tshuapa"]
+  drc_tshopo:
+    name: "Tshopo, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Tshopo"]
+  drc_bas_uele:
+    name: "Bas-Uele, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Lower Uele"]
+  drc_haut_uele:
+    name: "Haut-Uele, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Upper Uele"]
+  drc_ituri:
+    name: "Ituri, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Ituri"]
+  drc_haut_lomami:
+    name: "Haut-Lomami, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Haut-Lomami"]
+  drc_lualaba:
+    name: "Lualaba, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Lualaba"]
+  drc_tanganyika:
+    name: "Tanganyika, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Tanganyika"]
+  drc_haut_katanga:
+    name: "Haut-Katanga, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Haut-Katanga"]
+  drc_maniema:
+    name: "Maniema, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Maniema"]
+  drc_sud_kivu:
+    name: "Sud-Kivu, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["South Kivu"]
+  drc_nord_kivu:
+    name: "Nord-Kivu, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["North Kivu"]
+  drc_kasai:
+    name: "Kasai, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Kasai"]
+  drc_kasai_central:
+    name: "Kasai-Central, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Central Kasai"]
+  drc_kasai_oriental:
+    name: "Kasai-Oriental, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Kasai-Oriental"]
+  drc_sankuru:
+    name: "Sankuru, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Sankuru"]
+  drc_lomami:
+    name: "Lomami, DRC"
+    source: "WM/geoLab/geoBoundaries/600/ADM1"
+    filter: "shapeGroup == 'COD'"
+    filter_in:
+      field: "shapeName"
+      values: ["Lomami"]

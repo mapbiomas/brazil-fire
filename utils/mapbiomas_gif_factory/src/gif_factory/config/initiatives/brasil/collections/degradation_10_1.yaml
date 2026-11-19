@@ -1,0 +1,92 @@
+name: "Degradation — Collection 10.1"
+description: "Módulo de Degradação do MapBiomas · Coleção 10.1"
+dataset: brasil_degradation_col10_1
+project: mapbiomas-brazil
+category: degradation
+collection: 10.1
+products:
+  fire_frequency:
+    name: "Frequência do Fogo"
+    processor: "decode_fire_frequency_col101"
+    temporal_range: [1985, 2024]
+    visualization: "frequency_col101"
+  natural_coverage:
+    name: "Cobertura e Uso Natural da Terra"
+    processor: "build_natural_coverage_col101"
+    temporal_range: [1985, 2024]
+    visualization: "natural_coverage"
+  burned_natural_coverage:
+    name: "Cobertura Vegetal em Áreas Queimadas"
+    processor: "build_burned_natural_coverage_col101"
+    temporal_range: [1985, 2024]
+    visualization: "secondary_vegetation_coverage"
+  burned_at_least_once:
+    name: "Queimado ao Menos uma Vez"
+    processor: "build_burned_at_least_once_col101"
+    temporal_range: [1985, 2024]
+    visualization: "burned_at_least_once"
+  primary_natural_coverage:
+    name: "Cobertura Natural Primária"
+    processor: "build_primary_natural_coverage_col101"
+    temporal_range: [1985, 2024]
+    visualization: "secondary_vegetation_coverage"
+  fire_age:
+    name: "Tempo desde o Último Fogo"
+    processor: "decode_fire_age_col101"
+    temporal_range: [1985, 2024]
+    visualization: "fire_age"
+  patch_id:
+    name: "Número de Fragmentos"
+    processor: "decode_patch_id_col101"
+    temporal_range: [1985, 2024]
+    visualization: "random"
+  patch_size:
+    name: "Tamanho do Fragmento (Contínuo)"
+    processor: "decode_patch_size_col101"
+    temporal_range: [1985, 2024]
+    visualization: "patch_size_continuous"
+  patch_size_fragments:
+    name: "Fragmentos (ate 10k ha)"
+    processor: "decode_patch_size_fragments_col101"
+    temporal_range: [1985, 2024]
+    visualization: "patch_size_fragments"
+  patch_size_massifs:
+    name: "Macicos (> 10k ha)"
+    processor: "decode_patch_size_massifs_col101"
+    temporal_range: [1985, 2024]
+    visualization: "patch_size_massifs"
+  edge_area:
+    name: "Área de Borda"
+    processor: "decode_edge_area_col101"
+    temporal_range: [1985, 2024]
+    visualization: "edge_area_col101"
+  edge_age:
+    name: "Idade da Borda"
+    processor: "decode_edge_age_col101"
+    temporal_range: [1985, 2024]
+    visualization: "edge_age_col101"
+  landscape_morphology:
+    name: "Morfologia dos Fragmentos"
+    processor: "decode_morphology_col101"
+    temporal_range: [1985, 2024]
+    visualization: "morphology"
+  secondary_vegetation_age:
+    name: "Idade da Vegetação Secundária"
+    processor: "decode_secondary_vegetation_age_col101"
+    temporal_range: [1985, 2024]
+    visualization: "secondary_vegetation_age"
+  secondary_vegetation_coverage:
+    name: "Cobertura da Vegetação Secundária"
+    processor: "build_secondary_vegetation_coverage_col101"
+    temporal_range: [1985, 2024]
+    visualization: "secondary_vegetation_coverage"
+  canopy_disturbance_frequency:
+    name: "Distúrbio de Dossel"
+    processor: "decode_canopy_disturbance_col101"
+    temporal_range: [1985, 2024]
+    visualization: "canopy_disturbance"
+  logging:
+    name: "Corte Seletivo"
+    processor: "decode_logging_col101"
+    temporal_range: [1985, 2024]
+    visualization: "logging"
