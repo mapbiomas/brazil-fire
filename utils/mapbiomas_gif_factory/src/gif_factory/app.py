@@ -1,9 +1,10 @@
-"""Fábrica de GIFs MapBiomas: interface em 4 passos para o Google Colab.
+"""Fábrica de GIFs MapBiomas: interface em 5 passos para o Google Colab.
 
 1. Mapa        — escolher produtos do catálogo (busca, tema, coleção)
 2. Território  — buscar nas bases oficiais, desenhar no mapa, enviar arquivo ou colar asset
 3. Período e saídas — anos, tipos de arquivo, destino e prévia
-4. Gerar       — conferir, gerar e ver os resultados
+4. Gerar       — conferir (com estimativa de tempo e volume), gerar em paralelo e acompanhar na vitrine
+5. Biblioteca  — navegar no que já foi gerado (Drive ou sessão), ver, copiar caminho e baixar
 
 Ninguém precisa editar código: tudo é escolhido na interface.
 """
@@ -14,14 +15,17 @@ from threading import Thread
 import ipywidgets as w
 from IPython.display import display
 
-from . import analyst, preview, territories
+from . import analyst, environment, estimate, preview, territories, theme
 from .catalog import catalog_layers
 from .engine import validate
+from .gallery import Gallery, scan_library
 from .legends import INITIATIVES, theme_label
 from .runner import BatchRunner, drive_mounted
 from .user_library import UserLibrary
 
-STEPS = ["1 · Mapa", "2 · Território", "3 · Período e saídas", "4 · Gerar"]
+STEPS = ["1 · Mapa", "2 · Território", "3 · Período e saídas", "4 · Gerar", "5 · Biblioteca"]
+LABEL_WIDTH = "90px"
+LABELED = (w.Text, w.Dropdown, w.FloatText, w.IntRangeSlider, w.Textarea)
 KINDS = [("gif", "GIF animado", True), ("colagem", "Colagem (anos lado a lado)", False),
          ("finais", "Imagens de cada ano (mapa completo)", False)]
 ADVANCED_KINDS = [("brutos", "Imagens de cada ano sem moldura"), ("preparados", "Imagens de cada ano com ano e escala")]
@@ -41,14 +45,22 @@ def _swatches(legend, limit=30):
     for item in (legend or [])[:limit]:
         color = escape(str(item.get("color", "")).lstrip("#"))
         items.append(f'<div style="display:flex;align-items:center;gap:6px;font-size:12px">'
-                     f'<span style="width:14px;height:14px;border:1px solid #888;background:#{color}"></span>'
+                     f'<span style="width:14px;height:14px;border:1px solid var(--muted);background:#{color}"></span>'
                      f'{escape(str(item.get("label", "")))}</div>')
-    more = f'<div style="font-size:11px;color:#777">+ {len(legend) - limit} classes</div>' if len(legend or []) > limit else ""
+    more = f'<div style="font-size:11px;color:var(--muted)">+ {len(legend) - limit} classes</div>' if len(legend or []) > limit else ""
     return "".join(items) + more
 
 
+def _align_labels(widget):
+    """Mesma largura de rótulo em todos os campos, para nada ficar cortado ou desalinhado."""
+    if isinstance(widget, LABELED) and getattr(widget, "description", ""):
+        widget.style.description_width = LABEL_WIDTH
+    for child in getattr(widget, "children", ()) or ():
+        _align_labels(child)
+
+
 def _card(html):
-    return w.HTML(f'<div style="border:1px solid #ddd;border-radius:6px;padding:8px;background:#fafafa">{html}</div>')
+    return w.HTML(f'<div class="gf-panel">{html}</div>')
 
 
 class FactoryApp:
@@ -66,20 +78,33 @@ class FactoryApp:
         self.selected_territories = []   # dicionários de território
         self.year_ranges = {}            # id da camada -> (ano inicial, ano final) ou None
         self._territories_started = False  # a busca no GEE só começa ao abrir o passo 2
+        self.output_root = Path(output_root)
+        self.environment = environment.detect()
         self.runner = BatchRunner(output_root, temp_root, project)
+        self.runner.workers = self.environment["workers"]
+        self.gallery = Gallery(zip_root=Path(temp_root) / "downloads",
+                               empty="Os cartões aparecem aqui assim que o lote começar.")
+        self.runner.on_start = self._gallery_start
+        self.runner.on_combo = self._gallery_update
         self.runner.on_finished = self._show_results
         self.summary = w.HTML()
-        self.stepper = w.ToggleButtons(options=STEPS, value=STEPS[0], style={"button_width": "190px"})
+        self.stepper = theme.classed(w.ToggleButtons(options=STEPS, value=STEPS[0], style={"button_width": "auto"}),
+                                     "gf-steps")
         self.back = w.Button(description="Voltar", icon="arrow-left")
-        self.next = w.Button(description="Avançar", icon="arrow-right", button_style="primary")
-        self.pages = [self._build_maps(), self._build_territories(), self._build_outputs(), self._build_generate()]
+        self.next = w.Button(description="Avançar", icon="arrow-right", button_style="primary",
+                             layout=w.Layout(width="auto"))
+        self.pages = [self._build_maps(), self._build_territories(), self._build_outputs(), self._build_generate(),
+                      self._build_library()]
         self.stepper.observe(self._go, names="value")
         self.back.on_click(lambda _: self._move(-1))
         self.next.on_click(lambda _: self._move(1))
-        title = w.HTML("<h2 style='margin:4px 0'>Fábrica de GIFs MapBiomas</h2>"
-                       "<p style='margin:0 0 6px;color:#555'>Escolha o mapa, o território e o período. "
-                       "Nada aqui exige programação.</p>")
-        self.root = w.VBox([title, self.stepper, self.summary, *self.pages, w.HBox([self.back, self.next])])
+        title = theme.classed(w.HTML("<h2>🌱 Fábrica de GIFs MapBiomas</h2>"
+                                     "<p class='gf-sub'>Escolha o mapa, o território e o período. "
+                                     "Nada aqui exige programação.</p>"), "gf-title")
+        self.root = theme.classed(w.VBox([theme.style_widget(), title, self.stepper, self.summary, *self.pages,
+                                          w.HBox([self.back, self.next], layout=w.Layout(margin="10px 0 0"))]),
+                                  "gf-root")
+        _align_labels(self.root)
         self._render_products()
         for territory in territories or ():
             self.selected_territories.append(dict(territory))
@@ -100,14 +125,19 @@ class FactoryApp:
         for i, page in enumerate(self.pages):
             page.layout.display = "" if i == index else "none"
         self.back.disabled = index == 0
-        self.next.layout.display = "none" if index == len(STEPS) - 1 else ""
+        last = index == len(STEPS) - 1
+        self.next.layout.display = "none" if last else ""
+        if not last:
+            self.next.description = f"Avançar: {STEPS[index + 1].split('·', 1)[1].strip()}"
         if index == 1 and not self._territories_started:
             self._territories_started = True
             self._start_search()
-        if index == 2:
+        if index in (2, 3):
             self._load_years()
         if index == 3:
             self._render_plan()
+        if index == 4:
+            self._scan_library()
 
     def _update_summary(self):
         maps = [self.by_id[i]["name"] for i in self.selected_layers]
@@ -116,16 +146,61 @@ class FactoryApp:
                 [label for key, label in ADVANCED_KINDS if self.kind_checks[key].value]
         def fmt(items):
             if not items:
-                return "<i style='color:#999'>nenhum</i>"
+                return "<i style='color:var(--muted)'>nenhum</i>"
             text = ", ".join(escape(i) for i in items[:3])
             return text + (f" e mais {len(items) - 3}" if len(items) > 3 else "")
         period = "todos os anos" if self.all_years.value else f"{self.period.value[0]}–{self.period.value[1]}"
         total = len(maps) * len(places)
+        guess = ""
+        if total and self.kinds():
+            info = self.estimate()
+            emoji = estimate.mood(info["seconds"])[0]
+            guess = (f" &nbsp;·&nbsp; {emoji} {estimate.about(info['seconds'])}, "
+                     f"~{estimate.human_size(info['deliver_mb'])}")
         self.summary.value = (
-            "<div style='border-left:4px solid #2e7d32;padding:4px 10px;margin:6px 0;background:#f3f8f3;font-size:13px'>"
+            "<div style='border-left:4px solid var(--green);padding:6px 12px;margin:8px 0;background:var(--surface);"
+            "border-radius:0 10px 10px 0;box-shadow:0 1px 3px var(--shadow);font-size:13px'>"
             f"<b>Mapas:</b> {fmt(maps)} &nbsp;·&nbsp; <b>Territórios:</b> {fmt(places)} &nbsp;·&nbsp; "
             f"<b>Período:</b> {period} &nbsp;·&nbsp; <b>Arquivos:</b> {fmt(kinds)}"
-            f" &nbsp;·&nbsp; <b>{total} combinação(ões)</b></div>")
+            f" &nbsp;·&nbsp; <b>{total} combinação(ões)</b>{guess}</div>")
+
+    # ------------------------------------------------------------------ estimativa
+    def _frames_for(self, layer_id):
+        span = self.year_ranges.get(layer_id)
+        if not span:
+            return None
+        start, end = span
+        if not self.all_years.value:
+            start, end = max(start, self.period.value[0]), min(end, self.period.value[1])
+        return max(0, end - start + 1)
+
+    def estimate(self):
+        """Tempo e volume previstos para a seleção atual (ver `estimate.batch`)."""
+        frames = [self._frames_for(layer_id) for layer_id in self.selected_layers
+                  for _ in self.selected_territories]
+        return estimate.batch(frames, self.kinds(), self.runner.workers, self.runner.calibration.per_frame(),
+                              to_drive=self.save_drive.value)
+
+    def _estimate_html(self):
+        info = self.estimate()
+        emoji, phrase, level = estimate.mood(info["seconds"])
+        note, size_level = estimate.size_note(info["deliver_mb"], self.save_drive.value)
+        colors = {0: ("var(--green)", "var(--green-soft)"), 1: ("var(--warn)", "var(--warn-soft)"), 2: ("var(--danger)", "var(--danger-soft)")}
+        border, background = colors[max(level, size_level)]
+        where = "no seu Drive" if self.save_drive.value else "nesta sessão do Colab"
+        basis = ("calculada com o ritmo real desta sessão" if info["calibrated"] else
+                 "estimativa média; fica mais precisa depois da primeira combinação")
+        together = (f", {self.runner.workers} ao mesmo tempo" if self.runner.workers > 1 else "")
+        return (f"<div style='border-left:4px solid {border};background:{background};padding:6px 10px;margin:6px 0'>"
+                f"<div style='font-size:15px'>{emoji} <b>{estimate.about(info['seconds'])}</b> "
+                f"para {info['frames']} quadro(s){together}</div>"
+                f"<div>{escape(phrase)}</div>"
+                f"<div style='font-size:12px;color:var(--muted);margin-top:4px'>📦 ~{estimate.human_size(info['deliver_mb'])} "
+                f"de arquivos finais {where} · ~{estimate.human_size(info['work_mb'])} de arquivos de trabalho "
+                f"temporários</div>"
+                + (f"<div style='font-size:12px;color:{border}'>{escape(note)}</div>" if note else "")
+                + f"<div style='font-size:11px;color:var(--muted)'>({basis}; o que já existir é pulado e termina antes)</div>"
+                "</div>")
 
     # ------------------------------------------------------------------ 1. mapa
     def _build_maps(self):
@@ -155,10 +230,10 @@ class FactoryApp:
         self.initiative.observe(self._render_my_maps, names="value")
         left = w.VBox([self.initiative, self.map_search, w.HBox([self.theme, self.collection]), self.show_beta,
                        self.product_list, self.my_maps_panel], layout=w.Layout(width="62%"))
-        right = w.VBox([w.HTML("<b>Legenda</b>"), self.product_detail], layout=w.Layout(width="36%"))
+        right = w.VBox([theme.label("Legenda"), self.product_detail], layout=w.Layout(width="36%"))
         self._render_my_maps()
-        return w.VBox([w.HTML("<h3>Qual mapa?</h3><p>Escolha um ou mais mapas. "
-                              "Eles serão gerados para cada território escolhido no passo 2.</p>"),
+        return w.VBox([theme.section("Qual mapa?", "Escolha um ou mais mapas. "
+                                     "Eles serão gerados para cada território escolhido no passo 2."),
                        w.HBox([left, right]), self.new_map, self.beta_panel])
 
     # ------------------------------------------------------------------ 1b. modo analista
@@ -171,7 +246,8 @@ class FactoryApp:
                                 layout=w.Layout(width="560px"))
         self.beta_theme = w.Dropdown(options=analyst.THEMES, value="fire", description="Tema:")
         self.beta_collection = w.Text(value="beta", description="Coleção:")
-        self.beta_mode = w.ToggleButtons(options=["Estilo do catálogo", "Minhas cores"], style={"button_width": "160px"})
+        self.beta_mode = theme.classed(w.ToggleButtons(options=["Estilo do catálogo", "Minhas cores"],
+                                                       style={"button_width": "160px"}), "gf-tabs")
         self.beta_style = w.Dropdown(description="Estilo:", layout=w.Layout(width="560px"))
         self.beta_style_legend = w.HTML()
         self.beta_min = w.FloatText(value=0, description="Mínimo:")
@@ -197,16 +273,16 @@ class FactoryApp:
         self.beta_preview.on_click(self._beta_preview)
         self.beta_save.on_click(self._save_beta)
         note = ("Os mapas salvos ficam no seu Drive e voltam nas próximas sessões." if self.library.persistent else
-                "<span style='color:#a66f00'>Sem Drive conectado: o mapa salvo vale só nesta sessão.</span>")
-        return w.VBox([
+                "<span style='color:var(--warn)'>Sem Drive conectado: o mapa salvo vale só nesta sessão.</span>")
+        return theme.classed(w.VBox([
             w.HTML("<h4 style='margin:8px 0 2px'>Novo mapa</h4><p style='margin:0'>Cole o asset de uma imagem "
                    "(uma banda por ano) ou de uma coleção (uma imagem por ano). Os anos são detectados sozinhos. "
                    f"{note}</p>"),
             w.HBox([self.beta_asset, self.beta_read]), self.beta_info,
             self.beta_name, w.HBox([self.beta_theme, self.beta_collection]),
-            w.HTML("<b>Cores e legenda</b>"), self.beta_mode, self.beta_style_box, self.beta_colors_box,
+            theme.label("Cores e legenda"), self.beta_mode, self.beta_style_box, self.beta_colors_box,
             w.HBox([self.beta_preview, self.beta_save]), self.beta_msg, self.beta_preview_box,
-        ], layout=w.Layout(display="none", border="1px solid #ddd", padding="8px", margin="6px 0"))
+        ], layout=w.Layout(display="none", margin="8px 0")), "gf-panel")
 
     def _beta_mode_changed(self, *_):
         catalog_style = self.beta_mode.value == "Estilo do catálogo"
@@ -246,7 +322,7 @@ class FactoryApp:
             try:
                 target()
             except Exception as exc:
-                message_widget.value = f"<span style='color:#c62828'>{escape(str(exc))}</span>"
+                message_widget.value = f"<span style='color:var(--danger)'>{escape(str(exc))}</span>"
         Thread(target=work, daemon=True).start()
 
     def _read_asset(self, _=None):
@@ -258,7 +334,7 @@ class FactoryApp:
             sample = ", ".join(info["bands"][:3]) + (" …" if len(info["bands"]) > 3 else "")
             self.beta_info.value = (f"✓ {'Imagem' if info['kind'] == 'IMAGE' else 'Coleção'} com "
                                     f"{len(info['bands'])} período(s) · {years}<br>"
-                                    f"<span style='font-size:12px;color:#555'>{escape(sample)}</span>")
+                                    f"<span style='font-size:12px;color:var(--muted)'>{escape(sample)}</span>")
             if not self.beta_name.value:
                 self.beta_name.value = self.beta_asset.value.rstrip("/").split("/")[-1].replace("_", " ")
         self._in_background(work, self.beta_info, "Lendo o asset…")
@@ -276,8 +352,8 @@ class FactoryApp:
             territory = self.selected_territories[0] if self.selected_territories else None
             url, label = preview.layer_thumbnail(_ee(), layer, territory)
             where = escape(territory["name"]) if territory else "área do asset"
-            self.beta_preview_box.value = (f"<div style='font-size:12px;color:#555'>{escape(label)} · {where}</div>"
-                                           f"<img src='{escape(url)}' style='max-width:560px;border:1px solid #ddd'>"
+            self.beta_preview_box.value = (f"<div style='font-size:12px;color:var(--muted)'>{escape(label)} · {where}</div>"
+                                           f"<img src='{escape(url)}' style='max-width:560px;border:1px solid var(--line)'>"
                                            f"<div style='margin-top:4px'>{_swatches(layer['legend'], 12)}</div>")
             self.beta_msg.value = ""
         self._in_background(work, self.beta_msg, "Gerando prévia…")
@@ -291,7 +367,7 @@ class FactoryApp:
             self.beta_msg.value = (f"✓ “{escape(layer['name'])}” salvo em Meus mapas e escolhido. "
                                    "Ele já pode ser gerado como qualquer outro mapa.")
         except Exception as exc:
-            self.beta_msg.value = f"<span style='color:#c62828'>{escape(str(exc))}</span>"
+            self.beta_msg.value = f"<span style='color:var(--danger)'>{escape(str(exc))}</span>"
 
     def _add_custom_layer(self, layer):
         layer = dict(layer, initiative=MY_MAPS)
@@ -399,11 +475,11 @@ class FactoryApp:
         layer = self.by_id[layer_id]
         if on:
             col = layer.get("collection")
-            info = (f"<b>{escape(layer['name'])}</b><br><span style='font-size:12px;color:#555'>"
+            info = (f"<b>{escape(layer['name'])}</b><br><span style='font-size:12px;color:var(--muted)'>"
                     f"{escape(layer['initiative'])} · {escape(theme_label(layer.get('theme') or 'outros', 'pt'))}"
                     f"{' · Coleção ' + escape(str(col)) if col else ''}</span>")
             if layer.get("status") == "beta":
-                info += f"<br><span style='color:#a66f00;font-size:12px'>Beta: {escape(layer.get('reason', ''))}</span>"
+                info += f"<br><span style='color:var(--warn);font-size:12px'>Beta: {escape(layer.get('reason', ''))}</span>"
             if layer.get("legend_label"):
                 info += f"<div style='margin-top:6px;font-size:12px'><b>{escape(layer['legend_label'])}</b></div>"
             self.product_detail.value = _card(info + _swatches(layer.get("legend"))).value
@@ -433,16 +509,16 @@ class FactoryApp:
         # Desenhar
         self.draw_name = w.Text(placeholder="Nome da área (ex.: Entorno do Parque X)", description="Nome:")
         self.draw_add = w.Button(description="Adicionar área desenhada", icon="plus", button_style="success")
-        self.draw_msg = w.HTML("Use os botões de retângulo ou polígono no canto do mapa. "
-                               "Vários desenhos viram uma única área.")
+        self.draw_msg = w.HTML("Desenhe com o retângulo ou o polígono no canto do mapa "
+                               "(vários desenhos viram uma área só).")
         draw_box = w.VBox([self.draw_msg, self.draw_name, self.draw_add])
         # Arquivo
         self.upload = w.FileUpload(accept=".geojson,.json,.kml,.zip,.gpkg", multiple=False,
                                    description="Escolher arquivo")
         self.upload_name = w.Text(placeholder="Nome da área (opcional)", description="Nome:")
         self.upload_add = w.Button(description="Adicionar arquivo", icon="plus", button_style="success")
-        self.upload_msg = w.HTML("GeoJSON, KML, GeoPackage ou shapefile compactado em .zip. "
-                                 "Todas as feições do arquivo viram uma única área.")
+        self.upload_msg = w.HTML("GeoJSON, KML, GeoPackage ou shapefile em .zip "
+                                 "(todas as feições viram uma área só).")
         upload_box = w.VBox([self.upload_msg, self.upload, self.upload_name, self.upload_add])
         # Asset
         self.asset_id = w.Text(placeholder="projects/meu-projeto/assets/minha_area", description="Asset:",
@@ -469,7 +545,7 @@ class FactoryApp:
         self._refresh_kinds()
         self._show_mode()
         left = w.VBox([self.base, self.mode, *self.mode_boxes.values(),
-                       w.HTML("<b>Territórios escolhidos</b>"), self.chosen], layout=w.Layout(width="48%"))
+                       theme.label("Territórios escolhidos"), self.chosen], layout=w.Layout(width="48%"))
         right = w.VBox([self.map if self.map is not None else
                         w.HTML("<i>Mapa indisponível (ipyleaflet não instalado). A busca, o arquivo e o asset "
                                "continuam funcionando.</i>")], layout=w.Layout(width="50%"))
@@ -545,7 +621,7 @@ class FactoryApp:
                 self.place_msg.value = "" if found else "Nenhum resultado."
             except Exception as exc:
                 self._found = []
-                self.place_msg.value = f"<span style='color:#c62828'>Não foi possível buscar: {escape(str(exc))}</span>"
+                self.place_msg.value = f"<span style='color:var(--danger)'>Não foi possível buscar: {escape(str(exc))}</span>"
             self._render_found()
         thread = Thread(target=work, daemon=True)
         self._search_thread = thread
@@ -591,7 +667,7 @@ class FactoryApp:
             for button in self.place_results.children:
                 button.value = False
         except Exception as exc:
-            self.place_msg.value = f"<span style='color:#c62828'>{escape(str(exc))}</span>"
+            self.place_msg.value = f"<span style='color:var(--danger)'>{escape(str(exc))}</span>"
 
     def _keep(self, territory):
         """Adiciona à seleção e guarda em 'Meus territórios' para as próximas sessões."""
@@ -599,7 +675,7 @@ class FactoryApp:
         try:
             self.library.save_territory(territory)
         except OSError as exc:
-            self.place_msg.value = f"<span style='color:#a66f00'>Não foi possível guardar o território: {escape(str(exc))}</span>"
+            self.place_msg.value = f"<span style='color:var(--warn)'>Não foi possível guardar o território: {escape(str(exc))}</span>"
 
     def _forget_saved(self, _=None):
         marked = [record for record in self._marked if record.get("saved")]
@@ -621,7 +697,7 @@ class FactoryApp:
             self.draw_name.value = ""
             self.draw_msg.value = "✓ Área adicionada. Desenhe outra se quiser."
         except Exception as exc:
-            self.draw_msg.value = f"<span style='color:#c62828'>{escape(str(exc))}</span>"
+            self.draw_msg.value = f"<span style='color:var(--danger)'>{escape(str(exc))}</span>"
 
     def _add_upload(self, _=None):
         try:
@@ -636,7 +712,7 @@ class FactoryApp:
             self._keep(territories.from_geometry(geometry, name))
             self.upload_msg.value = f"✓ {escape(name)} adicionado."
         except Exception as exc:
-            self.upload_msg.value = f"<span style='color:#c62828'>{escape(str(exc))}</span>"
+            self.upload_msg.value = f"<span style='color:var(--danger)'>{escape(str(exc))}</span>"
 
     def _add_asset(self, _=None):
         try:
@@ -648,7 +724,7 @@ class FactoryApp:
             self._keep(item)
             self.asset_msg.value = f"✓ {escape(item['name'])} adicionado ({size} feição(ões))."
         except Exception as exc:
-            self.asset_msg.value = f"<span style='color:#c62828'>Não foi possível usar o asset: {escape(str(exc))}</span>"
+            self.asset_msg.value = f"<span style='color:var(--danger)'>Não foi possível usar o asset: {escape(str(exc))}</span>"
 
     def _remove_territory(self, territory_id):
         self.selected_territories = [t for t in self.selected_territories if t["id"] != territory_id]
@@ -665,7 +741,7 @@ class FactoryApp:
             remove = w.Button(icon="times", tooltip="Remover", layout=w.Layout(width="36px"))
             remove.on_click(lambda _b, i=territory["id"]: self._remove_territory(i))
             rows.append(w.HBox([remove, w.HTML(f"<span style='line-height:28px'>{escape(territory['name'])}</span>")]))
-        self.chosen.children = rows or [w.HTML("<i style='color:#999'>Nenhum ainda.</i>")]
+        self.chosen.children = rows or [w.HTML("<i style='color:var(--muted)'>Nenhum ainda.</i>")]
 
     def _draw_on_map(self, territory):
         if self.map is None:
@@ -681,7 +757,7 @@ class FactoryApp:
                 # fit_bounds depende do loop assíncrono do kernel; centro e zoom funcionam de qualquer thread.
                 self.map.center, self.map.zoom = preview.center_zoom(preview.bounds(ee, territory))
             except Exception as exc:
-                self.place_msg.value = f"<span style='color:#c62828'>Não foi possível mostrar no mapa: {escape(str(exc))}</span>"
+                self.place_msg.value = f"<span style='color:var(--danger)'>Não foi possível mostrar no mapa: {escape(str(exc))}</span>"
         Thread(target=work, daemon=True).start()
 
     # ------------------------------------------------------------------ 3. período e saídas
@@ -698,8 +774,16 @@ class FactoryApp:
         self.save_drive = w.Checkbox(value=drive_mounted(), description="Salvar no meu Google Drive", indent=False)
         self.drive_folder = w.Text(value=DEFAULT_DRIVE_FOLDER, description="Pasta:", layout=w.Layout(width="520px"))
         self.drive_msg = w.HTML()
-        advanced_box = w.VBox([*(self.kind_checks[key] for key, _ in ADVANCED_KINDS), self.drive_folder],
-                              layout=w.Layout(display="none"))
+        env = self.environment
+        options = sorted({1, 2, 3, 4, env["workers"]})
+        self.workers = w.Dropdown(options=[(f"{n} combinação(ões)" + (" (sugerido)" if n == env["workers"] else ""), n)
+                                           for n in options], value=env["workers"], description="Simultâneas:",
+                                  layout=w.Layout(width="360px"))
+        self.workers.observe(self._set_workers, names="value")
+        env_note = w.HTML(f"<span style='font-size:12px;color:var(--muted)'>Ambiente: {escape(env['label'])}. "
+                          "Mais combinações ao mesmo tempo terminam antes, mas usam mais memória.</span>")
+        advanced_box = w.VBox([*(self.kind_checks[key] for key, _ in ADVANCED_KINDS), self.drive_folder,
+                               self.workers, env_note], layout=w.Layout(display="none"))
         self.advanced.observe(lambda c: setattr(advanced_box.layout, "display", "" if c["new"] else "none"), names="value")
         self.preview_button = w.Button(description="Ver prévia", icon="eye")
         self.preview_box = w.HTML()
@@ -710,24 +794,28 @@ class FactoryApp:
         self.save_drive.observe(self._drive_note, names="value")
         self._drive_note()
         return w.VBox([
-            w.HTML("<h3>Quando e como?</h3>"),
-            w.HTML("<b>Período</b>"), self.all_years, self.period, self.period_msg,
-            w.HTML("<b>Arquivos</b>"), *(self.kind_checks[key] for key, _, _ in KINDS),
-            w.HTML("<b>Destino</b>"), self.save_drive, self.drive_msg, self.advanced, advanced_box,
-            w.HTML("<b>Prévia</b> <span style='color:#777;font-size:12px'>(primeiro mapa e primeiro território, "
+            theme.section("Quando e como?"),
+            theme.label("Período"), self.all_years, self.period, self.period_msg,
+            theme.label("Arquivos"), *(self.kind_checks[key] for key, _, _ in KINDS),
+            theme.label("Destino"), self.save_drive, self.drive_msg, self.advanced, advanced_box,
+            w.HTML("<b>Prévia</b> <span style='color:var(--muted);font-size:12px'>(primeiro mapa e primeiro território, "
                    "último ano escolhido)</span>"), self.preview_button, self.preview_box])
+
+    def _set_workers(self, change):
+        self.runner.workers = change["new"]
+        self._update_summary()
 
     def _period_mode(self, *_):
         self.period.layout.display = "none" if self.all_years.value else ""
 
     def _drive_note(self, *_):
         if self.save_drive.value and not drive_mounted():
-            self.drive_msg.value = ("<span style='color:#c62828'>O Drive não está conectado. Rode a célula 1 "
+            self.drive_msg.value = ("<span style='color:var(--danger)'>O Drive não está conectado. Rode a célula 1 "
                                     "de novo ou desmarque esta opção (os arquivos ficam só nesta sessão).</span>")
         elif self.save_drive.value:
             self.drive_msg.value = "Os arquivos ficam na sua pasta do Drive e o que já existir não é refeito."
         else:
-            self.drive_msg.value = ("<span style='color:#a66f00'>Os arquivos ficam só nesta sessão do Colab "
+            self.drive_msg.value = ("<span style='color:var(--warn)'>Os arquivos ficam só nesta sessão do Colab "
                                     "e somem quando ela fechar. Baixe-os no passo 4.</span>")
 
     def _load_years(self):
@@ -743,7 +831,7 @@ class FactoryApp:
                     self.year_ranges[layer_id] = preview.years(self.by_id[layer_id])
                 except Exception as exc:
                     self.year_ranges[layer_id] = None
-                    self.period_msg.value = (f"<span style='color:#c62828'>{escape(self.by_id[layer_id]['name'])}: "
+                    self.period_msg.value = (f"<span style='color:var(--danger)'>{escape(self.by_id[layer_id]['name'])}: "
                                              f"{escape(str(exc))}</span>")
                     return
             self._apply_years()
@@ -765,6 +853,9 @@ class FactoryApp:
         self.period.value = (start, end)
         self.period.min, self.period.max = low, high
         self.period_msg.value = f"Disponível: {low}–{high}."
+        self._update_summary()
+        if STEPS.index(self.stepper.value) == 3:
+            self._render_plan()
 
     def _layer_for_run(self, layer_id):
         layer = dict(self.by_id[layer_id])
@@ -788,27 +879,32 @@ class FactoryApp:
         def work():
             try:
                 url, label = preview.thumbnail_url(_ee(), layer, territory, year)
-                self.preview_box.value = (f"<div style='font-size:12px;color:#555'>{escape(layer['name'])} · "
+                self.preview_box.value = (f"<div style='font-size:12px;color:var(--muted)'>{escape(layer['name'])} · "
                                           f"{escape(territory['name'])} · {escape(label)}</div>"
-                                          f"<img src='{escape(url)}' style='max-width:640px;border:1px solid #ddd'>"
-                                          f"<div style='font-size:11px;color:#777'>Prévia rápida, sem moldura, "
+                                          f"<img src='{escape(url)}' style='max-width:640px;border:1px solid var(--line)'>"
+                                          f"<div style='font-size:11px;color:var(--muted)'>Prévia rápida, sem moldura, "
                                           f"legenda ou título; o arquivo final terá o layout completo.</div>")
             except Exception as exc:
-                self.preview_box.value = f"<span style='color:#c62828'>Prévia indisponível: {escape(str(exc))}</span>"
+                self.preview_box.value = f"<span style='color:var(--danger)'>Prévia indisponível: {escape(str(exc))}</span>"
         Thread(target=work, daemon=True).start()
 
     # ------------------------------------------------------------------ 4. gerar
     def _build_generate(self):
         self.plan = w.HTML()
-        self.check = w.Button(description="Verificar o que já existe", icon="search")
+        self.estimate_box = w.HTML()
+        self.check = w.Button(description="Verificar o que já existe", icon="search", layout=w.Layout(width="230px"))
         self.check_out = w.HTML()
         self.run = w.Button(description="Gerar", icon="play", button_style="success",
                             layout=w.Layout(width="220px", height="40px"))
-        self.results = w.VBox()
+        self.results = self.gallery.widget
         self.check.on_click(self._check)
         self.run.on_click(lambda _: self.start(wait=False))
-        return w.VBox([w.HTML("<h3>Conferir e gerar</h3>"), self.plan, w.HBox([self.run, self.check]),
-                       self.check_out, self.runner.widget(), w.HTML("<b>Resultados</b>"), self.results])
+        return w.VBox([theme.section("Conferir e gerar"), self.plan, self.estimate_box,
+                       w.HBox([self.run, self.check], layout=w.Layout(align_items="center", grid_gap="12px")),
+                       self.check_out, self.runner.widget(),
+                       w.HTML("<b>Vitrine do lote</b> <span style='color:var(--muted);font-size:12px'>(os cartões se "
+                              "atualizam enquanto gera; clique em Abrir para ver, copiar o caminho ou baixar)</span>"),
+                       self.gallery.widget])
 
     def combinations(self):
         combos = []
@@ -826,16 +922,17 @@ class FactoryApp:
     def _render_plan(self):
         combos = self.combinations()
         if not combos:
-            self.plan.value = ("<span style='color:#c62828'>Falta escolher pelo menos um mapa (passo 1) "
+            self.plan.value = ("<span style='color:var(--danger)'>Falta escolher pelo menos um mapa (passo 1) "
                                "e um território (passo 2).</span>")
+            self.estimate_box.value = ""
             return
         rows = "".join(f"<tr><td>{escape(layer['name'])}</td><td>{escape(territory['name'])}</td></tr>"
                        for _, layer, territory in combos[:30])
         more = f"<p>… e mais {len(combos) - 30}.</p>" if len(combos) > 30 else ""
-        self.plan.value = (f"<p>{len(combos)} combinação(ões). Cada uma leva de 1 a alguns minutos, "
-                           f"conforme o tamanho do território e o número de anos.</p>"
+        self.plan.value = (f"<details><summary><b>{len(combos)} combinação(ões)</b> (mapa × território)</summary>"
                            f"<table style='font-size:13px'><tr><th align=left>Mapa</th><th align=left>Território</th></tr>"
-                           f"{rows}</table>{more}")
+                           f"{rows}</table>{more}</details>")
+        self.estimate_box.value = self._estimate_html() if self.kinds() else ""
 
     def _check(self, _=None):
         combos, kinds = self.combinations(), self.kinds()
@@ -851,47 +948,88 @@ class FactoryApp:
                     f"{escape(state)} — {escape(layer['name'])} / {escape(territory['name'])}"
                     for (_, layer, territory), state in lines)
             except Exception as exc:
-                self.check_out.value = f"<span style='color:#c62828'>{escape(str(exc))}</span>"
+                self.check_out.value = f"<span style='color:var(--danger)'>{escape(str(exc))}</span>"
         Thread(target=work, daemon=True).start()
 
     def start(self, wait=True):
         """Gera todas as combinações escolhidas (também usado pela célula opcional do notebook)."""
-        self.results.children = []
         return self.runner.start(self.combinations(), self.kinds(), self.save_drive.value,
                                  self.drive_folder.value, wait=wait)
 
+    def _gallery_start(self, combos):
+        self.gallery.reset()
+        for index, (_, layer, territory) in enumerate(combos):
+            self.gallery.add(index, layer["name"], territory["name"])
+
+    def _gallery_update(self, index, state, info):
+        card = self.gallery.card(index)
+        if card is None or (state == "gerando" and card.state in ("pronto", "existe", "falha")):
+            return
+        card.update(state, info.get("detail", ""), info.get("done", 0), info.get("total", 0))
+        if info.get("files"):
+            card.set_files(info["files"], info.get("folder"))
+
     def _show_results(self, files, summary):
-        files = [Path(f) for f in files]
-        gifs = [f for f in files if f.suffix.lower() == ".gif"]
-        items = []
-        for f in gifs[:6]:
+        # A vitrine já foi preenchida cartão a cartão; aqui só se ajusta a estimativa ao ritmo real.
+        if STEPS.index(self.stepper.value) == 3:
+            self._render_plan()
+
+    # ------------------------------------------------------------------ 5. biblioteca
+    def _build_library(self):
+        self.library_source = w.ToggleButtons(options=[("Meu Drive", "drive"), ("Esta sessão do Colab", "local")],
+                                              value="drive" if drive_mounted() else "local",
+                                              style={"button_width": "170px"})
+        self.library_refresh = w.Button(description="Atualizar", icon="refresh", layout=w.Layout(width="120px"))
+        self.library_search = w.Text(placeholder="Filtrar por mapa ou território", continuous_update=True,
+                                     layout=w.Layout(width="320px"))
+        self.library_msg = w.HTML()
+        self.library_gallery = Gallery(zip_root=self.gallery.zip_root, empty="Nenhum resultado encontrado nesta pasta.",
+                                       filters=False)
+        self._library_entries = []
+        self.library_source.observe(lambda _c: self._scan_library(), names="value")
+        self.library_refresh.on_click(lambda _b: self._scan_library())
+        self.library_search.observe(lambda _c: self._fill_library(), names="value")
+        return w.VBox([w.HTML("<h3>Biblioteca</h3><p style='margin:0 0 6px'>Tudo o que já foi gerado, na pasta do "
+                              "Drive (passo 3) ou nesta sessão. Abra um cartão para ver a animação, copiar o "
+                              "caminho ou baixar.</p>"),
+                       w.HBox([self.library_source, self.library_refresh], layout=w.Layout(grid_gap="8px")),
+                       self.library_search, self.library_msg, self.library_gallery.widget])
+
+    def _library_root(self):
+        return Path(self.drive_folder.value) if self.library_source.value == "drive" else self.output_root
+
+    def _scan_library(self):
+        root = self._library_root()
+        if self.library_source.value == "drive" and not drive_mounted():
+            self.library_msg.value = ("<span style='color:var(--warn)'>O Drive não está conectado nesta sessão. "
+                                      "Rode a célula 1 com o Drive ou veja “Esta sessão do Colab”.</span>")
+            self._library_entries = []
+            self._fill_library()
+            return
+        self.library_msg.value = f"<i>Procurando em {escape(str(root))}…</i>"
+
+        def work():
             try:
-                items.append(w.VBox([w.Image(value=f.read_bytes(), format="gif", layout=w.Layout(max_width="420px")),
-                                     w.HTML(f"<span style='font-size:11px'>{escape(f.name)}</span>")]))
-            except OSError:
-                pass
-        listing = "".join(f"<li style='font-size:12px'>{escape(str(f))}</li>" for f in files[:200])
-        download = self._download_button(files)
-        self.results.children = [w.HBox(items[:3]), w.HBox(items[3:6]), *( [download] if download else []),
-                                 w.HTML(f"<details><summary>{len(files)} arquivo(s)</summary><ul>{listing}</ul></details>")]
+                self._library_entries = scan_library(root)
+                self.library_msg.value = (f"<span style='font-size:12px;color:var(--muted)'>{len(self._library_entries)} "
+                                          f"resultado(s) em <code style='user-select:all'>{escape(str(root))}</code>"
+                                          "</span>")
+            except Exception as exc:
+                self._library_entries = []
+                self.library_msg.value = f"<span style='color:var(--danger)'>{escape(str(exc))}</span>"
+            self._fill_library()
+        Thread(target=work, daemon=True).start()
 
-    def _download_button(self, files):
-        try:
-            from google.colab import files as colab_files
-        except ImportError:
-            return None
-        button = w.Button(description="Baixar tudo (.zip)", icon="download")
-
-        def download(_):
-            import zipfile
-            target = Path("/content/mapbiomas_gifs.zip")
-            with zipfile.ZipFile(target, "w") as archive:
-                for f in files:
-                    if f.exists():
-                        archive.write(f, f.name)
-            colab_files.download(str(target))
-        button.on_click(download)
-        return button
+    def _fill_library(self):
+        term = territories.plain(self.library_search.value)
+        self.library_gallery.reset()
+        for entry in self._library_entries:
+            if term and not all(part in territories.plain(f"{entry['title']} {entry['subtitle']}")
+                                for part in term.split()):
+                continue
+            card = self.library_gallery.add(entry["key"], entry["title"], entry["subtitle"])
+            card.update("pronto")
+            card.set_files(entry["files"], entry["folder"])
 
 
 def show_app(project, layers=(), **kwargs):

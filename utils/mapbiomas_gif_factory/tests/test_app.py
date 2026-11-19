@@ -102,7 +102,10 @@ class AppTests(unittest.TestCase):
             self.assertEqual([(s[0], s[1]) for s in seen], [(FIRE, TERRITORY["id"])])
             self.assertEqual(seen[0][4], {"gif", "colagem"})
             self.assertIn("LOTE CONCLUÍDO", a.runner.status.value)
-            self.assertTrue(a.results.children)
+            card = a.gallery.card(0)
+            self.assertEqual(card.state, "pronto")
+            self.assertTrue(card.files and all(f.suffix == ".gif" for f in card.files))
+            self.assertIn("1 de 1 prontos", a.gallery.counts.value)
 
     def test_existing_result_is_not_regenerated(self):
         seen = []
@@ -182,6 +185,114 @@ class AppTests(unittest.TestCase):
             with patch("gif_factory.user_library.default_path", return_value=Path(tmp) / "lib.json"):
                 a = ui.show_ui([], [TERRITORY], output_root=tmp, project="test", temp_root=tmp)
             self.assertEqual([t["id"] for t in a.selected_territories], [TERRITORY["id"]])
+
+    def test_combinations_run_in_parallel_and_fill_the_gallery(self):
+        both = threading.Barrier(2, timeout=4)
+        seen = []
+
+        def generate(layer, territory, root, kinds, after, **kwargs):
+            both.wait()  # só passa se as duas combinações estiverem rodando ao mesmo tempo
+            seen.append(territory["id"])
+            return fake_generate()(layer, territory, root, kinds, after, **kwargs)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make(tmp, generate=generate, territories=[TERRITORY, DRAWN])
+            a.product_buttons[FIRE].value = True
+            a.save_drive.value = False
+            a.workers.value = 2
+            a.start()
+            self.assertEqual(sorted(seen), sorted([TERRITORY["id"], DRAWN["id"]]))
+            self.assertEqual([a.gallery.card(i).state for i in range(2)], ["pronto", "pronto"])
+            self.assertIn("2 de 2 prontos", a.gallery.counts.value)
+            self.assertIn("Volume:", a.runner.status.value)
+
+    def test_failure_shows_on_its_card(self):
+        def generate(layer, territory, root, kinds, after, **kwargs):
+            raise RuntimeError("sem cota")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make(tmp, generate=generate, territories=[TERRITORY])
+            a.product_buttons[FIRE].value = True
+            a.save_drive.value = False
+            a.start()
+            card = a.gallery.card(0)
+            self.assertEqual(card.state, "falha")
+            self.assertIn("sem cota", card.status.value)
+            self.assertTrue(card.open.disabled)
+
+    def test_library_lists_what_was_generated(self):
+        from gif_factory.gallery import scan_library
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make(tmp, generate=fake_generate(), territories=[TERRITORY])
+            a.product_buttons[FIRE].value = True
+            a.save_drive.value = False
+            a.start()
+            entries = scan_library(Path(tmp) / "out")
+            self.assertEqual([(e["title"], e["subtitle"]) for e in entries], [("Área queimada anual", "Barreiras (BA)")])
+            a.library_source.value = "local"
+            a._library_entries = entries
+            a._fill_library()
+            card = next(iter(a.library_gallery.cards.values()))
+            self.assertEqual(card.state, "pronto")
+            card.open.value = True
+            self.assertEqual(a.library_gallery.detail_box.layout.display, "")
+            a.library_search.value = "outro lugar"
+            self.assertFalse(a.library_gallery.cards)
+
+    def test_estimate_is_shown_before_generating(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make(tmp, territories=[TERRITORY])
+            a.product_buttons[FIRE].value = True
+            a.year_ranges = {FIRE: (1985, 2024)}
+            a.stepper.value = "4 · Gerar"
+            self.assertIn("para 40 quadro(s)", a.estimate_box.value)
+            self.assertIn("MB", a.estimate_box.value)
+            self.assertIn("~", a.summary.value)
+
+    def test_labels_share_one_width_and_next_names_the_step(self):
+        from gif_factory.app import LABEL_WIDTH
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make(tmp)
+            self.assertEqual(a.initiative.style.description_width, LABEL_WIDTH)
+            self.assertEqual(a.asset_field.style.description_width, LABEL_WIDTH)
+            self.assertEqual(a.next.description, "Avançar: Território")
+            a.stepper.value = "5 · Biblioteca"
+            self.assertEqual(a.next.layout.display, "none")
+
+
+class EstimateTests(unittest.TestCase):
+    def test_time_and_size_texts(self):
+        from gif_factory import estimate as E
+        self.assertEqual(E.human_time(30), "menos de 1 minuto")
+        self.assertEqual(E.human_time(3 * 3600 + 5 * 60), "3 h 05 min")
+        self.assertEqual(E.human_time(50 * 3600), "2 dia(s) e 2 h")
+        self.assertEqual(E.human_size(2048), "2.0 GB")
+        self.assertEqual(E.mood(60)[2], 0)
+        self.assertEqual(E.mood(2 * 3600)[2], 1)
+        self.assertEqual(E.mood(3 * 86400)[2], 2)
+
+    def test_batch_uses_workers_and_session_pace(self):
+        from gif_factory import estimate as E
+        one = E.batch([40, 40], {"gif"}, workers=1)
+        two = E.batch([40, 40], {"gif"}, workers=2)
+        self.assertAlmostEqual(two["seconds"] * 2, one["seconds"])
+        self.assertEqual(one["frames"], 80)
+        self.assertAlmostEqual(E.batch([10], {"gif"}, to_drive=True)["saved_mb"],
+                               2 * E.batch([10], {"gif"})["saved_mb"])
+        pace = E.Calibration()
+        pace.add(20, 2)
+        self.assertIsNone(pace.per_frame())  # poucos quadros ainda
+        pace.add(40, 2)
+        self.assertEqual(pace.per_frame(), 15)
+        self.assertTrue(E.batch([10], {"gif"}, per_frame=pace.per_frame())["calibrated"])
+
+    def test_workers_follow_memory(self):
+        from gif_factory.environment import detect, suggested_workers
+        self.assertEqual(suggested_workers(2, 12.7), 2)   # Colab gratuito
+        self.assertEqual(suggested_workers(8, 51), 4)     # Colab com mais memória
+        self.assertEqual(suggested_workers(2, 4), 1)
+        self.assertEqual(suggested_workers(16, None), 1)
+        self.assertGreaterEqual(detect()["workers"], 1)
 
 
 @unittest.skipUnless(importlib.util.find_spec("ipywidgets"), "ipywidgets indisponível")
