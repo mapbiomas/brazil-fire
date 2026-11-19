@@ -14,7 +14,7 @@ products:
     name: "Uso e Cobertura - Nível 1"
     processor: "build_lulc_col11_nivel1"
     temporal_range: [1985, 2025]
-    visualization: "lulc_nivel1"
+    visualization: "lulc11_nivel1"
   lulc_nivel1_1:
     name: "Uso e Cobertura - Nível 1.1"
     processor: "build_lulc_col11_nivel1_1"
@@ -24,14 +24,14 @@ products:
     name: "Uso e Cobertura - Nível 2"
     processor: "build_lulc_col11_nivel2"
     temporal_range: [1985, 2025]
-    visualization: "lulc_nivel2"
+    visualization: "lulc11_nivel2"
   lulc_nivel3:
     name: "Uso e Cobertura - Nível 3"
     processor: "build_lulc_col11_nivel3"
     temporal_range: [1985, 2025]
-    visualization: "lulc"
+    visualization: "lulc11_nivel3"
   lulc_nivel4:
     name: "Uso e Cobertura - Nível 4"
     processor: "build_lulc_col11_nivel4"
     temporal_range: [1985, 2025]
-    visualization: "lulc"
+    visualization: "lulc11_nivel4"

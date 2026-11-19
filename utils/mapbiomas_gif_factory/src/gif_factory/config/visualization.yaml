@@ -1,6 +1,8 @@
 includes:
 - visualization_col101.yaml
 - visualization_solo_atmosfera.yaml
+- visualization_lulc_col11.yaml
+- visualization_fogo.yaml
 visualizations:
   random:
     name: Fragmentos de Vegetação
@@ -654,7 +656,7 @@ visualizations:
   fire_col5_frequency:
     name: Frequência da área queimada
     min: 0
-    max: 40
+    max: 41
     palette:
     - fdfdfd
     - faf3cd
@@ -697,6 +699,7 @@ visualizations:
     - 0d0203
     - 080202
     - '040101'
+    - '020000'
     label: Frequência de queimadas (1985-2025)
     cmap_type: sequential
   fire_col5_year_last_fire:
