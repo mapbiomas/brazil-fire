@@ -1,6 +1,10 @@
 # MapBiomas Fire Brazil
 Developed by [Amazon Environmental Research Institute - IPAM](https://ipam.org.br/pt/)
 
+## 🔗 Apps and repository map: **[mapbiomas.github.io/brazil-fire](https://mapbiomas.github.io/brazil-fire/)**
+
+Published apps (dashboard, monthly bulletin, legends, global monitor), the main Colab notebooks, and a [map of this repository](https://mapbiomas.github.io/brazil-fire/repo_map/) showing what each folder holds.
+
 ## About
 **This is the official repository for the MapBiomas Fire project in Brazil.**
 

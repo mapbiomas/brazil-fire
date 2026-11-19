@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MapBiomas Fogo · brazil-fire</title>
+<meta name="description" content="Aplicações, notebooks e mapa do repositório mapbiomas/brazil-fire.">
+<style>
+  :root {
+    --bg: #f3f5f2; --surface: #ffffff; --ink: #1e2420; --muted: #5f6a63; --line: #dbe1da;
+    --accent: #e5412e; --accent-soft: #fbe3df; --sel: #eef2ed;
+    --f-sans: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    --f-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141715; --surface: #1d211e; --ink: #e7ece8; --muted: #9ba69f; --line: #343b36;
+      --accent: #f26b61; --accent-soft: #3a211e; --sel: #262b27;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-sans); }
+  a { color: inherit; }
+
+  header { background: var(--surface); border-bottom: 1px solid var(--line); }
+  .top { max-width: 1160px; margin: 0 auto; padding: 16px 16px 0; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .top img { height: 34px; width: auto; }
+  .top .repo { font: 13px var(--f-mono); color: var(--muted); text-decoration: none; padding-left: 16px; border-left: 1px solid var(--line); }
+  .top .repo:hover { color: var(--ink); }
+  .lang { margin-left: auto; display: flex; gap: 2px; }
+  .lang button {
+    font: 12px var(--f-sans); border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+    padding: 3px 9px; border-radius: 99px; cursor: pointer;
+  }
+  .lang button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+  .lead { max-width: 1160px; margin: 0 auto; padding: 12px 16px 0; color: var(--muted); }
+  .lead p { margin: 0; max-width: 720px; }
+  nav.tabs { max-width: 1160px; margin: 0 auto; padding: 10px 16px 0; display: flex; gap: 4px; overflow-x: auto; }
+  nav.tabs button {
+    font: 600 14px var(--f-sans); background: none; border: 0; color: var(--muted); cursor: pointer;
+    padding: 10px 12px; border-bottom: 2px solid transparent; white-space: nowrap;
+  }
+  nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+  main { max-width: 1160px; margin: 0 auto; padding: 24px 16px 56px; }
+  [role="tabpanel"][hidden] { display: none; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  h2:not(:first-child) { margin-top: 36px; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .filters button {
+    font: 13px var(--f-sans); padding: 4px 11px; border-radius: 99px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  }
+  .filters button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+  .grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .card {
+    display: flex; flex-direction: column; height: 100%; text-decoration: none;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .card:hover { border-color: var(--muted); box-shadow: 0 4px 18px rgba(0,0,0,.08); }
+  .card:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .thumb { aspect-ratio: 16 / 10; background: var(--sel); border-bottom: 1px solid var(--line); overflow: hidden; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; transition: transform .3s; }
+  .card:hover .thumb img { transform: scale(1.03); }
+  .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .t { font-weight: 600; }
+  .d { color: var(--muted); font-size: 14px; }
+  .meta { margin-top: auto; padding-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .tag { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; }
+  .src { font: 11px var(--f-mono); color: var(--muted); margin-left: auto; }
+
+  .nb { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  .nb li { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+  .nb .links { display: flex; gap: 12px; margin-top: auto; padding-top: 8px; font-size: 13px; }
+  .nb .links a { text-decoration: none; color: var(--accent); }
+  .nb .links a:hover { text-decoration: underline; }
+  .nb .path { font: 11px var(--f-mono); color: var(--muted); word-break: break-all; }
+
+  .mapwrap { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .mapwrap iframe { display: block; width: 100%; height: calc(100vh - 140px); min-height: 560px; border: 0; background: var(--bg); }
+  .maplink { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+  footer { max-width: 1160px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <img id="logo" src="logos/MapBiomas_Fogo_PT.png" alt="MapBiomas Fogo">
+    <a class="repo" href="https://github.com/mapbiomas/brazil-fire">mapbiomas/brazil-fire</a>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="pt">PT</button>
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="es">ES</button>
+    </div>
+  </div>
+  <div class="lead"><p data-i18n="lead"></p></div>
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" id="tab-apps" aria-controls="apps" data-tab="apps" data-i18n="tab_apps"></button>
+    <button type="button" role="tab" id="tab-map" aria-controls="map" data-tab="map" data-i18n="tab_map"></button>
+  </nav>
+</header>
+
+<main>
+  <section role="tabpanel" id="apps" aria-labelledby="tab-apps">
+    <h2 data-i18n="h_apps"></h2>
+    <div class="filters" id="filters"></div>
+    <ul class="grid" id="grid"></ul>
+    <h2 data-i18n="h_nb"></h2>
+    <ul class="nb" id="nb"></ul>
+  </section>
+  <section role="tabpanel" id="map" aria-labelledby="tab-map" hidden>
+    <p class="maplink"><span data-i18n="map_hint"></span> <a id="mapfull" href="repo_map/" target="_blank" rel="noopener"></a></p>
+    <div class="mapwrap"><iframe id="mapframe" title="Repository map" loading="lazy"></iframe></div>
+  </section>
+</main>
+<footer data-i18n="foot"></footer>
+
+<script>
+/* Para adicionar um app: inclua um item em APPS (texto nas três línguas) e uma imagem em thumbs/.
+   To add an app: add an item to APPS (text in the three languages) and an image in thumbs/. */
+const REPO = "https://github.com/mapbiomas/brazil-fire/tree/main/";
+const COLAB = "https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/";
+
+const APPS = [
+  { url: "dashboard/", thumb: "thumbs/dashboard.webp", src: "utils/fire_dashboard", tags: ["data", "network"],
+    t: { pt: "Painel MapBiomas Fogo", en: "MapBiomas Fire dashboard", es: "Panel MapBiomas Fuego" },
+    d: { pt: "Estatísticas da coleção em 8 países, com filtros por bioma e níveis administrativos, mapas e GIFs.",
+         en: "Collection statistics for 8 countries, with filters by biome and administrative levels, maps and GIFs.",
+         es: "Estadísticas de la colección en 8 países, con filtros por bioma y niveles administrativos, mapas y GIFs." } },
+  { url: "fire_monitor_highlights/brazil/", thumb: "thumbs/bulletin_brazil.webp", src: "utils/fire_monitor_highlights", tags: ["monitor"],
+    t: { pt: "Boletim do Monitor do Fogo · Brasil", en: "Fire Monitor bulletin · Brazil", es: "Boletín del Monitor del Fuego · Brasil" },
+    d: { pt: "Destaques mensais do fogo no Brasil, para imprimir ou salvar em PDF.",
+         en: "Monthly fire highlights for Brazil, printable as PDF.",
+         es: "Destacados mensuales del fuego en Brasil, imprimibles en PDF." } },
+  { url: "fire_monitor_highlights/peru/", thumb: "thumbs/bulletin_peru.webp", src: "utils/fire_monitor_highlights", tags: ["monitor", "network"],
+    t: { pt: "Boletim do Monitor do Fogo · Peru", en: "Fire Monitor bulletin · Peru", es: "Boletín del Monitor de Fuego · Perú" },
+    d: { pt: "Destaques mensais do fogo no Peru, em espanhol.",
+         en: "Monthly fire highlights for Peru, in Spanish.",
+         es: "Destacados mensuales del fuego en el Perú." } },
+  { url: "legends/", thumb: "thumbs/legends.webp", src: "utils/fire_legends", tags: ["dev"],
+    t: { pt: "Legendas e paletas", en: "Legends and palettes", es: "Leyendas y paletas" },
+    d: { pt: "Legendas de todas as coleções publicadas, exportáveis como código GEE, CSV, JSON, SVG/PNG ou HEX.",
+         en: "Legends of every published collection, exportable as GEE code, CSV, JSON, SVG/PNG or HEX.",
+         es: "Leyendas de todas las colecciones publicadas, exportables como código GEE, CSV, JSON, SVG/PNG o HEX." } },
+  { url: "global_analises/", thumb: "thumbs/global.webp", src: "global_analises", tags: ["data"],
+    t: { pt: "Monitor global de fogo", en: "Global fire monitor", es: "Monitor global de fuego" },
+    d: { pt: "Exploratório: ranking mensal de área queimada, focos e emissões por país e estado.",
+         en: "Exploratory: monthly ranking of burned area, hotspots and emissions by country and state.",
+         es: "Exploratorio: ranking mensual de área quemada, focos y emisiones por país y estado." } },
+  { url: "repo_map/", thumb: "thumbs/repo_map.webp", src: "utils/fire_repo_map", tags: ["dev"],
+    t: { pt: "Mapa do repositório", en: "Repository map", es: "Mapa del repositorio" },
+    d: { pt: "O que existe no repositório, onde está e para que serve, com links para cada pasta e notebook.",
+         en: "What lives in the repository, where it is and what it is for, with links to every folder and notebook.",
+         es: "Qué hay en el repositorio, dónde está y para qué sirve, con enlaces a cada carpeta y notebook." } }
+];
+
+const NOTEBOOKS = [
+  { path: "network/catalog/production/notebooks/", folder: true,
+    t: { pt: "Catálogo da rede · notebooks por país", en: "Network catalog · notebooks per country", es: "Catálogo de la red · notebooks por país" },
+    d: { pt: "Classificação das coleções e do monitor para cada país da rede (produção).",
+         en: "Collection and monitor classification for each network country (production).",
+         es: "Clasificación de colecciones y monitor para cada país de la red (producción)." } },
+  { path: "network/version_02/classification_algorithms/mapbiomas_fire_classification_for_collab.ipynb",
+    t: { pt: "Classificação de área queimada (rede, v02)", en: "Burned area classification (network, v02)", es: "Clasificación de área quemada (red, v02)" },
+    d: { pt: "Algoritmo de classificação usado a partir da Coleção 2.", en: "Classification algorithm used from Collection 2 onwards.", es: "Algoritmo de clasificación usado desde la Colección 2." } },
+  { path: "utils/mapbiomas_fire_export_and_vectorization/mapbiomas_fire_export_and_vectorization.ipynb",
+    t: { pt: "Exportação e vetorização das coleções", en: "Collection export and vectorization", es: "Exportación y vectorización de colecciones" },
+    d: { pt: "Exporta do GEE, faz mosaico, publica no bucket e vetoriza (opcional).", en: "Exports from GEE, mosaics, publishes to the bucket and vectorizes (optional).", es: "Exporta desde GEE, hace mosaico, publica en el bucket y vectoriza (opcional)." } },
+  { path: "mapbiomas_fire_monitor/version_02/notebooks/mapbiomas_directlink_all_initiatives.ipynb",
+    t: { pt: "Download direto · todas as iniciativas (v02)", en: "Direct download · all initiatives (v02)", es: "Descarga directa · todas las iniciativas (v02)" },
+    d: { pt: "Exporta COGs do MapBiomas de forma retomável.", en: "Resumable export of MapBiomas COGs.", es: "Exportación reanudable de COGs de MapBiomas." } },
+  { path: "mapbiomas_fire_monitor/fire_origin/version_01/mapbiomas_fire_origin.ipynb",
+    t: { pt: "Trajetória e origem do fogo", en: "Fire trajectory and origin", es: "Trayectoria y origen del fuego" },
+    d: { pt: "Agrupa focos em eventos de fogo e estima como cada um se espalhou.", en: "Groups hotspots into fire events and estimates how each one spread.", es: "Agrupa focos en eventos de fuego y estima cómo se propagó cada uno." } },
+  { path: "utils/mapbiomas_gif_factory/notebooks/piloto.ipynb",
+    t: { pt: "Fábrica de GIFs (piloto)", en: "GIF factory (pilot)", es: "Fábrica de GIFs (piloto)" },
+    d: { pt: "GIFs cartográficos a partir de imagens do Earth Engine.", en: "Cartographic GIFs from Earth Engine images.", es: "GIFs cartográficos a partir de imágenes de Earth Engine." } },
+  { path: "access_tools/qgis/plugin_mapbiomas_fogo/", folder: true,
+    t: { pt: "Plugin MapBiomas Fogo para QGIS", en: "MapBiomas Fire plugin for QGIS", es: "Plugin MapBiomas Fuego para QGIS" },
+    d: { pt: "Acesso aos dados direto no QGIS.", en: "Access the data directly in QGIS.", es: "Acceso a los datos directamente en QGIS." } }
+];
+
+const I18N = {
+  pt: { lead: "Aplicações, notebooks e organização do repositório do MapBiomas Fogo no Brasil e na rede de países.",
+        tab_apps: "Aplicações", tab_map: "Mapa do repositório", h_apps: "Aplicações publicadas", h_nb: "Notebooks e ferramentas",
+        all: "todas", tags: { data: "dados", monitor: "monitor", network: "rede", dev: "desenvolvimento" },
+        colab: "Abrir no Colab ↗", folder: "Ver pasta ↗", code: "Código",
+        map_hint: "Navegue pelas pastas para ver o que cada uma contém.", map_full: "Abrir em tela cheia ↗",
+        foot: "Esta página é gerada a partir de utils/fire_showcase no repositório." },
+  en: { lead: "Apps, notebooks and repository layout of MapBiomas Fire in Brazil and the country network.",
+        tab_apps: "Apps", tab_map: "Repository map", h_apps: "Published apps", h_nb: "Notebooks and tools",
+        all: "all", tags: { data: "data", monitor: "monitor", network: "network", dev: "development" },
+        colab: "Open in Colab ↗", folder: "View folder ↗", code: "Code",
+        map_hint: "Browse the folders to see what each one holds.", map_full: "Open full screen ↗",
+        foot: "This page is built from utils/fire_showcase in the repository." },
+  es: { lead: "Aplicaciones, notebooks y organización del repositorio de MapBiomas Fuego en Brasil y la red de países.",
+        tab_apps: "Aplicaciones", tab_map: "Mapa del repositorio", h_apps: "Aplicaciones publicadas", h_nb: "Notebooks y herramientas",
+        all: "todas", tags: { data: "datos", monitor: "monitor", network: "red", dev: "desarrollo" },
+        colab: "Abrir en Colab ↗", folder: "Ver carpeta ↗", code: "Código",
+        map_hint: "Navega por las carpetas para ver qué contiene cada una.", map_full: "Abrir en pantalla completa ↗",
+        foot: "Esta página se genera a partir de utils/fire_showcase en el repositorio." }
+};
+const LOGOS = { pt: "MapBiomas_Fogo_PT.png", en: "MapBiomas_Fire_EN.png", es: "MapBiomas_Fuego_ES.png" };
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const params = new URLSearchParams(location.search);
+let lang = params.get("lang") || (navigator.language || "pt").slice(0, 2);
+if (!I18N[lang]) lang = "en";
+let tag = params.get("tag") || "all";
+let tab = location.hash === "#map" ? "map" : "apps";
+const TAGS = [...new Set(APPS.flatMap(a => a.tags))];
+
+function syncUrl() {
+  const p = new URLSearchParams();
+  p.set("lang", lang);
+  if (tag !== "all") p.set("tag", tag);
+  history.replaceState(null, "", `${location.pathname}?${p}${tab === "map" ? "#map" : ""}`);
+}
+
+function render() {
+  const T = I18N[lang];
+  document.documentElement.lang = lang === "pt" ? "pt-BR" : lang;
+  document.querySelectorAll("[data-i18n]").forEach(e => e.textContent = T[e.dataset.i18n]);
+  document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
+  $("logo").src = "logos/" + LOGOS[lang];
+  $("logo").alt = { pt: "MapBiomas Fogo", en: "MapBiomas Fire", es: "MapBiomas Fuego" }[lang];
+
+  $("filters").innerHTML = ["all", ...TAGS].map(k =>
+    `<button type="button" data-tag="${k}" aria-pressed="${k === tag}">${esc(k === "all" ? T.all : T.tags[k])}</button>`).join("");
+  const shown = tag === "all" ? APPS : APPS.filter(a => a.tags.includes(tag));
+  $("grid").innerHTML = shown.map(a => `<li><a class="card" href="${esc(a.url)}">
+      <div class="thumb"><img src="${esc(a.thumb)}" alt="" loading="lazy" width="640" height="400"></div>
+      <div class="body"><span class="t">${esc(a.t[lang])}</span><span class="d">${esc(a.d[lang])}</span>
+      <div class="meta">${a.tags.map(k => `<span class="tag">${esc(T.tags[k])}</span>`).join("")}<span class="src">${esc(a.src)}</span></div></div>
+    </a></li>`).join("");
+
+  $("nb").innerHTML = NOTEBOOKS.map(n => {
+    const dir = n.folder ? n.path : n.path.slice(0, n.path.lastIndexOf("/") + 1);
+    return `<li><span class="t">${esc(n.t[lang])}</span><span class="d">${esc(n.d[lang])}</span>
+      <span class="path">${esc(n.path)}</span>
+      <div class="links">${n.folder ? "" : `<a href="${esc(COLAB + n.path)}" target="_blank" rel="noopener">${T.colab}</a>`}
+      <a href="repo_map/?lang=${lang}#${esc(dir.replace(/\/$/, ""))}" data-map="${esc(dir.replace(/\/$/, ""))}">${T.folder}</a></div></li>`;
+  }).join("");
+
+  document.querySelectorAll("[role=tab]").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
+  $("apps").hidden = tab !== "apps";
+  $("map").hidden = tab !== "map";
+  $("mapfull").href = `repo_map/?lang=${lang}`;
+  $("mapfull").textContent = T.map_full;
+  if (tab === "map") {
+    const want = `repo_map/?embed=1&lang=${lang}${mapHash ? "#" + mapHash : ""}`;
+    if ($("mapframe").getAttribute("src") !== want) $("mapframe").setAttribute("src", want);
+  }
+  syncUrl();
+}
+let mapHash = "";
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("button[data-lang]");
+  if (b) { lang = b.dataset.lang; return render(); }
+  const f = e.target.closest("button[data-tag]");
+  if (f) { tag = f.dataset.tag; return render(); }
+  const tb = e.target.closest("button[data-tab]");
+  if (tb) { tab = tb.dataset.tab; window.scrollTo(0, 0); return render(); }
+  const m = e.target.closest("a[data-map]");
+  if (m && !e.ctrlKey && !e.metaKey) { e.preventDefault(); mapHash = m.dataset.map; tab = "map"; window.scrollTo(0, 0); render(); }
+});
+render();
+</script>
+</body>
+</html>

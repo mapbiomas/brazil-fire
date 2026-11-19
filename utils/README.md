@@ -9,6 +9,8 @@ Supporting tools for the MapBiomas Fire network. Each folder is independent and 
 | [`fire_legends/`](fire_legends/) | Registry and web app of MapBiomas Fire legends and palettes | [App](https://mapbiomas.github.io/brazil-fire/legends/) |
 | [`fire_dashboard/`](fire_dashboard/) | Interactive dashboard of MapBiomas Fire for eight countries (Brazil, Argentina, Bolivia, Chile, Colombia, Paraguay, Peru, Indonesia; interface in Portuguese, Spanish, English and Bahasa Indonesia), filters by biome and administrative levels, maps and GIF factory | [App](https://mapbiomas.github.io/brazil-fire/dashboard/) |
 | [`mapbiomas_gif_factory/`](mapbiomas_gif_factory/) | Cartographic GIFs from Earth Engine images (Colab pilot) | — |
+| [`fire_showcase/`](fire_showcase/) | Root page of the GitHub Pages site: cards of every published app, main notebooks, and the repository map | [Site](https://mapbiomas.github.io/brazil-fire/) |
+| [`fire_repo_map/`](fire_repo_map/) | Browsable map of the repository: areas, folders, files and what each one is for | [App](https://mapbiomas.github.io/brazil-fire/repo_map/) |
 | [`_base/`](_base/) | Shared logos, UI strings, templates and standards | — |
 
 ## Conventions

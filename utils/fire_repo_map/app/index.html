@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MapBiomas Fogo · Mapa do repositório</title>
+<meta name="description" content="Mapa navegável do repositório mapbiomas/brazil-fire: o que existe, onde está e para que serve.">
+<style>
+  :root {
+    --bg: #f3f5f2; --surface: #ffffff; --ink: #1e2420; --muted: #5f6a63; --line: #dbe1da;
+    --accent: #e5412e; --accent-soft: #fbe3df; --green: #3f7d52; --green-soft: #e0eee3;
+    --warn: #86600a; --warn-soft: #f5ebd0; --code: #f6f8f5; --sel: #eef2ed;
+    --f-sans: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    --f-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141715; --surface: #1d211e; --ink: #e7ece8; --muted: #9ba69f; --line: #343b36;
+      --accent: #f26b61; --accent-soft: #3a211e; --green: #7cc192; --green-soft: #1f3326;
+      --warn: #e2b950; --warn-soft: #3a3020; --code: #181b19; --sel: #262b27;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--f-sans); }
+  a { color: inherit; }
+  header {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 14px 20px; background: var(--surface); border-bottom: 1px solid var(--line);
+  }
+  header img { height: 30px; width: auto; }
+  header h1 { font-size: 15px; font-weight: 600; margin: 0; padding-left: 16px; border-left: 1px solid var(--line); }
+  .lang { margin-left: auto; display: flex; gap: 2px; }
+  .lang button, .chip {
+    font: 12px var(--f-sans); border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+    padding: 3px 9px; border-radius: 99px; cursor: pointer;
+  }
+  .lang button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+  body.embed header { display: none; }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; }
+  .intro { color: var(--muted); margin: 0 0 16px; max-width: 760px; }
+
+  .areas { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); margin-bottom: 22px; }
+  .area {
+    text-align: left; font: inherit; color: inherit; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+  }
+  .area:hover, .area[aria-current="true"] { border-color: var(--accent); }
+  .area b { display: block; font-family: var(--f-mono); font-size: 13px; }
+  .area span { display: block; color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .area small { display: block; color: var(--muted); font-size: 12px; margin-top: 6px; }
+  @media (max-width: 560px) {
+    .areas { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .area { padding: 9px 10px; }
+    .area b { font-size: 12px; word-break: break-all; }
+    .area span { display: none; }
+  }
+
+  .layout { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+
+  .tree-panel { position: sticky; top: 12px; max-height: calc(100vh - 24px); display: flex; flex-direction: column; }
+  @media (max-width: 760px) { .tree-panel { position: static; max-height: 60vh; } }
+  .search { padding: 10px; border-bottom: 1px solid var(--line); }
+  .search input {
+    width: 100%; font: inherit; padding: 7px 10px; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .tree { overflow: auto; padding: 6px 4px 10px; font-family: var(--f-mono); font-size: 13px; }
+  .tree ul { list-style: none; margin: 0; padding-left: 14px; }
+  .tree > ul { padding-left: 2px; }
+  .row { display: flex; align-items: center; gap: 4px; border-radius: 5px; padding: 1px 4px; cursor: pointer; white-space: nowrap; }
+  .row:hover { background: var(--sel); }
+  .row.on { background: var(--accent-soft); }
+  .tw { width: 14px; text-align: center; color: var(--muted); flex: none; font-size: 10px; }
+  .row .n { overflow: hidden; text-overflow: ellipsis; }
+  .row .c { color: var(--muted); font-size: 11px; margin-left: auto; padding-left: 8px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .dot.app { background: var(--accent); }
+  .dot.legacy { background: var(--muted); }
+  .dot.production, .dot.active { background: var(--green); }
+  .dot.pilot { background: var(--warn); }
+  mark { background: var(--warn-soft); color: inherit; border-radius: 2px; }
+
+  .detail { padding: 18px 20px 22px; min-height: 300px; }
+  .crumbs { font: 12px var(--f-mono); color: var(--muted); margin-bottom: 6px; word-break: break-all; }
+  .crumbs a { text-decoration: none; }
+  .crumbs a:hover { text-decoration: underline; }
+  .detail h2 { margin: 0; font-size: 20px; }
+  .detail .title2 { color: var(--muted); margin-top: 2px; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+  .badge { font-size: 12px; padding: 1px 9px; border-radius: 99px; background: var(--sel); color: var(--muted); }
+  .badge.app { background: var(--accent-soft); color: var(--accent); }
+  .badge.legacy { background: var(--sel); }
+  .badge.production, .badge.active { background: var(--green-soft); color: var(--green); }
+  .badge.pilot { background: var(--warn-soft); color: var(--warn); }
+  .desc { margin: 10px 0 14px; max-width: 760px; }
+  .desc.none { color: var(--muted); font-style: italic; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 13px;
+    padding: 6px 12px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface);
+  }
+  .btn:hover { border-color: var(--ink); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { filter: brightness(1.05); }
+
+  .bar { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: var(--sel); margin: 4px 0 6px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 18px 0 8px; font-weight: 600; }
+
+  .subs { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .sub {
+    text-align: left; font: inherit; color: inherit; cursor: pointer;
+    border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 9px 11px;
+  }
+  .sub:hover { border-color: var(--muted); }
+  .sub b { font: 600 13px var(--f-mono); display: flex; gap: 6px; align-items: center; }
+  .sub span { display: block; color: var(--muted); font-size: 12px; margin-top: 3px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .sub small { color: var(--muted); font-size: 11px; }
+
+  .files { list-style: none; margin: 0; padding: 0; font: 13px var(--f-mono); columns: 2 260px; column-gap: 20px; }
+  .files li { break-inside: avoid; padding: 2px 0; display: flex; gap: 8px; align-items: baseline; }
+  .files a { text-decoration: none; word-break: break-all; }
+  .files a:hover { text-decoration: underline; }
+  .files .k { font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; flex: none; }
+  .files .colab { font-size: 11px; color: var(--accent); }
+  footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
+</style>
+</head>
+<body>
+<header>
+  <img id="logo" src="logos/MapBiomas_Fogo_PT.png" alt="MapBiomas Fogo">
+  <h1 data-i18n="title"></h1>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" data-lang="pt">PT</button>
+    <button type="button" data-lang="en">EN</button>
+    <button type="button" data-lang="es">ES</button>
+  </div>
+</header>
+
+<main>
+  <p class="intro" data-i18n="intro"></p>
+  <div class="areas" id="areas"></div>
+  <div class="layout">
+    <aside class="panel tree-panel">
+      <div class="search"><input id="q" type="search" autocomplete="off"></div>
+      <nav class="tree" id="tree"></nav>
+    </aside>
+    <section class="panel detail" id="detail" aria-live="polite"></section>
+  </div>
+  <footer id="foot"></footer>
+</main>
+
+<script>
+const I18N = {
+  pt: {
+    title: "Mapa do repositório",
+    intro: "O que existe no repositório mapbiomas/brazil-fire, onde está e para que serve. Clique numa área ou pasta para ver a descrição, os arquivos e os links.",
+    search: "Buscar pasta ou arquivo…",
+    files: "arquivos", folders: "Subpastas", filelist: "Arquivos nesta pasta",
+    github: "Ver no GitHub", app: "Abrir app", colab: "Colab",
+    nodesc: "Sem README nesta pasta.",
+    status: { legacy: "legado", production: "produção", active: "ativo", pilot: "piloto", app: "app publicado" },
+    kinds: { gee: "Earth Engine (JS)", python: "Python", notebook: "Notebook", web: "Web", data: "Dados", docs: "Docs", image: "Imagens", config: "Config", package: "Pacotes", other: "Outros" },
+    generated: "Gerado a partir do commit", root: "raiz",
+    areas: {
+      "network": "Metodologia compartilhada com os países da rede MapBiomas Fogo: catálogo de classificação, campanhas e notebooks.",
+      "mapbiomas_fire_collections": "Processamento das coleções do Brasil (Coleção 4 e 5): pré-classificação, classificação, pós e estatísticas.",
+      "mapbiomas_fire_monitor": "Monitor do Fogo mensal: exportação, distribuição dos dados e produtos derivados.",
+      "utils": "Ferramentas de apoio e apps publicados: boletim, painel, legendas, GIFs e padrões compartilhados.",
+      "access_tools": "Ferramentas para acessar os dados, como o plugin MapBiomas Fogo para QGIS.",
+      "global_analises": "Monitor global de fogo (exploratório): ranking mensal por país e estado.",
+      ".github": "Automação do repositório: publicação no GitHub Pages e CI."
+    }
+  },
+  en: {
+    title: "Repository map",
+    intro: "What lives in the mapbiomas/brazil-fire repository, where it is and what it is for. Click an area or folder to see its description, files and links.",
+    search: "Search folder or file…",
+    files: "files", folders: "Subfolders", filelist: "Files in this folder",
+    github: "View on GitHub", app: "Open app", colab: "Colab",
+    nodesc: "No README in this folder.",
+    status: { legacy: "legacy", production: "production", active: "active", pilot: "pilot", app: "published app" },
+    kinds: { gee: "Earth Engine (JS)", python: "Python", notebook: "Notebook", web: "Web", data: "Data", docs: "Docs", image: "Images", config: "Config", package: "Packages", other: "Other" },
+    generated: "Generated from commit", root: "root",
+    areas: {
+      "network": "Methodology shared with the MapBiomas Fire network countries: classification catalog, campaigns and notebooks.",
+      "mapbiomas_fire_collections": "Processing of Brazil's collections (Collection 4 and 5): pre-classification, classification, post-processing and statistics.",
+      "mapbiomas_fire_monitor": "Monthly Fire Monitor: export, data distribution and derived products.",
+      "utils": "Supporting tools and published apps: bulletin, dashboard, legends, GIFs and shared standards.",
+      "access_tools": "Tools to access the data, such as the MapBiomas Fire plugin for QGIS.",
+      "global_analises": "Global fire monitor (exploratory): monthly ranking by country and state.",
+      ".github": "Repository automation: GitHub Pages publishing and CI."
+    }
+  },
+  es: {
+    title: "Mapa del repositorio",
+    intro: "Qué hay en el repositorio mapbiomas/brazil-fire, dónde está y para qué sirve. Haz clic en un área o carpeta para ver su descripción, archivos y enlaces.",
+    search: "Buscar carpeta o archivo…",
+    files: "archivos", folders: "Subcarpetas", filelist: "Archivos en esta carpeta",
+    github: "Ver en GitHub", app: "Abrir app", colab: "Colab",
+    nodesc: "Esta carpeta no tiene README.",
+    status: { legacy: "legado", production: "producción", active: "activo", pilot: "piloto", app: "app publicada" },
+    kinds: { gee: "Earth Engine (JS)", python: "Python", notebook: "Notebook", web: "Web", data: "Datos", docs: "Docs", image: "Imágenes", config: "Config", package: "Paquetes", other: "Otros" },
+    generated: "Generado a partir del commit", root: "raíz",
+    areas: {
+      "network": "Metodología compartida con los países de la red MapBiomas Fuego: catálogo de clasificación, campañas y notebooks.",
+      "mapbiomas_fire_collections": "Procesamiento de las colecciones de Brasil (Colección 4 y 5): preclasificación, clasificación, posclasificación y estadísticas.",
+      "mapbiomas_fire_monitor": "Monitor del Fuego mensual: exportación, distribución de datos y productos derivados.",
+      "utils": "Herramientas de apoyo y apps publicadas: boletín, panel, leyendas, GIFs y estándares compartidos.",
+      "access_tools": "Herramientas para acceder a los datos, como el plugin MapBiomas Fuego para QGIS.",
+      "global_analises": "Monitor global de fuego (exploratorio): ranking mensual por país y estado.",
+      ".github": "Automatización del repositorio: publicación en GitHub Pages y CI."
+    }
+  }
+};
+const LOGOS = { pt: "MapBiomas_Fogo_PT.png", en: "MapBiomas_Fire_EN.png", es: "MapBiomas_Fuego_ES.png" };
+const AREA_ORDER = ["network", "mapbiomas_fire_collections", "mapbiomas_fire_monitor", "utils", "access_tools", "global_analises", ".github"];
+const KIND_COLORS = { gee: "#4f7cac", python: "#3f7d52", notebook: "#e08a2e", web: "#e5412e", data: "#8a6fb3", docs: "#9aa39d", image: "#c9a227", config: "#6b7d8f", package: "#a0522d", other: "#c3c9c4" };
+
+const params = new URLSearchParams(location.search);
+if (params.get("embed") === "1") document.body.classList.add("embed");
+let lang = params.get("lang") || (navigator.language || "pt").slice(0, 2);
+if (!I18N[lang]) lang = "en";
+
+let DATA, BY_PATH = {}, PARENT = {}, current = "", open = new Set([""]);
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const t = () => I18N[lang];
+const ghUrl = (p, isFile) => `https://github.com/${DATA.repo}/${isFile ? "blob" : "tree"}/${DATA.branch}/${p.split("/").map(encodeURIComponent).join("/")}`;
+const colabUrl = p => `https://colab.research.google.com/github/${DATA.repo}/blob/${DATA.branch}/${p}`;
+
+function index(n, parent) {
+  BY_PATH[n.path] = n;
+  if (parent !== undefined) PARENT[n.path] = parent;
+  n.dirs.forEach(d => index(d, n.path));
+}
+function badgeKey(n) { return n.app ? "app" : n.status; }
+function nf(x) { return x.toLocaleString(lang === "en" ? "en-US" : lang === "es" ? "es" : "pt-BR"); }
+
+/* ---------- tree ---------- */
+function treeHtml(n, q) {
+  const kids = n.dirs.map(d => treeHtml(d, q)).filter(Boolean);
+  const self = n.path === "" ? null : n;
+  if (q) {
+    const hit = n.name.toLowerCase().includes(q) || (n.files || []).some(f => f.name.toLowerCase().includes(q))
+      || (n.title || "").toLowerCase().includes(q);
+    if (!hit && !kids.length) return "";
+  }
+  const expanded = q || open.has(n.path);
+  const name = q ? esc(n.name).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig"), m => `<mark>${m}</mark>`) : esc(n.name);
+  const bk = badgeKey(n);
+  const row = self ? `<div class="row${current === n.path ? " on" : ""}" data-p="${esc(n.path)}" role="treeitem" aria-expanded="${n.dirs.length ? expanded : ""}">
+      <span class="tw" data-t="${esc(n.path)}">${n.dirs.length ? (expanded ? "▾" : "▸") : ""}</span>
+      ${bk ? `<span class="dot ${bk}"></span>` : ""}<span class="n">${name}</span><span class="c">${nf(n.total)}</span></div>` : "";
+  const sub = kids.length && (expanded || !self) ? `<ul role="group">${kids.join("")}</ul>` : "";
+  return self ? `<li>${row}${sub}</li>` : sub;
+}
+function renderTree() {
+  const q = $("q").value.trim().toLowerCase();
+  $("tree").innerHTML = treeHtml(DATA.tree, q) || `<p style="padding:8px;color:var(--muted)">—</p>`;
+  const on = $("tree").querySelector(".row.on");
+  if (on && !q) on.scrollIntoView({ block: "nearest" });
+}
+
+/* ---------- areas ---------- */
+function renderAreas() {
+  $("areas").innerHTML = AREA_ORDER.filter(p => BY_PATH[p]).map(p => {
+    const n = BY_PATH[p];
+    const top = current === p || current.startsWith(p + "/");
+    return `<button type="button" class="area" data-p="${esc(p)}" aria-current="${top}">
+      <b>${esc(p)}/</b><span>${esc(t().areas[p] || n.desc || "")}</span><small>${nf(n.total)} ${t().files}</small></button>`;
+  }).join("");
+}
+
+/* ---------- detail ---------- */
+function kindsBar(kinds) {
+  const total = Object.values(kinds).reduce((a, b) => a + b, 0) || 1;
+  const order = Object.keys(KIND_COLORS).filter(k => kinds[k]);
+  return `<div class="bar">${order.map(k => `<span style="width:${kinds[k] / total * 100}%;background:${KIND_COLORS[k]}" title="${t().kinds[k]}: ${kinds[k]}"></span>`).join("")}</div>
+    <div class="legend">${order.map(k => `<span><i style="background:${KIND_COLORS[k]}"></i>${t().kinds[k]} · ${nf(kinds[k])}</span>`).join("")}</div>`;
+}
+function renderDetail() {
+  const n = BY_PATH[current] || DATA.tree;
+  const parts = n.path ? n.path.split("/") : [];
+  const crumbs = [`<a href="#" data-p="">brazil-fire</a>`].concat(parts.map((p, i) => {
+    const sub = parts.slice(0, i + 1).join("/");
+    return i === parts.length - 1 ? esc(p) : `<a href="#${esc(sub)}" data-p="${esc(sub)}">${esc(p)}</a>`;
+  })).join(" / ");
+  const bk = [];
+  if (n.app) bk.push(`<span class="badge app">${t().status.app}</span>`);
+  if (n.status) bk.push(`<span class="badge ${n.status}">${t().status[n.status]}</span>`);
+  bk.push(`<span class="badge">${nf(n.total)} ${t().files}</span>`);
+
+  const desc = (n.path === "" ? null : (t().areas[n.path] && !n.desc ? t().areas[n.path] : n.desc)) || (n.path === "" ? t().intro : null);
+  const actions = [
+    n.app ? `<a class="btn primary" href="${esc(n.app)}" target="_blank" rel="noopener">${t().app} ↗</a>` : "",
+    `<a class="btn" href="${esc(ghUrl(n.path || "", false))}" target="_blank" rel="noopener">${t().github} ↗</a>`
+  ].join("");
+
+  const subs = n.dirs.length ? `<h3>${t().folders} · ${n.dirs.length}</h3><div class="subs">${n.dirs.map(d => {
+    const k = badgeKey(d);
+    return `<button type="button" class="sub" data-p="${esc(d.path)}"><b>${k ? `<span class="dot ${k}"></span>` : ""}${esc(d.name)}/</b>
+      ${d.desc || t().areas[d.path] ? `<span>${esc(t().areas[d.path] || d.desc)}</span>` : ""}<small>${nf(d.total)} ${t().files}</small></button>`;
+  }).join("")}</div>` : "";
+
+  const files = n.files.length ? `<h3>${t().filelist} · ${n.files.length}</h3><ul class="files">${n.files.map(f => {
+    const p = n.path ? `${n.path}/${f.name}` : f.name;
+    return `<li><span class="k">${esc(t().kinds[f.kind] || f.kind)}</span><a href="${esc(ghUrl(p, true))}" target="_blank" rel="noopener">${esc(f.name)}</a>${f.kind === "notebook" ? ` <a class="colab" href="${esc(colabUrl(p))}" target="_blank" rel="noopener">${t().colab} ↗</a>` : ""}</li>`;
+  }).join("")}</ul>` : "";
+
+  $("detail").innerHTML = `<div class="crumbs">${crumbs}</div>
+    <h2>${esc(n.path ? n.name + "/" : "mapbiomas/brazil-fire")}</h2>
+    ${n.title ? `<div class="title2">${esc(n.title)}</div>` : ""}
+    <div class="badges">${bk.join("")}</div>
+    <p class="desc${desc ? "" : " none"}">${esc(desc || t().nodesc)}</p>
+    <div class="actions">${actions}</div>
+    ${kindsBar(n.kinds_total)}
+    ${subs}${files}`;
+}
+
+/* ---------- state ---------- */
+function go(p, push = true) {
+  if (!(p in BY_PATH)) p = "";
+  current = p;
+  let a = p;
+  while (a) { open.add(a); a = PARENT[a] ?? ""; }
+  open.add(p);
+  if (push) history.replaceState(null, "", `${location.pathname}${location.search}${p ? "#" + encodeURI(p) : ""}`);
+  renderAreas(); renderTree(); renderDetail();
+  if (push && window.innerWidth < 760) $("detail").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l === "pt" ? "pt-BR" : l;
+  document.querySelectorAll("[data-i18n]").forEach(e => e.textContent = t()[e.dataset.i18n]);
+  document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === l));
+  $("logo").src = "logos/" + LOGOS[l];
+  $("q").placeholder = t().search;
+  document.title = `MapBiomas · ${t().title}`;
+  const p = new URLSearchParams(location.search); p.set("lang", l);
+  history.replaceState(null, "", `${location.pathname}?${p}${location.hash}`);
+  if (DATA) {
+    const c = DATA.commit;
+    $("foot").innerHTML = c ? `${t().generated} <a href="https://github.com/${DATA.repo}/commit/${c.sha}" target="_blank" rel="noopener">${esc(c.sha)}</a> · ${esc(c.date.slice(0, 10))}` : "";
+    go(current, false);
+  }
+}
+
+document.addEventListener("click", e => {
+  const lb = e.target.closest(".lang button");
+  if (lb) return setLang(lb.dataset.lang);
+  const tw = e.target.closest(".tw[data-t]");
+  if (tw && tw.textContent) {
+    const p = tw.dataset.t;
+    open.has(p) ? open.delete(p) : open.add(p);
+    return renderTree();
+  }
+  const el = e.target.closest("[data-p]");
+  if (el && !e.target.closest(".files")) { e.preventDefault(); go(el.dataset.p); }
+});
+$("q").addEventListener("input", renderTree);
+window.addEventListener("hashchange", () => go(decodeURI(location.hash.slice(1)), false));
+
+setLang(lang);
+fetch("repo_map.json").then(r => r.json()).then(d => {
+  DATA = d; index(d.tree);
+  setLang(lang);
+  go(decodeURI(location.hash.slice(1)), false);
+}).catch(() => { $("detail").textContent = "repo_map.json não encontrado / not found."; });
+</script>
+</body>
+</html>
