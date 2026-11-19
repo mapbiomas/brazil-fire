@@ -33,6 +33,10 @@ DEFAULT_DRIVE_FOLDER = "/content/drive/MyDrive/MapBiomas_GIF_Factory"
 TERRITORY_BASES = [("Brasil", "brasil"), ("Perú", "peru"), ("Paraguay", "paraguay"), ("RD Congo", "drc"),
                    ("Meus territórios", "meus")]
 MY_MAPS = "Meus mapas"
+ROLES = [("Recorte", "recorte"), ("Linha", "linha")]
+LINE_COLORS = [("Preto", "000000"), ("Branco", "ffffff"), ("Amarelo", "f2c94c"), ("Terracota", "c0643f"),
+               ("Cinza", "7a7a7a"), ("Azul", "2f6fb0"), ("Vermelho", "d32f2f")]
+LINE_WIDTHS = [("Fina", 2), ("Média", 3), ("Grossa", 5)]
 
 
 def _ee():
@@ -216,7 +220,9 @@ class FactoryApp:
 
     def _update_summary(self):
         maps = [self.by_id[i]["name"] for i in self.selected_layers]
-        places = [t["name"] for t in self.selected_territories]
+        places = [t["name"] for t in self.clips()]
+        color_name = {v: k.lower() for k, v in LINE_COLORS}
+        lines = [f"{t['name']} em {color_name.get(t.get('color'), 'cor própria')}" for t in self.lines()]
         kinds = [label for key, label, _ in KINDS if self.kind_checks[key].value] + \
                 [label for key, label in ADVANCED_KINDS if self.kind_checks[key].value]
         def fmt(items):
@@ -236,6 +242,7 @@ class FactoryApp:
             "<div style='border-left:4px solid var(--green);padding:6px 12px;margin:8px 0;background:var(--surface);"
             "border-radius:0 10px 10px 0;box-shadow:0 1px 3px var(--shadow);font-size:13px'>"
             f"<b>Mapas:</b> {fmt(maps)} &nbsp;·&nbsp; <b>Territórios:</b> {fmt(places)} &nbsp;·&nbsp; "
+            + (f"<b>Linhas:</b> {fmt(lines)} &nbsp;·&nbsp; " if lines else "") +
             f"<b>Período:</b> {period} &nbsp;·&nbsp; <b>Arquivos:</b> {fmt(kinds)}"
             f" &nbsp;·&nbsp; <b>{total} combinação(ões)</b>{guess}</div>")
 
@@ -252,7 +259,7 @@ class FactoryApp:
     def estimate(self):
         """Tempo e volume previstos para a seleção atual (ver `estimate.batch`)."""
         frames = [self._frames_for(layer_id) for layer_id in self.selected_layers
-                  for _ in self.selected_territories]
+                  for _ in self.clips()]
         return estimate.batch(frames, self.kinds(), self.runner.workers, self.runner.calibration.per_frame(),
                               to_drive=self.save_drive.value)
 
@@ -424,7 +431,8 @@ class FactoryApp:
     def _beta_preview(self, _=None):
         def work():
             layer = self._beta_layer()
-            territory = self.selected_territories[0] if self.selected_territories else None
+            clips = self.combinations()
+            territory = clips[0][2] if clips else (self.clips() or [None])[0]
             url, label = preview.layer_thumbnail(_ee(), layer, territory)
             where = escape(territory["name"]) if territory else "área do asset"
             self.beta_preview_box.value = (f"<div style='font-size:12px;color:var(--muted)'>{escape(label)} · {where}</div>"
@@ -583,8 +591,13 @@ class FactoryApp:
         self._found = []
         self._marked = []
         self._search_thread = None
+        self.place_lines = w.Button(description="Camada inteira como linhas", icon="pencil",
+                                    tooltip="Ex.: todos os biomas ou todos os estados desenhados sobre o mapa",
+                                    layout=w.Layout(width="250px"))
+        self.place_lines.on_click(self._add_whole_as_lines)
         search_box = w.VBox([self.kind, self.place_search, self.place_results, self.place_combine,
-                             w.HBox([self.place_add, self.place_forget]), self.place_msg])
+                             w.HBox([self.place_add, self.place_lines, self.place_forget],
+                                    layout=w.Layout(flex_flow="row wrap")), self.place_msg])
         # Desenhar
         self.draw_name = w.Text(placeholder="Nome da área (ex.: Entorno do Parque X)", description="Nome:")
         self.draw_add = w.Button(description="Adicionar área desenhada", icon="plus", button_style="success")
@@ -815,15 +828,75 @@ class FactoryApp:
         self._render_chosen()
         self._update_summary()
 
+    def clips(self):
+        """Territórios que recortam o mapa (cada um gera uma combinação)."""
+        return [t for t in self.selected_territories if t.get("role", "recorte") != "linha"]
+
+    def lines(self):
+        """Territórios desenhados como linhas sobre todos os recortes."""
+        return [t for t in self.selected_territories if t.get("role") == "linha"]
+
     def _render_chosen(self):
         rows = []
         for territory in self.selected_territories:
+            tid = territory["id"]
             remove = w.Button(icon="times", tooltip="Remover", layout=w.Layout(width="36px"))
-            remove.on_click(lambda _b, i=territory["id"]: self._remove_territory(i))
-            rows.append(w.HBox([remove, w.HTML(f"<span style='line-height:28px'>{escape(territory['name'])}</span>")]))
-        self.chosen.children = rows or [w.HTML("<i style='color:var(--muted)'>Nenhum ainda.</i>")]
+            remove.on_click(lambda _b, i=tid: self._remove_territory(i))
+            role = theme.classed(w.ToggleButtons(options=ROLES, value=territory.get("role", "recorte"),
+                                                 tooltips=["Filtra o mapa: gera uma combinação",
+                                                           "Desenha o contorno sobre o mapa"],
+                                                 style={"button_width": "72px"}), "gf-tabs")
+            color = w.Dropdown(options=LINE_COLORS, value=territory.get("color", "000000"),
+                               layout=w.Layout(width="110px"))
+            width = w.Dropdown(options=LINE_WIDTHS, value=territory.get("width", 2), layout=w.Layout(width="90px"))
+            line_box = w.HBox([color, width], layout=w.Layout(display="" if territory.get("role") == "linha" else "none"))
+            role.observe(lambda c, i=tid, box=line_box: self._set_line(i, box, role=c["new"]), names="value")
+            color.observe(lambda c, i=tid: self._set_line(i, None, color=c["new"]), names="value")
+            width.observe(lambda c, i=tid: self._set_line(i, None, width=c["new"]), names="value")
+            name = w.HTML(f"<span style='line-height:28px'>{escape(territory['name'])}</span>",
+                          layout=w.Layout(flex="1 1 120px", min_width="0"))
+            rows.append(w.HBox([remove, name, role, line_box],
+                               layout=w.Layout(flex_flow="row wrap", align_items="center")))
+        hint = ("<div style='font-size:12px;color:var(--muted)'><b>Recorte</b> filtra o mapa (uma combinação "
+                "por recorte). <b>Linha</b> desenha o contorno sobre todos os recortes, na cor e espessura "
+                "escolhidas.</div>")
+        self.chosen.children = ([w.HTML(hint)] + rows) if rows else [w.HTML("<i style='color:var(--muted)'>Nenhum ainda.</i>")]
 
-    def _draw_on_map(self, territory):
+    def _set_line(self, territory_id, box, **changes):
+        for territory in self.selected_territories:
+            if territory["id"] == territory_id:
+                territory.update(changes)
+                territory.setdefault("color", "000000")
+                territory.setdefault("width", 2)
+                if box is not None:
+                    box.layout.display = "" if territory.get("role") == "linha" else "none"
+                self._redraw_on_map(territory)
+        self._update_summary()
+
+    def _add_whole_as_lines(self, _=None):
+        try:
+            if self.base.value == "meus":
+                raise ValueError("Escolha uma base oficial (ex.: Brasil) e o tipo (ex.: Bioma, Estado).")
+            source = self._source()
+            item = dict(territories.whole(source), name=f"{source['label']} (todos)", role="linha",
+                        color="000000", width=2)
+            if self._add_territory(item):
+                self.place_msg.value = (f"✓ {escape(item['name'])} adicionado como linhas. "
+                                        "Troque a cor e a espessura na lista ao lado.")
+            else:
+                self.place_msg.value = "Essa camada já está na lista."
+        except Exception as exc:
+            self.place_msg.value = f"<span style='color:var(--danger)'>{escape(str(exc))}</span>"
+
+    def _redraw_on_map(self, territory):
+        if self.map is None:
+            return
+        for layer in list(self.map.layers):
+            if getattr(layer, "name", "") == f"territorio:{territory['id']}":
+                self.map.remove(layer)
+        self._draw_on_map(territory, fit=False)
+
+    def _draw_on_map(self, territory, fit=True):
         if self.map is None:
             return
 
@@ -831,11 +904,13 @@ class FactoryApp:
             try:
                 import ipyleaflet
                 ee = _ee()
-                url = preview.outline_url(ee, territory)
+                url = (preview.outline_url(ee, territory, territory.get("color", "000000"))
+                       if territory.get("role") == "linha" else preview.outline_url(ee, territory))
                 self.map.add(ipyleaflet.TileLayer(url=url, name=f"territorio:{territory['id']}",
                                                   attribution="Google Earth Engine"))
                 # fit_bounds depende do loop assíncrono do kernel; centro e zoom funcionam de qualquer thread.
-                self.map.center, self.map.zoom = preview.center_zoom(preview.bounds(ee, territory))
+                if fit:
+                    self.map.center, self.map.zoom = preview.center_zoom(preview.bounds(ee, territory))
             except Exception as exc:
                 self.place_msg.value = f"<span style='color:var(--danger)'>Não foi possível mostrar no mapa: {escape(str(exc))}</span>"
         Thread(target=work, daemon=True).start()
@@ -953,7 +1028,11 @@ class FactoryApp:
             return
         self.preview_box.value = "<i>Gerando prévia…</i>"
         layer = self._layer_for_run(self.selected_layers[0]) or self.by_id[self.selected_layers[0]]
-        territory = self.selected_territories[0]
+        combos = self.combinations()
+        if not combos:
+            self.preview_box.value = "Marque pelo menos um território como Recorte."
+            return
+        territory = combos[0][2]
         year = None if self.all_years.value else self.period.value[1]
 
         def work():
@@ -992,8 +1071,13 @@ class FactoryApp:
             layer = self._layer_for_run(layer_id)
             if layer is None:
                 continue
-            for territory in self.selected_territories:
-                combos.append((layer["initiative"], layer, dict(territory)))
+            lines = [{k: v for k, v in line.items() if k in ("id", "name", "asset", "filter", "geometry",
+                                                              "color", "width")} for line in self.lines()]
+            for territory in self.clips():
+                item = {k: v for k, v in territory.items() if k not in ("role", "color", "width")}
+                if lines:
+                    item["overlays"] = lines
+                combos.append((layer["initiative"], layer, item))
         return combos
 
     def kinds(self):
@@ -1002,8 +1086,10 @@ class FactoryApp:
     def _render_plan(self):
         combos = self.combinations()
         if not combos:
-            self.plan.value = ("<span style='color:var(--danger)'>Falta escolher pelo menos um mapa (passo 1) "
-                               "e um território (passo 2).</span>")
+            missing = ("todos os territórios estão como Linha; marque pelo menos um como Recorte (passo 2)"
+                       if self.selected_layers and self.selected_territories else
+                       "falta escolher pelo menos um mapa (passo 1) e um território (passo 2)")
+            self.plan.value = f"<span style='color:var(--danger)'>Não dá para gerar ainda: {missing}.</span>"
             self.estimate_box.value = ""
             return
         rows = "".join(f"<tr><td>{escape(layer['name'])}</td><td>{escape(territory['name'])}</td></tr>"

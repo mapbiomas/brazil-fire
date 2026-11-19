@@ -7,6 +7,28 @@ from ..config import ConfigLoader
 from ..utils.file_utils import ensure_dir
 
 
+def apply_overlay(visualized, overlay, region):
+    """Desenha contornos sobre a imagem já visualizada.
+
+    `overlay` pode ser uma FeatureCollection (contorno preto de 1 px, como antes) ou uma
+    lista de {"fc", "color", "width"}: cada camada vira uma linha na sua cor e espessura,
+    recortada pelo território (`region`) para não sair do mapa.
+    """
+    if overlay is None:
+        return visualized
+    if not isinstance(overlay, (list, tuple)):
+        boundaries = ee.Image().byte().paint(featureCollection=overlay, color=1, width=1)
+        return visualized.where(boundaries, 0)
+    inside = ee.Image().paint(region, 0).eq(0)
+    for item in overlay:
+        lines = (ee.Image().byte()
+                 .paint(featureCollection=item["fc"], color=1, width=item.get("width", 1))
+                 .updateMask(inside))
+        color = str(item.get("color", "000000")).lstrip("#")
+        visualized = visualized.blend(lines.visualize(palette=[color]))
+    return visualized
+
+
 class EEDownloader:
     """Download de imagens do Earth Engine com geração de thumbnails."""
 
@@ -159,9 +181,7 @@ class EEDownloader:
                 ee.Image().paint(region, 0).eq(0)
             ).blend(ee.Image().paint(region, "vazio", 1))
 
-        if overlay_fc is not None:
-            boundaries = ee.Image().byte().paint(featureCollection=overlay_fc, color=1, width=1)
-            visualized = visualized.where(boundaries, 0)
+        visualized = apply_overlay(visualized, overlay_fc, region)
 
         url = visualized.getThumbURL({
             "dimensions": str(self.vertical_dimension),
@@ -217,9 +237,7 @@ class EEDownloader:
                         .updateMask(ee.Image().paint(region_fc, 0).eq(0))
                         .blend(ee.Image().paint(region_fc, "vazio", 1))
                     )
-                    if overlay_fc is not None:
-                        boundaries = ee.Image().byte().paint(featureCollection=overlay_fc, color=1, width=1)
-                        visualized = visualized.where(boundaries, 0)
+                    visualized = apply_overlay(visualized, overlay_fc, region_fc)
 
                     url = visualized.getThumbURL({
                         "dimensions": str(self.vertical_dimension),

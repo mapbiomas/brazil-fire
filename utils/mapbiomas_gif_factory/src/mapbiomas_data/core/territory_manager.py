@@ -92,6 +92,9 @@ class TerritoryManager:
             import ee
         except ImportError:
             return None
+        return self._fc_from_entry(ee, info)
+
+    def _fc_from_entry(self, ee, info: Dict[str, Any]):
         if info.get("geometry"):
             return self._build_geometry_fc(ee, info["geometry"])
         fc = ee.FeatureCollection(info["source"])
@@ -144,13 +147,19 @@ class TerritoryManager:
 
     def get_overlay_fc(self, territory_id: str):
         info = self.get_raw_territory(territory_id)
+        overlays = info.get("overlays")
         overlay_source = info.get("overlay_source")
-        if not overlay_source:
+        if not overlays and not overlay_source:
             return None
         try:
             import ee
         except ImportError:
             return None
+        if overlays:
+            # Linhas para compor o mapa: cada uma com cor e espessura próprias.
+            return [{"fc": self._fc_from_entry(ee, item),
+                     "color": str(item.get("color", "000000")).lstrip("#"),
+                     "width": int(item.get("width", 1))} for item in overlays]
         return ee.FeatureCollection(overlay_source)
 
     def get_raw_territory(self, territory_id: str) -> Dict[str, Any]:

@@ -23,7 +23,16 @@ def product_path(origin, layer):
 
 
 def combination_path(origin, layer, territory):
-    return product_path(origin, layer) / safe_name(territory["name"])
+    folder = safe_name(territory["name"])
+    lines = territory.get("overlays") or []
+    if lines:
+        # Variação com linhas: pasta própria, para não se misturar com o mapa "cru".
+        import hashlib
+        import json
+        spec = [{k: line.get(k) for k in ("asset", "filter", "geometry", "color", "width")} for line in lines]
+        digest = hashlib.sha256(json.dumps(spec, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:6]
+        folder = f"{folder}_linhas_{digest}"
+    return product_path(origin, layer) / folder
 
 
 def ensure_unique_paths(combos):

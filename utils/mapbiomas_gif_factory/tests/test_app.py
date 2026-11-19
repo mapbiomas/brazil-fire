@@ -261,6 +261,62 @@ class AppTests(unittest.TestCase):
 
 
 @unittest.skipUnless(importlib.util.find_spec("ipywidgets"), "ipywidgets indisponível")
+class LineTerritoryTests(unittest.TestCase):
+    BIOMES = {"id": "fonte_biomas", "name": "Bioma (todos)", "asset": "projects/x/biomas"}
+    STATES = {"id": "fonte_estados", "name": "Estado (todos)", "asset": "projects/x/estados"}
+
+    def make_with_lines(self, tmp, **kwargs):
+        a = AppTests.make(self, tmp, territories=[TERRITORY, self.BIOMES, self.STATES], **kwargs)
+        a.product_buttons[FIRE].value = True
+        a._set_line(self.BIOMES["id"], None, role="linha", color="f2c94c", width=3)
+        a._set_line(self.STATES["id"], None, role="linha", color="000000", width=2)
+        return a
+
+    def test_lines_are_drawn_on_every_clip_not_generated_alone(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make_with_lines(tmp)
+            combos = a.combinations()
+            self.assertEqual([t["id"] for _, _, t in combos], [TERRITORY["id"]])
+            lines = combos[0][2]["overlays"]
+            self.assertEqual([(l["name"], l["color"], l["width"]) for l in lines],
+                             [("Bioma (todos)", "f2c94c", 3), ("Estado (todos)", "000000", 2)])
+            self.assertNotIn("role", combos[0][2])
+            self.assertIn("Linhas:", a.summary.value)
+            self.assertIn("em amarelo", a.summary.value)
+            self.assertIn("1 combinação", a.summary.value)
+
+    def test_only_lines_cannot_generate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make_with_lines(tmp)
+            a._set_line(TERRITORY["id"], None, role="linha")
+            a.stepper.value = "4 · Gerar"
+            self.assertIn("marque pelo menos um como Recorte", a.plan.value)
+
+    def test_lines_reach_the_pipeline_and_get_their_own_folder(self):
+        from gif_factory.engine import _territory_entries
+        from gif_factory.layout import combination_path
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make_with_lines(tmp)
+            origin, layer, territory = a.combinations()[0]
+            entry = _territory_entries(territory)["biomes"][TERRITORY["id"]]
+            self.assertEqual([(o["source"], o["color"], o["width"]) for o in entry["overlays"]],
+                             [("projects/x/biomas", "f2c94c", 3), ("projects/x/estados", "000000", 2)])
+            raw = combination_path(origin, layer, {k: v for k, v in territory.items() if k != "overlays"})
+            with_lines = combination_path(origin, layer, territory)
+            self.assertNotEqual(raw, with_lines)
+            self.assertTrue(with_lines.name.startswith(raw.name + "_linhas_"))
+
+    def test_generation_with_lines_runs(self):
+        seen = []
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make_with_lines(tmp, generate=fake_generate(seen))
+            a.save_drive.value = False
+            a.start()
+            self.assertEqual(len(seen), 1)
+            self.assertEqual(a.gallery.card(0).state, "pronto")
+
+
+@unittest.skipUnless(importlib.util.find_spec("ipywidgets"), "ipywidgets indisponível")
 class LegendPanelTests(unittest.TestCase):
     def test_continuous_scale_gets_a_color_bar_and_classes_get_swatches(self):
         from gif_factory.app import _legend_html
