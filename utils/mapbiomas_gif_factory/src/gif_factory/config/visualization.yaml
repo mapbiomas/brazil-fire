@@ -1,5 +1,6 @@
 includes:
 - visualization_col101.yaml
+- visualization_solo_atmosfera.yaml
 visualizations:
   random:
     name: Fragmentos de Vegetação
@@ -302,14 +303,14 @@ visualizations:
     - ''
     - Usina Fotovoltaica
     - ''
-    - Formação Herbáceo Arbustiva
+    - Formação Herbáceo Arbustiva (beta)
     - ''
     - ''
     - ''
     - ''
     - ''
     - ''
-    - Marismas (beta)
+    - Marisma (beta)
     - ''
     - ''
     - ''
@@ -636,18 +637,18 @@ visualizations:
     max: 12
     palette:
     - fdfdfd
-    - a900ff
-    - 6f02ff
-    - 020aff
-    - 0675ff
-    - 06ffff
-    - ffee00
-    - ff7700
-    - ff0800
-    - c20202
-    - 8b0000
-    - 0aa602
-    - 83f27e
+    - 'cc00ff'
+    - '6600ff'
+    - '0000ff'
+    - '00ccff'
+    - '00ffcc'
+    - 'ffff00'
+    - 'ff9900'
+    - 'ff3300'
+    - 'cc0000'
+    - '00cc00'
+    - '009900'
+    - '66ff66'
     label: Mês de queimada (1=Jan, 12=Dez)
     cmap_type: sequential
   fire_col5_frequency:
@@ -700,7 +701,7 @@ visualizations:
     cmap_type: sequential
   fire_col5_year_last_fire:
     name: Última ocorrência do fogo
-    min: 1985
+    min: 1984
     max: 2025
     palette:
     - ffffff
@@ -763,42 +764,42 @@ visualizations:
     max: 2025
     nodata_color: ffffff
     palette:
-    - '000079'
-    - '00147d'
-    - '00227f'
-    - '002d81'
-    - '003781'
-    - '004080'
-    - '004c7b'
-    - '00557f'
-    - '005e86'
-    - '00688c'
-    - '007292'
-    - '007d96'
-    - '008998'
-    - 0a9294
-    - 26A09E
-    - 41ACA6
-    - 5DB9AD
-    - 78C5B5
-    - 94D2BD
-    - 9FBD98
-    - AAA772
-    - B4924D
-    - BF7C27
-    - CA6702
-    - C45905
-    - BF4B08
-    - B93C0C
-    - B42E0F
-    - AE2012
-    - AA2016
-    - A3211E
-    - 9B2226
-    - '901417'
-    - '850708'
-    - '800000'
-    - '750000'
+    - '010079'
+    - '010d7b'
+    - '01197d'
+    - '00267e'
+    - '003280'
+    - '003e83'
+    - '004985'
+    - '005488'
+    - '00608a'
+    - '026b8d'
+    - '0b7891'
+    - '148595'
+    - '1c9299'
+    - '259e9d'
+    - '3ea69d'
+    - '5aac9b'
+    - '76b39a'
+    - '92ba99'
+    - 'a4b287'
+    - 'ac9b66'
+    - 'b58444'
+    - 'bd6d22'
+    - 'c35705'
+    - 'bd4a09'
+    - 'b73d0d'
+    - 'b13011'
+    - 'ab2315'
+    - 'a71f17'
+    - 'a21e19'
+    - '9e1d1b'
+    - '9a1c1d'
+    - '95191b'
+    - '901315'
+    - '8b0c0e'
+    - '860607'
+    - '810000'
     label: Año
     cmap_type: sequential
   fire_col2_frequency:
@@ -807,41 +808,41 @@ visualizations:
     max: 36
     palette:
     - ffffff
-    - faf3cd
-    - fdf1b0
-    - fbe981
-    - fae258
-    - f9de44
-    - f6d21e
-    - eebe1b
-    - e4b11a
-    - daa418
-    - d19416
-    - c88515
-    - be7013
-    - b66011
-    - ad500f
-    - a4400c
-    - 9b300a
-    - '922108'
-    - 8a1506
-    - '810104'
-    - '740205'
-    - '6a0306'
-    - '610407'
-    - '590508'
-    - '500608'
-    - '470709'
-    - 3f0708
-    - '380608'
-    - '310607'
-    - 2a0506
-    - '240505'
-    - 1d0404
-    - '170404'
-    - '120303'
-    - 0d0203
-    - 080202
+    - 'faf3cd'
+    - 'faefb2'
+    - 'faeb96'
+    - 'f9e67b'
+    - 'f9e25f'
+    - 'f9de44'
+    - 'f3d23b'
+    - 'edc632'
+    - 'e6b92a'
+    - 'e0ad21'
+    - 'daa118'
+    - 'd39417'
+    - 'cc8715'
+    - 'c57a14'
+    - 'be6d12'
+    - 'b76011'
+    - 'b0530f'
+    - 'a8460d'
+    - 'a1380c'
+    - '992b0a'
+    - '921e08'
+    - '881908'
+    - '7e1408'
+    - '740e07'
+    - '6a0907'
+    - '600407'
+    - '580407'
+    - '500507'
+    - '490508'
+    - '410608'
+    - '390608'
+    - '2e0507'
+    - '240405'
+    - '190304'
+    - '0f0202'
     - '040101'
     label: Frecuencia de incendios (1990-2025)
     cmap_type: sequential
@@ -935,12 +936,12 @@ visualizations:
     max: 6
     palette:
     - ffffff
-    - 00441b
-    - 7FFF00
-    - FFFF00
-    - FFA500
-    - FF0000
-    - 8B0000
+    - '003f1b'
+    - '8ee637'
+    - 'ffd426'
+    - 'ed7513'
+    - 'db2024'
+    - '99151d'
     label: Severidade do fogo
     cmap_type: categorical
     discrete_labels:
@@ -1023,7 +1024,7 @@ visualizations:
     - '808080'
     - 7a5900
     - d6bc74
-    - '468991'
+    - '519799'
     - d6bc74
     - '808080'
     - ffefc3
@@ -1222,7 +1223,7 @@ visualizations:
     - '808080'
     - 7a5900
     - d6bc74
-    - '468991'
+    - '519799'
     - d6bc74
     - '808080'
     - ffefc3
@@ -1383,7 +1384,7 @@ visualizations:
     - '808080'
     - 7a5900
     - d6bc74
-    - '468991'
+    - '519799'
     - d6bc74
     - '808080'
     - ffefc3
@@ -1544,7 +1545,7 @@ visualizations:
     - '808080'
     - 7a5900
     - d6bc74
-    - '468991'
+    - '519799'
     - d6bc74
     - '808080'
     - ffefc3
@@ -1705,7 +1706,7 @@ visualizations:
     - '808080'
     - 7a5900
     - d6bc74
-    - '468991'
+    - '519799'
     - d6bc74
     - '808080'
     - ffefc3
@@ -1866,7 +1867,7 @@ visualizations:
     - '808080'
     - 7a5900
     - d6bc74
-    - '468991'
+    - '519799'
     - d6bc74
     - '808080'
     - ffefc3
@@ -2317,7 +2318,7 @@ visualizations:
     - 026975
     - '000000'
     - '000000'
-    - 7a6c00
+    - '7a5900'
     - ad975a
     - '519799'
     - d6bc74
@@ -2659,7 +2660,7 @@ visualizations:
     - '808080'
     - '808080'
     - '808080'
-    - 7a6c00
+    - '7a5900'
     - '808080'
     - '808080'
     - '808080'
@@ -2809,10 +2810,10 @@ visualizations:
     - '1f8d49'
     - '7dc975'
     - '04381d'
-    - '007785'
+    - '026975'
     - '1d7782'
     - '000000'
-    - '7a6c00'
+    - '7a5900'
     - 'd6bc74'
     - '519799'
     - 'd6bc74'
@@ -2825,12 +2826,12 @@ visualizations:
     - 'c27ba0'
     - 'db7093'
     - 'ffefc3'
-    - 'db4d4f'
+    - 'd4271e'
     - 'ffa07a'
     - 'd4271e'
     - 'db4d4f'
-    - '0000ff'
-    - '000000'
+    - '2532e4'
+    - 'ffffff'
     - '000000'
     - 'ffaa5f'
     - '9c0027'
@@ -3007,10 +3008,10 @@ visualizations:
     - '1f8d49'
     - '7dc975'
     - '04381d'
-    - '007785'
+    - '026975'
     - '1d7782'
     - '000000'
-    - '7a6c00'
+    - '7a5900'
     - 'd6bc74'
     - '519799'
     - 'd6bc74'
@@ -3023,12 +3024,12 @@ visualizations:
     - 'c27ba0'
     - 'db7093'
     - 'ffefc3'
-    - 'db4d4f'
+    - 'd4271e'
     - 'ffa07a'
     - 'd4271e'
     - 'db4d4f'
-    - '0000ff'
-    - '000000'
+    - '2532e4'
+    - 'ffffff'
     - '000000'
     - 'ffaa5f'
     - '9c0027'
@@ -3208,10 +3209,10 @@ visualizations:
     - '1f8d49'
     - '7dc975'
     - '04381d'
-    - '007785'
+    - '026975'
     - '1d7782'
     - '000000'
-    - '7a6c00'
+    - '7a5900'
     - 'd6bc74'
     - '519799'
     - 'd6bc74'
@@ -3224,12 +3225,12 @@ visualizations:
     - 'c27ba0'
     - 'db7093'
     - 'ffefc3'
-    - 'db4d4f'
+    - 'd4271e'
     - 'ffa07a'
     - 'd4271e'
     - 'db4d4f'
-    - '0000ff'
-    - '000000'
+    - '2532e4'
+    - 'ffffff'
     - '000000'
     - 'ffaa5f'
     - '9c0027'
@@ -3433,10 +3434,10 @@ visualizations:
     - '1f8d49'
     - '7dc975'
     - '04381d'
-    - '007785'
+    - '026975'
     - '1d7782'
     - '000000'
-    - '7a6c00'
+    - '7a5900'
     - 'd6bc74'
     - '519799'
     - 'd6bc74'
@@ -3449,12 +3450,12 @@ visualizations:
     - 'c27ba0'
     - 'db7093'
     - 'ffefc3'
-    - 'db4d4f'
+    - 'd4271e'
     - 'ffa07a'
     - 'd4271e'
     - 'db4d4f'
-    - '0000ff'
-    - '000000'
+    - '2532e4'
+    - 'ffffff'
     - '000000'
     - 'ffaa5f'
     - '9c0027'
@@ -3670,18 +3671,18 @@ visualizations:
     max: 12
     palette:
     - fdfdfd
-    - 55E3E6
-    - 27d3c3
-    - 00c29b
-    - 19b06f
-    - 08cf26
-    - 53e300
-    - dbc900
-    - ff8800
-    - ff3c00
-    - df2a02
-    - c01702
-    - a10000
+    - 'cc00ff'
+    - '6600ff'
+    - '0000ff'
+    - '00ccff'
+    - '00ffcc'
+    - 'ffff00'
+    - 'ff9900'
+    - 'ff3300'
+    - 'cc0000'
+    - '00cc00'
+    - '009900'
+    - '66ff66'
     label: Mes de quema (1=Ene, 12=Dic)
     cmap_type: sequential
   lulc_peru:
@@ -3695,10 +3696,10 @@ visualizations:
     - 1f8d49
     - 7dc975
     - 04381d
-    - 007785
+    - '026975'
     - 1d7782
     - '000000'
-    - 7a6c00
+    - '7a5900'
     - d6bc74
     - '519799'
     - d6bc74
@@ -3711,12 +3712,12 @@ visualizations:
     - c27ba0
     - db7093
     - ffefc3
-    - db4d4f
+    - 'd4271e'
     - ffa07a
     - d4271e
     - db4d4f
-    - 0000ff
-    - '000000'
+    - '2532e4'
+    - 'ffffff'
     - '000000'
     - ffaa5f
     - 9c0027

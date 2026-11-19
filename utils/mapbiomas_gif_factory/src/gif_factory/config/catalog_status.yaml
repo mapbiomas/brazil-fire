@@ -32,6 +32,11 @@ datasets:
   brasil_degradation_col9:
     products:
       fire_age: {status: pendente, reason: "Processador build_fire_age falha (39 x 38 bandas)."}
+  # Atmosfera: dados oficiais, mas as paletas são propostas pela Fábrica (o MapBiomas
+  # Atmosfera não publica legendas). Vira "validado" quando a equipe aprovar as cores.
+  brasil_atmosphere_col1:
+    status: beta
+    reason: "Cores propostas pela Fábrica; o MapBiomas Atmosfera ainda não publica paletas."
   # Coleção 11 de degradação ainda em revisão.
   brasil_degradation_col11:
     status: beta

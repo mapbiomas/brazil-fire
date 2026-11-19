@@ -1,0 +1,71 @@
+name: "Atmosfera — Coleção 1"
+description: "MapBiomas Atmosfera Coleção 1 - Brasil: médias e totais anuais (grade de 0,1°)"
+dataset: brasil_atmosphere_col1
+title_collection: "MapBiomas Atmosfera · Coleção 1"
+project: mapbiomas-brazil
+category: atmosphere
+collection: 1
+# O MapBiomas Atmosfera não publica paletas; as cores (visualization_solo_atmosfera.yaml)
+# são propostas pela Fábrica, com escalas calibradas nos percentis 2–98% de 2024.
+products:
+  precipitation_annual:
+    name: "Precipitação anual"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_precipitation_annual_v2"
+    temporal_range: [1985, 2024]
+    visualization: "atm_precipitation_annual"
+  air_temperature_max_annual:
+    name: "Temperatura máxima do ar"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_air_temperature_annual_v2"
+    collection_filter: {property: metric, value: maximum}
+    temporal_range: [1985, 2024]
+    visualization: "atm_air_temperature_max"
+  air_temperature_mean_annual:
+    name: "Temperatura média do ar"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_air_temperature_annual_v2"
+    collection_filter: {property: metric, value: mean}
+    temporal_range: [1985, 2024]
+    visualization: "atm_air_temperature_mean"
+  air_temperature_min_annual:
+    name: "Temperatura mínima do ar"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_air_temperature_annual_v2"
+    collection_filter: {property: metric, value: minimum}
+    temporal_range: [1985, 2024]
+    visualization: "atm_air_temperature_min"
+  surface_temperature_annual:
+    name: "Temperatura da superfície"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_surface_temperature_annual_v2"
+    temporal_range: [1985, 2024]
+    visualization: "atm_surface_temperature"
+  pm2p5_annual:
+    name: "Material particulado fino (PM2.5)"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_pm2p5_annual_v2"
+    temporal_range: [2003, 2024]
+    visualization: "atm_pm2p5"
+  pm10_annual:
+    name: "Material particulado (PM10)"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_pm10_annual_v2"
+    temporal_range: [2003, 2024]
+    visualization: "atm_pm10"
+  rain_free_days_annual:
+    name: "Dias sem chuva"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_rain_free_days_annual_v2"
+    temporal_range: [1998, 2024]
+    bands_slice: [0, 27]   # 2025 ainda está incompleto no asset
+    visualization: "atm_rain_free_days"
+  persistent_rain_annual:
+    name: "Dias de chuva persistente"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_persistent_rain_annual_v2"
+    temporal_range: [1985, 2024]
+    visualization: "atm_persistent_rain"
+  vapor_pressure_deficit_annual:
+    name: "Déficit de pressão de vapor"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_vapor_pressure_deficit_annual_v2"
+    temporal_range: [1985, 2024]
+    visualization: "atm_vapor_pressure_deficit"
+  # O metadado do asset descreve "evaporação menos precipitação", mas os valores são maiores
+  # onde chove mais (Porto Alegre 57, Petrolina 4,6 em 2024): tratamos como disponibilidade.
+  water_availability_annual:
+    name: "Disponibilidade hídrica"
+    asset: "projects/mapbiomas-public/assets/brazil/atmosphere/collection1/mapbiomas_brazil_collection1_water_availability_annual_v2"
+    temporal_range: [1985, 2024]
+    visualization: "atm_water_availability"

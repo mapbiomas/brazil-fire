@@ -125,11 +125,35 @@ class CatalogConfig:
         return {"gif_creation": {"frame_duration": 300, "loop_count": 1000, "quality": 95}}.get(key, {})
 
 
+def special_catalog_image(product):
+    """Imagem de produtos do catálogo que o carregador padrão do pipeline não monta.
+
+    - `axis: depth`: coleção com uma imagem por camada (propriedade `depth`, ex.
+      `000_010`) vira uma imagem com bandas `depth_000_010`, `depth_010_020`...;
+    - `collection_filter: {property, value}`: escolhe uma imagem da coleção (ex. a
+      temperatura máxima entre máxima, média e mínima).
+    Devolve None para os demais produtos.
+    """
+    import ee
+    if product.get("collection_filter"):
+        rule = product["collection_filter"]
+        collection = ee.ImageCollection(product["asset"]).filter(ee.Filter.eq(rule["property"], rule["value"]))
+        return ee.Image(collection.first())
+    if product.get("axis") == "depth":
+        prepared = prepare_layer({"asset": product["asset"]})
+        if prepared.get("axis") != "depth":
+            raise ValueError(f"O asset não tem a estrutura por profundidade esperada: {product['asset']}")
+        return load_image(prepared)
+    return None
+
+
 def catalog_image(layer, project=None):
     """Imagem do produto do catálogo, com processador e bands_slice aplicados."""
     from mapbiomas_data.core.pipeline import Pipeline
     config = CatalogConfig(dict(layer, bands=None), None, project)
-    image = Pipeline(config)._load_product_image(config.product)
+    image = special_catalog_image(config.product)
+    if image is None:
+        image = Pipeline(config)._load_product_image(config.product)
     bands_slice = config.product.get("bands_slice")
     if bands_slice and len(bands_slice) == 2:
         image = image.slice(bands_slice[0], bands_slice[1])
@@ -329,6 +353,9 @@ def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, pr
         config = CatalogConfig(layer, territory, project)
         pipeline = Pipeline(config)
         dataset_id, product_id = config.dataset_id, config.product_id
+        special = special_catalog_image(config.product)
+        if special is not None:
+            pipeline._load_product_image = lambda _info: special
     else:
         config = NotebookConfig(layer, territory, project)
         pipeline = Pipeline(config)

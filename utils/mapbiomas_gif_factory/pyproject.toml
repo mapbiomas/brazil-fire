@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mapbiomas-gif-factory"
-version = "0.2.0"
+version = "0.2.1"
 description = "Animated GIFs, collages and yearly maps of MapBiomas products for any territory, from Google Colab, without programming."
 readme = "README.md"
 license = "MIT"
