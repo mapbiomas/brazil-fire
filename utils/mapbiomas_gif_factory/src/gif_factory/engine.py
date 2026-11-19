@@ -84,16 +84,25 @@ def is_catalog(layer):
     return layer.get("source") == "catalog"
 
 
-def _territory_entries(territory):
-    if not territory:
-        return {"biomes": {}}
+def _territory_entry(territory):
     if territory.get("geometry"):
-        return {"biomes": {territory["id"]: {"name": territory["name"], "geometry": territory["geometry"]}}}
+        return {"name": territory["name"], "geometry": territory["geometry"]}
     entry = {"name": territory["name"], "source": territory["asset"]}
     if territory.get("filter"):
         filt = territory["filter"]
         values = filt["values"] if "values" in filt else [filt["value"]]
         entry["filter_in"] = {"field": filt["field"], "values": values}
+    return entry
+
+
+def _territory_entries(territory):
+    if not territory:
+        return {"biomes": {}}
+    entry = _territory_entry(territory)
+    if territory.get("overlays"):
+        # Territórios usados como linhas sobre o mapa (cor e espessura de cada um).
+        entry["overlays"] = [dict(_territory_entry(line), color=line.get("color", "000000"),
+                                  width=line.get("width", 1)) for line in territory["overlays"]]
     return {"biomes": {territory["id"]: entry}}
 
 

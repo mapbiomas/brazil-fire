@@ -260,6 +260,138 @@ class AppTests(unittest.TestCase):
             self.assertEqual(a.next.layout.display, "none")
 
 
+@unittest.skipUnless(importlib.util.find_spec("ipywidgets"), "ipywidgets indisponível")
+class LineTerritoryTests(unittest.TestCase):
+    BIOMES = {"id": "fonte_biomas", "name": "Bioma (todos)", "asset": "projects/x/biomas"}
+    STATES = {"id": "fonte_estados", "name": "Estado (todos)", "asset": "projects/x/estados"}
+
+    def make_with_lines(self, tmp, **kwargs):
+        a = AppTests.make(self, tmp, territories=[TERRITORY, self.BIOMES, self.STATES], **kwargs)
+        a.product_buttons[FIRE].value = True
+        a._set_line(self.BIOMES["id"], None, role="linha", color="f2c94c", width=3)
+        a._set_line(self.STATES["id"], None, role="linha", color="000000", width=2)
+        return a
+
+    def test_lines_are_drawn_on_every_clip_not_generated_alone(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make_with_lines(tmp)
+            combos = a.combinations()
+            self.assertEqual([t["id"] for _, _, t in combos], [TERRITORY["id"]])
+            lines = combos[0][2]["overlays"]
+            self.assertEqual([(l["name"], l["color"], l["width"]) for l in lines],
+                             [("Bioma (todos)", "f2c94c", 3), ("Estado (todos)", "000000", 2)])
+            self.assertNotIn("role", combos[0][2])
+            self.assertIn("Linhas:", a.summary.value)
+            self.assertIn("em amarelo", a.summary.value)
+            self.assertIn("1 combinação", a.summary.value)
+
+    def test_only_lines_cannot_generate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make_with_lines(tmp)
+            a._set_line(TERRITORY["id"], None, role="linha")
+            a.stepper.value = "4 · Gerar"
+            self.assertIn("marque pelo menos um como Recorte", a.plan.value)
+
+    def test_lines_reach_the_pipeline_and_get_their_own_folder(self):
+        from gif_factory.engine import _territory_entries
+        from gif_factory.layout import combination_path
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make_with_lines(tmp)
+            origin, layer, territory = a.combinations()[0]
+            entry = _territory_entries(territory)["biomes"][TERRITORY["id"]]
+            self.assertEqual([(o["source"], o["color"], o["width"]) for o in entry["overlays"]],
+                             [("projects/x/biomas", "f2c94c", 3), ("projects/x/estados", "000000", 2)])
+            raw = combination_path(origin, layer, {k: v for k, v in territory.items() if k != "overlays"})
+            with_lines = combination_path(origin, layer, territory)
+            self.assertNotEqual(raw, with_lines)
+            self.assertTrue(with_lines.name.startswith(raw.name + "_linhas_"))
+
+    def test_generation_with_lines_runs(self):
+        seen = []
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.make_with_lines(tmp, generate=fake_generate(seen))
+            a.save_drive.value = False
+            a.start()
+            self.assertEqual(len(seen), 1)
+            self.assertEqual(a.gallery.card(0).state, "pronto")
+
+
+@unittest.skipUnless(importlib.util.find_spec("ipywidgets"), "ipywidgets indisponível")
+class LegendPanelTests(unittest.TestCase):
+    def test_continuous_scale_gets_a_color_bar_and_classes_get_swatches(self):
+        from gif_factory.app import _legend_html
+        legend = [{"label": "0", "color": "fdfdfd"}, {"label": "40", "color": "040101"}]
+        bar = _legend_html(legend, {"palette": ["fdfdfd", "fbe981", "040101"], "min": 0, "max": 40,
+                                    "cmap_type": "sequential"})
+        self.assertIn("linear-gradient", bar)
+        self.assertIn(">20<", bar)  # valor do meio da escala
+        classes = _legend_html([{"label": "Não observado", "color": "fdfdfd"}, {"label": "Fogo", "color": "800000"}],
+                               {"palette": ["fdfdfd", "800000"], "cmap_type": "binary"})
+        self.assertNotIn("linear-gradient", classes)
+        self.assertIn("Fogo", classes)
+        # Sem cmap_type: só números na legenda = contínua; texto = classes.
+        self.assertIn("linear-gradient", _legend_html(legend, {"palette": ["fdfdfd", "040101"], "min": 0, "max": 40}))
+
+    def test_numbered_classes_show_every_value(self):
+        from gif_factory.app import _legend_html
+        html = _legend_html([{"label": "0", "color": "ffffff"}, {"label": "2", "color": "800000"}],
+                            {"palette": ["ffffff", "fecc5c", "800000"], "min": 0, "max": 2, "cmap_type": "categorical"})
+        self.assertIn("fecc5c", html)
+        self.assertNotIn("linear-gradient", html)
+
+    def test_catalog_panel_uses_the_right_kind(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = AppTests.make(self, tmp)
+            a.product_buttons[FIRE].value = True
+            self.assertNotIn("linear-gradient", a.product_detail.value)
+            frequency = next(l["id"] for l in a.catalog if l["id"] == "brasil_fire_col5__fire_frequency")
+            a._toggle_layer(frequency, True)
+            self.assertIn("linear-gradient", a.product_detail.value)
+
+
+@unittest.skipUnless(importlib.util.find_spec("ipywidgets"), "ipywidgets indisponível")
+class ConnectionTests(unittest.TestCase):
+    DENIED = ("Caller does not have required permission to use project mapbiomas-brazil. Grant the caller the "
+              "roles/serviceusage.serviceUsageConsumer role")
+
+    def connection(self, allowed, auth_first=False):
+        from gif_factory.connect import Connection
+        calls = {"auth": 0}
+
+        def initialize(project):
+            if auth_first and not calls["auth"]:
+                raise RuntimeError("Please authorize access to your Earth Engine account")
+            if project not in allowed:
+                raise RuntimeError(self.DENIED)
+
+        def authenticate():
+            calls["auth"] += 1
+        conn = Connection("mapbiomas-brazil", initialize=initialize, authenticate=authenticate, show=False).connect()
+        return conn, calls
+
+    def test_denied_project_explains_and_asks_for_another(self):
+        conn, _ = self.connection(allowed={"meu-proj"})
+        self.assertFalse(conn.ok)
+        self.assertIn("não tem acesso ao projeto", conn.message.value)
+        self.assertNotIn("serviceUsageConsumer", conn.message.value)
+        self.assertEqual(conn.typed.layout.display, "")
+        with self.assertRaises(RuntimeError):
+            conn.require()
+        conn.try_project("outro-sem-acesso")
+        self.assertFalse(conn.ok)
+        conn.try_project(" meu-proj ")
+        self.assertTrue(conn.ok)
+        self.assertEqual(conn.require(), "meu-proj")
+        self.assertIn("rode a célula 2", conn.message.value)
+        self.assertEqual(conn.typed.layout.display, "none")
+
+    def test_authorizes_once_then_connects(self):
+        conn, calls = self.connection(allowed={"mapbiomas-brazil"}, auth_first=True)
+        self.assertTrue(conn.ok)
+        self.assertEqual(calls["auth"], 1)
+        self.assertIn("Conectado", conn.message.value)
+
+
 class EstimateTests(unittest.TestCase):
     def test_time_and_size_texts(self):
         from gif_factory import estimate as E

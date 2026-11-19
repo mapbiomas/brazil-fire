@@ -123,7 +123,8 @@ class BasicTests(unittest.TestCase):
         source = "".join("".join(cell["source"]) for cell in code)
         self.assertNotIn("LAYERS", source)
         self.assertNotIn("TERRITORIES", source)
-        self.assertIn("show_app(GEE_PROJECT)", source)
+        self.assertIn("show_app(conexao.require())", source)
+        self.assertIn("conectar(GEE_PROJECT)", source)
         self.assertIn("enable_custom_widget_manager", source)
         # Instala o pacote (PyPI ou branch de teste) em vez de clonar o repositório inteiro.
         self.assertIn("pip', 'install'", source)

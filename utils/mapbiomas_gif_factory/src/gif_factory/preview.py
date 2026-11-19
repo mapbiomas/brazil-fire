@@ -53,8 +53,18 @@ def tile_url(ee, image, vis=None):
     return ee.Image(image).getMapId(vis or {})["tile_fetcher"].url_format
 
 
+def with_lines(ee, image, territory):
+    """Desenha as linhas escolhidas (cor e espessura) dentro do território, como no arquivo final."""
+    inside = ee.Image().paint(feature_collection(ee, territory), 0).eq(0)
+    for line in territory.get("overlays") or []:
+        painted = ee.Image().byte().paint(feature_collection(ee, line), 1, int(line.get("width", 1))).updateMask(inside)
+        image = image.blend(painted.visualize(palette=[str(line.get("color", "000000")).lstrip("#")]))
+    return image
+
+
 def thumbnail_url(ee, layer, territory, year=None, size=640):
     image, label = styled_image(ee, layer, territory, year)
+    image = with_lines(ee, image, territory)
     region = feature_collection(ee, territory).geometry().bounds()
     return image.getThumbURL({"region": region, "dimensions": size, "format": "png"}), label
 
