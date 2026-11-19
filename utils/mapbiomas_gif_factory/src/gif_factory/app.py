@@ -208,11 +208,11 @@ class FactoryApp:
         initiatives.sort(key=lambda name: (name != "Brasil", name == MY_MAPS, name))
         self.initiative = w.Dropdown(options=initiatives, value=initiatives[0], description="Iniciativa:")
         self.map_search = w.Text(placeholder="Buscar mapa (ex.: frequência, cobertura nível 2)",
-                                 continuous_update=True, layout=w.Layout(width="420px"))
+                                 continuous_update=True, layout=w.Layout(width="95%", max_width="420px"))
         self.theme = w.Dropdown(description="Tema:")
         self.collection = w.Dropdown(description="Coleção:")
         self.show_beta = w.Checkbox(value=False, description="Mostrar mapas beta (em revisão)", indent=False)
-        self.product_list = w.VBox(layout=w.Layout(max_height="360px", overflow_y="auto", width="100%"))
+        self.product_list = w.VBox(layout=w.Layout(max_height="360px", overflow="hidden auto", width="100%"))
         self.product_detail = _card("<i>Clique em um mapa para ver a legenda.</i>")
         self.product_buttons = {}
         for widget in (self.initiative, self.theme, self.collection, self.show_beta):
@@ -228,8 +228,8 @@ class FactoryApp:
         self.proposal = w.Textarea(layout=w.Layout(width="98%", height="220px", display="none"))
         self.new_map.observe(self._toggle_beta_panel, names="value")
         self.initiative.observe(self._render_my_maps, names="value")
-        left = w.VBox([self.initiative, self.map_search, w.HBox([self.theme, self.collection]), self.show_beta,
-                       self.product_list, self.my_maps_panel], layout=w.Layout(width="62%"))
+        left = w.VBox([self.initiative, self.map_search, w.HBox([self.theme, self.collection], layout=w.Layout(flex_flow="row wrap")), self.show_beta,
+                       self.product_list, self.my_maps_panel], layout=w.Layout(width="62%", overflow="hidden"))
         right = w.VBox([theme.label("Legenda"), self.product_detail], layout=w.Layout(width="36%"))
         self._render_my_maps()
         return w.VBox([theme.section("Qual mapa?", "Escolha um ou mais mapas. "
@@ -454,6 +454,7 @@ class FactoryApp:
                 label = f"{layer['name']}" + (f"  (col. {col})" if col and str(col)[:1].isdigit() else "") + suffix
                 button = w.ToggleButton(description=label, tooltip=layer.get("reason") or layer["name"],
                                         layout=w.Layout(width="98%", height="32px", min_height="32px", flex="0 0 auto"))
+                button.add_class("gf-option")
                 button.observe(lambda change, i=layer["id"]: self._toggle_layer(i, change["new"]), names="value")
                 self.product_buttons[layer["id"]] = button
             button.value = layer["id"] in self.selected_layers
@@ -493,8 +494,8 @@ class FactoryApp:
         # Buscar
         self.kind = w.Dropdown(description="Tipo:")
         self.place_search = w.Text(placeholder="Digite parte do nome (ex.: são félix, yanomami, chapada)",
-                                   continuous_update=True, layout=w.Layout(width="420px"))
-        self.place_results = w.VBox(layout=w.Layout(max_height="240px", overflow_y="auto"))
+                                   continuous_update=True, layout=w.Layout(width="95%", max_width="420px"))
+        self.place_results = w.VBox(layout=w.Layout(max_height="240px", overflow="hidden auto"))
         self.place_combine = w.Checkbox(value=False, description="Juntar os itens marcados em um único recorte", indent=False)
         self.place_add = w.Button(description="Adicionar", icon="plus", button_style="success")
         self.place_forget = w.Button(description="Apagar dos meus territórios", icon="trash",
@@ -631,6 +632,7 @@ class FactoryApp:
         buttons = []
         for i, record in enumerate(self._found):
             button = w.ToggleButton(value=False, description=record["name"], layout=w.Layout(width="98%", min_height="30px", flex="0 0 auto"))
+            button.add_class("gf-option")
             button.observe(lambda change, i=i: self._mark(i, change["new"]), names="value")
             buttons.append(button)
         self.place_results.children = buttons
