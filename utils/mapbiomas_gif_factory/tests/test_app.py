@@ -260,6 +260,39 @@ class AppTests(unittest.TestCase):
             self.assertEqual(a.next.layout.display, "none")
 
 
+@unittest.skipUnless(importlib.util.find_spec("ipywidgets"), "ipywidgets indisponível")
+class LegendPanelTests(unittest.TestCase):
+    def test_continuous_scale_gets_a_color_bar_and_classes_get_swatches(self):
+        from gif_factory.app import _legend_html
+        legend = [{"label": "0", "color": "fdfdfd"}, {"label": "40", "color": "040101"}]
+        bar = _legend_html(legend, {"palette": ["fdfdfd", "fbe981", "040101"], "min": 0, "max": 40,
+                                    "cmap_type": "sequential"})
+        self.assertIn("linear-gradient", bar)
+        self.assertIn(">20<", bar)  # valor do meio da escala
+        classes = _legend_html([{"label": "Não observado", "color": "fdfdfd"}, {"label": "Fogo", "color": "800000"}],
+                               {"palette": ["fdfdfd", "800000"], "cmap_type": "binary"})
+        self.assertNotIn("linear-gradient", classes)
+        self.assertIn("Fogo", classes)
+        # Sem cmap_type: só números na legenda = contínua; texto = classes.
+        self.assertIn("linear-gradient", _legend_html(legend, {"palette": ["fdfdfd", "040101"], "min": 0, "max": 40}))
+
+    def test_numbered_classes_show_every_value(self):
+        from gif_factory.app import _legend_html
+        html = _legend_html([{"label": "0", "color": "ffffff"}, {"label": "2", "color": "800000"}],
+                            {"palette": ["ffffff", "fecc5c", "800000"], "min": 0, "max": 2, "cmap_type": "categorical"})
+        self.assertIn("fecc5c", html)
+        self.assertNotIn("linear-gradient", html)
+
+    def test_catalog_panel_uses_the_right_kind(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = AppTests.make(self, tmp)
+            a.product_buttons[FIRE].value = True
+            self.assertNotIn("linear-gradient", a.product_detail.value)
+            frequency = next(l["id"] for l in a.catalog if l["id"] == "brasil_fire_col5__fire_frequency")
+            a._toggle_layer(frequency, True)
+            self.assertIn("linear-gradient", a.product_detail.value)
+
+
 class EstimateTests(unittest.TestCase):
     def test_time_and_size_texts(self):
         from gif_factory import estimate as E

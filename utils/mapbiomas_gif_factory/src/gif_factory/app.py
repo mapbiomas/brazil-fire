@@ -51,6 +51,81 @@ def _swatches(legend, limit=30):
     return "".join(items) + more
 
 
+def _is_number(text):
+    try:
+        float(str(text).replace(",", "."))
+        return True
+    except ValueError:
+        return False
+
+
+def _is_continuous(legend, viz):
+    """Escala contínua (barra de cor) ou classes (quadradinhos)?
+
+    Usa o `cmap_type` da visualização quando existe (sequential/diverging = contínua;
+    categorical/binary = classes). Sem ele: contínua se a paleta tem 2+ cores, não há
+    classes nomeadas e a legenda só tem números.
+    """
+    viz = viz or {}
+    palette = viz.get("palette") or []
+    if len(palette) < 2 or viz.get("classes"):
+        return False
+    kind = str(viz.get("cmap_type") or "").lower()
+    if kind:
+        return kind in {"sequential", "diverging", "continuous"}
+    if viz.get("discrete_labels"):
+        return False
+    labels = [item.get("label", "") for item in legend or []]
+    return bool(labels) and all(_is_number(label) for label in labels)
+
+
+def _class_legend(legend, viz):
+    """Classes numeradas sem nomes (ex.: 0, 1, 2) mostram uma cor por valor, não só os extremos."""
+    viz = viz or {}
+    palette = viz.get("palette") or []
+    low, high = viz.get("min"), viz.get("max")
+    labels = [item.get("label", "") for item in legend or []]
+    if (len(labels) == 2 and all(_is_number(x) for x in labels) and _is_number(low) and _is_number(high)
+            and float(low).is_integer() and float(high).is_integer()
+            and int(float(high)) - int(float(low)) + 1 == len(palette)):
+        return [{"label": str(int(float(low)) + i), "color": color} for i, color in enumerate(palette)]
+    return legend
+
+
+def _colorbar(viz, title=""):
+    palette = ["#" + str(c).lstrip("#") for c in viz.get("palette") or []]
+    low, high = viz.get("min", ""), viz.get("max", "")
+    middle = ""
+    if _is_number(low) and _is_number(high):
+        mid = (float(low) + float(high)) / 2
+        middle = f"{mid:g}"
+    return (f'<div style="font-size:12px">'
+            f'<div style="height:14px;border:1px solid var(--line);border-radius:4px;'
+            f'background:linear-gradient(to right, {", ".join(escape(c) for c in palette)})"></div>'
+            f'<div style="display:flex;justify-content:space-between;color:var(--muted);margin-top:2px">'
+            f'<span>{escape(str(low))}</span><span>{escape(middle)}</span><span>{escape(str(high))}</span></div>'
+            f'<div style="font-size:11px;color:var(--muted)">escala contínua</div></div>')
+
+
+def _layer_viz(layer):
+    """Parâmetros de visualização da camada (próprios ou do catálogo), ou {}."""
+    if isinstance(layer.get("visualization"), dict):
+        return layer["visualization"]
+    key = layer.get("visualization_key") or layer.get("style_key")
+    if not key:
+        return {}
+    try:
+        return analyst.style_params(key)[0] or {}
+    except Exception:
+        return {}
+
+
+def _legend_html(legend, viz=None, limit=30):
+    if _is_continuous(legend, viz):
+        return _colorbar(viz)
+    return _swatches(_class_legend(legend, viz), limit)
+
+
 def _align_labels(widget):
     """Mesma largura de rótulo em todos os campos, para nada ficar cortado ou desalinhado."""
     if isinstance(widget, LABELED) and getattr(widget, "description", ""):
@@ -301,8 +376,8 @@ class FactoryApp:
     def _show_style(self, *_):
         if not self.beta_style.value:
             return
-        _, legend = analyst.style_params(self.beta_style.value)
-        self.beta_style_legend.value = _swatches(legend, 16)
+        viz, legend = analyst.style_params(self.beta_style.value)
+        self.beta_style_legend.value = _legend_html(legend, viz, 16)
 
     def _beta_layer(self):
         if self.beta_mode.value == "Estilo do catálogo":
@@ -354,7 +429,7 @@ class FactoryApp:
             where = escape(territory["name"]) if territory else "área do asset"
             self.beta_preview_box.value = (f"<div style='font-size:12px;color:var(--muted)'>{escape(label)} · {where}</div>"
                                            f"<img src='{escape(url)}' style='max-width:560px;border:1px solid var(--line)'>"
-                                           f"<div style='margin-top:4px'>{_swatches(layer['legend'], 12)}</div>")
+                                           f"<div style='margin-top:4px'>{_legend_html(layer['legend'], _layer_viz(layer), 12)}</div>")
             self.beta_msg.value = ""
         self._in_background(work, self.beta_msg, "Gerando prévia…")
 
@@ -483,7 +558,10 @@ class FactoryApp:
                 info += f"<br><span style='color:var(--warn);font-size:12px'>Beta: {escape(layer.get('reason', ''))}</span>"
             if layer.get("legend_label"):
                 info += f"<div style='margin-top:6px;font-size:12px'><b>{escape(layer['legend_label'])}</b></div>"
-            self.product_detail.value = _card(info + _swatches(layer.get("legend"))).value
+            legend = ("<div style='font-size:12px;color:var(--muted)'>Composição colorida (RGB): "
+                      "as cores vêm das bandas, sem legenda.</div>" if layer.get("rgb") else
+                      _legend_html(layer.get("legend"), _layer_viz(layer)))
+            self.product_detail.value = _card(info + legend).value
         self._update_summary()
 
     # ------------------------------------------------------------------ 2. território
