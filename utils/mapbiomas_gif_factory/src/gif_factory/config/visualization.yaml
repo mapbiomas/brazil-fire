@@ -1,0 +1,3916 @@
+includes:
+- visualization_col101.yaml
+visualizations:
+  random:
+    name: Fragmentos de Vegetação
+    min: 0
+    max: 1
+    palette: []
+    random_viz: true
+    cmap_type: binary
+    label: Cada fragmento possui uma cor distinta
+  fire:
+    name: Fogo - Binário
+    min: 0
+    max: 1
+    palette:
+    - fdfdfd
+    - '800000'
+    label: Pixel queimado
+    cmap_type: binary
+    discrete_labels:
+    - Não observado
+    - Fogo
+  monthly:
+    name: Fogo - Mês
+    min: 0
+    max: 12
+    palette:
+    - fdfdfd
+    - 55E3E6
+    - 27d3c3
+    - 00c29b
+    - 19b06f
+    - 08cf26
+    - 53e300
+    - dbc900
+    - ff8800
+    - ff3c00
+    - df2a02
+    - c01702
+    - a10000
+    label: Mês de queimada (1=Jan, 12=Dez)
+    cmap_type: sequential
+  frequency:
+    name: Fogo - Frequência
+    min: 0
+    max: 11
+    palette:
+    - fdfdfd
+    - faf3cd
+    - fce68d
+    - f9de44
+    - f6d51d
+    - e9bc1c
+    - cc8715
+    - b76011
+    - 9f360b
+    - '810004'
+    - 4b0709
+    - 080202
+    label: Frequência de queimadas (1985-2023)
+    cmap_type: sequential
+  frequency_col101:
+    name: Fogo - Frequência (Degradação)
+    min: 0
+    max: 40
+    palette:
+    - '808080'
+    - faf3cd
+    - f8ea94
+    - f6e154
+    - f4d81d
+    - e9bc1c
+    - d99d18
+    - cc8715
+    - bf7012
+    - b2560f
+    - a43e0c
+    - '962809'
+    - '881806'
+    - 7a0b04
+    - 6c0705
+    - 5e0807
+    - '500809'
+    - 42070a
+    - 34060b
+    - 28050b
+    - 1c0408
+    - '140306'
+    - 0c0204
+    - 080203
+    - '040101'
+    label: Frequência de fogo (1985-2024)
+    cmap_type: sequential
+  frequency_paraguay:
+    name: Fogo - Frequência (Paraguai)
+    min: 0
+    max: 26
+    palette:
+    - ffffff
+    - faf3cd
+    - fced97
+    - fae154
+    - f8d823
+    - eec41d
+    - e1ae1a
+    - d49616
+    - ca8315
+    - bd6c12
+    - b25810
+    - a6420d
+    - 9a2b0a
+    - 8f1807
+    - '800004'
+    - 6d0306
+    - 5d0407
+    - 4b0709
+    - '410708'
+    - '370608'
+    - 2e0506
+    - '240505'
+    - 1b0404
+    - '130303'
+    - 0b0203
+    - '040101'
+    label: Frequência de queimadas (Paraguai)
+    cmap_type: sequential
+  lulc:
+    name: Uso e Cobertura (Coleção 11)
+    min: 0
+    max: 91
+    palette:
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 007785
+    - 228c70
+    - auto_bg
+    - 7a5900
+    - auto_bg
+    - '519799'
+    - d6bc74
+    - auto_bg
+    - auto_bg
+    - edde8e
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - db7093
+    - ffefc3
+    - auto_bg
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - ad5100
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - auto_bg
+    - 9065d0
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ffaa5f
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - ff69b4
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - '757272'
+    - auto_bg
+    - 86b074
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 81dbbf
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 403d3e
+    label: Classe de uso
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Formação Florestal
+    - Formação Savânica
+    - Mangue
+    - Floresta Alagável
+    - Savana Alagada (beta)
+    - ''
+    - Silvicultura
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - ''
+    - ''
+    - Pastagem
+    - ''
+    - ''
+    - ''
+    - ''
+    - Cana
+    - Mosaico de Usos
+    - ''
+    - Praia, Duna e Areal
+    - Área Urbanizada
+    - Outras Áreas não Vegetadas
+    - ''
+    - ''
+    - ''
+    - Afloramento Rochoso
+    - Mineração
+    - Aquicultura
+    - Apicum
+    - Rio, Lago e Oceano
+    - ''
+    - Dendê
+    - ''
+    - ''
+    - ''
+    - Soja
+    - Arroz
+    - Outras Lavouras Temporárias
+    - ''
+    - ''
+    - ''
+    - ''
+    - Café
+    - Citrus
+    - Outras Lavouras Perenes
+    - Restinga Arbórea
+    - Restinga Herbácea ou Arbustiva
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Algodão (beta)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Usina Fotovoltaica
+    - ''
+    - Formação Herbáceo Arbustiva
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Marismas (beta)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Parque Eólico (beta)
+  lulc_nivel0:
+    name: Uso e Cobertura - Nível 0
+    min: 0
+    max: 4
+    palette:
+    - auto_bg
+    - 1f8d49
+    - ffefc3
+    - 2532e4
+    - '808080'
+    label: Classe
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - Vegetação Natural
+    - Antrópico
+    - Corpos d'água
+    - Não observado
+  lulc_nivel1:
+    name: Uso e Cobertura - Nível 1
+    min: 0
+    max: 8
+    palette:
+    - auto_bg
+    - 1f8d49
+    - d6bc74
+    - ad5100
+    - 7a5900
+    - ffefc3
+    - db4d4f
+    - 2532e4
+    - '808080'
+    label: Classe
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - Formação Florestal
+    - Formação Campestre e Herbácea
+    - Afloramento Rochoso
+    - Silvicultura
+    - Agropecuária
+    - Área não Vegetada
+    - Corpos d'água
+    - Não observado
+  lulc_nivel1_1:
+    name: Uso e Cobertura - Nível 1.1
+    min: 0
+    max: 27
+    palette:
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 1f8d49
+    - 7dc975
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 7a5900
+    - auto_bg
+    - '519799'
+    - d6bc74
+    - auto_bg
+    - auto_bg
+    - edde8e
+    - auto_bg
+    - auto_bg
+    - e974ed
+    - auto_bg
+    - auto_bg
+    - ffefc3
+    - db4d4f
+    - auto_bg
+    - d4271e
+    - auto_bg
+    - 2532e4
+    - '808080'
+    label: Classe
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Formação Florestal
+    - Formação Savânica
+    - ''
+    - ''
+    - ''
+    - ''
+    - Silvicultura
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - ''
+    - ''
+    - Pastagem
+    - ''
+    - ''
+    - Lavoura
+    - ''
+    - ''
+    - Mosaico de Usos
+    - Área não Vegetada
+    - ''
+    - Área Urbanizada
+    - ''
+    - Corpos d'água
+    - Não observado
+  lulc_nivel2:
+    name: Uso e Cobertura - Nível 2
+    min: 0
+    max: 36
+    palette:
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 1f8d49
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - 7a5900
+    - auto_bg
+    - '519799'
+    - d6bc74
+    - auto_bg
+    - auto_bg
+    - edde8e
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - f54ca9
+    - auto_bg
+    - ffefc3
+    - auto_bg
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 2532e4
+    - auto_bg
+    - auto_bg
+    - ad5100
+    - 9c0027
+    - 091077
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - auto_bg
+    - e974ed
+    label: Classe
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Formação Florestal
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Silvicultura
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - ''
+    - ''
+    - Pastagem
+    - ''
+    - ''
+    - ''
+    - Lavoura Temporária
+    - ''
+    - Mosaico de Usos
+    - ''
+    - Praia, Duna e Areal
+    - Área Urbanizada
+    - Outras Áreas não Vegetadas
+    - Corpos d'água
+    - ''
+    - ''
+    - Afloramento Rochoso
+    - Mineração
+    - Aquicultura
+    - ''
+    - ''
+    - ''
+    - ''
+    - Lavoura Perene
+  scar_size_range:
+    name: Tamanho da Cicatriz
+    min: 0
+    max: 8
+    palette:
+    - ffffff
+    - d0ae35
+    - c68e2f
+    - b96d2b
+    - ac4b28
+    - '933328'
+    - 72251d
+    - 4e180f
+    - 240d00
+    label: Tamanho da cicatriz de fogo
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - < 10 ha
+    - 10 a 250 ha
+    - 250 a 500 ha
+    - 500 a 5.000 ha
+    - 5.000 a 10.000 ha
+    - 10.000 a 50.000 ha
+    - 50.000 a 100.000 ha
+    - '>= 100.000 ha'
+  year_last_fire:
+    name: Ano do Último Fogo
+    min: 1985
+    max: 2022
+    palette:
+    - ffffff
+    - 000079
+    - 00147d
+    - 00227f
+    - 002d81
+    - 003781
+    - 004080
+    - 004c7b
+    - 00557f
+    - 005e86
+    - 00688c
+    - 007292
+    - 007d96
+    - 008998
+    - 0a9294
+    - 26A09E
+    - 41ACA6
+    - 5DB9AD
+    - 78C5B5
+    - 94D2BD
+    - 9FBD98
+    - AAA772
+    - B4924D
+    - BF7C27
+    - CA6702
+    - C45905
+    - BF4B08
+    - B93C0C
+    - B42E0F
+    - AE2012
+    - AA2016
+    - A6211A
+    - A3211E
+    - 9F2222
+    - 9B2226
+    - 961B1E
+    - '901417'
+    - 8B0E0F
+    - '850708'
+    - '800000'
+    - '800000'
+    label: Ano
+    cmap_type: sequential
+  year_next_fire:
+    name: Ano do Próximo Fogo
+    min: 1986
+    max: 2023
+    palette:
+    - ffffff
+    - 000079
+    - 00147d
+    - 00227f
+    - 002d81
+    - 003781
+    - 004080
+    - 004c7b
+    - 00557f
+    - 005e86
+    - 00688c
+    - 007292
+    - 007d96
+    - 008998
+    - 0a9294
+    - 26A09E
+    - 41ACA6
+    - 5DB9AD
+    - 78C5B5
+    - 94D2BD
+    - 9FBD98
+    - AAA772
+    - B4924D
+    - BF7C27
+    - CA6702
+    - C45905
+    - BF4B08
+    - B93C0C
+    - B42E0F
+    - AE2012
+    - AA2016
+    - A6211A
+    - A3211E
+    - 9F2222
+    - 9B2226
+    - 961B1E
+    - '901417'
+    - 8B0E0F
+    - '850708'
+    - '800000'
+    - '800000'
+    label: Ano
+    cmap_type: sequential
+  fire_col5_monthly:
+    name: Distribuição mensal da área queimada
+    min: 0
+    max: 12
+    palette:
+    - fdfdfd
+    - a900ff
+    - 6f02ff
+    - 020aff
+    - 0675ff
+    - 06ffff
+    - ffee00
+    - ff7700
+    - ff0800
+    - c20202
+    - 8b0000
+    - 0aa602
+    - 83f27e
+    label: Mês de queimada (1=Jan, 12=Dez)
+    cmap_type: sequential
+  fire_col5_frequency:
+    name: Frequência da área queimada
+    min: 0
+    max: 40
+    palette:
+    - fdfdfd
+    - faf3cd
+    - fdf1b0
+    - fbe981
+    - fae258
+    - f9de44
+    - f8d71f
+    - f1ca1e
+    - e9bc1c
+    - e2af1a
+    - daa118
+    - d29316
+    - cc8715
+    - c57b14
+    - bd6c12
+    - b76011
+    - b0540f
+    - a8450d
+    - 9f360b
+    - 992a0a
+    - 921e08
+    - 8c1307
+    - '810004'
+    - '770105'
+    - 6a0306
+    - '600407'
+    - 5a0508
+    - 4b0709
+    - '450709'
+    - 3f0708
+    - '390608'
+    - '330607'
+    - 2d0506
+    - '270506'
+    - '220505'
+    - 1c0404
+    - '170404'
+    - '120303'
+    - 0d0203
+    - 080202
+    - '040101'
+    label: Frequência de queimadas (1985-2025)
+    cmap_type: sequential
+  fire_col5_year_last_fire:
+    name: Última ocorrência do fogo
+    min: 1985
+    max: 2025
+    palette:
+    - ffffff
+    - 010079
+    - 010b7b
+    - 01177c
+    - 00227e
+    - 002d80
+    - 003881
+    - 004284
+    - 004c86
+    - 005688
+    - 00608a
+    - 026b8d
+    - 007d96
+    - 008998
+    - 198d98
+    - 26A09E
+    - 41ACA6
+    - 5DB9AD
+    - 78C5B5
+    - 94D2BD
+    - 9FBD98
+    - AAA772
+    - B4924D
+    - BF7C27
+    - CA6702
+    - C45905
+    - BF4B08
+    - B93C0C
+    - B42E0F
+    - AE2012
+    - AA2016
+    - A6211A
+    - A3211E
+    - 9F2222
+    - 9B2226
+    - 961B1E
+    - '901417'
+    - 8B0E0F
+    - '850708'
+    - '810000'
+    - '780000'
+    - '750000'
+    label: Ano
+    cmap_type: sequential
+  unprecedented_fire:
+    name: Área queimada inédita
+    min: 0
+    max: 2
+    palette:
+    - ffffff
+    - fecc5c
+    - '800000'
+    label: Fogo inédito
+    cmap_type: categorical
+  fire_col2_year_last_fire:
+    name: Última ocurrencia del fuego - Perú
+    min: 1990
+    max: 2025
+    nodata_color: ffffff
+    palette:
+    - '000079'
+    - '00147d'
+    - '00227f'
+    - '002d81'
+    - '003781'
+    - '004080'
+    - '004c7b'
+    - '00557f'
+    - '005e86'
+    - '00688c'
+    - '007292'
+    - '007d96'
+    - '008998'
+    - 0a9294
+    - 26A09E
+    - 41ACA6
+    - 5DB9AD
+    - 78C5B5
+    - 94D2BD
+    - 9FBD98
+    - AAA772
+    - B4924D
+    - BF7C27
+    - CA6702
+    - C45905
+    - BF4B08
+    - B93C0C
+    - B42E0F
+    - AE2012
+    - AA2016
+    - A3211E
+    - 9B2226
+    - '901417'
+    - '850708'
+    - '800000'
+    - '750000'
+    label: Año
+    cmap_type: sequential
+  fire_col2_frequency:
+    name: Frecuencia del área quemada - Perú
+    min: 0
+    max: 36
+    palette:
+    - ffffff
+    - faf3cd
+    - fdf1b0
+    - fbe981
+    - fae258
+    - f9de44
+    - f6d21e
+    - eebe1b
+    - e4b11a
+    - daa418
+    - d19416
+    - c88515
+    - be7013
+    - b66011
+    - ad500f
+    - a4400c
+    - 9b300a
+    - '922108'
+    - 8a1506
+    - '810104'
+    - '740205'
+    - '6a0306'
+    - '610407'
+    - '590508'
+    - '500608'
+    - '470709'
+    - 3f0708
+    - '380608'
+    - '310607'
+    - 2a0506
+    - '240505'
+    - 1d0404
+    - '170404'
+    - '120303'
+    - 0d0203
+    - 080202
+    - '040101'
+    label: Frecuencia de incendios (1990-2025)
+    cmap_type: sequential
+  fire_col2_scar_size_range:
+    name: Tamaño de las cicatrices de fuego - Perú
+    min: 1
+    max: 8
+    palette:
+    - '000000'
+    - '#d0ae35'
+    - '#d0ae35'
+    - '#b96d2b'
+    - '#ac4b28'
+    - '#ac4b28'
+    - '#72251d'
+    - '#72251d'
+    - '#240d00'
+    discrete_labels:
+      1: '< 5 ha'
+      2: '5 – 25 ha'
+      3: '25 – 50 ha'
+      4: '50 – 250 ha'
+      5: '250 – 500 ha'
+      6: '500 – 1000 ha'
+      7: '1000 – 5000 ha'
+      8: '>= 5000 ha'
+    label: Tamaño de las cicatrices
+    cmap_type: categorical
+    prefix_labels: false
+  fire_col5_time_after_fire:
+    name: Tempo desde a última ocorrência do fogo
+    min: 0
+    max: 41
+    palette:
+    - ffffff
+    - '780000'
+    - '810000'
+    - '850708'
+    - 8B0E0F
+    - '901417'
+    - 961B1E
+    - 9B2226
+    - 9F2222
+    - A3211E
+    - A6211A
+    - AA2016
+    - AE2012
+    - B42E0F
+    - B93C0C
+    - BF4B08
+    - C45905
+    - CA6702
+    - BF7C27
+    - B4924D
+    - AAA772
+    - 9FBD98
+    - 94D2BD
+    - 78C5B5
+    - 5DB9AD
+    - 41ACA6
+    - 26A09E
+    - 198d98
+    - 008998
+    - 007d96
+    - 026b8d
+    - 00608a
+    - 005688
+    - 004c86
+    - 004284
+    - 003881
+    - 002d80
+    - 00227e
+    - 01177c
+    - 010b7b
+    - 010079
+    - 010079
+    label: Anos desde o último fogo
+    cmap_type: sequential
+  fire_col5_coverage_total:
+    name: Área queimada
+    min: 0
+    max: 1
+    palette:
+    - ffffff
+    - E84C3B
+    label: Pixel queimado
+    cmap_type: binary
+  fire_col5_severity:
+    name: Severidade potencial das áreas queimadas
+    min: 0
+    max: 6
+    palette:
+    - ffffff
+    - 00441b
+    - 7FFF00
+    - FFFF00
+    - FFA500
+    - FF0000
+    - 8B0000
+    label: Severidade do fogo
+    cmap_type: categorical
+    discrete_labels:
+    - Não observado
+    - Muito baixa
+    - Baixa
+    - Moderada
+    - Alta
+    - Muito alta
+    - Extrema
+  fire_col5_return_interval:
+    name: Intervalo de retorno do fogo
+    min: 0
+    max: 12
+    palette:
+    - ffffff
+    - '940000'
+    - B51F16
+    - D63B24
+    - F05A28
+    - F58220
+    - F89C1C
+    - F3B51B
+    - EAC61A
+    - D7D321
+    - 63C95A
+    - 49AAA5
+    - 64459B
+    label: Intervalo de retorno (anos)
+    cmap_type: categorical
+    discrete_labels:
+    - não observado
+    - '01'
+    - '02'
+    - '03'
+    - '04'
+    - '05'
+    - '06'
+    - '07'
+    - 08
+    - 09
+    - 10 - 15
+    - 15 - 20
+    - 20 +
+  nbr_min:
+    name: Mosaico NBR Mínimo
+    min: 3
+    max: 40
+    label: NBR
+    cmap_type: sequential
+    rgb: true
+    rgb_legend: true
+  landsat_swir:
+    name: Landsat Falsa Cor (SWIR1/NIR/RED)
+    min: 0
+    max: 6000
+    cmap_type: sequential
+    rgb: true
+    rgb_legend: true
+  landsat_rgb:
+    name: Landsat Cor Natural (R/G/B)
+    min: 0
+    max: 4000
+    cmap_type: sequential
+    rgb: true
+    rgb_legend: true
+  coverage_nivel0:
+    name: Área queimada por classe de cobertura - Nível 0 (Natural/Antrópico)
+    min: 0
+    max: 75
+    palette:
+    - ffffff
+    - 1f8d49
+    - '808080'
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 007785
+    - '808080'
+    - '808080'
+    - 7a5900
+    - d6bc74
+    - '468991'
+    - d6bc74
+    - '808080'
+    - ffefc3
+    - edde8e
+    - '808080'
+    - '808080'
+    - e974ed
+    - c27ba0
+    - db7093
+    - ffefc3
+    - d4271e
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 2532e4
+    - ffffff
+    - '808080'
+    - ffaa5f
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - '808080'
+    - 9065d0
+    - d082de
+    - '808080'
+    - '808080'
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ad5100
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - ff69b4
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - c12100
+    label: Classe de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - Não observado
+    - Natural
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Antrópico
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    legend_order: &id001
+    - 1
+    - 3
+    - 4
+    - 5
+    - 6
+    - 49
+    - 10
+    - 11
+    - 12
+    - 32
+    - 29
+    - 50
+    - 14
+    - 15
+    - 18
+    - 19
+    - 39
+    - 20
+    - 40
+    - 62
+    - 41
+    - 36
+    - 46
+    - 47
+    - 35
+    - 48
+    - 9
+    - 21
+    - 22
+    - 23
+    - 24
+    - 30
+    - 75
+    - 25
+    - 26
+    - 33
+    - 31
+    - 27
+  coverage_nivel1:
+    name: Área queimada por classe de cobertura - Nível 1
+    min: 0
+    max: 75
+    palette:
+    - ffffff
+    - 1f8d49
+    - '808080'
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 007785
+    - '808080'
+    - '808080'
+    - 7a5900
+    - d6bc74
+    - '468991'
+    - d6bc74
+    - '808080'
+    - ffefc3
+    - edde8e
+    - '808080'
+    - '808080'
+    - e974ed
+    - c27ba0
+    - db7093
+    - ffefc3
+    - d4271e
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 2532e4
+    - ffffff
+    - '808080'
+    - ffaa5f
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - '808080'
+    - 9065d0
+    - d082de
+    - '808080'
+    - '808080'
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ad5100
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - ff69b4
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - c12100
+    label: Classe de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Floresta
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Vegetação Herbácea e Arbustiva
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Agropecuária
+    - ''
+    - ''
+    - Área não Vegetada
+    - ''
+    - Corpos D'água
+    - Não observado
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    legend_order: *id001
+  coverage_nivel1_1:
+    name: Área queimada por classe de cobertura - Nível 1.1
+    min: 0
+    max: 75
+    palette:
+    - ffffff
+    - 1f8d49
+    - '808080'
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 007785
+    - '808080'
+    - '808080'
+    - 7a5900
+    - d6bc74
+    - '468991'
+    - d6bc74
+    - '808080'
+    - ffefc3
+    - edde8e
+    - '808080'
+    - '808080'
+    - e974ed
+    - c27ba0
+    - db7093
+    - ffefc3
+    - d4271e
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 2532e4
+    - ffffff
+    - '808080'
+    - ffaa5f
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - '808080'
+    - 9065d0
+    - d082de
+    - '808080'
+    - '808080'
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ad5100
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - ff69b4
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - c12100
+    label: Classe de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Formação Florestal
+    - Formação Savânica
+    - ''
+    - ''
+    - ''
+    - ''
+    - Silvicultura
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - ''
+    - ''
+    - Pastagem
+    - ''
+    - ''
+    - Agricultura
+    - ''
+    - ''
+    - Mosaico de Usos
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Não observado
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    legend_order: *id001
+  coverage_nivel2:
+    name: Área queimada por classe de cobertura - Nível 2
+    min: 0
+    max: 75
+    palette:
+    - ffffff
+    - 1f8d49
+    - '808080'
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 007785
+    - '808080'
+    - '808080'
+    - 7a5900
+    - d6bc74
+    - '468991'
+    - d6bc74
+    - '808080'
+    - ffefc3
+    - edde8e
+    - '808080'
+    - '808080'
+    - e974ed
+    - c27ba0
+    - db7093
+    - ffefc3
+    - d4271e
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 2532e4
+    - ffffff
+    - '808080'
+    - ffaa5f
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - '808080'
+    - 9065d0
+    - d082de
+    - '808080'
+    - '808080'
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ad5100
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - ff69b4
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - c12100
+    label: Classe de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Formação Florestal
+    - Formação Savânica
+    - Mangue
+    - Floresta Alagável
+    - ''
+    - ''
+    - Silvicultura
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - Outras Formações não Florestais
+    - ''
+    - Pastagem
+    - ''
+    - ''
+    - Agricultura
+    - ''
+    - ''
+    - Mosaico de Usos
+    - ''
+    - Praia, Duna e Areal
+    - Área Urbanizada
+    - Outras Áreas não Vegetadas
+    - Corpos D'água
+    - Não observado
+    - ''
+    - Afloramento Rochoso
+    - Mineração
+    - Aquicultura
+    - Apicum
+    - ''
+    - ''
+    - ''
+    - Lavoura Perene
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Restinga Arbórea
+    - Restinga Herbácea
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Usina Fotovoltaica (beta)
+    legend_order: *id001
+  coverage_nivel3:
+    name: Área queimada por classe de cobertura - Nível 3
+    min: 0
+    max: 75
+    palette:
+    - ffffff
+    - 1f8d49
+    - '808080'
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 007785
+    - '808080'
+    - '808080'
+    - 7a5900
+    - d6bc74
+    - '468991'
+    - d6bc74
+    - '808080'
+    - ffefc3
+    - edde8e
+    - '808080'
+    - '808080'
+    - e974ed
+    - c27ba0
+    - db7093
+    - ffefc3
+    - d4271e
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 2532e4
+    - ffffff
+    - '808080'
+    - ffaa5f
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - '808080'
+    - 9065d0
+    - d082de
+    - '808080'
+    - '808080'
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ad5100
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - ff69b4
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - c12100
+    label: Classe de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Formação Florestal
+    - Formação Savânica
+    - Mangue
+    - Floresta Alagável
+    - ''
+    - ''
+    - Silvicultura
+    - Formação Natural não Florestal
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - Outras Formações não Florestais
+    - ''
+    - Pastagem
+    - ''
+    - ''
+    - ''
+    - Lavoura Temporária
+    - ''
+    - Mosaico de Usos
+    - ''
+    - Praia, Duna e Areal
+    - Área Urbanizada
+    - Outras Áreas não Vegetadas
+    - Corpos D'água
+    - Não observado
+    - ''
+    - Afloramento Rochoso
+    - Mineração
+    - Aquicultura
+    - Apicum
+    - ''
+    - ''
+    - ''
+    - Lavoura Perene
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Restinga Arbórea
+    - Restinga Herbácea
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Usina Fotovoltaica (beta)
+    legend_order: *id001
+  coverage_nivel4:
+    name: Área queimada por classe de cobertura - Nível 4
+    min: 0
+    max: 75
+    palette:
+    - ffffff
+    - 1f8d49
+    - '808080'
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 007785
+    - '808080'
+    - '808080'
+    - 7a5900
+    - d6bc74
+    - '468991'
+    - d6bc74
+    - '808080'
+    - ffefc3
+    - edde8e
+    - '808080'
+    - '808080'
+    - e974ed
+    - c27ba0
+    - db7093
+    - ffefc3
+    - d4271e
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 2532e4
+    - ffffff
+    - '808080'
+    - ffaa5f
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - '808080'
+    - 9065d0
+    - d082de
+    - '808080'
+    - '808080'
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ad5100
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - ff69b4
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - c12100
+    label: Classe de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Formação Florestal
+    - Formação Savânica
+    - Mangue
+    - Floresta Alagável
+    - ''
+    - ''
+    - Silvicultura
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - ''
+    - ''
+    - Pastagem
+    - ''
+    - ''
+    - ''
+    - Lavoura Temporária
+    - Cana
+    - Mosaico de Usos
+    - ''
+    - Praia, Duna e Areal
+    - Área Urbanizada
+    - Outras Áreas não Vegetadas
+    - ''
+    - Não observado
+    - ''
+    - Afloramento Rochoso
+    - Mineração
+    - Aquicultura
+    - Apicum
+    - Rio, Lago e Oceano
+    - ''
+    - Dendê
+    - Lavoura Perene
+    - ''
+    - ''
+    - Soja
+    - Arroz
+    - Outras Lavouras Temporárias
+    - ''
+    - ''
+    - ''
+    - ''
+    - Café
+    - Citrus
+    - Outras Lavouras Perenes
+    - Restinga Arbórea
+    - Restinga Herbácea
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Algodão (beta)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Usina Fotovoltaica (beta)
+    legend_order: *id001
+  fire_age:
+    name: Idade do Fogo
+    min: 0
+    max: 39
+    palette:
+    - '808080'
+    - '800000'
+    - '800000'
+    - '850708'
+    - 8B0E0F
+    - '901417'
+    - 961B1E
+    - 9B2226
+    - 9F2222
+    - A3211E
+    - A6211A
+    - AA2016
+    - AE2012
+    - B42E0F
+    - B93C0C
+    - BF4B08
+    - C45905
+    - CA6702
+    - BF7C27
+    - B4924D
+    - AAA772
+    - 9FBD98
+    - 94D2BD
+    - 78C5B5
+    - 5DB9AD
+    - 41ACA6
+    - 26A09E
+    - 0A9294
+    - 008998
+    - 007D96
+    - 007292
+    - 00688C
+    - 005E86
+    - 00557F
+    - 004C7B
+    - 004080
+    - 003781
+    - 002D81
+    - 00227F
+    - 00147D
+    - 000079
+    label: Anos desde o fogo
+    cmap_type: sequential
+  def_seco:
+    name: Desmatamento e Vegetação Secundária
+    min: 0
+    max: 7
+    palette:
+    - ffffff
+    - fff6bf
+    - '127622'
+    - 56d117
+    - ea1c1c
+    - 6fc4b7
+    - ffb66c
+    - 8c8c8c
+    label: Classe
+    cmap_type: categorical
+    discrete_labels:
+    - ''
+    - Antrópico
+    - Vegetação Primária
+    - Vegetação Secundária
+    - Supressão de Vegetação Primária
+    - Regeneração da Vegetação Secundária
+    - Supressão de Vegetação Secundária
+    - Ruído
+  soc:
+    name: Carbono Orgânico do Solo
+    min: -1
+    max: 80
+    palette:
+    - ffffff
+    - ffffe5
+    - fff7bc
+    - fee391
+    - fec44f
+    - fe9929
+    - ec7014
+    - cc4c02
+    - '993404'
+    - '662506'
+    label: t/ha
+    unit: t/ha
+    cmap_type: sequential
+  edge_area_col101:
+    name: Distância da Borda
+    min: 0
+    max: 8
+    palette:
+    - '808080'
+    - E31A1C
+    - FEB24C
+    - B2DF8A
+    - 33A02C
+    - 7289AB
+    - 3F48CC
+    - A059A0
+    - E066FF
+    label: Distância da borda (m)
+    cmap_type: categorical
+    discrete_labels:
+    - Sem vegetação
+    - <= 30 m
+    - <= 60 m
+    - <= 90 m
+    - <= 120 m
+    - <= 150 m
+    - <= 300 m
+    - <= 600 m
+    - <= 1000 m
+  edge_area_col11:
+    name: Distância até a Borda
+    min: 0
+    max: 7000
+    nodata_value: 0
+    nodata_color: auto_bg
+    palette:
+    - d73027
+    - fc8d59
+    - fee08b
+    - ffffbf
+    - d9ef8b
+    - '91cf60'
+    - 1a9850
+    label: Distância até a borda (m)
+    unit: m
+    cmap_type: sequential
+  edge_area_1000m:
+    name: Distância até a Borda (até 1000 m)
+    min: 0
+    max: 8
+    palette:
+    - auto_bg
+    - bc4749
+    - d68c8d
+    - fff59d
+    - dce0af
+    - a7c957
+    - '6a994e'
+    - '386641'
+    - '0d2207'
+    palette_dark:
+    - auto_bg
+    - bc4749
+    - d68c8d
+    - fff59d
+    - dce0af
+    - a7c957
+    - '6a994e'
+    - '488153'
+    - '34673c'
+    label: Distância até a borda (m)
+    unit: m
+    cmap_type: categorical
+    prefix_labels: false
+    discrete_labels:
+    - ''
+    - ≤ 30 m
+    - ≤ 60 m
+    - ≤ 90 m
+    - ≤ 120 m
+    - ≤ 150 m
+    - ≤ 300 m
+    - ≤ 600 m
+    - ≤ 1000 m
+  edge_age_col101:
+    name: Idade da Borda
+    min: 0
+    max: 40
+    palette:
+    - '808080'
+    - 33A02C
+    - 49AB3C
+    - 60B64D
+    - 77C15E
+    - 8ECD6F
+    - A4D880
+    - B4E083
+    - BBE373
+    - C1E664
+    - C8E954
+    - CEEC44
+    - D5EF35
+    - DCEC2B
+    - E3E721
+    - EBE318
+    - F2DE0F
+    - F9DA06
+    - FFD300
+    - FFC500
+    - FFB800
+    - FFAA00
+    - FF9D00
+    - FF8F00
+    - FB7D03
+    - F66808
+    - F1540D
+    - EC3F12
+    - E72B17
+    - E11B1F
+    - D52637
+    - C9324E
+    - BD3D66
+    - B1487E
+    - A55495
+    - 9A51A7
+    - 9043B5
+    - 8735C3
+    - 7D28D1
+    - 731ADF
+    - 6A0DED
+    label: Idade da borda (anos)
+    cmap_type: sequential
+    unit: anos
+  edge_area:
+    name: Proximidade de Borda
+    min: 0
+    max: 9
+    palette:
+    - 55604B
+    - FF0001
+    - 32CD32
+    - 19B06F
+    - 6FA8DC
+    - 0B5394
+    - A64D79
+    - F54CA9
+    - 55604B
+    label: Distância de borda (m)
+    cmap_type: sequential
+  distances:
+    name: Distância de Isolamento
+    min: 0
+    max: 12
+    palette:
+    - 55604B
+    - 000080
+    - 0000ff
+    - 8080ff
+    - 008000
+    - 00ff00
+    - 80ff80
+    - '800000'
+    - ff0000
+    - FF8080
+    - 55604B
+    - 55604B
+    - 55604B
+    label: Classe de distância
+    cmap_type: sequential
+  patch_size:
+    name: Tamanho de Fragmento
+    min: 0
+    max: 7
+    palette:
+    - A9A9A9
+    - E50C08
+    - FFAA5F
+    - 32CD32
+    - 19B06F
+    - 6FA8DC
+    - 0B5394
+    - A9A9A9
+    label: Tamanho do fragmento (ha)
+    cmap_type: categorical
+    discrete_labels:
+    - Não observado
+    - ''
+  burned_at_least_once:
+    name: Queimado ao Menos uma Vez
+    min: 0
+    max: 4
+    palette:
+    - '808080'
+    - FF8C00
+    - DC143C
+    - FFD700
+    - 8B4513
+    label: Frequência de fogo
+    cmap_type: categorical
+    discrete_labels:
+    - Não observado
+    - Queimado ao menos uma vez
+    - Queimado pela primeira vez
+    - Queimará no futuro
+    - Natural queimado e convertido
+  secondary_vegetation_coverage:
+    name: Cobertura da Vegetação Secundária
+    min: 0
+    max: 62
+    palette:
+    - '808080'
+    - 32a65e
+    - 32a65e
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 026975
+    - '000000'
+    - '000000'
+    - 7a6c00
+    - ad975a
+    - '519799'
+    - d6bc74
+    - d89f5c
+    - FFFFB2
+    - edde8e
+    - '000000'
+    - '000000'
+    - f5b3c8
+    - C27BA0
+    - db7093
+    - ffefc3
+    - db4d4f
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 0000FF
+    - '000000'
+    - '000000'
+    - ffaa5f
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - 93dfe6
+    - 9065d0
+    - d082de
+    - '000000'
+    - '000000'
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - cca0d4
+    - dbd26b
+    - 807a40
+    - e04cfa
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ad5100
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - CC66FF
+    - FF6666
+    - '006400'
+    - 8d9e8b
+    - f5d5d5
+    - ff69b4
+    label: Classe de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - Não observado
+    - ''
+    - ''
+    - Formação Florestal
+    - Formação Savânica
+    - Mangue
+    - Floresta Alagável
+    - ''
+    - ''
+    - ''
+    - ''
+    - Campo Alagado e Área Pantanosa
+    - Formação Campestre
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Apicum
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Restinga Arbórea
+    - Restinga Herbácea
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+  morphology:
+    name: Morfologia do Fragmento
+    min: 0
+    max: 6
+    palette:
+    - '808080'
+    - 34662B
+    - 9BCFB3
+    - 46A9B1
+    - FFCC4A
+    - F6B0CB
+    - A9DBEB
+    label: Classe morfológica
+    cmap_type: categorical
+    discrete_labels:
+    - Sem vegetação
+    - Núcleo
+    - Borda
+    - Perfuração
+    - Mancha
+    - Laço
+    - Ponte
+  secondary_vegetation_age:
+    name: Idade da Vegetação Secundária
+    min: 0
+    max: 39
+    palette:
+    - '808080'
+    - F3F6C2
+    - F1F6A1
+    - EFF680
+    - EEF660
+    - EDF63F
+    - EAF622
+    - D9F622
+    - C8F622
+    - B6F622
+    - A4F622
+    - 8EF622
+    - 79F622
+    - 71F622
+    - 67F623
+    - 5DF625
+    - 55F627
+    - 4DF629
+    - 41F62A
+    - 39F62C
+    - 31F62E
+    - 28F62F
+    - 22F430
+    - 22E72D
+    - 22DF2A
+    - 22D127
+    - 22C123
+    - 23B21F
+    - 23AA1C
+    - 23A21B
+    - 239A19
+    - 238F16
+    - '238513'
+    - 237D11
+    - '237510'
+    - 246D0D
+    - 24680C
+    - 24640B
+    - 24600A
+    - '255808'
+    label: Idade (anos)
+    cmap_type: sequential
+  lulc_drc_nivel0:
+    name: Couverture et Utilisation des Terres (Niveau 0)
+    min: 0
+    max: 27
+    palette:
+    - ffffff
+    - '139912'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - FFD966
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d5d5e5
+    label: Classe d'occupation du sol
+    cmap_type: categorical
+    prefix_labels: false
+    discrete_labels:
+    - ''
+    - Naturel (1)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Anthropique (14)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Non défini (27)
+    legend_order:
+    - 1
+    - 14
+  lulc_drc_nivel1:
+    name: Couverture et Utilisation des Terres (Niveau 1)
+    min: 0
+    max: 27
+    palette:
+    - ffffff
+    - 1f8d49
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d6bc74
+    - '808080'
+    - '808080'
+    - '808080'
+    - ffefc3
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - d4271e
+    - '808080'
+    - '808080'
+    - '808080'
+    - 2532e4
+    - ffffff
+    label: Classe d'occupation du sol
+    cmap_type: categorical
+    prefix_labels: false
+    discrete_labels:
+    - ''
+    - Forêt (1)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Végétation herbeuse et arbustive (10)
+    - ''
+    - ''
+    - ''
+    - Zones agricoles et d'élevage (14)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Zone non végétalisée (22)
+    - ''
+    - ''
+    - ''
+    - Eau (26)
+    - Non observé (27)
+    legend_order:
+    - 1
+    - 10
+    - 14
+    - 22
+    - 26
+  lulc_drc_nivel2:
+    name: Couverture et Utilisation des Terres (Niveau 2)
+    min: 0
+    max: 66
+    palette:
+    - ffffff
+    - '808080'
+    - '808080'
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - '808080'
+    - '808080'
+    - '808080'
+    - 7a6c00
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - ffefc3
+    - '808080'
+    - '808080'
+    - d4271e
+    - db4d4f
+    - '808080'
+    - ffffff
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - 2532e4
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - '808080'
+    - a89358
+    label: Classe d'occupation du sol
+    cmap_type: categorical
+    prefix_labels: false
+    discrete_labels:
+    - ''
+    - ''
+    - ''
+    - Forêt dense (3)
+    - Forêt claire (4)
+    - Mangrove (5)
+    - ''
+    - ''
+    - ''
+    - Plantation forestière (9)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Mosaïque d'Usages (21)
+    - ''
+    - ''
+    - Zone urbaine (24)
+    - Autre zone sans végétation (25)
+    - ''
+    - Non observé (27)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Fleuve, lac et océan (33)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Savane (66)
+    legend_order:
+    - 3
+    - 4
+    - 5
+    - 66
+    - 9
+    - 21
+    - 24
+    - 25
+    - 33
+  lulc_peru_nivel0:
+    name: "Cobertura y uso de la tierra - Perú - Nivel 0 (Natural/Antrópico)"
+    min: 0
+    max: 92
+    palette:
+    - 'ffffff'
+    - '1f8d49'
+    - '1f8d49'
+    - '1f8d49'
+    - '7dc975'
+    - '04381d'
+    - '007785'
+    - '1d7782'
+    - '000000'
+    - '7a6c00'
+    - 'd6bc74'
+    - '519799'
+    - 'd6bc74'
+    - 'd89f5c'
+    - 'ffefc3'
+    - 'edde8e'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c27ba0'
+    - 'db7093'
+    - 'ffefc3'
+    - 'db4d4f'
+    - 'ffa07a'
+    - 'd4271e'
+    - 'db4d4f'
+    - '0000ff'
+    - '000000'
+    - '000000'
+    - 'ffaa5f'
+    - '9c0027'
+    - '091077'
+    - 'fc8114'
+    - '2532e4'
+    - '93dfe6'
+    - '9065d0'
+    - 'd082de'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c71585'
+    - 'f54ca9'
+    - 'cca0d4'
+    - 'dbd26b'
+    - '807a40'
+    - 'e04cfa'
+    - 'd68fe2'
+    - '9932cc'
+    - 'e6ccff'
+    - '02d659'
+    - 'ad5100'
+    - '5faf92'
+    - 'f0b4a8'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - 'f99fff'
+    - 'd84690'
+    - '006400'
+    - '8d9e8b'
+    - 'f5d5d5'
+    - 'ff69b4'
+    - 'c7e0ab'
+    - '000000'
+    - 'b9158a'
+    - 'a89358'
+    - '7dc975'
+    - 'e97a7a'
+    - '0fffe3'
+    - 'be9e00'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '757272'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '8a680c'
+    - '99771c'
+    - '000000'
+    - '26abab'
+    - 'a88831'
+    - '81dbbf'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '329c5a'
+    - '6bd46c'
+    - '3ddb40'
+    - '403d3e'
+    - 'd98a45'
+    label: Clase de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - 'No observado'
+    - 'Natural'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Antrópico'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    legend_order:
+    - 1
+    - 14
+    - 0
+  lulc_peru_nivel1:
+    name: "Cobertura y uso de la tierra - Perú - Nivel 1"
+    min: 0
+    max: 92
+    palette:
+    - 'ffffff'
+    - '1f8d49'
+    - '1f8d49'
+    - '1f8d49'
+    - '7dc975'
+    - '04381d'
+    - '007785'
+    - '1d7782'
+    - '000000'
+    - '7a6c00'
+    - 'd6bc74'
+    - '519799'
+    - 'd6bc74'
+    - 'd89f5c'
+    - 'ffefc3'
+    - 'edde8e'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c27ba0'
+    - 'db7093'
+    - 'ffefc3'
+    - 'db4d4f'
+    - 'ffa07a'
+    - 'd4271e'
+    - 'db4d4f'
+    - '0000ff'
+    - '000000'
+    - '000000'
+    - 'ffaa5f'
+    - '9c0027'
+    - '091077'
+    - 'fc8114'
+    - '2532e4'
+    - '93dfe6'
+    - '9065d0'
+    - 'd082de'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c71585'
+    - 'f54ca9'
+    - 'cca0d4'
+    - 'dbd26b'
+    - '807a40'
+    - 'e04cfa'
+    - 'd68fe2'
+    - '9932cc'
+    - 'e6ccff'
+    - '02d659'
+    - 'ad5100'
+    - '5faf92'
+    - 'f0b4a8'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - 'f99fff'
+    - 'd84690'
+    - '006400'
+    - '8d9e8b'
+    - 'f5d5d5'
+    - 'ff69b4'
+    - 'c7e0ab'
+    - '000000'
+    - 'b9158a'
+    - 'a89358'
+    - '7dc975'
+    - 'e97a7a'
+    - '0fffe3'
+    - 'be9e00'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '757272'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '8a680c'
+    - '99771c'
+    - '000000'
+    - '26abab'
+    - 'a88831'
+    - '81dbbf'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '329c5a'
+    - '6bd46c'
+    - '3ddb40'
+    - '403d3e'
+    - 'd98a45'
+    label: Clase de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - 'No observado'
+    - ''
+    - ''
+    - 'Formación boscosa'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Formación natural no boscosa'
+    - ''
+    - ''
+    - ''
+    - 'Área agropecuaria'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Área sin vegetación'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Cuerpo de agua'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    legend_order:
+    - 3
+    - 10
+    - 14
+    - 22
+    - 33
+    - 0
+  lulc_peru_nivel2:
+    name: "Cobertura y uso de la tierra - Perú - Nivel 2"
+    min: 0
+    max: 92
+    palette:
+    - 'ffffff'
+    - '1f8d49'
+    - '1f8d49'
+    - '1f8d49'
+    - '7dc975'
+    - '04381d'
+    - '007785'
+    - '1d7782'
+    - '000000'
+    - '7a6c00'
+    - 'd6bc74'
+    - '519799'
+    - 'd6bc74'
+    - 'd89f5c'
+    - 'ffefc3'
+    - 'edde8e'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c27ba0'
+    - 'db7093'
+    - 'ffefc3'
+    - 'db4d4f'
+    - 'ffa07a'
+    - 'd4271e'
+    - 'db4d4f'
+    - '0000ff'
+    - '000000'
+    - '000000'
+    - 'ffaa5f'
+    - '9c0027'
+    - '091077'
+    - 'fc8114'
+    - '2532e4'
+    - '93dfe6'
+    - '9065d0'
+    - 'd082de'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c71585'
+    - 'f54ca9'
+    - 'cca0d4'
+    - 'dbd26b'
+    - '807a40'
+    - 'e04cfa'
+    - 'd68fe2'
+    - '9932cc'
+    - 'e6ccff'
+    - '02d659'
+    - 'ad5100'
+    - '5faf92'
+    - 'f0b4a8'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - 'f99fff'
+    - 'd84690'
+    - '006400'
+    - '8d9e8b'
+    - 'f5d5d5'
+    - 'ff69b4'
+    - 'c7e0ab'
+    - '000000'
+    - 'b9158a'
+    - 'a89358'
+    - '7dc975'
+    - 'e97a7a'
+    - '0fffe3'
+    - 'be9e00'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '757272'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '8a680c'
+    - '99771c'
+    - '000000'
+    - '26abab'
+    - 'a88831'
+    - '81dbbf'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '329c5a'
+    - '6bd46c'
+    - '3ddb40'
+    - '403d3e'
+    - 'd98a45'
+    label: Clase de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - 'No observado'
+    - 'Formación boscosa'
+    - ''
+    - 'Bosque'
+    - 'Bosque seco'
+    - 'Manglar'
+    - 'Bosque inundable'
+    - ''
+    - ''
+    - 'Plantación forestal'
+    - 'Formación natural no boscosa'
+    - 'Formación herbácea inundable'
+    - 'Formación herbácea'
+    - 'Formaciones arbustivas y otras'
+    - 'Área agropecuaria'
+    - 'Pasto (beta)'
+    - ''
+    - ''
+    - 'Agricultura'
+    - ''
+    - ''
+    - 'Mosaico agropecuario'
+    - 'Área sin vegetación'
+    - 'Playa'
+    - 'Infraestructura urbana'
+    - 'Otra área antrópica sin vegetación'
+    - 'Cuerpo de agua'
+    - ''
+    - ''
+    - ''
+    - 'Minería'
+    - 'Acuicultura'
+    - ''
+    - 'Río, lago u océano'
+    - 'Glaciar'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Superficie salina costera'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Superficie de salar'
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Matorral y otros arbustales'
+    - ''
+    - 'Otra área natural sin vegetación'
+    - ''
+    - 'Loma costera (beta)'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Superficie rocosa'
+    legend_order:
+    - 1
+    - 3
+    - 4
+    - 5
+    - 6
+    - 10
+    - 11
+    - 12
+    - 13
+    - 66
+    - 70
+    - 14
+    - 9
+    - 15
+    - 21
+    - 18
+    - 22
+    - 23
+    - 24
+    - 25
+    - 30
+    - 52
+    - 61
+    - 68
+    - 92
+    - 26
+    - 31
+    - 33
+    - 34
+    - 0
+  lulc_peru_nivel3:
+    name: "Cobertura y uso de la tierra - Perú - Nivel 3"
+    min: 0
+    max: 92
+    palette:
+    - 'ffffff'
+    - '1f8d49'
+    - '1f8d49'
+    - '1f8d49'
+    - '7dc975'
+    - '04381d'
+    - '007785'
+    - '1d7782'
+    - '000000'
+    - '7a6c00'
+    - 'd6bc74'
+    - '519799'
+    - 'd6bc74'
+    - 'd89f5c'
+    - 'ffefc3'
+    - 'edde8e'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c27ba0'
+    - 'db7093'
+    - 'ffefc3'
+    - 'db4d4f'
+    - 'ffa07a'
+    - 'd4271e'
+    - 'db4d4f'
+    - '0000ff'
+    - '000000'
+    - '000000'
+    - 'ffaa5f'
+    - '9c0027'
+    - '091077'
+    - 'fc8114'
+    - '2532e4'
+    - '93dfe6'
+    - '9065d0'
+    - 'd082de'
+    - '000000'
+    - '000000'
+    - 'f5b3c8'
+    - 'c71585'
+    - 'f54ca9'
+    - 'cca0d4'
+    - 'dbd26b'
+    - '807a40'
+    - 'e04cfa'
+    - 'd68fe2'
+    - '9932cc'
+    - 'e6ccff'
+    - '02d659'
+    - 'ad5100'
+    - '5faf92'
+    - 'f0b4a8'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - 'f99fff'
+    - 'd84690'
+    - '006400'
+    - '8d9e8b'
+    - 'f5d5d5'
+    - 'ff69b4'
+    - 'c7e0ab'
+    - '000000'
+    - 'b9158a'
+    - 'a89358'
+    - '7dc975'
+    - 'e97a7a'
+    - '0fffe3'
+    - 'be9e00'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '757272'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '8a680c'
+    - '99771c'
+    - '000000'
+    - '26abab'
+    - 'a88831'
+    - '81dbbf'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '329c5a'
+    - '6bd46c'
+    - '3ddb40'
+    - '403d3e'
+    - 'd98a45'
+    label: Clase de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - 'No observado'
+    - 'Formación boscosa'
+    - ''
+    - 'Bosque'
+    - 'Bosque seco'
+    - 'Manglar'
+    - 'Bosque inundable'
+    - ''
+    - ''
+    - 'Plantación forestal'
+    - 'Formación natural no boscosa'
+    - 'Formación herbácea inundable'
+    - 'Formación herbácea'
+    - 'Formaciones arbustivas y otras'
+    - 'Área agropecuaria'
+    - 'Pasto (beta)'
+    - ''
+    - ''
+    - 'Agricultura'
+    - ''
+    - ''
+    - 'Mosaico agropecuario'
+    - 'Área sin vegetación'
+    - 'Playa'
+    - 'Infraestructura urbana'
+    - 'Otra área antrópica sin vegetación'
+    - 'Cuerpo de agua'
+    - ''
+    - ''
+    - ''
+    - 'Minería'
+    - 'Acuicultura'
+    - ''
+    - 'Río, lago u océano'
+    - 'Glaciar'
+    - 'Palma aceitera'
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Arroz (beta)'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Herbazal inundable de tierras bajas'
+    - 'Superficie salina costera'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Superficie de salar'
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Matorral y otros arbustales'
+    - ''
+    - 'Otra área natural sin vegetación'
+    - ''
+    - 'Loma costera (beta)'
+    - ''
+    - 'Otros cultivos'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Herbazal inundable altoandino'
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - 'Superficie rocosa'
+    legend_order:
+    - 1
+    - 3
+    - 4
+    - 5
+    - 6
+    - 10
+    - 11
+    - 51
+    - 82
+    - 12
+    - 13
+    - 66
+    - 70
+    - 14
+    - 9
+    - 15
+    - 21
+    - 35
+    - 40
+    - 18
+    - 72
+    - 22
+    - 23
+    - 24
+    - 25
+    - 30
+    - 52
+    - 61
+    - 68
+    - 92
+    - 26
+    - 31
+    - 33
+    - 34
+    - 0
+  fire_peru:
+    name: Fuego - Binario
+    min: 0
+    max: 1
+    palette:
+    - fdfdfd
+    - '800000'
+    label: Píxel quemado
+    cmap_type: binary
+    discrete_labels:
+    - No observado
+    - Fuego
+  monthly_peru:
+    name: Fuego - Mes
+    min: 0
+    max: 12
+    palette:
+    - fdfdfd
+    - 55E3E6
+    - 27d3c3
+    - 00c29b
+    - 19b06f
+    - 08cf26
+    - 53e300
+    - dbc900
+    - ff8800
+    - ff3c00
+    - df2a02
+    - c01702
+    - a10000
+    label: Mes de quema (1=Ene, 12=Dic)
+    cmap_type: sequential
+  lulc_peru:
+    name: Cobertura y uso de la tierra - Perú
+    min: 0
+    max: 92
+    palette:
+    - ffffff
+    - 1f8d49
+    - 1f8d49
+    - 1f8d49
+    - 7dc975
+    - 04381d
+    - 007785
+    - 1d7782
+    - '000000'
+    - 7a6c00
+    - d6bc74
+    - '519799'
+    - d6bc74
+    - d89f5c
+    - ffefc3
+    - edde8e
+    - '000000'
+    - '000000'
+    - f5b3c8
+    - c27ba0
+    - db7093
+    - ffefc3
+    - db4d4f
+    - ffa07a
+    - d4271e
+    - db4d4f
+    - 0000ff
+    - '000000'
+    - '000000'
+    - ffaa5f
+    - 9c0027
+    - 091077
+    - fc8114
+    - 2532e4
+    - 93dfe6
+    - 9065d0
+    - d082de
+    - '000000'
+    - '000000'
+    - f5b3c8
+    - c71585
+    - f54ca9
+    - cca0d4
+    - dbd26b
+    - 807a40
+    - e04cfa
+    - d68fe2
+    - 9932cc
+    - e6ccff
+    - 02d659
+    - ad5100
+    - 5faf92
+    - f0b4a8
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - f99fff
+    - d84690
+    - '006400'
+    - 8d9e8b
+    - f5d5d5
+    - ff69b4
+    - c7e0ab
+    - '000000'
+    - b9158a
+    - a89358
+    - 7dc975
+    - e97a7a
+    - 0fffe3
+    - be9e00
+    - '000000'
+    - '000000'
+    - '000000'
+    - '000000'
+    - '757272'
+    - '000000'
+    - '000000'
+    - '000000'
+    - 8a680c
+    - 99771c
+    - '000000'
+    - 26abab
+    - a88831
+    - 81dbbf
+    - '000000'
+    - '000000'
+    - '000000'
+    - 329c5a
+    - 6bd46c
+    - 3ddb40
+    - 403d3e
+    - d98a45
+    label: Clase de cobertura
+    cmap_type: categorical
+    discrete_labels:
+    - No observado
+    - Formación boscosa
+    - ''
+    - Bosque
+    - Bosque seco
+    - Manglar
+    - Bosque inundable
+    - ''
+    - ''
+    - Plantación forestal
+    - Formación natural no boscosa
+    - Formación herbácea inundable
+    - Formación herbácea
+    - Formaciones arbustivas y otras
+    - Área agropecuaria
+    - Pasto (beta)
+    - ''
+    - ''
+    - Agricultura
+    - ''
+    - ''
+    - Mosaico agropecuario
+    - Área sin vegetación
+    - Playa
+    - Infraestructura urbana
+    - Otra área antrópica sin vegetación
+    - Cuerpo de agua
+    - ''
+    - ''
+    - ''
+    - Minería
+    - Acuicultura
+    - ''
+    - Río, lago u océano
+    - Glaciar
+    - Palma aceitera
+    - ''
+    - ''
+    - ''
+    - ''
+    - Arroz (beta)
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Herbazal inundable de tierras bajas
+    - Superficie salina costera
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Superficie de salar
+    - ''
+    - ''
+    - ''
+    - ''
+    - Matorral y otros arbustales
+    - ''
+    - Otra área natural sin vegetación
+    - ''
+    - Loma costera (beta)
+    - ''
+    - Otros cultivos
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Herbazal inundable altoandino
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Superficie rocosa
+    legend_order:
+    - 1
+    - 3
+    - 4
+    - 5
+    - 6
+    - 10
+    - 11
+    - 51
+    - 82
+    - 12
+    - 13
+    - 66
+    - 70
+    - 14
+    - 9
+    - 15
+    - 21
+    - 35
+    - 40
+    - 18
+    - 72
+    - 22
+    - 23
+    - 24
+    - 25
+    - 30
+    - 52
+    - 61
+    - 68
+    - 92
+    - 26
+    - 31
+    - 33
+    - 34
+    - 0

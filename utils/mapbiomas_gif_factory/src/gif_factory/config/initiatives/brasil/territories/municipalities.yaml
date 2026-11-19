@@ -1,0 +1,28 @@
+name: "Municipalities"
+description: "Brazilian municipalities (IBGE 2025)"
+type: municipalities
+territories:
+  juazeiro_ba:
+    name: "Juazeiro (BA)"
+    name_en: "Juazeiro (BA)"
+    source: "projects/ee-ipam/assets/ORIGINAIS/IBGE/limite_municipios_IBGE_2025"
+    filter: "NM_MUN == 'Juazeiro'"
+    bbox: [-40.8138, -9.9735, -39.8608, -9.0544]
+  petrolina_pe:
+    name: "Petrolina (PE)"
+    name_en: "Petrolina (PE)"
+    source: "projects/ee-ipam/assets/ORIGINAIS/IBGE/limite_municipios_IBGE_2025"
+    filter: "NM_MUN == 'Petrolina'"
+    bbox: [-40.9590, -9.4829, -40.2081, -8.6227]
+  juazeiro_petrolina:
+    name: "Juazeiro (BA) e Petrolina (PE)"
+    name_en: "Juazeiro (BA) and Petrolina (PE)"
+    # Composição: os dois municípios viram UMA FeatureCollection.
+    # `dissolve: true` funde as geometrias em um único polígono (sem a divisa
+    # interna entre eles). Para manter os limites municipais visíveis, use
+    # `dissolve: false` (as duas features seguem na mesma FC).
+    union_of:
+      - juazeiro_ba
+      - petrolina_pe
+    dissolve: true
+    bbox: [-40.9590, -9.9735, -39.8608, -8.6227]

@@ -1,0 +1,38 @@
+# Status de publicação dos produtos do catálogo na interface do Colab.
+#
+#   validado  -> aparece por padrão para qualquer usuário
+#   beta      -> aparece só na aba "Beta" (asset restrito, região especial,
+#                coleção em revisão); funciona, mas precisa de conferência
+#   pendente  -> não aparece
+#
+# Sem entrada aqui, o produto é "validado": ele veio do projeto local
+# (mapbiomas-ia/FABRICA DE GIFS), onde produto, processador e paleta já
+# foram usados em produção. Use `products` para exceções dentro de um dataset.
+
+default: validado
+
+datasets:
+  # Asset em projects/mapbiomas-workspace/.../PRODUTOS_BETA (não público).
+  brasil_soil:
+    status: beta
+    reason: "Asset beta em workspace restrito."
+  # Composição feita para a região customizada do Oeste Baiano.
+  oeste_baiano:
+    status: beta
+    reason: "Produtos montados para um recorte especial (Oeste Baiano)."
+  # Assets sem acesso para a conta de revisão (não encontrados ou privados).
+  paraguay_fire_col1:
+    status: pendente
+    reason: "Assets de Fuego Colección 1 sem acesso público."
+  brasil_fire_col3:
+    products:
+      time_after_fire: {status: pendente, reason: "Asset de subproduto da Col. 3 sem acesso."}
+      time_before_fire: {status: pendente, reason: "Asset de subproduto da Col. 3 sem acesso."}
+      year_next_fire: {status: pendente, reason: "Asset de subproduto da Col. 3 sem acesso."}
+  brasil_degradation_col9:
+    products:
+      fire_age: {status: pendente, reason: "Processador build_fire_age falha (39 x 38 bandas)."}
+  # Coleção 11 de degradação ainda em revisão.
+  brasil_degradation_col11:
+    status: beta
+    reason: "Coleção 11 de degradação em revisão."

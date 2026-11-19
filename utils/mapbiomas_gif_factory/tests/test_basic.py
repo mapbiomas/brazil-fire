@@ -109,17 +109,16 @@ class BasicTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 validate([{**LAYERS[0], **invalid}], TERRITORIES)
 
-    def test_notebook_custom_arrays_are_explicit_and_valid(self):
+    def test_notebook_has_two_form_cells_and_no_lists_to_edit(self):
         notebook = json.loads((Path(__file__).parents[1] / "notebooks/piloto.ipynb").read_text(encoding="utf-8"))
-        namespace = {}
-        for cell in notebook["cells"][2:4]:
-            exec("".join(cell["source"]), namespace)
-        layers, territories = namespace["LAYERS"], namespace["TERRITORIES"]
-        validate(layers, territories)
-        self.assertEqual({x["id"] for x in territories}, {"matopiba", "matopiba_cerrado"})
-        self.assertEqual([x["id"] for x in layers], ["fogo_anual"])
-        self.assertNotIn("bands", layers[0])
-        self.assertEqual(layers[0]["status"], "experimental")
+        code = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+        self.assertEqual(len(code), 2)
+        self.assertTrue(all(cell["metadata"].get("cellView") == "form" for cell in code))
+        source = "".join("".join(cell["source"]) for cell in code)
+        self.assertNotIn("LAYERS", source)
+        self.assertNotIn("TERRITORIES", source)
+        self.assertIn("show_app(GEE_PROJECT)", source)
+        self.assertIn("enable_custom_widget_manager", source)
 
     def test_copy_is_selective_and_does_not_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:

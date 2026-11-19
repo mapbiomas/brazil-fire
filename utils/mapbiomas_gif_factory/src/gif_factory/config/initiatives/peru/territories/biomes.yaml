@@ -1,0 +1,34 @@
+name: "Biomas"
+description: "Perú con límites de los biomas"
+type: biomes
+territories:
+  peru_biomas:
+    name: "Perú - Biomas"
+    type: biomes
+    description: "Perú con límites de los biomas (unión de los biomas válidos)"
+    source: "projects/mapbiomas-peru/assets/Biomas-peru"
+    filter: "nombre in ['Andes','Desierto costero','Bosque seco ecuatorial','Amazonía']"
+
+  peru_bioma_amazonia:
+    name: "Bioma Amazonía (Perú)"
+    type: biomes
+    source: "projects/mapbiomas-peru/assets/Biomas-peru"
+    filter: "nombre == 'Amazonía'"
+
+  peru_bioma_andes:
+    name: "Bioma Andes (Perú)"
+    type: biomes
+    source: "projects/mapbiomas-peru/assets/Biomas-peru"
+    filter: "nombre == 'Andes'"
+
+  peru_bioma_desierto_costero:
+    name: "Bioma Desierto costero (Perú)"
+    type: biomes
+    source: "projects/mapbiomas-peru/assets/Biomas-peru"
+    filter: "nombre == 'Desierto costero'"
+
+  peru_bioma_bosque_seco_ecuatorial:
+    name: "Bioma Bosque seco ecuatorial (Perú)"
+    type: biomes
+    source: "projects/mapbiomas-peru/assets/Biomas-peru"
+    filter: "nombre == 'Bosque seco ecuatorial'"

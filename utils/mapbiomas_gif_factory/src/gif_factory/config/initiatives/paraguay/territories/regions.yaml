@@ -1,0 +1,32 @@
+name: "Regions"
+description: "Paraguay custom regions"
+type: regions
+territories:
+  paraguay_occidental:
+    name: "Región Occidental (Chaco)"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values: ["Alto Paraguay", "Boqueron", "Presidente Hayes"]
+  paraguay_oriental:
+    name: "Región Oriental"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"
+    filter_in:
+      field: "ADM1_NAME"
+      values:
+        - "Concepcion"
+        - "San Pedro"
+        - "Cordillera"
+        - "Guaira"
+        - "Caaguazu"
+        - "Caazapa"
+        - "Itapua"
+        - "Misiones"
+        - "Paraguari"
+        - "Alto Parana"
+        - "Central"
+        - "Neembucu"
+        - "Amambay"
+        - "Canindeyu"

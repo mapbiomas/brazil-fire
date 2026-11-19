@@ -1,0 +1,70 @@
+name: "Fire — Collection 3"
+description: "MapBiomas Fire Collection 3 - Brasil"
+dataset: brasil_fire_col3
+project: mapbiomas-brazil
+category: fire
+collection: 3
+products:
+  annual_burned:
+    name: "Annual Burned Area"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_annual_burned_v1"
+    bands: ["annual_burned"]
+    temporal_range: [1985, 2023]
+    visualization: "fire"
+  annual_burned_coverage:
+    name: "Annual Burned Coverage"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_annual_burned_coverage_v1"
+    bands: ["annual_burned_coverage"]
+    temporal_range: [1985, 2023]
+    visualization: "lulc"
+  monthly_burned:
+    name: "Monthly Burned Area"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_monthly_burned_v1"
+    bands: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+    temporal_range: [1985, 2023]
+    visualization: "monthly"
+  fire_frequency:
+    name: "Fire Frequency"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_fire_frequency_v1"
+    bands: ["frequency"]
+    temporal_range: [1985, 2023]
+    visualization: "frequency"
+    bands_slice: [0, 39]
+  accumulated_burned:
+    name: "Accumulated Burned Area"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_accumulated_burned_v1"
+    bands: ["accumulated"]
+    bands_slice: [0, 39]
+    temporal_range: [1985, 2023]
+    visualization: "fire"
+  accumulated_burned_coverage:
+    name: "Accumulated Burned Coverage"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_accumulated_burned_coverage_v1"
+    bands: ["coverage"]
+    temporal_range: [1985, 2023]
+    visualization: "lulc"
+  year_last_fire:
+    name: "Year of Last Fire"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_year_last_fire_v1"
+    bands: ["year"]
+    visualization: "year_last_fire"
+  scar_size_range:
+    name: "Scar Size Range"
+    asset: "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_annual_burned_scar_size_range_v1"
+    bands: ["size_range"]
+    visualization: "scar_size_range"
+  time_after_fire:
+    name: "Time After Fire"
+    asset: "projects/mapbiomas-workspace/FOGO_COL3/2-Subprodutos/mapbiomas-fire-collection3-time-after-fire-v1"
+    bands: ["years"]
+    visualization: "fire_age"
+  time_before_fire:
+    name: "Time Before Fire"
+    asset: "projects/mapbiomas-workspace/FOGO_COL3/2-Subprodutos/mapbiomas-fire-collection3-time-before-fire-v1"
+    bands: ["years"]
+    visualization: "fire_age"
+  year_next_fire:
+    name: "Year of Next Fire"
+    asset: "projects/mapbiomas-workspace/FOGO_COL3/2-Subprodutos/mapbiomas-fire-collection3-year-next-fire-v1"
+    bands: ["year"]
+    visualization: "year_next_fire"

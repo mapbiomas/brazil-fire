@@ -1,21 +1,38 @@
 # MapBiomas GIF Factory — pilot
 
-A prototype for producing map GIFs from multiband Earth Engine images in Google Colab. The initial catalog includes experimental fire products for Brazil and Peru; assets, permissions, legends, and results must be checked before production use.
+A prototype for producing map GIFs from multiband Earth Engine images in Google Colab.
+
+## Catalog
+
+The map catalog comes from `src/gif_factory/config/`, ported from the local project (`mapbiomas-ia/FABRICA DE GIFS/config`). Each product there is defined once: asset or processor, band slicing, and the visualization key (palette, legend, min/max) in `visualization.yaml`. Catalog products run through the same pipeline as the local project, so maps come out with the same design and colors.
+
+- 120 products: Brasil (Fire 3 and 5, LULC 9 to 11, Degradation 9, 10.1 and 11, Soil, Oeste Baiano), Peru (Fire 2), Paraguay (Fire 1) and DR Congo (LULC 1).
+- `config/catalog_status.yaml` sets each product's status: **validado** (shown by default), **beta** (shown only when "Mostrar mapas beta" is ticked) or **pendente** (hidden). Without an entry, a product is validado.
+- To add or fix a product, edit the collection YAML in `config/initiatives/<initiative>/collections/` and, if needed, add a style to `visualization.yaml`.
+- `python validation/catalog_review.py` checks every product against Earth Engine (access, bands, processor) and writes a contact sheet with a thumbnail and legend per product to `validation/catalog_review/<UTC>/index.html`.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/main/utils/mapbiomas_gif_factory/notebooks/piloto.ipynb)
 
 ## How to use
 
-1. Open the notebook above. In the first cell, `GEE_PROJECT` defaults to `mapbiomas-brazil`; change it to an Earth Engine project you can access if necessary. The cell clones the repository on the first run and, on subsequent runs, fetches and checks out `REPO_REF`, reinstalls the package, and clears cached modules, so updates are available without restarting the runtime.
-2. Run the cells in order. Edit `LAYERS` and `TERRITORIES` to add custom items; multiband image bands are discovered automatically.
-3. In the interface, choose an initiative and navigate the **Mapas** (Maps), **Territórios** (Territories), **Saídas e destino** (Outputs and destination), and **Resultados** (Results) tabs. Under Mapas, filter by theme and collection and use the buttons to select products. A batch never mixes initiatives: changing initiatives clears the selections.
-4. Select at least one product, one territory, and the file types. Whole countries and individual biomes are available for Brazil and Peru. **Custom territories are available in every initiative**, allowing an existing product to run over a boundary not included in the presets. The **Personalizado** (Custom) initiative shows only your layers, with all territory groups available.
-5. Choose whether the main library is local or, by enabling automatic upload, on Drive. Use **Verificar disponibilidade** (Check availability) to check the selected combinations, then click **Gerar GIFs** (Generate GIFs). Alternatively, run the `ui.start_batch()` cell.
-6. Complete, compatible results already in the main library will not be reprocessed. If there is a conflict, the process warns you and does not overwrite files. To upload local files later, select them in the upload section; the required metadata is copied with them.
+The notebook has two form cells; nobody needs to edit code.
 
-The **Mapas** tab brings together presets and reference records by theme and collection. The **Agendados** (Queued) list remains visible across tabs and summarizes the maps, territories, and number of combinations to be submitted when the batch runs. Selection does not replace validation of the asset, bands, processing, and legend in Earth Engine.
+1. **1 · Conectar** — set `GEE_PROJECT` (defaults to `mapbiomas-brazil`) and whether to save to Google Drive, then run. It downloads the code (`REPO_REF`, default `main`), authenticates Earth Engine and mounts Drive.
+2. **2 · Abrir a Fábrica** — opens the interface (`gif_factory.app.show_app`), a 4-step flow with a summary bar that stays visible:
+   1. **Mapa** — pick one or more maps from the catalog. Filter by initiative, theme and collection, or type part of the name (accents and case are ignored). The side panel shows the legend. Beta maps appear only with **Mostrar mapas beta**.
+   2. **Território** — pick one or more territories, in any of four ways:
+      - **Buscar**: official MapBiomas territory tables (`projects/mapbiomas-territories`, public): country, biome, region, state, municipality, indigenous land, protected area, quilombo, basin, Legal Amazon, Matopiba; and the equivalents for Peru, Paraguay and DR Congo (`config/territory_sources.yaml`). Several items can be merged into one area.
+      - **Desenhar no mapa**: rectangles or polygons drawn on the map become one area.
+      - **Enviar arquivo**: GeoJSON, KML, GeoPackage or a zipped shapefile.
+      - **Asset do GEE**: any FeatureCollection the account can read, optionally filtered by a field.
+      Every territory is outlined on the map.
+   3. **Período e saídas** — all years or a year range (available years are read from the maps), file types (GIF, collage, yearly images; more under advanced options), Drive destination, and a quick preview of the first map over the first territory.
+   4. **Gerar** — review the combinations, optionally check what already exists, generate, follow progress, and see the GIFs (with a zip download in Colab).
+3. Results already complete in the library are not regenerated, and nothing is overwritten.
 
-Storage under `/content` disappears when the Colab session ends. Temporary data is not automatically uploaded to Drive.
+`show_app(project, layers=[...])` still accepts extra layers (shown under **Meus mapas**) for analysts who script; `gif_factory.ui.show_ui` remains as a compatibility wrapper.
+
+Storage under `/content` disappears when the Colab session ends; with Drive enabled, results go to `MyDrive/MapBiomas_GIF_Factory`.
 
 ## Folders and availability
 
@@ -42,69 +59,28 @@ With automatic upload enabled, Drive is the reference. Deleting a file on Drive 
 
 A complete series uses `completo` in the metadata and has no extra period in the GIF/collage filename. A continuous partial range adds, for example, `_2020-2023`; an irregular selection receives an identifier, and the exact band names are stored in the metadata. Partial frames are placed in their own subfolder. The check verifies configuration, band list, file size, and SHA-256; it does not detect changes to Earth Engine asset content if the address and band names remain the same.
 
-## Custom layers and territories
+## Analyst mode: maps and territories outside the catalog
 
-The `LAYERS` and `TERRITORIES` cells are explicit Python lists. Edit them and run the interface again. Layers in `LAYERS` appear in the **Personalizado** initiative and are saved under `Personalizado_<tema>_<coleção>/...`; presets remain under Brazil and Peru. Territories in `TERRITORIES` appear in the **Personalizados** (Custom) group and can be combined with products from any initiative.
+Nothing here requires editing the notebook.
 
-For a multiband `ee.Image` layer:
+**New map from an asset** (step 1, **Novo mapa a partir de um asset**):
 
-```python
-LAYERS = [{
-    "id": "minha_camada",  # unique identifier: letters, numbers, _ or -
-    "name": "Minha camada",
-    "theme": "Meu tema",             # optional
-    "collection": "Minha coleção",   # optional
-    "asset": "projects/.../minha_imagem",
-    "visualization": {"min": 0, "max": 1, "palette": ["fdfdfd", "800000"]},
-    "legend": [{"label": "Não observado", "color": "fdfdfd"},
-               {"label": "Fogo", "color": "800000"}],
-    # "start_year": 2020,  # optional; omit both for all bands
-    # "end_year": 2023,
-}]
-```
+1. Paste an image asset (one band per year) or an image collection (one image per year) and click **Ler asset**. The years are detected from the band names; depth sequences (Soil) are recognised too.
+2. Give it a name, theme and collection (default `beta`).
+3. Choose the colors:
+   - **Estilo do catálogo**: reuse any of the ~60 catalog styles (palette, classes and legend), for example `fire`, `lulc_nivel1` or `fire_col5_frequency`;
+   - **Minhas cores**: minimum, maximum, hex colors and optional one label per color. **Detectar valores** suggests the min/max from the last period.
+4. **Ver prévia** shows the last period over the first chosen territory (or the asset's own area). **Salvar em Meus mapas** saves and selects it.
 
-`id`, `name`, `asset`, `visualization`, and `legend` are required. `bands` is optional for explicit selection. Legend colors must match the palette; for nonconsecutive classes, do not assume that a short palette correctly represents the values. The Fire 4 and MATOPIBA examples are experimental.
+Saved maps appear under the **Meus mapas** initiative and run like catalog maps. They are stored in `MyDrive/MapBiomas_GIF_Factory/meus_itens.json` and return in later sessions (without Drive, only for the current session). **Proposta para o catálogo** produces the YAML to paste into `config/` so the map can become an official catalog product (start it as `beta` in `config/catalog_status.yaml`).
+
+**My territories**: areas drawn on the map, uploaded files and pasted assets are saved automatically to the same file. Choose **Meus territórios** as the base in step 2 to reuse or delete them.
+
+For scripting, `show_app(project, layers=[...], territories=[...])` still accepts layer and territory dictionaries (`id`, `name`, `asset`, `visualization`, `legend`; territories with `asset` and optional `filter`, or `geometry` as GeoJSON).
 
 ### Sequence axis: time or depth
 
-By default, the animation runs through the bands' years. Soil products organized by depth layer use a different axis, with `axis` and `depth_band`:
-
-```python
-LAYERS = [{
-    "id": "argila_col3",
-    "name": "Fração de argila",
-    "theme": "Solo",
-    "collection": "Coleção 3",
-    "asset": "projects/.../mapbiomas_brazil_collection3_soil_clay_fraction_v1",
-    "axis": "depth",          # "time" (default) or "depth"
-    "depth_band": "clay_fraction",
-    "visualization": {"min": 0, "max": 100, "palette": ["ffffcc", "800026"]},
-    "legend": [{"label": "0", "color": "ffffcc"}, {"label": "100", "color": "800026"}],
-}]
-```
-
-For this axis, the factory reads the `depth` property of each image in the collection, builds the sequence, and labels frames such as `0–10 cm`. `start_year`/`end_year` are rejected, and collages and special annual GIFs are disabled. Catalog depth products are disabled: each variable's legend and visualization still need validation.
-
-For cumulative series such as `fire_frequency_1985_1999`, the frame label uses the final year when all windows begin in the same year; otherwise, the full range is retained.
-
-A territory is an `ee.FeatureCollection`. The optional filter uses `ee.Filter.inList`:
-
-```python
-TERRITORIES = [{
-    "id": "meus_biomas",
-    "name": "Cerrado e Caatinga",
-    "asset": "projects/ee-ipam/assets/IBGE/limite_biomas_IBGE_2026",
-    "filter": {"field": "Bioma", "values": ["Cerrado", "Caatinga"]},
-}]
-```
-
-For a single value, you can use `"value": "Cerrado"` instead of `values`. Omit `filter` to use the entire collection. Confirm access to the asset and the attribute values. The project does not yet automatically check whether the territory intersects the data.
-
-In the **Territórios** tab, type a municipality name to see results in real time; select and add one or more. The search uses FAO GAUL 2025, not the official IBGE boundaries. Conservation unit (UC) and Indigenous territory (TI) options appear in the same search, but their sources are still awaiting connection and validation. The search is case-sensitive and returns up to 30 results. Features from the same source can be combined into one FeatureCollection; internal boundaries are not dissolved. The account must have access to the asset.
-
-The catalog contains presets and a reference inventory, grouped by theme and collection. Unverified non-fire reference records remain disabled rather than inheriting a style by name; presets remain experimental. When a selectable layer is chosen, the **Ajustar paleta e legenda** (Adjust palette and legend) panel allows colors and labels to be reviewed. An available suggestion does not prove correctness or successful execution.
-
-Reference fire legends use a pinned snapshot of `utils/fire_legends`, matched by initiative, collection, product, and asset. Only consecutive, multi-class palettes can currently be represented without inferring pixel values; other reference entries remain disabled. Legacy presets have their own experimental styles and are not proof that a legend is validated. `build_vera_fire_legends.py` regenerates the snapshot from the pinned CSV sources in `fire_legends_source/`. The provisional non-fire inventory in `validation/theme_legends/` records source styles without asserting a product, asset, or processor match.
+By default, the animation runs through the bands' years. Soil collections organised by depth (`depth` property such as `000_010`) are detected and labelled `0–10 cm`; `start_year`/`end_year` do not apply, and collages and special annual GIFs are disabled. For cumulative series such as `fire_frequency_1985_1999`, the frame label uses the final year when all windows begin in the same year.
 
 ## Limitations and next steps
 

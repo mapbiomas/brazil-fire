@@ -1,0 +1,82 @@
+# Fontes de território pesquisáveis na interface, por iniciativa.
+#
+# Cada fonte é uma FeatureCollection pública do Earth Engine. Por padrão segue
+# o esquema das tabelas de território do MapBiomas
+# (projects/mapbiomas-territories/assets/TERRITORIES/...): nome em `NAME`
+# (ex.: "[Porto Velho][RO][1100205]") e identificador em `FEATURE_ID`.
+# Outras tabelas informam `name_field`, `id_field` e, se preciso, `where`
+# (filtro fixo, ex.: só um país do GAUL).
+#
+# `whole: true` faz a fonte inteira virar um território só (ex.: o país),
+# sem precisar buscar um item.
+
+brasil:
+  - label: País
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v1
+  - label: Bioma
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/BIOMES/BIOMES_v4
+  - label: Região
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v14
+  - label: Estado
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v12
+  - label: Município
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/POLITICAL_LEVEL_4/POLITICAL_LEVEL_4_v3
+  - label: Terra indígena
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/INDIGENOUS_TERRITORIES/INDIGENOUS_TERRITORIES_v3
+  - label: Unidade de conservação
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/PROTECTED_AREA/PROTECTED_AREA_v1
+  - label: Quilombo
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/QUILOMBOS/QUILOMBOS_v2
+  - label: Bacia hidrográfica
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/BASIN_LEVEL_2_PNRH/BASIN_LEVEL_2_PNRH_v3
+  - label: Amazônia Legal
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/LEGAL_AMAZON/LEGAL_AMAZON_v3
+    whole: true
+  - label: Matopiba
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/BRAZIL/WORKSPACE/MATOPIBA/MATOPIBA_v3
+    whole: true
+
+peru:
+  - label: Perú (país)
+    asset: FAO/GAUL/2025/level1
+    where: {field: ISO3_CODE, value: PER}
+    whole: true
+  - label: Departamento
+    asset: FAO/GAUL/2025/level1
+    name_field: GAUL1_NAME
+    id_field: GAUL1_CODE
+    where: {field: ISO3_CODE, value: PER}
+  - label: Provincia
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PERU/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v2
+  - label: Distrito
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PERU/WORKSPACE/POLITICAL_LEVEL_4/POLITICAL_LEVEL_4_v2
+
+paraguay:
+  - label: País
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PARAGUAY/WORKSPACE/POLITICAL_LEVEL_1/POLITICAL_LEVEL_1_v2
+  - label: Departamento
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PARAGUAY/WORKSPACE/POLITICAL_LEVEL_2/POLITICAL_LEVEL_2_v3
+  - label: Distrito
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PARAGUAY/WORKSPACE/POLITICAL_LEVEL_3/POLITICAL_LEVEL_3_v3
+  - label: Territorio indígena
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PARAGUAY/WORKSPACE/INDIGENOUS_TERRITORIES/INDIGENOUS_TERRITORIES_v1
+  - label: Área protegida
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PARAGUAY/WORKSPACE/PROTECTED_AREA/PROTECTED_AREA_v2
+  - label: Ecorregión
+    asset: projects/mapbiomas-territories/assets/TERRITORIES/PARAGUAY/WORKSPACE/ECOREGIONS_DINERTTEIN_1995/ECOREGIONS_DINERTTEIN_1995_v1
+
+drc:
+  - label: DR Congo (country)
+    asset: FAO/GAUL/2025/level1
+    where: {field: ISO3_CODE, value: COD}
+    whole: true
+  - label: Province
+    asset: FAO/GAUL/2025/level1
+    name_field: GAUL1_NAME
+    id_field: GAUL1_CODE
+    where: {field: ISO3_CODE, value: COD}
+  - label: Territory
+    asset: FAO/GAUL/2025/level2
+    name_field: GAUL2_NAME
+    id_field: GAUL2_CODE
+    where: {field: ISO3_CODE, value: COD}

@@ -1,0 +1,129 @@
+name: "Departamentos"
+description: "Departamentos del Perú"
+type: departments
+territories:
+  depart_la_libertad:
+    name: "La Libertad"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'La Libertad'"
+  depart_junin:
+    name: "Junin"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Junin'"
+  depart_ucayali:
+    name: "Ucayali"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Ucayali'"
+  depart_huanuco:
+    name: "Huanuco"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Huanuco'"
+  depart_tacna:
+    name: "Tacna"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Tacna'"
+  depart_apurimac:
+    name: "Apurimac"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Apurimac'"
+  depart_piura:
+    name: "Piura"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Piura'"
+  depart_amazonas:
+    name: "Amazonas"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Amazonas'"
+  depart_moquegua:
+    name: "Moquegua"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Moquegua'"
+  depart_loreto:
+    name: "Loreto"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Loreto'"
+  depart_tumbes:
+    name: "Tumbes"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Tumbes'"
+  depart_ayacucho:
+    name: "Ayacucho"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Ayacucho'"
+  depart_pasco:
+    name: "Pasco"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Pasco'"
+  depart_arequipa:
+    name: "Arequipa"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Arequipa'"
+  depart_madre_de_dios:
+    name: "Madre De Dios"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Madre De Dios'"
+  depart_ancash:
+    name: "Ancash"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Ancash'"
+  depart_lima:
+    name: "Lima"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Lima'"
+  depart_puno:
+    name: "Puno"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Puno'"
+  depart_lambayeque:
+    name: "Lambayeque"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Lambayeque'"
+  depart_cusco:
+    name: "Cusco"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Cusco'"
+  depart_cajamarca:
+    name: "Cajamarca"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Cajamarca'"
+  depart_ica:
+    name: "Ica"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Ica'"
+  depart_huancavelica:
+    name: "Huancavelica"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Huancavelica'"
+  depart_callao:
+    name: "Callao"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'Callao'"
+  depart_san_martin:
+    name: "San Martin"
+    type: departments
+    source: "FAO/GAUL/2025/level1"
+    filter: "GAUL1_NAME == 'San Martin'"

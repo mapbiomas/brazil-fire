@@ -39,7 +39,8 @@ def sequence_labels(band_names, axis="time", year_offset=0):
     return labels
 
 
-def resolve_bands(available, selected=None, start_year=None, end_year=None, axis="time"):
+def resolve_bands(available, selected=None, start_year=None, end_year=None, axis="time", grouped=False):
+    """`grouped=True` aceita várias bandas por período (ex.: canais RGB de um mesmo ano)."""
     available = list(available)
     if not available:
         raise ValueError("O asset não possui bandas disponíveis.")
@@ -72,7 +73,7 @@ def resolve_bands(available, selected=None, start_year=None, end_year=None, axis
             raise ValueError("Não foi possível determinar a ordem temporal de todas as bandas. Informe 'bands' explicitamente e não use filtro de ano.")
         return names
     keys = [key for _, key in keyed]
-    if len(set(keys)) != len(keys):
+    if len(set(keys)) != len(keys) and not grouped:
         raise ValueError("Há bandas com o mesmo período; configure uma seleção explícita sem períodos duplicados.")
     keyed.sort(key=lambda item: item[1])
     result = [name for name, key in keyed if (not start_year or key[0] >= start_year) and (not end_year or key[0] <= end_year)]

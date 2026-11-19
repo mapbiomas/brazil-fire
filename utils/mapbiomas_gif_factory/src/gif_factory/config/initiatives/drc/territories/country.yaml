@@ -1,0 +1,10 @@
+name: "Country"
+description: "Democratic Republic of the Congo national territory"
+type: countries
+territories:
+  drc:
+    name: "République Démocratique du Congo"
+    name_en: "Democratic Republic of the Congo"
+    source: "FAO/GAUL/2015/level0"
+    filter: "ADM0_NAME == 'Democratic Republic of the Congo'"
+    bbox: [12.0, -13.5, 31.5, 5.5]

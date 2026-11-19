@@ -20,6 +20,10 @@ class EEDownloader:
 
     def ensure_ee_initialized(self):
         if not self._ee_initialized:
+            if not getattr(self.config, "ee_project_id", None):
+                # Sem projeto explícito: usa a sessão já inicializada pelo notebook.
+                self._ee_initialized = True
+                return
             try:
                 ee.Initialize(project=self.config.ee_project_id)
             except ee.EEException as e:

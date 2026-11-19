@@ -1,0 +1,14 @@
+name: "Country"
+description: "Paraguay national territory"
+type: countries
+territories:
+  paraguay:
+    name: "Paraguai"
+    name_en: "Paraguay"
+    source: "FAO/GAUL/2015/level0"
+    filter: "ADM0_NAME == 'Paraguay'"
+    bbox: [-62.0, -27.5, -54.0, -19.0]
+  paraguay_level1:
+    name: "Paraguay (Level 1)"
+    source: "FAO/GAUL/2015/level1"
+    filter: "ADM0_NAME == 'Paraguay'"

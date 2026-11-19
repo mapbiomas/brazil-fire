@@ -1,0 +1,114 @@
+name: "States"
+description: "Brazilian states (UFs)"
+type: states
+territories:
+  uf_df:
+    name: "Distrito Federal"
+    name_en: "Federal District"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'DISTRITO FEDERAL'"
+    bbox: [-48.2, -16.1, -47.3, -15.5]
+  uf_acre:
+    name: "Acre"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'ACRE'"
+  uf_alagoas:
+    name: "Alagoas"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'ALAGOAS'"
+  uf_amapa:
+    name: "Amapá"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'AMAPÁ'"
+  uf_amazonas:
+    name: "Amazonas"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'AMAZONAS'"
+  uf_bahia:
+    name: "Bahia"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'BAHIA'"
+  uf_ceara:
+    name: "Ceará"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'CEARÁ'"
+  uf_espirito_santo:
+    name: "Espírito Santo"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'ESPÍRITO SANTO'"
+  uf_goias:
+    name: "Goiás"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'GOIÁS'"
+  uf_maranhao:
+    name: "Maranhão"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'MARANHÃO'"
+  uf_mato_grosso:
+    name: "Mato Grosso"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'MATO GROSSO'"
+  uf_mato_grosso_do_sul:
+    name: "Mato Grosso do Sul"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'MATO GROSSO DO SUL'"
+  uf_minas_gerais:
+    name: "Minas Gerais"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'MINAS GERAIS'"
+  uf_para:
+    name: "Pará"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'PARÁ'"
+  uf_paraiba:
+    name: "Paraíba"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'PARAÍBA'"
+  uf_parana:
+    name: "Paraná"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'PARANÁ'"
+  uf_pernambuco:
+    name: "Pernambuco"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'PERNAMBUCO'"
+  uf_piaui:
+    name: "Piauí"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'PIAUÍ'"
+  uf_rio_de_janeiro:
+    name: "Rio de Janeiro"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'RIO DE JANEIRO'"
+  uf_rio_grande_do_norte:
+    name: "Rio Grande do Norte"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'RIO GRANDE DO NORTE'"
+  uf_rio_grande_do_sul:
+    name: "Rio Grande do Sul"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'RIO GRANDE DO SUL'"
+  uf_rondonia:
+    name: "Rondônia"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'RONDÔNIA'"
+  uf_roraima:
+    name: "Roraima"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'RORAIMA'"
+  uf_santa_catarina:
+    name: "Santa Catarina"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'SANTA CATARINA'"
+  uf_sao_paulo:
+    name: "São Paulo"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'SÃO PAULO'"
+  uf_sergipe:
+    name: "Sergipe"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'SERGIPE'"
+  uf_tocantins:
+    name: "Tocantins"
+    source: "projects/mapbiomas-workspace/AUXILIAR/estados-2017"
+    filter: "NM_ESTADO == 'TOCANTINS'"

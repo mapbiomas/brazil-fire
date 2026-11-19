@@ -191,7 +191,8 @@ class ConfigLoader:
     @property
     def visualizations(self) -> Dict[str, Any]:
         if not self._visualizations:
-            viz_data = _try_load_yaml(os.path.join(self.config_dir, "visualization.yaml"))
+            viz_path = os.path.join(self.config_dir, "visualization.yaml")
+            viz_data = self._load_yaml_with_includes("visualization.yaml") if os.path.exists(viz_path) else None
             if viz_data:
                 self._visualizations = viz_data.get("visualizations", viz_data)
                 self._normalize_palettes()
@@ -216,6 +217,9 @@ class ConfigLoader:
                 color = color.strip()
                 if color.startswith("#"):
                     color = color[1:]
+                if color.lower() in {"auto_bg", "auto", "theme_bg", "background"}:
+                    normalized.append(color)  # resolvido por core/theme.py
+                    continue
                 if len(color) not in (3, 6) or any(
                     ch not in "0123456789abcdefABCDEF" for ch in color
                 ):

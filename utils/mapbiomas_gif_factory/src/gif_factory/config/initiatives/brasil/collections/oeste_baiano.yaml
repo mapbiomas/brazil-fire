@@ -1,0 +1,59 @@
+name: "Oeste Baiano"
+description: "Frames compostos (2 mosaicos Landsat + LULC por nível + desmatamento/veg. secundária) para a região customizada oeste baiano (polígono retângulo)"
+dataset: oeste_baiano
+project: mapbiomas-brazil
+category: satellite
+products:
+  landsat_swir:
+    name: "Landsat Falsa Cor (SWIR1/NIR/RED)"
+    processor: "build_landsat_false_color_swir"
+    temporal_range: [1985, 2025]
+    visualization: "landsat_swir"
+    rgb: true
+  landsat_rgb:
+    name: "Landsat Cor Natural (R/G/B)"
+    processor: "build_landsat_natural_rgb"
+    temporal_range: [1985, 2025]
+    visualization: "landsat_rgb"
+    rgb: true
+  nbr_min:
+    name: "Mosaico NBR mínimo (Landsat)"
+    processor: "build_nbr_min_mosaic"
+    temporal_range: [1985, 2025]
+    visualization: "nbr_min"
+    rgb: true
+  lulc_nivel0:
+    name: "Uso e Cobertura - Nível 0 (Coleção 11)"
+    processor: "build_lulc_col11_nivel0"
+    temporal_range: [1985, 2025]
+    visualization: "lulc_nivel0"
+  lulc_nivel1:
+    name: "Uso e Cobertura - Nível 1 (Coleção 11)"
+    processor: "build_lulc_col11_nivel1"
+    temporal_range: [1985, 2025]
+    visualization: "lulc_nivel1"
+  lulc_nivel1_1:
+    name: "Uso e Cobertura - Nível 1.1 (Coleção 11)"
+    processor: "build_lulc_col11_nivel1_1"
+    temporal_range: [1985, 2025]
+    visualization: "lulc_nivel1_1"
+  lulc_nivel2:
+    name: "Uso e Cobertura - Nível 2 (Coleção 11)"
+    processor: "build_lulc_col11_nivel2"
+    temporal_range: [1985, 2025]
+    visualization: "lulc_nivel2"
+  lulc_nivel3:
+    name: "Uso e Cobertura - Nível 3 (Coleção 11)"
+    processor: "build_lulc_col11_nivel3"
+    temporal_range: [1985, 2025]
+    visualization: "lulc"
+  lulc_nivel4:
+    name: "Uso e Cobertura - Nível 4 (Coleção 11)"
+    processor: "build_lulc_col11_nivel4"
+    temporal_range: [1985, 2025]
+    visualization: "lulc"
+  desmatamento_vegetacao_secundaria:
+    name: "Desmatamento e Vegetação Secundária (Coleção 11)"
+    processor: "build_def_seco_col11"
+    temporal_range: [1987, 2025]
+    visualization: "def_seco"

@@ -1,0 +1,137 @@
+name: "Fuego — Colección 2"
+description: "MapBiomas Fuego Colección 2 - Perú"
+dataset: peru_fire_col2
+project: mapbiomas-peru
+category: fire
+collection: 2
+products:
+  annual_burned:
+    name: "Área quemada anual"
+    asset: "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_v1"
+    bands: ["annual_burned"]
+    temporal_range: [1990, 2025]
+    visualization: "fire_peru"
+
+  annual_burned_coverage:
+    name: "Área quemada por cobertura y uso de la tierra - Anual"
+    asset: "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_coverage_v1"
+    bands: ["coverage"]
+    temporal_range: [1990, 2025]
+    visualization: "lulc_peru"
+
+  monthly_burned:
+    name: "Distribución mensual del área quemada"
+    asset: "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_monthly_burned_v1"
+    bands: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+    temporal_range: [1990, 2025]
+    visualization: "monthly_peru"
+
+  accumulated_burned:
+    name: "Área quemada acumulada"
+    asset: "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_accumulated_burned_v1"
+    bands_slice: [0, 36]
+    temporal_range: [1990, 2025]
+    visualization: "fire_peru"
+
+  frequency_burned:
+    name: "Frecuencia del área quemada"
+    asset: "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_frequency_burned_v1"
+    bands_slice: [0, 36]
+    temporal_range: [1990, 2025]
+    visualization: "fire_col2_frequency"
+
+  year_last_fire:
+    name: "Última ocurrencia del fuego"
+    asset: "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_year_last_fire_v1"
+    bands: ["year_last_fire"]
+    year_offset: -1
+    temporal_range: [1990, 2025]
+    visualization: "fire_col2_year_last_fire"
+
+  annual_burned_coverage_nivel0:
+    name: "Área quemada por cobertura y uso de la tierra - Anual - Nivel 0 (Natural/Antrópico)"
+    asset: "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_coverage_v1"
+    temporal_range: [1990, 2025]
+    processor: "decode_peru_burned_nivel0"
+    visualization: "lulc_peru_nivel0"
+
+  annual_burned_coverage_nivel1:
+    name: "Área quemada por cobertura y uso de la tierra - Anual - Nivel 1"
+    asset: "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_coverage_v1"
+    temporal_range: [1990, 2025]
+    processor: "decode_peru_burned_nivel1"
+    visualization: "lulc_peru_nivel1"
+
+  annual_burned_coverage_nivel2:
+    name: "Área quemada por cobertura y uso de la tierra - Anual - Nivel 2"
+    asset: "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_coverage_v1"
+    temporal_range: [1990, 2025]
+    processor: "decode_peru_burned_nivel2"
+    visualization: "lulc_peru_nivel2"
+
+  annual_burned_coverage_nivel3:
+    name: "Área quemada por cobertura y uso de la tierra - Anual - Nivel 3"
+    asset: "projects/mapbiomas-public/assets/peru/fire/collection2/mapbiomas_peru_fire_collection2_annual_burned_coverage_v1"
+    temporal_range: [1990, 2025]
+    processor: "decode_peru_burned_nivel3"
+    visualization: "lulc_peru_nivel3"
+
+  coverage_nivel0:
+    name: "Cobertura y uso de la tierra - Nivel 0 (Natural/Antrópico)"
+    asset: "projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1"
+    temporal_range: [1985, 2025]
+    processor: "decode_peru_lulc_nivel0"
+    visualization: "lulc_peru_nivel0"
+
+  coverage_nivel1:
+    name: "Cobertura y uso de la tierra - Nivel 1"
+    asset: "projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1"
+    temporal_range: [1985, 2025]
+    processor: "decode_peru_lulc_nivel1"
+    visualization: "lulc_peru_nivel1"
+
+  coverage_nivel2:
+    name: "Cobertura y uso de la tierra - Nivel 2"
+    asset: "projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1"
+    temporal_range: [1985, 2025]
+    processor: "decode_peru_lulc_nivel2"
+    visualization: "lulc_peru_nivel2"
+
+  coverage_nivel3:
+    name: "Cobertura y uso de la tierra - Nivel 3"
+    asset: "projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1"
+    temporal_range: [1985, 2025]
+    processor: "decode_peru_lulc_nivel3"
+    visualization: "lulc_peru_nivel3"
+
+  coverage_nivel0_1990_2025:
+    name: "Cobertura y uso de la tierra - Nivel 0 (Natural/Antrópico) - 1990-2025"
+    asset: "projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1"
+    bands_slice: [5, 41]
+    temporal_range: [1990, 2025]
+    processor: "decode_peru_lulc_nivel0"
+    visualization: "lulc_peru_nivel0"
+
+  coverage_nivel1_1990_2025:
+    name: "Cobertura y uso de la tierra - Nivel 1 - 1990-2025"
+    asset: "projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1"
+    bands_slice: [5, 41]
+    temporal_range: [1990, 2025]
+    processor: "decode_peru_lulc_nivel1"
+    visualization: "lulc_peru_nivel1"
+
+  coverage_nivel2_1990_2025:
+    name: "Cobertura y uso de la tierra - Nivel 2 - 1990-2025"
+    asset: "projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1"
+    bands_slice: [5, 41]
+    temporal_range: [1990, 2025]
+    processor: "decode_peru_lulc_nivel2"
+    visualization: "lulc_peru_nivel2"
+
+  coverage_nivel3_1990_2025:
+    name: "Cobertura y uso de la tierra - Nivel 3 - 1990-2025"
+    asset: "projects/mapbiomas-public/assets/peru/collection4/mapbiomas_peru_collection4_coverage_v1"
+    bands_slice: [5, 41]
+    temporal_range: [1990, 2025]
+    processor: "decode_peru_lulc_nivel3"
+    visualization: "lulc_peru_nivel3"

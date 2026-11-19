@@ -140,10 +140,12 @@ class Pipeline:
                 print(f"Bandas fatiadas: [{bands_slice[0]}:{bands_slice[1]}]")
 
             real_band_names = self.downloader.get_band_names(image)
-            yaml_bands = product_info.get("bands", [])
+            # Como no projeto local: bandas do YAML ausentes no asset são ignoradas.
+            yaml_bands = [b for b in product_info.get("bands") or [] if b in real_band_names]
             band_names = resolve_bands(real_band_names, yaml_bands,
                                        product_info.get("start_year"), product_info.get("end_year"),
-                                       axis=product_info.get("axis", "time"))
+                                       axis=product_info.get("axis", "time"),
+                                       grouped=bool(product_info.get("rgb")))
             if band_names_filter:
                 band_names = [b for b in band_names if any(b.endswith(s) for s in band_names_filter)]
                 print(f"  Filtradas para anos específicos: {band_names_filter}")
