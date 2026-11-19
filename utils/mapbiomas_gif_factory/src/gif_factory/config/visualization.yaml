@@ -3,6 +3,7 @@ includes:
 - visualization_solo_atmosfera.yaml
 - visualization_lulc_col11.yaml
 - visualization_fogo.yaml
+- visualization_generated.yaml
 visualizations:
   random:
     name: Fragmentos de Vegetação

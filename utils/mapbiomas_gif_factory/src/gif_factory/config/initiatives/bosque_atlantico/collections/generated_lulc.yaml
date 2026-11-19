@@ -1,0 +1,160 @@
+# ARQUIVO GERADO por sync/catalog_build.py a partir das fontes oficiais. Não edite à mão:
+# ajuste sync/generator.yaml e rode o script de novo.
+name: Uso e cobertura — Coleção 4
+description: Gerado de https://prd.plataforma.mapbiomas.org/api/v1/bosque-atlantico/legends (2026-11-19) e projects/mapbiomas-public/assets/atlantic_forest/lulc/collection4/mapbiomas_atlantic_forest_collection4_coverage_v1
+dataset: gen_bosque_atlantico_lulc
+title_collection: MapBiomas Mata Atlântica (trinacional) · Coleção 4
+category: land_cover
+collection: '4'
+products:
+  lulc_nivel1:
+    name: Uso e cobertura - Nível 1
+    asset: projects/mapbiomas-public/assets/atlantic_forest/lulc/collection4/mapbiomas_atlantic_forest_collection4_coverage_v1
+    visualization: gen_bosque_atlantico_lulc_nivel1
+    remap:
+      from:
+      - 3
+      - 4
+      - 5
+      - 9
+      - 11
+      - 12
+      - 13
+      - 15
+      - 19
+      - 21
+      - 22
+      - 27
+      - 29
+      - 31
+      - 32
+      - 33
+      - 46
+      - 48
+      - 49
+      - 50
+      - 65
+      to:
+      - 1
+      - 1
+      - 1
+      - 14
+      - 10
+      - 10
+      - 10
+      - 14
+      - 14
+      - 14
+      - 22
+      - 27
+      - 10
+      - 26
+      - 10
+      - 26
+      - 14
+      - 14
+      - 1
+      - 10
+      - 14
+  lulc_nivel2:
+    name: Uso e cobertura - Nível 2
+    asset: projects/mapbiomas-public/assets/atlantic_forest/lulc/collection4/mapbiomas_atlantic_forest_collection4_coverage_v1
+    visualization: gen_bosque_atlantico_lulc_nivel2
+    remap:
+      from:
+      - 3
+      - 4
+      - 5
+      - 9
+      - 11
+      - 12
+      - 13
+      - 15
+      - 19
+      - 21
+      - 22
+      - 27
+      - 29
+      - 31
+      - 32
+      - 33
+      - 46
+      - 48
+      - 49
+      - 50
+      - 65
+      to:
+      - 3
+      - 4
+      - 5
+      - 9
+      - 11
+      - 12
+      - 13
+      - 15
+      - 18
+      - 21
+      - 22
+      - 27
+      - 29
+      - 31
+      - 32
+      - 33
+      - 18
+      - 18
+      - 49
+      - 50
+      - 18
+  lulc_nivel3:
+    name: Uso e cobertura - Nível 3
+    asset: projects/mapbiomas-public/assets/atlantic_forest/lulc/collection4/mapbiomas_atlantic_forest_collection4_coverage_v1
+    visualization: gen_bosque_atlantico_lulc_nivel3
+    remap:
+      from:
+      - 3
+      - 4
+      - 5
+      - 9
+      - 11
+      - 12
+      - 13
+      - 15
+      - 19
+      - 21
+      - 22
+      - 27
+      - 29
+      - 31
+      - 32
+      - 33
+      - 46
+      - 48
+      - 49
+      - 50
+      - 65
+      to:
+      - 3
+      - 4
+      - 5
+      - 9
+      - 11
+      - 12
+      - 13
+      - 15
+      - 19
+      - 21
+      - 22
+      - 27
+      - 29
+      - 31
+      - 32
+      - 33
+      - 36
+      - 36
+      - 49
+      - 50
+      - 36
+  lulc_nivel4:
+    name: Uso e cobertura - Nível 4 (todas as classes)
+    asset: projects/mapbiomas-public/assets/atlantic_forest/lulc/collection4/mapbiomas_atlantic_forest_collection4_coverage_v1
+    visualization: gen_bosque_atlantico_lulc_nivel4

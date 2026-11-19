@@ -25,7 +25,7 @@ pip install "git+https://github.com/mapbiomas/brazil-fire.git@<branch>#subdirect
 
 The map catalog comes from `src/gif_factory/config/`, ported from the local project (`mapbiomas-ia/FABRICA DE GIFS/config`). Each product there is defined once: asset or processor, band slicing, and the visualization key (palette, legend, min/max) in `visualization.yaml`. Catalog products run through the same pipeline as the local project, so maps come out with the same design and colors.
 
-- 138 products: Brasil (Fire 3 and 5, LULC 9 to 11, Degradation 9, 10.1 and 11, Soil 3, Atmosphere 1, Oeste Baiano), Peru (Fire 2), Paraguay (Fire 1) and DR Congo (LULC 1).
+- 188 products: the hand-written catalog (Brasil: Fire 3 and 5, LULC 9 to 11, Degradation 9, 10.1 and 11, Soil 3, Atmosphere 1, Oeste Baiano; Peru Fire 2; Paraguay Fire 1; DR Congo LULC 1) plus land cover generated from official legends for 16 more initiatives (see *Keeping the catalog up to date*).
 - Soil collection 3 includes products animated **by depth** instead of by year (`axis: depth`: clay, sand and silt fractions from 0–10 to 90–100 cm; textural group, subgroup and class from 0–10 to 60–100 cm), with the official MapBiomas Solo palettes copied to `soil_legends_source/` from `mapbiomas/brazil-soil`.
 - Atmosphere collection 1 (annual precipitation, air and surface temperature, PM2.5, PM10, rain-free days, persistent rain, vapor pressure deficit, water availability) is **beta**: the data is official, but MapBiomas Atmosfera publishes no palettes, so the colors are proposed by the factory. Products that pick one image of a collection use `collection_filter: {property, value}`.
 - `config/catalog_status.yaml` sets each product's status: **validado** (shown by default), **beta** (shown only when "Mostrar mapas beta" is ticked) or **pendente** (hidden). Without an entry, a product is validado.
@@ -113,6 +113,22 @@ By default, the animation runs through the bands' years. Soil collections organi
 - The availability check consults metadata and files; it does not check whether the territory intersects the data coverage.
 - The frame layout uses fixed-size elements: very small output dimensions or unusually narrow territories can produce clipped or overlapping text. Inspect output before use; the notebook uses the default 2000-pixel dimension.
 - Planned extensions include verified land use and land cover 10/10.1 legends, products with their own processors, and visual validation of Soil and Atmosphere collections.
+
+## Keeping the catalog up to date
+
+Most of the catalog is generated from official sources; people only write the exceptions.
+
+| Step | Script | Needs | Writes |
+| --- | --- | --- | --- |
+| Official land cover legends of every initiative (trees with pixel value, names, colors, levels) | `sync/legend_sync.py` | internet | `legends_source/platform/<project>.json` |
+| Inventory of `projects/mapbiomas-public` | `sync/inventory_sync.py` | Earth Engine | `inventory/gee_public.json` |
+| Generated products and styles | `sync/catalog_build.py` | the two above + `sync/generator.yaml` | `config/initiatives/<code>/collections/generated_lulc.yaml`, `config/visualization_generated.yaml` |
+| Checks | `validation/legend_check.py`, `validation/catalog_review.py`, tests | internet / Earth Engine | report, thumbnails |
+
+- For each initiative the generator takes the latest land cover collection in the inventory and creates one product per level of its official legend: level 0 (Natural/Anthropic, when the Platform publishes it), levels 1 to N, the last one being the raw map. Each level recodes the map with `remap` (every class to its ancestor at that level) and gets a style with the official colors and names in the initiative's language.
+- Generated files carry a header and are never edited by hand: change `sync/generator.yaml` (initiative names, languages, what to skip because it is curated) and run the generator again. `catalog_build.py --check` tells whether the committed files are current (a test enforces it).
+- Hand-written (curated) configs always win: initiatives whose land cover is curated (Brasil, RD Congo) are skipped. Generated products are **beta** until someone from the initiative reviews them; promote them in `config/catalog_status.yaml`.
+- The workflow `gif-factory-sync.yml` (copy in `sync/`, the running one in the repository's `.github/workflows/`) runs every Monday: it syncs the legends, refreshes the inventory when the `GEE_SERVICE_ACCOUNT_KEY` secret is set, regenerates the catalog, runs the checks and opens or updates a pull request on `gif-factory/sync-semanal` only if something changed. Nothing is published until that PR is merged and a release tag is pushed.
 
 ## Releasing
 

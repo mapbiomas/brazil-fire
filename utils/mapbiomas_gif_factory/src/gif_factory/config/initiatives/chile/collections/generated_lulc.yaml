@@ -1,0 +1,142 @@
+# ARQUIVO GERADO por sync/catalog_build.py a partir das fontes oficiais. Não edite à mão:
+# ajuste sync/generator.yaml e rode o script de novo.
+name: Uso e cobertura — Coleção 2
+description: Gerado de https://prd.plataforma.mapbiomas.org/api/v1/chile/legends (2026-11-19) e projects/mapbiomas-public/assets/chile/lulc/collection2/mapbiomas_chile_collection2_coverage_v2
+dataset: gen_chile_lulc
+title_collection: MapBiomas Chile · Coleção 2
+category: land_cover
+collection: '2'
+products:
+  lulc_nivel0:
+    name: Uso e cobertura - Nível 0 (natural e antrópico)
+    asset: projects/mapbiomas-public/assets/chile/lulc/collection2/mapbiomas_chile_collection2_coverage_v2
+    remap:
+      from:
+      - 3
+      - 59
+      - 60
+      - 67
+      - 11
+      - 12
+      - 29
+      - 63
+      - 66
+      - 23
+      - 25
+      - 61
+      - 33
+      - 34
+      - 9
+      - 15
+      - 18
+      - 24
+      to:
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 200
+      - 200
+      - 200
+      - 200
+    visualization: gen_chile_lulc_nivel0
+  lulc_nivel1:
+    name: Uso e cobertura - Nível 1
+    asset: projects/mapbiomas-public/assets/chile/lulc/collection2/mapbiomas_chile_collection2_coverage_v2
+    visualization: gen_chile_lulc_nivel1
+    remap:
+      from:
+      - 9
+      - 11
+      - 12
+      - 15
+      - 18
+      - 23
+      - 24
+      - 25
+      - 27
+      - 29
+      - 33
+      - 34
+      - 59
+      - 60
+      - 61
+      - 63
+      - 66
+      - 67
+      to:
+      - 14
+      - 10
+      - 10
+      - 14
+      - 14
+      - 22
+      - 22
+      - 22
+      - 27
+      - 10
+      - 26
+      - 26
+      - 1
+      - 1
+      - 22
+      - 10
+      - 10
+      - 1
+  lulc_nivel2:
+    name: Uso e cobertura - Nível 2
+    asset: projects/mapbiomas-public/assets/chile/lulc/collection2/mapbiomas_chile_collection2_coverage_v2
+    visualization: gen_chile_lulc_nivel2
+    remap:
+      from:
+      - 9
+      - 11
+      - 12
+      - 15
+      - 18
+      - 23
+      - 24
+      - 25
+      - 27
+      - 29
+      - 33
+      - 34
+      - 59
+      - 60
+      - 61
+      - 63
+      - 66
+      - 67
+      to:
+      - 9
+      - 11
+      - 12
+      - 15
+      - 18
+      - 23
+      - 24
+      - 25
+      - 27
+      - 29
+      - 33
+      - 34
+      - 3
+      - 3
+      - 61
+      - 63
+      - 66
+      - 3
+  lulc_nivel3:
+    name: Uso e cobertura - Nível 3 (todas as classes)
+    asset: projects/mapbiomas-public/assets/chile/lulc/collection2/mapbiomas_chile_collection2_coverage_v2
+    visualization: gen_chile_lulc_nivel3

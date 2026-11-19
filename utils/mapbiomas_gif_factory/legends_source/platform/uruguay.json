@@ -1,0 +1,609 @@
+{
+ "project": "uruguay",
+ "name": {
+  "es-ES": "Uruguay"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/uruguay/legends",
+ "subtheme": "cobertura-col4-copia-qhi2aq_coverage-y00bnn",
+ "subtheme_name": {
+  "en-US": "Coverage",
+  "es-ES": "Cobertura",
+  "pt-BR": "Cobertura"
+ },
+ "legends": [
+  {
+   "id": "48853e3a-279f-4497-bdfa-fefe7eaee0db",
+   "key": "coverage-lm0lsq",
+   "name": {
+    "en-US": "Coverage",
+    "es-ES": "Cobertura",
+    "pt-BR": "Cobertura"
+   },
+   "items": [
+    {
+     "id": "d89a81a8-df89-4d90-b782-29a7fdb11545",
+     "key": "natural-woody-vegetation-7jmu70",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Natural woody vegetation",
+      "es-ES": "Vegetación natural leñosa",
+      "pt-BR": "Floresta"
+     },
+     "parentId": null,
+     "color": "#1f8d49",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "9c446b66-9ed3-48c5-8684-51adf991a810",
+       "key": "closed-forest-and-closed-shrubland-jk7cqw",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Closed forest and closed shrubland",
+        "es-ES": "Bosque y arbustal cerrados",
+        "pt-BR": "Formação Florestal"
+       },
+       "parentId": "d89a81a8-df89-4d90-b782-29a7fdb11545",
+       "color": "#1f8d49",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "ef2e27f4-8d67-4068-b30d-9bf92d1965a8",
+     "key": "natural-herbaceous-vegetation-nnkj6g",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Natural herbaceous vegetation",
+      "es-ES": "Vegetación natural herbácea",
+      "pt-BR": "Vegetação natural herbácea"
+     },
+     "parentId": null,
+     "color": "#D6BC74",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "e293c1bc-4019-4ae7-9fa8-879236a77add",
+       "key": "flooded-grasslands-and-swampy-areas-ue6nqq",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded grasslands and swampy areas",
+        "es-ES": "Pantano y pastizal inundable",
+        "pt-BR": "Campo alagado e área pantanosa"
+       },
+       "parentId": "ef2e27f4-8d67-4068-b30d-9bf92d1965a8",
+       "color": "#519799",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "dc6142ee-baff-4936-96c1-d78830138806",
+       "key": "grassland-7zdrrc",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Grassland",
+        "es-ES": "Pastizal",
+        "pt-BR": "Formação campestre"
+       },
+       "parentId": "ef2e27f4-8d67-4068-b30d-9bf92d1965a8",
+       "color": "#D6BC74",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "573651ca-12cb-4f1a-9939-d2b51b8c21b5",
+     "key": "agricultural-and-livestock-area-1hgqvb",
+     "pixelValue": 13,
+     "level": 1,
+     "name": {
+      "en-US": "Agricultural and livestock area",
+      "es-ES": "Agropecuaria",
+      "pt-BR": "Agropecuaria"
+     },
+     "parentId": null,
+     "color": "#ffefc3",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "2199cc8c-fddc-4650-8303-e1016bb9a724",
+       "key": "forest-plantation-mv3x0h",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Forest plantation",
+        "es-ES": "Silvicultura",
+        "pt-BR": "Silvicultura"
+       },
+       "parentId": "573651ca-12cb-4f1a-9939-d2b51b8c21b5",
+       "color": "#7a5900",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null,
+       "children": [
+        {
+         "id": "a712a1f8-2bf5-43b9-9fca-7b46aca6a449",
+         "key": "pinus-plantation-lfwyb7",
+         "pixelValue": 79,
+         "level": 3,
+         "name": {
+          "en-US": "Pinus plantation",
+          "es-ES": "Plantación de pinos",
+          "pt-BR": "Plantação de pinheiros"
+         },
+         "parentId": "2199cc8c-fddc-4650-8303-e1016bb9a724",
+         "color": "#67671c",
+         "order": 0,
+         "hasDescriptions": true,
+         "visible": true,
+         "badges": null
+        },
+        {
+         "id": "3cb4f811-b93e-47d8-aad3-7eb2f9e5ec7b",
+         "key": "eucalyptus-plantation-ecw4ux",
+         "pixelValue": 80,
+         "level": 3,
+         "name": {
+          "en-US": "Eucalyptus plantation",
+          "es-ES": "Plantación de eucaliptus",
+          "pt-BR": "Plantação de eucaliptos"
+         },
+         "parentId": "2199cc8c-fddc-4650-8303-e1016bb9a724",
+         "color": "#886827",
+         "order": 1,
+         "hasDescriptions": true,
+         "visible": true,
+         "badges": null
+        },
+        {
+         "id": "133cb5b9-cd90-453d-89a7-024eb9a911f9",
+         "key": "other-forestry-uses-m2fipw",
+         "pixelValue": 83,
+         "level": 3,
+         "name": {
+          "en-US": "Other forestry uses",
+          "es-ES": "Otros usos forestales",
+          "pt-BR": "Outros tipos de silvicultura"
+         },
+         "parentId": "2199cc8c-fddc-4650-8303-e1016bb9a724",
+         "color": "#ab8231",
+         "order": 2,
+         "hasDescriptions": true,
+         "visible": true,
+         "badges": null
+        }
+       ]
+      },
+      {
+       "id": "e155ab25-19de-4d64-b715-dcca2b6a8e95",
+       "key": "pasture-4f2kmf",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Pasture",
+        "es-ES": "Pastura",
+        "pt-BR": "Pastagem"
+       },
+       "parentId": "573651ca-12cb-4f1a-9939-d2b51b8c21b5",
+       "color": "#fBf0ab",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "14c5c1de-a807-446e-a86b-eb4cc3b7d4c5",
+       "key": "agriculture-w7de5m",
+       "pixelValue": 18,
+       "level": 2,
+       "name": {
+        "en-US": "Agriculture",
+        "es-ES": "Agricultura",
+        "pt-BR": "Agricultura"
+       },
+       "parentId": "573651ca-12cb-4f1a-9939-d2b51b8c21b5",
+       "color": "#c27ba0",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "36d30af4-2ae7-4be5-91f4-9707f7f6c68c",
+     "key": "area-sin-vegetacion-eejkx9",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "es-ES": "Área sin vegetación"
+     },
+     "parentId": null,
+     "color": "#C80404",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "3ec800f3-a65d-44b8-af74-816498b5a4d4",
+       "key": "areas-urbanas-l24wvk",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "es-ES": "Áreas urbanas"
+       },
+       "parentId": "36d30af4-2ae7-4be5-91f4-9707f7f6c68c",
+       "color": "#C80404",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "a532d195-2104-40e6-b5b4-33361d3f6ea4",
+       "key": "non-vegetated-area-0abozc",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Non-vegetated area",
+        "es-ES": "Otras áreas no vegetadas",
+        "pt-BR": "Área sem vegetação"
+       },
+       "parentId": "36d30af4-2ae7-4be5-91f4-9707f7f6c68c",
+       "color": "#F05951",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "2fc9d5a3-7217-4c4e-bfec-889862a991c1",
+     "key": "water-body-lklys9",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water body",
+      "es-ES": "Cuerpo de agua",
+      "pt-BR": "Corpo de água"
+     },
+     "parentId": null,
+     "color": "#2532e4",
+     "order": 4,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "45b2e63f-65ef-4a53-8202-433b15d17b60",
+       "key": "river-lake-or-ocean-hpblrw",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, lake or ocean",
+        "es-ES": "Río, lago u océano",
+        "pt-BR": "Rio, lago ou oceano"
+       },
+       "parentId": "2fc9d5a3-7217-4c4e-bfec-889862a991c1",
+       "color": "#2532e4",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "490a8a83-e68c-4dee-bee5-e34006a23d8c",
+     "key": "not-observed-wks4b1",
+     "pixelValue": 27,
+     "level": 1,
+     "name": {
+      "en-US": "Not observed",
+      "es-ES": "No observado",
+      "pt-BR": "Não observado"
+     },
+     "parentId": null,
+     "color": "#ffffff",
+     "order": 5,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    }
+   ]
+  },
+  {
+   "id": "9ba0558e-ed36-45cb-8158-45225bf49636",
+   "key": "natural-and-anthropic-ygo9xo",
+   "name": {
+    "en-US": "Natural and Anthropic",
+    "es-ES": "Uso natural y antrópico",
+    "pt-BR": "Uso natural e antrópico"
+   },
+   "items": [
+    {
+     "id": "287c57fe-d0a3-41a2-aa88-3f1f0936fb0d",
+     "key": "natural-e8cse0",
+     "pixelValue": 100,
+     "level": 1,
+     "name": {
+      "en-US": "Natural",
+      "es-ES": "Natural",
+      "pt-BR": "Natural"
+     },
+     "parentId": null,
+     "color": "#66bb6a",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "93748895-c1ba-44a7-8865-efc305230db1",
+       "key": "closed-forest-and-closed-shrubland-nczpl4",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Closed forest and closed shrubland",
+        "es-ES": "Bosque y arbustal cerrado",
+        "pt-BR": "Formação florestal"
+       },
+       "parentId": "287c57fe-d0a3-41a2-aa88-3f1f0936fb0d",
+       "color": "#66bb6a",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "5f162b91-864e-4941-ae58-d0104a89072e",
+       "key": "flooded-grasslands-and-swampy-areass-du71q7",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded grasslands and swampy areass",
+        "es-ES": "Pantano y pastizal inundable",
+        "pt-BR": "Campo alagado e área pantanosa"
+       },
+       "parentId": "287c57fe-d0a3-41a2-aa88-3f1f0936fb0d",
+       "color": "#66bb6a",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "21556bbb-5b17-4882-b51d-500327324bf6",
+       "key": "grassland-kmj71s",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Grassland",
+        "es-ES": "Pastizal",
+        "pt-BR": "Formação campestre"
+       },
+       "parentId": "287c57fe-d0a3-41a2-aa88-3f1f0936fb0d",
+       "color": "#66bb6a",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "7bd884e9-37c6-4679-a74a-4c7cb024a3d8",
+     "key": "anthropic-k5wwqd",
+     "pixelValue": 200,
+     "level": 1,
+     "name": {
+      "en-US": "Anthropic",
+      "es-ES": "Antrópico",
+      "pt-BR": "Antrópico"
+     },
+     "parentId": null,
+     "color": "#ffe082",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "df9459e3-6683-4e30-b82f-615392b39ef7",
+       "key": "pinus-plantation-ieodjj",
+       "pixelValue": 79,
+       "level": 2,
+       "name": {
+        "en-US": "Pinus plantation",
+        "es-ES": "Plantación de pinos",
+        "pt-BR": "Plantação de pinheiros"
+       },
+       "parentId": "7bd884e9-37c6-4679-a74a-4c7cb024a3d8",
+       "color": "#ffe082",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "91651d18-e3fb-45d7-90e3-1c1af6211640",
+       "key": "eucaliptus-plantation-lte5c8",
+       "pixelValue": 80,
+       "level": 2,
+       "name": {
+        "en-US": "Eucaliptus plantation",
+        "es-ES": "Plantación de eucaliptus",
+        "pt-BR": "Plantação de eucaliptos"
+       },
+       "parentId": "7bd884e9-37c6-4679-a74a-4c7cb024a3d8",
+       "color": "#ffe082",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "9c5f5149-081f-4630-ad7c-33bba427b460",
+       "key": "other-forestry-uses-nylvmz",
+       "pixelValue": 83,
+       "level": 2,
+       "name": {
+        "en-US": "Other forestry uses",
+        "es-ES": "Otros usos forestales",
+        "pt-BR": "Outros tipos de silvicultura"
+       },
+       "parentId": "7bd884e9-37c6-4679-a74a-4c7cb024a3d8",
+       "color": "#ffe082",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "74ebe7f8-baaf-4a21-8146-a6c7aa5072e8",
+       "key": "pasture-vlrcnr",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Pasture",
+        "es-ES": "Pastura",
+        "pt-BR": "Pastagem"
+       },
+       "parentId": "7bd884e9-37c6-4679-a74a-4c7cb024a3d8",
+       "color": "#ffe082",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "f332cb32-a628-4650-8104-6c5cfadd520d",
+       "key": "agriculture-sapada",
+       "pixelValue": 18,
+       "level": 2,
+       "name": {
+        "en-US": "Agriculture",
+        "es-ES": "Agricultura",
+        "pt-BR": "Agricultura"
+       },
+       "parentId": "7bd884e9-37c6-4679-a74a-4c7cb024a3d8",
+       "color": "#ffe082",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "c9ffe0d9-cb89-457d-b485-c6da6f038085",
+       "key": "area-urbana-015zjc",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "es-ES": "Área urbana"
+       },
+       "parentId": "7bd884e9-37c6-4679-a74a-4c7cb024a3d8",
+       "color": "#FFE082",
+       "order": 5,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "2fd22f1c-47f5-4818-9f61-93479e49eb2e",
+     "key": "not-defined-9u8ycp",
+     "pixelValue": 300,
+     "level": 1,
+     "name": {
+      "en-US": "Not defined",
+      "es-ES": "No definido",
+      "pt-BR": "Não definido"
+     },
+     "parentId": null,
+     "color": "#d5d5e5",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "3fce0232-a39c-47e1-bfc6-77a0346babd4",
+       "key": "non-vegetated-area-f2orse",
+       "pixelValue": 22,
+       "level": 2,
+       "name": {
+        "en-US": "Non-vegetated area",
+        "es-ES": "Área sin vegetación",
+        "pt-BR": "Área sem vegetação"
+       },
+       "parentId": "2fd22f1c-47f5-4818-9f61-93479e49eb2e",
+       "color": "#cccccc",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "7d76740c-135f-4618-992a-af097464c1c3",
+       "key": "river-lake-or-ocean-t7ovtd",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, lake or ocean",
+        "es-ES": "Río, lago u océano",
+        "pt-BR": "Rio, lago ou oceano"
+       },
+       "parentId": "2fd22f1c-47f5-4818-9f61-93479e49eb2e",
+       "color": "#d5d5e5",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "91ac0a03-2b4a-4b5b-bd4b-2034a914404c",
+       "key": "otras-areas-no-vegetadas-19kuyk",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "es-ES": "Otras áreas no vegetadas"
+       },
+       "parentId": "2fd22f1c-47f5-4818-9f61-93479e49eb2e",
+       "color": "#D5D5E5",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,106 @@
+# ARQUIVO GERADO por sync/catalog_build.py a partir das fontes oficiais. Não edite à mão:
+# ajuste sync/generator.yaml e rode o script de novo.
+name: Uso e cobertura — Coleção 4
+description: Gerado de https://prd.plataforma.mapbiomas.org/api/v1/uruguay/legends (2026-11-19) e projects/mapbiomas-public/assets/uruguay/lulc/collection4/mapbiomas_uruguay_collection4_coverage_v1
+dataset: gen_uruguay_lulc
+title_collection: MapBiomas Uruguai · Coleção 4
+category: land_cover
+collection: '4'
+products:
+  lulc_nivel0:
+    name: Uso e cobertura - Nível 0 (natural e antrópico)
+    asset: projects/mapbiomas-public/assets/uruguay/lulc/collection4/mapbiomas_uruguay_collection4_coverage_v1
+    remap:
+      from:
+      - 3
+      - 11
+      - 12
+      - 79
+      - 80
+      - 83
+      - 15
+      - 18
+      - 24
+      - 22
+      - 33
+      - 25
+      to:
+      - 100
+      - 100
+      - 100
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 300
+      - 300
+      - 300
+    visualization: gen_uruguay_lulc_nivel0
+  lulc_nivel1:
+    name: Uso e cobertura - Nível 1
+    asset: projects/mapbiomas-public/assets/uruguay/lulc/collection4/mapbiomas_uruguay_collection4_coverage_v1
+    visualization: gen_uruguay_lulc_nivel1
+    remap:
+      from:
+      - 3
+      - 11
+      - 12
+      - 15
+      - 18
+      - 24
+      - 25
+      - 27
+      - 33
+      - 79
+      - 80
+      - 83
+      to:
+      - 1
+      - 10
+      - 10
+      - 13
+      - 13
+      - 22
+      - 22
+      - 27
+      - 26
+      - 13
+      - 13
+      - 13
+  lulc_nivel2:
+    name: Uso e cobertura - Nível 2
+    asset: projects/mapbiomas-public/assets/uruguay/lulc/collection4/mapbiomas_uruguay_collection4_coverage_v1
+    visualization: gen_uruguay_lulc_nivel2
+    remap:
+      from:
+      - 3
+      - 11
+      - 12
+      - 15
+      - 18
+      - 24
+      - 25
+      - 27
+      - 33
+      - 79
+      - 80
+      - 83
+      to:
+      - 3
+      - 11
+      - 12
+      - 15
+      - 18
+      - 24
+      - 25
+      - 27
+      - 33
+      - 9
+      - 9
+      - 9
+  lulc_nivel3:
+    name: Uso e cobertura - Nível 3 (todas as classes)
+    asset: projects/mapbiomas-public/assets/uruguay/lulc/collection4/mapbiomas_uruguay_collection4_coverage_v1
+    visualization: gen_uruguay_lulc_nivel3

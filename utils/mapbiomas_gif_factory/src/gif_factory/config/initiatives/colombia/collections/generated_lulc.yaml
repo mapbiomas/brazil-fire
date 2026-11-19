@@ -1,0 +1,131 @@
+# ARQUIVO GERADO por sync/catalog_build.py a partir das fontes oficiais. Não edite à mão:
+# ajuste sync/generator.yaml e rode o script de novo.
+name: Uso e cobertura — Coleção 3
+description: Gerado de https://prd.plataforma.mapbiomas.org/api/v1/colombia/legends (2026-11-19) e projects/mapbiomas-public/assets/colombia/lulc/collection3/mapbiomas_colombia_collection3_coverage_v2
+dataset: gen_colombia_lulc
+title_collection: MapBiomas Colômbia · Coleção 3
+category: land_cover
+collection: '3'
+products:
+  lulc_nivel0:
+    name: Uso e cobertura - Nível 0 (natural e antrópico)
+    asset: projects/mapbiomas-public/assets/colombia/lulc/collection3/mapbiomas_colombia_collection3_coverage_v2
+    remap:
+      from:
+      - 3
+      - 5
+      - 6
+      - 49
+      - 11
+      - 12
+      - 32
+      - 29
+      - 50
+      - 23
+      - 13
+      - 68
+      - 33
+      - 34
+      - 81
+      - 82
+      - 9
+      - 35
+      - 21
+      - 24
+      - 30
+      - 25
+      - 31
+      - 74
+      - 75
+      - 0
+      - 27
+      to:
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 300
+      - 300
+    visualization: gen_colombia_lulc_nivel0
+  lulc_nivel1:
+    name: Uso e cobertura - Nível 1
+    asset: projects/mapbiomas-public/assets/colombia/lulc/collection3/mapbiomas_colombia_collection3_coverage_v2
+    visualization: gen_colombia_lulc_nivel1
+    remap:
+      from:
+      - 3
+      - 5
+      - 6
+      - 9
+      - 11
+      - 12
+      - 13
+      - 21
+      - 23
+      - 24
+      - 25
+      - 29
+      - 30
+      - 31
+      - 32
+      - 33
+      - 34
+      - 35
+      - 49
+      - 50
+      - 68
+      - 74
+      - 75
+      - 81
+      - 82
+      to:
+      - 1
+      - 1
+      - 1
+      - 14
+      - 10
+      - 10
+      - 10
+      - 14
+      - 22
+      - 22
+      - 22
+      - 10
+      - 22
+      - 26
+      - 10
+      - 26
+      - 26
+      - 14
+      - 1
+      - 10
+      - 22
+      - 14
+      - 22
+      - 10
+      - 10
+  lulc_nivel2:
+    name: Uso e cobertura - Nível 2 (todas as classes)
+    asset: projects/mapbiomas-public/assets/colombia/lulc/collection3/mapbiomas_colombia_collection3_coverage_v2
+    visualization: gen_colombia_lulc_nivel2

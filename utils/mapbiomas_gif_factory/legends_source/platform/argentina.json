@@ -1,0 +1,440 @@
+{
+ "project": "argentina",
+ "name": {
+  "en-US": "Argentina",
+  "es-ES": "Argentina",
+  "pt-BR": "Argentina"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/argentina/legends",
+ "subtheme": "cobertura-copia-h7djr5_coverage-e6yf5r",
+ "subtheme_name": {
+  "en-US": "Coverage",
+  "es-ES": "Cobertura",
+  "pt-BR": "Cobertura"
+ },
+ "legends": [
+  {
+   "id": "1f5a8ecb-bb45-426d-8d96-b75640d128d0",
+   "key": "coverage-cdu2pw",
+   "name": {
+    "en-US": "Coverage",
+    "es-ES": "Cobertura"
+   },
+   "items": [
+    {
+     "id": "1a15659d-acf9-4cdb-97eb-052303814a16",
+     "key": "forests-lb02dq",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Forests",
+      "es-ES": "Bosques"
+     },
+     "parentId": null,
+     "color": "#1f8d49",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "7a5652bb-ae4e-486a-b287-f4130843965d",
+       "key": "closed-forests-csfplj",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Closed forests",
+        "es-ES": "Bosques cerrados"
+       },
+       "parentId": "1a15659d-acf9-4cdb-97eb-052303814a16",
+       "color": "#1f8d49",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "89bb7977-4e3a-467f-a722-04eea441d8af",
+       "key": "open-forests-wth65t",
+       "pixelValue": 4,
+       "level": 2,
+       "name": {
+        "en-US": "Open forests",
+        "es-ES": "Bosques abiertos"
+       },
+       "parentId": "1a15659d-acf9-4cdb-97eb-052303814a16",
+       "color": "#7dc975",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "1ce17efa-a479-4d53-90cc-6b36c9ea1439",
+       "key": "flooded-forests-wqkf0l",
+       "pixelValue": 6,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded forests",
+        "es-ES": "Bosques inundables"
+       },
+       "parentId": "1a15659d-acf9-4cdb-97eb-052303814a16",
+       "color": "#026975",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "5ed72acb-2ea1-45f4-bd29-daae1ef2fe59",
+     "key": "natural-herbaceous-and-shrub-vegetation-efua1a",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Natural herbaceous and shrub vegetation",
+      "es-ES": "Vegetación natural herbácea y arbustiva"
+     },
+     "parentId": null,
+     "color": "#d6bc74",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "95ab173b-78a5-4b0c-8350-c14c0bceb6c4",
+       "key": "closed-shrublands-zwsz4m",
+       "pixelValue": 66,
+       "level": 2,
+       "name": {
+        "en-US": "Closed shrublands",
+        "es-ES": "Arbustales cerrados"
+       },
+       "parentId": "5ed72acb-2ea1-45f4-bd29-daae1ef2fe59",
+       "color": "#a89358",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "7406dbcc-cb0d-458b-9c33-b20f3c259cb4",
+       "key": "open-shrublands-lite2z",
+       "pixelValue": 77,
+       "level": 2,
+       "name": {
+        "en-US": "Open shrublands",
+        "es-ES": "Arbustales abiertos"
+       },
+       "parentId": "5ed72acb-2ea1-45f4-bd29-daae1ef2fe59",
+       "color": "#86b074",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "afdfffa8-0b07-49bd-8a7f-15b9ca017a1e",
+       "key": "shrub-and-herbaceous-mosaics-s8yiur",
+       "pixelValue": 63,
+       "level": 2,
+       "name": {
+        "en-US": "Shrub and herbaceous mosaics",
+        "es-ES": "Mosaicos de arbustos y herbáceas"
+       },
+       "parentId": "5ed72acb-2ea1-45f4-bd29-daae1ef2fe59",
+       "color": "#c7e0ab",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "e87dbab2-76a9-4042-a9cb-bad4bce805d2",
+       "key": "grassland-qcoxii",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Grassland",
+        "es-ES": "Herbáceas"
+       },
+       "parentId": "5ed72acb-2ea1-45f4-bd29-daae1ef2fe59",
+       "color": "#d6bc74",
+       "order": 3,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "9765efef-56a0-4dfa-a68f-f127100a498a",
+       "key": "flooded-grassland-lsivqs",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded grassland",
+        "es-ES": "Herbaceas Inundables"
+       },
+       "parentId": "5ed72acb-2ea1-45f4-bd29-daae1ef2fe59",
+       "color": "#519799",
+       "order": 4,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "3191cce8-36e1-459f-bced-6bc0daaabb6c",
+       "key": "peatlands-q0x1fs",
+       "pixelValue": 73,
+       "level": 2,
+       "name": {
+        "en-US": "Peatlands",
+        "es-ES": "Turberas"
+       },
+       "parentId": "5ed72acb-2ea1-45f4-bd29-daae1ef2fe59",
+       "color": "#6fc179",
+       "order": 5,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "43eac2fd-b740-494d-b054-bc1486933074",
+     "key": "agricultural-and-livestock-area-dyxggk",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Agricultural and livestock area",
+      "es-ES": "Áreas de uso agropecuario"
+     },
+     "parentId": null,
+     "color": "#ffefc3",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "dac341f8-3f97-4658-9a4e-18c1b4a0091c",
+       "key": "agriculture-ol9oqe",
+       "pixelValue": 18,
+       "level": 2,
+       "name": {
+        "en-US": "Agriculture",
+        "es-ES": "Agricultura"
+       },
+       "parentId": "43eac2fd-b740-494d-b054-bc1486933074",
+       "color": "#E974ED",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null,
+       "children": [
+        {
+         "id": "d7372794-7a7e-4fe1-9453-4ebba6c2d48b",
+         "key": "temporary-crops-cp0ou2",
+         "pixelValue": 19,
+         "level": 3,
+         "name": {
+          "en-US": "Temporary crops",
+          "es-ES": "Cultivos temporarios"
+         },
+         "parentId": "dac341f8-3f97-4658-9a4e-18c1b4a0091c",
+         "color": "#C27BA0",
+         "order": 0,
+         "hasDescriptions": true,
+         "visible": true,
+         "badges": null
+        },
+        {
+         "id": "34522776-da43-4984-8641-23281ad3ca38",
+         "key": "perennial-crops-6vfbi9",
+         "pixelValue": 36,
+         "level": 3,
+         "name": {
+          "en-US": "Perennial crops",
+          "es-ES": "Cultivos perennes"
+         },
+         "parentId": "dac341f8-3f97-4658-9a4e-18c1b4a0091c",
+         "color": "#d082de",
+         "order": 1,
+         "hasDescriptions": true,
+         "visible": true,
+         "badges": null
+        }
+       ]
+      },
+      {
+       "id": "ea46eec6-2928-4610-885a-c28c3e778ba1",
+       "key": "pastures-t7x46u",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Pastures",
+        "es-ES": "Pasturas"
+       },
+       "parentId": "43eac2fd-b740-494d-b054-bc1486933074",
+       "color": "#edde8e",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "55c02d21-af2a-4090-baeb-9da07419c602",
+       "key": "forest-plantations-1uz16i",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Forest plantations",
+        "es-ES": "Silvicultura"
+       },
+       "parentId": "43eac2fd-b740-494d-b054-bc1486933074",
+       "color": "#7a5900",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "613e4f92-708e-44f9-809e-ffabaa476817",
+       "key": "agriculture-and-pasture-mosaic-tcout4",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Agriculture and pasture mosaic",
+        "es-ES": "Mosaico de usos"
+       },
+       "parentId": "43eac2fd-b740-494d-b054-bc1486933074",
+       "color": "#ffefc3",
+       "order": 3,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "563c96f2-dda6-4988-b0c1-a535cb783052",
+     "key": "non-vegetated-area-lax8qx",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "en-US": "Non-vegetated area",
+      "es-ES": "Área sin vegetación"
+     },
+     "parentId": null,
+     "color": "#d4271e",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "d6b291e4-0cc2-4313-804d-b2d4f45d174f",
+       "key": "urban-areas-d4lmii",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban areas",
+        "es-ES": "Áreas urbanas"
+       },
+       "parentId": "563c96f2-dda6-4988-b0c1-a535cb783052",
+       "color": "#d4271e",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "be60fd07-b8d8-4a02-be6a-29a5cd74b5b2",
+       "key": "other-non-vegetated-areas-edcy81",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other non-vegetated areas",
+        "es-ES": "Otras áreas no vegetadas"
+       },
+       "parentId": "563c96f2-dda6-4988-b0c1-a535cb783052",
+       "color": "#db4d4f",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "b838b6bf-141e-4f51-a93f-cb7364f51a11",
+     "key": "water-bodies-wxki05",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water bodies",
+      "es-ES": "Cuerpos de agua"
+     },
+     "parentId": null,
+     "color": "#2532e4",
+     "order": 4,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "b9804b78-38ba-4e79-945d-b5eaef654b70",
+       "key": "ice-and-and-permanent-snow-zo15nt",
+       "pixelValue": 34,
+       "level": 2,
+       "name": {
+        "en-US": "Ice and and permanent snow",
+        "es-ES": "Glaciares descubiertos y nieve perenne"
+       },
+       "parentId": "b838b6bf-141e-4f51-a93f-cb7364f51a11",
+       "color": "#93dfe6",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "7cb9a5a9-c618-40be-ba8b-a3a9ef8946e8",
+       "key": "rivers-lakes-or-ocean-cvms97",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "Rivers, lakes or ocean",
+        "es-ES": "Ríos, lagunas, lagos y océano"
+       },
+       "parentId": "b838b6bf-141e-4f51-a93f-cb7364f51a11",
+       "color": "#2532e4",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "3fee2446-5fb3-49fe-a272-822f4b0c5d4e",
+     "key": "not-observed-dxz66e",
+     "pixelValue": 27,
+     "level": 1,
+     "name": {
+      "en-US": "Not observed",
+      "es-ES": "No observado"
+     },
+     "parentId": null,
+     "color": "#ffffff",
+     "order": 5,
+     "hasDescriptions": true,
+     "visible": true,
+     "badges": null
+    }
+   ]
+  }
+ ]
+}

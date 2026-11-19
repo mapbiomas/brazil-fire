@@ -135,6 +135,14 @@ def special_catalog_image(product):
     Devolve None para os demais produtos.
     """
     import ee
+    if product.get("remap"):
+        # Recodificação por tabela (níveis de legenda gerados): cada banda vira os
+        # códigos do nível pedido; valores fora da tabela viram 0 e a máscara se mantém.
+        rule = product["remap"]
+        source = ee.Image(product["asset"])
+        names = source.bandNames().getInfo()
+        return ee.Image.cat([source.select(name).remap(rule["from"], rule["to"], 0).rename(name)
+                             for name in names])
     if product.get("collection_filter"):
         rule = product["collection_filter"]
         collection = ee.ImageCollection(product["asset"]).filter(ee.Filter.eq(rule["property"], rule["value"]))

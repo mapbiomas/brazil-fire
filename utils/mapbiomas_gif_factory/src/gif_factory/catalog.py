@@ -32,10 +32,23 @@ def _status_rules():
     return data or {}
 
 
+@lru_cache(maxsize=1)
+def _generator_rules():
+    """Status padrão dos produtos gerados (sync/generator.yaml, quando presente no código-fonte)."""
+    path = CONFIG_DIR.parents[2] / "sync" / "generator.yaml"
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    return {"status": (data or {}).get("status", "beta"),
+            "reason": (data or {}).get("reason", "Gerado da legenda oficial; aguarda revisão.")}
+
+
 def status_for(dataset_id, product_id):
     """Status e motivo de um produto, com exceções por dataset e por produto."""
     rules = _status_rules()
     status, reason = rules.get("default", "validado"), ""
+    if dataset_id.startswith("gen_"):
+        # Gerado das fontes oficiais (sync/catalog_build.py): beta até a revisão da equipe.
+        generated = _generator_rules()
+        status, reason = generated.get("status", "beta"), generated.get("reason", "")
     dataset_rule = (rules.get("datasets") or {}).get(dataset_id) or {}
     if dataset_rule.get("status"):
         status, reason = dataset_rule["status"], dataset_rule.get("reason", "")
@@ -55,7 +68,10 @@ def legend_from_visualization(viz):
     if classes:
         return [{"label": str(c.get("label", "")), "color": str(c.get("color", ""))} for c in classes]
     if labels and len(labels) == len(palette):
-        return [{"label": str(label), "color": color} for label, color in zip(labels, palette)]
+        # Estilos indexados pelo código do pixel deixam posições vazias (sem rótulo, cor
+        # de fundo): não são classes, ficam fora da legenda.
+        return [{"label": str(label), "color": color} for label, color in zip(labels, palette)
+                if str(label).strip() and color.lower() not in ("auto_bg", "auto", "theme_bg", "background")]
     if palette:
         # Escala contínua: mostra só os extremos.
         return [{"label": str(viz.get("min", "")), "color": palette[0]},

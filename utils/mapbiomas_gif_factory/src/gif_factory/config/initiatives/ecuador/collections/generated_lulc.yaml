@@ -1,0 +1,115 @@
+# ARQUIVO GERADO por sync/catalog_build.py a partir das fontes oficiais. Não edite à mão:
+# ajuste sync/generator.yaml e rode o script de novo.
+name: Uso e cobertura — Coleção 4
+description: Gerado de https://prd.plataforma.mapbiomas.org/api/v1/ecuador/legends (2026-11-19) e projects/mapbiomas-public/assets/ecuador/lulc/collection4/mapbiomas_ecuador_collection4_coverage_v1
+dataset: gen_ecuador_lulc
+title_collection: MapBiomas Equador · Coleção 4
+category: land_cover
+collection: '4'
+products:
+  lulc_nivel0:
+    name: Uso e cobertura - Nível 0 (natural e antrópico)
+    asset: projects/mapbiomas-public/assets/ecuador/lulc/collection4/mapbiomas_ecuador_collection4_coverage_v1
+    remap:
+      from:
+      - 3
+      - 4
+      - 5
+      - 6
+      - 11
+      - 12
+      - 81
+      - 82
+      - 29
+      - 13
+      - 23
+      - 68
+      - 33
+      - 34
+      - 9
+      - 21
+      - 74
+      - 24
+      - 30
+      - 25
+      - 31
+      - 27
+      to:
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 300
+    visualization: gen_ecuador_lulc_nivel0
+  lulc_nivel1:
+    name: Uso e cobertura - Nível 1
+    asset: projects/mapbiomas-public/assets/ecuador/lulc/collection4/mapbiomas_ecuador_collection4_coverage_v1
+    visualization: gen_ecuador_lulc_nivel1
+    remap:
+      from:
+      - 3
+      - 4
+      - 5
+      - 6
+      - 9
+      - 11
+      - 12
+      - 13
+      - 21
+      - 23
+      - 24
+      - 25
+      - 27
+      - 29
+      - 30
+      - 31
+      - 33
+      - 34
+      - 68
+      - 74
+      - 81
+      - 82
+      to:
+      - 1
+      - 1
+      - 1
+      - 1
+      - 14
+      - 10
+      - 10
+      - 10
+      - 14
+      - 22
+      - 22
+      - 22
+      - 27
+      - 10
+      - 22
+      - 26
+      - 26
+      - 26
+      - 22
+      - 14
+      - 10
+      - 10
+  lulc_nivel2:
+    name: Uso e cobertura - Nível 2 (todas as classes)
+    asset: projects/mapbiomas-public/assets/ecuador/lulc/collection4/mapbiomas_ecuador_collection4_coverage_v1
+    visualization: gen_ecuador_lulc_nivel2

@@ -1,0 +1,90 @@
+# Sincronização semanal do catálogo da Fábrica de GIFs (utils/mapbiomas_gif_factory).
+# Cópia de referência: o arquivo que roda fica em .github/workflows/ na raiz do brazil-fire.
+#
+#   1. legendas oficiais da Plataforma MapBiomas      (sync/legend_sync.py, sem credencial)
+#   2. inventário de projects/mapbiomas-public        (sync/inventory_sync.py, só com o segredo
+#                                                       GEE_SERVICE_ACCOUNT_KEY configurado)
+#   3. catálogo gerado                                 (sync/catalog_build.py)
+#   4. verificações: legend_check.py e testes
+#   5. se algo mudou: abre (ou atualiza) um PR no branch gif-factory/sync-semanal
+#
+# Nada é publicado: a publicação continua sendo a tag gif-factory-vX.Y.Z depois do merge.
+name: GIF Factory · sincronizar catálogo
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"   # segundas, 09:00 UTC (06:00 em Brasília)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+defaults:
+  run:
+    working-directory: utils/mapbiomas_gif_factory
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      HAS_GEE: ${{ secrets.GEE_SERVICE_ACCOUNT_KEY != '' }}
+      GEE_PROJECT: ${{ vars.GEE_PROJECT || 'mapbiomas-brazil' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar
+        run: python -m pip install -q -e . pytest ipython
+
+      - name: Legendas oficiais da Plataforma
+        run: python sync/legend_sync.py
+
+      - name: Credencial do Earth Engine
+        if: env.HAS_GEE == 'true'
+        run: |
+          echo '${{ secrets.GEE_SERVICE_ACCOUNT_KEY }}' > "$RUNNER_TEMP/gee.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/gee.json" >> "$GITHUB_ENV"
+      - name: Inventário de assets públicos
+        if: env.HAS_GEE == 'true'
+        run: python sync/inventory_sync.py --project "$GEE_PROJECT"
+
+      - name: Gerar catálogo
+        run: python sync/catalog_build.py | tee "$RUNNER_TEMP/build.txt"
+
+      - name: Conferir legendas
+        id: legends
+        continue-on-error: true
+        run: python validation/legend_check.py > "$RUNNER_TEMP/legends.txt"
+      - name: Testes
+        run: PYTHONPATH=src python -m pytest -q tests
+
+      - name: Resumo para o PR
+        id: summary
+        run: |
+          {
+            echo 'body<<EOF'
+            echo "Sincronização automática de $(date -u +%Y-%m-%d)."
+            echo
+            echo "Inventário do Earth Engine: ${{ env.HAS_GEE == 'true' && 'atualizado' || 'não atualizado (sem o segredo GEE_SERVICE_ACCOUNT_KEY)' }}."
+            echo "Conferência de legendas: ${{ steps.legends.outcome == 'success' && 'todas conferem' || 'há divergências, ver abaixo' }}."
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/build.txt"
+            echo
+            tail -n 40 "$RUNNER_TEMP/legends.txt"
+            echo '```'
+            echo
+            echo 'Produtos novos entram como beta. Para publicar: merge, subir `version` e criar a tag `gif-factory-vX.Y.Z`.'
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          branch: gif-factory/sync-semanal
+          add-paths: utils/mapbiomas_gif_factory
+          commit-message: "chore(gif-factory): sincronização semanal do catálogo"
+          title: "Fábrica de GIFs: sincronização semanal do catálogo"
+          body: ${{ steps.summary.outputs.body }}
+          delete-branch: true

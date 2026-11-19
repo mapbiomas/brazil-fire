@@ -1,0 +1,468 @@
+{
+ "project": "democratic-republic-of-congo",
+ "name": {
+  "en-US": "République démocratique du Congo",
+  "fr-FR": "République Démocratique du Congo"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/democratic-republic-of-congo/legends",
+ "subtheme": "coverage_coverage-wv8p91",
+ "subtheme_name": {
+  "en-US": "Coverage",
+  "fr-FR": "Couverture"
+ },
+ "legends": [
+  {
+   "id": "20c2561e-dbb0-43c2-8214-bbdfac11d34c",
+   "key": "coverage-rcr5n8",
+   "name": {
+    "en-US": "Coverage",
+    "fr-FR": "Couverture"
+   },
+   "items": [
+    {
+     "id": "53c209ff-c48b-490b-872f-6a1bf9644362",
+     "key": "forest-ana4eq",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Forest",
+      "fr-FR": "Forêt"
+     },
+     "parentId": null,
+     "color": "#1F8D49",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "d00120e1-0ff9-472d-8600-4ce0a33ba2c4",
+       "key": "forest-formation-njpymt",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Formation",
+        "fr-FR": "Forêt Dense"
+       },
+       "parentId": "53c209ff-c48b-490b-872f-6a1bf9644362",
+       "color": "#1F8D49",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "1c523b93-3cf9-46d7-a573-e6c82dfd2c25",
+       "key": "woodland-a5wry6",
+       "pixelValue": 4,
+       "level": 2,
+       "name": {
+        "en-US": "Woodland",
+        "fr-FR": "Forêt Claire"
+       },
+       "parentId": "53c209ff-c48b-490b-872f-6a1bf9644362",
+       "color": "#7DC975",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "24f6cb97-ff1b-438f-ba8a-c8ec3bc6fca7",
+       "key": "mangrove-xyf0v6",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "fr-FR": "Mangrove"
+       },
+       "parentId": "53c209ff-c48b-490b-872f-6a1bf9644362",
+       "color": "#04381D",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "f5db7033-2f4b-4772-b217-09e6a86ffc96",
+     "key": "herbaceous-and-shrubby-vegetation-3qoxk7",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Herbaceous and Shrubby Vegetation",
+      "fr-FR": "Végétation Herbeuse et Arbustive"
+     },
+     "parentId": null,
+     "color": "#D6BC74",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "2208794a-9020-425a-b02b-1d1bd4a43c61",
+       "key": "shrubland-rqkgxl",
+       "pixelValue": 66,
+       "level": 2,
+       "name": {
+        "en-US": "Shrubland",
+        "fr-FR": "Savane"
+       },
+       "parentId": "f5db7033-2f4b-4772-b217-09e6a86ffc96",
+       "color": "#A89358",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "4bbd2286-c579-4ce8-9c6a-d4a0170217f4",
+     "key": "farming-3spehf",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Farming",
+      "fr-FR": "Zone Agricole et d'Élevage"
+     },
+     "parentId": null,
+     "color": "#FFEFC3",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "feec0228-6ad4-430c-9ab4-72a59df51c27",
+       "key": "pasture-and-agriculture-oy52qp",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Pasture and Agriculture",
+        "fr-FR": "Pasture and Agriculture"
+       },
+       "parentId": "4bbd2286-c579-4ce8-9c6a-d4a0170217f4",
+       "color": "#FFEFC3",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "98cbd5d2-cba8-48ff-8d0f-9f0709d29174",
+       "key": "forest-plantation-80l3w8",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Plantation",
+        "fr-FR": "Plantation Forestière"
+       },
+       "parentId": "4bbd2286-c579-4ce8-9c6a-d4a0170217f4",
+       "color": "#7A5900",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "69b87a29-ac78-48cd-a485-4930378d141b",
+     "key": "non-vegetated-area-9b53c6",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "en-US": "Non Vegetated Area",
+      "fr-FR": "Zone Non Végétalisée"
+     },
+     "parentId": null,
+     "color": "#D4271E",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "73f1e696-1620-43d6-be71-7c3c2a846763",
+       "key": "urban-area-465be4",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban Area",
+        "fr-FR": "Zone Urbaine"
+       },
+       "parentId": "69b87a29-ac78-48cd-a485-4930378d141b",
+       "color": "#D4271E",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "a457c4fe-b457-42e9-8f51-19df95f6ba41",
+       "key": "other-non-vegetated-area-03g09h",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other non Vegetated Area",
+        "fr-FR": "Autre Zone sans Végétation"
+       },
+       "parentId": "69b87a29-ac78-48cd-a485-4930378d141b",
+       "color": "#DB4D4F",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "3d0b8433-8170-4932-9f87-9c08f140eb54",
+     "key": "water-mf94jg",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water",
+      "fr-FR": "Eau"
+     },
+     "parentId": null,
+     "color": "#2532E4",
+     "order": 4,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "b3964766-ae90-4a58-89cf-66eb76c601a4",
+       "key": "river-lake-and-ocean-dnaou8",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, Lake, and Ocean",
+        "fr-FR": "Fleuve, Lac et Océan"
+       },
+       "parentId": "3d0b8433-8170-4932-9f87-9c08f140eb54",
+       "color": "#2532E4",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ac8c1350-33b8-409b-bbd2-f93888d0ab3a",
+   "key": "natural-and-anthropic-vg7uti",
+   "name": {
+    "en-US": "Natural and Anthropic",
+    "fr-FR": "Naturel et Anthropique"
+   },
+   "items": [
+    {
+     "id": "0edcb8e6-d8b9-4567-addf-cd6f55433da3",
+     "key": "natural-ph8nx5",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Natural",
+      "fr-FR": "Naturel "
+     },
+     "parentId": null,
+     "color": "#139912",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "9eed160f-0427-45ad-9180-3ff0e466343f",
+       "key": "forest-formation-c6kstg",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Formation",
+        "fr-FR": "Forêt Dense"
+       },
+       "parentId": "0edcb8e6-d8b9-4567-addf-cd6f55433da3",
+       "color": "#139912",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "86ad4581-b757-464a-9b15-d10c5e42d23a",
+       "key": "woodland-vox4cw",
+       "pixelValue": 4,
+       "level": 2,
+       "name": {
+        "en-US": "Woodland",
+        "fr-FR": "Forêt Claire"
+       },
+       "parentId": "0edcb8e6-d8b9-4567-addf-cd6f55433da3",
+       "color": "#139912",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "931fb72c-aa91-42bd-b300-38d3ee839b63",
+       "key": "mangrove-o72iae",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "fr-FR": "Mangrove"
+       },
+       "parentId": "0edcb8e6-d8b9-4567-addf-cd6f55433da3",
+       "color": "#139912",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "7c5a2788-2c3e-44bb-9379-18e25b9e2c1e",
+       "key": "shrubland-5sv0rz",
+       "pixelValue": 66,
+       "level": 2,
+       "name": {
+        "en-US": "Shrubland",
+        "fr-FR": "Savane"
+       },
+       "parentId": "0edcb8e6-d8b9-4567-addf-cd6f55433da3",
+       "color": "#139912",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "74aeb8de-02a5-483a-bef7-e8f234c423f3",
+       "key": "river-lake-and-ocean-a1vobl",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, Lake and Ocean",
+        "fr-FR": "Fleuve, Lac et Océan"
+       },
+       "parentId": "0edcb8e6-d8b9-4567-addf-cd6f55433da3",
+       "color": "#139912",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "a366ab29-4f34-421e-a32f-621107e5fb40",
+     "key": "antrophic-gxxma1",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Antrophic",
+      "fr-FR": "Anthropique"
+     },
+     "parentId": null,
+     "color": "#FFD966",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "2f454ba9-4afe-479a-840e-0a2f357e052e",
+       "key": "pasture-and-agriculture-nhcofk",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Pasture and Agriculture",
+        "fr-FR": "Pasture and Agriculture"
+       },
+       "parentId": "a366ab29-4f34-421e-a32f-621107e5fb40",
+       "color": "#FFD966",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "2da3726c-115a-4d70-852d-38109f75b1e1",
+       "key": "forest-plantation-wyp68o",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Plantation",
+        "fr-FR": "Plantation Forestière"
+       },
+       "parentId": "a366ab29-4f34-421e-a32f-621107e5fb40",
+       "color": "#FFD966",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "c8f33de4-1178-415b-8e1a-0264b7eddf36",
+       "key": "urban-area-rtevi1",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban Area",
+        "fr-FR": "Zone Urbaine"
+       },
+       "parentId": "a366ab29-4f34-421e-a32f-621107e5fb40",
+       "color": "#FFD966",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "447ee268-ee04-4398-b84e-7ab35ffe2403",
+     "key": "non-defined-i393ey",
+     "pixelValue": 27,
+     "level": 1,
+     "name": {
+      "en-US": "Non Defined",
+      "fr-FR": "Non Défini"
+     },
+     "parentId": null,
+     "color": "#D5D5E5",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "190b4129-cf70-49ac-ac0a-730b11864386",
+       "key": "other-non-vegetated-area-g5ycxk",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other non Vegetated Area",
+        "fr-FR": "Autre Zone sans Végétation"
+       },
+       "parentId": "447ee268-ee04-4398-b84e-7ab35ffe2403",
+       "color": "#D5D5E5",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

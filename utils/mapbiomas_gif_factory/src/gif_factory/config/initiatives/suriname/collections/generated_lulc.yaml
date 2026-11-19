@@ -1,0 +1,71 @@
+# ARQUIVO GERADO por sync/catalog_build.py a partir das fontes oficiais. Não edite à mão:
+# ajuste sync/generator.yaml e rode o script de novo.
+name: Uso e cobertura — Coleção 1
+description: Gerado de https://prd.plataforma.mapbiomas.org/api/v1/suriname/legends (2026-11-19) e projects/mapbiomas-public/assets/suriname/lulc/collection1/mapbiomas_suriname_collection1_coverage_v1
+dataset: gen_suriname_lulc
+title_collection: MapBiomas Suriname · Coleção 1
+category: land_cover
+collection: '1'
+products:
+  lulc_nivel0:
+    name: Uso e cobertura - Nível 0 (natural e antrópico)
+    asset: projects/mapbiomas-public/assets/suriname/lulc/collection1/mapbiomas_suriname_collection1_coverage_v1
+    remap:
+      from:
+      - 3
+      - 5
+      - 11
+      - 12
+      - 33
+      - 18
+      - 21
+      - 24
+      - 30
+      - 25
+      - 27
+      to:
+      - 1
+      - 1
+      - 1
+      - 1
+      - 1
+      - 14
+      - 14
+      - 14
+      - 14
+      - 200
+      - 200
+    visualization: gen_suriname_lulc_nivel0
+  lulc_nivel1:
+    name: Uso e cobertura - Nível 1
+    asset: projects/mapbiomas-public/assets/suriname/lulc/collection1/mapbiomas_suriname_collection1_coverage_v1
+    visualization: gen_suriname_lulc_nivel1
+    remap:
+      from:
+      - 3
+      - 5
+      - 11
+      - 12
+      - 18
+      - 21
+      - 24
+      - 25
+      - 27
+      - 30
+      - 33
+      to:
+      - 1
+      - 1
+      - 10
+      - 10
+      - 14
+      - 14
+      - 22
+      - 22
+      - 27
+      - 22
+      - 26
+  lulc_nivel2:
+    name: Uso e cobertura - Nível 2 (todas as classes)
+    asset: projects/mapbiomas-public/assets/suriname/lulc/collection1/mapbiomas_suriname_collection1_coverage_v1
+    visualization: gen_suriname_lulc_nivel2

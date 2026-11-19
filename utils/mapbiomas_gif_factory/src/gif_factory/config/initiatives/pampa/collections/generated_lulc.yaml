@@ -1,0 +1,40 @@
+# ARQUIVO GERADO por sync/catalog_build.py a partir das fontes oficiais. Não edite à mão:
+# ajuste sync/generator.yaml e rode o script de novo.
+name: Uso e cobertura — Coleção 5
+description: Gerado de https://prd.plataforma.mapbiomas.org/api/v1/pampa/legends (2026-11-19) e projects/mapbiomas-public/assets/pampa/lulc/collection5/mapbiomas_pampa_collection5_coverage_v1
+dataset: gen_pampa_lulc
+title_collection: MapBiomas Pampa (trinacional) · Coleção 5
+category: land_cover
+collection: '5'
+products:
+  lulc_nivel1:
+    name: Uso e cobertura - Nível 1
+    asset: projects/mapbiomas-public/assets/pampa/lulc/collection5/mapbiomas_pampa_collection5_coverage_v1
+    visualization: gen_pampa_lulc_nivel1
+    remap:
+      from:
+      - 3
+      - 4
+      - 9
+      - 11
+      - 12
+      - 15
+      - 18
+      - 22
+      - 27
+      - 33
+      to:
+      - 1
+      - 1
+      - 14
+      - 10
+      - 10
+      - 14
+      - 14
+      - 22
+      - 27
+      - 26
+  lulc_nivel2:
+    name: Uso e cobertura - Nível 2 (todas as classes)
+    asset: projects/mapbiomas-public/assets/pampa/lulc/collection5/mapbiomas_pampa_collection5_coverage_v1
+    visualization: gen_pampa_lulc_nivel2

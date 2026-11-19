@@ -1,0 +1,1114 @@
+{
+ "project": "peru",
+ "name": {
+  "en-US": "Peru",
+  "es-ES": "Peru",
+  "pt-BR": "Peru"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/peru/legends",
+ "subtheme": "cobertura-copia-xtuo0o_coverage-cpkx7m",
+ "subtheme_name": {
+  "en-US": "Coverage",
+  "es-ES": "Cobertura",
+  "pt-BR": "Cobertura"
+ },
+ "legends": [
+  {
+   "id": "8ec3f806-9588-488b-885c-75941773b7e8",
+   "key": "cobertura-2a5cc8e5-3737-4124-90b7-d6e5675df0cd",
+   "name": {
+    "en-US": "Coverage",
+    "es-ES": "Cobertura",
+    "pt-BR": "Cobertura"
+   },
+   "items": [
+    {
+     "id": "9f9cd592-883e-4b00-b122-eff386daf85e",
+     "key": "forest-formation-zgawuz",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Forest formation",
+      "es-ES": " Formación boscosa",
+      "pt-BR": "Formação Florestal"
+     },
+     "parentId": null,
+     "color": "#1f8d49",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "14705c36-db53-434f-a65d-f0aeee5e9120",
+       "key": "forest-qwwp5m-tdfyrn",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "forest-qwwp5m",
+        "es-ES": "Bosque",
+        "pt-BR": "Floresta"
+       },
+       "parentId": "9f9cd592-883e-4b00-b122-eff386daf85e",
+       "color": "#1f8d49",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "c84e9faa-adaa-416a-8bbf-a88bd67fe7f2",
+       "key": "dry-forest-5ivf21",
+       "pixelValue": 4,
+       "level": 2,
+       "name": {
+        "en-US": "Dry forest",
+        "es-ES": "Bosque seco",
+        "pt-BR": "Floresta Seca"
+       },
+       "parentId": "9f9cd592-883e-4b00-b122-eff386daf85e",
+       "color": "#7dc975",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "91000867-0ad6-4f8f-9349-3204f978c76b",
+       "key": "mangrove-1l13yl",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "es-ES": "Manglar",
+        "pt-BR": "Mangrove"
+       },
+       "parentId": "9f9cd592-883e-4b00-b122-eff386daf85e",
+       "color": "#04381d",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "848d3596-d598-48db-8610-167072d28959",
+       "key": "flooded-forest-b3zud1",
+       "pixelValue": 6,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded forest",
+        "es-ES": "Bosque inundable",
+        "pt-BR": "Floresta Inundável"
+       },
+       "parentId": "9f9cd592-883e-4b00-b122-eff386daf85e",
+       "color": "#026975",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "1f4d51fc-cfd4-4d9c-94c6-cde09ddf4b53",
+     "key": "natural-non-forest-formation-rceu6w",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Natural non-forest formation",
+      "es-ES": "Formación natural no boscosa",
+      "pt-BR": "Formação Natural Não Florestal"
+     },
+     "parentId": null,
+     "color": "#d6bc74",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "1397bcfd-0a0a-49b5-9bdd-fce2f0d3e4a3",
+       "key": "flooded-herbaceous-formation-k3gp9k",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded herbaceous formation",
+        "es-ES": "Formación herbácea inundable",
+        "pt-BR": "Flooded herbaceous formation"
+       },
+       "parentId": "1f4d51fc-cfd4-4d9c-94c6-cde09ddf4b53",
+       "color": "#519799",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null,
+       "children": [
+        {
+         "id": "2e3b5337-3716-4139-8d55-0aa826494cdc",
+         "key": "lowland-flooded-grassland-6n9frq-ri62a4",
+         "pixelValue": 51,
+         "level": 3,
+         "name": {
+          "en-US": "lowland-flooded-grassland-6n9frq",
+          "es-ES": "Herbazal inundable de tierras bajas",
+          "pt-BR": "Formação Herbácea Inundável de Terras Baixas"
+         },
+         "parentId": "1397bcfd-0a0a-49b5-9bdd-fce2f0d3e4a3",
+         "color": "#5FAF92",
+         "order": 0,
+         "hasDescriptions": false,
+         "visible": true,
+         "badges": null
+        },
+        {
+         "id": "3a0d906c-4258-4672-82fe-e4de80a305d1",
+         "key": "high-andean-flooded-grassland-exps8d-as5z6j",
+         "pixelValue": 82,
+         "level": 3,
+         "name": {
+          "en-US": "high-andean-flooded-grassland-exps8d",
+          "es-ES": "Herbazal inundable altoandino",
+          "pt-BR": "Formação Herbácea Inundável Altoandina"
+         },
+         "parentId": "1397bcfd-0a0a-49b5-9bdd-fce2f0d3e4a3",
+         "color": "#26ABAB",
+         "order": 1,
+         "hasDescriptions": false,
+         "visible": true,
+         "badges": null
+        }
+       ]
+      },
+      {
+       "id": "a250976b-b576-4528-9d80-3a199d054468",
+       "key": "herbaceous-formation-gsosms",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Herbaceous formation",
+        "es-ES": "Formación herbácea",
+        "pt-BR": "Formação Campestre"
+       },
+       "parentId": "1f4d51fc-cfd4-4d9c-94c6-cde09ddf4b53",
+       "color": "#d6bc74",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "e94f1ece-ef78-4d97-8340-a3a00d7d188e",
+       "key": "shrub-formations-and-others-jzo3us",
+       "pixelValue": 13,
+       "level": 2,
+       "name": {
+        "en-US": "Shrub formations and others",
+        "es-ES": "Formaciones arbustivas y otras",
+        "pt-BR": "Formações Arbustivas e outras"
+       },
+       "parentId": "1f4d51fc-cfd4-4d9c-94c6-cde09ddf4b53",
+       "color": "#d89f5c",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null,
+       "children": [
+        {
+         "id": "6938414f-bb1c-4b7c-87e6-d6304dfc908f",
+         "key": "shrubland-and-other-shrub-vegetation-nrp4ca-ncly6b",
+         "pixelValue": 66,
+         "level": 3,
+         "name": {
+          "en-US": "shrubland-and-other-shrub-vegetation-nrp4ca",
+          "es-ES": "Matorral y otros arbustales",
+          "pt-BR": "Shrubland and other shrub vegetation"
+         },
+         "parentId": "e94f1ece-ef78-4d97-8340-a3a00d7d188e",
+         "color": "#a89358",
+         "order": 0,
+         "hasDescriptions": false,
+         "visible": true,
+         "badges": null
+        },
+        {
+         "id": "d311f47a-dad7-4364-a548-d80d95c0ab80",
+         "key": "coastal-lomas-beta-uhehcd",
+         "pixelValue": 70,
+         "level": 3,
+         "name": {
+          "en-US": "Coastal Lomas (beta)",
+          "es-ES": "Loma costera (beta)",
+          "pt-BR": "Loma costeira (beta)"
+         },
+         "parentId": "e94f1ece-ef78-4d97-8340-a3a00d7d188e",
+         "color": "#be9e00",
+         "order": 1,
+         "hasDescriptions": false,
+         "visible": true,
+         "badges": null
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "10913b85-fbf1-4fd4-a767-fb3291dfc061",
+     "key": "agricultural-and-livestock-area-ix6q96",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Agricultural and Livestock Area",
+      "es-ES": "Área agropecuaria",
+      "pt-BR": "Área Agropecuária"
+     },
+     "parentId": null,
+     "color": "#ffefc3",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "47ba86b7-4996-4517-b604-4e7250ef1487",
+       "key": "agricultural-mosaic-5b81ae",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Agricultural mosaic",
+        "es-ES": "Mosaico agropecuario",
+        "pt-BR": "Mosaico agropecuário"
+       },
+       "parentId": "10913b85-fbf1-4fd4-a767-fb3291dfc061",
+       "color": "#ffefc3",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "ece444b1-6aa6-4c2d-af1a-b288ee96ece6",
+       "key": "planted-forest-vz6krt",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Planted forest",
+        "es-ES": "Plantación forestal",
+        "pt-BR": "Planted forest"
+       },
+       "parentId": "10913b85-fbf1-4fd4-a767-fb3291dfc061",
+       "color": "#7a5900",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "90db15b6-637e-4d30-9371-cf93f60c968d",
+       "key": "oil-palm-a2b092-w279k4",
+       "pixelValue": 35,
+       "level": 2,
+       "name": {
+        "en-US": "oil-palm-a2b092",
+        "es-ES": "Palma aceitera",
+        "pt-BR": "Dendê"
+       },
+       "parentId": "10913b85-fbf1-4fd4-a767-fb3291dfc061",
+       "color": "#9065d0",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "d8e12333-2a94-447c-b8ba-7d3004ad8d1d",
+       "key": "rice-beta-pqlddd",
+       "pixelValue": 40,
+       "level": 2,
+       "name": {
+        "en-US": "Rice (beta)",
+        "es-ES": "Arroz (beta)",
+        "pt-BR": "Arroz (beta)"
+       },
+       "parentId": "10913b85-fbf1-4fd4-a767-fb3291dfc061",
+       "color": "#c71585",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "386557a1-37a6-40d9-b216-3e34d9014712",
+       "key": "pasture-beta-xvwppb",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Pasture (beta)",
+        "es-ES": "Pasto (beta)",
+        "pt-BR": "Pastagem (beta)"
+       },
+       "parentId": "10913b85-fbf1-4fd4-a767-fb3291dfc061",
+       "color": "#edde8e",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "9ccb4d43-4ddc-493f-bb5e-0f514d3046c9",
+     "key": "non-vegetated-area-1dko4h",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "en-US": "Non-vegetated area",
+      "es-ES": "Área sin vegetación",
+      "pt-BR": "Área sem vegetação"
+     },
+     "parentId": null,
+     "color": "#d4271e",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "bdf19939-1c9a-4a1e-9223-06d66d3db023",
+       "key": "urban-area-94f32c",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban area",
+        "es-ES": "Infraestructura urbana",
+        "pt-BR": "Infraestrutura urbana"
+       },
+       "parentId": "9ccb4d43-4ddc-493f-bb5e-0f514d3046c9",
+       "color": "#d4271e",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "1f158711-1e72-4824-b3a6-d4858461acf8",
+       "key": "mining-5gt601",
+       "pixelValue": 30,
+       "level": 2,
+       "name": {
+        "en-US": "Mining",
+        "es-ES": "Minería",
+        "pt-BR": "Mineração"
+       },
+       "parentId": "9ccb4d43-4ddc-493f-bb5e-0f514d3046c9",
+       "color": "#9c0027",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "de6cba03-3a81-4bd7-9dbd-0205a7d24bbb",
+       "key": "beach-fzh50a",
+       "pixelValue": 23,
+       "level": 2,
+       "name": {
+        "en-US": "Beach",
+        "es-ES": "Playa",
+        "pt-BR": "Praia"
+       },
+       "parentId": "9ccb4d43-4ddc-493f-bb5e-0f514d3046c9",
+       "color": "#ffa07a",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "43fe14ae-8001-4153-9c6f-8155616f97b7",
+       "key": "rocky-surface-s3h60m",
+       "pixelValue": 92,
+       "level": 2,
+       "name": {
+        "en-US": "Rocky surface",
+        "es-ES": "Superficie rocosa",
+        "pt-BR": "Rocky surface"
+       },
+       "parentId": "9ccb4d43-4ddc-493f-bb5e-0f514d3046c9",
+       "color": "#D98A45",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "601b1d2b-bb31-4675-ae71-9f4aec630fdd",
+       "key": "coastal-salt-flat-ol9l6c-ouy46b",
+       "pixelValue": 52,
+       "level": 2,
+       "name": {
+        "en-US": "coastal-salt-flat-ol9l6c",
+        "es-ES": "Superficie salina costera",
+        "pt-BR": "Superfície salina costeira"
+       },
+       "parentId": "9ccb4d43-4ddc-493f-bb5e-0f514d3046c9",
+       "color": "#F0B4A8",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "55649b5d-8eec-4713-8edd-69ce89bfe69d",
+       "key": "salt-flat-surface-ajirt0",
+       "pixelValue": 61,
+       "level": 2,
+       "name": {
+        "en-US": "Salt flat surface",
+        "es-ES": "Superficie de salar",
+        "pt-BR": "Superfície de Salt flat"
+       },
+       "parentId": "9ccb4d43-4ddc-493f-bb5e-0f514d3046c9",
+       "color": "#f5d5d5",
+       "order": 5,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "2c96cc09-d655-45a7-ad49-0ef940336b52",
+       "key": "other-natural-non-vegetated-area-3hmh7e",
+       "pixelValue": 68,
+       "level": 2,
+       "name": {
+        "en-US": "Other natural non vegetated area",
+        "es-ES": "Otra área natural sin vegetación",
+        "pt-BR": "Outra área natural sem vegetação"
+       },
+       "parentId": "9ccb4d43-4ddc-493f-bb5e-0f514d3046c9",
+       "color": "#E97A7A",
+       "order": 6,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "98c2259b-79dd-44d4-ac40-5ac6f56e5883",
+       "key": "other-anthropic-non-vegetated-area-nx8sar",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other anthropic non vegetated area",
+        "es-ES": "Otra área antrópica sin vegetación  ",
+        "pt-BR": "Outra área antrópica sem vegetação"
+       },
+       "parentId": "9ccb4d43-4ddc-493f-bb5e-0f514d3046c9",
+       "color": "#db4d4f",
+       "order": 7,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "c32fab54-5fe4-4a1f-868a-06ebe59f4157",
+     "key": "water-body-p0y971",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water body",
+      "es-ES": "Cuerpo de agua",
+      "pt-BR": "Corpo d'água"
+     },
+     "parentId": null,
+     "color": "#2532e4",
+     "order": 4,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "c710c223-aeeb-4bb8-a79e-4e7cbd5477a8",
+       "key": "river-lake-or-ocean-8z4k17",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, lake or ocean",
+        "es-ES": "Río, lago u océano",
+        "pt-BR": "River, lake or ocean"
+       },
+       "parentId": "c32fab54-5fe4-4a1f-868a-06ebe59f4157",
+       "color": "#2532e4",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "4a4741a1-35d2-4fce-aad4-486501ac3729",
+       "key": "aquaculture-50g3pg",
+       "pixelValue": 31,
+       "level": 2,
+       "name": {
+        "en-US": "Aquaculture",
+        "es-ES": "Acuicultura",
+        "pt-BR": "Aquicultura"
+       },
+       "parentId": "c32fab54-5fe4-4a1f-868a-06ebe59f4157",
+       "color": "#091077",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "ba0be8eb-0fb3-4fe2-ac13-f364bcb08ab3",
+       "key": "glacier-hrzj5w",
+       "pixelValue": 34,
+       "level": 2,
+       "name": {
+        "en-US": "Glacier",
+        "es-ES": "Glaciar",
+        "pt-BR": "Geleira"
+       },
+       "parentId": "c32fab54-5fe4-4a1f-868a-06ebe59f4157",
+       "color": "#93dfe6",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "2ab7546d-eefd-457b-a979-a71e854d9a64",
+     "key": "not-observed-8jfuwb",
+     "pixelValue": 27,
+     "level": 1,
+     "name": {
+      "en-US": "Not observed",
+      "es-ES": "No observado",
+      "pt-BR": "Not observed"
+     },
+     "parentId": null,
+     "color": "#FFFFFF",
+     "order": 5,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    }
+   ]
+  },
+  {
+   "id": "8344aa26-ff7e-4ffd-a766-f0f711d32fd8",
+   "key": "natural-y-uso-antropico-62a93f7e-ce86-4652-b7bc-576886685a9b",
+   "name": {
+    "en-US": "Natural and Anthropic use",
+    "es-ES": "Natural y uso antrópico",
+    "pt-BR": "Natural e uso antrópico"
+   },
+   "items": [
+    {
+     "id": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+     "key": "natural-37lfj2",
+     "pixelValue": 100,
+     "level": 1,
+     "name": {
+      "en-US": "Natural",
+      "es-ES": "Natural",
+      "pt-BR": "Natural"
+     },
+     "parentId": null,
+     "color": "#139912",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "08bf838e-0850-4d80-8bae-b0a3ea22cb21",
+       "key": "forest-qwwp5m-h654ns",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "forest-qwwp5m",
+        "es-ES": "Bosque",
+        "pt-BR": "Floresta"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "b374a67d-81d3-405a-ba1d-43968c21b5c4",
+       "key": "dry-forest-ezhlfa",
+       "pixelValue": 4,
+       "level": 2,
+       "name": {
+        "en-US": "Dry forest",
+        "es-ES": "Bosque seco",
+        "pt-BR": "Floresta Seca"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "55fa93aa-b315-4f9d-b90c-23ae083b93b6",
+       "key": "mangrove-ldc79q",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "es-ES": "Manglar",
+        "pt-BR": "Mangrove"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "1626e235-61e8-426b-ab91-3be99db17438",
+       "key": "flooded-forest-b330hq",
+       "pixelValue": 6,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded forest",
+        "es-ES": "Bosque inundable",
+        "pt-BR": "Floresta Inundável"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "cc2a8c94-eded-473e-9b7e-605fe4412fb0",
+       "key": "lowland-flooded-grassland-6n9frq-py83gj",
+       "pixelValue": 51,
+       "level": 2,
+       "name": {
+        "en-US": "lowland-flooded-grassland-6n9frq",
+        "es-ES": "Herbazal inundable de tierras bajas",
+        "pt-BR": "Formação Herbácea Inundável de Terras Baixas"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "fd9ae5d2-3718-4c4e-ba57-0c01f7c65dd1",
+       "key": "high-andean-flooded-grassland-exps8d-rvdm3r",
+       "pixelValue": 82,
+       "level": 2,
+       "name": {
+        "en-US": "high-andean-flooded-grassland-exps8d",
+        "es-ES": "Herbazal inundable altoandino",
+        "pt-BR": "Formação Herbácea Inundável Altoandina"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 5,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "da1160d0-14dd-4a74-96f0-36aa55bff91b",
+       "key": "herbaceous-formation-ql0g8t",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Herbaceous formation",
+        "es-ES": "Formación herbácea",
+        "pt-BR": "Formação Campestre"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 6,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "74446721-eb85-4cee-bc47-b9bcb884d40b",
+       "key": "shrubland-and-other-shrub-vegetation-nrp4ca-cj5mhs",
+       "pixelValue": 66,
+       "level": 2,
+       "name": {
+        "en-US": "shrubland-and-other-shrub-vegetation-nrp4ca",
+        "es-ES": "Matorral y otros arbustales",
+        "pt-BR": "Shrubland and other shrub vegetation"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 7,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "51b1ebbd-38f6-4f3d-b7ad-60990f56ab7e",
+       "key": "coastal-lomas-beta-np0a4i",
+       "pixelValue": 70,
+       "level": 2,
+       "name": {
+        "en-US": "Coastal Lomas (beta)",
+        "es-ES": "Loma costera (beta)",
+        "pt-BR": "Loma costeira (beta)"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 8,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "7d4551b6-4a0d-44f5-8ab1-fe3f4a95fb14",
+       "key": "beach-nxcuc9",
+       "pixelValue": 23,
+       "level": 2,
+       "name": {
+        "en-US": "Beach",
+        "es-ES": "Playa",
+        "pt-BR": "Praia"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 9,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "41b12981-2d25-4518-8ab7-420d0969f826",
+       "key": "rocky-surface-dqrboj",
+       "pixelValue": 92,
+       "level": 2,
+       "name": {
+        "en-US": "Rocky surface",
+        "es-ES": "Superficie rocosa",
+        "pt-BR": "Rocky surface"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 10,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "e0eb90a6-3ef5-4b1f-aeaf-dd6deede5db6",
+       "key": "coastal-salt-flat-ol9l6c-j2s0jj",
+       "pixelValue": 52,
+       "level": 2,
+       "name": {
+        "en-US": "coastal-salt-flat-ol9l6c",
+        "es-ES": "Superficie salina costera",
+        "pt-BR": "Superfície salina costeira"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 11,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "26220128-7928-40dd-b8a1-64aca316448a",
+       "key": "salt-flat-surface-7aeibu",
+       "pixelValue": 61,
+       "level": 2,
+       "name": {
+        "en-US": "Salt flat surface",
+        "es-ES": "Superficie de salar",
+        "pt-BR": "Superfície de Salt flat"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 12,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "7b04023a-0dfa-4ad3-b5c0-f405ecdefc92",
+       "key": "other-natural-non-vegetated-area-9lixup",
+       "pixelValue": 68,
+       "level": 2,
+       "name": {
+        "en-US": "Other natural non vegetated area",
+        "es-ES": "Otra área natural sin vegetación",
+        "pt-BR": "Outra área natural sem vegetação"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 13,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "ab683de5-6427-4569-a900-ef7e3ecbca71",
+       "key": "river-lake-or-ocean-urfa37",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, lake or ocean",
+        "es-ES": "Río, lago u océano",
+        "pt-BR": "River, lake or ocean"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 14,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "f2edb897-5678-4ddf-a881-3fc19417bfe9",
+       "key": "glacier-z5pu7p",
+       "pixelValue": 34,
+       "level": 2,
+       "name": {
+        "en-US": "Glacier",
+        "es-ES": "Glaciar",
+        "pt-BR": "Geleira"
+       },
+       "parentId": "655e75d0-93b4-4ed0-9440-747f35fbbb92",
+       "color": "#139912",
+       "order": 15,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "3b83cf1a-2af6-4eea-88b7-17cb79c2fc1c",
+     "key": "anthropic-use-654gtx-v36lc5",
+     "pixelValue": 200,
+     "level": 1,
+     "name": {
+      "en-US": "anthropic-use-654gtx",
+      "es-ES": "Antrópico",
+      "pt-BR": "Antrópico"
+     },
+     "parentId": null,
+     "color": "#FFD966",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "f58b2cf6-de6e-48c4-ae3f-013475c82b35",
+       "key": "agricultural-mosaic-r247gw",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Agricultural mosaic",
+        "es-ES": "Mosaico agropecuario",
+        "pt-BR": "Mosaico agropecuário"
+       },
+       "parentId": "3b83cf1a-2af6-4eea-88b7-17cb79c2fc1c",
+       "color": "#FFD966",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "053c8f90-74b9-4cbf-90c6-e320352a188f",
+       "key": "planted-forest-yv1owc",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Planted forest",
+        "es-ES": "Plantación forestal",
+        "pt-BR": "Planted forest"
+       },
+       "parentId": "3b83cf1a-2af6-4eea-88b7-17cb79c2fc1c",
+       "color": "#FFD966",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "eb471bc8-e853-46f6-80a9-81afee9aae13",
+       "key": "oil-palm-a2b092-iqticc",
+       "pixelValue": 35,
+       "level": 2,
+       "name": {
+        "en-US": "oil-palm-a2b092",
+        "es-ES": "Palma aceitera",
+        "pt-BR": "Dendê"
+       },
+       "parentId": "3b83cf1a-2af6-4eea-88b7-17cb79c2fc1c",
+       "color": "#FFD966",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "d170e128-3d46-42ea-9efa-fcea3248b5bf",
+       "key": "rice-beta-r1lnoi",
+       "pixelValue": 40,
+       "level": 2,
+       "name": {
+        "en-US": "Rice (beta)",
+        "es-ES": "Arroz (beta)",
+        "pt-BR": "Arroz (beta)"
+       },
+       "parentId": "3b83cf1a-2af6-4eea-88b7-17cb79c2fc1c",
+       "color": "#FFD966",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "68d1a768-135e-4172-ab23-fc374727123d",
+       "key": "pasture-beta-3v3gle",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Pasture (beta)",
+        "es-ES": "Pasto (beta)",
+        "pt-BR": "Pastagem (beta)"
+       },
+       "parentId": "3b83cf1a-2af6-4eea-88b7-17cb79c2fc1c",
+       "color": "#FFD966",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "c6600e20-e9d4-4fb3-b440-d736bbf1e72a",
+       "key": "urban-area-01eo09",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban area",
+        "es-ES": "Infraestructura urbana",
+        "pt-BR": "Infraestrutura urbana"
+       },
+       "parentId": "3b83cf1a-2af6-4eea-88b7-17cb79c2fc1c",
+       "color": "#FFD966",
+       "order": 5,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "b1c0229c-284a-41ac-95c3-7c51f2596af2",
+       "key": "mining-kbctrn",
+       "pixelValue": 30,
+       "level": 2,
+       "name": {
+        "en-US": "Mining",
+        "es-ES": "Minería",
+        "pt-BR": "Mineração"
+       },
+       "parentId": "3b83cf1a-2af6-4eea-88b7-17cb79c2fc1c",
+       "color": "#FFD966",
+       "order": 6,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "40f661af-68e3-47e4-b0b9-d0ece8fc0c92",
+       "key": "other-anthropic-non-vegetated-area-8i9jlz",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other anthropic non vegetated area",
+        "es-ES": "Otra área antrópica sin vegetación  ",
+        "pt-BR": "Outra área antrópica sem vegetação"
+       },
+       "parentId": "3b83cf1a-2af6-4eea-88b7-17cb79c2fc1c",
+       "color": "#FFD966",
+       "order": 7,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "cd3973b4-1300-4879-953a-d230f4f004fd",
+       "key": "aquaculture-1jey4r",
+       "pixelValue": 31,
+       "level": 2,
+       "name": {
+        "en-US": "Aquaculture",
+        "es-ES": "Acuicultura",
+        "pt-BR": "Aquicultura"
+       },
+       "parentId": "3b83cf1a-2af6-4eea-88b7-17cb79c2fc1c",
+       "color": "#FFD966",
+       "order": 8,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "56b0a4cb-72fa-4874-bace-78e5d58441e3",
+     "key": "not-defined-4nxu2d",
+     "pixelValue": 300,
+     "level": 1,
+     "name": {
+      "en-US": "Not defined",
+      "es-ES": "No definido",
+      "pt-BR": "Not observed"
+     },
+     "parentId": null,
+     "color": "#D5D5E5",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "8b87e5db-b408-47a7-841c-5ed2ff1189d7",
+       "key": "not-observed-hlllly",
+       "pixelValue": 27,
+       "level": 2,
+       "name": {
+        "en-US": "Not observed",
+        "es-ES": "No observado",
+        "pt-BR": "Not observed"
+       },
+       "parentId": "56b0a4cb-72fa-4874-bace-78e5d58441e3",
+       "color": "#D5D5E5",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
