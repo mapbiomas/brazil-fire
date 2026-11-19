@@ -7,11 +7,14 @@ publicação na biblioteca local ou no Drive. Nada é sobrescrito.
 from datetime import datetime
 from html import escape
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 from threading import Event, Lock, Thread
+from time import monotonic
 
 import ipywidgets as w
 
 from .engine import discover, generate, validate
+from .estimate import SECONDS_PER_COMBO, Calibration, human_size
 from .layout import combination_path, ensure_unique_paths
 from .library import assess, fingerprint, ingest, variant_for
 from .progress import ProgressState
@@ -48,10 +51,12 @@ class BatchRunner:
         self.project = project
         self.lock = Lock()
         self.on_finished = None  # callback(produced_files, summary_dict)
+        self.on_combo = None     # callback(índice, estado, info): alimenta a vitrine
+        self.on_start = None     # callback(combos): a vitrine cria um cartão por combinação
+        self.workers = 1         # combinações geradas ao mesmo tempo
+        self.calibration = Calibration()  # ritmo real desta sessão, para as próximas estimativas
         self.status = w.HTML("<b>Pronto.</b>")
         self.overall = w.IntProgress(value=0, min=0, max=1, description="Lote:", layout=w.Layout(width="95%"))
-        self.progress = w.IntProgress(value=0, min=0, max=1, description="Download:",
-                                      layout=w.Layout(width="95%", display="none"))
         self.sprout = w.HTML(
             value=('<style>@keyframes gif-factory-sprout {0%,100% { transform: rotate(-8deg); }'
                    ' 50% { transform: rotate(8deg); }} .gif-factory-sprout { display: inline-block;'
@@ -63,7 +68,9 @@ class BatchRunner:
         self.log = w.Output(layout=w.Layout(border="1px solid #ddd", max_height="220px", overflow="auto"))
 
     def widget(self):
-        return w.VBox([self.sprout, self.status, self.overall, self.progress, self.log])
+        log = w.Accordion([self.log], selected_index=None)
+        log.set_title(0, "Registro detalhado")
+        return w.VBox([self.sprout, self.status, self.overall, log])
 
     def library_root(self, automatic, destination):
         if automatic:
@@ -123,35 +130,53 @@ class BatchRunner:
         self.sprout.layout.display = ""
         run_id = datetime.now().strftime("%Y-%m-%d_%H%M%S_%f")
         self.status.value = "<b>▶ INICIANDO</b> — preparando lote..."
-        self.progress.value = 0
         self.overall.value = 0
         self.overall.max = len(combos)
         self.log.clear_output()
+        if self.on_start:
+            self.on_start(combos)
         thread = Thread(target=self._work, args=(combos, kinds, automatic, destination, run_id), daemon=True)
         thread.start()
         return thread
 
     def _work(self, combos, kinds, automatic, destination, run_id):
         total = len(combos)
-        state = ProgressState(total)
+        workers = max(1, min(int(self.workers or 1), total))
+        states = [ProgressState(1) for _ in combos]
+        active = {}  # número -> cabeçalho, na ordem em que começaram
         stop_clock = Event()
-        ok = failed = skipped = 0
+        counts = {"ok": 0, "failed": 0, "skipped": 0, "done": 0, "saved": 0, "work": 0}
+        count_lock = Lock()
         produced = []
+        started = monotonic()
+
+        def notify(number, state, **info):
+            if self.on_combo:
+                try:
+                    self.on_combo(number - 1, state, info)
+                except Exception as exc:
+                    self.log.append_stdout(f"Aviso da vitrine: {exc}\n")
 
         def render():
-            snap = state.snapshot()
-            eta = "calculando…" if snap["eta"] is None else "~" + duration(snap["eta"])
-            details = f"<br>{escape(snap['detail'])}" if snap["detail"] else ""
-            download = snap["stage"] == "Baixando frames"
-            remaining = f"<br>Previsão do download atual: {eta}" if download else ""
-            self.status.value = (f"<b>◉ LOTE EM ANDAMENTO</b> — {snap['completed']} de {snap['total']} combinações processadas"
-                                 f"<br>{escape(snap['header'])}<br><b>{escape(snap['stage'])}</b>{details}"
-                                 f"<br>Tempo total: {duration(snap['elapsed'])} · combinação: {duration(snap['combo_elapsed'])}{remaining}")
-            self.overall.value = snap["completed"]
-            self.progress.layout.display = "" if download else "none"
-            if download:
-                self.progress.max = max(1, snap["frame_total"])
-                self.progress.value = min(snap["frame_done"], self.progress.max)
+            with count_lock:
+                running = list(active.items())
+                done = counts["done"]
+            lines = []
+            for number, header in running:
+                snap = states[number - 1].snapshot()
+                details = f" — {escape(snap['detail'])}" if snap["detail"] else ""
+                eta = ""
+                if snap["stage"] == "Baixando frames" and snap["eta"] is not None:
+                    eta = f" · faltam ~{duration(snap['eta'])}"
+                lines.append(f"<br>▸ <b>{number}/{total}</b> {escape(header)}<br>&nbsp;&nbsp;&nbsp;"
+                             f"{escape(snap['stage'])}{details} · {duration(snap['combo_elapsed'])}{eta}")
+            together = f" · {workers} ao mesmo tempo" if workers > 1 else ""
+            self.status.value = (f"<b>◉ LOTE EM ANDAMENTO</b> — {done} de {total} combinações processadas{together}"
+                                 f"<br>Tempo total: {duration(monotonic() - started)}" + "".join(lines))
+            self.overall.value = done
+            for number, _ in running:
+                snap = states[number - 1].snapshot()
+                notify(number, "gerando", detail=snap["stage"], done=snap["frame_done"], total=snap["frame_total"])
 
         def tick():
             while not stop_clock.wait(1):
@@ -160,77 +185,110 @@ class BatchRunner:
                 except Exception as exc:
                     self.log.append_stdout(f"Aviso de atualização do painel: {exc}\n")
 
+        def run_one(number, origin, layer, territory):
+            header = header_for(origin, layer, territory)
+            state = states[number - 1]
+            state.begin(number, header)
+            with count_lock:
+                active[number] = header
+            notify(number, "gerando", detail="Preparando")
+            self.log.append_stdout(f"INICIANDO {number}/{total}: {header}\n")
+            tag = f"[{number}/{total}] " if workers > 1 else ""
+
+            def event(kind, *args):
+                if kind == "discovered" and args[0]:
+                    self.log.append_stdout(f"{tag}{len(args[0])} períodos: {args[0][0]} → {args[0][-1]}\n")
+                if kind == "stage":
+                    self.log.append_stdout(f"{tag}{args[0]}...\n")
+                state.update(kind, *args)
+                if kind in ("frame_retry", "frame_failed"):
+                    self.log.append_stdout(tag + state.snapshot()["detail"] + "\n")
+                render()
+
+            result, files, folder, error = "falha", [], None, ""
+            try:
+                relative = combination_path(origin, layer, territory)
+                local_root = self.output_root / relative
+                primary_root = (Path(destination) / relative) if automatic else local_root
+                folder = primary_root
+                if automatic and not drive_mounted():
+                    raise RuntimeError("Drive não conectado; desmarque o Drive ou conecte-o de novo.")
+                state.update("stage", "Consultando períodos e biblioteca")
+                render()
+                all_bands, selected_bands = discover(layer)
+                variant = variant_for(all_bands, selected_bands)
+                signature = fingerprint(layer, territory, selected_bands)
+                existing = assess(primary_root, variant, signature, kinds)
+                if existing == "disponivel":
+                    self.log.append_stdout(f"JÁ EXISTE {number}/{total}: não reprocessado ({primary_root}).\n")
+                    files = artifacts_in(primary_root)
+                    result = "existe"
+                    return
+                if existing == "verificar":
+                    raise RuntimeError("Há arquivos incompatíveis ou sem metadados nesta pasta; nada foi sobrescrito.")
+                if existing == "parcial":
+                    self.log.append_stdout(f"{tag}Resultado incompleto: gerando apenas o que falta.\n")
+                missing = {kind for kind in kinds if assess(primary_root, variant, signature, {kind}) != "disponivel"}
+                run_root = self.temp_root / relative / variant / run_id
+                stage = run_root / "entrega"
+                configured = dict(layer, bands=selected_bands)
+                generated = generate(configured, territory, stage, missing, None, project=self.project,
+                                     on_progress=event, work_dir=run_root / "processamento", variant=variant)
+                state.update("stage", "Enviando ao Drive" if automatic else "Publicando arquivos")
+                render()
+                ingest(stage, primary_root, variant, signature, selected_bands, layer, territory)
+                if automatic:
+                    try:
+                        ingest(stage, local_root, variant, signature, selected_bands, layer, territory)
+                    except Exception as exc:
+                        self.log.append_stdout(f"{tag}Aviso: cópia local não atualizada: {exc}\n")
+                files = artifacts_in(primary_root)
+                result = "pronto"
+                snap = state.snapshot()
+                self.calibration.add(snap["combo_elapsed"] - SECONDS_PER_COMBO, snap["frame_total"])
+                with count_lock:
+                    counts["saved"] += sum(size_of(f) for f in generated)
+                    counts["work"] += sum(size_of(f) for f in run_root.rglob("*"))
+                self.log.append_stdout(f"FINALIZADO {number}/{total}: {len(generated)} arquivos em {primary_root}\n")
+            except Exception as exc:
+                error = str(exc)
+                self.log.append_stdout(f"FALHA {number}/{total}: {exc}\n")
+            finally:
+                with count_lock:
+                    active.pop(number, None)
+                    counts["done"] += 1
+                    counts[{"pronto": "ok", "existe": "skipped", "falha": "failed"}[result]] += 1
+                    produced.extend(files)
+                state.finish_combo()
+                notify(number, result, detail=error, files=files, folder=folder)
+                render()
+
         ticker = Thread(target=tick, daemon=True)
         try:
             ticker.start()
-            for number, (origin, layer, territory) in enumerate(combos, 1):
-                header = header_for(origin, layer, territory)
-                state.begin(number, header)
-                render()
-                self.log.append_stdout(f"INICIANDO {number}/{total}: {header}\n")
-
-                def event(kind, *args):
-                    if kind == "discovered" and args[0]:
-                        self.log.append_stdout(f"{len(args[0])} períodos: {args[0][0]} → {args[0][-1]}\n")
-                    if kind == "stage":
-                        self.log.append_stdout(f"{args[0]}...\n")
-                    state.update(kind, *args)
-                    if kind in ("frame_retry", "frame_failed"):
-                        self.log.append_stdout(state.snapshot()["detail"] + "\n")
-                    render()
-
-                try:
-                    relative = combination_path(origin, layer, territory)
-                    local_root = self.output_root / relative
-                    primary_root = (Path(destination) / relative) if automatic else local_root
-                    if automatic and not drive_mounted():
-                        raise RuntimeError("Drive não conectado; desmarque o Drive ou conecte-o de novo.")
-                    state.update("stage", "Consultando períodos e biblioteca")
-                    render()
-                    all_bands, selected_bands = discover(layer)
-                    variant = variant_for(all_bands, selected_bands)
-                    signature = fingerprint(layer, territory, selected_bands)
-                    existing = assess(primary_root, variant, signature, kinds)
-                    if existing == "disponivel":
-                        skipped += 1
-                        self.log.append_stdout(f"JÁ EXISTE {number}/{total}: não reprocessado ({primary_root}).\n")
-                        produced.extend(sorted(p for p in primary_root.rglob("*") if p.suffix.lower() in {".gif", ".png"}))
-                        continue
-                    if existing == "verificar":
-                        raise RuntimeError("Há arquivos incompatíveis ou sem metadados nesta pasta; nada foi sobrescrito.")
-                    if existing == "parcial":
-                        self.log.append_stdout("Resultado incompleto: gerando apenas o que falta.\n")
-                    missing = {kind for kind in kinds if assess(primary_root, variant, signature, {kind}) != "disponivel"}
-                    run_root = self.temp_root / relative / variant / run_id
-                    stage = run_root / "entrega"
-                    configured = dict(layer, bands=selected_bands)
-                    files = generate(configured, territory, stage, missing, None, project=self.project,
-                                     on_progress=event, work_dir=run_root / "processamento", variant=variant)
-                    state.update("stage", "Enviando ao Drive" if automatic else "Publicando arquivos")
-                    render()
-                    ingest(stage, primary_root, variant, signature, selected_bands, layer, territory)
-                    if automatic:
-                        try:
-                            ingest(stage, local_root, variant, signature, selected_bands, layer, territory)
-                        except Exception as exc:
-                            self.log.append_stdout(f"Aviso: cópia local não atualizada: {exc}\n")
-                    produced.extend(primary_root / Path(f).relative_to(stage) for f in files)
-                    ok += 1
-                    self.log.append_stdout(f"FINALIZADO {number}/{total}: {len(files)} arquivos em {primary_root}\n")
-                except Exception as exc:
-                    failed += 1
-                    self.log.append_stdout(f"FALHA {number}/{total}: {exc}\n")
-                finally:
-                    state.finish_combo()
-                    render()
+            if workers == 1:
+                for number, (origin, layer, territory) in enumerate(combos, 1):
+                    run_one(number, origin, layer, territory)
+            else:
+                with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="gif-factory") as pool:
+                    futures = [pool.submit(run_one, number, *combo) for number, combo in enumerate(combos, 1)]
+                    for future in futures:
+                        future.result()
             stop_clock.set()
             if ticker.is_alive():
                 ticker.join()
+            ok, failed, skipped = counts["ok"], counts["failed"], counts["skipped"]
             title = ("✓ LOTE CONCLUÍDO" if not failed else
                      "⚠ CONCLUÍDO COM FALHAS" if ok or skipped else "✕ LOTE FALHOU")
             where = ("no Google Drive" if automatic else "nesta sessão do Colab") if (ok or skipped) else "—"
+            self.overall.value = total
             self.status.value = (f"<b>{title}</b> · {ok} gerado(s), {skipped} já disponível(is), {failed} falha(s)"
-                                 f"<br>Arquivos: {where}<br>Tempo total: {duration(state.snapshot()['elapsed'])}")
+                                 f"<br>Arquivos: {where}<br>Tempo total: {duration(monotonic() - started)}")
+            if counts["saved"]:
+                copies = " (mais a cópia nesta sessão)" if automatic else ""
+                self.status.value += (f"<br>Volume: {human_size(counts['saved'] / 2 ** 20)} salvos{copies} · "
+                                      f"{human_size(counts['work'] / 2 ** 20)} de arquivos de trabalho em "
+                                      f"{escape(str(self.temp_root))}")
             if self.on_finished:
                 try:
                     self.on_finished(produced, {"ok": ok, "skipped": skipped, "failed": failed})
@@ -245,3 +303,14 @@ class BatchRunner:
                 ticker.join()
             self.sprout.layout.display = "none"
             self.lock.release()
+
+
+def size_of(path):
+    try:
+        return path.stat().st_size if path.is_file() else 0
+    except OSError:
+        return 0
+
+
+def artifacts_in(root):
+    return sorted(p for p in Path(root).rglob("*") if p.is_file() and p.suffix.lower() in {".gif", ".png"})

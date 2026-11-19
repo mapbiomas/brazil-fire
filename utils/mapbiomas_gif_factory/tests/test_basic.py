@@ -112,7 +112,13 @@ class BasicTests(unittest.TestCase):
     def test_notebook_has_two_form_cells_and_no_lists_to_edit(self):
         notebook = json.loads((Path(__file__).parents[1] / "notebooks/piloto.ipynb").read_text(encoding="utf-8"))
         code = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
-        self.assertEqual(len(code), 2)
+        # Configurações avançadas (versão/branch) + 1 · Conectar + 2 · Abrir; a primeira fica recolhida.
+        self.assertEqual(len(code), 3)
+        self.assertIn("VERSAO", "".join(code[0]["source"]))
+        self.assertIn(code[0]["metadata"]["id"], [c["metadata"].get("id") for c in notebook["cells"]])
+        heading = notebook["cells"][notebook["cells"].index(code[0]) - 1]
+        self.assertIn(heading["metadata"]["id"], notebook["metadata"]["colab"]["collapsed_sections"])
+        self.assertIn("globals().get('VERSAO'", "".join(code[1]["source"]))
         self.assertTrue(all(cell["metadata"].get("cellView") == "form" for cell in code))
         source = "".join("".join(cell["source"]) for cell in code)
         self.assertNotIn("LAYERS", source)
