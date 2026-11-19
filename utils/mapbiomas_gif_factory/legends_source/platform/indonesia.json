@@ -1,0 +1,470 @@
+{
+ "project": "indonesia",
+ "name": {
+  "en-US": "Indonesia",
+  "id-ID": "Indonesia"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/indonesia/legends",
+ "subtheme": "coverage-copia-p0wwe2_coverage-wdzhq4",
+ "subtheme_name": {
+  "en-US": "Coverage",
+  "es-ES": "Cobertura",
+  "id-ID": "Tutupan",
+  "pt-BR": "Cobertura"
+ },
+ "legends": [
+  {
+   "id": "42402370-8f97-4c11-9307-8446c133b7e8",
+   "key": "coverage-kotjog",
+   "name": {
+    "en-US": "Coverage",
+    "id-ID": "Wilayah"
+   },
+   "items": [
+    {
+     "id": "d22e9713-d9d4-4827-bf65-7f39bab26965",
+     "key": "forest-u3ikn4",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Forest",
+      "id-ID": "Hutan"
+     },
+     "parentId": null,
+     "color": "#1f8d49",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "f45a935a-64e6-47de-9139-5392650ac7e6",
+       "key": "forest-formation-kb3atl",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Formation",
+        "id-ID": "Formasi Hutan"
+       },
+       "parentId": "d22e9713-d9d4-4827-bf65-7f39bab26965",
+       "color": "#1f8d49",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "d64cb8b1-2788-4918-977d-369edd22da7d",
+       "key": "mangrove-8b3myl",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "id-ID": "Mangrove"
+       },
+       "parentId": "d22e9713-d9d4-4827-bf65-7f39bab26965",
+       "color": "#04381d",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "5fe47177-6923-43a7-baa6-1638462e91c7",
+       "key": "peat-swamp-forest-zh5mx9",
+       "pixelValue": 76,
+       "level": 2,
+       "name": {
+        "en-US": "Peat Swamp Forest",
+        "id-ID": "Hutan Rawa Gambut"
+       },
+       "parentId": "d22e9713-d9d4-4827-bf65-7f39bab26965",
+       "color": "#2f7360",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "ed7dd7d9-5f9e-420c-b5fe-e7664fae90d4",
+       "key": "sago-9gde8g",
+       "pixelValue": 64,
+       "level": 2,
+       "name": {
+        "en-US": "Sago",
+        "id-ID": "Sagu"
+       },
+       "parentId": "d22e9713-d9d4-4827-bf65-7f39bab26965",
+       "color": "#089767",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "d52386df-6631-4c4e-b480-6af730651cbc",
+     "key": "non-forest-natural-formation-mg5g7a",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Non-Forest Natural Formation",
+      "id-ID": "Vegetasi Non-Hutan"
+     },
+     "parentId": null,
+     "color": "#d6bc74",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "08323b85-e4d2-4b40-a509-44ca33f4a8c5",
+       "key": "savannah-jl8f3n",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Savannah",
+        "id-ID": "Sabana"
+       },
+       "parentId": "d52386df-6631-4c4e-b480-6af730651cbc",
+       "color": "#D6BC74",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "a185d2f5-76b6-4ea4-9469-531aac9d3da8",
+       "key": "wetland-n8o22e",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Wetland",
+        "id-ID": "Vegetasi Lahan Basah"
+       },
+       "parentId": "d52386df-6631-4c4e-b480-6af730651cbc",
+       "color": "#519799",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "3a58e953-d446-4a4d-bd31-e20257e8db22",
+       "key": "other-natural-vegetation-6euwnl",
+       "pixelValue": 13,
+       "level": 2,
+       "name": {
+        "en-US": "Other Natural Vegetation",
+        "id-ID": "Vegetasi Non-Hutan Lainya"
+       },
+       "parentId": "d52386df-6631-4c4e-b480-6af730651cbc",
+       "color": "#d89f5c",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "af664b4a-315a-413f-91b9-88bd73be2581",
+     "key": "agriculture-zju2b9",
+     "pixelValue": 18,
+     "level": 1,
+     "name": {
+      "en-US": "Agriculture",
+      "id-ID": "Pertanian"
+     },
+     "parentId": null,
+     "color": "#E974ED",
+     "order": 2,
+     "hasDescriptions": true,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "3fd3fa08-5ec6-48f7-bf8f-d3cb5e112ef8",
+       "key": "rice-paddy-dp85y2",
+       "pixelValue": 40,
+       "level": 2,
+       "name": {
+        "en-US": "Rice Paddy",
+        "id-ID": "Sawah"
+       },
+       "parentId": "af664b4a-315a-413f-91b9-88bd73be2581",
+       "color": "#f272c2",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "9c6e1cee-8f66-4919-bd86-3b5f043cd7de",
+       "key": "coffee-0tcijz",
+       "pixelValue": 46,
+       "level": 2,
+       "name": {
+        "en-US": "Coffee",
+        "id-ID": "Kopi"
+       },
+       "parentId": "af664b4a-315a-413f-91b9-88bd73be2581",
+       "color": "#EB7FA5",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "98aebac3-2bd4-4619-a69f-4e125db2528a",
+       "key": "oil-palm-3rdvsn",
+       "pixelValue": 35,
+       "level": 2,
+       "name": {
+        "en-US": "Oil Palm",
+        "id-ID": "Sawit"
+       },
+       "parentId": "af664b4a-315a-413f-91b9-88bd73be2581",
+       "color": "#9065d0",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "4b774215-0a3b-4cdb-8e2b-acfb934a86ac",
+       "key": "rubber-0dqdhv",
+       "pixelValue": 49,
+       "level": 2,
+       "name": {
+        "en-US": "Rubber",
+        "id-ID": "Karet"
+       },
+       "parentId": "af664b4a-315a-413f-91b9-88bd73be2581",
+       "color": "#B77671",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "e609a4a9-0e9f-42f2-8b3c-b96c085b054e",
+       "key": "perennial-crops-zswb74",
+       "pixelValue": 48,
+       "level": 2,
+       "name": {
+        "en-US": "Perennial Crops",
+        "id-ID": "Tanaman Tahunan"
+       },
+       "parentId": "af664b4a-315a-413f-91b9-88bd73be2581",
+       "color": "#E6CCFF",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "f8cf743e-8867-4d97-a5b4-9cb7446241bd",
+       "key": "timber-plantation-tbbfme",
+       "pixelValue": 80,
+       "level": 2,
+       "name": {
+        "en-US": "Timber Plantation",
+        "id-ID": "Kebun Kayu"
+       },
+       "parentId": "af664b4a-315a-413f-91b9-88bd73be2581",
+       "color": "#7A5900",
+       "order": 5,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "af14f01d-801d-4460-a558-2dd45df2e1a6",
+       "key": "forestplantation-sj44xv",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "ForestPlantation",
+        "id-ID": "Hutan tanaman"
+       },
+       "parentId": "af664b4a-315a-413f-91b9-88bd73be2581",
+       "color": "#7A6C00",
+       "order": 6,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "5347c59e-c0d9-43b1-8d1e-96538351ccc2",
+       "key": "other-agriculture-qwrce5",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Other Agriculture",
+        "id-ID": "Pertanian Lainnya"
+       },
+       "parentId": "af664b4a-315a-413f-91b9-88bd73be2581",
+       "color": "#ffefc3",
+       "order": 7,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "7e44c4f8-e142-4395-a99a-8f813cce66d9",
+     "key": "non-vegetated-area-ud42rx",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "en-US": "Non-Vegetated Area",
+      "id-ID": "Non Vegetasi"
+     },
+     "parentId": null,
+     "color": "#d4271e",
+     "order": 3,
+     "hasDescriptions": true,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "2b62c5b0-d39d-4bcf-bfa3-3741bc4e8b70",
+       "key": "mining-pit-d2die5",
+       "pixelValue": 30,
+       "level": 2,
+       "name": {
+        "en-US": "Mining Pit",
+        "id-ID": "Lubang Tambang"
+       },
+       "parentId": "7e44c4f8-e142-4395-a99a-8f813cce66d9",
+       "color": "#9c0027",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "99743d5b-410f-46e0-8f2d-454c34b01571",
+       "key": "urban-area-l3w9ur",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban Area",
+        "id-ID": "Pemukiman"
+       },
+       "parentId": "7e44c4f8-e142-4395-a99a-8f813cce66d9",
+       "color": "#d4271e",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "b5c581bf-7453-4028-a319-2d43736e04f9",
+       "key": "rocky-surface-ezr4hx",
+       "pixelValue": 92,
+       "level": 2,
+       "name": {
+        "en-US": "Rocky Surface",
+        "id-ID": "Permukaan Berbatu"
+       },
+       "parentId": "7e44c4f8-e142-4395-a99a-8f813cce66d9",
+       "color": "#D98A45",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "badf27af-3a10-4da3-a92e-5dc4bf6c3c15",
+       "key": "other-non-vegetation-3jj2zr",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other Non-Vegetation",
+        "id-ID": "Non-Vegetasi Lainya"
+       },
+       "parentId": "7e44c4f8-e142-4395-a99a-8f813cce66d9",
+       "color": "#db4d4f",
+       "order": 3,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "0649af7d-8ff5-4f7b-b71b-6395cd49bd47",
+     "key": "water-body-4k9e43",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water Body",
+      "id-ID": "Tubuh Air"
+     },
+     "parentId": null,
+     "color": "#2532e4",
+     "order": 4,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "21e74f52-20f0-4c74-b8fc-f3a8fea42c02",
+       "key": "aquaculture-44wcqh",
+       "pixelValue": 31,
+       "level": 2,
+       "name": {
+        "en-US": "Aquaculture",
+        "id-ID": "Tambak"
+       },
+       "parentId": "0649af7d-8ff5-4f7b-b71b-6395cd49bd47",
+       "color": "#091077",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "df2495ca-887a-472e-88c8-5dc577989e1d",
+       "key": "river-lake-ocean-0uw2k0",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, Lake, Ocean",
+        "id-ID": "Sungai, Danau, Laut"
+       },
+       "parentId": "0649af7d-8ff5-4f7b-b71b-6395cd49bd47",
+       "color": "#2532e4",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "5c5736bf-26f2-40d8-b461-2a6315ac273f",
+     "key": "not-observed-dyzkqx",
+     "pixelValue": 27,
+     "level": 1,
+     "name": {
+      "en-US": "Not Observed",
+      "id-ID": "Citra Tertutup Awan"
+     },
+     "parentId": null,
+     "color": "#ffffff",
+     "order": 5,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    }
+   ]
+  }
+ ]
+}

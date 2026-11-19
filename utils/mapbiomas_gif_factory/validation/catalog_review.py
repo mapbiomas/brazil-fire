@@ -55,7 +55,12 @@ def review(layer, project, out_dir, size):
         image, product = catalog_image(layer)
         viz = VisualizationManager(config_loader()).get_viz_params(layer["visualization_key"])
         band = image.select(all_bands[-1])
-        region = ee.Geometry.Rectangle(REGIONS.get(layer["initiative_code"], REGIONS["brasil"]))
+        if layer["initiative_code"] in REGIONS:
+            region = ee.Geometry.Rectangle(REGIONS[layer["initiative_code"]])
+        else:
+            # Iniciativas sem recorte conhecido: a área do próprio asset.
+            region = ee.Image(layer["asset"]).geometry().bounds() if layer.get("asset") else \
+                ee.Geometry.Rectangle(REGIONS["brasil"])
         if product.get("rgb"):
             year = all_bands[-1][-4:]
             bands = [b for b in all_bands if b.endswith(year)][:3]

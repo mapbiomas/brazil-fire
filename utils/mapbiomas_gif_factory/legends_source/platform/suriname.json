@@ -1,0 +1,532 @@
+{
+ "project": "suriname",
+ "name": {
+  "nl-NL": "Suriname"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/suriname/legends",
+ "subtheme": "coverage_lclu",
+ "subtheme_name": {
+  "en-US": "Coverage",
+  "es-ES": "Cobertura",
+  "pt-BR": "Cobertura"
+ },
+ "legends": [
+  {
+   "id": "c9d6a792-4f74-46ed-a482-feb0c23e5208",
+   "key": "default",
+   "name": {
+    "en-US": "Coverage",
+    "nl-NL": "Bodembedekking"
+   },
+   "items": [
+    {
+     "id": "ae189774-fc5c-4532-aeb0-1899eb9869ff",
+     "key": "forest",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Forest",
+      "nl-NL": "Bos"
+     },
+     "parentId": null,
+     "color": "#1f8d49",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "e50224ec-6a1a-4803-84f1-8f898f8d56b1",
+       "key": "forest_forest_formation",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Formation",
+        "nl-NL": "Bos"
+       },
+       "parentId": "ae189774-fc5c-4532-aeb0-1899eb9869ff",
+       "color": "#1f8d49",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "6bed06a1-e673-4a8f-9bbb-4dce4335f0ab",
+       "key": "forest_mangrove",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "nl-NL": "Mangrove"
+       },
+       "parentId": "ae189774-fc5c-4532-aeb0-1899eb9869ff",
+       "color": "#04381d",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "62cfae52-e089-4afa-8ad0-2b63ac491a6d",
+     "key": "herbaceous_and_shrubby_vegetation",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Herbaceous and Shrubby Vegetation",
+      "nl-NL": "Kruidachtige en struikachtige vegetatie"
+     },
+     "parentId": null,
+     "color": "#d6bc74",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "ebc27a38-b021-4dab-bff6-3fdbc333f090",
+       "key": "herbaceous_and_shrubby_vegetation_wetland",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Wetland",
+        "nl-NL": "Moerasgebied"
+       },
+       "parentId": "62cfae52-e089-4afa-8ad0-2b63ac491a6d",
+       "color": "#519799",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "ff09db4f-b4ce-4c68-8cba-f4a0802c2662",
+       "key": "herbaceous_and_shrubby_vegetation_grassland",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Grassland",
+        "nl-NL": "Grasland"
+       },
+       "parentId": "62cfae52-e089-4afa-8ad0-2b63ac491a6d",
+       "color": "#d6bc74",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "efc4f928-56ee-46b0-9117-45c404f49dc7",
+     "key": "farming",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Farming",
+      "nl-NL": "Landbouw"
+     },
+     "parentId": null,
+     "color": "#ffefc3",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "effe4696-b6d9-4304-83c1-0763b949de81",
+       "key": "farming_agriculture",
+       "pixelValue": 18,
+       "level": 2,
+       "name": {
+        "en-US": "Agriculture",
+        "nl-NL": "Landbouw"
+       },
+       "parentId": "efc4f928-56ee-46b0-9117-45c404f49dc7",
+       "color": "#E974ED",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "67530203-797c-42ce-a99b-dc645f36222c",
+       "key": "farming_mosaic_of_uses",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Mosaic of Uses",
+        "nl-NL": "Mozaïek van gebruik"
+       },
+       "parentId": "efc4f928-56ee-46b0-9117-45c404f49dc7",
+       "color": "#ffefc3",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "a81687e9-4bc5-41d3-ba6d-b88579736531",
+     "key": "non_vegetated_area",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "en-US": "Non vegetated Area",
+      "nl-NL": "Niet-begroeid gebied"
+     },
+     "parentId": null,
+     "color": "#d4271e",
+     "order": 4,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "c42808c3-a6b1-4cfb-9dd7-133c35ea89eb",
+       "key": "non_vegetated_area_urban_area",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban Area",
+        "nl-NL": "Stedelijk gebied"
+       },
+       "parentId": "a81687e9-4bc5-41d3-ba6d-b88579736531",
+       "color": "#d4271e",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "ae0f15b9-3d75-4612-a154-e4ee93271752",
+       "key": "non_vegetated_area_other_non_vegetated_area",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other non Vegetated Area",
+        "nl-NL": "Ander niet-begroeid gebied"
+       },
+       "parentId": "a81687e9-4bc5-41d3-ba6d-b88579736531",
+       "color": "#db4d4f",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "4eccb49d-b141-4898-95e8-e8c1b52d6a47",
+       "key": "non_vegetated_area_mining",
+       "pixelValue": 30,
+       "level": 2,
+       "name": {
+        "en-US": "Mining",
+        "nl-NL": "Mijnbouw"
+       },
+       "parentId": "a81687e9-4bc5-41d3-ba6d-b88579736531",
+       "color": "#9c0027",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "5b84c835-5a85-43bb-bdfd-8895635e92f1",
+     "key": "water",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water",
+      "nl-NL": "Water"
+     },
+     "parentId": null,
+     "color": "#2532e4",
+     "order": 5,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "ceeb6b91-6c9f-4fc2-a7d7-50ed0b2e39c2",
+       "key": "water_river_lake_and_ocean",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, lake and Ocean",
+        "nl-NL": "Rivier, meer en ocean"
+       },
+       "parentId": "5b84c835-5a85-43bb-bdfd-8895635e92f1",
+       "color": "#2532e4",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "ff12afd4-7101-470d-b3ab-33704f66a77c",
+     "key": "not_observed",
+     "pixelValue": 27,
+     "level": 1,
+     "name": {
+      "en-US": "Not observed",
+      "nl-NL": "Niet waargenomen"
+     },
+     "parentId": null,
+     "color": "#ffffff",
+     "order": 6,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    }
+   ]
+  },
+  {
+   "id": "b7a1b685-33b4-478a-be9e-81561623dd94",
+   "key": "coverage_natural_and_anthropic_use",
+   "name": {
+    "en-US": "Natural and anthropic use",
+    "nl-NL": "Natuurlijk en antropisch gebruik"
+   },
+   "items": [
+    {
+     "id": "8d4797b9-0fa0-4600-833d-226528e9c775",
+     "key": "natural",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Natural",
+      "nl-NL": "Natuurlijk"
+     },
+     "parentId": null,
+     "color": "#139912",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "03dcc3d3-5ce7-4c1a-ab9b-56f620ce817e",
+       "key": "natural_forest_formation",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Formation",
+        "nl-NL": "Bos"
+       },
+       "parentId": "8d4797b9-0fa0-4600-833d-226528e9c775",
+       "color": "#139912",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "68f8d703-4579-4d42-a497-763b866f2b23",
+       "key": "natural_mangrove",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "nl-NL": "Mangrove"
+       },
+       "parentId": "8d4797b9-0fa0-4600-833d-226528e9c775",
+       "color": "#139912",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "f94e1544-4b86-4df0-a380-4da44f82dbaf",
+       "key": "natural_wetland",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Wetland",
+        "nl-NL": "Moerasgebied"
+       },
+       "parentId": "8d4797b9-0fa0-4600-833d-226528e9c775",
+       "color": "#139912",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "db22ff4d-448b-4730-9184-992ab74f93e9",
+       "key": "natural_grassland",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Grassland",
+        "nl-NL": "Grasland"
+       },
+       "parentId": "8d4797b9-0fa0-4600-833d-226528e9c775",
+       "color": "#139912",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "8d577212-e78a-45cd-a3c0-79dab836fb4c",
+       "key": "natural_river_lake_and_ocean",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, lake and Ocean",
+        "nl-NL": "Rivier, meer en oceaan"
+       },
+       "parentId": "8d4797b9-0fa0-4600-833d-226528e9c775",
+       "color": "#139912",
+       "order": 5,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "15d40b2e-2e81-4741-a548-15d61706c134",
+     "key": "anthropic",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Anthropic",
+      "nl-NL": "Antropisch"
+     },
+     "parentId": null,
+     "color": "#FFD966",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "74ba05ea-7546-4779-a654-d0915d0e8040",
+       "key": "anthropic_agriculture",
+       "pixelValue": 18,
+       "level": 2,
+       "name": {
+        "en-US": "Agriculture",
+        "nl-NL": "Landbouw"
+       },
+       "parentId": "15d40b2e-2e81-4741-a548-15d61706c134",
+       "color": "#FFD966",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "6b7b80b7-fc13-4776-89e6-47c73a29ec3a",
+       "key": "anthropic_mosaic_of_uses",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Mosaic of Uses",
+        "nl-NL": "Mozaïek van gebruik"
+       },
+       "parentId": "15d40b2e-2e81-4741-a548-15d61706c134",
+       "color": "#FFD966",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "0f17f536-41b8-4f92-8df2-585b34e4c0fc",
+       "key": "anthropic_urban_area",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban Area",
+        "nl-NL": "Stedelijk gebied"
+       },
+       "parentId": "15d40b2e-2e81-4741-a548-15d61706c134",
+       "color": "#FFD966",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "8d427aa8-2646-4ac7-9643-700cfaa7a1cc",
+       "key": "anthropic_mining",
+       "pixelValue": 30,
+       "level": 2,
+       "name": {
+        "en-US": "Mining",
+        "nl-NL": "Mijnbouw"
+       },
+       "parentId": "15d40b2e-2e81-4741-a548-15d61706c134",
+       "color": "#FFD966",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "c9967018-4b28-48ac-935f-3836831a3a3a",
+     "key": "non_defined",
+     "pixelValue": 200,
+     "level": 1,
+     "name": {
+      "en-US": "Non defined",
+      "nl-NL": "Niet gedefinieerd"
+     },
+     "parentId": null,
+     "color": "#d5d5e5",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "4d52d0ea-4449-472b-ba16-de04245aa422",
+       "key": "non_defined_other_non_vegetated_area",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other non Vegetated Area",
+        "nl-NL": "Ander niet-begroeid gebied"
+       },
+       "parentId": "c9967018-4b28-48ac-935f-3836831a3a3a",
+       "color": "#d5d5e5",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "25a80efe-169a-47c1-b72f-f89ef116128d",
+       "key": "non_defined_not_observed",
+       "pixelValue": 27,
+       "level": 2,
+       "name": {
+        "en-US": "Not observed",
+        "nl-NL": "Niet waargenomen"
+       },
+       "parentId": "c9967018-4b28-48ac-935f-3836831a3a3a",
+       "color": "#d5d5e5",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

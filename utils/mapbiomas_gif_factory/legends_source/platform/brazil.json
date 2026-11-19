@@ -1,0 +1,804 @@
+{
+ "project": "brazil",
+ "name": {
+  "en-US": "Brazil",
+  "es-ES": "Brasil",
+  "pt-BR": "Brasil"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/brazil/legends",
+ "subtheme": "coverage_coverage-30m-droufo",
+ "subtheme_name": {
+  "en-US": "Coverage 30m",
+  "es-ES": "Cobertura 30m",
+  "pt-BR": "Coverage 30m"
+ },
+ "legends": [
+  {
+   "id": "5837836a-c21c-4109-b3ef-5d8eb4ac1dc7",
+   "key": "coverage-bypu14",
+   "name": {
+    "en-US": "Coverage",
+    "es-ES": "Cobertura",
+    "pt-BR": "Coverage"
+   },
+   "items": [
+    {
+     "id": "efdae2d0-6c24-47dd-bdee-330e501c9ae5",
+     "key": "forest-formation-bj6c2q",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Forest ",
+      "es-ES": "Bosque",
+      "pt-BR": "Floresta"
+     },
+     "parentId": null,
+     "color": "#1F8D49",
+     "order": 0,
+     "hasDescriptions": true,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "7e390798-621c-425e-a96a-5a24950a6d14",
+       "key": "forest-formation-s2b3yu",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Formation",
+        "es-ES": "Formación Forestal",
+        "pt-BR": "Formação Florestal"
+       },
+       "parentId": "efdae2d0-6c24-47dd-bdee-330e501c9ae5",
+       "color": "#1F8D49",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "5d44c692-b99b-42a8-9546-437e28ac954a",
+       "key": "flooded-forest-hvz9ha",
+       "pixelValue": 6,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded Forest",
+        "es-ES": "Bosque Inundable",
+        "pt-BR": "Floresta Alagável"
+       },
+       "parentId": "efdae2d0-6c24-47dd-bdee-330e501c9ae5",
+       "color": "#007785",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "96b47fee-28b7-478b-a19e-78e6a6e2b290",
+       "key": "savanna-formation-po69av",
+       "pixelValue": 4,
+       "level": 2,
+       "name": {
+        "en-US": "Savanna Formation",
+        "es-ES": "Formación Savánica",
+        "pt-BR": "Formação Savânica"
+       },
+       "parentId": "efdae2d0-6c24-47dd-bdee-330e501c9ae5",
+       "color": "#7DC975",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "538aa601-03d9-41ac-90fb-0047c71016c3",
+       "key": "flooded-savanna-beta-eo4jwj",
+       "pixelValue": 7,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded Savanna (beta)",
+        "es-ES": "Sabana Inundada (beta)",
+        "pt-BR": "Savana Alagada (beta)"
+       },
+       "parentId": "efdae2d0-6c24-47dd-bdee-330e501c9ae5",
+       "color": "#228C70",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "cdaea9d1-b16d-4f82-9b6e-4861ed03f06b",
+       "key": "mangrove-bzvhe4",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "es-ES": "Manglar",
+        "pt-BR": "Mangue"
+       },
+       "parentId": "efdae2d0-6c24-47dd-bdee-330e501c9ae5",
+       "color": "#04381D",
+       "order": 4,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "5818549d-0843-445c-b3c1-a932dff8f8e2",
+       "key": "arboreal-restinga-y35mj4",
+       "pixelValue": 49,
+       "level": 2,
+       "name": {
+        "en-US": "Arboreal Restinga",
+        "es-ES": "Restinga Arbórea",
+        "pt-BR": "Restinga Arbórea"
+       },
+       "parentId": "efdae2d0-6c24-47dd-bdee-330e501c9ae5",
+       "color": "#02D659",
+       "order": 5,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "5442ba65-6e9e-40da-b4d9-e2cfbfe88a33",
+     "key": "herbaceous-and-shrubby-vegetation-se12jb",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Herbaceous and Shrubby Vegetation",
+      "es-ES": "Vegetación Herbácea y Arbustiva",
+      "pt-BR": "Vegetação Herbácea e Arbustiva"
+     },
+     "parentId": null,
+     "color": "#D6BC74",
+     "order": 1,
+     "hasDescriptions": true,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "0d20363e-04ee-4c27-8ccc-aee8e3261d0b",
+       "key": "grassland-formation-b9o8dk",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Grassland Formation",
+        "es-ES": "Formación Campestre",
+        "pt-BR": "Formação Campestre"
+       },
+       "parentId": "5442ba65-6e9e-40da-b4d9-e2cfbfe88a33",
+       "color": "#D6BC74",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "c0a79ded-bf00-4d71-be92-f78fa2f6e4ec",
+       "key": "herbaceous-shrub-formation-ifxgid",
+       "pixelValue": 77,
+       "level": 2,
+       "name": {
+        "en-US": "Herbaceous-Shrub Formation",
+        "es-ES": "Formación Herbácea Arbustiva (beta)",
+        "pt-BR": "Formação Herbáceo Arbustiva (beta)"
+       },
+       "parentId": "5442ba65-6e9e-40da-b4d9-e2cfbfe88a33",
+       "color": "#86B074",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "5840db33-3988-49f7-9297-9667d4d766f4",
+       "key": "flooded-grassland-and-wetland-j94w1q",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded Grassland and Wetland",
+        "es-ES": "Campo Inundado y Área Pantanosa",
+        "pt-BR": "Campo Alagado e Área Pantanosa"
+       },
+       "parentId": "5442ba65-6e9e-40da-b4d9-e2cfbfe88a33",
+       "color": "#519799",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "b9018bfc-ae76-4d33-aee0-e579c5aa17c5",
+       "key": "salt-marsh-beta-lzg375",
+       "pixelValue": 84,
+       "level": 2,
+       "name": {
+        "en-US": "Salt Marsh (beta)",
+        "es-ES": "Marisma (beta)",
+        "pt-BR": "Marisma (beta)"
+       },
+       "parentId": "5442ba65-6e9e-40da-b4d9-e2cfbfe88a33",
+       "color": "#81DBBF",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "cb577869-1d1c-44d0-aa7a-de04a43e0b10",
+       "key": "herbaceous-or-shrubby-restinga-92405h",
+       "pixelValue": 50,
+       "level": 2,
+       "name": {
+        "en-US": "Herbaceous or Shrubby Restinga",
+        "es-ES": "Restinga Herbácea o Arbustiva",
+        "pt-BR": "Restinga Herbácea ou Arbustiva"
+       },
+       "parentId": "5442ba65-6e9e-40da-b4d9-e2cfbfe88a33",
+       "color": "#FFAA5F",
+       "order": 4,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "3cd5e8a4-6ea9-4c9c-ad4e-eb695aa3e07e",
+       "key": "hypersaline-flat-qyfszu",
+       "pixelValue": 32,
+       "level": 2,
+       "name": {
+        "en-US": "Hypersaline Flat",
+        "es-ES": "Apicum",
+        "pt-BR": "Apicum"
+       },
+       "parentId": "5442ba65-6e9e-40da-b4d9-e2cfbfe88a33",
+       "color": "#FC8114",
+       "order": 5,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "8ab83900-54b3-4e5e-a6ed-05398d08c9bc",
+       "key": "rocky-outcrop-ptwbpq",
+       "pixelValue": 29,
+       "level": 2,
+       "name": {
+        "en-US": "Rocky Outcrop",
+        "es-ES": "Afloramiento Rocoso",
+        "pt-BR": "Afloramento Rochoso"
+       },
+       "parentId": "5442ba65-6e9e-40da-b4d9-e2cfbfe88a33",
+       "color": "#AD5100",
+       "order": 6,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "cd90559f-45b3-4237-b6bd-8ac41c61f6c8",
+     "key": "agriculture-and-livestock-tum0ga",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Agriculture and Livestock",
+      "es-ES": "Agropecuaria",
+      "pt-BR": "Agropecuária"
+     },
+     "parentId": null,
+     "color": "#FFEFC3",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "8bf328ce-7971-4e57-a13a-e3375dff21c4",
+       "key": "pasture-hzvr4d",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Pasture",
+        "es-ES": "Pastizal",
+        "pt-BR": "Pastagem"
+       },
+       "parentId": "cd90559f-45b3-4237-b6bd-8ac41c61f6c8",
+       "color": "#EDDE8E",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "b9168681-1109-4845-bc5d-a05cfb5095c2",
+       "key": "agriculture-vt9eak",
+       "pixelValue": 18,
+       "level": 2,
+       "name": {
+        "en-US": "Agriculture",
+        "es-ES": "Agricultura",
+        "pt-BR": "Agricultura"
+       },
+       "parentId": "cd90559f-45b3-4237-b6bd-8ac41c61f6c8",
+       "color": "#E974ED",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null,
+       "children": [
+        {
+         "id": "70317b01-5d20-4c61-bb64-2b9e2d5ae363",
+         "key": "temporary-crop-7lu2xe",
+         "pixelValue": 19,
+         "level": 3,
+         "name": {
+          "en-US": "Temporary Crop",
+          "es-ES": "Cultivo Temporal",
+          "pt-BR": "Lavoura Temporária"
+         },
+         "parentId": "b9168681-1109-4845-bc5d-a05cfb5095c2",
+         "color": "#C27BA0",
+         "order": 0,
+         "hasDescriptions": false,
+         "visible": true,
+         "badges": null,
+         "children": [
+          {
+           "id": "76718d16-ea7c-4383-9280-a2a65197c74d",
+           "key": "soybean-mej20c",
+           "pixelValue": 39,
+           "level": 4,
+           "name": {
+            "en-US": "Soybean",
+            "es-ES": "Soja",
+            "pt-BR": "Soja"
+           },
+           "parentId": "70317b01-5d20-4c61-bb64-2b9e2d5ae363",
+           "color": "#F5B3C8",
+           "order": 0,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          },
+          {
+           "id": "750ebc7b-61b6-4c72-84d5-7025821083c5",
+           "key": "sugarcane-tkqmvc",
+           "pixelValue": 20,
+           "level": 4,
+           "name": {
+            "en-US": "Sugarcane",
+            "es-ES": "Caña",
+            "pt-BR": "Cana"
+           },
+           "parentId": "70317b01-5d20-4c61-bb64-2b9e2d5ae363",
+           "color": "#DB7093",
+           "order": 1,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          },
+          {
+           "id": "a27adb4a-2592-4928-b2d4-e9793d4e7af9",
+           "key": "rice-fnfz88",
+           "pixelValue": 40,
+           "level": 4,
+           "name": {
+            "en-US": "Rice",
+            "es-ES": "Arroz",
+            "pt-BR": "Arroz"
+           },
+           "parentId": "70317b01-5d20-4c61-bb64-2b9e2d5ae363",
+           "color": "#C71585",
+           "order": 2,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          },
+          {
+           "id": "19fb3eab-7a50-4d54-808f-417cb7a1089c",
+           "key": "cotton-beta-rjuwiy",
+           "pixelValue": 62,
+           "level": 4,
+           "name": {
+            "en-US": "Cotton (beta)",
+            "es-ES": "Algodón (beta)",
+            "pt-BR": "Algodão (beta)"
+           },
+           "parentId": "70317b01-5d20-4c61-bb64-2b9e2d5ae363",
+           "color": "#FF69B4",
+           "order": 3,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          },
+          {
+           "id": "b8098d5e-93e3-4fc9-91a2-7dd7d9980c8e",
+           "key": "other-temporary-crops-v1ybfj",
+           "pixelValue": 41,
+           "level": 4,
+           "name": {
+            "en-US": "Other Temporary Crops",
+            "es-ES": "Otros Cultivos Temporales",
+            "pt-BR": "Outras Lavouras Temporárias"
+           },
+           "parentId": "70317b01-5d20-4c61-bb64-2b9e2d5ae363",
+           "color": "#F54CA9",
+           "order": 4,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          }
+         ]
+        },
+        {
+         "id": "5b598e17-7641-4426-8eef-5a3ef1204cf5",
+         "key": "perennial-crop-r2ot1o",
+         "pixelValue": 36,
+         "level": 3,
+         "name": {
+          "en-US": "Perennial Crop",
+          "es-ES": "Cultivo Perenne",
+          "pt-BR": "Lavoura Perene"
+         },
+         "parentId": "b9168681-1109-4845-bc5d-a05cfb5095c2",
+         "color": "#D082DE",
+         "order": 1,
+         "hasDescriptions": false,
+         "visible": true,
+         "badges": null,
+         "children": [
+          {
+           "id": "9032f173-a02d-4e95-89c5-2ae35e8d2515",
+           "key": "coffee-99vowz",
+           "pixelValue": 46,
+           "level": 4,
+           "name": {
+            "en-US": "Coffee",
+            "es-ES": "Café",
+            "pt-BR": "Café"
+           },
+           "parentId": "5b598e17-7641-4426-8eef-5a3ef1204cf5",
+           "color": "#D68FE2",
+           "order": 0,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          },
+          {
+           "id": "75e00d98-2855-46fa-9033-f470b9e6fb1e",
+           "key": "citrus-pp473p",
+           "pixelValue": 47,
+           "level": 4,
+           "name": {
+            "en-US": "Citrus",
+            "es-ES": "Cítricos",
+            "pt-BR": "Citrus"
+           },
+           "parentId": "5b598e17-7641-4426-8eef-5a3ef1204cf5",
+           "color": "#9932CC",
+           "order": 1,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          },
+          {
+           "id": "bd811e9c-a3e5-435e-a325-76751190a9ca",
+           "key": "oil-palm-sr2j8k",
+           "pixelValue": 35,
+           "level": 4,
+           "name": {
+            "en-US": "Oil Palm",
+            "es-ES": "Palma aceitera",
+            "pt-BR": "Dendê"
+           },
+           "parentId": "5b598e17-7641-4426-8eef-5a3ef1204cf5",
+           "color": "#9065D0",
+           "order": 2,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          },
+          {
+           "id": "04f1eb60-0a64-4082-a3a0-654a1b1d33b8",
+           "key": "other-perennial-crops-njqj4u",
+           "pixelValue": 48,
+           "level": 4,
+           "name": {
+            "en-US": "Other Perennial Crops",
+            "es-ES": "Otros Cultivos Perennes",
+            "pt-BR": "Outras Lavouras Perenes"
+           },
+           "parentId": "5b598e17-7641-4426-8eef-5a3ef1204cf5",
+           "color": "#E6CCFF",
+           "order": 3,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "ab2b7edb-d06a-4d8f-8e7b-835767b743e7",
+       "key": "silviculture-jkrjsk",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Silviculture",
+        "es-ES": "Silvicultura",
+        "pt-BR": "Silvicultura"
+       },
+       "parentId": "cd90559f-45b3-4237-b6bd-8ac41c61f6c8",
+       "color": "#7A5900",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "67fd6aa0-8c23-4662-b8be-c78c1425bb13",
+       "key": "mosaic-of-uses-okqu0h",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Mosaic of Uses",
+        "es-ES": "Mosaico de Usos",
+        "pt-BR": "Mosaico de Usos"
+       },
+       "parentId": "cd90559f-45b3-4237-b6bd-8ac41c61f6c8",
+       "color": "#FFEFC3",
+       "order": 3,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "e59e1fe1-709e-4a47-869a-108dc0775392",
+     "key": "non-vegetated-area-fa31yo",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "en-US": "Non-vegetated Area",
+      "es-ES": "Área no Vegetada",
+      "pt-BR": "Área não vegetada"
+     },
+     "parentId": null,
+     "color": "#D4271E",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "690e2ad8-2f1c-4250-a0c7-d7c9117c6421",
+       "key": "beach-dune-and-sandbank-03dxza",
+       "pixelValue": 23,
+       "level": 2,
+       "name": {
+        "en-US": "Beach, Dune, and Sandbank",
+        "es-ES": "Playa, Duna y Arenal",
+        "pt-BR": "Praia, Duna e Areal"
+       },
+       "parentId": "e59e1fe1-709e-4a47-869a-108dc0775392",
+       "color": "#FFA07A",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "41a47147-b882-4996-af6c-b9f67b108793",
+       "key": "urban-area-2rop0h",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban Area",
+        "es-ES": "Área Urbanizada",
+        "pt-BR": "Área Urbanizada"
+       },
+       "parentId": "e59e1fe1-709e-4a47-869a-108dc0775392",
+       "color": "#D4271E",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "269ee9f1-a0e3-4e16-a979-1f1a6011cb95",
+       "key": "mining-xvwcvf",
+       "pixelValue": 30,
+       "level": 2,
+       "name": {
+        "en-US": "Mining",
+        "es-ES": "Minería",
+        "pt-BR": "Mineração"
+       },
+       "parentId": "e59e1fe1-709e-4a47-869a-108dc0775392",
+       "color": "#9C0027",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "9e4ba7cd-10ed-4af3-aae4-bf47a94872f6",
+       "key": "photovoltaic-plant-srjipv",
+       "pixelValue": 75,
+       "level": 2,
+       "name": {
+        "en-US": "Photovoltaic Plant",
+        "es-ES": "Planta Fotovoltaica",
+        "pt-BR": "Usina Fotovoltaica"
+       },
+       "parentId": "e59e1fe1-709e-4a47-869a-108dc0775392",
+       "color": "#757272",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "385f7b06-8c05-4203-92b8-bff21fe34960",
+       "key": "wind-farm-beta-lzyjr6",
+       "pixelValue": 91,
+       "level": 2,
+       "name": {
+        "en-US": "Wind farm (beta)",
+        "es-ES": "Parque Eólico (beta)",
+        "pt-BR": "Parque eólico (beta)"
+       },
+       "parentId": "e59e1fe1-709e-4a47-869a-108dc0775392",
+       "color": "#403D3E",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "d5d2a184-1b6e-4842-8cab-05f9c70bf977",
+       "key": "other-non-vegetated-areas-1a2qmc",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other Non-Vegetated Areas",
+        "es-ES": "Otras Áreas no Vegetadas",
+        "pt-BR": "Outras Áreas não Vegetadas"
+       },
+       "parentId": "e59e1fe1-709e-4a47-869a-108dc0775392",
+       "color": "#DB4D4F",
+       "order": 5,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "68018f70-c048-4ae9-9047-c51781f2f56c",
+     "key": "water-body-fyr9an",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water Body",
+      "es-ES": "Cuerpo de Agua",
+      "pt-BR": "Corpo D'água"
+     },
+     "parentId": null,
+     "color": "#2532E4",
+     "order": 4,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "f95b5e97-28a6-4c58-976d-806b19e64098",
+       "key": "river-lake-and-ocean-2ju6qy",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, Lake, and Ocean",
+        "es-ES": "Río, Lago y Océano",
+        "pt-BR": "Rio, Lago e Oceano"
+       },
+       "parentId": "68018f70-c048-4ae9-9047-c51781f2f56c",
+       "color": "#2532E4",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "a4b0c829-e7ba-4ae1-bc9a-a597e29d56d7",
+       "key": "aquaculture-dt0o00",
+       "pixelValue": 31,
+       "level": 2,
+       "name": {
+        "en-US": "Aquaculture",
+        "es-ES": "Acuicultura",
+        "pt-BR": "Aquicultura"
+       },
+       "parentId": "68018f70-c048-4ae9-9047-c51781f2f56c",
+       "color": "#091077",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "8d51dc3f-c361-4104-8939-e2fc00de3a18",
+   "key": "natural-and-anthropic-ewxt8d",
+   "name": {
+    "en-US": "Natural and Anthropic",
+    "es-ES": "Natural x Antrópico",
+    "pt-BR": "Natural x Antrópico"
+   },
+   "items": [
+    {
+     "id": "a3f41d1f-0944-4fa3-b221-6c06de1164f2",
+     "key": "natural-k1pix6",
+     "pixelValue": 92,
+     "level": 1,
+     "name": {
+      "en-US": "Natural",
+      "es-ES": "Natural",
+      "pt-BR": "Natural"
+     },
+     "parentId": null,
+     "color": "#66BB6A",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    },
+    {
+     "id": "af82b2fe-998a-4e0a-aa78-1bfa0112ebe6",
+     "key": "anthropogenic-f77kje",
+     "pixelValue": 93,
+     "level": 1,
+     "name": {
+      "en-US": "Anthropogenic",
+      "es-ES": "Antrópico",
+      "pt-BR": "Antrópico"
+     },
+     "parentId": null,
+     "color": "#FFE082",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    },
+    {
+     "id": "ba6efcde-ccd0-4ba5-9228-9d95d3db9a04",
+     "key": "undefined-yel4w8",
+     "pixelValue": 94,
+     "level": 1,
+     "name": {
+      "en-US": "Undefined",
+      "es-ES": "Indefinido",
+      "pt-BR": "Indefinido"
+     },
+     "parentId": null,
+     "color": "#D5D5E5",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    }
+   ]
+  }
+ ]
+}

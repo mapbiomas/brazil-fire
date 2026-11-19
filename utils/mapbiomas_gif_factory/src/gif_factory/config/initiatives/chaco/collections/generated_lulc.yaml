@@ -1,0 +1,199 @@
+# ARQUIVO GERADO por sync/catalog_build.py a partir das fontes oficiais. Não edite à mão:
+# ajuste sync/generator.yaml e rode o script de novo.
+name: Uso e cobertura — Coleção 5
+description: Gerado de https://prd.plataforma.mapbiomas.org/api/v1/chaco/legends (2026-11-19) e projects/mapbiomas-public/assets/chaco/lulc/collection5/mapbiomas_chaco_collection5_integration_v2
+dataset: gen_chaco_lulc
+title_collection: MapBiomas Chaco · Coleção 5
+category: land_cover
+collection: '5'
+products:
+  lulc_nivel0:
+    name: Uso e cobertura - Nível 0 (natural e antrópico)
+    asset: projects/mapbiomas-public/assets/chaco/lulc/collection5/mapbiomas_chaco_collection5_integration_v2
+    remap:
+      from:
+      - 3
+      - 4
+      - 45
+      - 6
+      - 12
+      - 43
+      - 42
+      - 44
+      - 11
+      - 23
+      - 61
+      - 26
+      - 15
+      - 18
+      - 19
+      - 57
+      - 58
+      - 36
+      - 9
+      - 24
+      - 25
+      - 27
+      to:
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 100
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 200
+      - 300
+      - 300
+    visualization: gen_chaco_lulc_nivel0
+  lulc_nivel1:
+    name: Uso e cobertura - Nível 1
+    asset: projects/mapbiomas-public/assets/chaco/lulc/collection5/mapbiomas_chaco_collection5_integration_v2
+    visualization: gen_chaco_lulc_nivel1
+    remap:
+      from:
+      - 3
+      - 4
+      - 6
+      - 9
+      - 11
+      - 15
+      - 23
+      - 24
+      - 25
+      - 26
+      - 27
+      - 36
+      - 42
+      - 43
+      - 44
+      - 45
+      - 57
+      - 58
+      - 61
+      to:
+      - 1
+      - 1
+      - 1
+      - 14
+      - 10
+      - 14
+      - 22
+      - 22
+      - 22
+      - 26
+      - 27
+      - 14
+      - 10
+      - 10
+      - 10
+      - 1
+      - 14
+      - 14
+      - 22
+  lulc_nivel2:
+    name: Uso e cobertura - Nível 2
+    asset: projects/mapbiomas-public/assets/chaco/lulc/collection5/mapbiomas_chaco_collection5_integration_v2
+    visualization: gen_chaco_lulc_nivel2
+    remap:
+      from:
+      - 3
+      - 4
+      - 6
+      - 9
+      - 11
+      - 15
+      - 23
+      - 24
+      - 25
+      - 26
+      - 27
+      - 36
+      - 42
+      - 43
+      - 44
+      - 45
+      - 57
+      - 58
+      - 61
+      to:
+      - 3
+      - 4
+      - 6
+      - 9
+      - 12
+      - 15
+      - 23
+      - 24
+      - 25
+      - 26
+      - 27
+      - 36
+      - 12
+      - 12
+      - 12
+      - 45
+      - 18
+      - 18
+      - 61
+  lulc_nivel3:
+    name: Uso e cobertura - Nível 3
+    asset: projects/mapbiomas-public/assets/chaco/lulc/collection5/mapbiomas_chaco_collection5_integration_v2
+    visualization: gen_chaco_lulc_nivel3
+    remap:
+      from:
+      - 3
+      - 4
+      - 6
+      - 9
+      - 11
+      - 15
+      - 23
+      - 24
+      - 25
+      - 26
+      - 27
+      - 36
+      - 42
+      - 43
+      - 44
+      - 45
+      - 57
+      - 58
+      - 61
+      to:
+      - 3
+      - 4
+      - 6
+      - 9
+      - 11
+      - 15
+      - 23
+      - 24
+      - 25
+      - 26
+      - 27
+      - 36
+      - 42
+      - 43
+      - 44
+      - 45
+      - 19
+      - 19
+      - 61
+  lulc_nivel4:
+    name: Uso e cobertura - Nível 4 (todas as classes)
+    asset: projects/mapbiomas-public/assets/chaco/lulc/collection5/mapbiomas_chaco_collection5_integration_v2
+    visualization: gen_chaco_lulc_nivel4

@@ -1,0 +1,498 @@
+{
+ "project": "bosque-atlantico",
+ "name": {
+  "es-ES": "Bosque Atlântico"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/bosque-atlantico/legends",
+ "subtheme": "coverage_lclu",
+ "subtheme_name": {
+  "en-US": "Coverage",
+  "es-ES": "Cobertura",
+  "pt-BR": "Cobertura"
+ },
+ "legends": [
+  {
+   "id": "aadf4e1c-2a07-4a31-bec1-36e62948dfbe",
+   "key": "default",
+   "name": {
+    "en-US": "Coverage",
+    "es-ES": "Cobertura",
+    "pt-BR": "Cobertura"
+   },
+   "items": [
+    {
+     "id": "a7264a89-587c-44eb-933d-2a3c877e1da0",
+     "key": "forest",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Forest",
+      "es-ES": "Vegetación Leñosa Natural",
+      "pt-BR": "Floresta"
+     },
+     "parentId": null,
+     "color": "#1f8d49",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "01338e2f-d438-44ba-b9c1-5662f6284303",
+       "key": "forest_forest_formation",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Formation",
+        "es-ES": "Leñosas cerradas",
+        "pt-BR": "Formação Florestal"
+       },
+       "parentId": "a7264a89-587c-44eb-933d-2a3c877e1da0",
+       "color": "#1f8d49",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "f30bf038-bead-40b3-8dad-4c38f0e170b6",
+       "key": "forest_savanna_formation",
+       "pixelValue": 4,
+       "level": 2,
+       "name": {
+        "en-US": "Savanna Formation",
+        "es-ES": "Leñosas abiertas",
+        "pt-BR": "Formação Savânica"
+       },
+       "parentId": "a7264a89-587c-44eb-933d-2a3c877e1da0",
+       "color": "#7dc975",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "954c79ca-b0b0-4c9d-9387-4f2cfb41f932",
+       "key": "forest_mangrove",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "es-ES": "Manglar",
+        "pt-BR": "Mangue"
+       },
+       "parentId": "a7264a89-587c-44eb-933d-2a3c877e1da0",
+       "color": "#04381d",
+       "order": 3,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "ab13f69f-6c91-42f6-9a73-8ce0812d74b3",
+       "key": "forest_wooded_sandbank_vegetation",
+       "pixelValue": 49,
+       "level": 2,
+       "name": {
+        "en-US": "Wooded Sandbank Vegetation",
+        "es-ES": "Vegetación Leñosa en Bancos de Arena",
+        "pt-BR": "Restinga Arborizada"
+       },
+       "parentId": "a7264a89-587c-44eb-933d-2a3c877e1da0",
+       "color": "#02d659",
+       "order": 4,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "d811c277-3d35-43c6-a8c4-880820253ca9",
+     "key": "non_forest_natural_formation",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Non Forest Natural Formation",
+      "es-ES": "Vegetación natural no leñosa",
+      "pt-BR": "Formação Natural não Florestal"
+     },
+     "parentId": null,
+     "color": "#d6bc74",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "158e4b05-0593-41ee-805e-1fba5ce74f29",
+       "key": "non_forest_natural_formation_flooded_grasslands",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded grasslands",
+        "es-ES": "Pastizales inundables",
+        "pt-BR": "Campo Alagado e Área Pantanosa"
+       },
+       "parentId": "d811c277-3d35-43c6-a8c4-880820253ca9",
+       "color": "#519799",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "ee4e97e7-039c-4010-b396-8872cdbba6f6",
+       "key": "non_forest_natural_formation_grassland",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Grassland",
+        "es-ES": "Pastizal",
+        "pt-BR": "Formação Campestre"
+       },
+       "parentId": "d811c277-3d35-43c6-a8c4-880820253ca9",
+       "color": "#d6bc74",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "8ceaaf53-1dfa-4ca7-8018-a30d4c88d2e0",
+       "key": "non_forest_natural_formation_hypersaline_tidal_flat",
+       "pixelValue": 32,
+       "level": 2,
+       "name": {
+        "en-US": "Hypersaline Tidal Flat",
+        "es-ES": "Apicum",
+        "pt-BR": "Apicum"
+       },
+       "parentId": "d811c277-3d35-43c6-a8c4-880820253ca9",
+       "color": "#fc8114",
+       "order": 3,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "b949990e-d8df-4d5d-bc10-34f0e6fa4f4c",
+       "key": "non_forest_natural_formation_rocky_outcrop",
+       "pixelValue": 29,
+       "level": 2,
+       "name": {
+        "en-US": "Rocky Outcrop",
+        "es-ES": "Afloramiento Rocoso",
+        "pt-BR": "Afloramento Rochoso"
+       },
+       "parentId": "d811c277-3d35-43c6-a8c4-880820253ca9",
+       "color": "#ffaa5f",
+       "order": 4,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "922e7a10-84e2-48c1-a4a2-4d19f472ed5b",
+       "key": "non_forest_natural_formation_herbaceous_sandbank_vegetation",
+       "pixelValue": 50,
+       "level": 2,
+       "name": {
+        "en-US": "Herbaceous Sandbank Vegetation",
+        "es-ES": "Vegetación Herbácea en Bancos de Arena",
+        "pt-BR": "Restinga Herbácea"
+       },
+       "parentId": "d811c277-3d35-43c6-a8c4-880820253ca9",
+       "color": "#ad5100",
+       "order": 5,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "2094a7a4-2bd0-40eb-b40a-7f3b61eb7edb",
+       "key": "non_forest_natural_formation_other_non_forest_formations",
+       "pixelValue": 13,
+       "level": 2,
+       "name": {
+        "en-US": "Other non Forest Formations",
+        "es-ES": "Otra Formación no Forestal",
+        "pt-BR": "Outra Formação não Florestal"
+       },
+       "parentId": "d811c277-3d35-43c6-a8c4-880820253ca9",
+       "color": "#d89f5c",
+       "order": 6,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "170818ed-9d0e-4c40-a187-8bf3d6b2c1b9",
+     "key": "farming",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Farming",
+      "es-ES": "Agropecuario",
+      "pt-BR": "Agropecuária"
+     },
+     "parentId": null,
+     "color": "#ffefc3",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "3e27e9fd-9052-4186-9e22-695409fb89b7",
+       "key": "farming_pasture",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Pasture",
+        "es-ES": "Pastura",
+        "pt-BR": "Pastagem"
+       },
+       "parentId": "170818ed-9d0e-4c40-a187-8bf3d6b2c1b9",
+       "color": "#edde8e",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "42e0744b-7dcd-425b-aa63-d26c00d9dbf2",
+       "key": "farming_agriculture",
+       "pixelValue": 18,
+       "level": 2,
+       "name": {
+        "en-US": "Agriculture",
+        "es-ES": "Agricultura",
+        "pt-BR": "Agricultura"
+       },
+       "parentId": "170818ed-9d0e-4c40-a187-8bf3d6b2c1b9",
+       "color": "#e974ed",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null,
+       "children": [
+        {
+         "id": "39c5ae3e-c90d-4c05-8d15-389f7e258a4f",
+         "key": "farming_agriculture_annual_crops",
+         "pixelValue": 19,
+         "level": 3,
+         "name": {
+          "en-US": "Annual Crops",
+          "es-ES": "Cultivos anuales",
+          "pt-BR": "Lavoura Temporária"
+         },
+         "parentId": "42e0744b-7dcd-425b-aa63-d26c00d9dbf2",
+         "color": "#c27ba0",
+         "order": 1,
+         "hasDescriptions": true,
+         "visible": true,
+         "badges": null
+        },
+        {
+         "id": "f2827186-eebd-45ea-ba2b-ed8a9636a9f2",
+         "key": "farming_agriculture_perennial_crop",
+         "pixelValue": 36,
+         "level": 3,
+         "name": {
+          "en-US": "Perennial Crop",
+          "es-ES": "Cultivos de arbustos",
+          "pt-BR": "Lavoura Perene"
+         },
+         "parentId": "42e0744b-7dcd-425b-aa63-d26c00d9dbf2",
+         "color": "#d082de",
+         "order": 2,
+         "hasDescriptions": false,
+         "visible": true,
+         "badges": null,
+         "children": [
+          {
+           "id": "cb1ae44d-c0a2-46b3-a64a-f0630d5f41ba",
+           "key": "farming_agriculture_perennial_crop_tea",
+           "pixelValue": 65,
+           "level": 4,
+           "name": {
+            "en-US": "Tea",
+            "es-ES": "Té",
+            "pt-BR": "Chá"
+           },
+           "parentId": "f2827186-eebd-45ea-ba2b-ed8a9636a9f2",
+           "color": "#b9158a",
+           "order": 1,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          },
+          {
+           "id": "729e995c-8b34-40ce-9125-186c59bd1c2f",
+           "key": "farming_agriculture_perennial_crop_coffee",
+           "pixelValue": 46,
+           "level": 4,
+           "name": {
+            "en-US": "Coffee",
+            "es-ES": "Café",
+            "pt-BR": "Café"
+           },
+           "parentId": "f2827186-eebd-45ea-ba2b-ed8a9636a9f2",
+           "color": "#d68fe2",
+           "order": 2,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          },
+          {
+           "id": "5e860d3e-9bcb-4d69-b7c1-0b804df8134a",
+           "key": "farming_agriculture_perennial_crop_other_perennial_crops",
+           "pixelValue": 48,
+           "level": 4,
+           "name": {
+            "en-US": "Other Perennial Crops",
+            "es-ES": "Otros cultivos perennes",
+            "pt-BR": "Outras Lavouras Perenes"
+           },
+           "parentId": "f2827186-eebd-45ea-ba2b-ed8a9636a9f2",
+           "color": "#e6ccff",
+           "order": 3,
+           "hasDescriptions": true,
+           "visible": true,
+           "badges": null
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "e7427373-61f0-4a29-a433-0f2d25785ee8",
+       "key": "farming_forest_plantation",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Plantation",
+        "es-ES": "Forestación",
+        "pt-BR": "Silvicultura"
+       },
+       "parentId": "170818ed-9d0e-4c40-a187-8bf3d6b2c1b9",
+       "color": "#7a5900",
+       "order": 3,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "681a7deb-d759-4d20-b5fa-9a67963c92e6",
+       "key": "farming_mosaic_of_uses",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Mosaic of Uses",
+        "es-ES": "Mosaico de Usos",
+        "pt-BR": "Mosaico de Usos"
+       },
+       "parentId": "170818ed-9d0e-4c40-a187-8bf3d6b2c1b9",
+       "color": "#ffefc3",
+       "order": 4,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "aca03f50-9ebd-44b3-abf5-1aeb7144f44d",
+     "key": "non_vegetated_area",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "en-US": "Non vegetated area",
+      "es-ES": "Área no vegetada",
+      "pt-BR": "Área não Vegetada"
+     },
+     "parentId": null,
+     "color": "#d4271e",
+     "order": 4,
+     "hasDescriptions": true,
+     "visible": true,
+     "badges": null
+    },
+    {
+     "id": "a6c0b37b-4491-4286-b959-3a34197e5cbc",
+     "key": "water",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water",
+      "es-ES": "Cuerpo de agua",
+      "pt-BR": "Corpo d'água"
+     },
+     "parentId": null,
+     "color": "#2532e4",
+     "order": 5,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "aec8af60-7531-418c-9161-28bec73d1222",
+       "key": "water_river_lake_and_ocean",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, Lake and Ocean",
+        "es-ES": "Rio, Lago e Oceano",
+        "pt-BR": "Río, Lago y Océano"
+       },
+       "parentId": "a6c0b37b-4491-4286-b959-3a34197e5cbc",
+       "color": "#2532e4",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "790297d5-de96-457f-a9de-f07c06e4c514",
+       "key": "water_aquaculture",
+       "pixelValue": 31,
+       "level": 2,
+       "name": {
+        "en-US": "Aquaculture",
+        "es-ES": "Acuicultura",
+        "pt-BR": "Aquicultura"
+       },
+       "parentId": "a6c0b37b-4491-4286-b959-3a34197e5cbc",
+       "color": "#091077",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "475204b8-61a6-4f10-ae5c-6abdb6c7ed5f",
+     "key": "not_observed",
+     "pixelValue": 27,
+     "level": 1,
+     "name": {
+      "en-US": "Not Observed",
+      "es-ES": "No Observado",
+      "pt-BR": "Não Observado"
+     },
+     "parentId": null,
+     "color": "#ffffff",
+     "order": 6,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    }
+   ]
+  }
+ ]
+}

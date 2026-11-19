@@ -1,0 +1,29 @@
+# Regras do gerador do catálogo (sync/catalog_build.py). É o único lugar onde uma
+# pessoa ajusta o que é gerado; os arquivos gerados nunca são editados à mão.
+
+# Projeto da Plataforma -> pasta da iniciativa no Earth Engine (projects/mapbiomas-public/assets/<pasta>)
+# e código/nome da iniciativa no catálogo.
+initiatives:
+  argentina:          {gee: argentina,       code: argentina,        name: Argentina,                 lang: es-ES}
+  bolivia:            {gee: bolivia,         code: bolivia,          name: Bolívia,                   lang: es-ES}
+  chile:              {gee: chile,           code: chile,            name: Chile,                     lang: es-ES}
+  colombia:           {gee: colombia,        code: colombia,         name: Colômbia,                  lang: es-ES}
+  ecuador:            {gee: ecuador,         code: ecuador,          name: Equador,                   lang: es-ES}
+  indonesia:          {gee: indonesia,       code: indonesia,        name: Indonésia,                 lang: en-US}
+  mexico:             {gee: mexico,          code: mexico,           name: México,                    lang: es-ES}
+  paraguay:           {gee: paraguay,        code: paraguay,         name: Paraguai,                  lang: es-ES}
+  peru:               {gee: peru,            code: peru,             name: Peru,                      lang: es-ES}
+  uruguay:            {gee: uruguay,         code: uruguay,          name: Uruguai,                   lang: es-ES}
+  venezuela:          {gee: venezuela,       code: venezuela,        name: Venezuela,                 lang: es-ES}
+  suriname:           {gee: suriname,        code: suriname,         name: Suriname,                  lang: en-US}
+  chaco:              {gee: chaco,           code: chaco,            name: Chaco,                     lang: es-ES}
+  pampa:              {gee: pampa,           code: pampa,            name: Pampa (trinacional),       lang: es-ES}
+  pan-amazonia:       {gee: amazon,          code: pan_amazonia,     name: Pan-Amazônia,              lang: es-ES}
+  bosque-atlantico:   {gee: atlantic_forest, code: bosque_atlantico, name: Mata Atlântica (trinacional), lang: es-ES}
+  # Uso e cobertura destas já é curado à mão em config/initiatives/*/collections/lulc_*.yaml:
+  brazil:             {gee: brazil, code: brasil, name: Brasil, lang: pt-BR, skip_lulc: "curado em lulc_9/10/11.yaml"}
+  democratic-republic-of-congo: {gee: drc, code: drc, name: RD Congo, lang: fr-FR, skip_lulc: "curado em drc/collections/lulc_1.yaml"}
+
+# Status dos produtos gerados até alguém da equipe revisar (ver config/catalog_status.yaml).
+status: beta
+reason: "Gerado da legenda oficial da Plataforma; aguarda revisão da equipe da iniciativa."

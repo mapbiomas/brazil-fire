@@ -1,0 +1,103 @@
+# ARQUIVO GERADO por sync/catalog_build.py a partir das fontes oficiais. Não edite à mão:
+# ajuste sync/generator.yaml e rode o script de novo.
+name: Uso e cobertura — Coleção 3
+description: Gerado de https://prd.plataforma.mapbiomas.org/api/v1/argentina/legends (2026-11-19) e projects/mapbiomas-public/assets/argentina/lulc/collection3/mapbiomas_argentina_collection3_coverage_v1
+dataset: gen_argentina_lulc
+title_collection: MapBiomas Argentina · Coleção 3
+category: land_cover
+collection: '3'
+products:
+  lulc_nivel1:
+    name: Uso e cobertura - Nível 1
+    asset: projects/mapbiomas-public/assets/argentina/lulc/collection3/mapbiomas_argentina_collection3_coverage_v1
+    visualization: gen_argentina_lulc_nivel1
+    remap:
+      from:
+      - 3
+      - 4
+      - 6
+      - 9
+      - 11
+      - 12
+      - 15
+      - 19
+      - 21
+      - 24
+      - 25
+      - 27
+      - 33
+      - 34
+      - 36
+      - 63
+      - 66
+      - 73
+      - 77
+      to:
+      - 1
+      - 1
+      - 1
+      - 14
+      - 10
+      - 10
+      - 14
+      - 14
+      - 14
+      - 22
+      - 22
+      - 27
+      - 26
+      - 26
+      - 14
+      - 10
+      - 10
+      - 10
+      - 10
+  lulc_nivel2:
+    name: Uso e cobertura - Nível 2
+    asset: projects/mapbiomas-public/assets/argentina/lulc/collection3/mapbiomas_argentina_collection3_coverage_v1
+    visualization: gen_argentina_lulc_nivel2
+    remap:
+      from:
+      - 3
+      - 4
+      - 6
+      - 9
+      - 11
+      - 12
+      - 15
+      - 19
+      - 21
+      - 24
+      - 25
+      - 27
+      - 33
+      - 34
+      - 36
+      - 63
+      - 66
+      - 73
+      - 77
+      to:
+      - 3
+      - 4
+      - 6
+      - 9
+      - 11
+      - 12
+      - 15
+      - 18
+      - 21
+      - 24
+      - 25
+      - 27
+      - 33
+      - 34
+      - 18
+      - 63
+      - 66
+      - 73
+      - 77
+  lulc_nivel3:
+    name: Uso e cobertura - Nível 3 (todas as classes)
+    asset: projects/mapbiomas-public/assets/argentina/lulc/collection3/mapbiomas_argentina_collection3_coverage_v1
+    visualization: gen_argentina_lulc_nivel3

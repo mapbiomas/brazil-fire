@@ -1,0 +1,294 @@
+{
+ "project": "paraguay",
+ "name": {
+  "en-US": "Paraguay",
+  "es-ES": "Paraguay",
+  "pt-BR": "Paraguay"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/paraguay/legends",
+ "subtheme": "cobertura-copy-7vfmaa_coverage-t1qv1l",
+ "subtheme_name": {
+  "en-US": "Coverage",
+  "es-ES": "Cobertura",
+  "pt-BR": "Cobertura"
+ },
+ "legends": [
+  {
+   "id": "1a2bd55e-dc18-4513-b28b-4334ad716684",
+   "key": "coverage-esks72",
+   "name": {
+    "en-US": "Coverage",
+    "es-ES": "Cobertura",
+    "pt-BR": "Cobertura"
+   },
+   "items": [
+    {
+     "id": "76bacce3-3fce-4879-a93c-c7ef842a29d3",
+     "key": "woody-natural-vegetation-hpthre",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Woody Natural Vegetation",
+      "es-ES": "Vegetación Leñosa Natural",
+      "pt-BR": "Vegetação Lenhosa Natural"
+     },
+     "parentId": null,
+     "color": "#1f8d49",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "71a08f56-7563-4952-bffb-6f5317c84761",
+       "key": "closed-natural-woodlands-4vpeil",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Closed Natural Woodlands",
+        "es-ES": "Leñosas cerradas",
+        "pt-BR": "Formação Lenhosa Densa"
+       },
+       "parentId": "76bacce3-3fce-4879-a93c-c7ef842a29d3",
+       "color": "#1f8d49",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "3c3e322d-9e26-42a2-854f-ce3c7134482a",
+       "key": "open-natural-woodlands-5qa23r",
+       "pixelValue": 4,
+       "level": 2,
+       "name": {
+        "en-US": "Open Natural Woodlands",
+        "es-ES": "Leñosas abiertas",
+        "pt-BR": "Formação Lenhosa Aberta"
+       },
+       "parentId": "76bacce3-3fce-4879-a93c-c7ef842a29d3",
+       "color": "#7dc975",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "2157bda4-97cd-4a68-bdda-f25a19875b40",
+       "key": "flooded-natural-woodlands-2zn0d3",
+       "pixelValue": 6,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded Natural Woodlands",
+        "es-ES": "Leñosas inundables",
+        "pt-BR": "Formação Lenhosa Inundável"
+       },
+       "parentId": "76bacce3-3fce-4879-a93c-c7ef842a29d3",
+       "color": "#007785",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "f76c9964-edba-4667-bc1e-940fe3870542",
+     "key": "herbaceous-natural-vegetation-ob6e5z",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Herbaceous Natural Vegetation",
+      "es-ES": "Vegetación Herbácea Natural",
+      "pt-BR": "Vegetação Herbácea Natural"
+     },
+     "parentId": null,
+     "color": "#d6bc74",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "05307030-e4d1-4a04-8144-f8b288ba9ac0",
+       "key": "flooded-grasslands-rjr4vf",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded grasslands",
+        "es-ES": "Pastizales inundables",
+        "pt-BR": "Formação Campestre Inundável"
+       },
+       "parentId": "f76c9964-edba-4667-bc1e-940fe3870542",
+       "color": "#519799",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "596e9a9a-ada7-45a8-867e-b7ba0b551652",
+       "key": "grassland-iyopd4",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Grassland",
+        "es-ES": "Pastizal",
+        "pt-BR": "Formação Campestre"
+       },
+       "parentId": "f76c9964-edba-4667-bc1e-940fe3870542",
+       "color": "#d6bc74",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "be09db0a-fed4-44f4-ae8e-a9017b988b30",
+     "key": "agricultural-areas-chsdz5",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Agricultural Areas",
+      "es-ES": "Agricultural Areas",
+      "pt-BR": "Áreas Agrícolas"
+     },
+     "parentId": null,
+     "color": "#ffefc3",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "8a963b8f-1833-42a5-9d3c-030710230fb0",
+       "key": "pasture-izm7tb",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Pasture",
+        "es-ES": "Pastura",
+        "pt-BR": "Pastagem"
+       },
+       "parentId": "be09db0a-fed4-44f4-ae8e-a9017b988b30",
+       "color": "#edde8e",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "4ae95942-7e2c-48a9-a9b9-e0e6d9db9577",
+       "key": "agriculture-13mibq",
+       "pixelValue": 18,
+       "level": 2,
+       "name": {
+        "en-US": "Agriculture",
+        "es-ES": "Agricultura",
+        "pt-BR": "Agricultura"
+       },
+       "parentId": "be09db0a-fed4-44f4-ae8e-a9017b988b30",
+       "color": "#e974ed",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "98fc7332-9130-49c0-baea-35a7c07c1684",
+       "key": "forest-plantation-f3p8iz",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Forest Plantation",
+        "es-ES": "Forestaciones",
+        "pt-BR": "Plantações Florestais"
+       },
+       "parentId": "be09db0a-fed4-44f4-ae8e-a9017b988b30",
+       "color": "#7A6C00",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "123826e7-31ab-40eb-ba55-fd8b598a91d6",
+     "key": "areas-sin-vegetacion-nk4bl3",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "en-US": "Non-vegetated area",
+      "es-ES": "Áreas sin vegetación",
+      "pt-BR": "Áreas sem vegetação"
+     },
+     "parentId": null,
+     "color": "#d4271e",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "268e7d70-6915-4c9a-b2fb-8430211d7dba",
+       "key": "non-vegetated-area-0jdmev",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Non-vegetated area",
+        "es-ES": "Areas sin vegtación",
+        "pt-BR": "Áreas sem vegetação"
+       },
+       "parentId": "123826e7-31ab-40eb-ba55-fd8b598a91d6",
+       "color": "#DB4D4F",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "0a8e11e8-1d57-461b-8aef-336177a5afff",
+     "key": "cuerpo-de-agua-x9cwfe",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water Body",
+      "es-ES": "Cuerpo de agua",
+      "pt-BR": "Corpo d'água"
+     },
+     "parentId": null,
+     "color": "#2532E4",
+     "order": 4,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "e955f774-4a9d-4693-8535-6edc8e17e1d1",
+       "key": "water-body-zw4f1t",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "Water body",
+        "es-ES": "Ríos, lagos y océano",
+        "pt-BR": "Rios, lagos e oceano"
+       },
+       "parentId": "0a8e11e8-1d57-461b-8aef-336177a5afff",
+       "color": "#2532e4",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -48,7 +48,7 @@ class SoilAtmosphereCatalogTests(unittest.TestCase):
         self.assertEqual(product["temporal_range"], [1998, 2024])
 
     def test_regular_products_keep_the_pipeline_loader(self):
-        layer = catalog_layers()[0]
+        layer = next(l for l in catalog_layers() if l["id"] == "brasil_fire_col5__annual_burned")
         config = CatalogConfig(dict(layer), None, "test")
         self.assertIsNone(special_catalog_image(config.product))
 

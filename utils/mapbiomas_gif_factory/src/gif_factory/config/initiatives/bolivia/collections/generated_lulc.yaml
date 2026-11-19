@@ -1,0 +1,139 @@
+# ARQUIVO GERADO por sync/catalog_build.py a partir das fontes oficiais. Não edite à mão:
+# ajuste sync/generator.yaml e rode o script de novo.
+name: Uso e cobertura — Coleção 4
+description: Gerado de https://prd.plataforma.mapbiomas.org/api/v1/bolivia/legends (2026-11-19) e projects/mapbiomas-public/assets/bolivia/lulc/collection4/mapbiomas_bolivia_collection4_coverage_v1
+dataset: gen_bolivia_lulc
+title_collection: MapBiomas Bolívia · Coleção 4
+category: land_cover
+collection: '4'
+products:
+  lulc_nivel1:
+    name: Uso e cobertura - Nível 1
+    asset: projects/mapbiomas-public/assets/bolivia/lulc/collection4/mapbiomas_bolivia_collection4_coverage_v1
+    visualization: gen_bolivia_lulc_nivel1
+    remap:
+      from:
+      - 3
+      - 4
+      - 6
+      - 11
+      - 12
+      - 13
+      - 15
+      - 21
+      - 23
+      - 24
+      - 25
+      - 27
+      - 29
+      - 30
+      - 31
+      - 33
+      - 34
+      - 39
+      - 40
+      - 61
+      - 63
+      - 66
+      - 68
+      - 72
+      - 77
+      - 81
+      - 82
+      - 92
+      to:
+      - 1
+      - 1
+      - 1
+      - 10
+      - 10
+      - 10
+      - 14
+      - 14
+      - 22
+      - 22
+      - 22
+      - 27
+      - 10
+      - 22
+      - 26
+      - 26
+      - 26
+      - 14
+      - 14
+      - 22
+      - 10
+      - 10
+      - 22
+      - 14
+      - 10
+      - 10
+      - 10
+      - 22
+  lulc_nivel2:
+    name: Uso e cobertura - Nível 2
+    asset: projects/mapbiomas-public/assets/bolivia/lulc/collection4/mapbiomas_bolivia_collection4_coverage_v1
+    visualization: gen_bolivia_lulc_nivel2
+    remap:
+      from:
+      - 3
+      - 4
+      - 6
+      - 11
+      - 12
+      - 13
+      - 15
+      - 21
+      - 23
+      - 24
+      - 25
+      - 27
+      - 29
+      - 30
+      - 31
+      - 33
+      - 34
+      - 39
+      - 40
+      - 61
+      - 63
+      - 66
+      - 68
+      - 72
+      - 77
+      - 81
+      - 82
+      - 92
+      to:
+      - 3
+      - 4
+      - 6
+      - 11
+      - 12
+      - 13
+      - 15
+      - 21
+      - 23
+      - 24
+      - 25
+      - 27
+      - 29
+      - 30
+      - 31
+      - 33
+      - 34
+      - 18
+      - 18
+      - 61
+      - 63
+      - 66
+      - 68
+      - 18
+      - 77
+      - 81
+      - 82
+      - 92
+  lulc_nivel3:
+    name: Uso e cobertura - Nível 3 (todas as classes)
+    asset: projects/mapbiomas-public/assets/bolivia/lulc/collection4/mapbiomas_bolivia_collection4_coverage_v1
+    visualization: gen_bolivia_lulc_nivel3

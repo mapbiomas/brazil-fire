@@ -1,0 +1,275 @@
+{
+ "project": "pampa",
+ "name": {
+  "en-US": "Pampa",
+  "es-ES": "Pampa",
+  "pt-BR": "Pampa"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/pampa/legends",
+ "subtheme": "coverage_lclu",
+ "subtheme_name": {
+  "en-US": "Coverage",
+  "es-ES": "Cobertura",
+  "pt-BR": "Cobertura"
+ },
+ "legends": [
+  {
+   "id": "f3b51226-965a-42ab-a4b8-0e99f6a974f1",
+   "key": "coverage_lclu_mapbiomas_coverage",
+   "name": {
+    "en-US": "Coverage",
+    "es-ES": "Cobertura",
+    "pt-BR": "Cobertura"
+   },
+   "items": [
+    {
+     "id": "db70e757-b3c9-42e7-8737-0c311a2648a8",
+     "key": "natural-woody-vegetation-cji6c7",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Natural woody vegetation",
+      "es-ES": "Vegetación natural leñosa",
+      "pt-BR": "Floresta"
+     },
+     "parentId": null,
+     "color": "#1f8d49",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "f0949693-254f-4fd7-9bb4-cfdfbee60bc9",
+       "key": "forest-formation-zdlwq4",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Forest formation",
+        "es-ES": "Bosque y arbustal cerrado",
+        "pt-BR": "Formação florestal"
+       },
+       "parentId": "db70e757-b3c9-42e7-8737-0c311a2648a8",
+       "color": "#1f8d49",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "b198047f-ef45-4f49-af45-7e49376f03ce",
+       "key": "savanna-formation-ufewbq",
+       "pixelValue": 4,
+       "level": 2,
+       "name": {
+        "en-US": "Savanna formation",
+        "es-ES": "Bosque y arbustal abierto",
+        "pt-BR": "Formação savânica"
+       },
+       "parentId": "db70e757-b3c9-42e7-8737-0c311a2648a8",
+       "color": "#7dc975",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "1f71f34c-caa3-4790-9797-67affa884a95",
+     "key": "natural-herbaceous-vegetation-0tmpsg",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Natural herbaceous vegetation",
+      "es-ES": "Vegetación natural herbácea",
+      "pt-BR": "Vegetação herbácea"
+     },
+     "parentId": null,
+     "color": "#d6bc74",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "1adc66ae-244e-47ea-80e6-242efe02c292",
+       "key": "wetland-rrq53w",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Wetland",
+        "es-ES": "Pantano y pastizal inundable",
+        "pt-BR": "Área pantanosa ou campo alagado"
+       },
+       "parentId": "1f71f34c-caa3-4790-9797-67affa884a95",
+       "color": "#519799",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "4c3209cb-fcd0-4006-b880-ab7fda3f75d8",
+       "key": "grassland-rtg6te",
+       "pixelValue": 12,
+       "level": 2,
+       "name": {
+        "en-US": "Grassland",
+        "es-ES": "Pastizal",
+        "pt-BR": "Formação Campestre"
+       },
+       "parentId": "1f71f34c-caa3-4790-9797-67affa884a95",
+       "color": "#d6bc74",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "4f8115aa-abd3-4c0a-9029-54a7deba23d6",
+     "key": "farming-j5vcrq",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Farming",
+      "es-ES": "Agropecuaria",
+      "pt-BR": "Agropecuária e silvicultura"
+     },
+     "parentId": null,
+     "color": "#ffefc3",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "143c15ef-701f-4143-93dd-208e09586ab4",
+       "key": "forest-plantation-hh94am",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Forest plantation",
+        "es-ES": "Silvicultura",
+        "pt-BR": "Silvicultura"
+       },
+       "parentId": "4f8115aa-abd3-4c0a-9029-54a7deba23d6",
+       "color": "#7a6c00",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "a6ae1b90-ba98-43cc-8554-ea638e71ed64",
+       "key": "pasture-oxj4jx",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Pasture",
+        "es-ES": "Pastura",
+        "pt-BR": "Pastagem"
+       },
+       "parentId": "4f8115aa-abd3-4c0a-9029-54a7deba23d6",
+       "color": "#edde8e",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "34296b82-f2d5-41e8-bfa2-f87320ce8901",
+       "key": "annual-and-perennial-crop-vezjt6",
+       "pixelValue": 18,
+       "level": 2,
+       "name": {
+        "en-US": "Annual and perennial crop",
+        "es-ES": "Cultivo anual o perenne",
+        "pt-BR": "Lavoura temporária e perene"
+       },
+       "parentId": "4f8115aa-abd3-4c0a-9029-54a7deba23d6",
+       "color": "#c27ba0",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "28690b34-521a-4803-8eb2-01a17afb7a1d",
+     "key": "non-vegetated-area-izzu82",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "en-US": "Non-vegetated area",
+      "es-ES": "Área sin vegetación",
+      "pt-BR": "Área não vegetada"
+     },
+     "parentId": null,
+     "color": "#d4271e",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    },
+    {
+     "id": "ac4310a6-bdc8-4aa3-879a-1bbbc45d38cd",
+     "key": "water-body-8e9ans",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water body",
+      "es-ES": "Cuerpo de agua",
+      "pt-BR": "Corpo d’água"
+     },
+     "parentId": null,
+     "color": "#2532e4",
+     "order": 4,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "363b33a9-a7ad-40dc-b74e-20bb38e1642f",
+       "key": "river-lake-or-ocean-7yzvdm",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, lake or ocean",
+        "es-ES": "Río, lago u océano",
+        "pt-BR": "Rio, lago ou oceano"
+       },
+       "parentId": "ac4310a6-bdc8-4aa3-879a-1bbbc45d38cd",
+       "color": "#2532e4",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "1e7bfb29-642a-4f6a-b716-f27025e6d319",
+     "key": "not-observed-j0q3q8",
+     "pixelValue": 27,
+     "level": 1,
+     "name": {
+      "en-US": "Not observed",
+      "es-ES": "No observado",
+      "pt-BR": "Não observado"
+     },
+     "parentId": null,
+     "color": "#ffffff",
+     "order": 5,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    }
+   ]
+  }
+ ]
+}

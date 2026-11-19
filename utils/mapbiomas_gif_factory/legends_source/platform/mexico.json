@@ -1,0 +1,726 @@
+{
+ "project": "mexico",
+ "name": {
+  "en-US": "Mexico",
+  "es-ES": "México",
+  "pt-BR": "México"
+ },
+ "fetched": "2026-11-19",
+ "source": "https://prd.plataforma.mapbiomas.org/api/v1/mexico/legends",
+ "subtheme": "coverage_lclu",
+ "subtheme_name": {
+  "en-US": "Coverage",
+  "es-ES": "Cobertura",
+  "pt-BR": "Cobertura"
+ },
+ "legends": [
+  {
+   "id": "dde29c24-114a-4611-a2b0-1181b6119f19",
+   "key": "default",
+   "name": {
+    "en-US": "Coverage",
+    "es-ES": "Cobertura"
+   },
+   "items": [
+    {
+     "id": "920cfdc8-af0b-4cab-a48e-3fec4b5b5625",
+     "key": "forest-zxip1t",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Forest",
+      "es-ES": "Bosque"
+     },
+     "parentId": null,
+     "color": "#1f8d49",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "4b8b87e7-da42-4a94-b2bf-e81e43ff9817",
+       "key": "temperate-forest-eb1yzf",
+       "pixelValue": 88,
+       "level": 2,
+       "name": {
+        "en-US": "Temperate forest",
+        "es-ES": "Bosque templado"
+       },
+       "parentId": "920cfdc8-af0b-4cab-a48e-3fec4b5b5625",
+       "color": "#329c5a",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "5b50b605-3c6e-40dd-8039-5c8c96af24a2",
+       "key": "tropical-dry-forest-1novou",
+       "pixelValue": 89,
+       "level": 2,
+       "name": {
+        "en-US": "Tropical dry forest",
+        "es-ES": "Bosque tropical seco"
+       },
+       "parentId": "920cfdc8-af0b-4cab-a48e-3fec4b5b5625",
+       "color": "#6bd46c",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "008b18d3-c347-4215-aba4-6b1f168b02a9",
+       "key": "tropical-humid-forest-ryv8wd",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Tropical humid forest",
+        "es-ES": "Bosque tropical húmedo"
+       },
+       "parentId": "920cfdc8-af0b-4cab-a48e-3fec4b5b5625",
+       "color": "#1f8d49",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "e623401c-cdf6-4214-b5c7-f8a52876a8f4",
+       "key": "mangrove-vekk02",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "es-ES": "Manglar"
+       },
+       "parentId": "920cfdc8-af0b-4cab-a48e-3fec4b5b5625",
+       "color": "#04381d",
+       "order": 3,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "b8b151fd-4cf6-4dac-b5ba-ba71da967618",
+     "key": "natural-herbaceous-and-shrub-vegetation-a5vkt6",
+     "pixelValue": 10,
+     "level": 1,
+     "name": {
+      "en-US": "Natural herbaceous and shrub vegetation",
+      "es-ES": "Vegetación herbácea y arbustiva"
+     },
+     "parentId": null,
+     "color": "#d6bc74",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "13d1ac81-71b0-46d7-8660-94e76179810f",
+       "key": "shrublands-dkav9c",
+       "pixelValue": 66,
+       "level": 2,
+       "name": {
+        "en-US": "Shrublands",
+        "es-ES": "Matorral"
+       },
+       "parentId": "b8b151fd-4cf6-4dac-b5ba-ba71da967618",
+       "color": "#A89358",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "fc405036-d29c-4dfe-b450-6d851ccfcba1",
+       "key": "savanna-and-natural-grassland-kxw4f4",
+       "pixelValue": 45,
+       "level": 2,
+       "name": {
+        "en-US": "Savanna and natural grassland",
+        "es-ES": "Sabana y pastizal natural"
+       },
+       "parentId": "b8b151fd-4cf6-4dac-b5ba-ba71da967618",
+       "color": "#807a40",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "164775a3-acf4-4148-ad57-7ac56757f8f5",
+       "key": "flooded-fnf7hq",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded",
+        "es-ES": "Inundable"
+       },
+       "parentId": "b8b151fd-4cf6-4dac-b5ba-ba71da967618",
+       "color": "#519799",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "29e89cc1-7f68-4d4d-ae05-8b35d1bdb15c",
+     "key": "agricultural-and-livestock-area-nuvovg",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Agricultural and livestock area",
+      "es-ES": "Agropecuario"
+     },
+     "parentId": null,
+     "color": "#ffefc3",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "78464fc2-74af-488c-a3b7-9d23da6dd299",
+       "key": "cultivated-grassland-rf37wg",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Cultivated grassland",
+        "es-ES": "Pastizal cultivado e inducido"
+       },
+       "parentId": "29e89cc1-7f68-4d4d-ae05-8b35d1bdb15c",
+       "color": "#edde8e",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "d51006c6-0566-40ca-a2a5-55091d2e57fa",
+       "key": "perennial-crop-zk0cw2",
+       "pixelValue": 36,
+       "level": 2,
+       "name": {
+        "en-US": "Perennial crop",
+        "es-ES": "Cultivo perenne"
+       },
+       "parentId": "29e89cc1-7f68-4d4d-ae05-8b35d1bdb15c",
+       "color": "#d082de",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "db92d4dc-7871-438d-8745-76014aefcd67",
+       "key": "annual-crop-ogqzxk",
+       "pixelValue": 19,
+       "level": 2,
+       "name": {
+        "en-US": "Annual crop",
+        "es-ES": "Cultivo anual"
+       },
+       "parentId": "29e89cc1-7f68-4d4d-ae05-8b35d1bdb15c",
+       "color": "#C27BA0",
+       "order": 2,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "35f4e7de-4fda-4725-8b0e-6bfeb97a7d96",
+       "key": "forest-plantation-uqyqsh",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Forest plantation",
+        "es-ES": "Plantación forestal"
+       },
+       "parentId": "29e89cc1-7f68-4d4d-ae05-8b35d1bdb15c",
+       "color": "#7a5900",
+       "order": 3,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "3839c4a1-05bd-4002-87db-722f0f956085",
+       "key": "mosaic-of-land-uses-hxq7hh",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Mosaic of land uses",
+        "es-ES": "Mosaico de usos"
+       },
+       "parentId": "29e89cc1-7f68-4d4d-ae05-8b35d1bdb15c",
+       "color": "#ffefc3",
+       "order": 4,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "3b03d166-5651-4b9a-888c-e4e5439cea89",
+     "key": "non-vegetated-area-bqjbkn",
+     "pixelValue": 22,
+     "level": 1,
+     "name": {
+      "en-US": "Non-vegetated area",
+      "es-ES": "No vegetado"
+     },
+     "parentId": null,
+     "color": "#d4271e",
+     "order": 3,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "85a589f6-6139-407b-841d-2dd30999f8f6",
+       "key": "urban-and-built-up-area-3j78vp",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban and built-up area",
+        "es-ES": "Área urbana y construida"
+       },
+       "parentId": "3b03d166-5651-4b9a-888c-e4e5439cea89",
+       "color": "#d4271e",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "1057b8a4-3425-49be-8452-c13497af50c7",
+       "key": "other-non-vegetated-areas-4uuou8",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other non-vegetated areas",
+        "es-ES": "Área sin vegetación"
+       },
+       "parentId": "3b03d166-5651-4b9a-888c-e4e5439cea89",
+       "color": "#db4d4f",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "a2774911-df9a-4eac-b120-003b6474fcbb",
+     "key": "water-body-nyl0q5",
+     "pixelValue": 26,
+     "level": 1,
+     "name": {
+      "en-US": "Water body",
+      "es-ES": "Cuerpo de agua"
+     },
+     "parentId": null,
+     "color": "#2532e4",
+     "order": 4,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "16ccbca0-3d41-47eb-9cc6-5271a7506428",
+       "key": "river-lake-or-ocean-9id3qj",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, lake or ocean",
+        "es-ES": "Río, lago y mar"
+       },
+       "parentId": "a2774911-df9a-4eac-b120-003b6474fcbb",
+       "color": "#2532e4",
+       "order": 0,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "17828eb6-bad2-471d-ba58-90f273cf1b11",
+       "key": "ice-and-permanent-snow-nhwbfe",
+       "pixelValue": 34,
+       "level": 2,
+       "name": {
+        "en-US": "Ice and permanent snow",
+        "es-ES": "Glaciar"
+       },
+       "parentId": "a2774911-df9a-4eac-b120-003b6474fcbb",
+       "color": "#93dfe6",
+       "order": 1,
+       "hasDescriptions": true,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "ed992d11-8451-4ad8-9238-bd4f6eee7321",
+     "key": "not-observed-d96810",
+     "pixelValue": 27,
+     "level": 1,
+     "name": {
+      "en-US": "Not observed",
+      "es-ES": "No observado"
+     },
+     "parentId": null,
+     "color": "#ffffff",
+     "order": 5,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null
+    }
+   ]
+  },
+  {
+   "id": "1add6aa5-dce7-478d-8114-a477fe88ba0f",
+   "key": "coverage_natural_and_anthropic_use",
+   "name": {
+    "en-US": "Natural and anthropic use",
+    "es-ES": "Natural y uso antropico"
+   },
+   "items": [
+    {
+     "id": "28d280e5-b725-4238-9e4f-593cc964dad1",
+     "key": "natural-4p7x3w",
+     "pixelValue": 1,
+     "level": 1,
+     "name": {
+      "en-US": "Natural",
+      "es-ES": "Natural"
+     },
+     "parentId": null,
+     "color": "#139912",
+     "order": 0,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "63742dd2-22d9-4144-a8f7-92274887d985",
+       "key": "template-forest-eqox8i",
+       "pixelValue": 88,
+       "level": 2,
+       "name": {
+        "en-US": "Template forest",
+        "es-ES": "Bosque templado"
+       },
+       "parentId": "28d280e5-b725-4238-9e4f-593cc964dad1",
+       "color": "#139912",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "d0e90442-9e31-4adf-a62d-de8bb83af58d",
+       "key": "tropical-dry-forest-mp8lzh",
+       "pixelValue": 89,
+       "level": 2,
+       "name": {
+        "en-US": "Tropical dry forest",
+        "es-ES": "Bosque tropical seco"
+       },
+       "parentId": "28d280e5-b725-4238-9e4f-593cc964dad1",
+       "color": "#139912",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "b920588b-181a-4223-93b5-70cfa3a21311",
+       "key": "tropical-humid-forest-3fxepo",
+       "pixelValue": 3,
+       "level": 2,
+       "name": {
+        "en-US": "Tropical humid forest",
+        "es-ES": "Bosque tropical húmedo"
+       },
+       "parentId": "28d280e5-b725-4238-9e4f-593cc964dad1",
+       "color": "#139912",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "2761bba5-6b46-4192-9744-3198851b3faf",
+       "key": "mangrove-kvpv1k",
+       "pixelValue": 5,
+       "level": 2,
+       "name": {
+        "en-US": "Mangrove",
+        "es-ES": "Manglar"
+       },
+       "parentId": "28d280e5-b725-4238-9e4f-593cc964dad1",
+       "color": "#139912",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "e856ba2a-c3a0-4a3b-8cb0-ada29e343654",
+       "key": "shrubland-6zfe9m",
+       "pixelValue": 66,
+       "level": 2,
+       "name": {
+        "en-US": "Shrubland",
+        "es-ES": "Matorral"
+       },
+       "parentId": "28d280e5-b725-4238-9e4f-593cc964dad1",
+       "color": "#139912",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "426d3326-3ce9-4bf0-a4ad-c779549c04b3",
+       "key": "savanna-and-natural-grassland-sgl5ct",
+       "pixelValue": 45,
+       "level": 2,
+       "name": {
+        "en-US": "Savanna and natural grassland",
+        "es-ES": "Sabana y pastizal natural"
+       },
+       "parentId": "28d280e5-b725-4238-9e4f-593cc964dad1",
+       "color": "#139912",
+       "order": 5,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "d5d16582-e45a-4c3c-a521-2e1c273c603b",
+       "key": "flooded-kj7ceb",
+       "pixelValue": 11,
+       "level": 2,
+       "name": {
+        "en-US": "Flooded",
+        "es-ES": "Inundable"
+       },
+       "parentId": "28d280e5-b725-4238-9e4f-593cc964dad1",
+       "color": "#139912",
+       "order": 6,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "a31172de-dbee-487c-b600-e80c7e36d6d4",
+       "key": "river-lake-or-ocean-e3ohqk",
+       "pixelValue": 33,
+       "level": 2,
+       "name": {
+        "en-US": "River, lake or ocean",
+        "es-ES": "Río, lago u océano"
+       },
+       "parentId": "28d280e5-b725-4238-9e4f-593cc964dad1",
+       "color": "#139912",
+       "order": 7,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "bb4652c3-4a45-498d-b39e-ad7b1928d4f8",
+       "key": "ice-and-permanent-snow-zmvc0l",
+       "pixelValue": 34,
+       "level": 2,
+       "name": {
+        "en-US": "Ice and permanent snow",
+        "es-ES": "Hielo y nieve permanente"
+       },
+       "parentId": "28d280e5-b725-4238-9e4f-593cc964dad1",
+       "color": "#139912",
+       "order": 8,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "e981030f-31f5-4350-b99c-c931a11956e8",
+     "key": "anthropic-6lj6c8",
+     "pixelValue": 14,
+     "level": 1,
+     "name": {
+      "en-US": "Anthropic",
+      "es-ES": "Antrópico"
+     },
+     "parentId": null,
+     "color": "#FFD966",
+     "order": 1,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "edc08add-ef78-4869-99f8-14436669d442",
+       "key": "cultivated-grassland-9utcia",
+       "pixelValue": 15,
+       "level": 2,
+       "name": {
+        "en-US": "Cultivated grassland",
+        "es-ES": "Pastizal cultivado e inducido"
+       },
+       "parentId": "e981030f-31f5-4350-b99c-c931a11956e8",
+       "color": "#FFD966",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "994213aa-eaad-4a29-a023-350b90eaf36c",
+       "key": "perennial-crop-yx1k31",
+       "pixelValue": 36,
+       "level": 2,
+       "name": {
+        "en-US": "Perennial crop",
+        "es-ES": "Cultivo perenne"
+       },
+       "parentId": "e981030f-31f5-4350-b99c-c931a11956e8",
+       "color": "#FFD966",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "f06ab84b-90b6-4aaa-a2cd-8dd2abdd2695",
+       "key": "annual-crop-237i2l",
+       "pixelValue": 19,
+       "level": 2,
+       "name": {
+        "en-US": "Annual crop",
+        "es-ES": "Cultivo anual"
+       },
+       "parentId": "e981030f-31f5-4350-b99c-c931a11956e8",
+       "color": "#FFD966",
+       "order": 2,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "6c9133a9-ac6d-4ce4-b9d1-329d4bb65466",
+       "key": "forest-plantation-s48wvb",
+       "pixelValue": 9,
+       "level": 2,
+       "name": {
+        "en-US": "Forest plantation",
+        "es-ES": "Plantación forestal"
+       },
+       "parentId": "e981030f-31f5-4350-b99c-c931a11956e8",
+       "color": "#FFD966",
+       "order": 3,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "fc8deeaa-4d12-41f8-8588-6e116f1c1035",
+       "key": "mosaic-of-land-uses-bm260f",
+       "pixelValue": 21,
+       "level": 2,
+       "name": {
+        "en-US": "Mosaic of land uses",
+        "es-ES": "Mosaico de usos"
+       },
+       "parentId": "e981030f-31f5-4350-b99c-c931a11956e8",
+       "color": "#FFD966",
+       "order": 4,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "21954eee-a7ea-4e79-ac81-75c94ef5fc13",
+       "key": "urban-and-built-up-area-n2hy79",
+       "pixelValue": 24,
+       "level": 2,
+       "name": {
+        "en-US": "Urban and built-up area",
+        "es-ES": "Área urbana y construida"
+       },
+       "parentId": "e981030f-31f5-4350-b99c-c931a11956e8",
+       "color": "#FFD966",
+       "order": 5,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    },
+    {
+     "id": "95921bf1-2cd9-4341-bbed-1c52c079c17f",
+     "key": "non-defined-srsmei",
+     "pixelValue": 200,
+     "level": 1,
+     "name": {
+      "en-US": "Non defined",
+      "es-ES": "No definido"
+     },
+     "parentId": null,
+     "color": "#d5d5e5",
+     "order": 2,
+     "hasDescriptions": false,
+     "visible": true,
+     "badges": null,
+     "children": [
+      {
+       "id": "0beccf50-05ce-40b2-ac5b-d22c15ae379d",
+       "key": "other-non-vegetated-areas-c1gabe",
+       "pixelValue": 25,
+       "level": 2,
+       "name": {
+        "en-US": "Other non-vegetated areas",
+        "es-ES": "Otras áreas no vegetadas"
+       },
+       "parentId": "95921bf1-2cd9-4341-bbed-1c52c079c17f",
+       "color": "#d5d5e5",
+       "order": 0,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      },
+      {
+       "id": "bb7d0733-fa1c-4484-a0bd-c9edf2d7a480",
+       "key": "not-observed-4g9j8z",
+       "pixelValue": 27,
+       "level": 2,
+       "name": {
+        "en-US": "Not observed",
+        "es-ES": "No observado"
+       },
+       "parentId": "95921bf1-2cd9-4341-bbed-1c52c079c17f",
+       "color": "#d5d5e5",
+       "order": 1,
+       "hasDescriptions": false,
+       "visible": true,
+       "badges": null
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
