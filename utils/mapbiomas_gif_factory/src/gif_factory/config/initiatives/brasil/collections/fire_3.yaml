@@ -28,7 +28,7 @@ products:
     asset: "projects/mapbiomas-public/assets/brazil/fire/collection3/mapbiomas_fire_collection3_fire_frequency_v1"
     bands: ["frequency"]
     temporal_range: [1985, 2023]
-    visualization: "frequency"
+    visualization: "fire_frequency_1985_2023"
     bands_slice: [0, 39]
   accumulated_burned:
     name: "Accumulated Burned Area"

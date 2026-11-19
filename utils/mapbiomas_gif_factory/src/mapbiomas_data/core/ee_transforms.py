@@ -517,16 +517,28 @@ def build_lulc_col11_nivel0() -> ee.Image:
     ])
 
 
+# Níveis oficiais da legenda da Coleção 11 (Plataforma MapBiomas): cada classe "folha"
+# do mapa é levada ao código oficial do nível pedido.
+_LULC11_L2_FROM_LEAF = [
+    ([3], 3), ([4], 4), ([5], 5), ([6], 6), ([7], 7), ([49], 49),
+    ([11], 11), ([12], 12), ([32], 32), ([29], 29), ([50], 50), ([77], 77), ([84], 84),
+    ([15], 15), ([9], 9), ([21], 21), (_LULC11_AGR_TEMP + _LULC11_AGR_PER, 18),
+    ([23], 23), ([24], 24), ([30], 30), ([25], 25), ([75], 75), ([91], 91),
+    ([33], 33), ([31], 31), ([27], 27),
+]
+_LULC11_L1_FROM_LEAF = [
+    ([3, 4, 5, 6, 7, 49], 1),
+    ([11, 12, 32, 29, 50, 77, 84], 10),
+    ([15, 9, 21] + _LULC11_AGR_TEMP + _LULC11_AGR_PER, 14),
+    ([23, 24, 30, 25, 75, 91], 22),
+    ([33, 31], 26),
+    ([27], 27),
+]
+
+
 def build_lulc_col11_nivel1() -> ee.Image:
-    return _recode_lulc_col11([
-        (_LULC11_NATURAL_FOR, 1),
-        (_LULC11_NATURAL_HERB, 2),
-        (_LULC11_NATURAL_ROCK, 3),
-        (_LULC11_SILV, 4),
-        (_LULC11_PAST + _LULC11_AGR_TEMP + _LULC11_AGR_PER + _LULC11_MOSAIC, 5),
-        (_LULC11_URBAN + _LULC11_NONVEG + _LULC11_MINING + _LULC11_AQUA + _LULC11_ENERGY, 6),
-        (_LULC11_WATER, 7),
-    ])
+    """Nível 1 oficial: Floresta, Vegetação Herbácea e Arbustiva, Agropecuária, Área não vegetada, Água."""
+    return _recode_lulc_col11(_LULC11_L1_FROM_LEAF)
 
 
 def build_lulc_col11_nivel1_1() -> ee.Image:
@@ -547,52 +559,14 @@ def build_lulc_col11_nivel1_1() -> ee.Image:
 
 
 def build_lulc_col11_nivel2() -> ee.Image:
-    return _recode_lulc_col11([
-        (_LULC11_NATURAL_FOR, 3),
-        ([11], 11),
-        ([12, 32, 50, 77, 84], 12),
-        ([29], 29),
-        (_LULC11_SILV, 9),
-        (_LULC11_PAST, 15),
-        (_LULC11_AGR_TEMP, 19),
-        (_LULC11_AGR_PER, 36),
-        (_LULC11_MOSAIC, 21),
-        (_LULC11_URBAN, 24),
-        ([23], 23),
-        ([25, 75, 91], 25),
-        (_LULC11_MINING, 30),
-        (_LULC11_AQUA, 31),
-        (_LULC11_WATER, 26),
-    ])
+    """Nível 2 oficial: as lavouras viram Agricultura (18)."""
+    return _recode_lulc_col11(_LULC11_L2_FROM_LEAF)
 
 
 def build_lulc_col11_nivel3() -> ee.Image:
-    return _recode_lulc_col11([
-        ([3], 3),
-        ([4], 4),
-        ([5], 5),
-        ([6], 6),
-        ([7], 7),
-        ([9], 9),
-        ([11], 11),
-        ([12, 50, 77, 84], 12),
-        ([15], 15),
-        ([20], 20),
-        ([21], 21),
-        ([23], 23),
-        ([24], 24),
-        ([25, 75, 91], 25),
-        ([29], 29),
-        ([30], 30),
-        ([31], 31),
-        ([32], 32),
-        ([33], 33),
-        ([41, 62], 41),
-        ([46], 46),
-        ([47], 47),
-        ([35, 48], 48),
-        ([49], 49),
-    ])
+    """Nível 3 oficial: como o nível 2, com a Agricultura dividida em Temporária (19) e Perene (36)."""
+    mapping = [(codes, target) for codes, target in _LULC11_L2_FROM_LEAF if target != 18]
+    return _recode_lulc_col11(mapping + [(_LULC11_AGR_TEMP, 19), (_LULC11_AGR_PER, 36)])
 
 
 def build_lulc_col11_nivel4() -> ee.Image:

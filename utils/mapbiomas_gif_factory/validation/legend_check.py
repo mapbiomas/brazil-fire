@@ -44,6 +44,11 @@ HEX = re.compile(r"#([0-9a-fA-F]{6})")
 # estilo do catálogo -> (fonte, identificador na fonte, idioma ou coluna do nome)
 STYLE_SOURCES = {
     "lulc": ("plataforma", "brazil", "pt-BR"),
+    "lulc11_nivel1": ("plataforma", "brazil", "pt-BR"),
+    "lulc11_nivel2": ("plataforma", "brazil", "pt-BR"),
+    "lulc11_nivel3": ("plataforma", "brazil", "pt-BR"),
+    "lulc11_nivel4": ("plataforma", "brazil", "pt-BR"),
+    "fire_frequency_1985_2023": ("fogo", "brazil_col5_fire_frequency", "name_pt"),
     "lulc_peru": ("plataforma", "peru", "es-ES"),
     "lulc_peru_nivel3": ("plataforma", "peru", "es-ES"),
     "lulc_drc_nivel2": ("plataforma", "democratic-republic-of-congo", "fr-FR"),
