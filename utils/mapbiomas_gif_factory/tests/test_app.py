@@ -175,7 +175,7 @@ class AppTests(unittest.TestCase):
                   "legend": [{"label": "a", "color": "ffffff"}, {"label": "b", "color": "000000"}]}
         with tempfile.TemporaryDirectory() as tmp:
             a = self.make(tmp, layers=[custom])
-            self.assertIn("Meus mapas", a.initiative.options)
+            self.assertIn("Meus mapas", [v for _l, v in a.initiative.options])
             a.initiative.value = "Meus mapas"
             self.assertEqual([b.description for b in a.product_list.children], ["Meu mapa beta"])
 
@@ -453,13 +453,13 @@ class AnalystModeTests(unittest.TestCase):
             saved = json.loads((Path(tmp) / "meus_itens.json").read_text(encoding="utf-8"))
             self.assertEqual([m["name"] for m in saved["maps"]], ["Fogo beta do Cerrado"])
             b = self.make(tmp)
-            self.assertIn("Meus mapas", b.initiative.options)
+            self.assertIn("Meus mapas", [v for _l, v in b.initiative.options])
             self.assertIn(layer_id, b.by_id)
             b.initiative.value = "Meus mapas"
             b._show_proposal(layer_id)
             self.assertIn("fogo_beta_do_cerrado", b.proposal.value)
             b._remove_custom_layer(layer_id)
-            self.assertNotIn("Meus mapas", b.initiative.options)
+            self.assertNotIn("Meus mapas", [v for _l, v in b.initiative.options])
             self.assertEqual(json.loads((Path(tmp) / "meus_itens.json").read_text(encoding="utf-8"))["maps"], [])
 
     def test_catalog_style_can_be_reused(self):

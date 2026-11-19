@@ -13,16 +13,19 @@ from threading import RLock
 
 import ipywidgets as w
 
+from .i18n import N_, _, ui_text
 from .library import load_manifest
 
-STATES = {"fila": ("Na fila", "var(--muted)", "var(--sel)"),
-          "gerando": ("Gerando", "var(--accent-ink)", "var(--accent-soft)"),
-          "pronto": ("Pronto", "var(--green)", "var(--green-soft)"),
-          "existe": ("Já existia", "var(--green)", "var(--green-soft)"),
-          "falha": ("Falhou", "var(--danger)", "var(--danger-soft)")}
-FILTERS = [("Todos", ""), ("Prontos", "pronto"), ("Em andamento", "gerando"), ("Na fila", "fila"), ("Falhas", "falha")]
-KIND_ORDER = [("gif", "GIF animado"), ("colagem", "Colagem"), ("finais", "Mapa completo de cada ano"),
-              ("preparados", "Cada ano com ano e escala"), ("brutos", "Cada ano sem moldura"), ("outros", "Outros")]
+STATES = {"fila": (N_("Na fila"), "var(--muted)", "var(--sel)"),
+          "gerando": (N_("Gerando"), "var(--accent-ink)", "var(--accent-soft)"),
+          "pronto": (N_("Pronto"), "var(--green)", "var(--green-soft)"),
+          "existe": (N_("Já existia"), "var(--green)", "var(--green-soft)"),
+          "falha": (N_("Falhou"), "var(--danger)", "var(--danger-soft)")}
+FILTERS = [(N_("Todos"), ""), (N_("Prontos"), "pronto"), (N_("Em andamento"), "gerando"), (N_("Na fila"), "fila"),
+           (N_("Falhas"), "falha")]
+KIND_ORDER = [("gif", N_("GIF animado")), ("colagem", N_("Colagem")), ("finais", N_("Mapa completo de cada ano")),
+              ("preparados", N_("Cada ano com ano e escala")), ("brutos", N_("Cada ano sem moldura")),
+              ("outros", N_("Outros"))]
 FRAME_FOLDERS = {"Mapa_completo": "finais", "Mapa_com_ano_e_escala": "preparados", "Mapa_basico": "brutos"}
 MAX_INLINE_GIF = 25 * 1024 * 1024
 
@@ -43,7 +46,7 @@ def group_files(files):
     groups = {}
     for f in files:
         groups.setdefault(kind_of(f), []).append(Path(f))
-    return {kind: sorted(groups[kind]) for kind, _ in KIND_ORDER if kind in groups}
+    return {kind: sorted(groups[kind]) for kind, _x in KIND_ORDER if kind in groups}
 
 
 def thumbnail(path, width=300):
@@ -120,7 +123,7 @@ class Card:
         self.status = w.HTML()
         self.bar = w.IntProgress(value=0, min=0, max=1, style={"description_width": "0px"},
                                  layout=w.Layout(width="auto", height="12px", margin="2px 0", display="none"))
-        self.open = w.ToggleButton(description="Abrir", icon="folder-open", disabled=True,
+        self.open = w.ToggleButton(description=_("Abrir"), icon="folder-open", disabled=True,
                                    layout=w.Layout(width="110px"))
         self.details = w.VBox(layout=w.Layout(display="none"))
         self.open.observe(self._toggle, names="value")
@@ -137,7 +140,8 @@ class Card:
     def update(self, state, detail="", done=0, total=0):
         self.state = state
         label, color, background = STATES[state]
-        extra = f" · {escape(detail)}" if detail else ""
+        label = _(label)
+        extra = f" · {escape(_(detail))}" if detail else ""
         self.status.value = (f"<div style='font-size:12px'><span style='background:{background};color:{color};"
                              f"border-radius:8px;padding:1px 8px;font-weight:600'>{label}</span>{extra}</div>")
         downloading = state == "gerando" and total > 0
@@ -185,10 +189,10 @@ class Card:
                 pass
         files_api = colab_files()
         if self.folder is not None:
-            rows.append(w.HTML(f"<div style='font-size:12px'>Pasta: <code style='user-select:all'>"
+            rows.append(w.HTML(f"<div style='font-size:12px'>{_('Pasta:')} <code style='user-select:all'>"
                                f"{escape(str(self.folder))}</code></div>"))
         if files_api is not None:
-            whole = w.Button(description="Baixar tudo desta combinação (.zip)", icon="download",
+            whole = w.Button(description=_("Baixar tudo desta combinação (.zip)"), icon="download",
                              layout=w.Layout(width="300px"))
             whole.on_click(lambda _b: self._download_zip())
             rows.append(whole)
@@ -196,19 +200,19 @@ class Card:
             files = groups.get(kind)
             if not files:
                 continue
-            rows.append(w.HTML(f"<b style='font-size:13px'>{label}</b> <span style='color:var(--muted);font-size:12px'>"
+            rows.append(w.HTML(f"<b style='font-size:13px'>{_(label)}</b> <span style='color:var(--muted);font-size:12px'>"
                                f"({len(files)})</span>"))
             for f in files[:60]:
                 name = w.HTML(f"<code style='user-select:all;font-size:11px' title='{escape(str(f))}'>"
                               f"{escape(f.name)}</code>", layout=w.Layout(flex="1 1 auto"))
                 items = [name]
                 if files_api is not None:
-                    button = w.Button(icon="download", tooltip="Baixar", layout=w.Layout(width="36px"))
+                    button = w.Button(icon="download", tooltip=_("Baixar"), layout=w.Layout(width="36px"))
                     button.on_click(lambda _b, f=f: files_api.download(str(f)))
                     items.insert(0, button)
                 rows.append(w.HBox(items))
             if len(files) > 60:
-                rows.append(w.HTML(f"<i style='font-size:12px'>… e mais {len(files) - 60} (no .zip)</i>"))
+                rows.append(w.HTML(f"<i style='font-size:12px'>{_('… e mais {n} (no .zip)', n=len(files) - 60)}</i>"))
         self.details.children = rows
 
     def _download_zip(self):
@@ -223,17 +227,18 @@ class Card:
 class Gallery:
     """Grade de cartões com contagem por estado, filtro e painel de detalhes."""
 
-    def __init__(self, zip_root="/content", empty="Nada por aqui ainda.", filters=True):
+    def __init__(self, zip_root="/content", empty=None, filters=True):
         self.zip_root = Path(zip_root)
         self.use_filters = filters
         self.lock = RLock()
         self.cards = {}
-        self.empty_text = empty
+        self.empty_text = empty or _("Nada por aqui ainda.")
         self.counts = w.HTML()
-        self.filter = w.ToggleButtons(options=FILTERS, value="", style={"button_width": "auto"})
+        self.filter = w.ToggleButtons(options=[(_(label), value) for label, value in FILTERS], value="",
+                                      style={"button_width": "auto"})
         self.filter.add_class("gf-tabs")
         self.filter.observe(lambda _c: self._render(), names="value")
-        self.download_all = w.Button(description="Baixar tudo (.zip)", icon="download",
+        self.download_all = w.Button(description=_("Baixar tudo (.zip)"), icon="download",
                                      layout=w.Layout(display="none", width="190px"))
         self.download_all.on_click(lambda _b: self._download_all())
         self.grid = w.GridBox(layout=w.Layout(grid_template_columns="repeat(auto-fill, minmax(230px, 1fr))",
@@ -273,7 +278,7 @@ class Gallery:
             self.detail_box.layout.display = "none"
             self.detail_box.children = []
             return
-        close = w.Button(description="Fechar", icon="times", layout=w.Layout(width="100px"))
+        close = w.Button(description=_("Fechar"), icon="times", layout=w.Layout(width="100px"))
         close.on_click(lambda _b: setattr(card.open, "value", False))
         self.detail_box.children = [w.HBox([card.title, close], layout=w.Layout(justify_content="space-between")),
                                     *card.details.children]
@@ -290,10 +295,10 @@ class Gallery:
             if not total:
                 self.counts.value = f"<i style='color:var(--muted)'>{escape(self.empty_text)}</i>"
             else:
-                parts = [f"<b>{done} de {total} prontos</b>"]
+                parts = [f"<b>{_('{feitos} de {total} prontos', feitos=done, total=total)}</b>"]
                 for state in ("gerando", "fila", "falha"):
                     if counts[state]:
-                        parts.append(f"{counts[state]} {STATES[state][0].lower()}")
+                        parts.append(f"{counts[state]} {_(STATES[state][0]).lower()}")
                 self.counts.value = "<span style='font-size:13px'>" + " · ".join(parts) + "</span>"
             self.download_all.layout.display = "" if (colab_files() and self.files()) else "none"
             if self.filter.value:

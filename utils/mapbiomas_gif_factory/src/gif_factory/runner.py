@@ -13,6 +13,7 @@ from time import monotonic
 
 import ipywidgets as w
 
+from .i18n import N_, _, ui_text
 from .engine import discover, generate, validate
 from .estimate import SECONDS_PER_COMBO, Calibration, human_size
 from .layout import combination_path, ensure_unique_paths
@@ -20,8 +21,14 @@ from .library import assess, fingerprint, ingest, variant_for
 from .progress import ProgressState
 
 DRIVE_ROOT = Path("/content/drive/MyDrive")
-STATE_LABELS = {"disponivel": "✓ Já existe", "parcial": "◐ Incompleto (será completado)",
-                "nao_gerado": "○ Será gerado", "verificar": "⚠ Verificar pasta"}
+STATE_LABELS = {"disponivel": N_("✓ Já existe"), "parcial": N_("◐ Incompleto (será completado)"),
+                "nao_gerado": N_("○ Será gerado"), "verificar": N_("⚠ Verificar pasta")}
+# Etapas que o pipeline informa; traduzidas na hora de mostrar.
+STAGES = [N_("Preparando lote"), N_("Preparando combinação"), N_("Preparando download"), N_("Baixando frames"),
+          N_("Consultando períodos e biblioteca"), N_("Preparando frames cartográficos"),
+          N_("Preparando mapas com ano, escala e norte"), N_("Montando colagens"), N_("Gerando GIF principal"),
+          N_("Gerando GIFs especiais"), N_("Finalizando frames e GIFs"), N_("Organizando arquivos selecionados"),
+          N_("Enviando ao Drive"), N_("Publicando arquivos"), N_("Preparando")]
 
 
 def duration(seconds):
@@ -35,10 +42,10 @@ def drive_mounted():
 
 def header_for(origin, layer, territory):
     from .legends import theme_label
-    theme = theme_label(layer["theme"], "pt") if layer.get("theme") else ""
+    theme = ui_text(theme_label(layer["theme"], "pt")) if layer.get("theme") else ""
     collection = layer.get("collection") or ""
-    collection = f"Coleção {collection}" if str(collection)[:1].isdigit() else collection
-    parts = [origin, theme, collection, layer["name"], territory["name"]]
+    collection = _("Coleção {c}", c=collection) if str(collection)[:1].isdigit() else collection
+    parts = [ui_text(origin), theme, collection, ui_text(layer["name"]), territory["name"]]
     return " / ".join(str(p) for p in parts if p)
 
 
@@ -55,27 +62,27 @@ class BatchRunner:
         self.on_start = None     # callback(combos): a vitrine cria um cartão por combinação
         self.workers = 1         # combinações geradas ao mesmo tempo
         self.calibration = Calibration()  # ritmo real desta sessão, para as próximas estimativas
-        self.status = w.HTML("<b>Pronto.</b>")
-        self.overall = w.IntProgress(value=0, min=0, max=1, description="Lote:", layout=w.Layout(width="95%"))
+        self.status = w.HTML(f"<b>{_('Pronto.')}</b>")
+        self.overall = w.IntProgress(value=0, min=0, max=1, description=_("Lote:"), layout=w.Layout(width="95%"))
         self.sprout = w.HTML(
             value=('<style>@keyframes gif-factory-sprout {0%,100% { transform: rotate(-8deg); }'
                    ' 50% { transform: rotate(8deg); }} .gif-factory-sprout { display: inline-block;'
                    ' transform-origin: bottom center; animation: gif-factory-sprout 1.5s ease-in-out infinite; }'
                    '@media (prefers-reduced-motion: reduce) { .gif-factory-sprout { animation: none; }}</style>'
                    '<span role="status" aria-label="Processamento em andamento"><span class="gif-factory-sprout"'
-                   ' aria-hidden="true">🌱</span> <span style="color:#4b7255; font-size:12px">Cultivando mapas…</span></span>'),
+                   ' aria-hidden="true">🌱</span> <span style="color:#4b7255; font-size:12px">' + _("Cultivando mapas…") + '</span></span>'),
             layout=w.Layout(display="none"))
         self.log = w.Output(layout=w.Layout(border="1px solid #ddd", max_height="220px", overflow="auto"))
 
     def widget(self):
         log = w.Accordion([self.log], selected_index=None)
-        log.set_title(0, "Registro detalhado")
+        log.set_title(0, _("Registro detalhado"))
         return w.VBox([self.sprout, self.status, self.overall, log])
 
     def library_root(self, automatic, destination):
         if automatic:
             if not drive_mounted():
-                raise RuntimeError("O Google Drive não está conectado; desmarque o Drive ou rode a célula 1 de novo.")
+                raise RuntimeError(_("O Google Drive não está conectado; desmarque o Drive ou rode a célula 1 de novo."))
             return Path(destination)
         return self.output_root
 
@@ -89,7 +96,7 @@ class BatchRunner:
                 variant = variant_for(all_bands, bands)
                 state = assess(root / combination_path(origin, layer, territory), variant,
                                fingerprint(layer, territory, bands), set(kinds))
-                result.append(((origin, layer, territory), STATE_LABELS[state]))
+                result.append(((origin, layer, territory), _(STATE_LABELS[state])))
             except Exception as exc:
                 result.append(((origin, layer, territory), f"⚠ {exc}"))
         return result
@@ -97,7 +104,7 @@ class BatchRunner:
     def start(self, combos, kinds, automatic=False, destination=None, wait=True):
         """Inicia o lote. Retorna a thread, ou None se nada foi iniciado."""
         if not self.lock.acquire(blocking=False):
-            self.status.value = "<b>Já existe um lote em andamento.</b>"
+            self.status.value = f"<b>{_('Já existe um lote em andamento.')}</b>"
             return None
         thread = None
         try:
@@ -112,24 +119,24 @@ class BatchRunner:
             if thread is None:
                 self.lock.release()
             self.sprout.layout.display = "none"
-            self.status.value = f"<b>Erro ao iniciar o lote:</b> {escape(str(exc))}"
+            self.status.value = f"<b>{_('Erro ao iniciar o lote:')}</b> {escape(str(exc))}"
             self.log.append_stdout(f"Erro ao iniciar lote: {exc}\n")
             return None
 
     def _launch(self, combos, kinds, automatic, destination):
         if not combos or not kinds:
-            self.status.value = "<b>Escolha ao menos um mapa, um território e um tipo de arquivo.</b>"
+            self.status.value = f"<b>{_('Escolha ao menos um mapa, um território e um tipo de arquivo.')}</b>"
             return None
         try:
-            for _, layer, territory in combos:
+            for _x, layer, territory in combos:
                 validate([layer], [territory])
             ensure_unique_paths(combos)
         except ValueError as exc:
-            self.status.value = f"<b>Seleção inválida:</b> {escape(str(exc))}"
+            self.status.value = f"<b>{_('Seleção inválida:')}</b> {escape(str(exc))}"
             return None
         self.sprout.layout.display = ""
         run_id = datetime.now().strftime("%Y-%m-%d_%H%M%S_%f")
-        self.status.value = "<b>▶ INICIANDO</b> — preparando lote..."
+        self.status.value = f"<b>▶ {_('INICIANDO')}</b> — {_('preparando lote...')}"
         self.overall.value = 0
         self.overall.max = len(combos)
         self.log.clear_output()
@@ -142,7 +149,7 @@ class BatchRunner:
     def _work(self, combos, kinds, automatic, destination, run_id):
         total = len(combos)
         workers = max(1, min(int(self.workers or 1), total))
-        states = [ProgressState(1) for _ in combos]
+        states = [ProgressState(1) for _x in combos]
         active = {}  # número -> cabeçalho, na ordem em que começaram
         stop_clock = Event()
         counts = {"ok": 0, "failed": 0, "skipped": 0, "done": 0, "saved": 0, "work": 0}
@@ -167,14 +174,15 @@ class BatchRunner:
                 details = f" — {escape(snap['detail'])}" if snap["detail"] else ""
                 eta = ""
                 if snap["stage"] == "Baixando frames" and snap["eta"] is not None:
-                    eta = f" · faltam ~{duration(snap['eta'])}"
+                    eta = " · " + _("faltam ~{tempo}", tempo=duration(snap["eta"]))
                 lines.append(f"<br>▸ <b>{number}/{total}</b> {escape(header)}<br>&nbsp;&nbsp;&nbsp;"
-                             f"{escape(snap['stage'])}{details} · {duration(snap['combo_elapsed'])}{eta}")
-            together = f" · {workers} ao mesmo tempo" if workers > 1 else ""
-            self.status.value = (f"<b>◉ LOTE EM ANDAMENTO</b> — {done} de {total} combinações processadas{together}"
-                                 f"<br>Tempo total: {duration(monotonic() - started)}" + "".join(lines))
+                             f"{escape(_(snap['stage']))}{details} · {duration(snap['combo_elapsed'])}{eta}")
+            together = " · " + _("{n} ao mesmo tempo", n=workers) if workers > 1 else ""
+            progress = _("{feitas} de {total} combinações processadas", feitas=done, total=total)
+            self.status.value = (f"<b>◉ {_('LOTE EM ANDAMENTO')}</b> — {progress}{together}"
+                                 f"<br>{_('Tempo total:')} {duration(monotonic() - started)}" + "".join(lines))
             self.overall.value = done
-            for number, _ in running:
+            for number, _x in running:
                 snap = states[number - 1].snapshot()
                 notify(number, "gerando", detail=snap["stage"], done=snap["frame_done"], total=snap["frame_total"])
 
@@ -278,17 +286,20 @@ class BatchRunner:
             if ticker.is_alive():
                 ticker.join()
             ok, failed, skipped = counts["ok"], counts["failed"], counts["skipped"]
-            title = ("✓ LOTE CONCLUÍDO" if not failed else
-                     "⚠ CONCLUÍDO COM FALHAS" if ok or skipped else "✕ LOTE FALHOU")
-            where = ("no Google Drive" if automatic else "nesta sessão do Colab") if (ok or skipped) else "—"
+            title = (_("✓ LOTE CONCLUÍDO") if not failed else
+                     _("⚠ CONCLUÍDO COM FALHAS") if ok or skipped else _("✕ LOTE FALHOU"))
+            where = (_("no Google Drive") if automatic else _("nesta sessão do Colab")) if (ok or skipped) else "—"
             self.overall.value = total
-            self.status.value = (f"<b>{title}</b> · {ok} gerado(s), {skipped} já disponível(is), {failed} falha(s)"
-                                 f"<br>Arquivos: {where}<br>Tempo total: {duration(monotonic() - started)}")
+            counts_line = _("{ok} gerado(s), {existentes} já disponível(is), {falhas} falha(s)",
+                            ok=ok, existentes=skipped, falhas=failed)
+            self.status.value = (f"<b>{title}</b> · {counts_line}"
+                                 f"<br>{_('Arquivos:')} {where}<br>{_('Tempo total:')} {duration(monotonic() - started)}")
             if counts["saved"]:
-                copies = " (mais a cópia nesta sessão)" if automatic else ""
-                self.status.value += (f"<br>Volume: {human_size(counts['saved'] / 2 ** 20)} salvos{copies} · "
-                                      f"{human_size(counts['work'] / 2 ** 20)} de arquivos de trabalho em "
-                                      f"{escape(str(self.temp_root))}")
+                copies = " " + _("(mais a cópia nesta sessão)") if automatic else ""
+                volume = _("Volume: {salvos} salvos{copias} · {trabalho} de arquivos de trabalho em {pasta}",
+                           salvos=human_size(counts["saved"] / 2 ** 20), copias=copies,
+                           trabalho=human_size(counts["work"] / 2 ** 20), pasta=escape(str(self.temp_root)))
+                self.status.value += f"<br>{volume}"
             if self.on_finished:
                 try:
                     self.on_finished(produced, {"ok": ok, "skipped": skipped, "failed": failed})

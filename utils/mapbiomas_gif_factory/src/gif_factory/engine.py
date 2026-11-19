@@ -63,13 +63,30 @@ def validate(layers, territories):
                     raise ValueError(f"{item['name']}: filtro sem valor.")
 
 
+def _map_lang(layer):
+    from .i18n import code_for, map_language
+    return code_for(layer.get("map_lang") or map_language())
+
+
+def _translated_product(product, lang):
+    from .i18n import map_text
+    product = dict(product)
+    for key in ("name", "collection_title"):
+        if isinstance(product.get(key), str):
+            product[key] = map_text(product[key], lang)
+    return product
+
+
 class NotebookConfig:
     def __init__(self, layer, territory, project):
-        viz = dict(layer["visualization"])
+        from .i18n import translate_visualization
+        lang = _map_lang(layer)
+        viz = translate_visualization(layer["visualization"], lang)
         viz.setdefault("cmap_type", "binary" if len(layer["legend"]) == 2 else "discrete")
         viz.setdefault("discrete_labels", [x["label"] for x in layer["legend"]])
         viz.setdefault("label", layer.get("legend_label", ""))
         product = {"name": layer["name"], "asset": layer["asset"], "bands": layer.get("bands", []), "visualization": "notebook", "start_year": layer.get("start_year"), "end_year": layer.get("end_year"), "bands_slice": layer.get("bands_slice"), "year_offset": layer.get("year_offset", 0), "axis": layer.get("axis", "time")}
+        product = _translated_product(product, lang)
         self.datasets = {"notebook": {"products": {layer["id"]: product}, "title_collection": layer.get("collection_title", "")}}
         self.territories = _territory_entries(territory)
         self.visualizations = {"notebook": viz}
@@ -122,11 +139,18 @@ class CatalogConfig:
                 product[key] = layer[key]
         if layer.get("bands"):
             product["bands"] = list(layer["bands"])
+        from .i18n import translate_visualization
+        lang = _map_lang(layer)
+        product = _translated_product(product, lang)
         self.dataset_id, self.product_id = layer["dataset"], layer["product"]
         self.product = product
         self.datasets = {self.dataset_id: dict(dataset, products={self.product_id: product})}
         self.territories = _territory_entries(territory)
-        self.visualizations = base.visualizations
+        # Só a visualização deste produto é traduzida (as outras ficam como estão).
+        self.visualizations = dict(base.visualizations)
+        viz_key = product.get("visualization")
+        if isinstance(viz_key, str) and viz_key in self.visualizations:
+            self.visualizations[viz_key] = translate_visualization(self.visualizations[viz_key], lang)
         self.categories = base.categories
         self.ee_project_id = project
 
@@ -364,6 +388,8 @@ def generate(layer, territory, root, kinds, on_artifact=None, dimension=2000, pr
     if not project:
         raise ValueError("Informe o projeto Earth Engine usado na autenticação.")
     out = Path(root)
+    from .i18n import prepare_map_rendering
+    prepare_map_rendering(_map_lang(layer))
     if catalog:
         # Produto do catálogo: o pipeline carrega asset/processador e aplica
         # bands_slice e a visualização exatamente como no projeto local.

@@ -40,4 +40,4 @@ Colab = "https://colab.research.google.com/github/mapbiomas/brazil-fire/blob/mai
 where = ["src"]
 
 [tool.setuptools.package-data]
-gif_factory = ["reference_inventory.json", "legends.json", "vera_fire_legends.json", "config/*.yaml", "config/initiatives/*/*.yaml", "config/initiatives/*/*/*.yaml"]
+gif_factory = ["reference_inventory.json", "legends.json", "vera_fire_legends.json", "textos/*.csv", "config/*.yaml", "config/initiatives/*/*.yaml", "config/initiatives/*/*/*.yaml"]
