@@ -6,18 +6,24 @@
 <title>MapBiomas Fogo · brazil-fire</title>
 <meta name="description" content="Aplicações, notebooks e mapa do repositório mapbiomas/brazil-fire.">
 <style>
+  /* Tema claro (padrão) em tons pastel e terrosos; o escuro usa a mesma família, sem preto. */
   :root {
-    --bg: #f3f5f2; --surface: #ffffff; --ink: #1e2420; --muted: #5f6a63; --line: #dbe1da;
-    --accent: #e5412e; --accent-soft: #fbe3df; --sel: #eef2ed;
+    --bg: #f6f1e7; --surface: #fffbf4; --ink: #3b3228; --muted: #7a6c5c; --line: #e6dccb;
+    --accent: #c0643f; --accent-soft: #f5e2d5; --green: #5f8160; --green-soft: #e2eadb;
+    --warn: #96702a; --warn-soft: #f3e6c6; --code: #faf5ec; --sel: #f0e7d8;
+    --shadow: rgba(92, 70, 45, .12);
     --f-sans: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
     --f-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    color-scheme: light;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141715; --surface: #1d211e; --ink: #e7ece8; --muted: #9ba69f; --line: #343b36;
-      --accent: #f26b61; --accent-soft: #3a211e; --sel: #262b27;
-    }
+  :root[data-theme="dark"] {
+    --bg: #2f2924; --surface: #3a332c; --ink: #f0e7da; --muted: #bcad99; --line: #4d443a;
+    --accent: #e49b78; --accent-soft: #4c372c; --green: #a9c4a0; --green-soft: #37422f;
+    --warn: #dcbc72; --warn-soft: #4b4028; --code: #342e28; --sel: #443b32;
+    --shadow: rgba(0, 0, 0, .25);
+    color-scheme: dark;
   }
+  .theme { font-size: 13px !important; min-width: 30px; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-sans); }
   a { color: inherit; }
@@ -60,7 +66,7 @@
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
     transition: border-color .15s, box-shadow .15s;
   }
-  .card:hover { border-color: var(--muted); box-shadow: 0 4px 18px rgba(0,0,0,.08); }
+  .card:hover { border-color: var(--muted); box-shadow: 0 4px 18px var(--shadow); }
   .card:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   .thumb { aspect-ratio: 16 / 10; background: var(--sel); border-bottom: 1px solid var(--line); overflow: hidden; }
   .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; transition: transform .3s; }
@@ -84,6 +90,14 @@
   .maplink { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
   footer { max-width: 1160px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: 13px; }
 </style>
+<script>
+  /* Tema: claro por padrão; ?theme=dark|light ou a escolha salva no navegador. */
+  (function () {
+    var t = new URLSearchParams(location.search).get("theme");
+    if (t !== "dark" && t !== "light") { try { t = localStorage.getItem("mbfire-theme"); } catch (e) {} }
+    document.documentElement.dataset.theme = t === "dark" ? "dark" : "light";
+  })();
+</script>
 </head>
 <body>
 <header>
@@ -94,6 +108,7 @@
       <button type="button" data-lang="pt">PT</button>
       <button type="button" data-lang="en">EN</button>
       <button type="button" data-lang="es">ES</button>
+    <button type="button" class="theme" id="themeBtn"></button>
     </div>
   </div>
   <div class="lead"><p data-i18n="lead"></p></div>
@@ -252,12 +267,14 @@ function render() {
   $("mapfull").href = `repo_map/?lang=${lang}`;
   $("mapfull").textContent = T.map_full;
   if (tab === "map") {
-    const want = `repo_map/?embed=1&lang=${lang}${mapHash ? "#" + mapHash : ""}`;
+    const want = `repo_map/?embed=1&lang=${lang}&theme=${document.documentElement.dataset.theme}${mapHash ? "#" + mapHash : ""}`;
     if ($("mapframe").getAttribute("src") !== want) $("mapframe").setAttribute("src", want);
   }
+  paintThemeBtn();
   syncUrl();
 }
 let mapHash = "";
+const onThemeChange = () => render();
 
 document.addEventListener("click", e => {
   const b = e.target.closest("button[data-lang]");
@@ -269,7 +286,25 @@ document.addEventListener("click", e => {
   const m = e.target.closest("a[data-map]");
   if (m && !e.ctrlKey && !e.metaKey) { e.preventDefault(); mapHash = m.dataset.map; tab = "map"; window.scrollTo(0, 0); render(); }
 });
+/* ---------- theme toggle ---------- */
+const THEME_LABEL = { pt: ["Tema escuro", "Tema claro"], en: ["Dark theme", "Light theme"], es: ["Tema oscuro", "Tema claro"] };
+function paintThemeBtn() {
+  const dark = document.documentElement.dataset.theme === "dark";
+  const b = document.getElementById("themeBtn");
+  b.textContent = dark ? "☀" : "☾";
+  b.setAttribute("aria-pressed", "false");
+  b.title = b.ariaLabel = THEME_LABEL[lang][dark ? 1 : 0];
+}
+document.getElementById("themeBtn").addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem("mbfire-theme", next); } catch (e) {}
+  paintThemeBtn();
+  if (typeof onThemeChange === "function") onThemeChange();
+});
+
 render();
+
 </script>
 </body>
 </html>
