@@ -119,6 +119,10 @@ class BasicTests(unittest.TestCase):
         self.assertNotIn("TERRITORIES", source)
         self.assertIn("show_app(GEE_PROJECT)", source)
         self.assertIn("enable_custom_widget_manager", source)
+        # Instala o pacote (PyPI ou branch de teste) em vez de clonar o repositório inteiro.
+        self.assertIn("pip', 'install'", source)
+        self.assertIn("mapbiomas-gif-factory", source)
+        self.assertNotIn("git', 'clone'", source)
 
     def test_copy_is_selective_and_does_not_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:

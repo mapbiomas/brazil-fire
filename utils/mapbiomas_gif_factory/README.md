@@ -2,6 +2,25 @@
 
 A prototype for producing map GIFs from multiband Earth Engine images in Google Colab.
 
+## Install
+
+```bash
+pip install mapbiomas-gif-factory
+```
+
+In Colab or Jupyter, after `ee.Initialize(project=...)`:
+
+```python
+from gif_factory.app import show_app
+show_app("my-earth-engine-project")
+```
+
+The package bundles the catalog, palettes and territory sources; nothing else needs to be downloaded. To test an unreleased branch:
+
+```bash
+pip install "git+https://github.com/mapbiomas/brazil-fire.git@<branch>#subdirectory=utils/mapbiomas_gif_factory"
+```
+
 ## Catalog
 
 The map catalog comes from `src/gif_factory/config/`, ported from the local project (`mapbiomas-ia/FABRICA DE GIFS/config`). Each product there is defined once: asset or processor, band slicing, and the visualization key (palette, legend, min/max) in `visualization.yaml`. Catalog products run through the same pipeline as the local project, so maps come out with the same design and colors.
@@ -17,7 +36,7 @@ The map catalog comes from `src/gif_factory/config/`, ported from the local proj
 
 The notebook has two form cells; nobody needs to edit code.
 
-1. **1 · Conectar** — set `GEE_PROJECT` (defaults to `mapbiomas-brazil`) and whether to save to Google Drive, then run. It downloads the code (`REPO_REF`, default `main`), authenticates Earth Engine and mounts Drive.
+1. **1 · Conectar** — set `GEE_PROJECT` (defaults to `mapbiomas-brazil`) and whether to save to Google Drive, then run. It installs the package from PyPI (about 160 KB, instead of cloning this repository), authenticates Earth Engine and mounts Drive. `VERSAO` pins a release; `BRANCH_DE_TESTE` installs a GitHub branch for testing.
 2. **2 · Abrir a Fábrica** — opens the interface (`gif_factory.app.show_app`), a 4-step flow with a summary bar that stays visible:
    1. **Mapa** — pick one or more maps from the catalog. Filter by initiative, theme and collection, or type part of the name (accents and case are ignored). The side panel shows the legend. Beta maps appear only with **Mostrar mapas beta**.
    2. **Território** — pick one or more territories, in any of four ways:
@@ -91,6 +110,14 @@ By default, the animation runs through the bands' years. Soil collections organi
 - The availability check consults metadata and files; it does not check whether the territory intersects the data coverage.
 - The frame layout uses fixed-size elements: very small output dimensions or unusually narrow territories can produce clipped or overlapping text. Inspect output before use; the notebook uses the default 2000-pixel dimension.
 - Planned extensions include verified land use and land cover 10/10.1 legends, products with their own processors, and visual validation of Soil and Atmosphere collections.
+
+## Releasing
+
+1. Update `version` in `pyproject.toml` (for example `0.2.1`) and merge to `main`.
+2. Push the tag `gif-factory-v0.2.1`. The workflow `.github/workflows/gif-factory-publish.yml` (repository root) runs the tests, builds the package, checks that the tag matches the version and publishes it to PyPI.
+3. Running the workflow manually publishes to TestPyPI instead, as a rehearsal.
+
+Publishing uses PyPI trusted publishing, so no token is stored in the repository. One-time setup on pypi.org (and test.pypi.org): *Publishing → Add a pending publisher* with owner `mapbiomas`, repository `brazil-fire`, workflow `gif-factory-publish.yml` and environment `pypi` (`testpypi`).
 
 ## Development
 
