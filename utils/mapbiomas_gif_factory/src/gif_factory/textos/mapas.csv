@@ -1,714 +1,714 @@
 ﻿original,tipo,exemplo,pt,en,es,fr,id,zh
-Uso e cobertura - Nível 1,produto,gen_argentina_lulc__lulc_nivel1,,,,,,
-Argentina,iniciativa,argentina,,,,,,
-Classe,titulo_legenda,gen_argentina_lulc__lulc_nivel1,,,,,,
-MapBiomas Argentina · Coleção 3,colecao,gen_argentina_lulc__lulc_nivel1,,,,,,
-Uso e cobertura - Nível 2,produto,gen_argentina_lulc__lulc_nivel2,,,,,,
-Uso e cobertura - Nível 3 (todas as classes),produto,gen_argentina_lulc__lulc_nivel3,,,,,,
-Bolívia,iniciativa,bolivia,,,,,,
-MapBiomas Bolívia · Coleção 4,colecao,gen_bolivia_lulc__lulc_nivel1,,,,,,
-Mata Atlântica (trinacional),iniciativa,bosque_atlantico,,,,,,
-MapBiomas Mata Atlântica (trinacional) · Coleção 4,colecao,gen_bosque_atlantico_lulc__lulc_nivel1,,,,,,
-Uso e cobertura - Nível 3,produto,gen_bosque_atlantico_lulc__lulc_nivel3,,,,,,
-Uso e cobertura - Nível 4 (todas as classes),produto,gen_bosque_atlantico_lulc__lulc_nivel4,,,,,,
-Precipitação anual,produto,brasil_atmosphere_col1__precipitation_annual,,,,,,
-Brasil,iniciativa,brasil,,,,,,
-Precipitação (mm/ano),titulo_legenda,brasil_atmosphere_col1__precipitation_annual,,,,,,
-MapBiomas Atmosfera · Coleção 1,colecao,brasil_atmosphere_col1__precipitation_annual,,,,,,
-Temperatura máxima do ar,produto,brasil_atmosphere_col1__air_temperature_max_annual,,,,,,
-Temperatura máxima (°C),titulo_legenda,brasil_atmosphere_col1__air_temperature_max_annual,,,,,,
-Temperatura média do ar,produto,brasil_atmosphere_col1__air_temperature_mean_annual,,,,,,
-Temperatura média (°C),titulo_legenda,brasil_atmosphere_col1__air_temperature_mean_annual,,,,,,
-Temperatura mínima do ar,produto,brasil_atmosphere_col1__air_temperature_min_annual,,,,,,
-Temperatura mínima (°C),titulo_legenda,brasil_atmosphere_col1__air_temperature_min_annual,,,,,,
-Temperatura da superfície,produto,brasil_atmosphere_col1__surface_temperature_annual,,,,,,
-Temperatura da superfície (°C),titulo_legenda,brasil_atmosphere_col1__surface_temperature_annual,,,,,,
-Material particulado fino (PM2.5),produto,brasil_atmosphere_col1__pm2p5_annual,,,,,,
-PM2.5 (µg/m³),titulo_legenda,brasil_atmosphere_col1__pm2p5_annual,,,,,,
-Material particulado (PM10),produto,brasil_atmosphere_col1__pm10_annual,,,,,,
-PM10 (µg/m³),titulo_legenda,brasil_atmosphere_col1__pm10_annual,,,,,,
-Dias sem chuva,produto,brasil_atmosphere_col1__rain_free_days_annual,,,,,,
-Dias sem chuva no ano,titulo_legenda,brasil_atmosphere_col1__rain_free_days_annual,,,,,,
-Dias de chuva persistente,produto,brasil_atmosphere_col1__persistent_rain_annual,,,,,,
-Dias com mais de 60 mm em 3 dias,titulo_legenda,brasil_atmosphere_col1__persistent_rain_annual,,,,,,
-Déficit de pressão de vapor,produto,brasil_atmosphere_col1__vapor_pressure_deficit_annual,,,,,,
-Déficit de pressão de vapor (kPa),titulo_legenda,brasil_atmosphere_col1__vapor_pressure_deficit_annual,,,,,,
-Disponibilidade hídrica,produto,brasil_atmosphere_col1__water_availability_annual,,,,,,
-Disponibilidade hídrica (maior = mais água),titulo_legenda,brasil_atmosphere_col1__water_availability_annual,,,,,,
-Frequência do Fogo,produto,brasil_degradation_col10_1__fire_frequency,,,,,,
-Frequência de fogo (1985-2024),titulo_legenda,brasil_degradation_col10_1__fire_frequency,,,,,,
-Cobertura e Uso Natural da Terra,produto,brasil_degradation_col10_1__natural_coverage,,,,,,
-Cobertura natural,titulo_legenda,brasil_degradation_col10_1__natural_coverage,,,,,,
-Cobertura Vegetal em Áreas Queimadas,produto,brasil_degradation_col10_1__burned_natural_coverage,,,,,,
-Classe de cobertura,titulo_legenda,brasil_degradation_col10_1__burned_natural_coverage,,,,,,
-Queimado ao Menos uma Vez,produto,brasil_degradation_col10_1__burned_at_least_once,,,,,,
-Frequência de fogo,titulo_legenda,brasil_degradation_col10_1__burned_at_least_once,,,,,,
-Cobertura Natural Primária,produto,brasil_degradation_col10_1__primary_natural_coverage,,,,,,
-Tempo desde o Último Fogo,produto,brasil_degradation_col10_1__fire_age,,,,,,
-Anos desde o fogo,titulo_legenda,brasil_degradation_col10_1__fire_age,,,,,,
-Número de Fragmentos,produto,brasil_degradation_col10_1__patch_id,,,,,,
-Cada fragmento possui uma cor distinta,titulo_legenda,brasil_degradation_col10_1__patch_id,,,,,,
-Tamanho do Fragmento (Contínuo),produto,brasil_degradation_col10_1__patch_size,,,,,,
-Tamanho do fragmento (ha),titulo_legenda,brasil_degradation_col10_1__patch_size,,,,,,
-Fragmentos (ate 10k ha),produto,brasil_degradation_col10_1__patch_size_fragments,,,,,,
-Tamanho do fragmento,titulo_legenda,brasil_degradation_col10_1__patch_size_fragments,,,,,,
-Macicos (> 10k ha),produto,brasil_degradation_col10_1__patch_size_massifs,,,,,,
-Tamanho do maciço,titulo_legenda,brasil_degradation_col10_1__patch_size_massifs,,,,,,
-Área de Borda,produto,brasil_degradation_col10_1__edge_area,,,,,,
-Distância da borda (m),titulo_legenda,brasil_degradation_col10_1__edge_area,,,,,,
-Idade da Borda,produto,brasil_degradation_col10_1__edge_age,,,,,,
-Idade da borda (anos),titulo_legenda,brasil_degradation_col10_1__edge_age,,,,,,
-Morfologia dos Fragmentos,produto,brasil_degradation_col10_1__landscape_morphology,,,,,,
-Classe morfológica,titulo_legenda,brasil_degradation_col10_1__landscape_morphology,,,,,,
-Idade da Vegetação Secundária,produto,brasil_degradation_col10_1__secondary_vegetation_age,,,,,,
-Idade (anos),titulo_legenda,brasil_degradation_col10_1__secondary_vegetation_age,,,,,,
-Cobertura da Vegetação Secundária,produto,brasil_degradation_col10_1__secondary_vegetation_coverage,,,,,,
-Distúrbio de Dossel,produto,brasil_degradation_col10_1__canopy_disturbance_frequency,,,,,,
-Eventos de distúrbio,titulo_legenda,brasil_degradation_col10_1__canopy_disturbance_frequency,,,,,,
-Corte Seletivo,produto,brasil_degradation_col10_1__logging,,,,,,
-Corte seletivo,titulo_legenda,brasil_degradation_col10_1__logging,,,,,,
-Distância até a Borda,produto,brasil_degradation_col11__edge_area,,,,,,
-Distância até a borda (m),titulo_legenda,brasil_degradation_col11__edge_area,,,,,,
-Distância até a Borda (até 1000 m),produto,brasil_degradation_col11__edge_area_1000m,,,,,,
-Edge Area (30-1000m),produto,brasil_degradation_col9__edge_area,,,,,,
-Distância de borda (m),titulo_legenda,brasil_degradation_col9__edge_area,,,,,,
-Fragment Size (3-75ha),produto,brasil_degradation_col9__fragment_size,,,,,,
-Isolation Distance (100ha),produto,brasil_degradation_col9__distance_100ha,,,,,,
-Classe de distância,titulo_legenda,brasil_degradation_col9__distance_100ha,,,,,,
-Isolation Distance (500ha),produto,brasil_degradation_col9__distance_500ha,,,,,,
-Isolation Distance (1000ha),produto,brasil_degradation_col9__distance_1000ha,,,,,,
-Secondary Vegetation Coverage,produto,brasil_degradation_col9__secondary_vegetation_coverage,,,,,,
-Classe de uso,titulo_legenda,brasil_degradation_col9__secondary_vegetation_coverage,,,,,,
-Secondary Vegetation Age,produto,brasil_degradation_col9__secondary_vegetation_age,,,,,,
-Degradation Fire Frequency,produto,brasil_degradation_col9__fire_frequency,,,,,,
-Número de anos com fogo,titulo_legenda,brasil_degradation_col9__fire_frequency,,,,,,
-Degradation Accumulated Burned Coverage,produto,brasil_degradation_col9__accumulated_burned_coverage,,,,,,
-Annual Burned Area,produto,brasil_fire_col3__annual_burned,,,,,,
-Pixel queimado,titulo_legenda,brasil_fire_col3__annual_burned,,,,,,
-Annual Burned Coverage,produto,brasil_fire_col3__annual_burned_coverage,,,,,,
-Monthly Burned Area,produto,brasil_fire_col3__monthly_burned,,,,,,
-"Mês de queimada (1=Jan, 12=Dez)",titulo_legenda,brasil_fire_col3__monthly_burned,,,,,,
-Fire Frequency,produto,brasil_fire_col3__fire_frequency,,,,,,
-Accumulated Burned Area,produto,brasil_fire_col3__accumulated_burned,,,,,,
-Accumulated Burned Coverage,produto,brasil_fire_col3__accumulated_burned_coverage,,,,,,
-Year of Last Fire,produto,brasil_fire_col3__year_last_fire,,,,,,
-Ano,titulo_legenda,brasil_fire_col3__year_last_fire,,,,,,
-Scar Size Range,produto,brasil_fire_col3__scar_size_range,,,,,,
-Tamanho da cicatriz de fogo,titulo_legenda,brasil_fire_col3__scar_size_range,,,,,,
-Área queimada anual,produto,brasil_fire_col5__annual_burned,,,,,,
-Distribuição mensal da área queimada,produto,brasil_fire_col5__monthly_burned,,,,,,
-Tamanho das cicatrizes de fogo,produto,brasil_fire_col5__scar_size_range,,,,,,
-Área queimada acumulada,produto,brasil_fire_col5__accumulated_burned,,,,,,
-Frequência da área queimada,produto,brasil_fire_col5__fire_frequency,,,,,,
-Frequência de queimadas (1985-2025),titulo_legenda,brasil_fire_col5__fire_frequency,,,,,,
-Última ocorrência do fogo,produto,brasil_fire_col5__year_last_fire,,,,,,
-Tempo desde a última ocorrência do fogo,produto,brasil_fire_col5__time_after_fire,,,,,,
-Anos desde o último fogo,titulo_legenda,brasil_fire_col5__time_after_fire,,,,,,
-Área queimada inédita,produto,brasil_fire_col5__unprecedented_fire,,,,,,
-Fogo inédito,titulo_legenda,brasil_fire_col5__unprecedented_fire,,,,,,
-Área queimada por classe de cobertura e uso da terra - Anual - Nível 0 (Natural/Antrópico),produto,brasil_fire_col5__annual_burned_coverage_nivel0,,,,,,
-Área queimada por classe de cobertura e uso da terra - Anual - Nível 1,produto,brasil_fire_col5__annual_burned_coverage_nivel1,,,,,,
-Área queimada por classe de cobertura e uso da terra - Anual - Nível 1.1,produto,brasil_fire_col5__annual_burned_coverage_nivel1_1,,,,,,
-Área queimada por classe de cobertura e uso da terra - Anual - Nível 2,produto,brasil_fire_col5__annual_burned_coverage_nivel2,,,,,,
-Área queimada por classe de cobertura e uso da terra - Anual - Nível 3,produto,brasil_fire_col5__annual_burned_coverage_nivel3,,,,,,
-Área queimada por classe de cobertura e uso da terra - Anual - Nível 4,produto,brasil_fire_col5__annual_burned_coverage_nivel4,,,,,,
-Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 0 (Natural/Antrópico),produto,brasil_fire_col5__accumulated_burned_coverage_nivel0,,,,,,
-Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 1,produto,brasil_fire_col5__accumulated_burned_coverage_nivel1,,,,,,
-Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 1.1,produto,brasil_fire_col5__accumulated_burned_coverage_nivel1_1,,,,,,
-Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 2,produto,brasil_fire_col5__accumulated_burned_coverage_nivel2,,,,,,
-Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 3,produto,brasil_fire_col5__accumulated_burned_coverage_nivel3,,,,,,
-Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 4,produto,brasil_fire_col5__accumulated_burned_coverage_nivel4,,,,,,
-Severidade potencial das áreas queimadas,produto,brasil_fire_col5__severity,,,,,,
-Severidade do fogo,titulo_legenda,brasil_fire_col5__severity,,,,,,
-Intervalo de retorno do fogo,produto,brasil_fire_col5__fire_return_interval,,,,,,
-Intervalo de retorno (anos),titulo_legenda,brasil_fire_col5__fire_return_interval,,,,,,
-Intervalo médio de retorno do fogo,produto,brasil_fire_col5__mean_fire_return_interval,,,,,,
-Mosaico NBR mínimo (Landsat),produto,brasil_fire_col5__nbr_min,,,,,,
-NBR,titulo_legenda,brasil_fire_col5__nbr_min,,,,,,
-Land Use and Cover Classification v2,produto,brasil_lulc_col10__integration,,,,,,
-Deforestation and Secondary Vegetation v2,produto,brasil_lulc_col10__deforestation_secondary,,,,,,
-Irrigated Agriculture v2,produto,brasil_lulc_col10__irrigated_agriculture,,,,,,
-Mining Areas v3,produto,brasil_lulc_col10__mined_substance,,,,,,
-Pasture Vigor,produto,brasil_lulc_col10__pasture_quality,,,,,,
-Uso e Cobertura - Nível 0,produto,brasil_lulc_col11__lulc_nivel0,,,,,,
-Uso e Cobertura - Nível 1,produto,brasil_lulc_col11__lulc_nivel1,,,,,,
-Uso e Cobertura - Nível 1.1,produto,brasil_lulc_col11__lulc_nivel1_1,,,,,,
-Uso e Cobertura - Nível 2,produto,brasil_lulc_col11__lulc_nivel2,,,,,,
-Uso e Cobertura - Nível 3,produto,brasil_lulc_col11__lulc_nivel3,,,,,,
-Uso e Cobertura - Nível 4,produto,brasil_lulc_col11__lulc_nivel4,,,,,,
-Land Use and Cover Classification,produto,brasil_lulc_col9__integration,,,,,,
-Deforestation and Secondary Vegetation,produto,brasil_lulc_col9__deforestation_secondary,,,,,,
-Irrigated Agriculture,produto,brasil_lulc_col9__irrigated_agriculture,,,,,,
-Mining Areas,produto,brasil_lulc_col9__mined_substance,,,,,,
-Pasture Quality,produto,brasil_lulc_col9__pasture_quality,,,,,,
-Land Cover Quality,produto,brasil_lulc_col9__quality,,,,,,
-Landsat Falsa Cor (SWIR1/NIR/RED),produto,oeste_baiano__landsat_swir,,,,,,
-Landsat Cor Natural (R/G/B),produto,oeste_baiano__landsat_rgb,,,,,,
-Uso e Cobertura - Nível 0 (Coleção 11),produto,oeste_baiano__lulc_nivel0,,,,,,
-Uso e Cobertura - Nível 1 (Coleção 11),produto,oeste_baiano__lulc_nivel1,,,,,,
-Uso e Cobertura - Nível 1.1 (Coleção 11),produto,oeste_baiano__lulc_nivel1_1,,,,,,
-Uso e Cobertura - Nível 2 (Coleção 11),produto,oeste_baiano__lulc_nivel2,,,,,,
-Uso e Cobertura - Nível 3 (Coleção 11),produto,oeste_baiano__lulc_nivel3,,,,,,
-Uso e Cobertura - Nível 4 (Coleção 11),produto,oeste_baiano__lulc_nivel4,,,,,,
-Desmatamento e Vegetação Secundária (Coleção 11),produto,oeste_baiano__desmatamento_vegetacao_secundaria,,,,,,
-Soil Organic Carbon (0-30 cm),produto,brasil_soil__soc,,,,,,
-t/ha,titulo_legenda,brasil_soil__soc,,,,,,
-Estoque de carbono orgânico do solo,produto,brasil_soil_col3__carbon,,,,,,
-Carbono orgânico (t/ha),titulo_legenda,brasil_soil_col3__carbon,,,,,,
-MapBiomas Solo · Coleção 3,colecao,brasil_soil_col3__carbon,,,,,,
-Fração de argila por profundidade,produto,brasil_soil_col3__clay_fraction,,,,,,
-Argila (%),titulo_legenda,brasil_soil_col3__clay_fraction,,,,,,
-Fração de areia por profundidade,produto,brasil_soil_col3__sand_fraction,,,,,,
-Areia (%),titulo_legenda,brasil_soil_col3__sand_fraction,,,,,,
-Fração de silte por profundidade,produto,brasil_soil_col3__silt_fraction,,,,,,
-Silte (%),titulo_legenda,brasil_soil_col3__silt_fraction,,,,,,
-Grupamento textural por profundidade,produto,brasil_soil_col3__textural_group,,,,,,
-Grupamento textural,titulo_legenda,brasil_soil_col3__textural_group,,,,,,
-Subgrupamento textural por profundidade,produto,brasil_soil_col3__textural_subgroup,,,,,,
-Subgrupamento textural,titulo_legenda,brasil_soil_col3__textural_subgroup,,,,,,
-Classe textural por profundidade,produto,brasil_soil_col3__textural_class,,,,,,
-Classe textural,titulo_legenda,brasil_soil_col3__textural_class,,,,,,
-Uso e cobertura - Nível 0 (natural e antrópico),produto,gen_chaco_lulc__lulc_nivel0,,,,,,
-Chaco,iniciativa,chaco,,,,,,
-MapBiomas Chaco · Coleção 5,colecao,gen_chaco_lulc__lulc_nivel0,,,,,,
-Chile,iniciativa,chile,,,,,,
-MapBiomas Chile · Coleção 2,colecao,gen_chile_lulc__lulc_nivel0,,,,,,
-Colômbia,iniciativa,colombia,,,,,,
-MapBiomas Colômbia · Coleção 3,colecao,gen_colombia_lulc__lulc_nivel0,,,,,,
-Uso e cobertura - Nível 2 (todas as classes),produto,gen_colombia_lulc__lulc_nivel2,,,,,,
-Couverture et Utilisation des Terres (Niveau 0),produto,drc_lulc_col1__nivel0,,,,,,
-RD Congo,iniciativa,drc,,,,,,
-Classe d'occupation du sol,titulo_legenda,drc_lulc_col1__nivel0,,,,,,
-MapBiomas Collection 1,colecao,drc_lulc_col1__nivel0,,,,,,
-Couverture et Utilisation des Terres (Niveau 1),produto,drc_lulc_col1__nivel1,,,,,,
-Couverture et Utilisation des Terres (Niveau 2),produto,drc_lulc_col1__nivel2,,,,,,
-Equador,iniciativa,ecuador,,,,,,
-MapBiomas Equador · Coleção 4,colecao,gen_ecuador_lulc__lulc_nivel0,,,,,,
-Indonésia,iniciativa,indonesia,,,,,,
-MapBiomas Indonésia · Coleção 5,colecao,gen_indonesia_lulc__lulc_nivel1,,,,,,
-México,iniciativa,mexico,,,,,,
-MapBiomas México · Coleção 1.1,colecao,gen_mexico_lulc__lulc_nivel0,,,,,,
-Pampa (trinacional),iniciativa,pampa,,,,,,
-MapBiomas Pampa (trinacional) · Coleção 5,colecao,gen_pampa_lulc__lulc_nivel1,,,,,,
-Pan-Amazônia,iniciativa,pan_amazonia,,,,,,
-MapBiomas Pan-Amazônia · Coleção 6,colecao,gen_pan_amazonia_lulc__lulc_nivel1,,,,,,
-Paraguai,iniciativa,paraguay,,,,,,
-MapBiomas Paraguai · Coleção 3,colecao,gen_paraguay_lulc__lulc_nivel1,,,,,,
-Área quemada anual,produto,peru_fire_col2__annual_burned,,,,,,
-Peru,iniciativa,peru,,,,,,
-Píxel quemado,titulo_legenda,peru_fire_col2__annual_burned,,,,,,
-Área quemada por cobertura y uso de la tierra - Anual,produto,peru_fire_col2__annual_burned_coverage,,,,,,
-Clase de cobertura,titulo_legenda,peru_fire_col2__annual_burned_coverage,,,,,,
-Distribución mensual del área quemada,produto,peru_fire_col2__monthly_burned,,,,,,
-"Mes de quema (1=Ene, 12=Dic)",titulo_legenda,peru_fire_col2__monthly_burned,,,,,,
-Área quemada acumulada,produto,peru_fire_col2__accumulated_burned,,,,,,
-Frecuencia del área quemada,produto,peru_fire_col2__frequency_burned,,,,,,
-Frecuencia de incendios (1990-2025),titulo_legenda,peru_fire_col2__frequency_burned,,,,,,
-Última ocurrencia del fuego,produto,peru_fire_col2__year_last_fire,,,,,,
-Año,titulo_legenda,peru_fire_col2__year_last_fire,,,,,,
-Área quemada por cobertura y uso de la tierra - Anual - Nivel 0 (Natural/Antrópico),produto,peru_fire_col2__annual_burned_coverage_nivel0,,,,,,
-Área quemada por cobertura y uso de la tierra - Anual - Nivel 1,produto,peru_fire_col2__annual_burned_coverage_nivel1,,,,,,
-Área quemada por cobertura y uso de la tierra - Anual - Nivel 2,produto,peru_fire_col2__annual_burned_coverage_nivel2,,,,,,
-Área quemada por cobertura y uso de la tierra - Anual - Nivel 3,produto,peru_fire_col2__annual_burned_coverage_nivel3,,,,,,
-Cobertura y uso de la tierra - Nivel 0 (Natural/Antrópico),produto,peru_fire_col2__coverage_nivel0,,,,,,
-Cobertura y uso de la tierra - Nivel 1,produto,peru_fire_col2__coverage_nivel1,,,,,,
-Cobertura y uso de la tierra - Nivel 2,produto,peru_fire_col2__coverage_nivel2,,,,,,
-Cobertura y uso de la tierra - Nivel 3,produto,peru_fire_col2__coverage_nivel3,,,,,,
-Cobertura y uso de la tierra - Nivel 0 (Natural/Antrópico) - 1990-2025,produto,peru_fire_col2__coverage_nivel0_1990_2025,,,,,,
-Cobertura y uso de la tierra - Nivel 1 - 1990-2025,produto,peru_fire_col2__coverage_nivel1_1990_2025,,,,,,
-Cobertura y uso de la tierra - Nivel 2 - 1990-2025,produto,peru_fire_col2__coverage_nivel2_1990_2025,,,,,,
-Cobertura y uso de la tierra - Nivel 3 - 1990-2025,produto,peru_fire_col2__coverage_nivel3_1990_2025,,,,,,
-MapBiomas Peru · Coleção 4,colecao,gen_peru_lulc__lulc_nivel0,,,,,,
-Suriname,iniciativa,suriname,,,,,,
-MapBiomas Suriname · Coleção 1,colecao,gen_suriname_lulc__lulc_nivel0,,,,,,
-Uruguai,iniciativa,uruguay,,,,,,
-MapBiomas Uruguai · Coleção 4,colecao,gen_uruguay_lulc__lulc_nivel0,,,,,,
-Venezuela,iniciativa,venezuela,,,,,,
-MapBiomas Venezuela · Coleção 4,colecao,gen_venezuela_lulc__lulc_nivel0,,,,,,
-Não observado,classe,burned_at_least_once,,,,,,
-Queimado ao menos uma vez,classe,burned_at_least_once,,,,,,
-Queimado pela primeira vez,classe,burned_at_least_once,,,,,,
-Queimará no futuro,classe,burned_at_least_once,,,,,,
-Natural queimado e convertido,classe,burned_at_least_once,,,,,,
-1 evento,classe,canopy_disturbance,,,,,,
-2 eventos,classe,canopy_disturbance,,,,,,
-3 eventos,classe,canopy_disturbance,,,,,,
-4 eventos,classe,canopy_disturbance,,,,,,
-5 eventos,classe,canopy_disturbance,,,,,,
-6 eventos,classe,canopy_disturbance,,,,,,
-7 eventos,classe,canopy_disturbance,,,,,,
-8 eventos,classe,canopy_disturbance,,,,,,
-9 eventos,classe,canopy_disturbance,,,,,,
-10 eventos,classe,canopy_disturbance,,,,,,
-11 eventos,classe,canopy_disturbance,,,,,,
-12 eventos,classe,canopy_disturbance,,,,,,
-Área queimada por classe de cobertura - Nível 0 (Natural/Antrópico),nome_visualizacao,coverage_nivel0,,,,,,
-Natural,classe,coverage_nivel0,,,,,,
-Antrópico,classe,coverage_nivel0,,,,,,
-Área queimada por classe de cobertura - Nível 1,nome_visualizacao,coverage_nivel1,,,,,,
-Floresta,classe,coverage_nivel1,,,,,,
-Vegetação Herbácea e Arbustiva,classe,coverage_nivel1,,,,,,
-Agropecuária,classe,coverage_nivel1,,,,,,
-Área não Vegetada,classe,coverage_nivel1,,,,,,
-Corpos D'água,classe,coverage_nivel1,,,,,,
-Área queimada por classe de cobertura - Nível 1.1,nome_visualizacao,coverage_nivel1_1,,,,,,
-Formação Florestal,classe,coverage_nivel1_1,,,,,,
-Formação Savânica,classe,coverage_nivel1_1,,,,,,
-Silvicultura,classe,coverage_nivel1_1,,,,,,
-Campo Alagado e Área Pantanosa,classe,coverage_nivel1_1,,,,,,
-Formação Campestre,classe,coverage_nivel1_1,,,,,,
-Pastagem,classe,coverage_nivel1_1,,,,,,
-Agricultura,classe,coverage_nivel1_1,,,,,,
-Mosaico de Usos,classe,coverage_nivel1_1,,,,,,
-Área queimada por classe de cobertura - Nível 2,nome_visualizacao,coverage_nivel2,,,,,,
-Mangue,classe,coverage_nivel2,,,,,,
-Floresta Alagável,classe,coverage_nivel2,,,,,,
-Outras Formações não Florestais,classe,coverage_nivel2,,,,,,
-"Praia, Duna e Areal",classe,coverage_nivel2,,,,,,
-Área Urbanizada,classe,coverage_nivel2,,,,,,
-Outras Áreas não Vegetadas,classe,coverage_nivel2,,,,,,
-Afloramento Rochoso,classe,coverage_nivel2,,,,,,
-Mineração,classe,coverage_nivel2,,,,,,
-Aquicultura,classe,coverage_nivel2,,,,,,
-Apicum,classe,coverage_nivel2,,,,,,
-Lavoura Perene,classe,coverage_nivel2,,,,,,
-Restinga Arbórea,classe,coverage_nivel2,,,,,,
-Restinga Herbácea,classe,coverage_nivel2,,,,,,
-Usina Fotovoltaica (beta),classe,coverage_nivel2,,,,,,
-Área queimada por classe de cobertura - Nível 3,nome_visualizacao,coverage_nivel3,,,,,,
-Formação Natural não Florestal,classe,coverage_nivel3,,,,,,
-Lavoura Temporária,classe,coverage_nivel3,,,,,,
-Área queimada por classe de cobertura - Nível 4,nome_visualizacao,coverage_nivel4,,,,,,
-Cana,classe,coverage_nivel4,,,,,,
-"Rio, Lago e Oceano",classe,coverage_nivel4,,,,,,
-Dendê,classe,coverage_nivel4,,,,,,
-Soja,classe,coverage_nivel4,,,,,,
-Arroz,classe,coverage_nivel4,,,,,,
-Outras Lavouras Temporárias,classe,coverage_nivel4,,,,,,
-Café,classe,coverage_nivel4,,,,,,
-Citrus,classe,coverage_nivel4,,,,,,
-Outras Lavouras Perenes,classe,coverage_nivel4,,,,,,
-Algodão (beta),classe,coverage_nivel4,,,,,,
-Desmatamento e Vegetação Secundária,nome_visualizacao,def_seco,,,,,,
-Vegetação Primária,classe,def_seco,,,,,,
-Vegetação Secundária,classe,def_seco,,,,,,
-Supressão de Vegetação Primária,classe,def_seco,,,,,,
-Regeneração da Vegetação Secundária,classe,def_seco,,,,,,
-Supressão de Vegetação Secundária,classe,def_seco,,,,,,
-Ruído,classe,def_seco,,,,,,
-Distância de Isolamento,nome_visualizacao,distances,,,,,,
-Proximidade de Borda,nome_visualizacao,edge_area,,,,,,
-≤ 30 m,classe,edge_area_1000m,,,,,,
-≤ 60 m,classe,edge_area_1000m,,,,,,
-≤ 90 m,classe,edge_area_1000m,,,,,,
-≤ 120 m,classe,edge_area_1000m,,,,,,
-≤ 150 m,classe,edge_area_1000m,,,,,,
-≤ 300 m,classe,edge_area_1000m,,,,,,
-≤ 600 m,classe,edge_area_1000m,,,,,,
-≤ 1000 m,classe,edge_area_1000m,,,,,,
-Distância da Borda,nome_visualizacao,edge_area_col101,,,,,,
-Fogo - Binário,nome_visualizacao,fire,,,,,,
-Fogo,classe,fire,,,,,,
-Frecuencia del área quemada - Perú,nome_visualizacao,fire_col2_frequency,,,,,,
-Tamaño de las cicatrices,titulo_legenda,fire_col2_scar_size_range,,,,,,
-Tamaño de las cicatrices de fuego - Perú,nome_visualizacao,fire_col2_scar_size_range,,,,,,
-Última ocurrencia del fuego - Perú,nome_visualizacao,fire_col2_year_last_fire,,,,,,
-Área queimada,nome_visualizacao,fire_col5_coverage_total,,,,,,
-não observado,classe,fire_col5_return_interval,,,,,,
+Uso e cobertura - Nível 1,produto,gen_argentina_lulc__lulc_nivel1,Uso e cobertura - Nível 1,Land use and cover - Level 1,Uso y cobertura - Nivel 1,Occupation et utilisation des terres - Niveau 1,Penggunaan dan tutupan lahan - Level 1,土地利用与覆盖 - 1级
+Argentina,iniciativa,argentina,Argentina,Argentina,Argentina,Argentine,Argentina,阿根廷
+Classe,titulo_legenda,gen_argentina_lulc__lulc_nivel1,Classe,Class,Clase,Classe,Kelas,类别
+MapBiomas Argentina · Coleção 3,colecao,gen_argentina_lulc__lulc_nivel1,MapBiomas Argentina · Coleção 3,MapBiomas Argentina · Collection 3,MapBiomas Argentina · Colección 3,MapBiomas Argentine · Collection 3,MapBiomas Argentina · Koleksi 3,MapBiomas 阿根廷 · 合集 3
+Uso e cobertura - Nível 2,produto,gen_argentina_lulc__lulc_nivel2,Uso e cobertura - Nível 2,Land use and cover - Level 2,Uso y cobertura - Nivel 2,Occupation et utilisation des terres - Niveau 2,Penggunaan dan tutupan lahan - Level 2,土地利用与覆盖 - 2级
+Uso e cobertura - Nível 3 (todas as classes),produto,gen_argentina_lulc__lulc_nivel3,Uso e cobertura - Nível 3 (todas as classes),Land use and cover - Level 3 (all classes),Uso y cobertura - Nivel 3 (todas las clases),Occupation et utilisation des terres - Niveau 3 (toutes les classes),Penggunaan dan tutupan lahan - Level 3 (semua kelas),土地利用与覆盖 - 3级（所有类别）
+Bolívia,iniciativa,bolivia,Bolívia,Bolivia,Bolivia,Bolivie,Bolivia,玻利维亚
+MapBiomas Bolívia · Coleção 4,colecao,gen_bolivia_lulc__lulc_nivel1,MapBiomas Bolívia · Coleção 4,MapBiomas Bolivia · Collection 4,MapBiomas Bolivia · Colección 4,MapBiomas Bolivie · Collection 4,MapBiomas Bolivia · Koleksi 4,MapBiomas 玻利维亚 · 合集 4
+Mata Atlântica (trinacional),iniciativa,bosque_atlantico,Mata Atlântica (trinacional),Atlantic Forest (trinational),Bosque Atlántico (trinacional),Forêt atlantique (trinationale),Hutan Atlantik (trinacional),大西洋森林（三国）
+MapBiomas Mata Atlântica (trinacional) · Coleção 4,colecao,gen_bosque_atlantico_lulc__lulc_nivel1,MapBiomas Mata Atlântica (trinacional) · Coleção 4,MapBiomas Atlantic Forest (trinational) · Collection 4,MapBiomas Bosque Atlántico (trinacional) · Colección 4,MapBiomas Forêt atlantique (trinationale) · Collection 4,MapBiomas Hutan Atlantik (trinacional) · Koleksi 4,MapBiomas 大西洋森林（三国） · 合集 4
+Uso e cobertura - Nível 3,produto,gen_bosque_atlantico_lulc__lulc_nivel3,Uso e cobertura - Nível 3,Land use and cover - Level 3,Uso y cobertura - Nivel 3,Occupation et utilisation des terres - Niveau 3,Penggunaan dan tutupan lahan - Level 3,土地利用与覆盖 - 3级
+Uso e cobertura - Nível 4 (todas as classes),produto,gen_bosque_atlantico_lulc__lulc_nivel4,Uso e cobertura - Nível 4 (todas as classes),Land use and cover - Level 4 (all classes),Uso y cobertura - Nivel 4 (todas las clases),Occupation et utilisation des terres - Niveau 4 (toutes les classes),Penggunaan dan tutupan lahan - Level 4 (semua kelas),土地利用与覆盖 - 4级（所有类别）
+Precipitação anual,produto,brasil_atmosphere_col1__precipitation_annual,Precipitação anual,Annual precipitation,Precipitación anual,Précipitations annuelles,Curah hujan tahunan,年降水量
+Brasil,iniciativa,brasil,Brasil,Brazil,Brasil,Brésil,Brasil,巴西
+Precipitação (mm/ano),titulo_legenda,brasil_atmosphere_col1__precipitation_annual,Precipitação (mm/ano),Precipitation (mm/year),Precipitación (mm/año),Précipitations (mm/an),Curah hujan (mm/tahun),降水量（mm/年）
+MapBiomas Atmosfera · Coleção 1,colecao,brasil_atmosphere_col1__precipitation_annual,MapBiomas Atmosfera · Coleção 1,MapBiomas Atmosphere · Collection 1,MapBiomas Atmósfera · Colección 1,MapBiomas Atmosphère · Collection 1,MapBiomas Atmosfer · Koleksi 1,MapBiomas 大气 · 合集 1
+Temperatura máxima do ar,produto,brasil_atmosphere_col1__air_temperature_max_annual,Temperatura máxima do ar,Maximum air temperature,Temperatura máxima del aire,Température maximale de l'air,Suhu udara maksimum,最高气温
+Temperatura máxima (°C),titulo_legenda,brasil_atmosphere_col1__air_temperature_max_annual,Temperatura máxima (°C),Maximum temperature (°C),Temperatura máxima (°C),Température maximale (°C),Suhu maksimum (°C),最高温度（°C）
+Temperatura média do ar,produto,brasil_atmosphere_col1__air_temperature_mean_annual,Temperatura média do ar,Mean air temperature,Temperatura media del aire,Température moyenne de l'air,Suhu udara rata-rata,平均气温
+Temperatura média (°C),titulo_legenda,brasil_atmosphere_col1__air_temperature_mean_annual,Temperatura média (°C),Mean temperature (°C),Temperatura media (°C),Température moyenne (°C),Suhu rata-rata (°C),平均温度（°C）
+Temperatura mínima do ar,produto,brasil_atmosphere_col1__air_temperature_min_annual,Temperatura mínima do ar,Minimum air temperature,Temperatura mínima del aire,Température minimale de l'air,Suhu udara minimum,最低气温
+Temperatura mínima (°C),titulo_legenda,brasil_atmosphere_col1__air_temperature_min_annual,Temperatura mínima (°C),Minimum temperature (°C),Temperatura mínima (°C),Température minimale (°C),Suhu minimum (°C),最低温度（°C）
+Temperatura da superfície,produto,brasil_atmosphere_col1__surface_temperature_annual,Temperatura da superfície,Land surface temperature,Temperatura de la superficie,Température de surface,Suhu permukaan,地表温度
+Temperatura da superfície (°C),titulo_legenda,brasil_atmosphere_col1__surface_temperature_annual,Temperatura da superfície (°C),Surface temperature (°C),Temperatura de la superficie (°C),Température de surface (°C),Suhu permukaan (°C),地表温度（°C）
+Material particulado fino (PM2.5),produto,brasil_atmosphere_col1__pm2p5_annual,Material particulado fino (PM2.5),Fine particulate matter (PM2.5),Material particulado fino (PM2.5),Particules fines (PM2.5),Materi partikulat halus (PM2.5),细颗粒物（PM2.5）
+PM2.5 (µg/m³),titulo_legenda,brasil_atmosphere_col1__pm2p5_annual,PM2.5 (µg/m³),PM2.5 (µg/m³),PM2.5 (µg/m³),PM2.5 (µg/m³),PM2.5 (µg/m³),PM2.5（µg/m³）
+Material particulado (PM10),produto,brasil_atmosphere_col1__pm10_annual,Material particulado (PM10),Particulate matter (PM10),Material particulado (PM10),Particules en suspension (PM10),Materi partikulat (PM10),可吸入颗粒物（PM10）
+PM10 (µg/m³),titulo_legenda,brasil_atmosphere_col1__pm10_annual,PM10 (µg/m³),PM10 (µg/m³),PM10 (µg/m³),PM10 (µg/m³),PM10 (µg/m³),PM10（µg/m³）
+Dias sem chuva,produto,brasil_atmosphere_col1__rain_free_days_annual,Dias sem chuva,Rain-free days,Días sin lluvia,Jours sans pluie,Hari tanpa hujan,无雨日数
+Dias sem chuva no ano,titulo_legenda,brasil_atmosphere_col1__rain_free_days_annual,Dias sem chuva no ano,Rain-free days per year,Días sin lluvia en el año,Jours sans pluie dans l'année,Hari tanpa hujan dalam setahun,全年无雨日数
+Dias de chuva persistente,produto,brasil_atmosphere_col1__persistent_rain_annual,Dias de chuva persistente,Persistent rain days,Días de lluvia persistente,Jours de pluie persistante,Hari hujan persisten,持续降雨日数
+Dias com mais de 60 mm em 3 dias,titulo_legenda,brasil_atmosphere_col1__persistent_rain_annual,Dias com mais de 60 mm em 3 dias,Days with over 60 mm in 3 days,Días con más de 60 mm en 3 días,Jours avec plus de 60 mm en 3 jours,Hari dengan curah hujan > 60 mm dalam 3 hari,3天累计降水量超 60 mm 的天数
+Déficit de pressão de vapor,produto,brasil_atmosphere_col1__vapor_pressure_deficit_annual,Déficit de pressão de vapor,Vapor pressure deficit,Déficit de presión de vapor,Déficit de pression de vapeur,Defisit tekanan uap,饱和水汽压差
+Déficit de pressão de vapor (kPa),titulo_legenda,brasil_atmosphere_col1__vapor_pressure_deficit_annual,Déficit de pressão de vapor (kPa),Vapor pressure deficit (kPa),Déficit de presión de vapor (kPa),Déficit de pression de vapeur (kPa),Defisit tekanan uap (kPa),饱和水汽压差（kPa）
+Disponibilidade hídrica,produto,brasil_atmosphere_col1__water_availability_annual,Disponibilidade hídrica,Water availability,Disponibilidad hídrica,Disponibilité en eau,Ketersediaan air,水分可利用性
+Disponibilidade hídrica (maior = mais água),titulo_legenda,brasil_atmosphere_col1__water_availability_annual,Disponibilidade hídrica (maior = mais água),Water availability (higher = more water),Disponibilidad hídrica (mayor = más agua),Disponibilité en eau (plus élevé = plus d'eau),Ketersediaan air (lebih tinggi = lebih banyak air),水分可利用性（数值越大 = 水分越多）
+Frequência do Fogo,produto,brasil_degradation_col10_1__fire_frequency,Frequência do Fogo,Fire Frequency,Frecuencia del Fuego,Fréquence des feux,Frekuensi Kebakaran,火灾频率
+Frequência de fogo (1985-2024),titulo_legenda,brasil_degradation_col10_1__fire_frequency,Frequência de fogo (1985-2024),Fire frequency (1985-2024),Frecuencia de fuego (1985-2024),Fréquence des feux (1985-2024),Frekuensi kebakaran (1985-2024),火灾频率（1985-2024）
+Cobertura e Uso Natural da Terra,produto,brasil_degradation_col10_1__natural_coverage,Cobertura e Uso Natural da Terra,Natural Land Cover and Use,Cobertura y Uso Natural de la Tierra,Couverture et utilisation naturelles des terres,Tutupan dan Penggunaan Lahan Alami,自然土地覆盖与利用
+Cobertura natural,titulo_legenda,brasil_degradation_col10_1__natural_coverage,Cobertura natural,Natural cover,Cobertura natural,Couverture naturelle,Tutupan alami,自然植被覆盖
+Cobertura Vegetal em Áreas Queimadas,produto,brasil_degradation_col10_1__burned_natural_coverage,Cobertura Vegetal em Áreas Queimadas,Vegetation Cover in Burned Areas,Cobertura Vegetal en Áreas Quemadas,Couverture végétale dans les zones brûlées,Tutupan Vegetasi di Area Terbakar,过火区植被覆盖
+Classe de cobertura,titulo_legenda,brasil_degradation_col10_1__burned_natural_coverage,Classe de cobertura,Land cover class,Clase de cobertura,Classe de couverture,Kelas tutupan,覆盖类别
+Queimado ao Menos uma Vez,produto,brasil_degradation_col10_1__burned_at_least_once,Queimado ao Menos uma Vez,Burned at Least Once,Quemado al Menos una Vez,Brûlé au moins une fois,Terbakar Setidaknya Sekali,至少过火一次
+Frequência de fogo,titulo_legenda,brasil_degradation_col10_1__burned_at_least_once,Frequência de fogo,Fire frequency,Frecuencia de fuego,Fréquence des feux,Frekuensi kebakaran,火灾频率
+Cobertura Natural Primária,produto,brasil_degradation_col10_1__primary_natural_coverage,Cobertura Natural Primária,Primary Natural Cover,Cobertura Natural Primaria,Couverture naturelle primaire,Tutupan Alami Primer,原始自然覆盖
+Tempo desde o Último Fogo,produto,brasil_degradation_col10_1__fire_age,Tempo desde o Último Fogo,Time Since Last Fire,Tiempo desde el Último Fuego,Temps écoulé depuis le dernier feu,Waktu Sejak Kebakaran Terakhir,距末次火灾时间
+Anos desde o fogo,titulo_legenda,brasil_degradation_col10_1__fire_age,Anos desde o fogo,Years since fire,Años desde el fuego,Années depuis le feu,Tahun sejak kebakaran,距火灾年数
+Número de Fragmentos,produto,brasil_degradation_col10_1__patch_id,Número de Fragmentos,Number of Fragments,Número de Fragmentos,Nombre de fragments,Jumlah Fragmen,斑块数量
+Cada fragmento possui uma cor distinta,titulo_legenda,brasil_degradation_col10_1__patch_id,Cada fragmento possui uma cor distinta,Each fragment has a distinct color,Cada fragmento tiene un color distinto,Chaque fragment a une couleur distincte,Setiap fragmen memiliki warna berbeda,每个斑块具有不同颜色
+Tamanho do Fragmento (Contínuo),produto,brasil_degradation_col10_1__patch_size,Tamanho do Fragmento (Contínuo),Fragment Size (Continuous),Tamaño del Fragmento (Continuo),Taille du fragment (continu),Ukuran Fragmen (Kontinu),斑块大小（连续值）
+Tamanho do fragmento (ha),titulo_legenda,brasil_degradation_col10_1__patch_size,Tamanho do fragmento (ha),Fragment size (ha),Tamaño del fragmento (ha),Taille du fragment (ha),Ukuran fragmen (ha),斑块大小（ha）
+Fragmentos (ate 10k ha),produto,brasil_degradation_col10_1__patch_size_fragments,Fragmentos (até 10k ha),Fragments (up to 10k ha),Fragmentos (hasta 10k ha),Fragments (jusqu'à 10k ha),Fragmen (hingga 10k ha),斑块（不超过 10k ha）
+Tamanho do fragmento,titulo_legenda,brasil_degradation_col10_1__patch_size_fragments,Tamanho do fragmento,Fragment size,Tamaño del fragmento,Taille du fragment,Ukuran fragmen,斑块大小
+Macicos (> 10k ha),produto,brasil_degradation_col10_1__patch_size_massifs,Maciços (> 10k ha),Massifs (> 10k ha),Macizos (> 10k ha),Massifs (> 10k ha),Masif (> 10k ha),大型连片林区（> 10k ha）
+Tamanho do maciço,titulo_legenda,brasil_degradation_col10_1__patch_size_massifs,Tamanho do maciço,Massif size,Tamaño del macizo,Taille du massif,Ukuran masif,连片林区大小
+Área de Borda,produto,brasil_degradation_col10_1__edge_area,Área de Borda,Edge Area,Área de Borde,Zone de bordure,Area Tepi,边缘区面积
+Distância da borda (m),titulo_legenda,brasil_degradation_col10_1__edge_area,Distância da borda (m),Distance from edge (m),Distancia desde el borde (m),Distance depuis la bordure (m),Jarak dari tepi (m),距边缘距离（m）
+Idade da Borda,produto,brasil_degradation_col10_1__edge_age,Idade da Borda,Edge Age,Edad del Borde,Âge de la bordure,Usia Tepi,边缘林龄
+Idade da borda (anos),titulo_legenda,brasil_degradation_col10_1__edge_age,Idade da borda (anos),Edge age (years),Edad del borde (años),Âge de la bordure (années),Usia tepi (tahun),边缘林龄（年）
+Morfologia dos Fragmentos,produto,brasil_degradation_col10_1__landscape_morphology,Morfologia dos Fragmentos,Fragment Morphology,Morfología de los Fragmentos,Morphologie des fragments,Morfologi Fragmen,斑块形态
+Classe morfológica,titulo_legenda,brasil_degradation_col10_1__landscape_morphology,Classe morfológica,Morphological class,Clase morfológica,Classe morphologique,Kelas morfologi,形态类别
+Idade da Vegetação Secundária,produto,brasil_degradation_col10_1__secondary_vegetation_age,Idade da Vegetação Secundária,Secondary Vegetation Age,Edad de la Vegetación Secundaria,Âge de la végétation secondaire,Usia Vegetasi Sekunder,次生植被林龄
+Idade (anos),titulo_legenda,brasil_degradation_col10_1__secondary_vegetation_age,Idade (anos),Age (years),Edad (años),Âge (années),Usia (tahun),年龄（年）
+Cobertura da Vegetação Secundária,produto,brasil_degradation_col10_1__secondary_vegetation_coverage,Cobertura da Vegetação Secundária,Secondary Vegetation Cover,Cobertura de la Vegetación Secundaria,Couverture de la végétation secondaire,Tutupan Vegetasi Sekunder,次生植被覆盖
+Distúrbio de Dossel,produto,brasil_degradation_col10_1__canopy_disturbance_frequency,Distúrbio de Dossel,Canopy Disturbance,Perturbación del Dosel,Perturbation de la canopée,Gangguan Tajuk,林冠干扰
+Eventos de distúrbio,titulo_legenda,brasil_degradation_col10_1__canopy_disturbance_frequency,Eventos de distúrbio,Disturbance events,Eventos de perturbación,Événements de perturbation,Kejadian gangguan,干扰事件次数
+Corte Seletivo,produto,brasil_degradation_col10_1__logging,Corte Seletivo,Selective Logging,Tala Selectiva,Exploitation forestière sélective,Penebangan Selektif,选择性采伐
+Corte seletivo,titulo_legenda,brasil_degradation_col10_1__logging,Corte seletivo,Selective logging,Tala selectiva,Exploitation forestière sélective,Penebangan selektif,选择性采伐
+Distância até a Borda,produto,brasil_degradation_col11__edge_area,Distância até a Borda,Distance to Edge,Distancia hasta el Borde,Distance à la bordure,Jarak ke Tepi,距边缘距离
+Distância até a borda (m),titulo_legenda,brasil_degradation_col11__edge_area,Distância até a borda (m),Distance to edge (m),Distancia hasta el borde (m),Distance à la bordure (m),Jarak ke tepi (m),距边缘距离（m）
+Distância até a Borda (até 1000 m),produto,brasil_degradation_col11__edge_area_1000m,Distância até a Borda (até 1000 m),Distance to Edge (up to 1000 m),Distancia hasta el Borde (hasta 1000 m),Distance à la bordure (jusqu'à 1000 m),Jarak ke Tepi (hingga 1000 m),距边缘距离（不超过 1000 m）
+Edge Area (30-1000m),produto,brasil_degradation_col9__edge_area,Área de Borda (30-1000m),Edge Area (30-1000m),Área de Borde (30-1000m),Zone de bordure (30-1000m),Area Tepi (30-1000m),边缘区（30-1000m）
+Distância de borda (m),titulo_legenda,brasil_degradation_col9__edge_area,Distância de borda (m),Edge distance (m),Distancia de borde (m),Distance de bordure (m),Jarak tepi (m),边缘距离（m）
+Fragment Size (3-75ha),produto,brasil_degradation_col9__fragment_size,Tamanho do Fragmento (3-75ha),Fragment Size (3-75ha),Tamaño del Fragmento (3-75ha),Taille du fragment (3-75ha),Ukuran Fragmen (3-75ha),斑块大小（3-75ha）
+Isolation Distance (100ha),produto,brasil_degradation_col9__distance_100ha,Distância de Isolamento (100ha),Isolation Distance (100ha),Distancia de Aislamiento (100ha),Distance d'isolement (100ha),Jarak Isolasi (100ha),隔离距离（100ha）
+Classe de distância,titulo_legenda,brasil_degradation_col9__distance_100ha,Classe de distância,Distance class,Clase de distancia,Classe de distance,Kelas jarak,距离类别
+Isolation Distance (500ha),produto,brasil_degradation_col9__distance_500ha,Distância de Isolamento (500ha),Isolation Distance (500ha),Distancia de Aislamiento (500ha),Distance d'isolement (500ha),Jarak Isolasi (500ha),隔离距离（500ha）
+Isolation Distance (1000ha),produto,brasil_degradation_col9__distance_1000ha,Distância de Isolamento (1000ha),Isolation Distance (1000ha),Distancia de Aislamiento (1000ha),Distance d'isolement (1000ha),Jarak Isolasi (1000ha),隔离距离（1000ha）
+Secondary Vegetation Coverage,produto,brasil_degradation_col9__secondary_vegetation_coverage,Cobertura da Vegetação Secundária,Secondary Vegetation Coverage,Cobertura de la Vegetación Secundaria,Couverture de la végétation secondaire,Tutupan Vegetasi Sekunder,次生植被覆盖
+Classe de uso,titulo_legenda,brasil_degradation_col9__secondary_vegetation_coverage,Classe de uso,Land use class,Clase de uso,Classe d'utilisation,Kelas penggunaan,利用类别
+Secondary Vegetation Age,produto,brasil_degradation_col9__secondary_vegetation_age,Idade da Vegetação Secundária,Secondary Vegetation Age,Edad de la Vegetación Secundaria,Âge de la végétation secondaire,Usia Vegetasi Sekunder,次生植被林龄
+Degradation Fire Frequency,produto,brasil_degradation_col9__fire_frequency,Frequência do Fogo (Degradação),Degradation Fire Frequency,Frecuencia del Fuego (Degradación),Fréquence des feux (dégradation),Frekuensi Kebakaran (Degradasi),退化火灾频率
+Número de anos com fogo,titulo_legenda,brasil_degradation_col9__fire_frequency,Número de anos com fogo,Number of years with fire,Número de años con fuego,Nombre d'années avec feu,Jumlah tahun dengan kebakaran,发生火灾的年数
+Degradation Accumulated Burned Coverage,produto,brasil_degradation_col9__accumulated_burned_coverage,Cobertura Queimada Acumulada (Degradação),Degradation Accumulated Burned Coverage,Cobertura Quemada Acumulada (Degradación),Couverture brûlée cumulée (dégradation),Tutupan Terbakar Kumulatif (Degradasi),退化累计过火覆盖
+Annual Burned Area,produto,brasil_fire_col3__annual_burned,Área Queimada Anual,Annual Burned Area,Área Quemada Anual,Superficie brûlée annuelle,Area Terbakar Tahunan,年度过火面积
+Pixel queimado,titulo_legenda,brasil_fire_col3__annual_burned,Pixel queimado,Burned pixel,Píxel quemado,Pixel brûlé,Piksel terbakar,过火像元
+Annual Burned Coverage,produto,brasil_fire_col3__annual_burned_coverage,Cobertura Queimada Anual,Annual Burned Coverage,Cobertura Quemada Anual,Couverture brûlée annuelle,Tutupan Terbakar Tahunan,年度过火覆盖
+Monthly Burned Area,produto,brasil_fire_col3__monthly_burned,Área Queimada Mensal,Monthly Burned Area,Área Quemada Mensual,Superficie brûlée mensuelle,Area Terbakar Bulanan,月度过火面积
+"Mês de queimada (1=Jan, 12=Dez)",titulo_legenda,brasil_fire_col3__monthly_burned,"Mês de queimada (1=Jan, 12=Dez)","Burn month (1=Jan, 12=Dec)","Mes de quema (1=Ene, 12=Dic)","Mois de brûlis (1=Jan, 12=Déc)","Bulan kebakaran (1=Jan, 12=Des)",过火月份（1=1月，12=12月）
+Fire Frequency,produto,brasil_fire_col3__fire_frequency,Frequência do Fogo,Fire Frequency,Frecuencia del Fuego,Fréquence des feux,Frekuensi Kebakaran,火灾频率
+Accumulated Burned Area,produto,brasil_fire_col3__accumulated_burned,Área Queimada Acumulada,Accumulated Burned Area,Área Quemada Acumulada,Superficie brûlée cumulée,Area Terbakar Kumulatif,累计过火面积
+Accumulated Burned Coverage,produto,brasil_fire_col3__accumulated_burned_coverage,Cobertura Queimada Acumulada,Accumulated Burned Coverage,Cobertura Quemada Acumulada,Couverture brûlée cumulée,Tutupan Terbakar Kumulatif,累计过火覆盖
+Year of Last Fire,produto,brasil_fire_col3__year_last_fire,Ano do Último Fogo,Year of Last Fire,Año del Último Fuego,Année du dernier feu,Tahun Kebakaran Terakhir,末次火灾年份
+Ano,titulo_legenda,brasil_fire_col3__year_last_fire,Ano,Year,Año,Année,Tahun,年份
+Scar Size Range,produto,brasil_fire_col3__scar_size_range,Tamanho das Cicatrizes de Fogo,Scar Size Range,Tamaño de las Cicatrices de Fuego,Taille des cicatrices de feu,Rentang Ukuran Bekas Kebakaran,火烧迹地面积分级
+Tamanho da cicatriz de fogo,titulo_legenda,brasil_fire_col3__scar_size_range,Tamanho da cicatriz de fogo,Fire scar size,Tamaño de la cicatriz de fuego,Taille de la cicatrice de feu,Ukuran bekas kebakaran,火烧迹地大小
+Área queimada anual,produto,brasil_fire_col5__annual_burned,Área queimada anual,Annual burned area,Área quemada anual,Superficie brûlée annuelle,Area terbakar tahunan,年度过火面积
+Distribuição mensal da área queimada,produto,brasil_fire_col5__monthly_burned,Distribuição mensal da área queimada,Monthly distribution of burned area,Distribución mensual del área quemada,Distribution mensuelle de la superficie brûlée,Distribusi bulanan area terbakar,过火面积月度分布
+Tamanho das cicatrizes de fogo,produto,brasil_fire_col5__scar_size_range,Tamanho das cicatrizes de fogo,Fire scar size,Tamaño de las cicatrizes de fuego,Taille des cicatrices de feu,Ukuran bekas kebakaran,火烧迹地大小
+Área queimada acumulada,produto,brasil_fire_col5__accumulated_burned,Área queimada acumulada,Accumulated burned area,Área quemada acumulada,Superficie brûlée cumulée,Area terbakar kumulatif,累计过火面积
+Frequência da área queimada,produto,brasil_fire_col5__fire_frequency,Frequência da área queimada,Burned area frequency,Frecuencia del área quemada,Fréquence de la superficie brûlée,Frekuensi area terbakar,过火面积频率
+Frequência de queimadas (1985-2025),titulo_legenda,brasil_fire_col5__fire_frequency,Frequência de queimadas (1985-2025),Fire frequency (1985-2025),Frecuencia de quemas (1985-2025),Fréquence des feux (1985-2025),Frekuensi kebakaran (1985-2025),火灾频率（1985-2025）
+Última ocorrência do fogo,produto,brasil_fire_col5__year_last_fire,Última ocorrência do fogo,Last fire occurrence,Última ocurrencia del fuego,Dernière occurrence du feu,Kejadian kebakaran terakhir,末次火灾发生时间
+Tempo desde a última ocorrência do fogo,produto,brasil_fire_col5__time_after_fire,Tempo desde a última ocorrência do fogo,Time since last fire occurrence,Tiempo desde la última ocurrencia del fuego,Temps écoulé depuis la dernière occurrence du feu,Waktu sejak kejadian kebakaran terakhir,距末次火灾发生时间
+Anos desde o último fogo,titulo_legenda,brasil_fire_col5__time_after_fire,Anos desde o último fogo,Years since last fire,Años desde el último fuego,Années depuis le dernier feu,Tahun sejak kebakaran terakhir,距末次火灾年数
+Área queimada inédita,produto,brasil_fire_col5__unprecedented_fire,Área queimada inédita,Unprecedented burned area,Área quemada inédita,Superficie brûlée inédite,Area terbakar belum pernah terjadi,首次过火面积
+Fogo inédito,titulo_legenda,brasil_fire_col5__unprecedented_fire,Fogo inédito,Unprecedented fire,Fuego inédito,Feu inédit,Kebakaran pertama kali,首次过火
+Área queimada por classe de cobertura e uso da terra - Anual - Nível 0 (Natural/Antrópico),produto,brasil_fire_col5__annual_burned_coverage_nivel0,Área queimada por classe de cobertura e uso da terra - Anual - Nível 0 (Natural/Antrópico),Burned area by land cover and use class - Annual - Level 0 (Natural/Anthropic),Área quemada por clase de cobertura y uso de la tierra - Anual - Nivel 0 (Natural/Antrópico),Superficie brûlée par classe d'occupation et d'utilisation des terres - Annuelle - Niveau 0 (Naturel/Anthropique),Area terbakar menurut kelas tutupan dan penggunaan lahan - Tahunan - Level 0 (Alami/Antropik),按土地覆盖与利用类别统计的过火面积 - 年度 - 0级（自然/人为）
+Área queimada por classe de cobertura e uso da terra - Anual - Nível 1,produto,brasil_fire_col5__annual_burned_coverage_nivel1,Área queimada por classe de cobertura e uso da terra - Anual - Nível 1,Burned area by land cover and use class - Annual - Level 1,Área quemada por clase de cobertura y uso de la tierra - Anual - Nivel 1,Superficie brûlée par classe d'occupation et d'utilisation des terres - Annuelle - Niveau 1,Area terbakar menurut kelas tutupan dan penggunaan lahan - Tahunan - Level 1,按土地覆盖与利用类别统计的过火面积 - 年度 - 1级
+Área queimada por classe de cobertura e uso da terra - Anual - Nível 1.1,produto,brasil_fire_col5__annual_burned_coverage_nivel1_1,Área queimada por classe de cobertura e uso da terra - Anual - Nível 1.1,Burned area by land cover and use class - Annual - Level 1.1,Área quemada por clase de cobertura y uso de la tierra - Anual - Nivel 1.1,Superficie brûlée par classe d'occupation et d'utilisation des terres - Annuelle - Niveau 1.1,Area terbakar menurut kelas tutupan dan penggunaan lahan - Tahunan - Level 1.1,按土地覆盖与利用类别统计的过火面积 - 年度 - 1.1级
+Área queimada por classe de cobertura e uso da terra - Anual - Nível 2,produto,brasil_fire_col5__annual_burned_coverage_nivel2,Área queimada por classe de cobertura e uso da terra - Anual - Nível 2,Burned area by land cover and use class - Annual - Level 2,Área quemada por clase de cobertura y uso de la tierra - Anual - Nivel 2,Superficie brûlée par classe d'occupation et d'utilisation des terres - Annuelle - Niveau 2,Area terbakar menurut kelas tutupan dan penggunaan lahan - Tahunan - Level 2,按土地覆盖与利用类别统计的过火面积 - 年度 - 2级
+Área queimada por classe de cobertura e uso da terra - Anual - Nível 3,produto,brasil_fire_col5__annual_burned_coverage_nivel3,Área queimada por classe de cobertura e uso da terra - Anual - Nível 3,Burned area by land cover and use class - Annual - Level 3,Área quemada por clase de cobertura y uso de la tierra - Anual - Nivel 3,Superficie brûlée par classe d'occupation et d'utilisation des terres - Annuelle - Niveau 3,Area terbakar menurut kelas tutupan dan penggunaan lahan - Tahunan - Level 3,按土地覆盖与利用类别统计的过火面积 - 年度 - 3级
+Área queimada por classe de cobertura e uso da terra - Anual - Nível 4,produto,brasil_fire_col5__annual_burned_coverage_nivel4,Área queimada por classe de cobertura e uso da terra - Anual - Nível 4,Burned area by land cover and use class - Annual - Level 4,Área quemada por clase de cobertura y uso de la tierra - Anual - Nivel 4,Superficie brûlée par classe d'occupation et d'utilisation des terres - Annuelle - Niveau 4,Area terbakar menurut kelas tutupan dan penggunaan lahan - Tahunan - Level 4,按土地覆盖与利用类别统计的过火面积 - 年度 - 4级
+Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 0 (Natural/Antrópico),produto,brasil_fire_col5__accumulated_burned_coverage_nivel0,Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 0 (Natural/Antrópico),Burned area by land cover and use class - Accumulated - Level 0 (Natural/Anthropic),Área quemada por clase de cobertura y uso de la tierra - Acumulada - Nivel 0 (Natural/Antrópico),Superficie brûlée par classe d'occupation et d'utilisation des terres - Cumulée - Niveau 0 (Naturel/Anthropique),Area terbakar menurut kelas tutupan dan penggunaan lahan - Kumulatif - Level 0 (Alami/Antropik),按土地覆盖与利用类别统计的过火面积 - 累计 - 0级（自然/人为）
+Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 1,produto,brasil_fire_col5__accumulated_burned_coverage_nivel1,Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 1,Burned area by land cover and use class - Accumulated - Level 1,Área quemada por clase de cobertura y uso de la tierra - Acumulada - Nivel 1,Superficie brûlée par classe d'occupation et d'utilisation des terres - Cumulée - Niveau 1,Area terbakar menurut kelas tutupan dan penggunaan lahan - Kumulatif - Level 1,按土地覆盖与利用类别统计的过火面积 - 累计 - 1级
+Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 1.1,produto,brasil_fire_col5__accumulated_burned_coverage_nivel1_1,Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 1.1,Burned area by land cover and use class - Accumulated - Level 1.1,Área quemada por clase de cobertura y uso de la tierra - Acumulada - Nivel 1.1,Superficie brûlée par classe d'occupation et d'utilisation des terres - Cumulée - Niveau 1.1,Area terbakar menurut kelas tutupan dan penggunaan lahan - Kumulatif - Level 1.1,按土地覆盖与利用类别统计的过火面积 - 累计 - 1.1级
+Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 2,produto,brasil_fire_col5__accumulated_burned_coverage_nivel2,Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 2,Burned area by land cover and use class - Accumulated - Level 2,Área quemada por clase de cobertura y uso de la tierra - Acumulada - Nivel 2,Superficie brûlée par classe d'occupation et d'utilisation des terres - Cumulée - Niveau 2,Area terbakar menurut kelas tutupan dan penggunaan lahan - Kumulatif - Level 2,按土地覆盖与利用类别统计的过火面积 - 累计 - 2级
+Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 3,produto,brasil_fire_col5__accumulated_burned_coverage_nivel3,Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 3,Burned area by land cover and use class - Accumulated - Level 3,Área quemada por clase de cobertura y uso de la tierra - Acumulada - Nivel 3,Superficie brûlée par classe d'occupation et d'utilisation des terres - Cumulée - Niveau 3,Area terbakar menurut kelas tutupan dan penggunaan lahan - Kumulatif - Level 3,按土地覆盖与利用类别统计的过火面积 - 累计 - 3级
+Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 4,produto,brasil_fire_col5__accumulated_burned_coverage_nivel4,Área queimada por classe de cobertura e uso da terra - Acumulada - Nível 4,Burned area by land cover and use class - Accumulated - Level 4,Área quemada por clase de cobertura y uso de la tierra - Acumulada - Nivel 4,Superficie brûlée par classe d'occupation et d'utilisation des terres - Cumulée - Niveau 4,Area terbakar menurut kelas tutupan dan penggunaan lahan - Kumulatif - Level 4,按土地覆盖与利用类别统计的过火面积 - 累计 - 4级
+Severidade potencial das áreas queimadas,produto,brasil_fire_col5__severity,Severidade potencial das áreas queimadas,Potential severity of burned areas,Severidad potencial de las áreas quemadas,Sévérité potentielle des zones brûlées,Potensi tingkat keparahan area terbakar,过火区潜在严重程度
+Severidade do fogo,titulo_legenda,brasil_fire_col5__severity,Severidade do fogo,Fire severity,Severidad del fuego,Sévérité du feu,Tingkat keparahan kebakaran,火灾严重程度
+Intervalo de retorno do fogo,produto,brasil_fire_col5__fire_return_interval,Intervalo de retorno do fogo,Fire return interval,Intervalo de retorno del fuego,Intervalle de retour du feu,Interval kembalinya kebakaran,火灾重现间隔
+Intervalo de retorno (anos),titulo_legenda,brasil_fire_col5__fire_return_interval,Intervalo de retorno (anos),Return interval (years),Intervalo de retorno (años),Intervalle de retour (années),Interval kembali (tahun),重现间隔（年）
+Intervalo médio de retorno do fogo,produto,brasil_fire_col5__mean_fire_return_interval,Intervalo médio de retorno do fogo,Mean fire return interval,Intervalo medio de retorno del fuego,Intervalle moyen de retour du feu,Interval rata-rata kembalinya kebakaran,平均火灾重现间隔
+Mosaico NBR mínimo (Landsat),produto,brasil_fire_col5__nbr_min,Mosaico NBR mínimo (Landsat),Minimum NBR mosaic (Landsat),Mosaico NBR mínimo (Landsat),Mosaïque NBR minimale (Landsat),Mosaik NBR minimum (Landsat),最小 NBR 镶嵌影像（Landsat）
+NBR,titulo_legenda,brasil_fire_col5__nbr_min,NBR,NBR,NBR,NBR,NBR,NBR
+Land Use and Cover Classification v2,produto,brasil_lulc_col10__integration,Classificação de Uso e Cobertura da Terra v2,Land Use and Cover Classification v2,Clasificación de Uso y Cobertura de la Tierra v2,Classification de l'occupation et de l'utilisation des terres v2,Klasifikasi Penggunaan dan Tutupan Lahan v2,土地利用与覆盖分类 v2
+Deforestation and Secondary Vegetation v2,produto,brasil_lulc_col10__deforestation_secondary,Desmatamento e Vegetação Secundária v2,Deforestation and Secondary Vegetation v2,Deforestación y Vegetación Secundaria v2,Déforestation et végétation secondaire v2,Deforestasi dan Vegetasi Sekunder v2,毁林与次生植被 v2
+Irrigated Agriculture v2,produto,brasil_lulc_col10__irrigated_agriculture,Agricultura Irrigada v2,Irrigated Agriculture v2,Agricultura Irrigada v2,Agriculture irriguée v2,Pertanian Irigasi v2,灌溉农业 v2
+Mining Areas v3,produto,brasil_lulc_col10__mined_substance,Áreas de Mineração v3,Mining Areas v3,Áreas de Minería v3,Zones minières v3,Area Pertambangan v3,采矿区 v3
+Pasture Vigor,produto,brasil_lulc_col10__pasture_quality,Vigor da Pastagem,Pasture Vigor,Vigor de las Pasturas,Vigueur des pâturages,Vigor Padang Penggembalaan,牧草长势
+Uso e Cobertura - Nível 0,produto,brasil_lulc_col11__lulc_nivel0,Uso e Cobertura - Nível 0,Land Use and Cover - Level 0,Uso y Cobertura - Nivel 0,Occupation et utilisation des terres - Niveau 0,Penggunaan dan Tutupan Lahan - Level 0,土地利用与覆盖 - 0级
+Uso e Cobertura - Nível 1,produto,brasil_lulc_col11__lulc_nivel1,Uso e Cobertura - Nível 1,Land Use and Cover - Level 1,Uso y Cobertura - Nivel 1,Occupation et utilisation des terres - Niveau 1,Penggunaan dan Tutupan Lahan - Level 1,土地利用与覆盖 - 1级
+Uso e Cobertura - Nível 1.1,produto,brasil_lulc_col11__lulc_nivel1_1,Uso e Cobertura - Nível 1.1,Land Use and Cover - Level 1.1,Uso y Cobertura - Nivel 1.1,Occupation et utilisation des terres - Niveau 1.1,Penggunaan dan Tutupan Lahan - Level 1.1,土地利用与覆盖 - 1.1级
+Uso e Cobertura - Nível 2,produto,brasil_lulc_col11__lulc_nivel2,Uso e Cobertura - Nível 2,Land Use and Cover - Level 2,Uso y Cobertura - Nivel 2,Occupation et utilisation des terres - Niveau 2,Penggunaan dan Tutupan Lahan - Level 2,土地利用与覆盖 - 2级
+Uso e Cobertura - Nível 3,produto,brasil_lulc_col11__lulc_nivel3,Uso e Cobertura - Nível 3,Land Use and Cover - Level 3,Uso y Cobertura - Nivel 3,Occupation et utilisation des terres - Niveau 3,Penggunaan dan Tutupan Lahan - Level 3,土地利用与覆盖 - 3级
+Uso e Cobertura - Nível 4,produto,brasil_lulc_col11__lulc_nivel4,Uso e Cobertura - Nível 4,Land Use and Cover - Level 4,Uso y Cobertura - Nivel 4,Occupation et utilisation des terres - Niveau 4,Penggunaan dan Tutupan Lahan - Level 4,土地利用与覆盖 - 4级
+Land Use and Cover Classification,produto,brasil_lulc_col9__integration,Classificação de Uso e Cobertura da Terra,Land Use and Cover Classification,Clasificación de Uso y Cobertura de la Tierra,Classification de l'occupation et de l'utilisation des terres,Klasifikasi Penggunaan dan Tutupan Lahan,土地利用与覆盖分类
+Deforestation and Secondary Vegetation,produto,brasil_lulc_col9__deforestation_secondary,Desmatamento e Vegetação Secundária,Deforestation and Secondary Vegetation,Deforestación y Vegetación Secundaria,Déforestation et végétation secondaire,Deforestasi dan Vegetasi Sekunder,毁林与次生植被
+Irrigated Agriculture,produto,brasil_lulc_col9__irrigated_agriculture,Agricultura Irrigada,Irrigated Agriculture,Agricultura Irrigada,Agriculture irriguée,Pertanian Irigasi,灌溉农业
+Mining Areas,produto,brasil_lulc_col9__mined_substance,Áreas de Mineração,Mining Areas,Áreas de Minería,Zones minières,Area Pertambangan,采矿区
+Pasture Quality,produto,brasil_lulc_col9__pasture_quality,Qualidade da Pastagem,Pasture Quality,Calidad de las Pasturas,Qualité des pâturages,Kualitas Padang Penggembalaan,牧草质量
+Land Cover Quality,produto,brasil_lulc_col9__quality,Qualidade da Cobertura da Terra,Land Cover Quality,Calidad de la Cobertura de la Tierra,Qualité de la couverture des terres,Kualitas Tutupan Lahan,土地覆盖质量
+Landsat Falsa Cor (SWIR1/NIR/RED),produto,oeste_baiano__landsat_swir,Landsat Falsa Cor (SWIR1/NIR/RED),Landsat False Color (SWIR1/NIR/RED),Landsat Falso Color (SWIR1/NIR/RED),Landsat fausses couleurs (SWIR1/NIR/RED),Landsat Warna Semu (SWIR1/NIR/RED),Landsat 假彩色（SWIR1/NIR/RED）
+Landsat Cor Natural (R/G/B),produto,oeste_baiano__landsat_rgb,Landsat Cor Natural (R/G/B),Landsat Natural Color (R/G/B),Landsat Color Natural (R/G/B),Landsat couleurs naturelles (R/G/B),Landsat Warna Alami (R/G/B),Landsat 真彩色（R/G/B）
+Uso e Cobertura - Nível 0 (Coleção 11),produto,oeste_baiano__lulc_nivel0,Uso e Cobertura - Nível 0 (Coleção 11),Land Use and Cover - Level 0 (Collection 11),Uso y Cobertura - Nivel 0 (Colección 11),Occupation et utilisation des terres - Niveau 0 (Collection 11),Penggunaan dan Tutupan Lahan - Level 0 (Koleksi 11),土地利用与覆盖 - 0级（合集 11）
+Uso e Cobertura - Nível 1 (Coleção 11),produto,oeste_baiano__lulc_nivel1,Uso e Cobertura - Nível 1 (Coleção 11),Land Use and Cover - Level 1 (Collection 11),Uso y Cobertura - Nivel 1 (Colección 11),Occupation et utilisation des terres - Niveau 1 (Collection 11),Penggunaan dan Tutupan Lahan - Level 1 (Koleksi 11),土地利用与覆盖 - 1级（合集 11）
+Uso e Cobertura - Nível 1.1 (Coleção 11),produto,oeste_baiano__lulc_nivel1_1,Uso e Cobertura - Nível 1.1 (Coleção 11),Land Use and Cover - Level 1.1 (Collection 11),Uso y Cobertura - Nivel 1.1 (Colección 11),Occupation et utilisation des terres - Niveau 1.1 (Collection 11),Penggunaan dan Tutupan Lahan - Level 1.1 (Koleksi 11),土地利用与覆盖 - 1.1级（合集 11）
+Uso e Cobertura - Nível 2 (Coleção 11),produto,oeste_baiano__lulc_nivel2,Uso e Cobertura - Nível 2 (Coleção 11),Land Use and Cover - Level 2 (Collection 11),Uso y Cobertura - Nivel 2 (Colección 11),Occupation et utilisation des terres - Niveau 2 (Collection 11),Penggunaan dan Tutupan Lahan - Level 2 (Koleksi 11),土地利用与覆盖 - 2级（合集 11）
+Uso e Cobertura - Nível 3 (Coleção 11),produto,oeste_baiano__lulc_nivel3,Uso e Cobertura - Nível 3 (Coleção 11),Land Use and Cover - Level 3 (Collection 11),Uso y Cobertura - Nivel 3 (Colección 11),Occupation et utilisation des terres - Niveau 3 (Collection 11),Penggunaan dan Tutupan Lahan - Level 3 (Koleksi 11),土地利用与覆盖 - 3级（合集 11）
+Uso e Cobertura - Nível 4 (Coleção 11),produto,oeste_baiano__lulc_nivel4,Uso e Cobertura - Nível 4 (Coleção 11),Land Use and Cover - Level 4 (Collection 11),Uso y Cobertura - Nivel 4 (Colección 11),Occupation et utilisation des terres - Niveau 4 (Collection 11),Penggunaan dan Tutupan Lahan - Level 4 (Koleksi 11),土地利用与覆盖 - 4级（合集 11）
+Desmatamento e Vegetação Secundária (Coleção 11),produto,oeste_baiano__desmatamento_vegetacao_secundaria,Desmatamento e Vegetação Secundária (Coleção 11),Deforestation and Secondary Vegetation (Collection 11),Deforestación y Vegetación Secundaria (Colección 11),Déforestation et végétation secondaire (Collection 11),Deforestasi dan Vegetasi Sekunder (Koleksi 11),毁林与次生植被（合集 11）
+Soil Organic Carbon (0-30 cm),produto,brasil_soil__soc,Carbono Orgânico do Solo (0-30 cm),Soil Organic Carbon (0-30 cm),Carbono Orgánico del Suelo (0-30 cm),Carbone organique du sol (0-30 cm),Karbon Organik Tanah (0-30 cm),土壤有机碳（0-30 cm）
+t/ha,titulo_legenda,brasil_soil__soc,t/ha,t/ha,t/ha,t/ha,t/ha,t/ha
+Estoque de carbono orgânico do solo,produto,brasil_soil_col3__carbon,Estoque de carbono orgânico do solo,Soil organic carbon stock,Existencias de carbono orgánico del suelo,Stock de carbone organique du sol,Cadangan karbon organik tanah,土壤有机碳储量
+Carbono orgânico (t/ha),titulo_legenda,brasil_soil_col3__carbon,Carbono orgânico (t/ha),Organic carbon (t/ha),Carbono orgánico (t/ha),Carbone organique (t/ha),Karbon organik (t/ha),有机碳（t/ha）
+MapBiomas Solo · Coleção 3,colecao,brasil_soil_col3__carbon,MapBiomas Solo · Coleção 3,MapBiomas Soil · Collection 3,MapBiomas Suelo · Colección 3,MapBiomas Sol · Collection 3,MapBiomas Tanah · Koleksi 3,MapBiomas 土壤 · 合集 3
+Fração de argila por profundidade,produto,brasil_soil_col3__clay_fraction,Fração de argila por profundidade,Clay fraction by depth,Fracción de arcilla por profundidad,Fraction d'argile par profondeur,Fraksi liat menurut kedalaman,不同深度黏粒含量
+Argila (%),titulo_legenda,brasil_soil_col3__clay_fraction,Argila (%),Clay (%),Arcilla (%),Argile (%),Liat (%),黏粒（%）
+Fração de areia por profundidade,produto,brasil_soil_col3__sand_fraction,Fração de areia por profundidade,Sand fraction by depth,Fracción de arena por profundidad,Fraction de sable par profondeur,Fraksi pasir menurut kedalaman,不同深度砂粒含量
+Areia (%),titulo_legenda,brasil_soil_col3__sand_fraction,Areia (%),Sand (%),Arena (%),Sable (%),Pasir (%),砂粒（%）
+Fração de silte por profundidade,produto,brasil_soil_col3__silt_fraction,Fração de silte por profundidade,Silt fraction by depth,Fracción de limo por profundidad,Fraction de limon par profondeur,Fraksi debu menurut kedalaman,不同深度粉粒含量
+Silte (%),titulo_legenda,brasil_soil_col3__silt_fraction,Silte (%),Silt (%),Limo (%),Limon (%),Debu (%),粉粒（%）
+Grupamento textural por profundidade,produto,brasil_soil_col3__textural_group,Grupamento textural por profundidade,Textural grouping by depth,Agrupamiento textural por profundidad,Groupement textural par profondeur,Pengelompokan tekstur menurut kedalaman,不同深度质地分组
+Grupamento textural,titulo_legenda,brasil_soil_col3__textural_group,Grupamento textural,Textural grouping,Agrupamiento textural,Groupement textural,Pengelompokan tekstur,质地分组
+Subgrupamento textural por profundidade,produto,brasil_soil_col3__textural_subgroup,Subgrupamento textural por profundidade,Textural subgrouping by depth,Subagrupamiento textural por profundidad,Sous-groupement textural par profondeur,Subpengelompokan tekstur menurut kedalaman,不同深度质地亚组
+Subgrupamento textural,titulo_legenda,brasil_soil_col3__textural_subgroup,Subgrupamento textural,Textural subgrouping,Subagrupamiento textural,Sous-groupement textural,Subpengelompokan tekstur,质地亚组
+Classe textural por profundidade,produto,brasil_soil_col3__textural_class,Classe textural por profundidade,Textural class by depth,Clase textural por profundidad,Classe texturale par profondeur,Kelas tekstur menurut kedalaman,不同深度质地类别
+Classe textural,titulo_legenda,brasil_soil_col3__textural_class,Classe textural,Textural class,Clase textural,Classe texturale,Kelas tekstur,质地类别
+Uso e cobertura - Nível 0 (natural e antrópico),produto,gen_chaco_lulc__lulc_nivel0,Uso e cobertura - Nível 0 (natural e antrópico),Land use and cover - Level 0 (natural and anthropic),Uso y cobertura - Nivel 0 (natural y antrópico),Occupation et utilisation des terres - Niveau 0 (naturel et anthropique),Penggunaan dan tutupan lahan - Level 0 (alami dan antropik),土地利用与覆盖 - 0级（自然与人为）
+Chaco,iniciativa,chaco,Chaco,Chaco,Chaco,Chaco,Chaco,Chaco
+MapBiomas Chaco · Coleção 5,colecao,gen_chaco_lulc__lulc_nivel0,MapBiomas Chaco · Coleção 5,MapBiomas Chaco · Collection 5,MapBiomas Chaco · Colección 5,MapBiomas Chaco · Collection 5,MapBiomas Chaco · Koleksi 5,MapBiomas Chaco · 合集 5
+Chile,iniciativa,chile,Chile,Chile,Chile,Chili,Chili,智利
+MapBiomas Chile · Coleção 2,colecao,gen_chile_lulc__lulc_nivel0,MapBiomas Chile · Coleção 2,MapBiomas Chile · Collection 2,MapBiomas Chile · Colección 2,MapBiomas Chili · Collection 2,MapBiomas Chili · Koleksi 2,MapBiomas 智利 · 合集 2
+Colômbia,iniciativa,colombia,Colômbia,Colombia,Colombia,Colombie,Kolombia,哥伦比亚
+MapBiomas Colômbia · Coleção 3,colecao,gen_colombia_lulc__lulc_nivel0,MapBiomas Colômbia · Coleção 3,MapBiomas Colombia · Collection 3,MapBiomas Colombia · Colección 3,MapBiomas Colombie · Collection 3,MapBiomas Kolombia · Koleksi 3,MapBiomas 哥伦比亚 · 合集 3
+Uso e cobertura - Nível 2 (todas as classes),produto,gen_colombia_lulc__lulc_nivel2,Uso e cobertura - Nível 2 (todas as classes),Land use and cover - Level 2 (all classes),Uso y cobertura - Nivel 2 (todas las clases),Occupation et utilisation des terres - Niveau 2 (toutes les classes),Penggunaan dan tutupan lahan - Level 2 (semua kelas),土地利用与覆盖 - 2级（所有类别）
+Couverture et Utilisation des Terres (Niveau 0),produto,drc_lulc_col1__nivel0,Cobertura e Uso da Terra (Nível 0),Land Cover and Use (Level 0),Cobertura y Uso de la Tierra (Nivel 0),Couverture et Utilisation des Terres (Niveau 0),Tutupan dan Penggunaan Lahan (Level 0),土地覆盖与利用（0级）
+RD Congo,iniciativa,drc,RD Congo,DR Congo,RD Congo,RD Congo,RD Kongo,刚果（金）
+Classe d'occupation du sol,titulo_legenda,drc_lulc_col1__nivel0,Classe de cobertura do solo,Land cover class,Clase de cobertura del suelo,Classe d'occupation du sol,Kelas tutupan lahan,土地覆盖类别
+MapBiomas Collection 1,colecao,drc_lulc_col1__nivel0,MapBiomas Coleção 1,MapBiomas Collection 1,MapBiomas Colección 1,MapBiomas Collection 1,MapBiomas Koleksi 1,MapBiomas 合集 1
+Couverture et Utilisation des Terres (Niveau 1),produto,drc_lulc_col1__nivel1,Cobertura e Uso da Terra (Nível 1),Land Cover and Use (Level 1),Cobertura y Uso de la Tierra (Nivel 1),Couverture et Utilisation des Terres (Niveau 1),Tutupan dan Penggunaan Lahan (Level 1),土地覆盖与利用（1级）
+Couverture et Utilisation des Terres (Niveau 2),produto,drc_lulc_col1__nivel2,Cobertura e Uso da Terra (Nível 2),Land Cover and Use (Level 2),Cobertura y Uso de la Tierra (Nivel 2),Couverture et Utilisation des Terres (Niveau 2),Tutupan dan Penggunaan Lahan (Level 2),土地覆盖与利用（2级）
+Equador,iniciativa,ecuador,Equador,Ecuador,Ecuador,Équateur,Ekuador,厄瓜多尔
+MapBiomas Equador · Coleção 4,colecao,gen_ecuador_lulc__lulc_nivel0,MapBiomas Equador · Coleção 4,MapBiomas Ecuador · Collection 4,MapBiomas Ecuador · Colección 4,MapBiomas Équateur · Collection 4,MapBiomas Ekuador · Koleksi 4,MapBiomas 厄瓜多尔 · 合集 4
+Indonésia,iniciativa,indonesia,Indonésia,Indonesia,Indonesia,Indonésie,Indonesia,印度尼西亚
+MapBiomas Indonésia · Coleção 5,colecao,gen_indonesia_lulc__lulc_nivel1,MapBiomas Indonésia · Coleção 5,MapBiomas Indonesia · Collection 5,MapBiomas Indonesia · Colección 5,MapBiomas Indonésie · Collection 5,MapBiomas Indonesia · Koleksi 5,MapBiomas 印度尼西亚 · 合集 5
+México,iniciativa,mexico,México,Mexico,México,Mexique,Meksiko,墨西哥
+MapBiomas México · Coleção 1.1,colecao,gen_mexico_lulc__lulc_nivel0,MapBiomas México · Coleção 1.1,MapBiomas Mexico · Collection 1.1,MapBiomas México · Colección 1.1,MapBiomas Mexique · Collection 1.1,MapBiomas Meksiko · Koleksi 1.1,MapBiomas 墨西哥 · 合集 1.1
+Pampa (trinacional),iniciativa,pampa,Pampa (trinacional),Pampa (trinational),Pampa (trinacional),Pampa (trinational),Pampa (trinacional),潘帕斯（三国）
+MapBiomas Pampa (trinacional) · Coleção 5,colecao,gen_pampa_lulc__lulc_nivel1,MapBiomas Pampa (trinacional) · Coleção 5,MapBiomas Pampa (trinational) · Collection 5,MapBiomas Pampa (trinacional) · Colección 5,MapBiomas Pampa (trinational) · Collection 5,MapBiomas Pampa (trinacional) · Koleksi 5,MapBiomas 潘帕斯（三国） · 合集 5
+Pan-Amazônia,iniciativa,pan_amazonia,Pan-Amazônia,Pan-Amazon,Panamazonía,Pan-Amazonie,Pan-Amazon,泛亚马孙
+MapBiomas Pan-Amazônia · Coleção 6,colecao,gen_pan_amazonia_lulc__lulc_nivel1,MapBiomas Pan-Amazônia · Coleção 6,MapBiomas Pan-Amazon · Collection 6,MapBiomas Panamazonía · Colección 6,MapBiomas Pan-Amazonie · Collection 6,MapBiomas Pan-Amazon · Koleksi 6,MapBiomas 泛亚马孙 · 合集 6
+Paraguai,iniciativa,paraguay,Paraguai,Paraguay,Paraguay,Paraguay,Paraguay,巴拉圭
+MapBiomas Paraguai · Coleção 3,colecao,gen_paraguay_lulc__lulc_nivel1,MapBiomas Paraguai · Coleção 3,MapBiomas Paraguay · Collection 3,MapBiomas Paraguay · Colección 3,MapBiomas Paraguay · Collection 3,MapBiomas Paraguay · Koleksi 3,MapBiomas 巴拉圭 · 合集 3
+Área quemada anual,produto,peru_fire_col2__annual_burned,Área queimada anual,Annual burned area,Área quemada anual,Superficie brûlée annuelle,Area terbakar tahunan,年度过火面积
+Peru,iniciativa,peru,Peru,Peru,Perú,Pérou,Peru,秘鲁
+Píxel quemado,titulo_legenda,peru_fire_col2__annual_burned,Pixel queimado,Burned pixel,Píxel quemado,Pixel brûlé,Piksel terbakar,过火像元
+Área quemada por cobertura y uso de la tierra - Anual,produto,peru_fire_col2__annual_burned_coverage,Área queimada por cobertura e uso da terra - Anual,Burned area by land cover and use - Annual,Área quemada por cobertura y uso de la tierra - Anual,Superficie brûlée par couverture et utilisation des terres - Annuelle,Area terbakar menurut tutupan dan penggunaan lahan - Tahunan,按土地覆盖与利用统计的过火面积 - 年度
+Clase de cobertura,titulo_legenda,peru_fire_col2__annual_burned_coverage,Classe de cobertura,Land cover class,Clase de cobertura,Classe de couverture,Kelas tutupan,覆盖类别
+Distribución mensual del área quemada,produto,peru_fire_col2__monthly_burned,Distribuição mensal da área queimada,Monthly distribution of burned area,Distribución mensual del área quemada,Distribution mensuelle de la superficie brûlée,Distribusi bulanan area terbakar,过火面积月度分布
+"Mes de quema (1=Ene, 12=Dic)",titulo_legenda,peru_fire_col2__monthly_burned,"Mês de queimada (1=Jan, 12=Dez)","Burn month (1=Jan, 12=Dec)","Mes de quema (1=Ene, 12=Dic)","Mois de brûlis (1=Jan, 12=Déc)","Bulan kebakaran (1=Jan, 12=Des)",过火月份（1=1月，12=12月）
+Área quemada acumulada,produto,peru_fire_col2__accumulated_burned,Área queimada acumulada,Accumulated burned area,Área quemada acumulada,Superficie brûlée cumulée,Area terbakar kumulatif,累计过火面积
+Frecuencia del área quemada,produto,peru_fire_col2__frequency_burned,Frequência da área queimada,Burned area frequency,Frecuencia del área quemada,Fréquence de la superficie brûlée,Frekuensi area terbakar,过火面积频率
+Frecuencia de incendios (1990-2025),titulo_legenda,peru_fire_col2__frequency_burned,Frequência de incêndios (1990-2025),Fire frequency (1990-2025),Frecuencia de incendios (1990-2025),Fréquence des incendies (1990-2025),Frekuensi kebakaran (1990-2025),火灾频率（1990-2025）
+Última ocurrencia del fuego,produto,peru_fire_col2__year_last_fire,Última ocorrência do fogo,Last fire occurrence,Última ocurrencia del fuego,Dernière occurrence du feu,Kejadian kebakaran terakhir,末次火灾发生时间
+Año,titulo_legenda,peru_fire_col2__year_last_fire,Ano,Year,Año,Année,Tahun,年份
+Área quemada por cobertura y uso de la tierra - Anual - Nivel 0 (Natural/Antrópico),produto,peru_fire_col2__annual_burned_coverage_nivel0,Área queimada por cobertura e uso da terra - Anual - Nível 0 (Natural/Antrópico),Burned area by land cover and use - Annual - Level 0 (Natural/Anthropic),Área quemada por cobertura y uso de la tierra - Anual - Nivel 0 (Natural/Antrópico),Superficie brûlée par couverture et utilisation des terres - Annuelle - Niveau 0 (Naturel/Anthropique),Area terbakar menurut tutupan dan penggunaan lahan - Tahunan - Level 0 (Alami/Antropik),按土地覆盖与利用统计的过火面积 - 年度 - 0级（自然/人为）
+Área quemada por cobertura y uso de la tierra - Anual - Nivel 1,produto,peru_fire_col2__annual_burned_coverage_nivel1,Área queimada por cobertura e uso da terra - Anual - Nível 1,Burned area by land cover and use - Annual - Level 1,Área quemada por cobertura y uso de la tierra - Anual - Nivel 1,Superficie brûlée par couverture et utilisation des terres - Annuelle - Niveau 1,Area terbakar menurut tutupan dan penggunaan lahan - Tahunan - Level 1,按土地覆盖与利用统计的过火面积 - 年度 - 1级
+Área quemada por cobertura y uso de la tierra - Anual - Nivel 2,produto,peru_fire_col2__annual_burned_coverage_nivel2,Área queimada por cobertura e uso da terra - Anual - Nível 2,Burned area by land cover and use - Annual - Level 2,Área quemada por cobertura y uso de la tierra - Anual - Nivel 2,Superficie brûlée par couverture et utilisation des terres - Annuelle - Niveau 2,Area terbakar menurut tutupan dan penggunaan lahan - Tahunan - Level 2,按土地覆盖与利用统计的过火面积 - 年度 - 2级
+Área quemada por cobertura y uso de la tierra - Anual - Nivel 3,produto,peru_fire_col2__annual_burned_coverage_nivel3,Área queimada por cobertura e uso da terra - Anual - Nível 3,Burned area by land cover and use - Annual - Level 3,Área quemada por cobertura y uso de la tierra - Anual - Nivel 3,Superficie brûlée par couverture et utilisation des terres - Annuelle - Niveau 3,Area terbakar menurut tutupan dan penggunaan lahan - Tahunan - Level 3,按土地覆盖与利用统计的过火面积 - 年度 - 3级
+Cobertura y uso de la tierra - Nivel 0 (Natural/Antrópico),produto,peru_fire_col2__coverage_nivel0,Cobertura e uso da terra - Nível 0 (Natural/Antrópico),Land cover and use - Level 0 (Natural/Anthropic),Cobertura y uso de la tierra - Nivel 0 (Natural/Antrópico),Couverture et utilisation des terres - Niveau 0 (Naturel/Anthropique),Tutupan dan penggunaan lahan - Level 0 (Alami/Antropik),土地覆盖与利用 - 0级（自然/人为）
+Cobertura y uso de la tierra - Nivel 1,produto,peru_fire_col2__coverage_nivel1,Cobertura e uso da terra - Nível 1,Land cover and use - Level 1,Cobertura y uso de la tierra - Nivel 1,Couverture et utilisation des terres - Niveau 1,Tutupan dan penggunaan lahan - Level 1,土地覆盖与利用 - 1级
+Cobertura y uso de la tierra - Nivel 2,produto,peru_fire_col2__coverage_nivel2,Cobertura e uso da terra - Nível 2,Land cover and use - Level 2,Cobertura y uso de la tierra - Nivel 2,Couverture et utilisation des terres - Niveau 2,Tutupan dan penggunaan lahan - Level 2,土地覆盖与利用 - 2级
+Cobertura y uso de la tierra - Nivel 3,produto,peru_fire_col2__coverage_nivel3,Cobertura e uso da terra - Nível 3,Land cover and use - Level 3,Cobertura y uso de la tierra - Nivel 3,Couverture et utilisation des terres - Niveau 3,Tutupan dan penggunaan lahan - Level 3,土地覆盖与利用 - 3级
+Cobertura y uso de la tierra - Nivel 0 (Natural/Antrópico) - 1990-2025,produto,peru_fire_col2__coverage_nivel0_1990_2025,Cobertura e uso da terra - Nível 0 (Natural/Antrópico) - 1990-2025,Land cover and use - Level 0 (Natural/Anthropic) - 1990-2025,Cobertura y uso de la tierra - Nivel 0 (Natural/Antrópico) - 1990-2025,Couverture et utilisation des terres - Niveau 0 (Naturel/Anthropique) - 1990-2025,Tutupan dan penggunaan lahan - Level 0 (Alami/Antropik) - 1990-2025,土地覆盖与利用 - 0级（自然/人为）- 1990-2025
+Cobertura y uso de la tierra - Nivel 1 - 1990-2025,produto,peru_fire_col2__coverage_nivel1_1990_2025,Cobertura e uso da terra - Nível 1 - 1990-2025,Land cover and use - Level 1 - 1990-2025,Cobertura y uso de la tierra - Nivel 1 - 1990-2025,Couverture et utilisation des terres - Niveau 1 - 1990-2025,Tutupan dan penggunaan lahan - Level 1 - 1990-2025,土地覆盖与利用 - 1级 - 1990-2025
+Cobertura y uso de la tierra - Nivel 2 - 1990-2025,produto,peru_fire_col2__coverage_nivel2_1990_2025,Cobertura e uso da terra - Nível 2 - 1990-2025,Land cover and use - Level 2 - 1990-2025,Cobertura y uso de la tierra - Nivel 2 - 1990-2025,Couverture et utilisation des terres - Niveau 2 - 1990-2025,Tutupan dan penggunaan lahan - Level 2 - 1990-2025,土地覆盖与利用 - 2级 - 1990-2025
+Cobertura y uso de la tierra - Nivel 3 - 1990-2025,produto,peru_fire_col2__coverage_nivel3_1990_2025,Cobertura e uso da terra - Nível 3 - 1990-2025,Land cover and use - Level 3 - 1990-2025,Cobertura y uso de la tierra - Nivel 3 - 1990-2025,Couverture et utilisation des terres - Niveau 3 - 1990-2025,Tutupan dan penggunaan lahan - Level 3 - 1990-2025,土地覆盖与利用 - 3级 - 1990-2025
+MapBiomas Peru · Coleção 4,colecao,gen_peru_lulc__lulc_nivel0,MapBiomas Peru · Coleção 4,MapBiomas Peru · Collection 4,MapBiomas Perú · Colección 4,MapBiomas Pérou · Collection 4,MapBiomas Peru · Koleksi 4,MapBiomas 秘鲁 · 合集 4
+Suriname,iniciativa,suriname,Suriname,Suriname,Suriname,Suriname,Suriname,苏里南
+MapBiomas Suriname · Coleção 1,colecao,gen_suriname_lulc__lulc_nivel0,MapBiomas Suriname · Coleção 1,MapBiomas Suriname · Collection 1,MapBiomas Suriname · Colección 1,MapBiomas Suriname · Collection 1,MapBiomas Suriname · Koleksi 1,MapBiomas 苏里南 · 合集 1
+Uruguai,iniciativa,uruguay,Uruguai,Uruguay,Uruguay,Uruguay,Uruguay,乌拉圭
+MapBiomas Uruguai · Coleção 4,colecao,gen_uruguay_lulc__lulc_nivel0,MapBiomas Uruguai · Coleção 4,MapBiomas Uruguay · Collection 4,MapBiomas Uruguay · Colección 4,MapBiomas Uruguay · Collection 4,MapBiomas Uruguay · Koleksi 4,MapBiomas 乌拉圭 · 合集 4
+Venezuela,iniciativa,venezuela,Venezuela,Venezuela,Venezuela,Venezuela,Venezuela,委内瑞拉
+MapBiomas Venezuela · Coleção 4,colecao,gen_venezuela_lulc__lulc_nivel0,MapBiomas Venezuela · Coleção 4,MapBiomas Venezuela · Collection 4,MapBiomas Venezuela · Colección 4,MapBiomas Venezuela · Collection 4,MapBiomas Venezuela · Koleksi 4,MapBiomas 委内瑞拉 · 合集 4
+Não observado,classe,burned_at_least_once,Não observado,Not observed,No observado,Non observé,Tidak teramati,未观测
+Queimado ao menos uma vez,classe,burned_at_least_once,Queimado ao menos uma vez,Burned at least once,Quemado al menos una vez,Brûlé au moins une fois,Terbakar setidaknya sekali,至少过火一次
+Queimado pela primeira vez,classe,burned_at_least_once,Queimado pela primeira vez,Burned for the first time,Quemado por primera vez,Brûlé pour la première fois,Terbakar untuk pertama kali,首次过火
+Queimará no futuro,classe,burned_at_least_once,Queimará no futuro,Will burn in the future,Se quemará en el futuro,Brûlera à l'avenir,Akan terbakar di masa depan,未来将过火
+Natural queimado e convertido,classe,burned_at_least_once,Natural queimado e convertido,Natural burned and converted,Natural quemado y convertido,Naturel brûlé et converti,Alami terbakar dan terkonversi,自然植被过火后转化
+1 evento,classe,canopy_disturbance,1 evento,1 event,1 evento,1 événement,1 kejadian,1 次事件
+2 eventos,classe,canopy_disturbance,2 eventos,2 events,2 eventos,2 événements,2 kejadian,2 次事件
+3 eventos,classe,canopy_disturbance,3 eventos,3 events,3 eventos,3 événements,3 kejadian,3 次事件
+4 eventos,classe,canopy_disturbance,4 eventos,4 events,4 eventos,4 événements,4 kejadian,4 次事件
+5 eventos,classe,canopy_disturbance,5 eventos,5 events,5 eventos,5 événements,5 kejadian,5 次事件
+6 eventos,classe,canopy_disturbance,6 eventos,6 events,6 eventos,6 événements,6 kejadian,6 次事件
+7 eventos,classe,canopy_disturbance,7 eventos,7 events,7 eventos,7 événements,7 kejadian,7 次事件
+8 eventos,classe,canopy_disturbance,8 eventos,8 events,8 eventos,8 événements,8 kejadian,8 次事件
+9 eventos,classe,canopy_disturbance,9 eventos,9 events,9 eventos,9 événements,9 kejadian,9 次事件
+10 eventos,classe,canopy_disturbance,10 eventos,10 events,10 eventos,10 événements,10 kejadian,10 次事件
+11 eventos,classe,canopy_disturbance,11 eventos,11 events,11 eventos,11 événements,11 kejadian,11 次事件
+12 eventos,classe,canopy_disturbance,12 eventos,12 events,12 eventos,12 événements,12 kejadian,12 次事件
+Área queimada por classe de cobertura - Nível 0 (Natural/Antrópico),nome_visualizacao,coverage_nivel0,Área queimada por classe de cobertura - Nível 0 (Natural/Antrópico),Burned area by cover class - Level 0 (Natural/Anthropic),Área quemada por clase de cobertura - Nivel 0 (Natural/Antrópico),Superficie brûlée par classe de couverture - Niveau 0 (Naturel/Anthropique),Area terbakar menurut kelas tutupan - Level 0 (Alami/Antropik),按覆盖类别统计的过火面积 - 0级（自然/人为）
+Natural,classe,coverage_nivel0,Natural,Natural,Natural,Naturel,Alami,自然
+Antrópico,classe,coverage_nivel0,Antrópico,Anthropic,Antrópico,Anthropique,Antropik,人为
+Área queimada por classe de cobertura - Nível 1,nome_visualizacao,coverage_nivel1,Área queimada por classe de cobertura - Nível 1,Burned area by cover class - Level 1,Área quemada por clase de cobertura - Nivel 1,Superficie brûlée par classe de couverture - Niveau 1,Area terbakar menurut kelas tutupan - Level 1,按覆盖类别统计的过火面积 - 1级
+Floresta,classe,coverage_nivel1,Floresta,Forest,Bosque,Forêt,Hutan,森林
+Vegetação Herbácea e Arbustiva,classe,coverage_nivel1,Vegetação Herbácea e Arbustiva,Herbaceous and Shrubby Vegetation,Vegetación Herbácea y Arbustiva,Végétation herbeuse et arbustive,Vegetasi Herba dan Semak,草本与灌木植被
+Agropecuária,classe,coverage_nivel1,Agropecuária,Farming,Agropecuaria,Agriculture et élevage,Pertanian dan Peternakan,农牧业
+Área não Vegetada,classe,coverage_nivel1,Área não Vegetada,Non-Vegetated Area,Área no Vegetada,Zone non végétalisée,Area Tidak Bervegetasi,无植被区
+Corpos D'água,classe,coverage_nivel1,Corpos D'água,Water,Cuerpos de Agua,Plans d'eau,Badan Air,水体
+Área queimada por classe de cobertura - Nível 1.1,nome_visualizacao,coverage_nivel1_1,Área queimada por classe de cobertura - Nível 1.1,Burned area by cover class - Level 1.1,Área quemada por clase de cobertura - Nivel 1.1,Superficie brûlée par classe de couverture - Niveau 1.1,Area terbakar menurut kelas tutupan - Level 1.1,按覆盖类别统计的过火面积 - 1.1级
+Formação Florestal,classe,coverage_nivel1_1,Formação Florestal,Forest Formation,Formación Forestal,Formation forestière,Formasi Hutan,森林群系
+Formação Savânica,classe,coverage_nivel1_1,Formação Savânica,Savanna Formation,Formación Sabánica,Formation savanicole,Formasi Sabana,稀树草原群系
+Silvicultura,classe,coverage_nivel1_1,Silvicultura,Forest Plantation,Silvicultura,Plantation forestière,Hutan Tanaman,人工林
+Campo Alagado e Área Pantanosa,classe,coverage_nivel1_1,Campo Alagado e Área Pantanosa,Wetland,Campo Inundado y Área Pantanosa,Zone humide et marécage,Lahan Basah dan Rawa,洪泛草地与沼泽区
+Formação Campestre,classe,coverage_nivel1_1,Formação Campestre,Grassland,Formación Campestre,Formation herbacée,Padang Rumput,草原群系
+Pastagem,classe,coverage_nivel1_1,Pastagem,Pasture,Pastura,Pâturage,Padang Penggembalaan,牧草地
+Agricultura,classe,coverage_nivel1_1,Agricultura,Agriculture,Agricultura,Agriculture,Pertanian,农业
+Mosaico de Usos,classe,coverage_nivel1_1,Mosaico de Usos,Mosaic of Uses,Mosaico de Usos,Mosaïque d'usages,Mosaik Penggunaan Lahan,混合用地
+Área queimada por classe de cobertura - Nível 2,nome_visualizacao,coverage_nivel2,Área queimada por classe de cobertura - Nível 2,Burned area by cover class - Level 2,Área quemada por clase de cobertura - Nivel 2,Superficie brûlée par classe de couverture - Niveau 2,Area terbakar menurut kelas tutupan - Level 2,按覆盖类别统计的过火面积 - 2级
+Mangue,classe,coverage_nivel2,Mangue,Mangrove,Manglar,Mangrove,Mangrove,红树林
+Floresta Alagável,classe,coverage_nivel2,Floresta Alagável,Floodable Forest,Bosque Inundable,Forêt inondable,Hutan Rawa Banjir,洪泛森林
+Outras Formações não Florestais,classe,coverage_nivel2,Outras Formações não Florestais,Other Non-Forest Formations,Otras Formaciones no Forestales,Autres formations non forestières,Formasi Non-Hutan Lainnya,其他非森林群系
+"Praia, Duna e Areal",classe,coverage_nivel2,"Praia, Duna e Areal","Beach, Dune and Sand Spot","Playa, Duna y Arenal","Plage, dune et banc de sable","Pantai, Gumuk Pasir, dan Hamparan Pasir",海滩、沙丘与沙地
+Área Urbanizada,classe,coverage_nivel2,Área Urbanizada,Urban Area,Área Urbanizada,Zone urbanisée,Area Terbangun,城市建成区
+Outras Áreas não Vegetadas,classe,coverage_nivel2,Outras Áreas não Vegetadas,Other Non-Vegetated Areas,Otras Áreas no Vegetadas,Autres zones non végétalisées,Area Tidak Bervegetasi Lainnya,其他无植被区
+Afloramento Rochoso,classe,coverage_nivel2,Afloramento Rochoso,Rocky Outcrop,Afloramiento Rocoso,Affleurement rocheux,Singkapan Batuan,岩石露头
+Mineração,classe,coverage_nivel2,Mineração,Mining,Minería,Extraction minière,Pertambangan,采矿区
+Aquicultura,classe,coverage_nivel2,Aquicultura,Aquaculture,Acuicultura,Aquaculture,Akuakultur,水产养殖
+Apicum,classe,coverage_nivel2,Apicum,Hypersaline Tidal Flat,Planicie de Marea Hipersalina,Vasière hypersaline,Dataran Pasang Surut Hipersalin,高盐潮滩
+Lavoura Perene,classe,coverage_nivel2,Lavoura Perene,Perennial Crop,Cultivo Perenne,Culture pérenne,Tanaman Tahunan,多年生作物
+Restinga Arbórea,classe,coverage_nivel2,Restinga Arbórea,Wooded Sandbank Vegetation,Restinga Arbórea,Restinga arborée,Vegetasi Restinga Pohon,乔木型沙坝植被
+Restinga Herbácea,classe,coverage_nivel2,Restinga Herbácea,Herbaceous Sandbank Vegetation,Restinga Herbácea,Restinga herbacée,Vegetasi Restinga Herba,草本型沙坝植被
+Usina Fotovoltaica (beta),classe,coverage_nivel2,Usina Fotovoltaica (beta),Photovoltaic Power Plant (beta),Planta Fotovoltaica (beta),Centrale photovoltaïque (beta),Pembangkit Listrik Tenaga Surya (beta),光伏电站 (beta)
+Área queimada por classe de cobertura - Nível 3,nome_visualizacao,coverage_nivel3,Área queimada por classe de cobertura - Nível 3,Burned area by cover class - Level 3,Área quemada por clase de cobertura - Nivel 3,Superficie brûlée par classe de couverture - Niveau 3,Area terbakar menurut kelas tutupan - Level 3,按覆盖类别统计的过火面积 - 3级
+Formação Natural não Florestal,classe,coverage_nivel3,Formação Natural não Florestal,Non-Forest Natural Formation,Formación Natural no Forestal,Formation naturelle non forestière,Formasi Alami Non-Hutan,非森林自然群系
+Lavoura Temporária,classe,coverage_nivel3,Lavoura Temporária,Temporary Crop,Cultivo Temporal,Culture temporaire,Tanaman Semusim,一年生作物
+Área queimada por classe de cobertura - Nível 4,nome_visualizacao,coverage_nivel4,Área queimada por classe de cobertura - Nível 4,Burned area by cover class - Level 4,Área quemada por clase de cobertura - Nivel 4,Superficie brûlée par classe de couverture - Niveau 4,Area terbakar menurut kelas tutupan - Level 4,按覆盖类别统计的过火面积 - 4级
+Cana,classe,coverage_nivel4,Cana,Sugar Cane,Caña de Azúcar,Canne à sucre,Tebu,甘蔗
+"Rio, Lago e Oceano",classe,coverage_nivel4,"Rio, Lago e Oceano","River, Lake and Ocean","Río, Lago y Océano","Fleuve, lac et océan","Sungai, Danau, dan Laut",河流、湖泊与海洋
+Dendê,classe,coverage_nivel4,Dendê,Palm Oil,Palma Aceitera,Palmier à huile,Kelapa Sawit,油棕
+Soja,classe,coverage_nivel4,Soja,Soybean,Soja,Soja,Kedelai,大豆
+Arroz,classe,coverage_nivel4,Arroz,Rice,Arroz,Riz,Padi,水稻
+Outras Lavouras Temporárias,classe,coverage_nivel4,Outras Lavouras Temporárias,Other Temporary Crops,Otros Cultivos Temporales,Autres cultures temporaires,Tanaman Semusim Lainnya,其他一年生作物
+Café,classe,coverage_nivel4,Café,Coffee,Café,Café,Kopi,咖啡
+Citrus,classe,coverage_nivel4,Citrus,Citrus,Cítricos,Agrumes,Jeruk,柑橘
+Outras Lavouras Perenes,classe,coverage_nivel4,Outras Lavouras Perenes,Other Perennial Crops,Otros Cultivos Perennes,Autres cultures pérennes,Tanaman Tahunan Lainnya,其他多年生作物
+Algodão (beta),classe,coverage_nivel4,Algodão (beta),Cotton (beta),Algodón (beta),Coton (beta),Kapas (beta),棉花 (beta)
+Desmatamento e Vegetação Secundária,nome_visualizacao,def_seco,Desmatamento e Vegetação Secundária,Deforestation and Secondary Vegetation,Deforestación y Vegetación Secundaria,Déforestation et végétation secondaire,Deforestasi dan Vegetasi Sekunder,毁林与次生植被
+Vegetação Primária,classe,def_seco,Vegetação Primária,Primary Vegetation,Vegetación Primaria,Végétation primaire,Vegetasi Primer,原生植被
+Vegetação Secundária,classe,def_seco,Vegetação Secundária,Secondary Vegetation,Vegetación Secundaria,Végétation secondaire,Vegetasi Sekunder,次生植被
+Supressão de Vegetação Primária,classe,def_seco,Supressão de Vegetação Primária,Primary Vegetation Suppression,Supresión de Vegetación Primaria,Suppression de la végétation primaire,Penebangan Vegetasi Primer,原生植被清除
+Regeneração da Vegetação Secundária,classe,def_seco,Regeneração da Vegetação Secundária,Secondary Vegetation Regrowth,Regeneración de la Vegetación Secundaria,Régénération de la végétation secondaire,Regenerasi Vegetasi Sekunder,次生植被再生
+Supressão de Vegetação Secundária,classe,def_seco,Supressão de Vegetação Secundária,Secondary Vegetation Suppression,Supresión de Vegetación Secundaria,Suppression de la végétation secondaire,Penebangan Vegetasi Sekunder,次生植被清除
+Ruído,classe,def_seco,Ruído,Noise,Ruido,Bruit,Derau,噪点
+Distância de Isolamento,nome_visualizacao,distances,Distância de Isolamento,Isolation Distance,Distancia de Aislamiento,Distance d'isolement,Jarak Isolasi,隔离距离
+Proximidade de Borda,nome_visualizacao,edge_area,Proximidade de Borda,Edge Proximity,Proximidad de Borde,Proximité de bordure,Kedekatan Tepi,边缘邻近度
+≤ 30 m,classe,edge_area_1000m,≤ 30 m,≤ 30 m,≤ 30 m,≤ 30 m,≤ 30 m,≤ 30 m
+≤ 60 m,classe,edge_area_1000m,≤ 60 m,≤ 60 m,≤ 60 m,≤ 60 m,≤ 60 m,≤ 60 m
+≤ 90 m,classe,edge_area_1000m,≤ 90 m,≤ 90 m,≤ 90 m,≤ 90 m,≤ 90 m,≤ 90 m
+≤ 120 m,classe,edge_area_1000m,≤ 120 m,≤ 120 m,≤ 120 m,≤ 120 m,≤ 120 m,≤ 120 m
+≤ 150 m,classe,edge_area_1000m,≤ 150 m,≤ 150 m,≤ 150 m,≤ 150 m,≤ 150 m,≤ 150 m
+≤ 300 m,classe,edge_area_1000m,≤ 300 m,≤ 300 m,≤ 300 m,≤ 300 m,≤ 300 m,≤ 300 m
+≤ 600 m,classe,edge_area_1000m,≤ 600 m,≤ 600 m,≤ 600 m,≤ 600 m,≤ 600 m,≤ 600 m
+≤ 1000 m,classe,edge_area_1000m,≤ 1000 m,≤ 1000 m,≤ 1000 m,≤ 1000 m,≤ 1000 m,≤ 1000 m
+Distância da Borda,nome_visualizacao,edge_area_col101,Distância da Borda,Edge Distance,Distancia del Borde,Distance de bordure,Jarak Tepi,边缘距离
+Fogo - Binário,nome_visualizacao,fire,Fogo - Binário,Fire - Binary,Fuego - Binario,Feu - Binaire,Kebakaran - Biner,火灾 - 二值图
+Fogo,classe,fire,Fogo,Fire,Fuego,Feu,Kebakaran,火灾
+Frecuencia del área quemada - Perú,nome_visualizacao,fire_col2_frequency,Frequência da área queimada - Peru,Burned area frequency - Peru,Frecuencia del área quemada - Perú,Fréquence de la superficie brûlée - Pérou,Frekuensi area terbakar - Peru,过火面积频率 - 秘鲁
+Tamaño de las cicatrices,titulo_legenda,fire_col2_scar_size_range,Tamanho das cicatrizes,Scar size,Tamaño de las cicatrices,Taille des cicatrices,Ukuran bekas kebakaran,火烧迹地大小
+Tamaño de las cicatrices de fuego - Perú,nome_visualizacao,fire_col2_scar_size_range,Tamanho das cicatrizes de fogo - Peru,Fire scar size - Peru,Tamaño de las cicatrices de fuego - Perú,Taille des cicatrices de feu - Pérou,Ukuran bekas kebakaran - Peru,火烧迹地大小 - 秘鲁
+Última ocurrencia del fuego - Perú,nome_visualizacao,fire_col2_year_last_fire,Última ocorrência do fogo - Peru,Last fire occurrence - Peru,Última ocurrencia del fuego - Perú,Dernière occurrence du feu - Pérou,Kejadian kebakaran terakhir - Peru,末次火灾发生时间 - 秘鲁
+Área queimada,nome_visualizacao,fire_col5_coverage_total,Área queimada,Burned area,Área quemada,Superficie brûlée,Area terbakar,过火面积
+não observado,classe,fire_col5_return_interval,não observado,not observed,no observado,non observé,tidak teramati,未观测
 10 - 15,classe,fire_col5_return_interval,,,,,,
 15 - 20,classe,fire_col5_return_interval,,,,,,
 20 +,classe,fire_col5_return_interval,,,,,,
-Muito baixa,classe,fire_col5_severity,,,,,,
-Baixa,classe,fire_col5_severity,,,,,,
-Moderada,classe,fire_col5_severity,,,,,,
-Alta,classe,fire_col5_severity,,,,,,
-Muito alta,classe,fire_col5_severity,,,,,,
-Extrema,classe,fire_col5_severity,,,,,,
-Frequência de fogo (1985–2023),nome_visualizacao,fire_frequency_1985_2023,,,,,,
-Fuego - Binario,nome_visualizacao,fire_peru,,,,,,
-No observado,classe,fire_peru,,,,,,
-Fuego,classe,fire_peru,,,,,,
-Frequência de queimadas (1985-2023),titulo_legenda,frequency,,,,,,
-Fogo - Frequência,nome_visualizacao,frequency,,,,,,
-Fogo - Frequência (Degradação),nome_visualizacao,frequency_col101,,,,,,
-Frequência de queimadas (Paraguai),titulo_legenda,frequency_paraguay,,,,,,
-Fogo - Frequência (Paraguai),nome_visualizacao,frequency_paraguay,,,,,,
-Bosques,classe,gen_argentina_lulc_nivel1,,,,,,
-Vegetación natural herbácea y arbustiva,classe,gen_argentina_lulc_nivel1,,,,,,
-Áreas de uso agropecuario,classe,gen_argentina_lulc_nivel1,,,,,,
-Área sin vegetación,classe,gen_argentina_lulc_nivel1,,,,,,
-Cuerpos de agua,classe,gen_argentina_lulc_nivel1,,,,,,
-Bosques cerrados,classe,gen_argentina_lulc_nivel2,,,,,,
-Bosques abiertos,classe,gen_argentina_lulc_nivel2,,,,,,
-Bosques inundables,classe,gen_argentina_lulc_nivel2,,,,,,
-Herbaceas Inundables,classe,gen_argentina_lulc_nivel2,,,,,,
-Herbáceas,classe,gen_argentina_lulc_nivel2,,,,,,
-Pasturas,classe,gen_argentina_lulc_nivel2,,,,,,
-Mosaico de usos,classe,gen_argentina_lulc_nivel2,,,,,,
-Áreas urbanas,classe,gen_argentina_lulc_nivel2,,,,,,
-Otras áreas no vegetadas,classe,gen_argentina_lulc_nivel2,,,,,,
-"Ríos, lagunas, lagos y océano",classe,gen_argentina_lulc_nivel2,,,,,,
-Glaciares descubiertos y nieve perenne,classe,gen_argentina_lulc_nivel2,,,,,,
-Mosaicos de arbustos y herbáceas,classe,gen_argentina_lulc_nivel2,,,,,,
-Arbustales cerrados,classe,gen_argentina_lulc_nivel2,,,,,,
-Turberas,classe,gen_argentina_lulc_nivel2,,,,,,
-Arbustales abiertos,classe,gen_argentina_lulc_nivel2,,,,,,
-Cultivos temporarios,classe,gen_argentina_lulc_nivel3,,,,,,
-Cultivos perennes,classe,gen_argentina_lulc_nivel3,,,,,,
-Formación Bocosa,classe,gen_bolivia_lulc_nivel1,,,,,,
-Herbazal y arbustal,classe,gen_bolivia_lulc_nivel1,,,,,,
-Agropecuario,classe,gen_bolivia_lulc_nivel1,,,,,,
-Cuerpo de agua,classe,gen_bolivia_lulc_nivel1,,,,,,
-Bosque,classe,gen_bolivia_lulc_nivel2,,,,,,
-Bosque Abierto,classe,gen_bolivia_lulc_nivel2,,,,,,
-Bosque Inundable,classe,gen_bolivia_lulc_nivel2,,,,,,
-Herbazal/arbustal inundable,classe,gen_bolivia_lulc_nivel2,,,,,,
-Herbazal/arbustal,classe,gen_bolivia_lulc_nivel2,,,,,,
-Otra formación natural no forestal,classe,gen_bolivia_lulc_nivel2,,,,,,
-Pastura,classe,gen_bolivia_lulc_nivel2,,,,,,
-"Playa, duna y banco de arena",classe,gen_bolivia_lulc_nivel2,,,,,,
-Infraestructura urbana,classe,gen_bolivia_lulc_nivel2,,,,,,
-Otra área antrópica sin vegetación,classe,gen_bolivia_lulc_nivel2,,,,,,
-Afloramiento rocoso,classe,gen_bolivia_lulc_nivel2,,,,,,
-Minería,classe,gen_bolivia_lulc_nivel2,,,,,,
-Acuicultura,classe,gen_bolivia_lulc_nivel2,,,,,,
-Río y lago,classe,gen_bolivia_lulc_nivel2,,,,,,
-Glaciar,classe,gen_bolivia_lulc_nivel2,,,,,,
-Salar,classe,gen_bolivia_lulc_nivel2,,,,,,
-Estepa (Beta),classe,gen_bolivia_lulc_nivel2,,,,,,
-Matorral,classe,gen_bolivia_lulc_nivel2,,,,,,
-Otra área natural sin vegetación,classe,gen_bolivia_lulc_nivel2,,,,,,
-Arbustal abierto (Beta),classe,gen_bolivia_lulc_nivel2,,,,,,
-Pajonal y arbustal andino,classe,gen_bolivia_lulc_nivel2,,,,,,
-Pajonal y arbustal andino inundable,classe,gen_bolivia_lulc_nivel2,,,,,,
-Superficie rocosa,classe,gen_bolivia_lulc_nivel2,,,,,,
-Soya (Beta),classe,gen_bolivia_lulc_nivel3,,,,,,
-Arroz inundado (Beta),classe,gen_bolivia_lulc_nivel3,,,,,,
-Otros cultivos,classe,gen_bolivia_lulc_nivel3,,,,,,
-Vegetación Leñosa Natural,classe,gen_bosque_atlantico_lulc_nivel1,,,,,,
-Vegetación natural no leñosa,classe,gen_bosque_atlantico_lulc_nivel1,,,,,,
-Área no vegetada,classe,gen_bosque_atlantico_lulc_nivel1,,,,,,
-No Observado,classe,gen_bosque_atlantico_lulc_nivel1,,,,,,
-Leñosas cerradas,classe,gen_bosque_atlantico_lulc_nivel2,,,,,,
-Leñosas abiertas,classe,gen_bosque_atlantico_lulc_nivel2,,,,,,
-Manglar,classe,gen_bosque_atlantico_lulc_nivel2,,,,,,
-Forestación,classe,gen_bosque_atlantico_lulc_nivel2,,,,,,
-Pastizales inundables,classe,gen_bosque_atlantico_lulc_nivel2,,,,,,
-Pastizal,classe,gen_bosque_atlantico_lulc_nivel2,,,,,,
-Otra Formación no Forestal,classe,gen_bosque_atlantico_lulc_nivel2,,,,,,
-Afloramiento Rocoso,classe,gen_bosque_atlantico_lulc_nivel2,,,,,,
-Vegetación Leñosa en Bancos de Arena,classe,gen_bosque_atlantico_lulc_nivel2,,,,,,
-Vegetación Herbácea en Bancos de Arena,classe,gen_bosque_atlantico_lulc_nivel2,,,,,,
-Cultivos anuales,classe,gen_bosque_atlantico_lulc_nivel3,,,,,,
-Cultivos de arbustos,classe,gen_bosque_atlantico_lulc_nivel3,,,,,,
-Otros cultivos perennes,classe,gen_bosque_atlantico_lulc_nivel4,,,,,,
-Té,classe,gen_bosque_atlantico_lulc_nivel4,,,,,,
-No definido,classe,gen_chaco_lulc_nivel0,,,,,,
-Vegetación natural leñosa,classe,gen_chaco_lulc_nivel1,,,,,,
-Vegetación natural herbácea,classe,gen_chaco_lulc_nivel1,,,,,,
-Área agropecuaria,classe,gen_chaco_lulc_nivel1,,,,,,
-Leñosa cerrada,classe,gen_chaco_lulc_nivel2,,,,,,
-Leñosa abierta,classe,gen_chaco_lulc_nivel2,,,,,,
-Leñosa inundable,classe,gen_chaco_lulc_nivel2,,,,,,
-Plantación forestal,classe,gen_chaco_lulc_nivel2,,,,,,
-Playas y dunas,classe,gen_chaco_lulc_nivel2,,,,,,
-Área urbana,classe,gen_chaco_lulc_nivel2,,,,,,
-Cultivo arbustivo,classe,gen_chaco_lulc_nivel2,,,,,,
-Leñosa dispersa,classe,gen_chaco_lulc_nivel2,,,,,,
-Salares,classe,gen_chaco_lulc_nivel2,,,,,,
-Pastizal Inundable,classe,gen_chaco_lulc_nivel3,,,,,,
-Pastizal Abierto,classe,gen_chaco_lulc_nivel3,,,,,,
-Pastizal Cerrado,classe,gen_chaco_lulc_nivel3,,,,,,
-Pastizal Disperso,classe,gen_chaco_lulc_nivel3,,,,,,
-Cultivo simple,classe,gen_chaco_lulc_nivel4,,,,,,
-Cultivo múltiple,classe,gen_chaco_lulc_nivel4,,,,,,
-Formación Boscosa,classe,gen_chile_lulc_nivel1,,,,,,
-Formación natural no boscosa,classe,gen_chile_lulc_nivel1,,,,,,
-Agricultura y silvicultura,classe,gen_chile_lulc_nivel1,,,,,,
-Humedal,classe,gen_chile_lulc_nivel2,,,,,,
-Herbazal,classe,gen_chile_lulc_nivel2,,,,,,
-"Playa, duna y arenal",classe,gen_chile_lulc_nivel2,,,,,,
-Infraestructura,classe,gen_chile_lulc_nivel2,,,,,,
-Otra área no vegetada,classe,gen_chile_lulc_nivel2,,,,,,
-"Río, lago u océano",classe,gen_chile_lulc_nivel2,,,,,,
-Hielo y nieve,classe,gen_chile_lulc_nivel2,,,,,,
-Estepa,classe,gen_chile_lulc_nivel2,,,,,,
-Bosque Primario,classe,gen_chile_lulc_nivel3,,,,,,
-Bosque Secundario,classe,gen_chile_lulc_nivel3,,,,,,
-Bosque Achaparrado,classe,gen_chile_lulc_nivel3,,,,,,
-Formación boscosa,classe,gen_colombia_lulc_nivel1,,,,,,
-Bosque inundable,classe,gen_colombia_lulc_nivel2,,,,,,
-Formación natural no forestal inundable,classe,gen_colombia_lulc_nivel2,,,,,,
-Formación herbácea,classe,gen_colombia_lulc_nivel2,,,,,,
-Mosaico de agricultura o pasto,classe,gen_colombia_lulc_nivel2,,,,,,
-"Playas, dunas y bancos de arena",classe,gen_colombia_lulc_nivel2,,,,,,
-Otra área sin vegetación,classe,gen_colombia_lulc_nivel2,,,,,,
-Planicie de marea hipersalina,classe,gen_colombia_lulc_nivel2,,,,,,
-Glaciar y nival,classe,gen_colombia_lulc_nivel2,,,,,,
-Palma aceitera,classe,gen_colombia_lulc_nivel2,,,,,,
-Vegetación leñosa sobre arena,classe,gen_colombia_lulc_nivel2,,,,,,
-Vegetación herbácea sobre arena,classe,gen_colombia_lulc_nivel2,,,,,,
-Plátano y banano,classe,gen_colombia_lulc_nivel2,,,,,,
-Parques solares,classe,gen_colombia_lulc_nivel2,,,,,,
-Herbazales o arbustales andinos,classe,gen_colombia_lulc_nivel2,,,,,,
-Herbazales o arbustales andinos inundables,classe,gen_colombia_lulc_nivel2,,,,,,
-Formación Forestal,classe,gen_ecuador_lulc_nivel1,,,,,,
-Formación natural no forestal,classe,gen_ecuador_lulc_nivel1,,,,,,
-Agropecuaria y silvicultura,classe,gen_ecuador_lulc_nivel1,,,,,,
-Bosque abierto,classe,gen_ecuador_lulc_nivel2,,,,,,
-Mosaico de agricultura y/o pastos,classe,gen_ecuador_lulc_nivel2,,,,,,
-"Playa, duna o banco de arena",classe,gen_ecuador_lulc_nivel2,,,,,,
-Banano,classe,gen_ecuador_lulc_nivel2,,,,,,
-Herbazales y arbustales andinos,classe,gen_ecuador_lulc_nivel2,,,,,,
-Herbazales andinos inundables,classe,gen_ecuador_lulc_nivel2,,,,,,
-Forest,classe,gen_indonesia_lulc_nivel1,,,,,,
-Non-Forest Natural Formation,classe,gen_indonesia_lulc_nivel1,,,,,,
-Agriculture,classe,gen_indonesia_lulc_nivel1,,,,,,
-Non-Vegetated Area,classe,gen_indonesia_lulc_nivel1,,,,,,
-Water Body,classe,gen_indonesia_lulc_nivel1,,,,,,
-Not Observed,classe,gen_indonesia_lulc_nivel1,,,,,,
-Forest Formation,classe,gen_indonesia_lulc_nivel2,,,,,,
-Mangrove,classe,gen_indonesia_lulc_nivel2,,,,,,
-ForestPlantation,classe,gen_indonesia_lulc_nivel2,,,,,,
-Wetland,classe,gen_indonesia_lulc_nivel2,,,,,,
-Savannah,classe,gen_indonesia_lulc_nivel2,,,,,,
-Other Natural Vegetation,classe,gen_indonesia_lulc_nivel2,,,,,,
-Other Agriculture,classe,gen_indonesia_lulc_nivel2,,,,,,
-Urban Area,classe,gen_indonesia_lulc_nivel2,,,,,,
-Other Non-Vegetation,classe,gen_indonesia_lulc_nivel2,,,,,,
-Mining Pit,classe,gen_indonesia_lulc_nivel2,,,,,,
-Aquaculture,classe,gen_indonesia_lulc_nivel2,,,,,,
-"River, Lake, Ocean",classe,gen_indonesia_lulc_nivel2,,,,,,
-Oil Palm,classe,gen_indonesia_lulc_nivel2,,,,,,
-Rice Paddy,classe,gen_indonesia_lulc_nivel2,,,,,,
-Coffee,classe,gen_indonesia_lulc_nivel2,,,,,,
-Perennial Crops,classe,gen_indonesia_lulc_nivel2,,,,,,
-Rubber,classe,gen_indonesia_lulc_nivel2,,,,,,
-Sago,classe,gen_indonesia_lulc_nivel2,,,,,,
-Peat Swamp Forest,classe,gen_indonesia_lulc_nivel2,,,,,,
-Timber Plantation,classe,gen_indonesia_lulc_nivel2,,,,,,
-Rocky Surface,classe,gen_indonesia_lulc_nivel2,,,,,,
-Vegetación herbácea y arbustiva,classe,gen_mexico_lulc_nivel1,,,,,,
-No vegetado,classe,gen_mexico_lulc_nivel1,,,,,,
-Bosque tropical húmedo,classe,gen_mexico_lulc_nivel2,,,,,,
-Inundable,classe,gen_mexico_lulc_nivel2,,,,,,
-Pastizal cultivado e inducido,classe,gen_mexico_lulc_nivel2,,,,,,
-Cultivo anual,classe,gen_mexico_lulc_nivel2,,,,,,
-Área urbana y construida,classe,gen_mexico_lulc_nivel2,,,,,,
-"Río, lago y mar",classe,gen_mexico_lulc_nivel2,,,,,,
-Cultivo perenne,classe,gen_mexico_lulc_nivel2,,,,,,
-Sabana y pastizal natural,classe,gen_mexico_lulc_nivel2,,,,,,
-Bosque templado,classe,gen_mexico_lulc_nivel2,,,,,,
-Bosque tropical seco,classe,gen_mexico_lulc_nivel2,,,,,,
-Agropecuaria,classe,gen_pampa_lulc_nivel1,,,,,,
-Bosque y arbustal cerrado,classe,gen_pampa_lulc_nivel2,,,,,,
-Bosque y arbustal abierto,classe,gen_pampa_lulc_nivel2,,,,,,
-Pantano y pastizal inundable,classe,gen_pampa_lulc_nivel2,,,,,,
-Cultivo anual o perenne,classe,gen_pampa_lulc_nivel2,,,,,,
-Formación forestal,classe,gen_pan_amazonia_lulc_nivel2,,,,,,
-Formação savânica / Floresta aberta,classe,gen_pan_amazonia_lulc_nivel2,,,,,,
-Formación campestre o herbazal,classe,gen_pan_amazonia_lulc_nivel2,,,,,,
-Pasto,classe,gen_pan_amazonia_lulc_nivel2,,,,,,
-Sin información,classe,gen_pan_amazonia_lulc_nivel2,,,,,,
-Glacial,classe,gen_pan_amazonia_lulc_nivel2,,,,,,
-Otra area natural sin vegetación,classe,gen_pan_amazonia_lulc_nivel2,,,,,,
-Vegetación Herbácea Natural,classe,gen_paraguay_lulc_nivel1,,,,,,
-Agricultural Areas,classe,gen_paraguay_lulc_nivel1,,,,,,
-Áreas sin vegetación,classe,gen_paraguay_lulc_nivel1,,,,,,
-Leñosas inundables,classe,gen_paraguay_lulc_nivel2,,,,,,
-Forestaciones,classe,gen_paraguay_lulc_nivel2,,,,,,
-Areas sin vegtación,classe,gen_paraguay_lulc_nivel2,,,,,,
-"Ríos, lagos y océano",classe,gen_paraguay_lulc_nivel2,,,,,,
-Bosque seco,classe,gen_peru_lulc_nivel2,,,,,,
-Formación herbácea inundable,classe,gen_peru_lulc_nivel2,,,,,,
-Formaciones arbustivas y otras,classe,gen_peru_lulc_nivel2,,,,,,
-Pasto (beta),classe,gen_peru_lulc_nivel2,,,,,,
-Mosaico agropecuario,classe,gen_peru_lulc_nivel2,,,,,,
-Playa,classe,gen_peru_lulc_nivel2,,,,,,
-Arroz (beta),classe,gen_peru_lulc_nivel2,,,,,,
-Superficie salina costera,classe,gen_peru_lulc_nivel2,,,,,,
-Superficie de salar,classe,gen_peru_lulc_nivel2,,,,,,
-Herbazal inundable de tierras bajas,classe,gen_peru_lulc_nivel3,,,,,,
-Matorral y otros arbustales,classe,gen_peru_lulc_nivel3,,,,,,
-Loma costera (beta),classe,gen_peru_lulc_nivel3,,,,,,
-Herbazal inundable altoandino,classe,gen_peru_lulc_nivel3,,,,,,
-Anthropic,classe,gen_suriname_lulc_nivel0,,,,,,
-Non defined,classe,gen_suriname_lulc_nivel0,,,,,,
-Herbaceous and Shrubby Vegetation,classe,gen_suriname_lulc_nivel1,,,,,,
-Farming,classe,gen_suriname_lulc_nivel1,,,,,,
-Non vegetated Area,classe,gen_suriname_lulc_nivel1,,,,,,
-Water,classe,gen_suriname_lulc_nivel1,,,,,,
-Not observed,classe,gen_suriname_lulc_nivel1,,,,,,
-Grassland,classe,gen_suriname_lulc_nivel2,,,,,,
-Mosaic of Uses,classe,gen_suriname_lulc_nivel2,,,,,,
-Other non Vegetated Area,classe,gen_suriname_lulc_nivel2,,,,,,
-Mining,classe,gen_suriname_lulc_nivel2,,,,,,
-"River, lake and Ocean",classe,gen_suriname_lulc_nivel2,,,,,,
-Bosque y arbustal cerrados,classe,gen_uruguay_lulc_nivel2,,,,,,
-Plantación de pinos,classe,gen_uruguay_lulc_nivel3,,,,,,
-Plantación de eucaliptus,classe,gen_uruguay_lulc_nivel3,,,,,,
-Otros usos forestales,classe,gen_uruguay_lulc_nivel3,,,,,,
-Formaciones boscosas,classe,gen_venezuela_lulc_nivel1,,,,,,
-Herbazales y arbustales,classe,gen_venezuela_lulc_nivel1,,,,,,
-Áreas agrícolas,classe,gen_venezuela_lulc_nivel1,,,,,,
-Sabana arbolada,classe,gen_venezuela_lulc_nivel2,,,,,,
-Herbazal/Arbustal inundable,classe,gen_venezuela_lulc_nivel2,,,,,,
-Sabana/Herbazal,classe,gen_venezuela_lulc_nivel2,,,,,,
-Otras formaciones naturales no forestales,classe,gen_venezuela_lulc_nivel2,,,,,,
-Uso pecuario/Tierras en descanso,classe,gen_venezuela_lulc_nivel2,,,,,,
-Uso agrícola/Tierras en descanso,classe,gen_venezuela_lulc_nivel2,,,,,,
-Uso agropecuario/Tierras en descanso,classe,gen_venezuela_lulc_nivel2,,,,,,
-Playa o duna,classe,gen_venezuela_lulc_nivel2,,,,,,
-Uso urbano,classe,gen_venezuela_lulc_nivel2,,,,,,
-Otras áreas antrópicas sin vegetación,classe,gen_venezuela_lulc_nivel2,,,,,,
-Uso Minero,classe,gen_venezuela_lulc_nivel2,,,,,,
-Herbazal/Arbustal xerófilo,classe,gen_venezuela_lulc_nivel2,,,,,,
-Arbustal,classe,gen_venezuela_lulc_nivel2,,,,,,
-Otras áreas naturales sin vegetación,classe,gen_venezuela_lulc_nivel2,,,,,,
-Herbazal/Arbustal andino,classe,gen_venezuela_lulc_nivel2,,,,,,
-Herbazal/Arbustal andino inundable,classe,gen_venezuela_lulc_nivel2,,,,,,
-Uso e Cobertura (Coleção 11),nome_visualizacao,lulc,,,,,,
-Savana Alagada (beta),classe,lulc,,,,,,
-Restinga Herbácea ou Arbustiva,classe,lulc,,,,,,
-Usina Fotovoltaica,classe,lulc,,,,,,
-Formação Herbáceo Arbustiva (beta),classe,lulc,,,,,,
-Marisma (beta),classe,lulc,,,,,,
-Parque Eólico (beta),classe,lulc,,,,,,
-Área não vegetada,classe,lulc11_nivel1,,,,,,
-Corpo D'água,classe,lulc11_nivel1,,,,,,
-Parque eólico (beta),classe,lulc11_nivel2,,,,,,
-Naturel (1),classe,lulc_drc_nivel0,,,,,,
-Anthropique (14),classe,lulc_drc_nivel0,,,,,,
-Non défini (27),classe,lulc_drc_nivel0,,,,,,
-Forêt (1),classe,lulc_drc_nivel1,,,,,,
-Végétation herbeuse et arbustive (10),classe,lulc_drc_nivel1,,,,,,
-Zones agricoles et d'élevage (14),classe,lulc_drc_nivel1,,,,,,
-Zone non végétalisée (22),classe,lulc_drc_nivel1,,,,,,
-Eau (26),classe,lulc_drc_nivel1,,,,,,
-Non observé (27),classe,lulc_drc_nivel1,,,,,,
-Forêt dense (3),classe,lulc_drc_nivel2,,,,,,
-Forêt claire (4),classe,lulc_drc_nivel2,,,,,,
-Mangrove (5),classe,lulc_drc_nivel2,,,,,,
-Plantation forestière (9),classe,lulc_drc_nivel2,,,,,,
-Mosaïque d'Usages (21),classe,lulc_drc_nivel2,,,,,,
-Zone urbaine (24),classe,lulc_drc_nivel2,,,,,,
-Autre zone sans végétation (25),classe,lulc_drc_nivel2,,,,,,
-"Fleuve, lac et océan (33)",classe,lulc_drc_nivel2,,,,,,
-Savane (66),classe,lulc_drc_nivel2,,,,,,
-Vegetação Natural,classe,lulc_nivel0,,,,,,
-Corpos d'água,classe,lulc_nivel0,,,,,,
-Formação Campestre e Herbácea,classe,lulc_nivel1,,,,,,
-Lavoura,classe,lulc_nivel1_1,,,,,,
-Cobertura y uso de la tierra - Perú,nome_visualizacao,lulc_peru,,,,,,
-Cobertura y uso de la tierra - Perú - Nivel 0 (Natural/Antrópico),nome_visualizacao,lulc_peru_nivel0,,,,,,
-Cobertura y uso de la tierra - Perú - Nivel 1,nome_visualizacao,lulc_peru_nivel1,,,,,,
-Cobertura y uso de la tierra - Perú - Nivel 2,nome_visualizacao,lulc_peru_nivel2,,,,,,
-Cobertura y uso de la tierra - Perú - Nivel 3,nome_visualizacao,lulc_peru_nivel3,,,,,,
-Fogo - Mês,nome_visualizacao,monthly,,,,,,
-Fuego - Mes,nome_visualizacao,monthly_peru,,,,,,
-Interior,classe,morphology,,,,,,
-Borda,classe,morphology,,,,,,
-Corredor,classe,morphology,,,,,,
-Ramificação,classe,morphology,,,,,,
-Puleiro,classe,morphology,,,,,,
-Perfuração,classe,morphology,,,,,,
-Cobertura Natural,nome_visualizacao,natural_coverage,,,,,,
-Não natural / Não observado,classe,natural_coverage,,,,,,
-Formação Natural Não-Florestal,classe,natural_coverage,,,,,,
-Mosaico NBR Mínimo,nome_visualizacao,nbr_min,,,,,,
-Tamanho de Fragmento,nome_visualizacao,patch_size,,,,,,
-Não observado / > 10k ha,classe,patch_size_fragments,,,,,,
-≤ 5 ha,classe,patch_size_fragments,,,,,,
-≤ 10 ha,classe,patch_size_fragments,,,,,,
-≤ 25 ha,classe,patch_size_fragments,,,,,,
-≤ 50 ha,classe,patch_size_fragments,,,,,,
-≤ 100 ha,classe,patch_size_fragments,,,,,,
-≤ 250 ha,classe,patch_size_fragments,,,,,,
-≤ 500 ha,classe,patch_size_fragments,,,,,,
-≤ 1000 ha,classe,patch_size_fragments,,,,,,
-≤ 5000 ha,classe,patch_size_fragments,,,,,,
-≤ 10000 ha,classe,patch_size_fragments,,,,,,
-Maciços (> 10k ha),nome_visualizacao,patch_size_massifs,,,,,,
-Não observado / ≤ 10k ha,classe,patch_size_massifs,,,,,,
-10k - 20k ha,classe,patch_size_massifs,,,,,,
-20k - 50k ha,classe,patch_size_massifs,,,,,,
-50k - 100k ha,classe,patch_size_massifs,,,,,,
-100k - 250k ha,classe,patch_size_massifs,,,,,,
-250k - 500k ha,classe,patch_size_massifs,,,,,,
-500k - 1M ha,classe,patch_size_massifs,,,,,,
-1M - 2.5M ha,classe,patch_size_massifs,,,,,,
-2.5M - 5M ha,classe,patch_size_massifs,,,,,,
-5M - 7.5M ha,classe,patch_size_massifs,,,,,,
-> 7.5M ha,classe,patch_size_massifs,,,,,,
-Fragmentos de Vegetação,nome_visualizacao,random,,,,,,
-Tamanho da Cicatriz,nome_visualizacao,scar_size_range,,,,,,
-< 10 ha,classe,scar_size_range,,,,,,
-10 a 250 ha,classe,scar_size_range,,,,,,
-250 a 500 ha,classe,scar_size_range,,,,,,
-500 a 5.000 ha,classe,scar_size_range,,,,,,
-5.000 a 10.000 ha,classe,scar_size_range,,,,,,
-10.000 a 50.000 ha,classe,scar_size_range,,,,,,
-50.000 a 100.000 ha,classe,scar_size_range,,,,,,
->= 100.000 ha,classe,scar_size_range,,,,,,
-Carbono Orgânico do Solo,nome_visualizacao,soc,,,,,,
-Fração de argila,nome_visualizacao,soil_clay_col3,,,,,,
-Fração de areia,nome_visualizacao,soil_sand_col3,,,,,,
-Fração de silte,nome_visualizacao,soil_silt_col3,,,,,,
-Fragmentos de rocha,classe,soil_texture_l1,,,,,,
-Muito argilosa,classe,soil_texture_l1,,,,,,
-Argilosa,classe,soil_texture_l1,,,,,,
-Siltosa,classe,soil_texture_l1,,,,,,
-Arenosa,classe,soil_texture_l1,,,,,,
-Média,classe,soil_texture_l1,,,,,,
-Média-argilosa,classe,soil_texture_l2,,,,,,
-Média-siltosa,classe,soil_texture_l2,,,,,,
-Média-arenosa,classe,soil_texture_l2,,,,,,
-Arenosa-média,classe,soil_texture_l2,,,,,,
-Muito arenosa,classe,soil_texture_l2,,,,,,
-Argilo siltosa,classe,soil_texture_l3,,,,,,
-Franco argilosa,classe,soil_texture_l3,,,,,,
-Franco argilo siltosa,classe,soil_texture_l3,,,,,,
-Argilo arenosa,classe,soil_texture_l3,,,,,,
-Franco argilo arenosa,classe,soil_texture_l3,,,,,,
-Franca,classe,soil_texture_l3,,,,,,
-Franco arenosa,classe,soil_texture_l3,,,,,,
-Areia franca,classe,soil_texture_l3,,,,,,
-Areia,classe,soil_texture_l3,,,,,,
-Franco siltosa,classe,soil_texture_l3,,,,,,
-Silte,classe,soil_texture_l3,,,,,,
-Ano do Último Fogo,nome_visualizacao,year_last_fire,,,,,,
-Ano do Próximo Fogo,nome_visualizacao,year_next_fire,,,,,,
-País,tipo_territorio,brasil,,,,,,
-Bioma,tipo_territorio,brasil,,,,,,
-Região,tipo_territorio,brasil,,,,,,
-Estado,tipo_territorio,brasil,,,,,,
-Município,tipo_territorio,brasil,,,,,,
-Terra indígena,tipo_territorio,brasil,,,,,,
-Unidade de conservação,tipo_territorio,brasil,,,,,,
-Quilombo,tipo_territorio,brasil,,,,,,
-Bacia hidrográfica,tipo_territorio,brasil,,,,,,
-Amazônia Legal,tipo_territorio,brasil,,,,,,
-Matopiba,tipo_territorio,brasil,,,,,,
-Perú (país),tipo_territorio,peru,,,,,,
-Departamento,tipo_territorio,peru,,,,,,
-Provincia,tipo_territorio,peru,,,,,,
-Distrito,tipo_territorio,peru,,,,,,
-Territorio indígena,tipo_territorio,paraguay,,,,,,
-Área protegida,tipo_territorio,paraguay,,,,,,
-Ecorregión,tipo_territorio,paraguay,,,,,,
-DR Congo (country),tipo_territorio,drc,,,,,,
-Province,tipo_territorio,drc,,,,,,
-Territory,tipo_territorio,drc,,,,,,
-Solo,tema,soil,,,,,,
-Uso e cobertura,tema,lulc,,,,,,
-Uso e cobertura 10m,tema,lulc_10m,,,,,,
-Água,tema,water,,,,,,
-Atmosfera,tema,atmosphere,,,,,,
-Risco climático,tema,climate_risk,,,,,,
-Urbano,tema,urban,,,,,,
-Degradação,tema,degradation,,,,,,
-Imagens de satélite,tema,satellite,,,,,,
-Composição RGB:,texto_fixo,pipeline,,,,,,
-bandas:,texto_fixo,pipeline,,,,,,
-Sem vegetação,texto_fixo,pipeline,,,,,,
-Cada mancha de vegetação possui uma cor única,texto_fixo,pipeline,,,,,,
+Muito baixa,classe,fire_col5_severity,Muito baixa,Very low,Muy baja,Très faible,Sangat rendah,极低
+Baixa,classe,fire_col5_severity,Baixa,Low,Baja,Faible,Rendah,低
+Moderada,classe,fire_col5_severity,Moderada,Moderate,Moderada,Modérée,Sedang,中等
+Alta,classe,fire_col5_severity,Alta,High,Alta,Élevée,Tinggi,高
+Muito alta,classe,fire_col5_severity,Muito alta,Very high,Muy alta,Très élevée,Sangat tinggi,极高
+Extrema,classe,fire_col5_severity,Extrema,Extreme,Extrema,Extrême,Ekstrem,极端
+Frequência de fogo (1985–2023),nome_visualizacao,fire_frequency_1985_2023,Frequência de fogo (1985–2023),Fire frequency (1985–2023),Frecuencia de fuego (1985–2023),Fréquence des feux (1985–2023),Frekuensi kebakaran (1985–2023),火灾频率（1985–2023）
+Fuego - Binario,nome_visualizacao,fire_peru,Fogo - Binário,Fire - Binary,Fuego - Binario,Feu - Binaire,Kebakaran - Biner,火灾 - 二值图
+No observado,classe,fire_peru,Não observado,Not observed,No observado,Non observé,Tidak teramati,未观测
+Fuego,classe,fire_peru,Fogo,Fire,Fuego,Feu,Kebakaran,火灾
+Frequência de queimadas (1985-2023),titulo_legenda,frequency,Frequência de queimadas (1985-2023),Fire frequency (1985-2023),Frecuencia de quemas (1985-2023),Fréquence des feux (1985-2023),Frekuensi kebakaran (1985-2023),火灾频率（1985-2023）
+Fogo - Frequência,nome_visualizacao,frequency,Fogo - Frequência,Fire - Frequency,Fuego - Frecuencia,Feu - Fréquence,Kebakaran - Frekuensi,火灾 - 频率
+Fogo - Frequência (Degradação),nome_visualizacao,frequency_col101,Fogo - Frequência (Degradação),Fire - Frequency (Degradation),Fuego - Frecuencia (Degradación),Feu - Fréquence (Dégradation),Kebakaran - Frekuensi (Degradasi),火灾 - 频率（退化）
+Frequência de queimadas (Paraguai),titulo_legenda,frequency_paraguay,Frequência de queimadas (Paraguai),Fire frequency (Paraguay),Frecuencia de quemas (Paraguay),Fréquence des feux (Paraguay),Frekuensi kebakaran (Paraguay),火灾频率（巴拉圭）
+Fogo - Frequência (Paraguai),nome_visualizacao,frequency_paraguay,Fogo - Frequência (Paraguai),Fire - Frequency (Paraguay),Fuego - Frecuencia (Paraguay),Feu - Fréquence (Paraguay),Kebakaran - Frekuensi (Paraguay),火灾 - 频率（巴拉圭）
+Bosques,classe,gen_argentina_lulc_nivel1,Florestas,Forests,Bosques,Forêts,Hutan,森林
+Vegetación natural herbácea y arbustiva,classe,gen_argentina_lulc_nivel1,Vegetação natural herbácea e arbustiva,Natural herbaceous and shrubby vegetation,Vegetación natural herbácea y arbustiva,Végétation naturelle herbeuse et arbustive,Vegetasi alami herba dan semak,自然草本与灌木植被
+Áreas de uso agropecuario,classe,gen_argentina_lulc_nivel1,Áreas de uso agropecuario,Agricultural and pastoral areas,Áreas de uso agropecuario,Zones à usage agricole et pastoral,Area penggunaan pertanian dan peternakan,农牧业用地
+Área sin vegetación,classe,gen_argentina_lulc_nivel1,Área sem vegetação,Non-vegetated area,Área sin vegetación,Zone sans végétation,Area tanpa vegetasi,无植被区
+Cuerpos de agua,classe,gen_argentina_lulc_nivel1,Corpos de água,Water bodies,Cuerpos de agua,Plans d'eau,Badan air,水体
+Bosques cerrados,classe,gen_argentina_lulc_nivel2,Florestas fechadas,Closed forests,Bosques cerrados,Forêts denses,Hutan tertutup,郁闭林
+Bosques abiertos,classe,gen_argentina_lulc_nivel2,Florestas abertas,Open forests,Bosques abiertos,Forêts claires,Hutan terbuka,疏林
+Bosques inundables,classe,gen_argentina_lulc_nivel2,Florestas inundáveis,Floodable forests,Bosques inundables,Forêts inondables,Hutan rawa banjir,洪泛森林
+Herbaceas Inundables,classe,gen_argentina_lulc_nivel2,Herbáceas inundáveis,Floodable herbaceous vegetation,Herbáceas inundables,Herbacées inondables,Herba rawa banjir,洪泛草本植被
+Herbáceas,classe,gen_argentina_lulc_nivel2,Herbáceas,Herbaceous vegetation,Herbáceas,Herbacées,Herba,草本植被
+Pasturas,classe,gen_argentina_lulc_nivel2,Pastagens,Pastures,Pasturas,Pâturages,Padang penggembalaan,牧草地
+Mosaico de usos,classe,gen_argentina_lulc_nivel2,Mosaico de usos,Mosaic of uses,Mosaico de usos,Mosaïque d'usages,Mosaik penggunaan lahan,混合用地
+Áreas urbanas,classe,gen_argentina_lulc_nivel2,Áreas urbanas,Urban areas,Áreas urbanas,Zones urbaines,Area perkotaan,城市区域
+Otras áreas no vegetadas,classe,gen_argentina_lulc_nivel2,Outras áreas não vegetadas,Other non-vegetated areas,Otras áreas no vegetadas,Autres zones non végétalisées,Area tidak bervegetasi lainnya,其他无植被区
+"Ríos, lagunas, lagos y océano",classe,gen_argentina_lulc_nivel2,"Rios, lagoas, lagos e oceano","Rivers, lagoons, lakes and ocean","Ríos, lagunas, lagos y océano","Fleuves, lagunes, lacs et océan","Sungai, laguna, danau, dan laut",河流、潟湖、湖泊与海洋
+Glaciares descubiertos y nieve perenne,classe,gen_argentina_lulc_nivel2,Geleiras descobertas e neve perene,Exposed glaciers and perennial snow,Glaciares descubiertos y nieve perenne,Glaciers découverts et neiges éternelles,Gletser terbuka dan salju abadi,裸露冰川与永久积雪
+Mosaicos de arbustos y herbáceas,classe,gen_argentina_lulc_nivel2,Mosaicos de arbustos e herbáceas,Shrub and herbaceous mosaics,Mosaicos de arbustos y herbáceas,Mosaïques d'arbustes et d'herbacées,Mosaik semak dan herba,灌木与草本镶嵌区
+Arbustales cerrados,classe,gen_argentina_lulc_nivel2,Arbustais fechados,Closed shrublands,Arbustales cerrados,Arbustaies denses,Semak tertutup,郁闭灌丛
+Turberas,classe,gen_argentina_lulc_nivel2,Turfeiras,Peatlands,Turberas,Tourbières,Lahan gambut,泥炭地
+Arbustales abiertos,classe,gen_argentina_lulc_nivel2,Arbustais abertos,Open shrublands,Arbustales abiertos,Arbustaies ouvertes,Semak terbuka,稀疏灌丛
+Cultivos temporarios,classe,gen_argentina_lulc_nivel3,Cultivos temporários,Temporary crops,Cultivos temporarios,Cultures temporaires,Tanaman semusim,一年生作物
+Cultivos perennes,classe,gen_argentina_lulc_nivel3,Cultivos perenes,Perennial crops,Cultivos perennes,Cultures pérennes,Tanaman tahunan,多年生作物
+Formación Bocosa,classe,gen_bolivia_lulc_nivel1,Formação Florestal,Forest Formation,Formación Boscosa,Formation forestière,Formasi Hutan,森林群系
+Herbazal y arbustal,classe,gen_bolivia_lulc_nivel1,Formação herbácea e arbustiva,Herbaceous and shrubland,Herbazal y arbustal,Formation herbacée et arbustive,Padang herba dan semak,草本与灌木群系
+Agropecuario,classe,gen_bolivia_lulc_nivel1,Agropecuário,Farming,Agropecuario,Agriculture et élevage,Pertanian dan peternakan,农牧业
+Cuerpo de agua,classe,gen_bolivia_lulc_nivel1,Corpo de água,Water body,Cuerpo de agua,Plan d'eau,Badan air,水体
+Bosque,classe,gen_bolivia_lulc_nivel2,Floresta,Forest,Bosque,Forêt,Hutan,森林
+Bosque Abierto,classe,gen_bolivia_lulc_nivel2,Floresta Aberta,Open Forest,Bosque Abierto,Forêt claire,Hutan Terbuka,疏林
+Bosque Inundable,classe,gen_bolivia_lulc_nivel2,Floresta Inundável,Floodable Forest,Bosque Inundable,Forêt inondable,Hutan Rawa Banjir,洪泛森林
+Herbazal/arbustal inundable,classe,gen_bolivia_lulc_nivel2,Formação herbácea/arbustiva inundável,Floodable herbaceous/shrubland,Herbazal/arbustal inundable,Formation herbacée/arbustive inondable,Padang herba/semak rawa banjir,洪泛草本/灌木群系
+Herbazal/arbustal,classe,gen_bolivia_lulc_nivel2,Formação herbácea/arbustiva,Herbaceous/shrubland,Herbazal/arbustal,Formation herbacée/arbustive,Padang herba/semak,草本/灌木群系
+Otra formación natural no forestal,classe,gen_bolivia_lulc_nivel2,Outra formação natural não florestal,Other non-forest natural formation,Otra formación natural no forestal,Autre formation naturelle non forestière,Formasi alami non-hutan lainnya,其他非森林自然群系
+Pastura,classe,gen_bolivia_lulc_nivel2,Pastagem,Pasture,Pastura,Pâturage,Padang penggembalaan,牧草地
+"Playa, duna y banco de arena",classe,gen_bolivia_lulc_nivel2,"Praia, duna e banco de areia","Beach, dune and sandbank","Playa, duna y banco de arena","Plage, dune et banc de sable","Pantai, gumuk pasir, dan gosong pasir",海滩、沙丘与沙洲
+Infraestructura urbana,classe,gen_bolivia_lulc_nivel2,Infraestrutura urbana,Urban infrastructure,Infraestructura urbana,Infrastructure urbaine,Infrastruktur perkotaan,城市基础设施
+Otra área antrópica sin vegetación,classe,gen_bolivia_lulc_nivel2,Outra área antrópica sem vegetação,Other non-vegetated anthropic area,Otra área antrópica sin vegetación,Autre zone anthropique sans végétation,Area antropik tanpa vegetasi lainnya,其他人为无植被区
+Afloramiento rocoso,classe,gen_bolivia_lulc_nivel2,Afloramento rochoso,Rocky outcrop,Afloramiento rocoso,Affleurement rocheux,Singkapan batuan,岩石露头
+Minería,classe,gen_bolivia_lulc_nivel2,Mineração,Mining,Minería,Extraction minière,Pertambangan,采矿区
+Acuicultura,classe,gen_bolivia_lulc_nivel2,Aquicultura,Aquaculture,Acuicultura,Aquaculture,Akuakultur,水产养殖
+Río y lago,classe,gen_bolivia_lulc_nivel2,Rio e lago,River and lake,Río y lago,Fleuve et lac,Sungai dan danau,河流与湖泊
+Glaciar,classe,gen_bolivia_lulc_nivel2,Geleira,Glacier,Glaciar,Glacier,Gletser,冰川
+Salar,classe,gen_bolivia_lulc_nivel2,Salar,Salt flat,Salar,Salar,Dataran garam,盐沼盐滩
+Estepa (Beta),classe,gen_bolivia_lulc_nivel2,Estepe (Beta),Steppe (Beta),Estepa (Beta),Steppe (Beta),Stepa (Beta),干草原 (Beta)
+Matorral,classe,gen_bolivia_lulc_nivel2,Matagal,Scrubland,Matorral,Fourré,Belukar,灌木丛
+Otra área natural sin vegetación,classe,gen_bolivia_lulc_nivel2,Outra área natural sem vegetação,Other non-vegetated natural area,Otra área natural sin vegetación,Autre zone naturelle sans végétation,Area alami tanpa vegetasi lainnya,其他自然无植被区
+Arbustal abierto (Beta),classe,gen_bolivia_lulc_nivel2,Arbustal aberto (Beta),Open shrubland (Beta),Arbustal abierto (Beta),Arbustaie ouverte (Beta),Semak terbuka (Beta),稀疏灌丛 (Beta)
+Pajonal y arbustal andino,classe,gen_bolivia_lulc_nivel2,Pajonal e arbustal andino,Andean grassland and shrubland,Pajonal y arbustal andino,Pelouse et arbustaie andines,Padang rumput dan semak Andes,安第斯高寒草甸与灌丛
+Pajonal y arbustal andino inundable,classe,gen_bolivia_lulc_nivel2,Pajonal e arbustal andino inundável,Floodable Andean grassland and shrubland,Pajonal y arbustal andino inundable,Pelouse et arbustaie andines inondables,Padang rumput dan semak Andes rawa banjir,洪泛安第斯高寒草甸与灌丛
+Superficie rocosa,classe,gen_bolivia_lulc_nivel2,Superfície rochosa,Rocky surface,Superficie rocosa,Surface rocheuse,Permukaan berbatu,岩石地表
+Soya (Beta),classe,gen_bolivia_lulc_nivel3,Soja (Beta),Soybean (Beta),Soya (Beta),Soja (Beta),Kedelai (Beta),大豆 (Beta)
+Arroz inundado (Beta),classe,gen_bolivia_lulc_nivel3,Arroz inundado (Beta),Flooded rice (Beta),Arroz inundado (Beta),Riz inondé (Beta),Padi sawah (Beta),水田水稻 (Beta)
+Otros cultivos,classe,gen_bolivia_lulc_nivel3,Outros cultivos,Other crops,Otros cultivos,Autres cultures,Tanaman lainnya,其他作物
+Vegetación Leñosa Natural,classe,gen_bosque_atlantico_lulc_nivel1,Vegetação Lenhosa Natural,Natural Woody Vegetation,Vegetación Leñosa Natural,Végétation ligneuse naturelle,Vegetasi Berkayu Alami,自然木本植被
+Vegetación natural no leñosa,classe,gen_bosque_atlantico_lulc_nivel1,Vegetação natural não lenhosa,Non-woody natural vegetation,Vegetación natural no leñosa,Végétation naturelle non ligneuse,Vegetasi alami tidak berkayu,非木本自然植被
+Área no vegetada,classe,gen_bosque_atlantico_lulc_nivel1,Área não vegetada,Non-vegetated area,Área no vegetada,Zone non végétalisée,Area tidak bervegetasi,无植被区
+No Observado,classe,gen_bosque_atlantico_lulc_nivel1,Não Observado,Not Observed,No Observado,Non observé,Tidak Teramati,未观测
+Leñosas cerradas,classe,gen_bosque_atlantico_lulc_nivel2,Lenhosas fechadas,Closed woody vegetation,Leñosas cerradas,Ligneux denses,Vegetasi berkayu tertutup,郁闭木本植被
+Leñosas abiertas,classe,gen_bosque_atlantico_lulc_nivel2,Lenhosas abertas,Open woody vegetation,Leñosas abiertas,Ligneux ouverts,Vegetasi berkayu terbuka,稀疏木本植被
+Manglar,classe,gen_bosque_atlantico_lulc_nivel2,Mangue,Mangrove,Manglar,Mangrove,Mangrove,红树林
+Forestación,classe,gen_bosque_atlantico_lulc_nivel2,Florestamento,Afforestation,Forestación,Boisement,Penghutanan,人工造林
+Pastizales inundables,classe,gen_bosque_atlantico_lulc_nivel2,Campos inundáveis,Floodable grasslands,Pastizales inundables,Prairies inondables,Padang rumput rawa banjir,洪泛草地
+Pastizal,classe,gen_bosque_atlantico_lulc_nivel2,Campo,Grassland,Pastizal,Prairie,Padang rumput,草地
+Otra Formación no Forestal,classe,gen_bosque_atlantico_lulc_nivel2,Outra Formação não Florestal,Other Non-Forest Formation,Otra Formación no Forestal,Autre formation non forestière,Formasi Non-Hutan Lainnya,其他非森林群系
+Afloramiento Rocoso,classe,gen_bosque_atlantico_lulc_nivel2,Afloramento Rochoso,Rocky Outcrop,Afloramiento Rocoso,Affleurement rocheux,Singkapan Batuan,岩石露头
+Vegetación Leñosa en Bancos de Arena,classe,gen_bosque_atlantico_lulc_nivel2,Vegetação Lenhosa em Bancos de Areia,Woody Vegetation on Sandbanks,Vegetación Leñosa en Bancos de Arena,Végétation ligneuse sur bancs de sable,Vegetasi Berkayu di Gosong Pasir,沙洲木本植被
+Vegetación Herbácea en Bancos de Arena,classe,gen_bosque_atlantico_lulc_nivel2,Vegetação Herbácea em Bancos de Areia,Herbaceous Vegetation on Sandbanks,Vegetación Herbácea en Bancos de Arena,Végétation herbacée sur bancs de sable,Vegetasi Herba di Gosong Pasir,沙洲草本植被
+Cultivos anuales,classe,gen_bosque_atlantico_lulc_nivel3,Cultivos anuais,Annual crops,Cultivos anuales,Cultures annuelles,Tanaman semusim,一年生作物
+Cultivos de arbustos,classe,gen_bosque_atlantico_lulc_nivel3,Cultivos de arbustos,Shrub crops,Cultivos de arbustos,Cultures arbustives,Tanaman perdu,灌木类作物
+Otros cultivos perennes,classe,gen_bosque_atlantico_lulc_nivel4,Outros cultivos perennes,Other perennial crops,Otros cultivos perennes,Autres cultures pérennes,Tanaman tahunan lainnya,其他多年生作物
+Té,classe,gen_bosque_atlantico_lulc_nivel4,Chá,Tea,Té,Thé,Teh,茶叶
+No definido,classe,gen_chaco_lulc_nivel0,Não definido,Not defined,No definido,Non défini,Tidak terdefinisi,未定义
+Vegetación natural leñosa,classe,gen_chaco_lulc_nivel1,Vegetação natural lenhosa,Natural woody vegetation,Vegetación natural leñosa,Végétation naturelle ligneuse,Vegetasi alami berkayu,自然木本植被
+Vegetación natural herbácea,classe,gen_chaco_lulc_nivel1,Vegetação natural herbácea,Natural herbaceous vegetation,Vegetación natural herbácea,Végétation naturelle herbacée,Vegetasi alami herba,自然草本植被
+Área agropecuaria,classe,gen_chaco_lulc_nivel1,Área agropecuária,Agricultural and pastoral area,Área agropecuaria,Zone agricole et pastorale,Area pertanian dan peternakan,农牧业用地
+Leñosa cerrada,classe,gen_chaco_lulc_nivel2,Lenhosa fechada,Closed woody vegetation,Leñosa cerrada,Ligneux dense,Vegetasi berkayu tertutup,郁闭木本植被
+Leñosa abierta,classe,gen_chaco_lulc_nivel2,Lenhosa aberta,Open woody vegetation,Leñosa abierta,Ligneux ouvert,Vegetasi berkayu terbuka,稀疏木本植被
+Leñosa inundable,classe,gen_chaco_lulc_nivel2,Lenhosa inundável,Floodable woody vegetation,Leñosa inundable,Ligneux inondable,Vegetasi berkayu rawa banjir,洪泛木本植被
+Plantación forestal,classe,gen_chaco_lulc_nivel2,Plantação florestal,Forest plantation,Plantación forestal,Plantation forestière,Hutan tanaman,人工林
+Playas y dunas,classe,gen_chaco_lulc_nivel2,Praias e dunas,Beaches and dunes,Playas y dunas,Plages et dunes,Pantai dan gumuk pasir,海滩与沙丘
+Área urbana,classe,gen_chaco_lulc_nivel2,Área urbana,Urban area,Área urbana,Zone urbaine,Area perkotaan,城市区域
+Cultivo arbustivo,classe,gen_chaco_lulc_nivel2,Cultivo arbustivo,Shrub crop,Cultivo arbustivo,Culture arbustive,Tanaman perdu,灌木作物
+Leñosa dispersa,classe,gen_chaco_lulc_nivel2,Lenhosa dispersa,Sparse woody vegetation,Leñosa dispersa,Ligneux dispersé,Vegetasi berkayu jarang,疏散木本植被
+Salares,classe,gen_chaco_lulc_nivel2,Salares,Salt flats,Salares,Salars,Dataran garam,盐滩
+Pastizal Inundable,classe,gen_chaco_lulc_nivel3,Campo Inundável,Floodable Grassland,Pastizal Inundable,Prairie inondable,Padang Rumput Rawa Banjir,洪泛草地
+Pastizal Abierto,classe,gen_chaco_lulc_nivel3,Campo Aberto,Open Grassland,Pastizal Abierto,Prairie ouverte,Padang Rumput Terbuka,稀疏草地
+Pastizal Cerrado,classe,gen_chaco_lulc_nivel3,Campo Fechado,Closed Grassland,Pastizal Cerrado,Prairie dense,Padang Rumput Tertutup,郁闭草地
+Pastizal Disperso,classe,gen_chaco_lulc_nivel3,Campo Disperso,Sparse Grassland,Pastizal Disperso,Prairie clairsemée,Padang Rumput Jarang,疏散草地
+Cultivo simple,classe,gen_chaco_lulc_nivel4,Cultivo simples,Single crop,Cultivo simple,Culture simple,Tanaman tunggal,单季作物
+Cultivo múltiple,classe,gen_chaco_lulc_nivel4,Cultivo múltiplo,Multiple crop,Cultivo múltiple,Culture multiple,Tanaman ganda,复种作物
+Formación Boscosa,classe,gen_chile_lulc_nivel1,Formação Florestal,Forest Formation,Formación Boscosa,Formation forestière,Formasi Hutan,森林群系
+Formación natural no boscosa,classe,gen_chile_lulc_nivel1,Formação natural não florestal,Non-forest natural formation,Formación natural no boscosa,Formation naturelle non forestière,Formasi alami non-hutan,非森林自然群系
+Agricultura y silvicultura,classe,gen_chile_lulc_nivel1,Agricultura e silvicultura,Agriculture and forestry,Agricultura y silvicultura,Agriculture et sylviculture,Pertanian dan kehutanan,农业与林业
+Humedal,classe,gen_chile_lulc_nivel2,Área úmida,Wetland,Humedal,Zone humide,Lahan basah,湿地
+Herbazal,classe,gen_chile_lulc_nivel2,Formação herbácea,Herbaceous formation,Herbazal,Formation herbacée,Padang herba,草本群系
+"Playa, duna y arenal",classe,gen_chile_lulc_nivel2,"Praia, duna e areal","Beach, dune and sand spot","Playa, duna y arenal","Plage, dune et banc de sable","Pantai, gumuk pasir, dan hamparan pasir",海滩、沙丘与沙地
+Infraestructura,classe,gen_chile_lulc_nivel2,Infraestrutura,Infrastructure,Infraestructura,Infrastructure,Infrastruktur,基础设施
+Otra área no vegetada,classe,gen_chile_lulc_nivel2,Outra área não vegetada,Other non-vegetated area,Otra área no vegetada,Autre zone non végétalisée,Area tidak bervegetasi lainnya,其他无植被区
+"Río, lago u océano",classe,gen_chile_lulc_nivel2,"Rio, lago ou oceano","River, lake or ocean","Río, lago u océano","Fleuve, lac ou océan","Sungai, danau, atau laut",河流、湖泊或海洋
+Hielo y nieve,classe,gen_chile_lulc_nivel2,Gelo e neve,Ice and snow,Hielo y nieve,Glace et neige,Es dan salju,冰雪
+Estepa,classe,gen_chile_lulc_nivel2,Estepe,Steppe,Estepa,Steppe,Stepa,干草原
+Bosque Primario,classe,gen_chile_lulc_nivel3,Floresta Primária,Primary Forest,Bosque Primario,Forêt primaire,Hutan Primer,原始林
+Bosque Secundario,classe,gen_chile_lulc_nivel3,Floresta Secundária,Secondary Forest,Bosque Secundario,Forêt secondaire,Hutan Sekunder,次生林
+Bosque Achaparrado,classe,gen_chile_lulc_nivel3,Floresta Baixa / Achaparrada,Stunted Forest,Bosque Achaparrado,Forêt rabougrie,Hutan Kerdil,矮曲林
+Formación boscosa,classe,gen_colombia_lulc_nivel1,Formação florestal,Forest formation,Formación boscosa,Formation forestière,Formasi hutan,森林群系
+Bosque inundable,classe,gen_colombia_lulc_nivel2,Floresta inundável,Floodable forest,Bosque inundable,Forêt inondable,Hutan rawa banjir,洪泛森林
+Formación natural no forestal inundable,classe,gen_colombia_lulc_nivel2,Formação natural não florestal inundável,Floodable non-forest natural formation,Formación natural no forestal inundable,Formation naturelle non forestière inondable,Formasi alami non-hutan rawa banjir,洪泛非森林自然群系
+Formación herbácea,classe,gen_colombia_lulc_nivel2,Formação herbácea,Herbaceous formation,Formación herbácea,Formation herbacée,Formasi herba,草本群系
+Mosaico de agricultura o pasto,classe,gen_colombia_lulc_nivel2,Mosaico de agricultura ou pastagem,Mosaic of agriculture or pasture,Mosaico de agricultura o pasto,Mosaïque d'agriculture ou de pâturage,Mosaik pertanian atau padang penggembalaan,农业或牧草混合用地
+"Playas, dunas y bancos de arena",classe,gen_colombia_lulc_nivel2,"Praias, dunas e bancos de areia","Beaches, dunes and sandbanks","Playas, dunas y bancos de arena","Plages, dunes et bancs de sable","Pantai, gumuk pasir, dan gosong pasir",海滩、沙丘与沙洲
+Otra área sin vegetación,classe,gen_colombia_lulc_nivel2,Outra área sem vegetação,Other non-vegetated area,Otra área sin vegetación,Autre zone sans végétation,Area tanpa vegetasi lainnya,其他无植被区
+Planicie de marea hipersalina,classe,gen_colombia_lulc_nivel2,Planície de maré hipersalina,Hypersaline tidal flat,Planicie de marea hipersalina,Vasière hypersaline,Dataran pasang surut hipersalin,高盐潮滩
+Glaciar y nival,classe,gen_colombia_lulc_nivel2,Geleira e nival,Glacier and snow,Glaciar y nival,Glacier et nival,Gletser dan salju,冰川与积雪带
+Palma aceitera,classe,gen_colombia_lulc_nivel2,Palma de óleo / Dendê,Oil palm,Palma aceitera,Palmier à huile,Kelapa sawit,油棕
+Vegetación leñosa sobre arena,classe,gen_colombia_lulc_nivel2,Vegetação lenhosa sobre areia,Woody vegetation on sand,Vegetación leñosa sobre arena,Végétation ligneuse sur sable,Vegetasi berkayu di atas pasir,沙地木本植被
+Vegetación herbácea sobre arena,classe,gen_colombia_lulc_nivel2,Vegetação herbácea sobre areia,Herbaceous vegetation on sand,Vegetación herbácea sobre arena,Végétation herbacée sur sable,Vegetasi herba di atas pasir,沙地草本植被
+Plátano y banano,classe,gen_colombia_lulc_nivel2,Banana e plátano,Plantain and banana,Plátano y banano,Plantain et banane,Pisang tanduk dan pisang,芭蕉与香蕉
+Parques solares,classe,gen_colombia_lulc_nivel2,Parques solares,Solar parks,Parques solares,Parcs solaires,Taman surya,太阳能园区
+Herbazales o arbustales andinos,classe,gen_colombia_lulc_nivel2,Formações herbáceas ou arbustivas andinas,Andean grasslands or shrublands,Herbazales o arbustales andinos,Pelouses ou arbustaies andines,Padang herba atau semak Andes,安第斯草本或灌木群系
+Herbazales o arbustales andinos inundables,classe,gen_colombia_lulc_nivel2,Formações herbáceas ou arbustivas andinas inundáveis,Floodable Andean grasslands or shrublands,Herbazales o arbustales andinos inundables,Pelouses ou arbustaies andines inondables,Padang herba atau semak Andes rawa banjir,洪泛安第斯草本或灌木群系
+Formación Forestal,classe,gen_ecuador_lulc_nivel1,Formação Florestal,Forest Formation,Formación Forestal,Formation forestière,Formasi Hutan,森林群系
+Formación natural no forestal,classe,gen_ecuador_lulc_nivel1,Formação natural não florestal,Non-forest natural formation,Formación natural no forestal,Formation naturelle non forestière,Formasi alami non-hutan,非森林自然群系
+Agropecuaria y silvicultura,classe,gen_ecuador_lulc_nivel1,Agropecuária e silvicultura,Farming and forestry,Agropecuaria y silvicultura,"Agriculture, élevage et sylviculture","Pertanian, peternakan, dan kehutanan",农牧业与林业
+Bosque abierto,classe,gen_ecuador_lulc_nivel2,Floresta aberta,Open forest,Bosque abierto,Forêt claire,Hutan terbuka,疏林
+Mosaico de agricultura y/o pastos,classe,gen_ecuador_lulc_nivel2,Mosaico de agricultura e/ou pastagens,Mosaic of agriculture and/or pastures,Mosaico de agricultura y/o pastos,Mosaïque d'agriculture et/ou de pâturages,Mosaik pertanian dan/atau padang penggembalaan,农业和/或牧草混合用地
+"Playa, duna o banco de arena",classe,gen_ecuador_lulc_nivel2,"Praia, duna ou banco de areia","Beach, dune or sandbank","Playa, duna o banco de arena","Plage, dune ou banc de sable","Pantai, gumuk pasir, atau gosong pasir",海滩、沙丘或沙洲
+Banano,classe,gen_ecuador_lulc_nivel2,Banana,Banana,Banano,Banane,Pisang,香蕉
+Herbazales y arbustales andinos,classe,gen_ecuador_lulc_nivel2,Formações herbáceas e arbustivas andinas,Andean grasslands and shrublands,Herbazales y arbustales andinos,Pelouses et arbustaies andines,Padang herba dan semak Andes,安第斯草本与灌木群系
+Herbazales andinos inundables,classe,gen_ecuador_lulc_nivel2,Formações herbáceas andinas inundáveis,Floodable Andean grasslands,Herbazales andinos inundables,Pelouses andines inondables,Padang herba Andes rawa banjir,洪泛安第斯草本群系
+Forest,classe,gen_indonesia_lulc_nivel1,Floresta,Forest,Bosque,Forêt,Hutan,森林
+Non-Forest Natural Formation,classe,gen_indonesia_lulc_nivel1,Formação Natural não Florestal,Non-Forest Natural Formation,Formación Natural no Forestal,Formation naturelle non forestière,Formasi Alami Non-Hutan,非森林自然群系
+Agriculture,classe,gen_indonesia_lulc_nivel1,Agricultura,Agriculture,Agricultura,Agriculture,Pertanian,农业
+Non-Vegetated Area,classe,gen_indonesia_lulc_nivel1,Área não Vegetada,Non-Vegetated Area,Área no Vegetada,Zone non végétalisée,Area Tidak Bervegetasi,无植被区
+Water Body,classe,gen_indonesia_lulc_nivel1,Corpo D'água,Water Body,Cuerpo de Agua,Plan d'eau,Badan Air,水体
+Not Observed,classe,gen_indonesia_lulc_nivel1,Não Observado,Not Observed,No Observado,Non observé,Tidak Teramati,未观测
+Forest Formation,classe,gen_indonesia_lulc_nivel2,Formação Florestal,Forest Formation,Formación Forestal,Formation forestière,Formasi Hutan,森林群系
+Mangrove,classe,gen_indonesia_lulc_nivel2,Mangue,Mangrove,Manglar,Mangrove,Mangrove,红树林
+ForestPlantation,classe,gen_indonesia_lulc_nivel2,Silvicultura,Forest Plantation,Plantación Forestal,Plantation forestière,Hutan Tanaman,人工林
+Wetland,classe,gen_indonesia_lulc_nivel2,Área Úmida,Wetland,Humedal,Zone humide,Lahan Basah,湿地
+Savannah,classe,gen_indonesia_lulc_nivel2,Savana,Savannah,Sabana,Savane,Sabana,稀树草原
+Other Natural Vegetation,classe,gen_indonesia_lulc_nivel2,Outra Vegetação Natural,Other Natural Vegetation,Otra Vegetación Natural,Autre végétation naturelle,Vegetasi Alami Lainnya,其他自然植被
+Other Agriculture,classe,gen_indonesia_lulc_nivel2,Outra Agricultura,Other Agriculture,Otra Agricultura,Autre agriculture,Pertanian Lainnya,其他农业
+Urban Area,classe,gen_indonesia_lulc_nivel2,Área Urbana,Urban Area,Área Urbana,Zone urbaine,Area Perkotaan,城市区域
+Other Non-Vegetation,classe,gen_indonesia_lulc_nivel2,Outras Áreas não Vegetadas,Other Non-Vegetation,Otras Áreas no Vegetadas,Autres zones non végétalisées,Area Non-Vegetasi Lainnya,其他无植被区
+Mining Pit,classe,gen_indonesia_lulc_nivel2,Cava de Mineração,Mining Pit,Pozo Minero,Fosse minière,Lubang Tambang,采矿坑
+Aquaculture,classe,gen_indonesia_lulc_nivel2,Aquicultura,Aquaculture,Acuicultura,Aquaculture,Akuakultur,水产养殖
+"River, Lake, Ocean",classe,gen_indonesia_lulc_nivel2,"Rio, Lago, Oceano","River, Lake, Ocean","Río, Lago, Océano","Fleuve, lac, océan","Sungai, Danau, Laut",河流、湖泊、海洋
+Oil Palm,classe,gen_indonesia_lulc_nivel2,Dendê / Palma de Óleo,Oil Palm,Palma Aceitera,Palmier à huile,Kelapa Sawit,油棕
+Rice Paddy,classe,gen_indonesia_lulc_nivel2,Arrozal,Rice Paddy,Arrozal,Rizière,Sawah Padi,稻田
+Coffee,classe,gen_indonesia_lulc_nivel2,Café,Coffee,Café,Café,Kopi,咖啡
+Perennial Crops,classe,gen_indonesia_lulc_nivel2,Lavouras Perenes,Perennial Crops,Cultivos Perennes,Cultures pérennes,Tanaman Tahunan,多年生作物
+Rubber,classe,gen_indonesia_lulc_nivel2,Seringueira,Rubber,Caucho,Hévéa,Karet,橡胶
+Sago,classe,gen_indonesia_lulc_nivel2,Sagu,Sago,Sagú,Sagoutier,Sagu,西米棕榈
+Peat Swamp Forest,classe,gen_indonesia_lulc_nivel2,Floresta Pantanosa de Turfa,Peat Swamp Forest,Bosque Pantanoso de Turba,Forêt marécageuse tourbeuse,Hutan Rawa Gambut,泥炭沼泽林
+Timber Plantation,classe,gen_indonesia_lulc_nivel2,Plantação Madeireira,Timber Plantation,Plantación Maderera,Plantation de bois d'œuvre,Hutan Tanaman Kayu,用材林
+Rocky Surface,classe,gen_indonesia_lulc_nivel2,Superfície Rochosa,Rocky Surface,Superficie Rocosa,Surface rocheuse,Permukaan Berbatu,岩石地表
+Vegetación herbácea y arbustiva,classe,gen_mexico_lulc_nivel1,Vegetação herbácea e arbustiva,Herbaceous and shrubby vegetation,Vegetación herbácea y arbustiva,Végétation herbeuse et arbustive,Vegetasi herba dan semak,草本与灌木植被
+No vegetado,classe,gen_mexico_lulc_nivel1,Não vegetado,Non-vegetated,No vegetado,Non végétalisé,Tidak bervegetasi,无植被
+Bosque tropical húmedo,classe,gen_mexico_lulc_nivel2,Floresta tropical úmida,Tropical humid forest,Bosque tropical húmedo,Forêt tropicale humide,Hutan hujan tropis,热带湿润林
+Inundable,classe,gen_mexico_lulc_nivel2,Inundável,Floodable,Inundable,Inondable,Rawa banjir,洪泛区
+Pastizal cultivado e inducido,classe,gen_mexico_lulc_nivel2,Pastagem cultivada e induzida,Cultivated and induced pasture,Pastizal cultivado e inducido,Pâturage cultivé et induit,Padang penggembalaan budidaya,人工与诱导牧草地
+Cultivo anual,classe,gen_mexico_lulc_nivel2,Cultivo anual,Annual crop,Cultivo anual,Culture annuelle,Tanaman semusim,一年生作物
+Área urbana y construida,classe,gen_mexico_lulc_nivel2,Área urbana e construída,Urban and built-up area,Área urbana y construida,Zone urbaine et bâtie,Area perkotaan dan terbangun,城市与建设用地
+"Río, lago y mar",classe,gen_mexico_lulc_nivel2,"Rio, lago e mar","River, lake and sea","Río, lago y mar","Fleuve, lac et mer","Sungai, danau, dan laut",河流、湖泊与海洋
+Cultivo perenne,classe,gen_mexico_lulc_nivel2,Cultivo perene,Perennial crop,Cultivo perenne,Culture pérenne,Tanaman tahunan,多年生作物
+Sabana y pastizal natural,classe,gen_mexico_lulc_nivel2,Sabana e pastagem natural,Savanna and natural grassland,Sabana y pastizal natural,Savane et prairie naturelle,Sabana dan padang rumput alami,稀树草原与天然草地
+Bosque templado,classe,gen_mexico_lulc_nivel2,Floresta temperada,Temperate forest,Bosque templado,Forêt tempérée,Hutan beriklim sedang,温带森林
+Bosque tropical seco,classe,gen_mexico_lulc_nivel2,Floresta tropical seca,Tropical dry forest,Bosque tropical seco,Forêt tropicale sèche,Hutan kering tropis,热带干旱林
+Agropecuaria,classe,gen_pampa_lulc_nivel1,Agropecuária,Farming,Agropecuaria,Agriculture et élevage,Pertanian dan peternakan,农牧业
+Bosque y arbustal cerrado,classe,gen_pampa_lulc_nivel2,Floresta e arbustal fechado,Closed forest and shrubland,Bosque y arbustal cerrado,Forêt et arbustaie denses,Hutan dan semak tertutup,郁闭林与灌丛
+Bosque y arbustal abierto,classe,gen_pampa_lulc_nivel2,Floresta e arbustal aberto,Open forest and shrubland,Bosque y arbustal abierto,Forêt et arbustaie ouverts,Hutan dan semak terbuka,疏林与稀疏灌丛
+Pantano y pastizal inundable,classe,gen_pampa_lulc_nivel2,Pântano e campo inundável,Marsh and floodable grassland,Pantano y pastizal inundable,Marais et prairie inondable,Rawa dan padang rumput banjir,沼泽与洪泛草地
+Cultivo anual o perenne,classe,gen_pampa_lulc_nivel2,Cultivo anual ou perene,Annual or perennial crop,Cultivo anual o perenne,Culture annuelle ou pérenne,Tanaman semusim atau tahunan,一年生或多年生作物
+Formación forestal,classe,gen_pan_amazonia_lulc_nivel2,Formação florestal,Forest formation,Formación forestal,Formation forestière,Formasi hutan,森林群系
+Formação savânica / Floresta aberta,classe,gen_pan_amazonia_lulc_nivel2,Formação savânica / Floresta aberta,Savanna formation / Open forest,Formación sabánica / Bosque abierto,Formation savanicole / Forêt ouverte,Formasi sabana / Hutan terbuka,稀树草原群系 / 疏林
+Formación campestre o herbazal,classe,gen_pan_amazonia_lulc_nivel2,Formação campestre ou herbácea,Grassland or herbaceous formation,Formación campestre o herbazal,Formation herbacée,Formasi padang rumput atau herba,草原或草本群系
+Pasto,classe,gen_pan_amazonia_lulc_nivel2,Pastagem,Pasture,Pasto,Pâturage,Padang penggembalaan,牧草地
+Sin información,classe,gen_pan_amazonia_lulc_nivel2,Sem informação,No information,Sin información,Sans information,Tanpa informasi,无信息
+Glacial,classe,gen_pan_amazonia_lulc_nivel2,Glacial,Glacial,Glacial,Glaciaire,Glasial,冰川
+Otra area natural sin vegetación,classe,gen_pan_amazonia_lulc_nivel2,Outra área natural sem vegetação,Other non-vegetated natural area,Otra área natural sin vegetación,Autre zone naturelle sans végétation,Area alami tanpa vegetasi lainnya,其他自然无植被区
+Vegetación Herbácea Natural,classe,gen_paraguay_lulc_nivel1,Vegetação Herbácea Natural,Natural Herbaceous Vegetation,Vegetación Herbácea Natural,Végétation herbacée naturelle,Vegetasi Herba Alami,自然草本植被
+Agricultural Areas,classe,gen_paraguay_lulc_nivel1,Áreas Agrícolas,Agricultural Areas,Áreas Agrícolas,Zones agricoles,Area Pertanian,农业用地
+Áreas sin vegetación,classe,gen_paraguay_lulc_nivel1,Áreas sem vegetação,Non-vegetated areas,Áreas sin vegetación,Zones sans végétation,Area tanpa vegetasi,无植被区
+Leñosas inundables,classe,gen_paraguay_lulc_nivel2,Lenhosas inundáveis,Floodable woody vegetation,Leñosas inundables,Ligneux inondables,Vegetasi berkayu rawa banjir,洪泛木本植被
+Forestaciones,classe,gen_paraguay_lulc_nivel2,Florestamentos,Afforestations,Forestaciones,Boisements,Penghutanan,人工造林
+Areas sin vegtación,classe,gen_paraguay_lulc_nivel2,Áreas sem vegetação,Non-vegetated areas,Áreas sin vegetación,Zones sans végétation,Area tanpa vegetasi,无植被区
+"Ríos, lagos y océano",classe,gen_paraguay_lulc_nivel2,"Rios, lagos e oceano","Rivers, lakes and ocean","Ríos, lagos y océano","Fleuves, lacs et océan","Sungai, danau, dan laut",河流、湖泊与海洋
+Bosque seco,classe,gen_peru_lulc_nivel2,Floresta seca,Dry forest,Bosque seco,Forêt sèche,Hutan kering,干旱林
+Formación herbácea inundable,classe,gen_peru_lulc_nivel2,Formação herbácea inundável,Floodable herbaceous formation,Formación herbácea inundable,Formation herbacée inondable,Formasi herba rawa banjir,洪泛草本群系
+Formaciones arbustivas y otras,classe,gen_peru_lulc_nivel2,Formações arbustivas e outras,Shrub formations and others,Formaciones arbustivas y otras,Formations arbustives et autres,Formasi semak dan lainnya,灌木及其他群系
+Pasto (beta),classe,gen_peru_lulc_nivel2,Pastagem (beta),Pasture (beta),Pasto (beta),Pâturage (beta),Padang penggembalaan (beta),牧草地 (beta)
+Mosaico agropecuario,classe,gen_peru_lulc_nivel2,Mosaico agropecuario,Agricultural and pastoral mosaic,Mosaico agropecuario,Mosaïque agricole et pastorale,Mosaik pertanian dan peternakan,农牧混合用地
+Playa,classe,gen_peru_lulc_nivel2,Praia,Beach,Playa,Plage,Pantai,海滩
+Arroz (beta),classe,gen_peru_lulc_nivel2,Arroz (beta),Rice (beta),Arroz (beta),Riz (beta),Padi (beta),水稻 (beta)
+Superficie salina costera,classe,gen_peru_lulc_nivel2,Superfície salina costera,Coastal saline surface,Superficie salina costera,Surface saline côtière,Permukaan salin pesisir,滨海盐碱地表
+Superficie de salar,classe,gen_peru_lulc_nivel2,Superfície de salar,Salt flat surface,Superficie de salar,Surface de salar,Permukaan dataran garam,盐滩地表
+Herbazal inundable de tierras bajas,classe,gen_peru_lulc_nivel3,Formação herbácea inundável de terras baixas,Lowland floodable grassland,Herbazal inundable de tierras bajas,Pelouse inondable des basses terres,Padang herba rawa banjir dataran rendah,低地洪泛草甸
+Matorral y otros arbustales,classe,gen_peru_lulc_nivel3,Matagal e outros arbustais,Scrubland and other shrublands,Matorral y otros arbustales,Fourré et autres arbustaies,Belukar dan semak lainnya,灌丛及其他灌木林
+Loma costera (beta),classe,gen_peru_lulc_nivel3,Loma costeira (beta),Coastal fog oasis (beta),Loma costera (beta),Loma côtière (beta),Loma pesisir (beta),滨海雾洲草甸 (beta)
+Herbazal inundable altoandino,classe,gen_peru_lulc_nivel3,Formação herbácea inundável alto-andina,High-Andean floodable grassland,Herbazal inundable altoandino,Pelouse inondable haut-andine,Padang herba rawa banjir Andes tinggi,高安第斯洪泛草甸
+Anthropic,classe,gen_suriname_lulc_nivel0,Antrópico,Anthropic,Antrópico,Anthropique,Antropik,人为
+Non defined,classe,gen_suriname_lulc_nivel0,Não definido,Non defined,No definido,Non défini,Tidak terdefinisi,未定义
+Herbaceous and Shrubby Vegetation,classe,gen_suriname_lulc_nivel1,Vegetação Herbácea e Arbustiva,Herbaceous and Shrubby Vegetation,Vegetación Herbácea y Arbustiva,Végétation herbeuse et arbustive,Vegetasi Herba dan Semak,草本与灌木植被
+Farming,classe,gen_suriname_lulc_nivel1,Agropecuária,Farming,Agropecuaria,Agriculture et élevage,Pertanian dan Peternakan,农牧业
+Non vegetated Area,classe,gen_suriname_lulc_nivel1,Área não Vegetada,Non vegetated Area,Área no Vegetada,Zone non végétalisée,Area Tidak Bervegetasi,无植被区
+Water,classe,gen_suriname_lulc_nivel1,Água,Water,Agua,Eau,Air,水体
+Not observed,classe,gen_suriname_lulc_nivel1,Não observado,Not observed,No observado,Non observé,Tidak teramati,未观测
+Grassland,classe,gen_suriname_lulc_nivel2,Formação Campestre,Grassland,Formación Campestre,Formation herbacée,Padang Rumput,草原群系
+Mosaic of Uses,classe,gen_suriname_lulc_nivel2,Mosaico de Usos,Mosaic of Uses,Mosaico de Usos,Mosaïque d'usages,Mosaik Penggunaan Lahan,混合用地
+Other non Vegetated Area,classe,gen_suriname_lulc_nivel2,Outras Áreas não Vegetadas,Other non Vegetated Area,Otras Áreas no Vegetadas,Autres zones non végétalisées,Area Tidak Bervegetasi Lainnya,其他无植被区
+Mining,classe,gen_suriname_lulc_nivel2,Mineração,Mining,Minería,Extraction minière,Pertambangan,采矿区
+"River, lake and Ocean",classe,gen_suriname_lulc_nivel2,"Rio, Lago e Oceano","River, lake and Ocean","Río, Lago y Océano","Fleuve, lac et océan","Sungai, Danau, dan Laut",河流、湖泊与海洋
+Bosque y arbustal cerrados,classe,gen_uruguay_lulc_nivel2,Floresta e arbustal fechados,Closed forest and shrubland,Bosque y arbustal cerrados,Forêt et arbustaie denses,Hutan dan semak tertutup,郁闭林与灌丛
+Plantación de pinos,classe,gen_uruguay_lulc_nivel3,Plantação de pinus,Pine plantation,Plantación de pinos,Plantation de pins,Hutan tanaman pinus,松树人工林
+Plantación de eucaliptus,classe,gen_uruguay_lulc_nivel3,Plantação de eucalipto,Eucalyptus plantation,Plantación de eucaliptus,Plantation d'eucalyptus,Hutan tanaman eukaliptus,桉树人工林
+Otros usos forestales,classe,gen_uruguay_lulc_nivel3,Outros usos florestais,Other forest uses,Otros usos forestales,Autres usages forestiers,Penggunaan kehutanan lainnya,其他林业用地
+Formaciones boscosas,classe,gen_venezuela_lulc_nivel1,Formações florestais,Forest formations,Formaciones boscosas,Formations forestières,Formasi hutan,森林群系
+Herbazales y arbustales,classe,gen_venezuela_lulc_nivel1,Formações herbáceas e arbustivas,Grasslands and shrublands,Herbazales y arbustales,Formations herbacées et arbustives,Padang herba dan semak,草本与灌木群系
+Áreas agrícolas,classe,gen_venezuela_lulc_nivel1,Áreas agrícolas,Agricultural areas,Áreas agrícolas,Zones agricoles,Area pertanian,农业用地
+Sabana arbolada,classe,gen_venezuela_lulc_nivel2,Savana arborizada,Wooded savanna,Sabana arbolada,Savane arborée,Sabana berpohon,疏林稀树草原
+Herbazal/Arbustal inundable,classe,gen_venezuela_lulc_nivel2,Formação herbácea/arbustiva inundável,Floodable grassland/shrubland,Herbazal/Arbustal inundable,Formation herbacée/arbustive inondable,Padang herba/semak rawa banjir,洪泛草本/灌木群系
+Sabana/Herbazal,classe,gen_venezuela_lulc_nivel2,Savana/Formação herbácea,Savanna/Grassland,Sabana/Herbazal,Savane/Formation herbacée,Sabana/Padang herba,稀树草原/草本群系
+Otras formaciones naturales no forestales,classe,gen_venezuela_lulc_nivel2,Outras formações naturais não florestais,Other non-forest natural formations,Otras formaciones naturales no forestales,Autres formations naturelles non forestières,Formasi alami non-hutan lainnya,其他非森林自然群系
+Uso pecuario/Tierras en descanso,classe,gen_venezuela_lulc_nivel2,Uso pecuário/Terras em pousio,Livestock use/Fallow land,Uso pecuario/Tierras en descanso,Usage pastoral/Terres en jachère,Penggunaan peternakan/Lahan bera,畜牧用地/休耕地
+Uso agrícola/Tierras en descanso,classe,gen_venezuela_lulc_nivel2,Uso agrícola/Terras em pousio,Agricultural use/Fallow land,Uso agrícola/Tierras en descanso,Usage agricole/Terres en jachère,Penggunaan pertanian/Lahan bera,农业用地/休耕地
+Uso agropecuario/Tierras en descanso,classe,gen_venezuela_lulc_nivel2,Uso agropecuário/Terras em pousio,Agricultural and livestock use/Fallow land,Uso agropecuario/Tierras en descanso,Usage agricole et pastoral/Terres en jachère,Penggunaan pertanian dan peternakan/Lahan bera,农牧用地/休耕地
+Playa o duna,classe,gen_venezuela_lulc_nivel2,Praia ou duna,Beach or dune,Playa o duna,Plage ou dune,Pantai atau gumuk pasir,海滩或沙丘
+Uso urbano,classe,gen_venezuela_lulc_nivel2,Uso urbano,Urban use,Uso urbano,Usage urbain,Penggunaan perkotaan,城市用地
+Otras áreas antrópicas sin vegetación,classe,gen_venezuela_lulc_nivel2,Outras áreas antrópicas sem vegetação,Other non-vegetated anthropic areas,Otras áreas antrópicas sin vegetación,Autres zones anthropiques sans végétation,Area antropik tanpa vegetasi lainnya,其他人为无植被区
+Uso Minero,classe,gen_venezuela_lulc_nivel2,Uso Minerário,Mining Use,Uso Minero,Usage minier,Penggunaan Pertambangan,采矿用地
+Herbazal/Arbustal xerófilo,classe,gen_venezuela_lulc_nivel2,Formação herbácea/arbustiva xerófila,Xerophytic grassland/shrubland,Herbazal/Arbustal xerófilo,Formation herbacée/arbustive xérophile,Padang herba/semak xerofit,旱生草本/灌木群系
+Arbustal,classe,gen_venezuela_lulc_nivel2,Arbustal,Shrubland,Arbustal,Arbustaie,Semak belukar,灌木群系
+Otras áreas naturales sin vegetación,classe,gen_venezuela_lulc_nivel2,Outras áreas naturais sem vegetação,Other non-vegetated natural areas,Otras áreas naturales sin vegetación,Autres zones naturelles sans végétation,Area alami tanpa vegetasi lainnya,其他自然无植被区
+Herbazal/Arbustal andino,classe,gen_venezuela_lulc_nivel2,Formação herbácea/arbustiva andina,Andean grassland/shrubland,Herbazal/Arbustal andino,Formation herbacée/arbustive andine,Padang herba/semak Andes,安第斯草本/灌木群系
+Herbazal/Arbustal andino inundable,classe,gen_venezuela_lulc_nivel2,Formação herbácea/arbustiva andina inundável,Floodable Andean grassland/shrubland,Herbazal/Arbustal andino inundable,Formation herbacée/arbustive andine inondable,Padang herba/semak Andes rawa banjir,洪泛安第斯草本/灌木群系
+Uso e Cobertura (Coleção 11),nome_visualizacao,lulc,Uso e Cobertura (Coleção 11),Land Use and Cover (Collection 11),Uso y Cobertura (Colección 11),Occupation et utilisation des terres (Collection 11),Penggunaan dan Tutupan Lahan (Koleksi 11),土地利用与覆盖（合集 11）
+Savana Alagada (beta),classe,lulc,Savana Alagada (beta),Floodable Savanna (beta),Sabana Inundable (beta),Savane inondable (beta),Sabana Rawa Banjir (beta),洪泛稀树草原 (beta)
+Restinga Herbácea ou Arbustiva,classe,lulc,Restinga Herbácea ou Arbustiva,Herbaceous or Shrubby Sandbank Vegetation,Restinga Herbácea o Arbustiva,Restinga herbacée ou arbustive,Vegetasi Restinga Herba atau Semak,草本或灌木型沙坝植被
+Usina Fotovoltaica,classe,lulc,Usina Fotovoltaica,Photovoltaic Power Plant,Planta Fotovoltaica,Centrale photovoltaïque,Pembangkit Listrik Tenaga Surya,光伏电站
+Formação Herbáceo Arbustiva (beta),classe,lulc,Formação Herbáceo Arbustiva (beta),Herbaceous and Shrubby Formation (beta),Formación Herbácea y Arbustiva (beta),Formation herbeuse et arbustive (beta),Formasi Herba dan Semak (beta),草本与灌木群系 (beta)
+Marisma (beta),classe,lulc,Marisma (beta),Salt Marsh (beta),Marisma (beta),Marais salé (beta),Rawa Asin (beta),盐沼 (beta)
+Parque Eólico (beta),classe,lulc,Parque Eólico (beta),Wind Farm (beta),Parque Eólico (beta),Parc éolien (beta),Ladang Angin (beta),风电场 (beta)
+Área não vegetada,classe,lulc11_nivel1,Área não vegetada,Non-vegetated area,Área no vegetada,Zone non végétalisée,Area tidak bervegetasi,无植被区
+Corpo D'água,classe,lulc11_nivel1,Corpo D'água,Water Body,Cuerpo de Agua,Plan d'eau,Badan Air,水体
+Parque eólico (beta),classe,lulc11_nivel2,Parque eólico (beta),Wind farm (beta),Parque eólico (beta),Parc éolien (beta),Ladang angin (beta),风电场 (beta)
+Naturel (1),classe,lulc_drc_nivel0,Natural (1),Natural (1),Natural (1),Naturel (1),Alami (1),自然 (1)
+Anthropique (14),classe,lulc_drc_nivel0,Antrópico (14),Anthropic (14),Antrópico (14),Anthropique (14),Antropik (14),人为 (14)
+Non défini (27),classe,lulc_drc_nivel0,Não definido (27),Not defined (27),No definido (27),Non défini (27),Tidak terdefinisi (27),未定义 (27)
+Forêt (1),classe,lulc_drc_nivel1,Floresta (1),Forest (1),Bosque (1),Forêt (1),Hutan (1),森林 (1)
+Végétation herbeuse et arbustive (10),classe,lulc_drc_nivel1,Vegetação herbácea e arbustiva (10),Herbaceous and shrubby vegetation (10),Vegetación herbácea y arbustiva (10),Végétation herbeuse et arbustive (10),Vegetasi herba dan semak (10),草本与灌木植被 (10)
+Zones agricoles et d'élevage (14),classe,lulc_drc_nivel1,Áreas agrícolas e pecuárias (14),Agricultural and livestock areas (14),Áreas agrícolas y ganaderas (14),Zones agricoles et d'élevage (14),Area pertanian dan peternakan (14),农牧业用地 (14)
+Zone non végétalisée (22),classe,lulc_drc_nivel1,Área não vegetada (22),Non-vegetated area (22),Área no vegetada (22),Zone non végétalisée (22),Area tidak bervegetasi (22),无植被区 (22)
+Eau (26),classe,lulc_drc_nivel1,Água (26),Water (26),Agua (26),Eau (26),Air (26),水体 (26)
+Non observé (27),classe,lulc_drc_nivel1,Não observado (27),Not observed (27),No observado (27),Non observé (27),Tidak teramati (27),未观测 (27)
+Forêt dense (3),classe,lulc_drc_nivel2,Floresta densa (3),Dense forest (3),Bosque denso (3),Forêt dense (3),Hutan lebat (3),密林 (3)
+Forêt claire (4),classe,lulc_drc_nivel2,Floresta aberta (4),Open forest (4),Bosque abierto (4),Forêt claire (4),Hutan terbuka (4),疏林 (4)
+Mangrove (5),classe,lulc_drc_nivel2,Mangue (5),Mangrove (5),Manglar (5),Mangrove (5),Mangrove (5),红树林 (5)
+Plantation forestière (9),classe,lulc_drc_nivel2,Plantação florestal (9),Forest plantation (9),Plantación forestal (9),Plantation forestière (9),Hutan tanaman (9),人工林 (9)
+Mosaïque d'Usages (21),classe,lulc_drc_nivel2,Mosaico de Usos (21),Mosaic of Uses (21),Mosaico de Usos (21),Mosaïque d'Usages (21),Mosaik Penggunaan Lahan (21),混合用地 (21)
+Zone urbaine (24),classe,lulc_drc_nivel2,Área urbana (24),Urban area (24),Área urbana (24),Zone urbaine (24),Area perkotaan (24),城市区域 (24)
+Autre zone sans végétation (25),classe,lulc_drc_nivel2,Outra área sem vegetação (25),Other non-vegetated area (25),Otra área sin vegetación (25),Autre zone sans végétation (25),Area tanpa vegetasi lainnya (25),其他无植被区 (25)
+"Fleuve, lac et océan (33)",classe,lulc_drc_nivel2,"Rio, lago e oceano (33)","River, lake and ocean (33)","Río, lago y océano (33)","Fleuve, lac et océan (33)","Sungai, danau, dan laut (33)",河流、湖泊与海洋 (33)
+Savane (66),classe,lulc_drc_nivel2,Savana (66),Savanna (66),Sabana (66),Savane (66),Sabana (66),稀树草原 (66)
+Vegetação Natural,classe,lulc_nivel0,Vegetação Natural,Natural Vegetation,Vegetación Natural,Végétation naturelle,Vegetasi Alami,自然植被
+Corpos d'água,classe,lulc_nivel0,Corpos d'água,Water bodies,Cuerpos de agua,Plans d'eau,Badan air,水体
+Formação Campestre e Herbácea,classe,lulc_nivel1,Formação Campestre e Herbácea,Grassland and Herbaceous Formation,Formación Campestre y Herbácea,Formation herbacée,Formasi Padang Rumput dan Herba,草原与草本群系
+Lavoura,classe,lulc_nivel1_1,Lavoura,Cropland,Cultivos,Terres cultivées,Lahan Pertanian,耕地
+Cobertura y uso de la tierra - Perú,nome_visualizacao,lulc_peru,Cobertura e uso da terra - Peru,Land cover and use - Peru,Cobertura y uso de la tierra - Perú,Couverture et utilisation des terres - Pérou,Tutupan dan penggunaan lahan - Peru,土地覆盖与利用 - 秘鲁
+Cobertura y uso de la tierra - Perú - Nivel 0 (Natural/Antrópico),nome_visualizacao,lulc_peru_nivel0,Cobertura e uso da terra - Peru - Nível 0 (Natural/Antrópico),Land cover and use - Peru - Level 0 (Natural/Anthropic),Cobertura y uso de la tierra - Perú - Nivel 0 (Natural/Antrópico),Couverture et utilisation des terres - Pérou - Niveau 0 (Naturel/Anthropique),Tutupan dan penggunaan lahan - Peru - Level 0 (Alami/Antropik),土地覆盖与利用 - 秘鲁 - 0级（自然/人为）
+Cobertura y uso de la tierra - Perú - Nivel 1,nome_visualizacao,lulc_peru_nivel1,Cobertura e uso da terra - Peru - Nível 1,Land cover and use - Peru - Level 1,Cobertura y uso de la tierra - Perú - Nivel 1,Couverture et utilisation des terres - Pérou - Niveau 1,Tutupan dan penggunaan lahan - Peru - Level 1,土地覆盖与利用 - 秘鲁 - 1级
+Cobertura y uso de la tierra - Perú - Nivel 2,nome_visualizacao,lulc_peru_nivel2,Cobertura e uso da terra - Peru - Nível 2,Land cover and use - Peru - Level 2,Cobertura y uso de la tierra - Perú - Nivel 2,Couverture et utilisation des terres - Pérou - Niveau 2,Tutupan dan penggunaan lahan - Peru - Level 2,土地覆盖与利用 - 秘鲁 - 2级
+Cobertura y uso de la tierra - Perú - Nivel 3,nome_visualizacao,lulc_peru_nivel3,Cobertura e uso da terra - Peru - Nível 3,Land cover and use - Peru - Level 3,Cobertura y uso de la tierra - Perú - Nivel 3,Couverture et utilisation des terres - Pérou - Niveau 3,Tutupan dan penggunaan lahan - Peru - Level 3,土地覆盖与利用 - 秘鲁 - 3级
+Fogo - Mês,nome_visualizacao,monthly,Fogo - Mês,Fire - Month,Fuego - Mes,Feu - Mois,Kebakaran - Bulan,火灾 - 月份
+Fuego - Mes,nome_visualizacao,monthly_peru,Fogo - Mês,Fire - Month,Fuego - Mes,Feu - Mois,Kebakaran - Bulan,火灾 - 月份
+Interior,classe,morphology,Interior,Core,Interior,Intérieur,Inti,核心区
+Borda,classe,morphology,Borda,Edge,Borde,Bordure,Tepi,边缘区
+Corredor,classe,morphology,Corredor,Corridor,Corredor,Corridor,Koridor,廊道
+Ramificação,classe,morphology,Ramificação,Branch,Ramificación,Branche,Cabang,分支
+Puleiro,classe,morphology,Puleiro,Perch,Percha,Perchoir,Tenggeran,栖木斑块
+Perfuração,classe,morphology,Perfuração,Perforation,Perforación,Perforation,Perforasi,孔隙
+Cobertura Natural,nome_visualizacao,natural_coverage,Cobertura Natural,Natural Cover,Cobertura Natural,Couverture naturelle,Tutupan Alami,自然植被覆盖
+Não natural / Não observado,classe,natural_coverage,Não natural / Não observado,Non-natural / Not observed,No natural / No observado,Non naturel / Non observé,Non-alami / Tidak teramati,非自然 / 未观测
+Formação Natural Não-Florestal,classe,natural_coverage,Formação Natural Não-Florestal,Non-Forest Natural Formation,Formación Natural No Forestal,Formation naturelle non forestière,Formasi Alami Non-Hutan,非森林自然群系
+Mosaico NBR Mínimo,nome_visualizacao,nbr_min,Mosaico NBR Mínimo,Minimum NBR Mosaic,Mosaico NBR Mínimo,Mosaïque NBR minimale,Mosaik NBR Minimum,最小 NBR 镶嵌影像
+Tamanho de Fragmento,nome_visualizacao,patch_size,Tamanho de Fragmento,Fragment Size,Tamaño de Fragmento,Taille de fragment,Ukuran Fragmen,斑块大小
+Não observado / > 10k ha,classe,patch_size_fragments,Não observado / > 10k ha,Not observed / > 10k ha,No observado / > 10k ha,Non observé / > 10k ha,Tidak teramati / > 10k ha,未观测 / > 10k ha
+≤ 5 ha,classe,patch_size_fragments,≤ 5 ha,≤ 5 ha,≤ 5 ha,≤ 5 ha,≤ 5 ha,≤ 5 ha
+≤ 10 ha,classe,patch_size_fragments,≤ 10 ha,≤ 10 ha,≤ 10 ha,≤ 10 ha,≤ 10 ha,≤ 10 ha
+≤ 25 ha,classe,patch_size_fragments,≤ 25 ha,≤ 25 ha,≤ 25 ha,≤ 25 ha,≤ 25 ha,≤ 25 ha
+≤ 50 ha,classe,patch_size_fragments,≤ 50 ha,≤ 50 ha,≤ 50 ha,≤ 50 ha,≤ 50 ha,≤ 50 ha
+≤ 100 ha,classe,patch_size_fragments,≤ 100 ha,≤ 100 ha,≤ 100 ha,≤ 100 ha,≤ 100 ha,≤ 100 ha
+≤ 250 ha,classe,patch_size_fragments,≤ 250 ha,≤ 250 ha,≤ 250 ha,≤ 250 ha,≤ 250 ha,≤ 250 ha
+≤ 500 ha,classe,patch_size_fragments,≤ 500 ha,≤ 500 ha,≤ 500 ha,≤ 500 ha,≤ 500 ha,≤ 500 ha
+≤ 1000 ha,classe,patch_size_fragments,≤ 1000 ha,≤ 1000 ha,≤ 1000 ha,≤ 1000 ha,≤ 1000 ha,≤ 1000 ha
+≤ 5000 ha,classe,patch_size_fragments,≤ 5000 ha,≤ 5000 ha,≤ 5000 ha,≤ 5000 ha,≤ 5000 ha,≤ 5000 ha
+≤ 10000 ha,classe,patch_size_fragments,≤ 10000 ha,≤ 10000 ha,≤ 10000 ha,≤ 10000 ha,≤ 10000 ha,≤ 10000 ha
+Maciços (> 10k ha),nome_visualizacao,patch_size_massifs,Maciços (> 10k ha),Massifs (> 10k ha),Macizos (> 10k ha),Massifs (> 10k ha),Masif (> 10k ha),大型连片林区（> 10k ha）
+Não observado / ≤ 10k ha,classe,patch_size_massifs,Não observado / ≤ 10k ha,Not observed / ≤ 10k ha,No observado / ≤ 10k ha,Non observé / ≤ 10k ha,Tidak teramati / ≤ 10k ha,未观测 / ≤ 10k ha
+10k - 20k ha,classe,patch_size_massifs,10k - 20k ha,10k - 20k ha,10k - 20k ha,10k - 20k ha,10k - 20k ha,10k - 20k ha
+20k - 50k ha,classe,patch_size_massifs,20k - 50k ha,20k - 50k ha,20k - 50k ha,20k - 50k ha,20k - 50k ha,20k - 50k ha
+50k - 100k ha,classe,patch_size_massifs,50k - 100k ha,50k - 100k ha,50k - 100k ha,50k - 100k ha,50k - 100k ha,50k - 100k ha
+100k - 250k ha,classe,patch_size_massifs,100k - 250k ha,100k - 250k ha,100k - 250k ha,100k - 250k ha,100k - 250k ha,100k - 250k ha
+250k - 500k ha,classe,patch_size_massifs,250k - 500k ha,250k - 500k ha,250k - 500k ha,250k - 500k ha,250k - 500k ha,250k - 500k ha
+500k - 1M ha,classe,patch_size_massifs,500k - 1M ha,500k - 1M ha,500k - 1M ha,500k - 1M ha,500k - 1M ha,500k - 1M ha
+1M - 2.5M ha,classe,patch_size_massifs,1M - 2.5M ha,1M - 2.5M ha,1M - 2.5M ha,1M - 2.5M ha,1M - 2.5M ha,1M - 2.5M ha
+2.5M - 5M ha,classe,patch_size_massifs,2.5M - 5M ha,2.5M - 5M ha,2.5M - 5M ha,2.5M - 5M ha,2.5M - 5M ha,2.5M - 5M ha
+5M - 7.5M ha,classe,patch_size_massifs,5M - 7.5M ha,5M - 7.5M ha,5M - 7.5M ha,5M - 7.5M ha,5M - 7.5M ha,5M - 7.5M ha
+> 7.5M ha,classe,patch_size_massifs,> 7.5M ha,> 7.5M ha,> 7.5M ha,> 7.5M ha,> 7.5M ha,> 7.5M ha
+Fragmentos de Vegetação,nome_visualizacao,random,Fragmentos de Vegetação,Vegetation Fragments,Fragmentos de Vegetación,Fragments de végétation,Fragmen Vegetasi,植被斑块
+Tamanho da Cicatriz,nome_visualizacao,scar_size_range,Tamanho da Cicatriz,Scar Size,Tamaño de la Cicatriz,Taille de la cicatrice,Ukuran Bekas Kebakaran,火烧迹地大小
+< 10 ha,classe,scar_size_range,< 10 ha,< 10 ha,< 10 ha,< 10 ha,< 10 ha,< 10 ha
+10 a 250 ha,classe,scar_size_range,10 a 250 ha,10 to 250 ha,10 a 250 ha,10 à 250 ha,10 hingga 250 ha,10 至 250 ha
+250 a 500 ha,classe,scar_size_range,250 a 500 ha,250 to 500 ha,250 a 500 ha,250 à 500 ha,250 hingga 500 ha,250 至 500 ha
+500 a 5.000 ha,classe,scar_size_range,500 a 5.000 ha,500 to 5.000 ha,500 a 5.000 ha,500 à 5.000 ha,500 hingga 5.000 ha,500 至 5.000 ha
+5.000 a 10.000 ha,classe,scar_size_range,5.000 a 10.000 ha,5.000 to 10.000 ha,5.000 a 10.000 ha,5.000 à 10.000 ha,5.000 hingga 10.000 ha,5.000 至 10.000 ha
+10.000 a 50.000 ha,classe,scar_size_range,10.000 a 50.000 ha,10.000 to 50.000 ha,10.000 a 50.000 ha,10.000 à 50.000 ha,10.000 hingga 50.000 ha,10.000 至 50.000 ha
+50.000 a 100.000 ha,classe,scar_size_range,50.000 a 100.000 ha,50.000 to 100.000 ha,50.000 a 100.000 ha,50.000 à 100.000 ha,50.000 hingga 100.000 ha,50.000 至 100.000 ha
+>= 100.000 ha,classe,scar_size_range,>= 100.000 ha,>= 100.000 ha,>= 100.000 ha,>= 100.000 ha,>= 100.000 ha,>= 100.000 ha
+Carbono Orgânico do Solo,nome_visualizacao,soc,Carbono Orgânico do Solo,Soil Organic Carbon,Carbono Orgánico del Suelo,Carbone organique du sol,Karbon Organik Tanah,土壤有机碳
+Fração de argila,nome_visualizacao,soil_clay_col3,Fração de argila,Clay fraction,Fracción de arcilla,Fraction d'argile,Fraksi liat,黏粒含量
+Fração de areia,nome_visualizacao,soil_sand_col3,Fração de areia,Sand fraction,Fracción de arena,Fraction de sable,Fraksi pasir,砂粒含量
+Fração de silte,nome_visualizacao,soil_silt_col3,Fração de silte,Silt fraction,Fracción de limo,Fraction de limon,Fraksi debu,粉粒含量
+Fragmentos de rocha,classe,soil_texture_l1,Fragmentos de rocha,Rock fragments,Fragmentos de roca,Fragments rocheux,Fragmen batuan,碎石
+Muito argilosa,classe,soil_texture_l1,Muito argilosa,Very clayey,Muy arcillosa,Très argileuse,Sangat liat,重黏土
+Argilosa,classe,soil_texture_l1,Argilosa,Clayey,Arcillosa,Argileuse,Liat,黏土
+Siltosa,classe,soil_texture_l1,Siltosa,Silty,Limosa,Limoneuse,Debu,粉砂土
+Arenosa,classe,soil_texture_l1,Arenosa,Sandy,Arenosa,Sableuse,Pasir,砂土
+Média,classe,soil_texture_l1,Média,Medium,Media,Moyenne,Sedang,中等
+Média-argilosa,classe,soil_texture_l2,Média-argilosa,Medium-clayey,Media-arcillosa,Moyenne-argileuse,Sedang-liat,中黏质
+Média-siltosa,classe,soil_texture_l2,Média-siltosa,Medium-silty,Media-limosa,Moyenne-limoneuse,Sedang-debu,中粉质
+Média-arenosa,classe,soil_texture_l2,Média-arenosa,Medium-sandy,Media-arenosa,Moyenne-sableuse,Sedang-pasir,中砂质
+Arenosa-média,classe,soil_texture_l2,Arenosa-média,Sandy-medium,Arenosa-media,Sableuse-moyenne,Pasir-sedang,砂中质
+Muito arenosa,classe,soil_texture_l2,Muito arenosa,Very sandy,Muy arenosa,Très sableuse,Sangat berpasir,极砂质
+Argilo siltosa,classe,soil_texture_l3,Argilo siltosa,Silty clay,Arcillo-limosa,Argile limoneuse,Liat berdebu,粉质黏土
+Franco argilosa,classe,soil_texture_l3,Franco argilosa,Clay loam,Franco-arcillosa,Limon argileux,Lempung berliat,黏壤土
+Franco argilo siltosa,classe,soil_texture_l3,Franco argilo siltosa,Silty clay loam,Franco-arcillo-limosa,Limon argilo-limoneux,Lempung liat berdebu,粉质黏壤土
+Argilo arenosa,classe,soil_texture_l3,Argilo arenosa,Sandy clay,Arcillo-arenosa,Argile sableuse,Liat berpasir,砂质黏土
+Franco argilo arenosa,classe,soil_texture_l3,Franco argilo arenosa,Sandy clay loam,Franco-arcillo-arenosa,Limon argilo-sableux,Lempung liat berpasir,砂质黏壤土
+Franca,classe,soil_texture_l3,Franca,Loam,Franca,Limon,Lempung,壤土
+Franco arenosa,classe,soil_texture_l3,Franco arenosa,Sandy loam,Franco-arenosa,Limon sableux,Lempung berpasir,砂质壤土
+Areia franca,classe,soil_texture_l3,Areia franca,Loamy sand,Arena franca,Sable limoneux,Pasir berlempung,壤质砂土
+Areia,classe,soil_texture_l3,Areia,Sand,Arena,Sable,Pasir,砂土
+Franco siltosa,classe,soil_texture_l3,Franco siltosa,Silt loam,Franco-limosa,Limon silteux,Lempung berdebu,粉质壤土
+Silte,classe,soil_texture_l3,Silte,Silt,Limo,Limon pur,Debu,粉砂
+Ano do Último Fogo,nome_visualizacao,year_last_fire,Ano do Último Fogo,Year of Last Fire,Año del Último Fuego,Année du dernier feu,Tahun Kebakaran Terakhir,末次火灾年份
+Ano do Próximo Fogo,nome_visualizacao,year_next_fire,Ano do Próximo Fogo,Year of Next Fire,Año del Próximo Fuego,Année du prochain feu,Tahun Kebakaran Berikutnya,下次火灾年份
+País,tipo_territorio,brasil,País,Country,País,Pays,Negara,国家
+Bioma,tipo_territorio,brasil,Bioma,Biome,Bioma,Biome,Bioma,生物群系
+Região,tipo_territorio,brasil,Região,Region,Región,Région,Wilayah,大区
+Estado,tipo_territorio,brasil,Estado,State,Estado,État,Negara bagian,州
+Município,tipo_territorio,brasil,Município,Municipality,Municipio,Municipalité,Kabupaten/Kota,市镇
+Terra indígena,tipo_territorio,brasil,Terra indígena,Indigenous land,Tierra indígena,Terre autochtone,Tanah adat,原住民领地
+Unidade de conservação,tipo_territorio,brasil,Unidade de conservação,Conservation unit,Unidad de conservación,Unité de conservation,Unit konservasi,自然保护地
+Quilombo,tipo_territorio,brasil,Quilombo,Quilombo,Quilombo,Quilombo,Quilombo,基伦坡社区
+Bacia hidrográfica,tipo_territorio,brasil,Bacia hidrográfica,Watershed,Cuenca hidrográfica,Bassin versant,Daerah aliran sungai,流域
+Amazônia Legal,tipo_territorio,brasil,Amazônia Legal,Legal Amazon,Amazonía Legal,Amazonie légale,Amazon Legal,法定亚马孙地区
+Matopiba,tipo_territorio,brasil,Matopiba,Matopiba,Matopiba,Matopiba,Matopiba,Matopiba
+Perú (país),tipo_territorio,peru,Peru (país),Peru (country),Perú (país),Pérou (pays),Peru (negara),秘鲁（国家）
+Departamento,tipo_territorio,peru,Departamento,Department,Departamento,Département,Departemen,省
+Provincia,tipo_territorio,peru,Província,Province,Provincia,Province,Provinsi,省（县）
+Distrito,tipo_territorio,peru,Distrito,District,Distrito,District,Distrik,区
+Territorio indígena,tipo_territorio,paraguay,Território indígena,Indigenous territory,Territorio indígena,Territoire autochtone,Wilayah adat,原住民领地
+Área protegida,tipo_territorio,paraguay,Área protegida,Protected area,Área protegida,Aire protégée,Kawasan lindung,保护区
+Ecorregión,tipo_territorio,paraguay,Ecorregião,Ecoregion,Ecorregión,Écorégion,Ekoregion,生态区
+DR Congo (country),tipo_territorio,drc,RD Congo (país),DR Congo (country),RD Congo (país),RD Congo (pays),RD Kongo (negara),刚果（金）（国家）
+Province,tipo_territorio,drc,Província,Province,Provincia,Province,Provinsi,省
+Territory,tipo_territorio,drc,Território,Territory,Territorio,Territoire,Teritori,领地
+Solo,tema,soil,Solo,Soil,Suelo,Sol,Tanah,土壤
+Uso e cobertura,tema,lulc,Uso e cobertura,Land use and cover,Uso y cobertura,Occupation et utilisation des terres,Penggunaan dan tutupan lahan,土地利用与覆盖
+Uso e cobertura 10m,tema,lulc_10m,Uso e cobertura 10m,Land use and cover 10m,Uso y cobertura 10m,Occupation et utilisation des terres 10m,Penggunaan dan tutupan lahan 10m,10米土地利用与覆盖
+Água,tema,water,Água,Water,Agua,Eau,Air,水资源
+Atmosfera,tema,atmosphere,Atmosfera,Atmosphere,Atmósfera,Atmosphère,Atmosfer,大气
+Risco climático,tema,climate_risk,Risco climático,Climate risk,Riesgo climático,Risque climatique,Risiko iklim,气候风险
+Urbano,tema,urban,Urbano,Urban,Urbano,Urbain,Perkotaan,城市
+Degradação,tema,degradation,Degradação,Degradation,Degradación,Dégradation,Degradasi,生态退化
+Imagens de satélite,tema,satellite,Imagens de satélite,Satellite imagery,Imágenes de satélite,Images satellite,Citra satelit,卫星影像
+Composição RGB:,texto_fixo,pipeline,Composição RGB:,RGB composite:,Composición RGB:,Composition RGB :,Komposit RGB:,RGB 合成：
+bandas:,texto_fixo,pipeline,bandas:,bands:,bandas:,bandes :,band:,波段：
+Sem vegetação,texto_fixo,pipeline,Sem vegetação,No vegetation,Sin vegetación,Sans végétation,Tanpa vegetasi,无植被
+Cada mancha de vegetação possui uma cor única,texto_fixo,pipeline,Cada mancha de vegetação possui uma cor única,Each vegetation patch has a unique color,Cada parche de vegetación tiene un color único,Chaque tache de végétation a une couleur unique,Setiap petak vegetasi memiliki warna unik,每个植被斑块具有唯一颜色
