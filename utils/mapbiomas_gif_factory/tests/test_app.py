@@ -354,7 +354,7 @@ class ConnectionTests(unittest.TestCase):
     DENIED = ("Caller does not have required permission to use project mapbiomas-brazil. Grant the caller the "
               "roles/serviceusage.serviceUsageConsumer role")
 
-    def connection(self, allowed, projects=(("Meu projeto (meu-proj)", "meu-proj"),), auth_first=False):
+    def connection(self, allowed, auth_first=False):
         from gif_factory.connect import Connection
         calls = {"auth": 0}
 
@@ -366,33 +366,24 @@ class ConnectionTests(unittest.TestCase):
 
         def authenticate():
             calls["auth"] += 1
-        conn = Connection("mapbiomas-brazil", initialize=initialize, authenticate=authenticate,
-                          projects=lambda: list(projects), show=False).connect()
+        conn = Connection("mapbiomas-brazil", initialize=initialize, authenticate=authenticate, show=False).connect()
         return conn, calls
 
-    def test_denied_project_offers_the_persons_projects(self):
+    def test_denied_project_explains_and_asks_for_another(self):
         conn, _ = self.connection(allowed={"meu-proj"})
         self.assertFalse(conn.ok)
         self.assertIn("não tem acesso ao projeto", conn.message.value)
         self.assertNotIn("serviceUsageConsumer", conn.message.value)
-        self.assertEqual(conn.choice.options, (("Meu projeto (meu-proj)", "meu-proj"),))
-        self.assertEqual(conn.choice.layout.display, "")
+        self.assertEqual(conn.typed.layout.display, "")
         with self.assertRaises(RuntimeError):
             conn.require()
-        conn.try_project(conn.choice.value)
+        conn.try_project("outro-sem-acesso")
+        self.assertFalse(conn.ok)
+        conn.try_project(" meu-proj ")
         self.assertTrue(conn.ok)
         self.assertEqual(conn.require(), "meu-proj")
         self.assertIn("rode a célula 2", conn.message.value)
-
-    def test_projects_that_cannot_be_listed_still_allow_typing_one(self):
-        def broken():
-            raise RuntimeError("sem permissão para listar")
-        from gif_factory.connect import Connection
-        conn = Connection("x", initialize=lambda p: (_ for _ in ()).throw(RuntimeError(self.DENIED)),
-                          projects=broken, show=False).connect()
-        self.assertEqual(conn.choice.layout.display, "none")
-        self.assertEqual(conn.typed.layout.display, "")
-        self.assertIn("Digite o ID", conn.message.value)
+        self.assertEqual(conn.typed.layout.display, "none")
 
     def test_authorizes_once_then_connects(self):
         conn, calls = self.connection(allowed={"mapbiomas-brazil"}, auth_first=True)

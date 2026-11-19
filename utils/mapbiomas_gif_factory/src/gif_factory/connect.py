@@ -6,16 +6,13 @@ Uso na célula 1 do notebook:
     conexao = conectar(GEE_PROJECT)
 
 Se a conta não puder usar o projeto informado, em vez de um erro longo aparece
-uma explicação curta e uma lista com os projetos do Google Cloud da pessoa. Ao
-escolher um, a conexão é testada na hora. A célula 2 usa `conexao.project`.
+uma explicação curta e um campo para digitar outro projeto, testado na hora.
+A célula 2 usa o projeto que conectou (`conexao.require()`).
 """
 from html import escape
 
 import ipywidgets as w
 from IPython.display import display
-
-CLOUD_SCOPE = "https://www.googleapis.com/auth/cloud-platform"
-
 
 def _ee():
     import ee
@@ -32,15 +29,15 @@ def explain(error, project):
                 "Rode a célula 1 de novo e aceite o pedido de acesso do Google.")
     if "user_project_denied" in low or "does not have required permission" in low or "permission_denied" in low:
         return (f"Sua conta não tem acesso ao projeto “{project}”",
-                "Escolha abaixo um projeto da sua conta ou peça acesso a quem administra esse projeto.")
+                "Digite abaixo outro projeto do Earth Engine que a sua conta usa, ou peça acesso a quem administra esse projeto.")
     if "not registered" in low or "not been used" in low or "is disabled" in low or "not enabled" in low:
         return (f"O projeto “{project}” não está habilitado para o Earth Engine",
-                "Escolha outro projeto abaixo ou registre este em code.earthengine.google.com/register.")
+                "Digite outro projeto abaixo ou registre este em code.earthengine.google.com/register.")
     if "not found" in low or "does not exist" in low:
         return (f"O projeto “{project}” não foi encontrado",
-                "Confira o nome ou escolha um projeto da sua conta abaixo.")
+                "Confira o nome ou digite outro projeto abaixo.")
     if "no project" in low or "project is required" in low:
-        return ("Falta informar o projeto", "Escolha abaixo um projeto da sua conta.")
+        return ("Falta informar o projeto", "Digite abaixo um projeto do Earth Engine que a sua conta usa.")
     return ("Não foi possível conectar ao Earth Engine", escape(text.splitlines()[0][:300]) if text else "")
 
 
@@ -49,41 +46,22 @@ def needs_auth(error):
     return "please authorize" in low or "earthengine authenticate" in low or "credentials" in low and "not found" in low
 
 
-def list_projects():
-    """[(rótulo, id)] dos projetos ativos do Google Cloud da conta conectada (vazio se não der)."""
-    import google.auth
-    from googleapiclient.discovery import build
-    credentials, _ = google.auth.default(scopes=[CLOUD_SCOPE])
-    service = build("cloudresourcemanager", "v1", credentials=credentials, cache_discovery=False)
-    found = []
-    request = service.projects().list(filter="lifecycleState:ACTIVE", pageSize=500)
-    while request is not None:
-        response = request.execute()
-        for item in response.get("projects", []):
-            pid, name = item.get("projectId"), item.get("name") or ""
-            if pid:
-                found.append((f"{name} ({pid})" if name and name != pid else pid, pid))
-        request = service.projects().list_next(request, response)
-    return sorted(found, key=lambda pair: pair[0].casefold())
-
-
 class Connection:
     """Estado da conexão: `ok`, `project` e o painel mostrado no notebook."""
 
-    def __init__(self, project, initialize=None, authenticate=None, projects=None, show=True):
+    def __init__(self, project, initialize=None, authenticate=None, show=True):
         self.project = (project or "").strip()
         self.ok = False
         self._initialize = initialize or (lambda p: _ee().Initialize(project=p))
         self._authenticate = authenticate or (lambda: _ee().Authenticate())
-        self._projects = projects or list_projects
         self.message = w.HTML()
-        self.choice = w.Dropdown(description="Projeto:", layout=w.Layout(width="460px", display="none"),
-                                 style={"description_width": "70px"})
-        self.typed = w.Text(placeholder="ou digite o ID de um projeto", layout=w.Layout(width="260px", display="none"))
+        self.typed = w.Text(placeholder="ID do projeto (ex.: meu-projeto-gee)", description="Projeto:",
+                            style={"description_width": "70px"}, layout=w.Layout(width="420px", display="none"))
         self.use = w.Button(description="Usar este projeto", icon="check", button_style="success",
                             layout=w.Layout(display="none", width="180px"))
-        self.use.on_click(lambda _b: self.try_project(self.typed.value.strip() or self.choice.value))
-        self.widget = w.VBox([self.message, w.HBox([self.choice, self.typed]), self.use])
+        self.use.on_click(lambda _b: self.try_project(self.typed.value))
+        self.typed.on_submit(lambda _t: self.try_project(self.typed.value))
+        self.widget = w.VBox([self.message, w.HBox([self.typed, self.use])])
         if show:
             display(self.widget)
 
@@ -95,8 +73,8 @@ class Connection:
 
     def connect(self):
         if not self.project:
-            self._say("#96702a", "Falta informar o projeto", "Escolha abaixo um projeto da sua conta.")
-            self.offer_projects()
+            self._say("#96702a", "Falta informar o projeto", "Digite abaixo um projeto do Earth Engine que a sua conta usa.")
+            self.offer_project_field()
             return self
         try:
             self._initialize(self.project)
@@ -114,7 +92,7 @@ class Connection:
     def _connected(self):
         self.ok = True
         self._say("#5f8160", f"✓ Conectado ao Earth Engine · projeto {escape(self.project)}")
-        for widget in (self.choice, self.typed, self.use):
+        for widget in (self.typed, self.use):
             widget.layout.display = "none"
         return self
 
@@ -125,26 +103,15 @@ class Connection:
             self._say("#a33b2b", title, text)
             return self
         self._say("#a33b2b", title, text)
-        self.offer_projects()
+        self.offer_project_field()
         return self
 
-    def offer_projects(self):
-        try:
-            projects = [p for p in self._projects() if p[1] != self.project]
-        except Exception:
-            projects = []
+    def offer_project_field(self):
         self.typed.layout.display = ""
         self.use.layout.display = ""
-        if projects:
-            self.choice.options = projects
-            self.choice.value = projects[0][1]
-            self.choice.layout.display = ""
-            hint = (f"{len(projects)} projeto(s) encontrados na sua conta. Depois de conectar, rode a célula 2. "
-                    "Na próxima vez, deixe esse projeto escrito em GEE_PROJECT.")
-        else:
-            hint = ("Não consegui listar os seus projetos. Digite o ID de um projeto com Earth Engine "
-                    "(aparece em console.cloud.google.com) e clique em “Usar este projeto”.")
-        self.message.value += f"<div style='font-size:12px;color:#7a6c5c;margin:2px 0 4px'>{hint}</div>"
+        self.message.value += ("<div style='font-size:12px;color:#7a6c5c;margin:2px 0 4px'>O ID aparece no topo de "
+                               "console.cloud.google.com ou em code.earthengine.google.com. Depois de conectar, "
+                               "rode a célula 2.</div>")
 
     def try_project(self, project):
         project = (project or "").strip()
@@ -163,11 +130,11 @@ class Connection:
     def require(self):
         """Projeto conectado, ou uma mensagem clara de que falta conectar."""
         if not self.ok:
-            raise RuntimeError("O Earth Engine ainda não está conectado. Escolha um projeto na célula 1 "
+            raise RuntimeError("O Earth Engine ainda não está conectado. Digite um projeto na célula 1 "
                                "e clique em “Usar este projeto”.")
         return self.project
 
 
 def conectar(project, **kwargs):
-    """Conecta ao Earth Engine sem estourar erros; mostra um seletor de projetos se precisar."""
+    """Conecta ao Earth Engine sem estourar erros; se precisar, pede outro projeto."""
     return Connection(project, **kwargs).connect()
