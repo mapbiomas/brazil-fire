@@ -650,7 +650,12 @@ class FactoryApp:
             import ipyleaflet
         except ImportError:
             return None, None
-        m = ipyleaflet.Map(center=(-14, -52), zoom=4, scroll_wheel_zoom=True,
+        # Os servidores do OpenStreetMap (403 no Colab) e da CARTO (pede chave) bloqueiam o uso no notebook;
+        # o mapa topográfico da Esri é servido sem chave.
+        light = ipyleaflet.TileLayer(
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+            name="Mapa", base=True, max_zoom=19, attribution="Esri, HERE, Garmin, © OpenStreetMap contributors")
+        m = ipyleaflet.Map(center=(-14, -52), zoom=4, scroll_wheel_zoom=True, basemap=light,
                            layout=w.Layout(height="460px", width="98%"))
         draw = ipyleaflet.DrawControl(polyline={}, circlemarker={}, marker={}, circle={},
                                       rectangle={"shapeOptions": {"color": "#1565c0"}},
