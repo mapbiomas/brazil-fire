@@ -1,0 +1,37 @@
+# Níveis oficiais da legenda de Uso e Cobertura, Coleção 11 (Brasil).
+# Gerado da Plataforma MapBiomas (prd.plataforma.mapbiomas.org/api/v1/brazil/themes):
+# a posição na paleta é o código do pixel; só as classes do nível têm rótulo, e
+# as demais posições ficam como fundo (auto_bg) e fora da legenda.
+visualizations:
+  lulc11_nivel1:
+    name: Uso e Cobertura - Nível 1
+    min: 0
+    max: 91
+    palette: [auto_bg, '1f8d49', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, 'd6bc74', auto_bg, auto_bg, auto_bg, 'ffefc3', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, 'd4271e', auto_bg, auto_bg, auto_bg, '2532e4', 'ffffff', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg]
+    discrete_labels: ["", "Floresta", "", "", "", "", "", "", "", "", "Vegetação Herbácea e Arbustiva", "", "", "", "Agropecuária", "", "", "", "", "", "", "", "Área não vegetada", "", "", "", "Corpo D'água", "Não observado", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+    label: Classe
+    cmap_type: categorical
+  lulc11_nivel2:
+    name: Uso e Cobertura - Nível 2
+    min: 0
+    max: 91
+    palette: [auto_bg, auto_bg, auto_bg, '1f8d49', '7dc975', '04381d', '007785', '228c70', auto_bg, '7a5900', auto_bg, '519799', 'd6bc74', auto_bg, auto_bg, 'edde8e', auto_bg, auto_bg, 'e974ed', auto_bg, auto_bg, 'ffefc3', auto_bg, 'ffa07a', 'd4271e', 'db4d4f', auto_bg, 'ffffff', auto_bg, 'ad5100', '9c0027', '091077', 'fc8114', '2532e4', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '02d659', 'ffaa5f', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '757272', auto_bg, '86b074', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '81dbbf', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '403d3e']
+    discrete_labels: ["", "", "", "Formação Florestal", "Formação Savânica", "Mangue", "Floresta Alagável", "Savana Alagada (beta)", "", "Silvicultura", "", "Campo Alagado e Área Pantanosa", "Formação Campestre", "", "", "Pastagem", "", "", "Agricultura", "", "", "Mosaico de Usos", "", "Praia, Duna e Areal", "Área Urbanizada", "Outras Áreas não Vegetadas", "", "Não observado", "", "Afloramento Rochoso", "Mineração", "Aquicultura", "Apicum", "Rio, Lago e Oceano", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Restinga Arbórea", "Restinga Herbácea ou Arbustiva", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Usina Fotovoltaica", "", "Formação Herbáceo Arbustiva (beta)", "", "", "", "", "", "", "Marisma (beta)", "", "", "", "", "", "", "Parque eólico (beta)"]
+    label: Classe
+    cmap_type: categorical
+  lulc11_nivel3:
+    name: Uso e Cobertura - Nível 3
+    min: 0
+    max: 91
+    palette: [auto_bg, auto_bg, auto_bg, '1f8d49', '7dc975', '04381d', '007785', '228c70', auto_bg, '7a5900', auto_bg, '519799', 'd6bc74', auto_bg, auto_bg, 'edde8e', auto_bg, auto_bg, auto_bg, 'c27ba0', auto_bg, 'ffefc3', auto_bg, 'ffa07a', 'd4271e', 'db4d4f', auto_bg, 'ffffff', auto_bg, 'ad5100', '9c0027', '091077', 'fc8114', '2532e4', auto_bg, auto_bg, 'd082de', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '02d659', 'ffaa5f', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '757272', auto_bg, '86b074', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '81dbbf', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '403d3e']
+    discrete_labels: ["", "", "", "Formação Florestal", "Formação Savânica", "Mangue", "Floresta Alagável", "Savana Alagada (beta)", "", "Silvicultura", "", "Campo Alagado e Área Pantanosa", "Formação Campestre", "", "", "Pastagem", "", "", "", "Lavoura Temporária", "", "Mosaico de Usos", "", "Praia, Duna e Areal", "Área Urbanizada", "Outras Áreas não Vegetadas", "", "Não observado", "", "Afloramento Rochoso", "Mineração", "Aquicultura", "Apicum", "Rio, Lago e Oceano", "", "", "Lavoura Perene", "", "", "", "", "", "", "", "", "", "", "", "", "Restinga Arbórea", "Restinga Herbácea ou Arbustiva", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Usina Fotovoltaica", "", "Formação Herbáceo Arbustiva (beta)", "", "", "", "", "", "", "Marisma (beta)", "", "", "", "", "", "", "Parque eólico (beta)"]
+    label: Classe
+    cmap_type: categorical
+  lulc11_nivel4:
+    name: Uso e Cobertura - Nível 4
+    min: 0
+    max: 91
+    palette: [auto_bg, auto_bg, auto_bg, '1f8d49', '7dc975', '04381d', '007785', '228c70', auto_bg, '7a5900', auto_bg, '519799', 'd6bc74', auto_bg, auto_bg, 'edde8e', auto_bg, auto_bg, auto_bg, auto_bg, 'db7093', 'ffefc3', auto_bg, 'ffa07a', 'd4271e', 'db4d4f', auto_bg, 'ffffff', auto_bg, 'ad5100', '9c0027', '091077', 'fc8114', '2532e4', auto_bg, '9065d0', auto_bg, auto_bg, auto_bg, 'f5b3c8', 'c71585', 'f54ca9', auto_bg, auto_bg, auto_bg, auto_bg, 'd68fe2', '9932cc', 'e6ccff', '02d659', 'ffaa5f', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, 'ff69b4', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '757272', auto_bg, '86b074', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '81dbbf', auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, auto_bg, '403d3e']
+    discrete_labels: ["", "", "", "Formação Florestal", "Formação Savânica", "Mangue", "Floresta Alagável", "Savana Alagada (beta)", "", "Silvicultura", "", "Campo Alagado e Área Pantanosa", "Formação Campestre", "", "", "Pastagem", "", "", "", "", "Cana", "Mosaico de Usos", "", "Praia, Duna e Areal", "Área Urbanizada", "Outras Áreas não Vegetadas", "", "Não observado", "", "Afloramento Rochoso", "Mineração", "Aquicultura", "Apicum", "Rio, Lago e Oceano", "", "Dendê", "", "", "", "Soja", "Arroz", "Outras Lavouras Temporárias", "", "", "", "", "Café", "Citrus", "Outras Lavouras Perenes", "Restinga Arbórea", "Restinga Herbácea ou Arbustiva", "", "", "", "", "", "", "", "", "", "", "", "Algodão (beta)", "", "", "", "", "", "", "", "", "", "", "", "", "Usina Fotovoltaica", "", "Formação Herbáceo Arbustiva (beta)", "", "", "", "", "", "", "Marisma (beta)", "", "", "", "", "", "", "Parque eólico (beta)"]
+    label: Classe
+    cmap_type: categorical
