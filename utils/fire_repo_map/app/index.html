@@ -6,20 +6,24 @@
 <title>MapBiomas Fogo · Mapa do repositório</title>
 <meta name="description" content="Mapa navegável do repositório mapbiomas/brazil-fire: o que existe, onde está e para que serve.">
 <style>
+  /* Tema claro (padrão) em tons pastel e terrosos; o escuro usa a mesma família, sem preto. */
   :root {
-    --bg: #f3f5f2; --surface: #ffffff; --ink: #1e2420; --muted: #5f6a63; --line: #dbe1da;
-    --accent: #e5412e; --accent-soft: #fbe3df; --green: #3f7d52; --green-soft: #e0eee3;
-    --warn: #86600a; --warn-soft: #f5ebd0; --code: #f6f8f5; --sel: #eef2ed;
+    --bg: #f6f1e7; --surface: #fffbf4; --ink: #3b3228; --muted: #7a6c5c; --line: #e6dccb;
+    --accent: #c0643f; --accent-soft: #f5e2d5; --green: #5f8160; --green-soft: #e2eadb;
+    --warn: #96702a; --warn-soft: #f3e6c6; --code: #faf5ec; --sel: #f0e7d8;
+    --shadow: rgba(92, 70, 45, .12);
     --f-sans: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
     --f-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    color-scheme: light;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141715; --surface: #1d211e; --ink: #e7ece8; --muted: #9ba69f; --line: #343b36;
-      --accent: #f26b61; --accent-soft: #3a211e; --green: #7cc192; --green-soft: #1f3326;
-      --warn: #e2b950; --warn-soft: #3a3020; --code: #181b19; --sel: #262b27;
-    }
+  :root[data-theme="dark"] {
+    --bg: #2f2924; --surface: #3a332c; --ink: #f0e7da; --muted: #bcad99; --line: #4d443a;
+    --accent: #e49b78; --accent-soft: #4c372c; --green: #a9c4a0; --green-soft: #37422f;
+    --warn: #dcbc72; --warn-soft: #4b4028; --code: #342e28; --sel: #443b32;
+    --shadow: rgba(0, 0, 0, .25);
+    color-scheme: dark;
   }
+  .theme { font-size: 13px !important; min-width: 30px; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--f-sans); }
   a { color: inherit; }
@@ -130,6 +134,14 @@
   .files .colab { font-size: 11px; color: var(--accent); }
   footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
 </style>
+<script>
+  /* Tema: claro por padrão; ?theme=dark|light ou a escolha salva no navegador. */
+  (function () {
+    var t = new URLSearchParams(location.search).get("theme");
+    if (t !== "dark" && t !== "light") { try { t = localStorage.getItem("mbfire-theme"); } catch (e) {} }
+    document.documentElement.dataset.theme = t === "dark" ? "dark" : "light";
+  })();
+</script>
 </head>
 <body>
 <header>
@@ -139,6 +151,7 @@
     <button type="button" data-lang="pt">PT</button>
     <button type="button" data-lang="en">EN</button>
     <button type="button" data-lang="es">ES</button>
+    <button type="button" class="theme" id="themeBtn"></button>
   </div>
 </header>
 
@@ -220,7 +233,7 @@ const I18N = {
 };
 const LOGOS = { pt: "MapBiomas_Fogo_PT.png", en: "MapBiomas_Fire_EN.png", es: "MapBiomas_Fuego_ES.png" };
 const AREA_ORDER = ["network", "mapbiomas_fire_collections", "mapbiomas_fire_monitor", "utils", "access_tools", "global_analises", ".github"];
-const KIND_COLORS = { gee: "#4f7cac", python: "#3f7d52", notebook: "#e08a2e", web: "#e5412e", data: "#8a6fb3", docs: "#9aa39d", image: "#c9a227", config: "#6b7d8f", package: "#a0522d", other: "#c3c9c4" };
+const KIND_COLORS = { gee: "#7f9bb3", python: "#86a37f", notebook: "#d9a066", web: "#c9755a", data: "#a993b5", docs: "#bfb3a2", image: "#d4b96a", config: "#8f9a92", package: "#a9805f", other: "#d8cfc2" };
 
 const params = new URLSearchParams(location.search);
 if (params.get("embed") === "1") document.body.classList.add("embed");
@@ -341,6 +354,7 @@ function setLang(l) {
   document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === l));
   $("logo").src = "logos/" + LOGOS[l];
   $("q").placeholder = t().search;
+  paintThemeBtn();
   document.title = `MapBiomas · ${t().title}`;
   const p = new URLSearchParams(location.search); p.set("lang", l);
   history.replaceState(null, "", `${location.pathname}?${p}${location.hash}`);
@@ -366,12 +380,30 @@ document.addEventListener("click", e => {
 $("q").addEventListener("input", renderTree);
 window.addEventListener("hashchange", () => go(decodeURI(location.hash.slice(1)), false));
 
+/* ---------- theme toggle ---------- */
+const THEME_LABEL = { pt: ["Tema escuro", "Tema claro"], en: ["Dark theme", "Light theme"], es: ["Tema oscuro", "Tema claro"] };
+function paintThemeBtn() {
+  const dark = document.documentElement.dataset.theme === "dark";
+  const b = document.getElementById("themeBtn");
+  b.textContent = dark ? "☀" : "☾";
+  b.setAttribute("aria-pressed", "false");
+  b.title = b.ariaLabel = THEME_LABEL[lang][dark ? 1 : 0];
+}
+document.getElementById("themeBtn").addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem("mbfire-theme", next); } catch (e) {}
+  paintThemeBtn();
+  if (typeof onThemeChange === "function") onThemeChange();
+});
+
 setLang(lang);
 fetch("repo_map.json").then(r => r.json()).then(d => {
   DATA = d; index(d.tree);
   setLang(lang);
   go(decodeURI(location.hash.slice(1)), false);
 }).catch(() => { $("detail").textContent = "repo_map.json não encontrado / not found."; });
+
 </script>
 </body>
 </html>
