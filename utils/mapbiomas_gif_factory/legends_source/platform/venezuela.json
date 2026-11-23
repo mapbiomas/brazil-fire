@@ -1,9 +1,11 @@
 {
  "project": "venezuela",
  "name": {
-  "es-ES": "Venezuela"
+  "en-US": "Venezuela",
+  "es-ES": "Venezuela",
+  "pt-BR": "Venezuela"
  },
- "fetched": "2026-11-19",
+ "fetched": "2026-11-23",
  "source": "https://prd.plataforma.mapbiomas.org/api/v1/venezuela/legends",
  "subtheme": "coverage_lclu",
  "subtheme_name": {
@@ -17,7 +19,8 @@
    "key": "default",
    "name": {
     "en-US": "Coverage",
-    "es-ES": "Coberturas"
+    "es-ES": "Coberturas",
+    "pt-BR": "Coberturas"
    },
    "items": [
     {
@@ -27,7 +30,8 @@
      "level": 1,
      "name": {
       "en-US": "Forest formations",
-      "es-ES": "Formaciones boscosas"
+      "es-ES": "Formaciones boscosas",
+      "pt-BR": "Formações florestais"
      },
      "parentId": null,
      "color": "#1f8d49",
@@ -43,7 +47,8 @@
        "level": 2,
        "name": {
         "en-US": "Forest",
-        "es-ES": "Bosque"
+        "es-ES": "Bosque",
+        "pt-BR": "Formação florestal"
        },
        "parentId": "28b2697d-494a-4db9-aba0-651369f2c167",
        "color": "#1f8d49",
@@ -59,7 +64,8 @@
        "level": 2,
        "name": {
         "en-US": "Wooded savanna",
-        "es-ES": "Sabana arbolada"
+        "es-ES": "Sabana arbolada",
+        "pt-BR": "Savana arborizada"
        },
        "parentId": "28b2697d-494a-4db9-aba0-651369f2c167",
        "color": "#7dc975",
@@ -75,7 +81,8 @@
        "level": 2,
        "name": {
         "en-US": "Mangrove",
-        "es-ES": "Manglar"
+        "es-ES": "Manglar",
+        "pt-BR": "Mangue"
        },
        "parentId": "28b2697d-494a-4db9-aba0-651369f2c167",
        "color": "#04381d",
@@ -91,7 +98,8 @@
        "level": 2,
        "name": {
         "en-US": "Flooded forest",
-        "es-ES": "Bosque inundable"
+        "es-ES": "Bosque inundable",
+        "pt-BR": "Formação florestal inundável"
        },
        "parentId": "28b2697d-494a-4db9-aba0-651369f2c167",
        "color": "#026975",
@@ -109,7 +117,8 @@
      "level": 1,
      "name": {
       "en-US": "Grasslands and shrublands",
-      "es-ES": "Herbazales y arbustales"
+      "es-ES": "Herbazales y arbustales",
+      "pt-BR": "Formações campestres e arbustivas"
      },
      "parentId": null,
      "color": "#d6bc74",
@@ -125,7 +134,8 @@
        "level": 2,
        "name": {
         "en-US": "Flooded grassland/shrubland",
-        "es-ES": "Herbazal/Arbustal inundable"
+        "es-ES": "Herbazal/Arbustal inundable",
+        "pt-BR": "Formação campestre/arbustiva inundável"
        },
        "parentId": "38ef8a61-e22c-4cd3-a262-e2947c9a96c6",
        "color": "#519799",
@@ -141,7 +151,8 @@
        "level": 2,
        "name": {
         "en-US": "Grassland",
-        "es-ES": "Sabana/Herbazal"
+        "es-ES": "Sabana/Herbazal",
+        "pt-BR": "Savana/Formação campestre"
        },
        "parentId": "38ef8a61-e22c-4cd3-a262-e2947c9a96c6",
        "color": "#d6bc74",
@@ -157,7 +168,8 @@
        "level": 2,
        "name": {
         "en-US": "Other non-forest natural formations",
-        "es-ES": "Otras formaciones naturales no forestales"
+        "es-ES": "Otras formaciones naturales no forestales",
+        "pt-BR": "Outras formações naturais não florestais"
        },
        "parentId": "38ef8a61-e22c-4cd3-a262-e2947c9a96c6",
        "color": "#d89f5c",
@@ -173,7 +185,8 @@
        "level": 2,
        "name": {
         "en-US": "Rocky outcrop",
-        "es-ES": "Afloramiento rocoso"
+        "es-ES": "Afloramiento rocoso",
+        "pt-BR": "Afloramento rochoso"
        },
        "parentId": "38ef8a61-e22c-4cd3-a262-e2947c9a96c6",
        "color": "#ffaa5f",
@@ -189,7 +202,8 @@
        "level": 2,
        "name": {
         "en-US": "Hypersaline tidal flat",
-        "es-ES": "Planicie de marea hipersalina"
+        "es-ES": "Planicie de marea hipersalina",
+        "pt-BR": "Planície de maré hipersalina"
        },
        "parentId": "38ef8a61-e22c-4cd3-a262-e2947c9a96c6",
        "color": "#fc8114",
@@ -205,7 +219,8 @@
        "level": 2,
        "name": {
         "en-US": "Xerophytic grassland/shrubland",
-        "es-ES": "Herbazal/Arbustal xerófilo"
+        "es-ES": "Herbazal/Arbustal xerófilo",
+        "pt-BR": "Formação campestre/arbustiva xerófila"
        },
        "parentId": "38ef8a61-e22c-4cd3-a262-e2947c9a96c6",
        "color": "#ad5100",
@@ -221,7 +236,8 @@
        "level": 2,
        "name": {
         "en-US": "Shrubland",
-        "es-ES": "Arbustal"
+        "es-ES": "Arbustal",
+        "pt-BR": "Formação arbustiva"
        },
        "parentId": "38ef8a61-e22c-4cd3-a262-e2947c9a96c6",
        "color": "#a89358",
@@ -237,7 +253,8 @@
        "level": 2,
        "name": {
         "en-US": "Andean herbaceous/shrubby vegetation",
-        "es-ES": "Herbazal/Arbustal andino"
+        "es-ES": "Herbazal/Arbustal andino",
+        "pt-BR": "Formação campestre/arbustiva andina"
        },
        "parentId": "38ef8a61-e22c-4cd3-a262-e2947c9a96c6",
        "color": "#dfeb62",
@@ -253,7 +270,8 @@
        "level": 2,
        "name": {
         "en-US": "Flooded andean herbaceous/shrubby vegetation",
-        "es-ES": "Herbazal/Arbustal andino inundable"
+        "es-ES": "Herbazal/Arbustal andino inundable",
+        "pt-BR": "Formação campestre/arbustiva andina inundável"
        },
        "parentId": "38ef8a61-e22c-4cd3-a262-e2947c9a96c6",
        "color": "#6fc179",
@@ -271,7 +289,8 @@
      "level": 1,
      "name": {
       "en-US": "Agricultural areas",
-      "es-ES": "Áreas agrícolas"
+      "es-ES": "Áreas agrícolas",
+      "pt-BR": "Áreas agrícolas"
      },
      "parentId": null,
      "color": "#ffefc3",
@@ -287,7 +306,8 @@
        "level": 2,
        "name": {
         "en-US": "Forest plantation",
-        "es-ES": "Plantación forestal"
+        "es-ES": "Plantación forestal",
+        "pt-BR": "Plantação florestal"
        },
        "parentId": "16940335-cebe-4928-add5-34950805955b",
        "color": "#7a6c00",
@@ -303,7 +323,8 @@
        "level": 2,
        "name": {
         "en-US": "Pasture/Fallow lands",
-        "es-ES": "Uso pecuario/Tierras en descanso"
+        "es-ES": "Uso pecuario/Tierras en descanso",
+        "pt-BR": "Uso pecuário/Terras em descanso"
        },
        "parentId": "16940335-cebe-4928-add5-34950805955b",
        "color": "#edde8e",
@@ -319,7 +340,8 @@
        "level": 2,
        "name": {
         "en-US": "Agriculture/Fallow lands",
-        "es-ES": "Uso agrícola/Tierras en descanso"
+        "es-ES": "Uso agrícola/Tierras en descanso",
+        "pt-BR": "Uso agrícola/Terras em descanso"
        },
        "parentId": "16940335-cebe-4928-add5-34950805955b",
        "color": "#e974ed",
@@ -335,7 +357,8 @@
        "level": 2,
        "name": {
         "en-US": "Cropland/Pasture/Fallow lands",
-        "es-ES": "Uso agropecuario/Tierras en descanso"
+        "es-ES": "Uso agropecuario/Tierras en descanso",
+        "pt-BR": "Uso agropecuário/Terras em descanso"
        },
        "parentId": "16940335-cebe-4928-add5-34950805955b",
        "color": "#ffefc3",
@@ -353,7 +376,8 @@
      "level": 1,
      "name": {
       "en-US": "Non-vegetated areas",
-      "es-ES": "Áreas sin vegetación"
+      "es-ES": "Áreas sin vegetación",
+      "pt-BR": "Áreas sem vegetação"
      },
      "parentId": null,
      "color": "#d4271e",
@@ -369,7 +393,8 @@
        "level": 2,
        "name": {
         "en-US": "Beach or dune",
-        "es-ES": "Playa o duna"
+        "es-ES": "Playa o duna",
+        "pt-BR": "Praia ou duna"
        },
        "parentId": "02908693-518c-43ee-8e7f-09acfb535169",
        "color": "#ffa07a",
@@ -385,7 +410,8 @@
        "level": 2,
        "name": {
         "en-US": "Urban",
-        "es-ES": "Uso urbano"
+        "es-ES": "Uso urbano",
+        "pt-BR": "Uso urbano"
        },
        "parentId": "02908693-518c-43ee-8e7f-09acfb535169",
        "color": "#d4271e",
@@ -401,7 +427,8 @@
        "level": 2,
        "name": {
         "en-US": "Other non-vegetated anthropic areas",
-        "es-ES": "Otras áreas antrópicas sin vegetación"
+        "es-ES": "Otras áreas antrópicas sin vegetación",
+        "pt-BR": "Outras áreas antrópicas sem vegetação"
        },
        "parentId": "02908693-518c-43ee-8e7f-09acfb535169",
        "color": "#db4d4f",
@@ -417,7 +444,8 @@
        "level": 2,
        "name": {
         "en-US": "Mining",
-        "es-ES": "Uso Minero"
+        "es-ES": "Uso Minero",
+        "pt-BR": "Uso de Mineração"
        },
        "parentId": "02908693-518c-43ee-8e7f-09acfb535169",
        "color": "#9c0027",
@@ -433,7 +461,8 @@
        "level": 2,
        "name": {
         "en-US": "Other non-vegetated natural areas",
-        "es-ES": "Otras áreas naturales sin vegetación"
+        "es-ES": "Otras áreas naturales sin vegetación",
+        "pt-BR": "Outras áreas naturais sem vegetação"
        },
        "parentId": "02908693-518c-43ee-8e7f-09acfb535169",
        "color": "#e97a7a",
@@ -451,7 +480,8 @@
      "level": 1,
      "name": {
       "en-US": "Water bodies",
-      "es-ES": "Cuerpos de agua"
+      "es-ES": "Cuerpos de agua",
+      "pt-BR": "Corpos d'água"
      },
      "parentId": null,
      "color": "#2532e4",
@@ -467,7 +497,8 @@
        "level": 2,
        "name": {
         "en-US": "Aquaculture",
-        "es-ES": "Acuicultura"
+        "es-ES": "Acuicultura",
+        "pt-BR": "Aquicultura"
        },
        "parentId": "dd6caa39-7a2f-4a95-90a9-b501c3fc54b0",
        "color": "#091077",
@@ -483,7 +514,8 @@
        "level": 2,
        "name": {
         "en-US": "River, lake or ocean",
-        "es-ES": "Río, lago u océano"
+        "es-ES": "Río, lago u océano",
+        "pt-BR": "Rio, lago ou oceano"
        },
        "parentId": "dd6caa39-7a2f-4a95-90a9-b501c3fc54b0",
        "color": "#2532e4",
@@ -499,7 +531,8 @@
        "level": 2,
        "name": {
         "en-US": "Glacier",
-        "es-ES": "Glaciar"
+        "es-ES": "Glaciar",
+        "pt-BR": "Geleira"
        },
        "parentId": "dd6caa39-7a2f-4a95-90a9-b501c3fc54b0",
        "color": "#93dfe6",
@@ -517,7 +550,8 @@
      "level": 1,
      "name": {
       "en-US": "Not observed",
-      "es-ES": "No observado"
+      "es-ES": "No observado",
+      "pt-BR": "Não observado"
      },
      "parentId": null,
      "color": "#ffffff",
@@ -533,7 +567,8 @@
    "key": "lulc_natural_and_anthropic_use",
    "name": {
     "en-US": "Natural and Anthropic",
-    "es-ES": "Natural y Antrópico"
+    "es-ES": "Natural y Antrópico",
+    "pt-BR": "Natural e Antrópico"
    },
    "items": [
     {
@@ -543,7 +578,8 @@
      "level": 1,
      "name": {
       "en-US": "Natural",
-      "es-ES": "Natural"
+      "es-ES": "Natural",
+      "pt-BR": "Natural"
      },
      "parentId": null,
      "color": "#66bb6a",
@@ -559,7 +595,8 @@
        "level": 2,
        "name": {
         "en-US": "Forest",
-        "es-ES": "Bosque"
+        "es-ES": "Bosque",
+        "pt-BR": "Formação florestal"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -575,7 +612,8 @@
        "level": 2,
        "name": {
         "en-US": "Wooded savanna",
-        "es-ES": "Sabana arbolada"
+        "es-ES": "Sabana arbolada",
+        "pt-BR": "Savana arborizada"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -591,7 +629,8 @@
        "level": 2,
        "name": {
         "en-US": "Mangrove",
-        "es-ES": "Manglar"
+        "es-ES": "Manglar",
+        "pt-BR": "Mangue"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -607,7 +646,8 @@
        "level": 2,
        "name": {
         "en-US": "Flooded forest",
-        "es-ES": "Bosque inundable"
+        "es-ES": "Bosque inundable",
+        "pt-BR": "Formação florestal inundável"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -623,7 +663,8 @@
        "level": 2,
        "name": {
         "en-US": "Flooded grassland/shrubland",
-        "es-ES": "Herbazal/Arbustal inundable"
+        "es-ES": "Herbazal/Arbustal inundable",
+        "pt-BR": "Formação campestre/arbustiva inundável"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -639,7 +680,8 @@
        "level": 2,
        "name": {
         "en-US": "Grassland",
-        "es-ES": "Sabana/Herbazal"
+        "es-ES": "Sabana/Herbazal",
+        "pt-BR": "Savana/Formação campestre"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -655,7 +697,8 @@
        "level": 2,
        "name": {
         "en-US": "Rocky outcrop",
-        "es-ES": "Afloramiento rocoso"
+        "es-ES": "Afloramiento rocoso",
+        "pt-BR": "Afloramento rochoso"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -671,7 +714,8 @@
        "level": 2,
        "name": {
         "en-US": "Hypersaline tidal flat",
-        "es-ES": "Planicie de marea hipersalina"
+        "es-ES": "Planicie de marea hipersalina",
+        "pt-BR": "Planície de maré hipersalina"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -687,7 +731,8 @@
        "level": 2,
        "name": {
         "en-US": "Shrubland",
-        "es-ES": "Arbustal"
+        "es-ES": "Arbustal",
+        "pt-BR": "Formação arbustiva"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -703,7 +748,8 @@
        "level": 2,
        "name": {
         "en-US": "Xerophytic grassland/shrubland",
-        "es-ES": "Herbazal/Arbustal xerófilo"
+        "es-ES": "Herbazal/Arbustal xerófilo",
+        "pt-BR": "Formação campestre/arbustiva xerófila"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -719,7 +765,8 @@
        "level": 2,
        "name": {
         "en-US": "Other non-forest natural formations",
-        "es-ES": "Otras formaciones naturales no forestales"
+        "es-ES": "Otras formaciones naturales no forestales",
+        "pt-BR": "Outras formações naturais não florestais"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -735,7 +782,8 @@
        "level": 2,
        "name": {
         "en-US": "Andean herbaceous/shrubby vegetation",
-        "es-ES": "Herbazal/Arbustal andino"
+        "es-ES": "Herbazal/Arbustal andino",
+        "pt-BR": "Formação campestre/arbustiva andina"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -751,7 +799,8 @@
        "level": 2,
        "name": {
         "en-US": "Flooded andean herbaceous/shrubby vegetation",
-        "es-ES": "Herbazal/Arbustal andino inundable"
+        "es-ES": "Herbazal/Arbustal andino inundable",
+        "pt-BR": "Formação campestre/arbustiva andina inundável"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -767,7 +816,8 @@
        "level": 2,
        "name": {
         "en-US": "Beach or dune",
-        "es-ES": "Playa o duna"
+        "es-ES": "Playa o duna",
+        "pt-BR": "Praia ou duna"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -783,7 +833,8 @@
        "level": 2,
        "name": {
         "en-US": "Other non-vegetated natural areas",
-        "es-ES": "Otras áreas naturales sin vegetación"
+        "es-ES": "Otras áreas naturales sin vegetación",
+        "pt-BR": "Outras áreas naturais sem vegetação"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -799,7 +850,8 @@
        "level": 2,
        "name": {
         "en-US": "River, lake or ocean",
-        "es-ES": "Río, lago u océano"
+        "es-ES": "Río, lago u océano",
+        "pt-BR": "Rio, lago ou oceano"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -815,7 +867,8 @@
        "level": 2,
        "name": {
         "en-US": "Glacier",
-        "es-ES": "Glaciar"
+        "es-ES": "Glaciar",
+        "pt-BR": "Geleira"
        },
        "parentId": "1844fa7b-dae4-4b2e-bf73-2be5cd551020",
        "color": "#66bb6a",
@@ -833,7 +886,8 @@
      "level": 1,
      "name": {
       "en-US": "Anthropic",
-      "es-ES": "Antrópico"
+      "es-ES": "Antrópico",
+      "pt-BR": "Antrópico"
      },
      "parentId": null,
      "color": "#ffe082",
@@ -849,7 +903,8 @@
        "level": 2,
        "name": {
         "en-US": "Pasture/Fallow lands",
-        "es-ES": "Uso pecuario/Tierras en descanso"
+        "es-ES": "Uso pecuario/Tierras en descanso",
+        "pt-BR": "Uso pecuário/Terras em descanso"
        },
        "parentId": "6aedc2df-a289-47e4-be65-f333e75206a0",
        "color": "#ffe082",
@@ -865,7 +920,8 @@
        "level": 2,
        "name": {
         "en-US": "Agriculture/Fallow lands",
-        "es-ES": "Uso agrícola/Tierras en descanso"
+        "es-ES": "Uso agrícola/Tierras en descanso",
+        "pt-BR": "Uso agrícola/Terras em descanso"
        },
        "parentId": "6aedc2df-a289-47e4-be65-f333e75206a0",
        "color": "#ffe082",
@@ -881,7 +937,8 @@
        "level": 2,
        "name": {
         "en-US": "Cropland/Pasture/Fallow lands",
-        "es-ES": "Uso agropecuario/Tierras en descanso"
+        "es-ES": "Uso agropecuario/Tierras en descanso",
+        "pt-BR": "Uso agropecuário/Terras em descanso"
        },
        "parentId": "6aedc2df-a289-47e4-be65-f333e75206a0",
        "color": "#ffe082",
@@ -897,7 +954,8 @@
        "level": 2,
        "name": {
         "en-US": "Forest plantation",
-        "es-ES": "Plantación foresta"
+        "es-ES": "Plantación foresta",
+        "pt-BR": "Plantação florestal"
        },
        "parentId": "6aedc2df-a289-47e4-be65-f333e75206a0",
        "color": "#ffe082",
@@ -913,7 +971,8 @@
        "level": 2,
        "name": {
         "en-US": "Urban",
-        "es-ES": "Uso urbano"
+        "es-ES": "Uso urbano",
+        "pt-BR": "Uso urbano"
        },
        "parentId": "6aedc2df-a289-47e4-be65-f333e75206a0",
        "color": "#ffe082",
@@ -929,7 +988,8 @@
        "level": 2,
        "name": {
         "en-US": "Mining",
-        "es-ES": "Uso Minero"
+        "es-ES": "Uso Minero",
+        "pt-BR": "Uso de Mineração"
        },
        "parentId": "6aedc2df-a289-47e4-be65-f333e75206a0",
        "color": "#ffe082",
@@ -945,7 +1005,8 @@
        "level": 2,
        "name": {
         "en-US": "Other non-vegetated anthropic areas",
-        "es-ES": "Otras áreas antrópicas sin vegetación"
+        "es-ES": "Otras áreas antrópicas sin vegetación",
+        "pt-BR": "Outras áreas antrópicas sem vegetação"
        },
        "parentId": "6aedc2df-a289-47e4-be65-f333e75206a0",
        "color": "#ffe082",
@@ -961,7 +1022,8 @@
        "level": 2,
        "name": {
         "en-US": "Aquaculture",
-        "es-ES": "Acuicultura"
+        "es-ES": "Acuicultura",
+        "pt-BR": "Aquicultura"
        },
        "parentId": "6aedc2df-a289-47e4-be65-f333e75206a0",
        "color": "#ffe082",
@@ -979,7 +1041,8 @@
      "level": 1,
      "name": {
       "en-US": "Not Defined",
-      "es-ES": "No definido"
+      "es-ES": "No definido",
+      "pt-BR": "Não definido"
      },
      "parentId": null,
      "color": "#d5d5e5",
@@ -995,7 +1058,8 @@
        "level": 2,
        "name": {
         "en-US": "Not observed",
-        "es-ES": "No observado"
+        "es-ES": "No observado",
+        "pt-BR": "Não observado"
        },
        "parentId": "aa1f23b2-2088-4b86-8313-012bce424728",
        "color": "#d5d5e5",
