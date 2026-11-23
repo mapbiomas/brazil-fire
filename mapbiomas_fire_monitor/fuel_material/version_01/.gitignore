@@ -1,0 +1,4 @@
+# saídas dos scripts de avaliação (geradas localmente)
+tabelas/
+figuras/
+__pycache__/
