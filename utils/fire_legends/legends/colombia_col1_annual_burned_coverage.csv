@@ -1,0 +1,32 @@
+pixel_value,name_pt,name_en,name_es,hex
+1,Formação florestal,Forest formation,Formación boscosa,#1f8d49
+3,Floresta,Forest,Bosque,#1f8d49
+5,Mangue,Mangrove,Manglar,#04381d
+6,Floresta alagável,Flooded forest,Bosque inundable,#026975
+9,Silvicultura,Forest plantation,Silvicultura,#7a5900
+10,Formação natural não florestal,Natural non forest formation,Formación natural no boscosa,#d6bc74
+11,Formação natural não florestal alagável,Wetland,Formación natural no forestal inundable,#519799
+12,Formação campestre,Grasslands / herbaceous,Formación herbácea,#d6bc74
+13,Outra formação natural não florestal,Other non forest formation,Otra formación natural no forestal,#d89f5c
+14,Área agropecuária,Agricultural and livestock area,Área agropecuaria,#ffefc3
+21,Mosaico de agricultura e pastagem,Mosaic of agriculture and pasture,Mosaico de agricultura o pasto,#ffefc3
+22,Área não vegetada,Non-vegetated area,Área sin vegetación,#d4271e
+23,"Praias, dunas e bancos de areia","Beach, dune and sand spot","Playas, dunas y bancos de arena",#ffa07a
+24,Infraestrutura urbana,Infrastructure,Infraestructura urbana,#d4271e
+25,Outra área não vegetada,Other non-vegetated area,Otra área sin vegetación,#db4d4f
+26,Corpo d'água,Water body,Cuerpo de agua,#2532e4
+27,Não observado,Not observed,No observado,#ffffff
+29,Afloramento rochoso,Rocky outcrop,Afloramiento rocoso,#ffaa5f
+30,Mineração,Mining,Minería,#9c0027
+31,Aquicultura,Aquaculture,Acuicultura,#091077
+32,Apicum,Hypersaline tidal flat,Planicie de marea hipersalina,#fc8114
+33,"Rio, lago ou oceano","River, lake or ocean","Río, lago u océano",#2532e4
+34,Geleira e neve,Glacier,Glaciar y nival,#93dfe6
+35,Dendê,Palm oil,Palma aceitera,#9065d0
+49,Restinga arbórea,Wooded sand vegetation,Vegetación leñosa sobre arena,#02d659
+50,Restinga herbácea,Herbaceous sand vegetation,Vegetación herbácea sobre arena,#ad5100
+68,Outra área natural não vegetada,Other natural non-vegetated area,Otra área natural sin vegetación,#e97a7a
+74,Banana e plátano (beta),Banana (beta),Plátano y banano (beta),#be83f7
+75,Usina solar,Solar panel farm,Parques solares,#c12100
+81,Vegetação herbácea ou arbustiva andina,Andean herbaceous and shrubby vegetation,Herbazales o arbustales andinos,#dfeb62
+82,Vegetação herbácea ou arbustiva andina alagável,Flooded Andean herbaceous and shrubby vegetation,Herbazales o arbustales andinos inundables,#6fc179

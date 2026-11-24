@@ -1,0 +1,98 @@
+[
+ {
+  "country": "brasil",
+  "iso_n3": "076",
+  "name_pt": "Brasil",
+  "name_en": "Brazil",
+  "name_es": "Brasil",
+  "status": "published"
+ },
+ {
+  "country": "argentina",
+  "iso_n3": "032",
+  "name_pt": "Argentina",
+  "name_en": "Argentina",
+  "name_es": "Argentina",
+  "status": "published"
+ },
+ {
+  "country": "bolivia",
+  "iso_n3": "068",
+  "name_pt": "Bolívia",
+  "name_en": "Bolivia",
+  "name_es": "Bolivia",
+  "status": "published"
+ },
+ {
+  "country": "chile",
+  "iso_n3": "152",
+  "name_pt": "Chile",
+  "name_en": "Chile",
+  "name_es": "Chile",
+  "status": "published"
+ },
+ {
+  "country": "colombia",
+  "iso_n3": "170",
+  "name_pt": "Colômbia",
+  "name_en": "Colombia",
+  "name_es": "Colombia",
+  "status": "published"
+ },
+ {
+  "country": "paraguay",
+  "iso_n3": "600",
+  "name_pt": "Paraguai",
+  "name_en": "Paraguay",
+  "name_es": "Paraguay",
+  "status": "published"
+ },
+ {
+  "country": "peru",
+  "iso_n3": "604",
+  "name_pt": "Peru",
+  "name_en": "Peru",
+  "name_es": "Perú",
+  "status": "published"
+ },
+ {
+  "country": "indonesia",
+  "iso_n3": "360",
+  "name_pt": "Indonésia",
+  "name_en": "Indonesia",
+  "name_es": "Indonesia",
+  "status": "published"
+ },
+ {
+  "country": "venezuela",
+  "iso_n3": "862",
+  "name_pt": "Venezuela",
+  "name_en": "Venezuela",
+  "name_es": "Venezuela",
+  "status": "upcoming"
+ },
+ {
+  "country": "ecuador",
+  "iso_n3": "218",
+  "name_pt": "Equador",
+  "name_en": "Ecuador",
+  "name_es": "Ecuador",
+  "status": "upcoming"
+ },
+ {
+  "country": "guyana",
+  "iso_n3": "328",
+  "name_pt": "Guiana",
+  "name_en": "Guyana",
+  "name_es": "Guyana",
+  "status": "pilot"
+ },
+ {
+  "country": "suriname",
+  "iso_n3": "740",
+  "name_pt": "Suriname",
+  "name_en": "Suriname",
+  "name_es": "Surinam",
+  "status": "pilot"
+ }
+]

@@ -17,9 +17,12 @@ class LegendRegistryTests(unittest.TestCase):
     def test_generated_files_are_up_to_date(self):
         rows, legends, errors = build_legends.load()
         self.assertEqual(errors, [])
+        countries, country_errors = build_legends.load_countries()
+        self.assertEqual(country_errors, [])
         for name, text in (("LEGENDS.md", build_legends.markdown(rows, legends)),
                            ("preview.html", build_legends.preview(rows, legends)),
-                           (os.path.join("app", "palettes.json"), build_legends.palettes(rows, legends))):
+                           (os.path.join("app", "palettes.json"), build_legends.palettes(rows, legends)),
+                           (os.path.join("app", "countries.json"), build_legends.countries_json(countries))):
             with open(os.path.join(ROOT, name), encoding="utf-8", newline="") as handle:
                 self.assertEqual(handle.read().replace("\r\n", "\n"), text,
                                  f"{name} is out of date: run python build_legends.py")

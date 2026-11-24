@@ -23,13 +23,15 @@ Colors marked **validada** in the app are the ones registered in this folder (`r
 utils/fire_legends/
 ├── README.md
 ├── registry.csv          # one row per legend: status, years, GEE asset
+├── countries.csv         # countries on the map tab and their status
 ├── legends/              # one CSV per legend: pixel_value, name_pt/en/es, hex
 ├── LEGENDS.md            # all registered legends as tables (generated)
 ├── preview.html          # the same with color swatches (generated)
 ├── build_legends.py      # validates the CSVs and regenerates the files above
 ├── app/
 │   ├── index.html        # the web app
-│   └── palettes.json     # registered palettes for the app (generated)
+│   ├── palettes.json     # registered palettes for the app (generated)
+│   └── countries.json    # countries for the map tab (generated)
 └── tests/
 ```
 
@@ -56,6 +58,18 @@ Only the Python standard library is needed.
 
 - Validate: `python build_legends.py --check` (from this folder).
 - App: open `app/index.html` through a local server, for example `python -m http.server` inside `app/` (it loads `palettes.json`).
+
+## Countries map (tab "Mapa")
+
+The map tab colors each country by its status in `countries.csv`:
+
+| status | on the map |
+|---|---|
+| `published` | Collection published (dark red) |
+| `upcoming` | To be published (red) |
+| `pilot` | Pilot / training (light red) |
+
+To add a country, add a row with `country` (the code the app uses, e.g. `venezuela`), `iso_n3` (3-digit ISO numeric code, e.g. `862`) and the names in PT/EN/ES, then run `python build_legends.py` (it writes `app/countries.json`). Clicking a country shows its collections, taken from `PUBLISHED` in `app/index.html`.
 
 ## Other countries
 

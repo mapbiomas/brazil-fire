@@ -24,6 +24,9 @@ REGISTRY_COLUMNS = ["legend_id", "country", "collection", "product", "status", "
 LEGEND_COLUMNS = ["pixel_value", "name_pt", "name_en", "name_es", "hex"]
 STATUSES = {"active", "review", "pending_colors", "deprecated", "not_found"}
 HEX_RE = re.compile(r"^#[0-9a-f]{6}$")
+COUNTRIES = os.path.join(HERE, "countries.csv")
+COUNTRY_COLUMNS = ["country", "iso_n3", "name_pt", "name_en", "name_es", "status"]
+COUNTRY_STATUSES = {"published", "upcoming", "pilot"}
 
 
 def read_csv(path):
@@ -126,6 +129,32 @@ def palettes(rows, legends):
     return json.dumps(out, ensure_ascii=False, indent=1, sort_keys=True) + "\n"
 
 
+def load_countries():
+    """Return (countries, errors) from countries.csv (the world map tab of the app)."""
+    columns, rows = read_csv(COUNTRIES)
+    if columns != COUNTRY_COLUMNS:
+        return [], [f"countries.csv: columns must be exactly {COUNTRY_COLUMNS}"]
+    errors, seen = [], set()
+    for n, r in enumerate(rows, start=2):
+        if not re.fullmatch(r"[a-z_]+", r["country"]):
+            errors.append(f"countries.csv line {n}: country must be lowercase letters (e.g. brasil)")
+        if r["country"] in seen:
+            errors.append(f"countries.csv line {n}: {r['country']} appears twice")
+        seen.add(r["country"])
+        if not re.fullmatch(r"\d{3}", r["iso_n3"]):
+            errors.append(f"countries.csv line {n}: iso_n3 must be the 3-digit ISO numeric code (e.g. 076)")
+        if r["status"] not in COUNTRY_STATUSES:
+            errors.append(f"countries.csv line {n}: status must be one of {sorted(COUNTRY_STATUSES)}")
+        if not all(r[k].strip() for k in ("name_pt", "name_en", "name_es")):
+            errors.append(f"countries.csv line {n}: name_pt, name_en and name_es are required")
+    return rows, errors
+
+
+def countries_json(countries):
+    """countries.json for the map tab of the app."""
+    return json.dumps(countries, ensure_ascii=False, indent=1) + "\n"
+
+
 def preview(rows, legends):
     esc = html.escape
     parts = ["<!doctype html><html lang='en'><meta charset='utf-8'><title>MapBiomas Fire · Legends</title>",
@@ -150,6 +179,8 @@ def preview(rows, legends):
 
 def main(argv):
     rows, legends, errors = load()
+    countries, country_errors = load_countries()
+    errors += country_errors
     if errors:
         print(f"{len(errors)} problem(s) found:")
         for e in errors:
@@ -160,7 +191,8 @@ def main(argv):
     if "--check" in argv:
         return 0
     for name, text in (("LEGENDS.md", markdown(rows, legends)), ("preview.html", preview(rows, legends)),
-                       (os.path.join("app", "palettes.json"), palettes(rows, legends))):
+                       (os.path.join("app", "palettes.json"), palettes(rows, legends)),
+                       (os.path.join("app", "countries.json"), countries_json(countries))):
         with open(os.path.join(HERE, name), "w", encoding="utf-8", newline="\n") as handle:
             handle.write(text)
         print("wrote", name)

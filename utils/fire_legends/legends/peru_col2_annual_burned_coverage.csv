@@ -1,0 +1,34 @@
+pixel_value,name_pt,name_en,name_es,hex
+1,Formação florestal,Forest formation,Formación boscosa,#1f8d49
+3,Floresta,Forest,Bosque,#1f8d49
+4,Floresta seca,Dry forest,Bosque seco,#7dc975
+5,Mangue,Mangrove,Manglar,#04381d
+6,Floresta alagável,Flooded forest,Bosque inundable,#007785
+9,Plantação florestal,Planted forest,Plantación forestal,#7a6c00
+10,Formação natural não florestal,Natural non-forest formation,Formación natural no boscosa,#d6bc74
+11,Formação herbácea alagável,Flooded herbaceous formation,Formación herbácea inundable,#519799
+12,Formação herbácea,Herbaceous formation,Formación herbácea,#d6bc74
+13,Formações arbustivas e outras,Shrub and other non-forest formations,Formaciones arbustivas y otras,#d89f5c
+14,Área agropecuária,Agricultural area,Área agropecuaria,#ffefc3
+15,Pastagem (beta),Pasture (beta),Pasto (beta),#edde8e
+21,Mosaico agropecuário,Mosaic of agriculture and pasture,Mosaico agropecuario,#ffefc3
+22,Área não vegetada,Non-vegetated area,Área sin vegetación,#d4271e
+23,Praia,Beach,Playa,#ffa07a
+24,Infraestrutura urbana,Urban infrastructure,Infraestructura urbana,#d4271e
+25,Outra área antrópica não vegetada,Other anthropogenic non-vegetated area,Otra área antrópica sin vegetación,#db4d4f
+26,Corpo d'água,Water body,Cuerpo de agua,#2532e4
+27,Não observado,Not observed,No observado,#ffffff
+30,Mineração,Mining,Minería,#9c0027
+31,Aquicultura,Aquaculture,Acuicultura,#091077
+33,"Rio, lago ou oceano","River, lake or ocean","Río, lago u océano",#2532e4
+34,Geleira,Glacier,Glaciar,#93dfe6
+35,Dendê,Oil palm,Palma aceitera,#9065d0
+40,Arroz (beta),Rice (beta),Arroz (beta),#c71585
+51,Campo alagável de terras baixas,Lowland flooded grassland,Herbazal inundable de tierras bajas,#5faf92
+52,Superfície salina costeira,Coastal salt flat,Superficie salina costera,#f0b4a8
+61,Salar,Salt flat,Superficie de salar,#f5d5d5
+66,Matagal e outros arbustais,Shrubland and other shrub vegetation,Matorral y otros arbustales,#a89358
+68,Outra área natural não vegetada,Other natural non-vegetated area,Otra área natural sin vegetación,#e97a7a
+70,Loma costeira (beta),Fog oasis (beta),Loma costera (beta),#be9e00
+82,Campo alagável altoandino,High Andean flooded grassland,Herbazal inundable altoandino,#26abab
+92,Superfície rochosa,Rocky surface,Superficie rocosa,#d98a45

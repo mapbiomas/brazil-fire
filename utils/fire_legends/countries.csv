@@ -1,0 +1,13 @@
+country,iso_n3,name_pt,name_en,name_es,status
+brasil,076,Brasil,Brazil,Brasil,published
+argentina,032,Argentina,Argentina,Argentina,published
+bolivia,068,Bolívia,Bolivia,Bolivia,published
+chile,152,Chile,Chile,Chile,published
+colombia,170,Colômbia,Colombia,Colombia,published
+paraguay,600,Paraguai,Paraguay,Paraguay,published
+peru,604,Peru,Peru,Perú,published
+indonesia,360,Indonésia,Indonesia,Indonesia,published
+venezuela,862,Venezuela,Venezuela,Venezuela,upcoming
+ecuador,218,Equador,Ecuador,Ecuador,upcoming
+guyana,328,Guiana,Guyana,Guyana,pilot
+suriname,740,Suriname,Suriname,Surinam,pilot

@@ -11,17 +11,18 @@
   --bg:#f3f5f2; --surface:#ffffff; --ink:#1e2420; --muted:#5f6a63; --line:#dbe1da;
   --accent:#e5412e; --accent-soft:#fbe3df; --green:#3f7d52; --green-soft:#e0eee3; --warn:#86600a; --warn-soft:#f5ebd0;
   --red:#b3261e; --red-soft:#f8e1df; --code:#f6f8f5;
+  --m-published:#7a1712; --m-upcoming:#d9463f; --m-pilot:#f4b4ae; --m-none:#d9dcd8;
   --f-sans:"Montserrat", "Segoe UI", system-ui, sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#141715; --surface:#1d211e; --ink:#e7ece8; --muted:#9ba69f; --line:#343b36;
   --accent:#f26b61; --accent-soft:#3a1c19; --green:#8bc79c; --green-soft:#1e3125; --warn:#e6c069; --warn-soft:#382e16;
-  --red:#f09a92; --red-soft:#3b1d1b; --code:#181b19; color-scheme:dark}}
+  --red:#f09a92; --red-soft:#3b1d1b; --code:#181b19; --m-none:#3a403c; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#141715; --surface:#1d211e; --ink:#e7ece8; --muted:#9ba69f; --line:#343b36;
   --accent:#f26b61; --accent-soft:#3a1c19; --green:#8bc79c; --green-soft:#1e3125; --warn:#e6c069; --warn-soft:#382e16;
-  --red:#f09a92; --red-soft:#3b1d1b; --code:#181b19; color-scheme:dark}
+  --red:#f09a92; --red-soft:#3b1d1b; --code:#181b19; --m-none:#3a403c; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-sans);font-size:14.5px;line-height:1.5;
@@ -142,6 +143,22 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:7px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 .toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+/* Mapa: países do MapBiomas Fogo (countries.json) + detalhe das coleções */
+.mapwrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
+@media (max-width:900px){.mapwrap{grid-template-columns:1fr}}
+#worldmap{min-height:120px}
+#worldmap svg{width:100%;height:auto;display:block}
+#worldmap path{stroke:var(--surface);stroke-width:.5}
+#worldmap path.on{cursor:pointer}
+#worldmap path.on:hover,#worldmap path.on:focus-visible,#worldmap path.sel{stroke:var(--ink);stroke-width:1.4;outline:none}
+.mkey{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px}
+.mkey span{display:inline-flex;align-items:center;gap:7px}
+.msw{width:14px;height:14px;border-radius:3px;display:inline-block;flex:none}
+.mbadge{font:600 11px var(--f-sans);padding:3px 8px;border-radius:5px;color:#fff;white-space:nowrap}
+.mbadge.pilot{color:#4a1410}
+.mcoll{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.mcoll-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.chip.static{cursor:default;font-weight:500}
 </style>
 
 <div class="wrap">
@@ -155,7 +172,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
     </div>
     <div class="hright">
       <div class="seg" role="tablist" aria-label="Modo">
-        <button id="view-consult" data-view="consultar" role="tab"></button><button id="view-reg" data-view="cadastro" role="tab"></button>
+        <button id="view-consult" data-view="consultar" role="tab"></button><button id="view-map" data-view="mapa" role="tab"></button><button id="view-reg" data-view="cadastro" role="tab"></button>
       </div>
       <div class="seg" role="group" aria-label="Idioma">
         <button id="lang-pt" data-lang="pt">PT</button><button id="lang-es" data-lang="es">ES</button><button id="lang-en" data-lang="en">EN</button>
@@ -229,6 +246,17 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
     </main>
   </div>
 
+  <!-- ===================== MAPA ===================== -->
+  <div id="v-mapa" class="mapwrap" hidden>
+    <section class="panel">
+      <div class="card-h"><h3 id="t-mapTitle"></h3></div>
+      <div class="mkey" id="map-key"></div>
+      <div id="worldmap"></div>
+      <div class="chips" id="map-list"></div>
+    </section>
+    <aside class="panel" id="map-detail" aria-live="polite"></aside>
+  </div>
+
   <!-- ===================== CADASTRO ===================== -->
   <div id="v-cadastro" class="work" hidden>
     <div id="db-banner"></div>
@@ -255,7 +283,12 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
 /* ===================== Dicionários ===================== */
 const T = {
   pt:{title:"Legendas e paletas",sub:"Consulte os dados publicados de cada país, coleção e subproduto.",
-    v_consult:"Consultar",v_reg:"Visão geral",
+    v_consult:"Consultar",v_reg:"Visão geral",v_map:"Mapa",
+    map_title:"Países do MapBiomas Fogo",map_published:"Coleção publicada",map_upcoming:"A publicar",map_pilot:"Piloto / treinamento",
+    map_loading:"Carregando o mapa…",map_fail:"Não foi possível carregar o mapa. Use a lista abaixo.",
+    map_pick:"Clique em um país no mapa ou na lista para ver as coleções.",map_nocoll:"Ainda sem coleção publicada.",
+    map_coll:"Coleção {c}",map_regd:"{n} de {m} legendas cadastradas",map_open:"Ver legendas",
+    map_sum:"{a} países com coleção publicada · {b} a publicar · {c} em piloto",
     country:"País",colls:"Coleção",subprod:"Subproduto",year:"Ano",start:"Ano inicial",end:"Ano final",refYear:"Ano de referência",period:"Período",
     legend:"Legenda",table:"Tabela",th_class:"Classe",th_code:"Código",th_hex:"Cor (HEX)",list:"Lista",bar:"Barra",meta:"Dados e visualização",palette:"Paleta",copyHex:"Copiar HEX",
     value:"Valor",color:"Cor",label:"Rótulo",src:"Fonte",export:"Exportar",copy:"Copiar",download:"Baixar arquivo",sources:"Fontes",
@@ -294,7 +327,12 @@ const T = {
     ed_siteNone:"O site não publica cores para este subproduto.",someone:"Alguém",
     m_show:"Mostrar"},
   es:{title:"Leyendas y paletas",sub:"Consulte los datos publicados de cada país, colección y subproducto.",
-    v_consult:"Consultar",v_reg:"Vista general",
+    v_consult:"Consultar",v_reg:"Vista general",v_map:"Mapa",
+    map_title:"Países de MapBiomas Fuego",map_published:"Colección publicada",map_upcoming:"Por publicar",map_pilot:"Piloto / capacitación",
+    map_loading:"Cargando el mapa…",map_fail:"No fue posible cargar el mapa. Use la lista de abajo.",
+    map_pick:"Haga clic en un país en el mapa o en la lista para ver las colecciones.",map_nocoll:"Aún sin colección publicada.",
+    map_coll:"Colección {c}",map_regd:"{n} de {m} leyendas registradas",map_open:"Ver leyendas",
+    map_sum:"{a} países con colección publicada · {b} por publicar · {c} en piloto",
     country:"País",colls:"Colección",subprod:"Subproducto",year:"Año",start:"Año inicial",end:"Año final",refYear:"Año de referencia",period:"Período",
     legend:"Leyenda",table:"Tabla",th_class:"Clase",th_code:"Código",th_hex:"Color (HEX)",list:"Lista",bar:"Barra",meta:"Datos y visualización",palette:"Paleta",copyHex:"Copiar HEX",
     value:"Valor",color:"Color",label:"Etiqueta",src:"Fuente",export:"Exportar",copy:"Copiar",download:"Descargar archivo",sources:"Fuentes",
@@ -333,7 +371,12 @@ const T = {
     ed_siteNone:"El sitio no publica colores para este subproducto.",someone:"Alguien",
     m_show:"Mostrar"},
   en:{title:"Legends and palettes",sub:"Look up published data for each country, collection and subproduct.",
-    v_consult:"Look up",v_reg:"Overview",
+    v_consult:"Look up",v_reg:"Overview",v_map:"Map",
+    map_title:"MapBiomas Fire countries",map_published:"Collection published",map_upcoming:"To be published",map_pilot:"Pilot / training",
+    map_loading:"Loading the map…",map_fail:"The map could not be loaded. Use the list below.",
+    map_pick:"Click a country on the map or in the list to see its collections.",map_nocoll:"No collection published yet.",
+    map_coll:"Collection {c}",map_regd:"{n} of {m} legends registered",map_open:"See legends",
+    map_sum:"{a} countries with a published collection · {b} to be published · {c} in pilot",
     country:"Country",colls:"Collection",subprod:"Subproduct",year:"Year",start:"Start year",end:"End year",refYear:"Reference year",period:"Period",
     legend:"Legend",table:"Table",th_class:"Class",th_code:"Code",th_hex:"Color (HEX)",list:"List",bar:"Bar",meta:"Data and visualization",palette:"Palette",copyHex:"Copy HEX",
     value:"Value",color:"Color",label:"Label",src:"Source",export:"Export",copy:"Copy",download:"Download file",sources:"Sources",
@@ -646,7 +689,7 @@ function renderStatic(){
   const LG={pt:["Fogo","MapBiomas_Fogo_PT"],es:["Fuego","MapBiomas_Fuego_ES"],en:["Fire","MapBiomas_Fire_EN"]}[S.lang]||["Fogo","MapBiomas_Fogo_PT"];
   $("logo").src="logos/"+LG[1]+".png";
   $("t-matrix-note").textContent=t("matrixNote");
-  $("view-consult").textContent=t("v_consult");$("view-reg").textContent=t("v_reg");
+  $("view-consult").textContent=t("v_consult");$("view-reg").textContent=t("v_reg");$("view-map").textContent=t("v_map");
   $("lay-table").textContent=t("table");$("lay-list").textContent=t("list");$("lay-bar").textContent=t("bar");
   $("btn-copyhex").textContent=t("copyHex");
   $("btn-copy").textContent=t("copy");$("btn-dl").textContent=t("download");
@@ -655,8 +698,60 @@ function renderStatic(){
 }
 function originFilters(id){$(id).innerHTML="";$(id).hidden=true}
 function renderView(){
-  $("v-consultar").hidden=S.view!=="consultar";$("v-cadastro").hidden=S.view!=="cadastro";
+  $("v-consultar").hidden=S.view!=="consultar";$("v-cadastro").hidden=S.view!=="cadastro";$("v-mapa").hidden=S.view!=="mapa";
   $("view-consult").setAttribute("aria-selected",S.view==="consultar");$("view-reg").setAttribute("aria-selected",S.view==="cadastro");
+  $("view-map").setAttribute("aria-selected",S.view==="mapa");
+}
+
+/* ===================== Mapa de países ===================== */
+// Países e status vêm de countries.json (gerado a partir de countries.csv); coleções vêm de PUBLISHED.
+const MAP_ST = ["published","upcoming","pilot"];
+let CTRY = [], WORLD = null, worldLoading = false;
+const ctryName = c=>c["name_"+S.lang]||c.country;
+const collLabel = p=>p.id==="Monitor"?SUBS.fire_monitor.name[S.lang]:t("map_coll",{c:p.id});
+function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+async function ensureWorld(){
+  if(WORLD!==null||worldLoading)return;worldLoading=true;
+  try{
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js");
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js");
+    const topo=await (await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json")).json();
+    const feats=topojson.feature(topo,topo.objects.countries).features.filter(f=>f.id!=="010"); // sem Antártida
+    const W=960,H=470,proj=d3.geoNaturalEarth1().fitExtent([[4,4],[W-4,H-4]],{type:"FeatureCollection",features:feats}),path=d3.geoPath(proj);
+    WORLD={W,H,shapes:feats.map(f=>({id:f.id,d:path(f)})).filter(f=>f.d)};
+  }catch(e){WORLD=false}
+  worldLoading=false;renderMap();
+}
+function renderMap(){
+  if(S.view!=="mapa")return;
+  $("t-mapTitle").textContent=t("map_title");
+  $("map-key").innerHTML=MAP_ST.map(s=>`<span><i class="msw" style="background:var(--m-${s})"></i>${esc(t("map_"+s))}</span>`).join("");
+  const byIso=new Map(CTRY.map(c=>[c.iso_n3,c])),box=$("worldmap");
+  if(WORLD===null){box.innerHTML=`<p class="note">${t("map_loading")}</p>`;ensureWorld()}
+  else if(WORLD===false)box.innerHTML=`<p class="note">${t("map_fail")}</p>`;
+  else{
+    const shapes=WORLD.shapes.slice().sort((a,b)=>(byIso.get(a.id)?.country===S.mapSel)-(byIso.get(b.id)?.country===S.mapSel));
+    box.innerHTML=`<svg viewBox="0 0 ${WORLD.W} ${WORLD.H}" role="group" aria-label="${esc(t("map_title"))}">${shapes.map(f=>{
+      const c=byIso.get(f.id),st=c?c.status:"none";
+      return c?`<path d="${f.d}" style="fill:var(--m-${st})" class="on${c.country===S.mapSel?" sel":""}" data-mc="${esc(c.country)}" tabindex="0" role="button" aria-label="${esc(ctryName(c))}"><title>${esc(ctryName(c))} · ${esc(t("map_"+st))}</title></path>`
+        :`<path d="${f.d}" style="fill:var(--m-none)"></path>`}).join("")}</svg>`;
+  }
+  $("map-list").innerHTML=MAP_ST.flatMap(s=>CTRY.filter(c=>c.status===s)).map(c=>
+    `<button class="chip" data-mc="${esc(c.country)}" aria-pressed="${c.country===S.mapSel}"><i class="msw" style="background:var(--m-${c.status})"></i>${esc(ctryName(c))}</button>`).join("");
+  renderMapDetail();
+}
+function renderMapDetail(){
+  const el=$("map-detail"),c=CTRY.find(x=>x.country===S.mapSel);
+  if(!c){const n=s=>CTRY.filter(x=>x.status===s).length;
+    el.innerHTML=`<p>${esc(t("map_sum",{a:n("published"),b:n("upcoming"),c:n("pilot")}))}</p><p class="note">${t("map_pick")}</p>`;return}
+  const colls=PUBLISHED.filter(p=>p.country===c.country);
+  el.innerHTML=`<div class="card-h"><h3>${esc(ctryName(c))}</h3><span class="mbadge ${c.status}" style="background:var(--m-${c.status})">${esc(t("map_"+c.status))}</span></div>`+
+    (colls.length?colls.map(p=>{const reg=p.subs.filter(s=>PAL[pkey(p,s)]).length;
+      return `<div class="mcoll"><div class="mcoll-h"><b>${esc(collLabel(p))}</b><span class="note">${p.start}–${p.end} · ${esc(p.sensor)}</span></div>
+        <div class="chips">${p.subs.map(s=>`<span class="chip static">${esc(SUBS[s].name[S.lang])}</span>`).join("")}</div>
+        <p class="note">${esc(t("map_regd",{n:reg,m:p.subs.length}))}</p>
+        <div><button class="btn" type="button" data-goto="${esc(p.country)}|${esc(p.id)}">${t("map_open")}</button></div></div>`}).join("")
+    :`<p class="note">${t("map_nocoll")}</p>`);
 }
 function pickColl(id){S.coll=id;const c=collObj();if(!c)return;S.y=c.end;S.s=c.start;S.e=c.end}
 function defaultColl(list){const m=list.filter(c=>c.id!=="Monitor");return(m[m.length-1]||list[list.length-1])?.id}
@@ -920,11 +1015,13 @@ async function save(filename,data){
   try{await downloads.save({filename,data});toast(t("saved"))}catch(e){toast(e&&e.code==="declined"?t("declined"):t("noDl"))}
 }
 function baseName(){return `mapbiomas_fogo_${S.country}_col${String(collObj().id).replace(".","")}_${S.sub}_${periodLabel().replace("–","_")}`.toLowerCase()}
-function renderAll(){renderView();renderConsult();if(S.view==="cadastro"){renderMatrix();renderNewColl();if(ED){const f=findByKey(ED.key);if(f)ED.c=f.c}renderEditor()}}
+function renderAll(){renderView();renderConsult();renderMap();if(S.view==="cadastro"){renderMatrix();renderNewColl();if(ED){const f=findByKey(ED.key);if(f)ED.c=f.c}renderEditor()}}
 function setView(v){S.view=v;try{history.replaceState(null,"","#"+v)}catch(e){location.hash=v}renderAll()}
 
 document.addEventListener("click",e=>{
+  const mc=e.target.closest("[data-mc]");if(mc){S.mapSel=mc.dataset.mc;renderMap();return}
   const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.goto){const[k,id]=b.dataset.goto.split("|");S.country=k;pickColl(id);const c=collObj();if(c&&!c.subs.includes(S.sub))S.sub=c.subs[0];setView("consultar");window.scrollTo(0,0);return}
   if(b.dataset.lang){S.lang=b.dataset.lang;store.set("lang",S.lang);renderStatic();renderAll()}
   else if(b.dataset.view){setView(b.dataset.view)}
   else if(b.dataset.coll){pickColl(b.dataset.coll);renderConsult()}
@@ -985,11 +1082,14 @@ document.addEventListener("change",e=>{
   else if(el.id==="nc-sensor"){NC.sensor=el.value}
   else if(el.dataset.ncs){const s=el.dataset.ncs;NC.subs=el.checked?[...new Set([...NC.subs,s])]:NC.subs.filter(x=>x!==s)}
 });
+document.addEventListener("keydown",e=>{const p=e.target.closest&&e.target.closest("path[data-mc]");if(p&&(e.key==="Enter"||e.key===" ")){e.preventDefault();S.mapSel=p.dataset.mc;renderMap();const n=document.querySelector(`path[data-mc="${p.dataset.mc}"]`);if(n)n.focus()}});
 document.addEventListener("input",e=>{const el=e.target;if(el.id==="tool-paste"&&ED)ED.tool.paste=el.value});
 
 /* ===================== Inicialização ===================== */
-S.view=(location.hash||"").replace("#","")==="cadastro"?"cadastro":"consultar";
+const VIEWS=["consultar","mapa","cadastro"];
+{const h=(location.hash||"").replace("#","");S.view=VIEWS.includes(h)?h:"consultar"}
 renderStatic();renderAll();
+fetch("countries.json",{cache:"no-cache"}).then(r=>r.ok?r.json():[]).then(j=>{CTRY=j.map(c=>({...c,iso_n3:String(c.iso_n3).padStart(3,"0")}));renderMap()}).catch(()=>{});
 (async()=>{
   const use=window.claude&&window.claude.use?window.claude.use.bind(window.claude):null;
   const [dl,dbx,us]=await Promise.all(["downloads","db","user"].map(n=>use?use(n).catch(()=>null):Promise.resolve(null)));
@@ -1007,7 +1107,7 @@ renderStatic();renderAll();
   db.collection("colecoes").onSnapshot(snap=>{const next={};snap.docs.forEach(d=>{next[d.id]=d.data()});DEV=next;renderAll()},()=>{});
   renderAll();
 })();
-window.addEventListener("hashchange",()=>{const v=(location.hash||"").replace("#","");if(v==="cadastro"||v==="consultar"){S.view=v;renderAll()}});
+window.addEventListener("hashchange",()=>{const v=(location.hash||"").replace("#","");if(VIEWS.includes(v)){S.view=v;renderAll()}});
 </script>
 
 </body></html>

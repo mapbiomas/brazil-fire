@@ -35,6 +35,176 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "argentina__1__annual_burned_coverage": {
+  "classes": [
+   {
+    "en": "Closed forests",
+    "es": "Bosques cerrados",
+    "hex": "#1f8d49",
+    "pt": "Floresta fechada",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "Open forests",
+    "es": "Bosques abiertos",
+    "hex": "#7dc975",
+    "pt": "Floresta aberta",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "Flooded forests",
+    "es": "Bosques inundables",
+    "hex": "#026975",
+    "pt": "Floresta alagável",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "Forest plantations",
+    "es": "Silvicultura",
+    "hex": "#7a5900",
+    "pt": "Silvicultura",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "Flooded grasslands",
+    "es": "Herbáceas inundables",
+    "hex": "#519799",
+    "pt": "Campo alagável",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "Grasslands",
+    "es": "Herbáceas",
+    "hex": "#d6bc74",
+    "pt": "Campo",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "Pastures",
+    "es": "Pasturas",
+    "hex": "#edde8e",
+    "pt": "Pastagem",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "en": "Agriculture",
+    "es": "Agricultura",
+    "hex": "#e974ed",
+    "pt": "Agricultura",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "en": "Temporary crops",
+    "es": "Cultivos temporarios",
+    "hex": "#c27ba0",
+    "pt": "Lavoura temporária",
+    "src": "oficial",
+    "v": 19
+   },
+   {
+    "en": "Agriculture and pasture mosaic",
+    "es": "Mosaico de usos",
+    "hex": "#ffefc3",
+    "pt": "Mosaico de usos",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "en": "Urban areas",
+    "es": "Áreas urbanas",
+    "hex": "#d4271e",
+    "pt": "Área urbana",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "Other non-vegetated areas",
+    "es": "Otras áreas no vegetadas",
+    "hex": "#db4d4f",
+    "pt": "Outras áreas não vegetadas",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "Not observed",
+    "es": "No observado",
+    "hex": "#ffffff",
+    "pt": "Não observado",
+    "src": "oficial",
+    "v": 27
+   },
+   {
+    "en": "Rivers, lakes or ocean",
+    "es": "Ríos, lagunas, lagos y océano",
+    "hex": "#2532e4",
+    "pt": "Rio, lago ou oceano",
+    "src": "oficial",
+    "v": 33
+   },
+   {
+    "en": "Ice and permanent snow",
+    "es": "Hielo en superficie y nieve permanente",
+    "hex": "#93dfe6",
+    "pt": "Gelo e neve permanente",
+    "src": "oficial",
+    "v": 34
+   },
+   {
+    "en": "Perennial crops",
+    "es": "Cultivos perennes",
+    "hex": "#d082de",
+    "pt": "Lavoura perene",
+    "src": "oficial",
+    "v": 36
+   },
+   {
+    "en": "Shrubs and herbaceous mosaic",
+    "es": "Mosaicos de arbustos y herbáceas",
+    "hex": "#c7e0ab",
+    "pt": "Mosaico de arbustos e herbáceas",
+    "src": "oficial",
+    "v": 63
+   },
+   {
+    "en": "Closed shrublands",
+    "es": "Arbustales cerrados",
+    "hex": "#a89358",
+    "pt": "Arbustal fechado",
+    "src": "oficial",
+    "v": 66
+   },
+   {
+    "en": "Peatlands",
+    "es": "Turberas",
+    "hex": "#6fc179",
+    "pt": "Turfeira",
+    "src": "oficial",
+    "v": 73
+   },
+   {
+    "en": "Open shrublands",
+    "es": "Arbustales abiertos",
+    "hex": "#86b074",
+    "pt": "Arbustal aberto",
+    "src": "oficial",
+    "v": 77
+   }
+  ],
+  "collection": "1",
+  "country": "argentina",
+  "expected": 20,
+  "status": "validada",
+  "subproduct": "annual_burned_coverage",
+  "updatedAt": "from-repository"
+ },
  "argentina__1__annual_burned_scar_size_range": {
   "classes": [
    {
@@ -3289,6 +3459,208 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "chile__1__annual_burned_coverage": {
+  "classes": [
+   {
+    "en": "Forest formation",
+    "es": "Formación boscosa",
+    "hex": "#1f8d49",
+    "pt": "Formação florestal",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "Forest",
+    "es": "Bosque",
+    "hex": "#1f8d49",
+    "pt": "Floresta",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "Silviculture",
+    "es": "Silvicultura",
+    "hex": "#7a5900",
+    "pt": "Silvicultura",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "Natural non forest formation",
+    "es": "Formación natural no boscosa",
+    "hex": "#d6bc74",
+    "pt": "Formação natural não florestal",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "Wetland",
+    "es": "Humedal",
+    "hex": "#519799",
+    "pt": "Área úmida",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "Grassland",
+    "es": "Pastizal",
+    "hex": "#d6bc74",
+    "pt": "Campo",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "Farming and silviculture",
+    "es": "Agropecuaria y Silvicultura",
+    "hex": "#ffefc3",
+    "pt": "Agropecuária e silvicultura",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "en": "Pasture",
+    "es": "Pastura",
+    "hex": "#edde8e",
+    "pt": "Pastagem",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "en": "Agriculture",
+    "es": "Agricultura",
+    "hex": "#e974ed",
+    "pt": "Agricultura",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "en": "Non-vegetated area",
+    "es": "Área sin vegetación",
+    "hex": "#d4271e",
+    "pt": "Área não vegetada",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "en": "Beach, dune and sand spot",
+    "es": "Arena, Playa y Duna",
+    "hex": "#ffa07a",
+    "pt": "Areia, praia e duna",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "en": "Infrastructure",
+    "es": "Infraestructura",
+    "hex": "#d4271e",
+    "pt": "Infraestrutura",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "Other non-vegetated area",
+    "es": "Otra área sin vegetación",
+    "hex": "#db4d4f",
+    "pt": "Outra área não vegetada",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "Water bodies",
+    "es": "Cuerpo de agua",
+    "hex": "#2532e4",
+    "pt": "Corpo d'água",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "en": "Not observed",
+    "es": "No observado",
+    "hex": "#ffffff",
+    "pt": "Não observado",
+    "src": "oficial",
+    "v": 27
+   },
+   {
+    "en": "Rocky outcrop",
+    "es": "Afloramiento Rocoso",
+    "hex": "#ffaa5f",
+    "pt": "Afloramento rochoso",
+    "src": "oficial",
+    "v": 29
+   },
+   {
+    "en": "River, lake or ocean",
+    "es": "Río, lago u océano",
+    "hex": "#2532e4",
+    "pt": "Rio, lago ou oceano",
+    "src": "oficial",
+    "v": 33
+   },
+   {
+    "en": "Ice and snow",
+    "es": "Hielo y nieve",
+    "hex": "#93dfe6",
+    "pt": "Gelo e neve",
+    "src": "oficial",
+    "v": 34
+   },
+   {
+    "en": "Primary forest",
+    "es": "Bosque Primario",
+    "hex": "#1f8d49",
+    "pt": "Floresta primária",
+    "src": "oficial",
+    "v": 59
+   },
+   {
+    "en": "Secondary forest",
+    "es": "Bosque Secundario",
+    "hex": "#5cb85d",
+    "pt": "Floresta secundária",
+    "src": "oficial",
+    "v": 60
+   },
+   {
+    "en": "Salt flat",
+    "es": "Salar",
+    "hex": "#f5d5d5",
+    "pt": "Salar",
+    "src": "oficial",
+    "v": 61
+   },
+   {
+    "en": "Steppe",
+    "es": "Estepa",
+    "hex": "#c7e0ab",
+    "pt": "Estepe",
+    "src": "oficial",
+    "v": 63
+   },
+   {
+    "en": "Shrubland",
+    "es": "Matorral",
+    "hex": "#a89358",
+    "pt": "Matagal",
+    "src": "oficial",
+    "v": 66
+   },
+   {
+    "en": "Dwarf forest",
+    "es": "Bosque Achaparrado",
+    "hex": "#c8ffb4",
+    "pt": "Floresta anã",
+    "src": "oficial",
+    "v": 67
+   }
+  ],
+  "collection": "1",
+  "country": "chile",
+  "expected": 24,
+  "status": "validada",
+  "subproduct": "annual_burned_coverage",
+  "updatedAt": "from-repository"
+ },
  "chile__1__annual_burned_scar_size_range": {
   "classes": [
    {
@@ -3675,6 +4047,264 @@
   "expected": 1,
   "status": "validada",
   "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "colombia__1__annual_burned_coverage": {
+  "classes": [
+   {
+    "en": "Forest formation",
+    "es": "Formación boscosa",
+    "hex": "#1f8d49",
+    "pt": "Formação florestal",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "Forest",
+    "es": "Bosque",
+    "hex": "#1f8d49",
+    "pt": "Floresta",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "Mangrove",
+    "es": "Manglar",
+    "hex": "#04381d",
+    "pt": "Mangue",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "Flooded forest",
+    "es": "Bosque inundable",
+    "hex": "#026975",
+    "pt": "Floresta alagável",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "Forest plantation",
+    "es": "Silvicultura",
+    "hex": "#7a5900",
+    "pt": "Silvicultura",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "Natural non forest formation",
+    "es": "Formación natural no boscosa",
+    "hex": "#d6bc74",
+    "pt": "Formação natural não florestal",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "Wetland",
+    "es": "Formación natural no forestal inundable",
+    "hex": "#519799",
+    "pt": "Formação natural não florestal alagável",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "Grasslands / herbaceous",
+    "es": "Formación herbácea",
+    "hex": "#d6bc74",
+    "pt": "Formação campestre",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "Other non forest formation",
+    "es": "Otra formación natural no forestal",
+    "hex": "#d89f5c",
+    "pt": "Outra formação natural não florestal",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "en": "Agricultural and livestock area",
+    "es": "Área agropecuaria",
+    "hex": "#ffefc3",
+    "pt": "Área agropecuária",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "en": "Mosaic of agriculture and pasture",
+    "es": "Mosaico de agricultura o pasto",
+    "hex": "#ffefc3",
+    "pt": "Mosaico de agricultura e pastagem",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "en": "Non-vegetated area",
+    "es": "Área sin vegetación",
+    "hex": "#d4271e",
+    "pt": "Área não vegetada",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "en": "Beach, dune and sand spot",
+    "es": "Playas, dunas y bancos de arena",
+    "hex": "#ffa07a",
+    "pt": "Praias, dunas e bancos de areia",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "en": "Infrastructure",
+    "es": "Infraestructura urbana",
+    "hex": "#d4271e",
+    "pt": "Infraestrutura urbana",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "Other non-vegetated area",
+    "es": "Otra área sin vegetación",
+    "hex": "#db4d4f",
+    "pt": "Outra área não vegetada",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "Water body",
+    "es": "Cuerpo de agua",
+    "hex": "#2532e4",
+    "pt": "Corpo d'água",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "en": "Not observed",
+    "es": "No observado",
+    "hex": "#ffffff",
+    "pt": "Não observado",
+    "src": "oficial",
+    "v": 27
+   },
+   {
+    "en": "Rocky outcrop",
+    "es": "Afloramiento rocoso",
+    "hex": "#ffaa5f",
+    "pt": "Afloramento rochoso",
+    "src": "oficial",
+    "v": 29
+   },
+   {
+    "en": "Mining",
+    "es": "Minería",
+    "hex": "#9c0027",
+    "pt": "Mineração",
+    "src": "oficial",
+    "v": 30
+   },
+   {
+    "en": "Aquaculture",
+    "es": "Acuicultura",
+    "hex": "#091077",
+    "pt": "Aquicultura",
+    "src": "oficial",
+    "v": 31
+   },
+   {
+    "en": "Hypersaline tidal flat",
+    "es": "Planicie de marea hipersalina",
+    "hex": "#fc8114",
+    "pt": "Apicum",
+    "src": "oficial",
+    "v": 32
+   },
+   {
+    "en": "River, lake or ocean",
+    "es": "Río, lago u océano",
+    "hex": "#2532e4",
+    "pt": "Rio, lago ou oceano",
+    "src": "oficial",
+    "v": 33
+   },
+   {
+    "en": "Glacier",
+    "es": "Glaciar y nival",
+    "hex": "#93dfe6",
+    "pt": "Geleira e neve",
+    "src": "oficial",
+    "v": 34
+   },
+   {
+    "en": "Palm oil",
+    "es": "Palma aceitera",
+    "hex": "#9065d0",
+    "pt": "Dendê",
+    "src": "oficial",
+    "v": 35
+   },
+   {
+    "en": "Wooded sand vegetation",
+    "es": "Vegetación leñosa sobre arena",
+    "hex": "#02d659",
+    "pt": "Restinga arbórea",
+    "src": "oficial",
+    "v": 49
+   },
+   {
+    "en": "Herbaceous sand vegetation",
+    "es": "Vegetación herbácea sobre arena",
+    "hex": "#ad5100",
+    "pt": "Restinga herbácea",
+    "src": "oficial",
+    "v": 50
+   },
+   {
+    "en": "Other natural non-vegetated area",
+    "es": "Otra área natural sin vegetación",
+    "hex": "#e97a7a",
+    "pt": "Outra área natural não vegetada",
+    "src": "oficial",
+    "v": 68
+   },
+   {
+    "en": "Banana (beta)",
+    "es": "Plátano y banano (beta)",
+    "hex": "#be83f7",
+    "pt": "Banana e plátano (beta)",
+    "src": "oficial",
+    "v": 74
+   },
+   {
+    "en": "Solar panel farm",
+    "es": "Parques solares",
+    "hex": "#c12100",
+    "pt": "Usina solar",
+    "src": "oficial",
+    "v": 75
+   },
+   {
+    "en": "Andean herbaceous and shrubby vegetation",
+    "es": "Herbazales o arbustales andinos",
+    "hex": "#dfeb62",
+    "pt": "Vegetação herbácea ou arbustiva andina",
+    "src": "oficial",
+    "v": 81
+   },
+   {
+    "en": "Flooded Andean herbaceous and shrubby vegetation",
+    "es": "Herbazales o arbustales andinos inundables",
+    "hex": "#6fc179",
+    "pt": "Vegetação herbácea ou arbustiva andina alagável",
+    "src": "oficial",
+    "v": 82
+   }
+  ],
+  "collection": "1",
+  "country": "colombia",
+  "expected": 31,
+  "status": "validada",
+  "subproduct": "annual_burned_coverage",
   "updatedAt": "from-repository"
  },
  "colombia__1__annual_burned_scar_size_range": {
@@ -4329,6 +4959,120 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "indonesia__1__annual_burned_coverage": {
+  "classes": [
+   {
+    "en": "Forest Formation",
+    "es": "Formación boscosa",
+    "hex": "#1f8d49",
+    "pt": "Formação florestal",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "Mangrove",
+    "es": "Manglar",
+    "hex": "#04381d",
+    "pt": "Mangue",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "Pulpwood Plantation",
+    "es": "Plantación de celulosa",
+    "hex": "#7a5900",
+    "pt": "Plantação de celulose",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "Other Natural Vegetation",
+    "es": "Otra vegetación natural",
+    "hex": "#d89f5c",
+    "pt": "Outra vegetação natural",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "en": "Other Agriculture",
+    "es": "Otra agricultura",
+    "hex": "#ffefc3",
+    "pt": "Outra agricultura",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "en": "Urban Area",
+    "es": "Área urbana",
+    "hex": "#d4271e",
+    "pt": "Área urbana",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "Other Non-Vegetation",
+    "es": "Otra área sin vegetación",
+    "hex": "#db4d4f",
+    "pt": "Outra área não vegetada",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "Mining Pit",
+    "es": "Mina",
+    "hex": "#9c0027",
+    "pt": "Mina",
+    "src": "oficial",
+    "v": 30
+   },
+   {
+    "en": "Aquaculture",
+    "es": "Acuicultura",
+    "hex": "#091077",
+    "pt": "Aquicultura",
+    "src": "oficial",
+    "v": 31
+   },
+   {
+    "en": "River, Lake, Ocean",
+    "es": "Río, lago u océano",
+    "hex": "#2532e4",
+    "pt": "Rio, lago ou oceano",
+    "src": "oficial",
+    "v": 33
+   },
+   {
+    "en": "Oil Palm",
+    "es": "Palma aceitera",
+    "hex": "#9065d0",
+    "pt": "Dendê",
+    "src": "oficial",
+    "v": 35
+   },
+   {
+    "en": "Rice Paddy",
+    "es": "Arrozal",
+    "hex": "#f272c2",
+    "pt": "Arroz irrigado",
+    "src": "oficial",
+    "v": 40
+   },
+   {
+    "en": "Peat Swamp Forest",
+    "es": "Bosque pantanoso de turba",
+    "hex": "#2f7360",
+    "pt": "Floresta de turfeira",
+    "src": "oficial",
+    "v": 76
+   }
+  ],
+  "collection": "1",
+  "country": "indonesia",
+  "expected": 13,
+  "status": "validada",
+  "subproduct": "annual_burned_coverage",
+  "updatedAt": "from-repository"
+ },
  "indonesia__1__fire_frequency": {
   "classes": [
    {
@@ -4831,6 +5575,280 @@
   "expected": 1,
   "status": "validada",
   "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "peru__2__annual_burned_coverage": {
+  "classes": [
+   {
+    "en": "Forest formation",
+    "es": "Formación boscosa",
+    "hex": "#1f8d49",
+    "pt": "Formação florestal",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "Forest",
+    "es": "Bosque",
+    "hex": "#1f8d49",
+    "pt": "Floresta",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "Dry forest",
+    "es": "Bosque seco",
+    "hex": "#7dc975",
+    "pt": "Floresta seca",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "Mangrove",
+    "es": "Manglar",
+    "hex": "#04381d",
+    "pt": "Mangue",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "Flooded forest",
+    "es": "Bosque inundable",
+    "hex": "#007785",
+    "pt": "Floresta alagável",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "Planted forest",
+    "es": "Plantación forestal",
+    "hex": "#7a6c00",
+    "pt": "Plantação florestal",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "Natural non-forest formation",
+    "es": "Formación natural no boscosa",
+    "hex": "#d6bc74",
+    "pt": "Formação natural não florestal",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "Flooded herbaceous formation",
+    "es": "Formación herbácea inundable",
+    "hex": "#519799",
+    "pt": "Formação herbácea alagável",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "Herbaceous formation",
+    "es": "Formación herbácea",
+    "hex": "#d6bc74",
+    "pt": "Formação herbácea",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "Shrub and other non-forest formations",
+    "es": "Formaciones arbustivas y otras",
+    "hex": "#d89f5c",
+    "pt": "Formações arbustivas e outras",
+    "src": "oficial",
+    "v": 13
+   },
+   {
+    "en": "Agricultural area",
+    "es": "Área agropecuaria",
+    "hex": "#ffefc3",
+    "pt": "Área agropecuária",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "en": "Pasture (beta)",
+    "es": "Pasto (beta)",
+    "hex": "#edde8e",
+    "pt": "Pastagem (beta)",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "en": "Mosaic of agriculture and pasture",
+    "es": "Mosaico agropecuario",
+    "hex": "#ffefc3",
+    "pt": "Mosaico agropecuário",
+    "src": "oficial",
+    "v": 21
+   },
+   {
+    "en": "Non-vegetated area",
+    "es": "Área sin vegetación",
+    "hex": "#d4271e",
+    "pt": "Área não vegetada",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "en": "Beach",
+    "es": "Playa",
+    "hex": "#ffa07a",
+    "pt": "Praia",
+    "src": "oficial",
+    "v": 23
+   },
+   {
+    "en": "Urban infrastructure",
+    "es": "Infraestructura urbana",
+    "hex": "#d4271e",
+    "pt": "Infraestrutura urbana",
+    "src": "oficial",
+    "v": 24
+   },
+   {
+    "en": "Other anthropogenic non-vegetated area",
+    "es": "Otra área antrópica sin vegetación",
+    "hex": "#db4d4f",
+    "pt": "Outra área antrópica não vegetada",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "Water body",
+    "es": "Cuerpo de agua",
+    "hex": "#2532e4",
+    "pt": "Corpo d'água",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "en": "Not observed",
+    "es": "No observado",
+    "hex": "#ffffff",
+    "pt": "Não observado",
+    "src": "oficial",
+    "v": 27
+   },
+   {
+    "en": "Mining",
+    "es": "Minería",
+    "hex": "#9c0027",
+    "pt": "Mineração",
+    "src": "oficial",
+    "v": 30
+   },
+   {
+    "en": "Aquaculture",
+    "es": "Acuicultura",
+    "hex": "#091077",
+    "pt": "Aquicultura",
+    "src": "oficial",
+    "v": 31
+   },
+   {
+    "en": "River, lake or ocean",
+    "es": "Río, lago u océano",
+    "hex": "#2532e4",
+    "pt": "Rio, lago ou oceano",
+    "src": "oficial",
+    "v": 33
+   },
+   {
+    "en": "Glacier",
+    "es": "Glaciar",
+    "hex": "#93dfe6",
+    "pt": "Geleira",
+    "src": "oficial",
+    "v": 34
+   },
+   {
+    "en": "Oil palm",
+    "es": "Palma aceitera",
+    "hex": "#9065d0",
+    "pt": "Dendê",
+    "src": "oficial",
+    "v": 35
+   },
+   {
+    "en": "Rice (beta)",
+    "es": "Arroz (beta)",
+    "hex": "#c71585",
+    "pt": "Arroz (beta)",
+    "src": "oficial",
+    "v": 40
+   },
+   {
+    "en": "Lowland flooded grassland",
+    "es": "Herbazal inundable de tierras bajas",
+    "hex": "#5faf92",
+    "pt": "Campo alagável de terras baixas",
+    "src": "oficial",
+    "v": 51
+   },
+   {
+    "en": "Coastal salt flat",
+    "es": "Superficie salina costera",
+    "hex": "#f0b4a8",
+    "pt": "Superfície salina costeira",
+    "src": "oficial",
+    "v": 52
+   },
+   {
+    "en": "Salt flat",
+    "es": "Superficie de salar",
+    "hex": "#f5d5d5",
+    "pt": "Salar",
+    "src": "oficial",
+    "v": 61
+   },
+   {
+    "en": "Shrubland and other shrub vegetation",
+    "es": "Matorral y otros arbustales",
+    "hex": "#a89358",
+    "pt": "Matagal e outros arbustais",
+    "src": "oficial",
+    "v": 66
+   },
+   {
+    "en": "Other natural non-vegetated area",
+    "es": "Otra área natural sin vegetación",
+    "hex": "#e97a7a",
+    "pt": "Outra área natural não vegetada",
+    "src": "oficial",
+    "v": 68
+   },
+   {
+    "en": "Fog oasis (beta)",
+    "es": "Loma costera (beta)",
+    "hex": "#be9e00",
+    "pt": "Loma costeira (beta)",
+    "src": "oficial",
+    "v": 70
+   },
+   {
+    "en": "High Andean flooded grassland",
+    "es": "Herbazal inundable altoandino",
+    "hex": "#26abab",
+    "pt": "Campo alagável altoandino",
+    "src": "oficial",
+    "v": 82
+   },
+   {
+    "en": "Rocky surface",
+    "es": "Superficie rocosa",
+    "hex": "#d98a45",
+    "pt": "Superfície rochosa",
+    "src": "oficial",
+    "v": 92
+   }
+  ],
+  "collection": "2",
+  "country": "peru",
+  "expected": 33,
+  "status": "validada",
+  "subproduct": "annual_burned_coverage",
   "updatedAt": "from-repository"
  },
  "peru__2__annual_burned_scar_size_range": {

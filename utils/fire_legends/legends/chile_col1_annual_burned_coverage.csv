@@ -1,0 +1,25 @@
+pixel_value,name_pt,name_en,name_es,hex
+1,Formação florestal,Forest formation,Formación boscosa,#1f8d49
+3,Floresta,Forest,Bosque,#1f8d49
+9,Silvicultura,Silviculture,Silvicultura,#7a5900
+10,Formação natural não florestal,Natural non forest formation,Formación natural no boscosa,#d6bc74
+11,Área úmida,Wetland,Humedal,#519799
+12,Campo,Grassland,Pastizal,#d6bc74
+14,Agropecuária e silvicultura,Farming and silviculture,Agropecuaria y Silvicultura,#ffefc3
+15,Pastagem,Pasture,Pastura,#edde8e
+18,Agricultura,Agriculture,Agricultura,#e974ed
+22,Área não vegetada,Non-vegetated area,Área sin vegetación,#d4271e
+23,"Areia, praia e duna","Beach, dune and sand spot","Arena, Playa y Duna",#ffa07a
+24,Infraestrutura,Infrastructure,Infraestructura,#d4271e
+25,Outra área não vegetada,Other non-vegetated area,Otra área sin vegetación,#db4d4f
+26,Corpo d'água,Water bodies,Cuerpo de agua,#2532e4
+27,Não observado,Not observed,No observado,#ffffff
+29,Afloramento rochoso,Rocky outcrop,Afloramiento Rocoso,#ffaa5f
+33,"Rio, lago ou oceano","River, lake or ocean","Río, lago u océano",#2532e4
+34,Gelo e neve,Ice and snow,Hielo y nieve,#93dfe6
+59,Floresta primária,Primary forest,Bosque Primario,#1f8d49
+60,Floresta secundária,Secondary forest,Bosque Secundario,#5cb85d
+61,Salar,Salt flat,Salar,#f5d5d5
+63,Estepe,Steppe,Estepa,#c7e0ab
+66,Matagal,Shrubland,Matorral,#a89358
+67,Floresta anã,Dwarf forest,Bosque Achaparrado,#c8ffb4

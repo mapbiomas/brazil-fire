@@ -1,0 +1,21 @@
+pixel_value,name_pt,name_en,name_es,hex
+3,Floresta fechada,Closed forests,Bosques cerrados,#1f8d49
+4,Floresta aberta,Open forests,Bosques abiertos,#7dc975
+6,Floresta alagável,Flooded forests,Bosques inundables,#026975
+9,Silvicultura,Forest plantations,Silvicultura,#7a5900
+11,Campo alagável,Flooded grasslands,Herbáceas inundables,#519799
+12,Campo,Grasslands,Herbáceas,#d6bc74
+15,Pastagem,Pastures,Pasturas,#edde8e
+18,Agricultura,Agriculture,Agricultura,#e974ed
+19,Lavoura temporária,Temporary crops,Cultivos temporarios,#c27ba0
+21,Mosaico de usos,Agriculture and pasture mosaic,Mosaico de usos,#ffefc3
+24,Área urbana,Urban areas,Áreas urbanas,#d4271e
+25,Outras áreas não vegetadas,Other non-vegetated areas,Otras áreas no vegetadas,#db4d4f
+27,Não observado,Not observed,No observado,#ffffff
+33,"Rio, lago ou oceano","Rivers, lakes or ocean","Ríos, lagunas, lagos y océano",#2532e4
+34,Gelo e neve permanente,Ice and permanent snow,Hielo en superficie y nieve permanente,#93dfe6
+36,Lavoura perene,Perennial crops,Cultivos perennes,#d082de
+63,Mosaico de arbustos e herbáceas,Shrubs and herbaceous mosaic,Mosaicos de arbustos y herbáceas,#c7e0ab
+66,Arbustal fechado,Closed shrublands,Arbustales cerrados,#a89358
+73,Turfeira,Peatlands,Turberas,#6fc179
+77,Arbustal aberto,Open shrublands,Arbustales abiertos,#86b074

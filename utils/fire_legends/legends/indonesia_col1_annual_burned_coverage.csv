@@ -1,0 +1,14 @@
+pixel_value,name_pt,name_en,name_es,hex
+3,Formação florestal,Forest Formation,Formación boscosa,#1f8d49
+5,Mangue,Mangrove,Manglar,#04381d
+9,Plantação de celulose,Pulpwood Plantation,Plantación de celulosa,#7a5900
+13,Outra vegetação natural,Other Natural Vegetation,Otra vegetación natural,#d89f5c
+21,Outra agricultura,Other Agriculture,Otra agricultura,#ffefc3
+24,Área urbana,Urban Area,Área urbana,#d4271e
+25,Outra área não vegetada,Other Non-Vegetation,Otra área sin vegetación,#db4d4f
+30,Mina,Mining Pit,Mina,#9c0027
+31,Aquicultura,Aquaculture,Acuicultura,#091077
+33,"Rio, lago ou oceano","River, Lake, Ocean","Río, lago u océano",#2532e4
+35,Dendê,Oil Palm,Palma aceitera,#9065d0
+40,Arroz irrigado,Rice Paddy,Arrozal,#f272c2
+76,Floresta de turfeira,Peat Swamp Forest,Bosque pantanoso de turba,#2f7360
