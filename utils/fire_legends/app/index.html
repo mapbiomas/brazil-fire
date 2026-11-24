@@ -144,9 +144,12 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
 .toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 /* Mapa: países do MapBiomas Fogo (countries.json) + detalhe das coleções */
-.mapwrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
-@media (max-width:900px){.mapwrap{grid-template-columns:1fr}}
+.mapwrap{display:flex;flex-direction:column;gap:18px}
 #worldmap{min-height:120px}
+#worldmap circle{fill:#fff;stroke:#1e2420;stroke-width:1.6;pointer-events:none}
+.mring{width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #1e2420;display:inline-block;flex:none}
+.chip .cl{font-weight:500;color:var(--muted)}
+#map-detail .mcolls{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 #worldmap svg{width:100%;height:auto;display:block}
 #worldmap path{stroke:var(--surface);stroke-width:.5}
 #worldmap path.on{cursor:pointer}
@@ -159,6 +162,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
 .mcoll{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
 .mcoll-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
 .chip.static{cursor:default;font-weight:500}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 </style>
 
 <div class="wrap">
@@ -249,7 +253,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
   <!-- ===================== MAPA ===================== -->
   <div id="v-mapa" class="mapwrap" hidden>
     <section class="panel">
-      <div class="card-h"><h3 id="t-mapTitle"></h3></div>
+      <div class="card-h"><h3 id="t-mapTitle"></h3><button class="btn" type="button" id="map-colls-tg"></button></div>
       <div class="mkey" id="map-key"></div>
       <div id="worldmap"></div>
       <div class="chips" id="map-list"></div>
@@ -287,6 +291,7 @@ const T = {
     map_title:"Países do MapBiomas Fogo",map_published:"Coleção publicada",map_upcoming:"A publicar",map_pilot:"Piloto / treinamento",
     map_loading:"Carregando o mapa…",map_fail:"Não foi possível carregar o mapa. Use a lista abaixo.",
     map_pick:"Clique em um país no mapa ou na lista para ver as coleções.",map_nocoll:"Ainda sem coleção publicada.",
+    map_showColls:"Detalhar coleções",map_monitor:"Monitor do Fogo",map_collShort:"Col. {c}",
     map_coll:"Coleção {c}",map_regd:"{n} de {m} legendas cadastradas",map_open:"Ver legendas",
     map_sum:"{a} países com coleção publicada · {b} a publicar · {c} em piloto",
     country:"País",colls:"Coleção",subprod:"Subproduto",year:"Ano",start:"Ano inicial",end:"Ano final",refYear:"Ano de referência",period:"Período",
@@ -331,6 +336,7 @@ const T = {
     map_title:"Países de MapBiomas Fuego",map_published:"Colección publicada",map_upcoming:"Por publicar",map_pilot:"Piloto / capacitación",
     map_loading:"Cargando el mapa…",map_fail:"No fue posible cargar el mapa. Use la lista de abajo.",
     map_pick:"Haga clic en un país en el mapa o en la lista para ver las colecciones.",map_nocoll:"Aún sin colección publicada.",
+    map_showColls:"Detallar colecciones",map_monitor:"Monitor del Fuego",map_collShort:"Col. {c}",
     map_coll:"Colección {c}",map_regd:"{n} de {m} leyendas registradas",map_open:"Ver leyendas",
     map_sum:"{a} países con colección publicada · {b} por publicar · {c} en piloto",
     country:"País",colls:"Colección",subprod:"Subproducto",year:"Año",start:"Año inicial",end:"Año final",refYear:"Año de referencia",period:"Período",
@@ -375,6 +381,7 @@ const T = {
     map_title:"MapBiomas Fire countries",map_published:"Collection published",map_upcoming:"To be published",map_pilot:"Pilot / training",
     map_loading:"Loading the map…",map_fail:"The map could not be loaded. Use the list below.",
     map_pick:"Click a country on the map or in the list to see its collections.",map_nocoll:"No collection published yet.",
+    map_showColls:"Show collections",map_monitor:"Fire Monitor",map_collShort:"Coll. {c}",
     map_coll:"Collection {c}",map_regd:"{n} of {m} legends registered",map_open:"See legends",
     map_sum:"{a} countries with a published collection · {b} to be published · {c} in pilot",
     country:"Country",colls:"Collection",subprod:"Subproduct",year:"Year",start:"Start year",end:"End year",refYear:"Reference year",period:"Period",
@@ -707,6 +714,7 @@ function renderView(){
 // Países e status vêm de countries.json (gerado a partir de countries.csv); coleções vêm de PUBLISHED.
 const MAP_ST = ["published","upcoming","pilot"];
 let CTRY = [], WORLD = null, worldLoading = false;
+S.mapColls = store.get("mapColls",false);
 const ctryName = c=>c["name_"+S.lang]||c.country;
 const collLabel = p=>p.id==="Monitor"?SUBS.fire_monitor.name[S.lang]:t("map_coll",{c:p.id});
 function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
@@ -717,15 +725,19 @@ async function ensureWorld(){
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js");
     const topo=await (await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json")).json();
     const feats=topojson.feature(topo,topo.objects.countries).features.filter(f=>f.id!=="010"); // sem Antártida
-    const W=960,H=470,proj=d3.geoNaturalEarth1().fitExtent([[4,4],[W-4,H-4]],{type:"FeatureCollection",features:feats}),path=d3.geoPath(proj);
-    WORLD={W,H,shapes:feats.map(f=>({id:f.id,d:path(f)})).filter(f=>f.d)};
+    // Mercator recortado (56°S–78°N), centrado em 10°E: mapa largo, sem polos
+    const W=1000,H=560,proj=d3.geoMercator().rotate([-10,0])
+      .fitExtent([[2,2],[W-2,H-2]],{type:"MultiPoint",coordinates:[[-169.9,-56],[189.9,78]]}).clipExtent([[0,0],[W,H]]),path=d3.geoPath(proj);
+    WORLD={W,H,shapes:feats.map(f=>({id:f.id,d:path(f),c:proj(d3.geoCentroid(f))})).filter(f=>f.d)};
   }catch(e){WORLD=false}
   worldLoading=false;renderMap();
 }
 function renderMap(){
   if(S.view!=="mapa")return;
   $("t-mapTitle").textContent=t("map_title");
-  $("map-key").innerHTML=MAP_ST.map(s=>`<span><i class="msw" style="background:var(--m-${s})"></i>${esc(t("map_"+s))}</span>`).join("");
+  const tg=$("map-colls-tg");tg.textContent=t("map_showColls");tg.setAttribute("aria-pressed",!!S.mapColls);
+  $("map-key").innerHTML=MAP_ST.map(s=>`<span><i class="msw" style="background:var(--m-${s})"></i>${esc(t("map_"+s))}</span>`).join("")
+    +`<span><i class="mring"></i>${esc(t("map_monitor"))}</span>`;
   const byIso=new Map(CTRY.map(c=>[c.iso_n3,c])),box=$("worldmap");
   if(WORLD===null){box.innerHTML=`<p class="note">${t("map_loading")}</p>`;ensureWorld()}
   else if(WORLD===false)box.innerHTML=`<p class="note">${t("map_fail")}</p>`;
@@ -733,24 +745,29 @@ function renderMap(){
     const shapes=WORLD.shapes.slice().sort((a,b)=>(byIso.get(a.id)?.country===S.mapSel)-(byIso.get(b.id)?.country===S.mapSel));
     box.innerHTML=`<svg viewBox="0 0 ${WORLD.W} ${WORLD.H}" role="group" aria-label="${esc(t("map_title"))}">${shapes.map(f=>{
       const c=byIso.get(f.id),st=c?c.status:"none";
-      return c?`<path d="${f.d}" style="fill:var(--m-${st})" class="on${c.country===S.mapSel?" sel":""}" data-mc="${esc(c.country)}" tabindex="0" role="button" aria-label="${esc(ctryName(c))}"><title>${esc(ctryName(c))} · ${esc(t("map_"+st))}</title></path>`
-        :`<path d="${f.d}" style="fill:var(--m-none)"></path>`}).join("")}</svg>`;
+      const tip=c?[ctryName(c),t("map_"+st),collSummary(c.country)].filter(Boolean).join(" · "):"";
+      return c?`<path d="${f.d}" style="fill:var(--m-${st})" class="on${c.country===S.mapSel?" sel":""}" data-mc="${esc(c.country)}" tabindex="0" role="button" aria-label="${esc(tip)}"><title>${esc(tip)}</title></path>`
+        :`<path d="${f.d}" style="fill:var(--m-none)"></path>`}).join("")}${
+      WORLD.shapes.filter(f=>{const c=byIso.get(f.id);return c&&hasMonitor(c.country)&&f.c}).map(f=>`<circle cx="${f.c[0].toFixed(1)}" cy="${f.c[1].toFixed(1)}" r="5"></circle>`).join("")}</svg>`;
   }
-  $("map-list").innerHTML=MAP_ST.flatMap(s=>CTRY.filter(c=>c.status===s)).map(c=>
-    `<button class="chip" data-mc="${esc(c.country)}" aria-pressed="${c.country===S.mapSel}"><i class="msw" style="background:var(--m-${c.status})"></i>${esc(ctryName(c))}</button>`).join("");
+  $("map-list").innerHTML=MAP_ST.flatMap(s=>CTRY.filter(c=>c.status===s)).map(c=>{const cs=S.mapColls?collSummary(c.country):"";
+    return `<button class="chip" data-mc="${esc(c.country)}" aria-pressed="${c.country===S.mapSel}"><i class="msw" style="background:var(--m-${c.status})"></i>${esc(ctryName(c))}${cs?` <span class="cl">${esc(cs)}</span>`:""}${hasMonitor(c.country)?`<i class="mring" title="${esc(t("map_monitor"))}"></i>`:""}</button>`}).join("");
   renderMapDetail();
 }
+const hasMonitor = k=>PUBLISHED.some(p=>p.country===k&&p.id==="Monitor");
+function collSummary(k){const ids=PUBLISHED.filter(p=>p.country===k&&p.id!=="Monitor").map(p=>p.id);
+  return [ids.length?t("map_collShort",{c:ids.join(", ")}):"",hasMonitor(k)?"Monitor":""].filter(Boolean).join(" · ")}
 function renderMapDetail(){
   const el=$("map-detail"),c=CTRY.find(x=>x.country===S.mapSel);
   if(!c){const n=s=>CTRY.filter(x=>x.status===s).length;
     el.innerHTML=`<p>${esc(t("map_sum",{a:n("published"),b:n("upcoming"),c:n("pilot")}))}</p><p class="note">${t("map_pick")}</p>`;return}
   const colls=PUBLISHED.filter(p=>p.country===c.country);
   el.innerHTML=`<div class="card-h"><h3>${esc(ctryName(c))}</h3><span class="mbadge ${c.status}" style="background:var(--m-${c.status})">${esc(t("map_"+c.status))}</span></div>`+
-    (colls.length?colls.map(p=>{const reg=p.subs.filter(s=>PAL[pkey(p,s)]).length;
+    (colls.length?`<div class="mcolls">`+colls.map(p=>{const reg=p.subs.filter(s=>PAL[pkey(p,s)]).length;
       return `<div class="mcoll"><div class="mcoll-h"><b>${esc(collLabel(p))}</b><span class="note">${p.start}–${p.end} · ${esc(p.sensor)}</span></div>
         <div class="chips">${p.subs.map(s=>`<span class="chip static">${esc(SUBS[s].name[S.lang])}</span>`).join("")}</div>
         <p class="note">${esc(t("map_regd",{n:reg,m:p.subs.length}))}</p>
-        <div><button class="btn" type="button" data-goto="${esc(p.country)}|${esc(p.id)}">${t("map_open")}</button></div></div>`}).join("")
+        <div><button class="btn" type="button" data-goto="${esc(p.country)}|${esc(p.id)}">${t("map_open")}</button></div></div>`}).join("")+`</div>`
     :`<p class="note">${t("map_nocoll")}</p>`);
 }
 function pickColl(id){S.coll=id;const c=collObj();if(!c)return;S.y=c.end;S.s=c.start;S.e=c.end}
@@ -1031,6 +1048,7 @@ document.addEventListener("click",e=>{
   else if(b.dataset.copy){copy(b.dataset.copy)}
   else if(b.dataset.rm){ED.classes.splice(+b.dataset.rm,1);ED.dirty=true;renderEditor()}
   else switch(b.id){
+    case"map-colls-tg":S.mapColls=!S.mapColls;store.set("mapColls",S.mapColls);renderMap();break;
     case"btn-copyhex":copy(items().items.map(o=>o.hex).join("\n"));break;
     case"btn-copy":copy($("code").textContent);break;
     case"btn-dl":{const ext=TABS.find(x=>x[0]===S.tab)[2],suf={gee:"_gee.js",py:"_gee.py",hex:"_hex",hexc:"_hex"}[S.tab]||"";save(`${baseName()}${suf}.${ext}`,(ext==="csv"?"﻿":"")+$("code").textContent);break}
