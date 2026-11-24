@@ -761,7 +761,7 @@ function renderMap(){
     const mon=WORLD.shapes.filter(f=>{const c=byIso.get(f.id);return c&&hasMonitor(c.country)});
     const monLayer=S.monStyle==="hatch"?mon.map(f=>`<path d="${f.d}" style="fill:url(#mhatch);stroke:none;pointer-events:none"></path>`).join("")
       :S.monStyle==="ring"?mon.filter(f=>f.c).map(f=>`<circle cx="${f.c[0].toFixed(1)}" cy="${f.c[1].toFixed(1)}" r="5"></circle>`).join("")
-      :S.monStyle==="fire"?mon.filter(f=>f.c).map(f=>`<g transform="translate(${f.c[0].toFixed(1)},${f.c[1].toFixed(1)}) scale(1.15)" style="pointer-events:none">${FLAME}</g>`).join(""):"";
+      :S.monStyle==="fire"?mon.filter(f=>f.c).map(f=>`<g transform="translate(${f.c[0].toFixed(1)},${f.c[1].toFixed(1)}) scale(0.7)" style="pointer-events:none">${FLAME}</g>`).join(""):"";
     box.innerHTML=`<svg viewBox="0 0 ${WORLD.W} ${WORLD.H}" role="group" aria-label="${esc(t("map_title"))}"><defs><pattern id="mhatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="2" height="5" fill="#ffffff" fill-opacity=".75"></rect></pattern></defs>${shapes.map(f=>{
       const c=byIso.get(f.id),st=c?c.status:"none";
       const tip=c?[ctryName(c),t("map_"+st),collSummary(c.country)].filter(Boolean).join(" · "):"";
