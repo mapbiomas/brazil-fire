@@ -366,7 +366,7 @@ const TABS = [
   { id: "fundiario", label: "Categorias Fundiárias", load: loadFundiario, requer: ["anual"], soBrasil: true },
   { id: "territorios", label: "Territórios", load: loadTerritorios, requer: ["anual"] },
   { id: "mapa", label: "Mapas Interativos", load: loadMapa, requer: ["anual"] },
-  { id: "gif", label: "Fábrica de GIFs", load: loadGif, requer: [] },
+  { id: "gif", label: "Fábrica de mapas", load: loadGif, requer: [] },
 ];
 
 // Abas que o país atual tem (antes de conectar, todas).
@@ -558,9 +558,9 @@ async function waitForTask(env, taskId, started, onWaiting) {
 
 // Coleção do MapBiomas Fogo citada na nota ("Coleção 5.1 do MapBiomas Fogo", "MapBiomas Fire Chile
 // Collection 1"). Não pega a coleção de uso e cobertura que a nota também cita ("MapBiomas Chile Collection 2").
-function colecaoDaNota(text) {
-  const m = text.match(/(?:Colecci[oó]n|Cole[cç][aã]o|Collection)\s+(\d+(?:\.\d+)?)(?:\s*-\s*Beta)?\s+(?:de|do|da|-)\s+MapBiomas\s+(?:Fuego|Fogo|Fire)/i)
-    || text.match(/MapBiomas\s+(?:Fire|Fuego|Fogo)(?:\s+[^\s,.;:]+)?\s+(?:Collection|Colecci[oó]n|Cole[cç][aã]o)\s+(\d+(?:\.\d+)?)/i);
+function colecaoDaNota(text, marcas = "Fuego|Fogo|Fire") {
+  const m = text.match(new RegExp(String.raw`(?:Colecci[oó]n|Cole[cç][aã]o|Collection)\s+(\d+(?:\.\d+)?)(?:\s*-\s*Beta)?\s+(?:de|do|da|-)\s+MapBiomas\s+(?:${marcas})`, "i"))
+    || text.match(new RegExp(String.raw`MapBiomas\s+(?:${marcas})(?:\s+[^\s,.;:]+)?\s+(?:Collection|Colecci[oó]n|Cole[cç][aã]o)\s+(\d+(?:\.\d+)?)`, "i"));
   return m ? m[1] : null;
 }
 
@@ -4375,7 +4375,7 @@ const INFO_CARDS = [
   [/^Ranking das categorias$/, "Categorias fundiárias ordenadas pela área queimada no período."],
   [/^Evolução anual nas principais categorias$/, "Série anual da área queimada nas principais categorias fundiárias."],
   [/: explore o fogo no mapa$/, "Mapa por território: escolha o que mostrar, o ano ou a comparação, ou busque um território pelo nome. Clique num território para ver a série anual."],
-  [/^Fábrica de GIFs$/, "Gera uma animação com um mapa por ano. Escolha país, território, produto e anos; o GIF é montado no seu navegador."],
+  [/^Fábrica de mapas$/, "Gera um frame (PNG), um GIF ano a ano ou um mapa pronto (PNG com título, legenda, escala, norte e fonte). Escolha tema (Fogo ou Solo), país, território, produto e anos; tudo é montado no seu navegador."],
 ];
 
 function infoDoCard(card) {
@@ -6601,6 +6601,8 @@ function readHash() {
   if (["ha", "pct"].includes(p.get("unid"))) state.freqUnid = p.get("unid");
   if (/^[0-9a-f]{6}$/i.test(p.get("cor") || "")) salvarCor(`#${p.get("cor")}`);
   if (p.get("cicatriz")) state.cicatrizClasse = p.get("cicatriz");
+  // Fábrica de mapas: link direto para o Solo (#aba=gif&tema=solo).
+  if (/^(solo|soil|suelo)$/i.test(p.get("tema") || "")) gifState.tema = "solo";
 }
 
 function writeHash() {
@@ -6623,6 +6625,7 @@ function writeHash() {
   }
   if (state.tab === "cicatriz" && state.cicatrizClasse !== "grandes") p.set("cicatriz", state.cicatrizClasse);
   if (state.corAnual && ["anual", "acumulado"].includes(state.tab)) p.set("cor", state.corAnual.slice(1));
+  if (state.tab === "gif" && gifState.tema !== "fogo") p.set("tema", gifState.tema);
   if (state.tab === "mapa") {
     p.set("mapa", state.mapa.tipo);
     if (state.mapa.tipo === "ranking") p.set("unidade", state.mapa.unidade);
@@ -6764,11 +6767,13 @@ function init() {
 }
 
 // ---------------------------------------------------------------------------
-// Fábrica de GIFs (padrão de utils/mapbiomas_gif_factory, feita no navegador)
+// Fábrica de mapas (padrão de utils/mapbiomas_gif_factory, feita no navegador)
 // ---------------------------------------------------------------------------
-// Um quadro por ano com os tiles oficiais da Plataforma MapBiomas (a mesma API serve
-// outros países pela "região"), com título, território, ano, legenda, fonte e logo.
-// O GIF é codificado no navegador com gifenc. Esta aba não usa os filtros do topo.
+// Três saídas a partir da mesma escolha (tema, país, território, produto, ano/opção):
+//   Frame (PNG de um quadro) · GIF (um quadro por ano, ou por profundidade nos produtos
+//   sem ano) · Mapa (PNG estático com título, legenda, escala, norte e fonte).
+// Tiles oficiais de /maps/map da Plataforma MapBiomas (a mesma API serve outros países
+// pela "região"); o GIF é codificado no navegador com gifenc. Esta aba não usa os filtros do topo.
 
 const GIF_PAISES = [
   { region: "brazil", nome: "Brasil", lang: "pt-BR", logo: "logos/MapBiomas_Fogo_PT.png" },
@@ -6781,24 +6786,71 @@ const GIF_PAISES = [
   { region: "indonesia", nome: "Indonésia", colecaoPadrao: "2", de: "da Indonésia", em: "na Indonésia", lang: "en-US", logo: "logos/MapBiomas_Fire_EN.png" },
 ];
 
-// Textos gravados no GIF, no idioma do país.
+// Temas que a fábrica desenha. Um tema entra para o país quando a API tem um tema que casa
+// com `casa` (chave e nomes). Solo: só o Brasil tem hoje; não há logo do Solo em utils/_base/logos.
+const MAPA_TEMAS = [
+  {
+    id: "fogo", rotulo: "Fogo", arquivo: "fogo", marcaNota: "Fuego|Fogo|Fire",
+    casa: (t) => /fire|fogo|fuego/i.test(`${t.key} ${JSON.stringify(t.name)}`),
+    // Fogo: sem mensal, último ano e intervalo médio (não fazem sentido quadro a quadro).
+    produto: (s) => !["last_year", "mean_interval"].includes(s.analysis)
+      && !/mensal|monthly|mensual|bulanan|mosaico|monitor/i.test(JSON.stringify(s.name)),
+    marca: { pt: "MapBiomas Fogo", es: "MapBiomas Fuego", en: "MapBiomas Fire", id: "MapBiomas Fire" },
+    logo: { pt: "logos/MapBiomas_Fogo_PT.png", es: "logos/MapBiomas_Fuego_ES.png", en: "logos/MapBiomas_Fire_EN.png", id: "logos/MapBiomas_Fire_EN.png" },
+  },
+  {
+    id: "solo", rotulo: "Solo", arquivo: "solo", marcaNota: "Soil|Solo|Suelo",
+    casa: (t) => /^soil$/i.test(t.key) || /"(Soil|Solo|Suelo)"/.test(JSON.stringify(t.name)),
+    // Solo: só subtemas com tipo de dado (o "SoilData" de pontos não tem mapa).
+    produto: (s) => Boolean(s.dataType),
+    marca: { pt: "MapBiomas Solo", es: "MapBiomas Suelo", en: "MapBiomas Soil", id: "MapBiomas Soil" },
+    logo: null,
+  },
+];
+const temaMapa = (id) => MAPA_TEMAS.find((t) => t.id === id) || MAPA_TEMAS[0];
+
+// Textos gravados nas imagens, no idioma da página.
 const GIF_TEXTOS = {
-  "pt-BR": { marca: "MapBiomas Fogo", fonte: "Fonte: MapBiomas Fogo", colecao: "Coleção", anual: "Área queimada anual" },
-  "es-ES": { marca: "MapBiomas Fuego", fonte: "Fuente: MapBiomas Fuego", colecao: "Colección", anual: "Área quemada anual" },
-  "en-US": { marca: "MapBiomas Fire", fonte: "Source: MapBiomas Fire", colecao: "Collection", anual: "Annual burned area" },
-  "id-ID": { marca: "MapBiomas Fire", fonte: "Sumber: MapBiomas Fire", colecao: "Koleksi", anual: "Area terbakar tahunan" },
+  "pt-BR": { fonte: "Fonte", colecao: "Coleção", anual: "Área queimada anual", base: "mapa base Esri",
+    proj: "Web Mercator (EPSG:3857) · escala válida na latitude do centro do mapa", gerado: "Gerado em" },
+  "es-ES": { fonte: "Fuente", colecao: "Colección", anual: "Área quemada anual", base: "mapa base Esri",
+    proj: "Web Mercator (EPSG:3857) · escala válida en la latitud del centro del mapa", gerado: "Generado el" },
+  "en-US": { fonte: "Source", colecao: "Collection", anual: "Annual burned area", base: "Esri basemap",
+    proj: "Web Mercator (EPSG:3857) · scale valid at the map's central latitude", gerado: "Generated on" },
+  "id-ID": { fonte: "Sumber", colecao: "Koleksi", anual: "Area terbakar tahunan", base: "peta dasar Esri",
+    proj: "Web Mercator (EPSG:3857) · skala berlaku pada lintang tengah peta", gerado: "Dibuat pada" },
 };
 
 // ms por quadro: lento = antigo normal, normal = antigo rápido, rápido ainda mais rápido.
 const GIF_VELOCIDADES = [["lento", "Lento", 700], ["normal", "Normal", 350], ["rapido", "Rápido", 180]];
 const GIF_TAMANHOS = [["p", "Pequeno", 640], ["m", "Médio", 900], ["g", "Grande", 1200]];
-const GIF_FUNDOS = [["mapa", "Mapa base cinza"], ["branco", "Fundo branco"]];
+// Fundo das imagens: escuro = preto do tema "dark" do gif_factory (Python); claro = branco ou creme.
+const MAPA_FUNDOS = [["escuro", "Escuro"], ["claro", "Claro"], ["creme", "Creme"]];
+const MAPA_BASES = [["com", "Com mapa base"], ["sem", "Sem mapa base"]];
+const MAPA_BASEMAP = {
+  claro: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+  escuro: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+};
+// Cores por fundo. "swatch" contorna os quadradinhos da legenda para que cores parecidas com
+// o fundo (preto no escuro, creme/branco no claro) continuem visíveis.
+const MAPA_CORES = {
+  escuro: { bg: "#000000", texto: "#f0f0f0", texto2: "#d2d2d2", fraco: "#a0a0a0", borda: "#464646", terra: "#161616",
+    contorno: "#ececec", limites: "rgba(160,160,160,0.9)", caixa: "rgba(0,0,0,0.72)", swatch: "rgba(255,255,255,0.55)",
+    trilho: "rgba(255,255,255,0.2)", vazio: "#141414", base: "escuro" },
+  claro: { bg: "#ffffff", texto: "#1f1f1f", texto2: "#444444", fraco: "#666666", borda: "#d0d0d0", terra: "#f1f1f1",
+    contorno: "#2b2b2b", limites: "rgba(85,85,85,0.95)", caixa: "rgba(255,255,255,0.86)", swatch: "rgba(0,0,0,0.35)",
+    trilho: "rgba(0,0,0,0.12)", vazio: "#ffffff", base: "claro" },
+  creme: { bg: "#f7f3ea", texto: "#2a241c", texto2: "#4d4337", fraco: "#6e6355", borda: "#d9cfbb", terra: "#ece5d5",
+    contorno: "#2f2a22", limites: "rgba(95,85,70,0.9)", caixa: "rgba(247,243,234,0.88)", swatch: "rgba(60,45,25,0.4)",
+    trilho: "rgba(60,45,25,0.14)", vazio: "#f7f3ea", base: "claro" },
+};
 const GIFENC_URL = "https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js";
-const GIF_BASEMAP = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+const R_TERRA = 6378137; // raio do Web Mercator (m)
 
 const gifState = {
-  region: "brazil", produto: "", legenda: "", categoria: "", territorio: "", ini: null, fim: null,
-  velocidade: "normal", tamanho: "m", fundo: "mapa", limites: "nenhum", resultado: null, gerando: false,
+  tema: "fogo", region: "brazil", produto: "", legenda: "", categoria: "", territorio: "", ini: null, fim: null, props: {},
+  velocidade: "normal", tamanho: "m", fundo: "escuro", base: "com", limites: "nenhum", baixar: true,
+  resultado: null, gerando: false,
 };
 
 const gifEnv = () => ENVIRONMENTS[0]; // produção
@@ -6808,29 +6860,43 @@ const nomeEm = (n, lang) => (typeof n === "string" ? n
 // Nome de arquivo seguro, como safe_name() do gif_factory.
 const nomeSeguro = (v) => String(v || "").normalize("NFKD").replace(/[̀-ͯ]/g, "")
   .replace(/[^A-Za-z0-9_-]+/g, "_").replace(/^[_-]+|[_-]+$/g, "").slice(0, 80) || "sem_nome";
+const semAno = (prod) => prod?.dataType === "constant";
+const acumulaAnos = (prod) => prod && (prod.dataType === "year_interval" || ["accumulated", "frequency"].includes(prod.analysis));
+const propsDe = (prod) => (prod?.properties || []).filter((x) => x.options?.length)
+  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-// Tema de fogo do país: produtos com série anual, categorias de território, anos e coleção.
-function gifRegiao(region) {
-  return cached(`gif:${region}`, async () => {
+function gifTemas(region) {
+  return cached(`gif:${region}:temas`, () => gifApi(region, "/themes", { page: 1, pageSize: 100 }));
+}
+
+// Temas da fábrica que o país tem na API.
+async function temasDoPais(region) {
+  const themes = (await gifTemas(region)).themes || [];
+  return MAPA_TEMAS.filter((tm) => themes.some(tm.casa));
+}
+
+// Tema do país: produtos (folhas), categorias de território, anos e coleção.
+function gifRegiao(region, temaId = "fogo") {
+  return cached(`gif:${region}:${temaId}`, async () => {
+    const tm = temaMapa(temaId);
     const [themes, cats] = await Promise.all([
-      gifApi(region, "/themes", { page: 1, pageSize: 100 }),
+      gifTemas(region),
       gifApi(region, "/territories/categories", { page: 1, pageSize: 500 }),
     ]);
-    const fire = (themes.themes || []).find((t) => /fire|fogo|fuego/i.test(`${t.key} ${JSON.stringify(t.name)}`));
-    if (!fire) throw new Error("Este país não tem o tema de fogo na Plataforma MapBiomas.");
+    const tema = (themes.themes || []).find(tm.casa);
+    if (!tema) throw new Error(`Este país não tem o tema ${tm.rotulo} na Plataforma MapBiomas.`);
     // prd aninha subtemas em `children` (às vezes em dois níveis); alguns países os deixam soltos.
     const folhas = (arr) => (arr || []).flatMap((s) => (s.children?.length ? folhas(s.children)
       : s.subthemes?.length ? folhas(s.subthemes) : [s]));
-    const produtos = folhas(fire.subthemes).filter((s) => !["last_year", "mean_interval"].includes(s.analysis)
-      && !/mensal|monthly|mensual|bulanan|mosaico|monitor/i.test(JSON.stringify(s.name)));
-    const nota = JSON.stringify([fire.description, fire.informativeNote]).replace(/<[^>]+>/g, " ");
+    const produtos = folhas(tema.subthemes).filter(tm.produto);
+    const nota = JSON.stringify([tema.description, tema.informativeNote]).replace(/<[^>]+>/g, " ");
     const m = nota.match(/(?:entre|between|from|de|period(?:o)?)\s+(\d{4})\s*(?:e|and|to|a|y|al|–|-)\s*(\d{4})/i)
       || nota.match(/\b((?:19|20)\d{2})\s*[–-]\s*((?:19|20)\d{2})\b/);
     const anoOk = (a) => a >= 1980 && a <= new Date().getFullYear();
     const anoMin = m && anoOk(Number(m[1])) ? Number(m[1]) : null;
     const anoMax = m && anoOk(Number(m[2])) && Number(m[2]) >= anoMin ? Number(m[2]) : null;
-    const colecao = colecaoDaNota(nota);
-    const colecaoFinal = colecao || PAISES.find((p) => p.region === region)?.colecaoPadrao || null;
+    const colecao = colecaoDaNota(nota, tm.marcaNota);
+    const colecaoFinal = colecao || (temaId === "fogo" ? PAISES.find((p) => p.region === region)?.colecaoPadrao : null) || null;
     return { produtos, categorias: cats.categories || [], colecao: colecaoFinal, anoMin: anoMax ? anoMin : null, anoMax };
   });
 }
@@ -6873,12 +6939,18 @@ async function loadGif() {
     kpis: [],
     cards: [{
       span: 12,
-      title: "Fábrica de GIFs",
-      subtitle: "Animação ano a ano com os mapas oficiais da Plataforma MapBiomas, no padrão do MapBiomas GIF Factory · esta aba tem filtros próprios (país, território e anos) e não usa os filtros do topo",
+      title: "Fábrica de mapas",
+      subtitle: "Frame, GIF ou mapa pronto com os mapas oficiais da Plataforma MapBiomas (Fogo e Solo), no padrão do MapBiomas GIF Factory · esta aba tem filtros próprios (país, território e anos) e não usa os filtros do topo",
       custom: montarGif,
     }],
   };
 }
+
+const MAPA_SAIDAS = [
+  ["frame", "▶ Gerar frame (PNG)"],
+  ["gif", "▶ Gerar GIF"],
+  ["mapa", "▶ Gerar mapa (PNG)"],
+];
 
 function montarGif(body) {
   const seg = (grupo, opcoes) => `
@@ -6887,7 +6959,8 @@ function montarGif(body) {
     </div>`;
   body.innerHTML = `
     <div class="gif-form">
-      <div class="md-passo"><span class="md-num">1</span><span class="md-rotulo">País</span>
+      <div class="md-passo"><span class="md-num">1</span><span class="md-rotulo">Tema</span>
+        <div class="segmented" role="group" data-g="tema"></div>
         <select data-f="region" aria-label="País">${GIF_PAISES.map((p) => `<option value="${p.region}" data-pais="${p.region}"${p.region === gifState.region ? " selected" : ""}>${escapeHtml(rotuloPais(p))}</option>`).join("")}</select>
       </div>
       <div class="md-passo"><span class="md-num">2</span><span class="md-rotulo">Território</span>
@@ -6897,22 +6970,26 @@ function montarGif(body) {
       <div class="md-passo"><span class="md-num">3</span><span class="md-rotulo">Produto</span>
         <select data-f="produto" aria-label="Produto"></select>
         <select data-f="legenda" aria-label="Legenda" hidden></select>
+        <span class="gif-props"></span>
       </div>
-      <div class="md-passo"><span class="md-num">4</span><span class="md-rotulo">Anos</span>
+      <div class="md-passo gif-anos"><span class="md-num">4</span><span class="md-rotulo">Anos</span>
         <select data-f="ini" aria-label="Ano inicial"></select><span>até</span>
         <select data-f="fim" aria-label="Ano final"></select>
       </div>
       <div class="md-passo"><span class="md-num">5</span><span class="md-rotulo">Aparência</span>
-        ${seg("velocidade", GIF_VELOCIDADES)}
+        ${seg("fundo", MAPA_FUNDOS)}
+        ${seg("base", MAPA_BASES)}
         ${seg("tamanho", GIF_TAMANHOS.map(([v, r, px]) => [v, `${r} (${px} px)`]))}
-        ${seg("fundo", GIF_FUNDOS)}
       </div>
-      <div class="md-passo"><span class="md-num">6</span><span class="md-rotulo">Limites no mapa</span>
+      <div class="md-passo"><span class="md-num">6</span><span class="md-rotulo">Velocidade do GIF</span>
+        ${seg("velocidade", GIF_VELOCIDADES)}
+      </div>
+      <div class="md-passo"><span class="md-num">7</span><span class="md-rotulo">Limites no mapa</span>
         <div class="segmented" role="group" data-g="limites"></div>
       </div>
       <div class="gif-acoes">
-        <button type="button" class="md-botao gif-gerar">▶ Gerar GIF</button>
-        <button type="button" class="md-botao gif-gerar gif-baixar">⬇ Gerar e baixar GIF</button>
+        ${MAPA_SAIDAS.map(([v, r]) => `<button type="button" class="md-botao gif-gerar" data-saida="${v}">${r}</button>`).join("")}
+        <label class="gif-auto"><input type="checkbox" data-f="baixar"${gifState.baixar ? " checked" : ""}> Baixar assim que ficar pronto</label>
         <span class="gif-status" aria-live="polite"></span>
       </div>
       <progress class="gif-prog" max="1" value="0" hidden></progress>
@@ -6929,25 +7006,43 @@ function montarGif(body) {
     if (itens.length && !itens.some((o) => String(o.value) === String(atual))) el.value = String(itens[0].value);
     return el.value;
   };
+  const botoes = (ligado) => body.querySelectorAll(".gif-gerar").forEach((x) => { x.disabled = !ligado; });
   let reg = null;
+  const produto = () => reg?.produtos.find((s) => s.key === gifState.produto);
 
   function ajuda() {
-    const p = pais();
-    const prod = reg?.produtos.find((s) => s.key === gifState.produto);
-    const acumula = prod && (prod.dataType === "year_interval" || ["accumulated", "frequency"].includes(prod.analysis));
+    const prod = produto();
+    const props = propsDe(prod);
+    const eixo = semAno(prod) ? props.find((x) => x.options.length > 1) : null;
     const anos = gifState.ini && gifState.fim ? gifState.fim - gifState.ini + 1 : 0;
-    q(".gif-ajuda").textContent =
-      `O GIF terá ${anos} quadro(s), um por ano${acumula ? `, somando desde ${gifState.ini} (cada quadro mostra o acumulado até aquele ano)` : ""}. ` +
-      `Cada quadro traz título, território, ano, legenda e fonte em ${{ pt: "português", es: "espanhol", en: "inglês", id: "bahasa indonésio" }[IDIOMA.id]}. ` +
-      "Os mapas vêm da Plataforma MapBiomas; territórios pequenos ficam mais nítidos. Gerar leva de alguns segundos a poucos minutos.";
+    const nGif = semAno(prod) ? (eixo ? eixo.options.length : 1) : anos;
+    const eixoNome = eixo ? nomeEm(eixo.name, IDIOMA.gif).toLowerCase() : "";
+    q(".gif-anos").hidden = semAno(prod);
+    q('.gif-gerar[data-saida="gif"]').title = nGif < 2 ? tr("Este produto tem um mapa só: use Frame ou Mapa.") : "";
+    q(".gif-ajuda").textContent = porIdioma({
+      pt: `Frame e Mapa mostram ${semAno(prod) ? "a opção escolhida" : acumulaAnos(prod) ? `o acumulado de ${gifState.ini} a ${gifState.fim}` : `o ano ${gifState.fim}`}. `
+        + `O GIF terá ${nGif} quadro(s)${semAno(prod) ? (eixo ? `, um por ${eixoNome}` : "") : `, um por ano${acumulaAnos(prod) ? `, somando desde ${gifState.ini}` : ""}`}. `
+        + "Todas as saídas têm escala gráfica (calculada para a latitude do centro do mapa) e seta do norte. Gerar leva de alguns segundos a poucos minutos.",
+      es: `Frame y Mapa muestran ${semAno(prod) ? "la opción elegida" : acumulaAnos(prod) ? `el acumulado de ${gifState.ini} a ${gifState.fim}` : `el año ${gifState.fim}`}. `
+        + `El GIF tendrá ${nGif} cuadro(s)${semAno(prod) ? (eixo ? `, uno por ${eixoNome}` : "") : `, uno por año${acumulaAnos(prod) ? `, sumando desde ${gifState.ini}` : ""}`}. `
+        + "Todas las salidas tienen escala gráfica (calculada para la latitud del centro del mapa) y flecha del norte. Generar toma de unos segundos a pocos minutos.",
+      en: `Frame and Map show ${semAno(prod) ? "the chosen option" : acumulaAnos(prod) ? `the total from ${gifState.ini} to ${gifState.fim}` : `the year ${gifState.fim}`}. `
+        + `The GIF will have ${nGif} frame(s)${semAno(prod) ? (eixo ? `, one per ${eixoNome}` : "") : `, one per year${acumulaAnos(prod) ? `, adding up since ${gifState.ini}` : ""}`}. `
+        + "Every output has a scale bar (computed for the latitude of the map centre) and a north arrow. Generating takes a few seconds to a few minutes.",
+      id: `Frame dan Peta menampilkan ${semAno(prod) ? "opsi yang dipilih" : acumulaAnos(prod) ? `akumulasi ${gifState.ini}–${gifState.fim}` : `tahun ${gifState.fim}`}. `
+        + `GIF akan memiliki ${nGif} bingkai. Semua keluaran memiliki skala grafis (dihitung untuk lintang tengah peta) dan panah utara.`,
+    });
   }
 
   async function carregarPais() {
     status("Carregando o país…");
-    body.querySelectorAll(".gif-gerar").forEach((x) => { x.disabled = true; });
+    botoes(false);
     try {
-      reg = await gifRegiao(gifState.region);
       const p = pais();
+      const temas = await temasDoPais(p.region);
+      if (!temas.some((t) => t.id === gifState.tema)) gifState.tema = temas[0]?.id || "fogo";
+      q('[data-g="tema"]').innerHTML = MAPA_TEMAS.map((t) => `<button type="button" data-v="${t.id}" aria-pressed="${gifState.tema === t.id}"${temas.includes(t) ? "" : ` disabled title="${escapeHtml(tr("Sem este tema na Plataforma para o país"))}"`}>${escapeHtml(t.rotulo)}</button>`).join("");
+      reg = await gifRegiao(p.region, gifState.tema);
       // Limites que o país tem (biomas/ecorregiões e o 1º nível administrativo).
       const cfg = PAISES.find((x) => x.region === p.region);
       const limOpc = [["nenhum", "Nenhum"],
@@ -6956,7 +7051,7 @@ function montarGif(body) {
       q('[data-g="limites"]').innerHTML = limOpc.map(([v, r]) => `<button type="button" data-v="${v}" aria-pressed="${gifState.limites === v}">${escapeHtml(r)}</button>`).join("");
       gifState.produto = opcoes(sel("produto"), reg.produtos.map((s) => ({
         value: s.key,
-        label: nomeEm(s.name, IDIOMA.gif) + (s.dataType === "year_interval" || s.analysis ? " (acumulado ano a ano)" : ""),
+        label: nomeEm(s.name, IDIOMA.gif) + (acumulaAnos(s) ? " (acumulado ano a ano)" : ""),
       })), gifState.produto);
       const preferida = reg.categorias.find((c) => /^POLITICAL_LEVEL_1$|^NIVEL_POLITICO_1|^BRASIL_|^PAIS_/i.test(c.key)) || reg.categorias[0];
       gifState.categoria = opcoes(sel("categoria"), reg.categorias.map((c) => ({ value: c.id, label: nomeEm(c.name, IDIOMA.gif) || c.key })),
@@ -6965,10 +7060,10 @@ function montarGif(body) {
       const anos = range(min, max).map((a) => ({ value: a, label: String(a) }));
       gifState.ini = Number(opcoes(sel("ini"), anos, clamp(gifState.ini ?? min, min, max)));
       gifState.fim = Number(opcoes(sel("fim"), anos, clamp(gifState.fim ?? max, gifState.ini, max)));
-      await Promise.all([carregarLegendas(), carregarTerritorios()]);
+      await Promise.all([carregarProduto(), carregarTerritorios()]);
       status(reg.anoMax ? `${reg.anoMin}–${reg.anoMax}${reg.colecao ? ` · Coleção ${reg.colecao}` : ""}`
         : "A Plataforma não informa o período deste país: confira se os anos escolhidos têm dados.");
-      body.querySelectorAll(".gif-gerar").forEach((x) => { x.disabled = false; });
+      botoes(true);
     } catch (err) {
       console.error(err);
       status(`Não foi possível carregar: ${err.message}`);
@@ -6976,11 +7071,23 @@ function montarGif(body) {
     ajuda();
   }
 
-  async function carregarLegendas() {
+  // Legendas do produto e propriedades (ex.: profundidade no Solo).
+  async function carregarProduto() {
     const lista = await gifLegendas(gifState.region, gifState.produto);
     const el = sel("legenda");
     gifState.legenda = opcoes(el, lista.map((l) => ({ value: l.id, label: `Legenda: ${nomeEm(l.name, IDIOMA.gif) || l.key}` })), gifState.legenda);
     el.hidden = lista.length < 2;
+    const props = propsDe(produto());
+    const atuais = {};
+    q(".gif-props").innerHTML = props.map((pr) => {
+      const v = pr.options.some((o) => o.value === gifState.props[pr.key]) ? gifState.props[pr.key]
+        : pr.options.some((o) => o.value === pr.default) ? pr.default : pr.options[0].value;
+      atuais[pr.key] = v;
+      return `<label class="gif-prop">${escapeHtml(nomeEm(pr.name, IDIOMA.gif))}
+        <select data-p="${escapeHtml(pr.key)}">${[...pr.options].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((o) =>
+          `<option value="${escapeHtml(o.value)}"${o.value === v ? " selected" : ""}>${escapeHtml(nomeEm(o.name, IDIOMA.gif) || o.value)}</option>`).join("")}</select></label>`;
+    }).join("");
+    gifState.props = atuais;
   }
 
   async function carregarTerritorios() {
@@ -6991,16 +7098,18 @@ function montarGif(body) {
   }
 
   body.addEventListener("change", async (e) => {
+    if (e.target.dataset.p) { gifState.props[e.target.dataset.p] = e.target.value; ajuda(); return; }
     const f = e.target.dataset.f;
     if (!f) return;
+    if (f === "baixar") { gifState.baixar = e.target.checked; return; }
     gifState[f] = ["ini", "fim"].includes(f) ? Number(e.target.value) : e.target.value;
     try {
       if (f === "region") {
-        Object.assign(gifState, { produto: "", legenda: "", categoria: "", territorio: "", ini: null, fim: null });
+        Object.assign(gifState, { produto: "", legenda: "", categoria: "", territorio: "", ini: null, fim: null, props: {} });
         await carregarPais();
         return;
       }
-      if (f === "produto") { gifState.legenda = ""; await carregarLegendas(); }
+      if (f === "produto") { gifState.legenda = ""; await carregarProduto(); }
       if (f === "categoria") { gifState.territorio = ""; await carregarTerritorios(); }
       if (f === "ini" && gifState.fim < gifState.ini) { gifState.fim = gifState.ini; sel("fim").value = String(gifState.fim); }
       if (f === "fim" && gifState.ini > gifState.fim) { gifState.ini = gifState.fim; sel("ini").value = String(gifState.ini); }
@@ -7012,26 +7121,29 @@ function montarGif(body) {
 
   body.addEventListener("click", (e) => {
     const b = e.target.closest("button");
-    if (!b) return;
+    if (!b || b.disabled) return;
     const g = b.closest("[data-g]")?.dataset.g;
     if (g) {
+      const mudouTema = g === "tema" && gifState.tema !== b.dataset.v;
       gifState[g] = b.dataset.v;
       b.parentElement.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      if (mudouTema) {
+        Object.assign(gifState, { produto: "", legenda: "", ini: null, fim: null, props: {} });
+        writeHash();
+        carregarPais();
+      }
       return;
     }
-    if (b.classList.contains("gif-gerar")) {
-      // "Gerar e baixar": ao terminar, o download começa sozinho (a prévia continua abaixo).
-      const baixar = b.classList.contains("gif-baixar");
+    if (b.dataset.saida) {
       const antes = gifState.resultado?.url;
-      gerarGif(body, reg, status).then(() => {
+      gerarSaida(b.dataset.saida, body, reg, status).then(() => {
         const r = gifState.resultado;
-        if (baixar && r?.url && r.url !== antes) {
+        if (gifState.baixar && r?.url && r.url !== antes) {
           baixarArquivo(r.url, r.nome);
-          status("Pronto! O download do GIF começou.");
+          status("Pronto! O download começou.");
         }
-      }).finally(() => { body.querySelectorAll(".gif-gerar").forEach((x) => { x.disabled = false; }); });
+      }).finally(() => botoes(true));
     }
-    if (b.dataset.a === "png" && gifState.resultado?.png) baixarArquivo(gifState.resultado.png, gifState.resultado.nome.replace(/\.gif$/, "_ultimo_quadro.png"));
   });
 
   if (gifState.resultado) mostrarResultadoGif(body);
@@ -7051,24 +7163,25 @@ function baixarArquivo(blobOuUrl, nome) {
 
 function mostrarResultadoGif(body) {
   const r = gifState.resultado;
+  const tipo = { frame: "Frame", gif: "GIF", mapa: "Mapa" }[r.tipo];
   body.querySelector(".gif-resultado").innerHTML = `
     <figure class="gif-preview">
       <img src="${r.url}" alt="${escapeHtml(r.titulo)}">
-      <figcaption>${escapeHtml(r.titulo)} · ${r.quadros} quadros · ${(r.bytes / 1e6).toLocaleString(LOCALE, { maximumFractionDigits: 1 })} MB</figcaption>
+      <figcaption>${escapeHtml(tipo)} · ${escapeHtml(r.titulo)}${r.quadros > 1 ? ` · ${r.quadros} quadros` : ""} · ${r.largura} × ${r.altura} px · ${(r.bytes / 1e6).toLocaleString(LOCALE, { maximumFractionDigits: 1 })} MB</figcaption>
     </figure>
     <div class="gif-acoes">
-      <a class="md-botao" href="${r.url}" download="${escapeHtml(r.nome)}">⬇ Baixar GIF</a>
-      <button type="button" class="md-botao" data-a="png">⬇ Baixar último quadro (PNG)</button>
+      <a class="md-botao" href="${r.url}" download="${escapeHtml(r.nome)}">${r.tipo === "gif" ? "⬇ Baixar GIF" : r.tipo === "frame" ? "⬇ Baixar frame (PNG)" : "⬇ Baixar mapa (PNG)"}</a>
     </div>`;
 }
 
-// ----- Geração -----
+// ----- Geometria, escala e norte -----
 
 const lonParaX = (lon) => (lon + 180) / 360;
 const latParaY = (lat) => {
   const r = (Math.max(-85, Math.min(85, lat)) * Math.PI) / 180;
   return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2;
 };
+const yParaLat = (y) => (Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180) / Math.PI;
 
 // Anéis [lon, lat] de Polygon / MultiPolygon / GeometryCollection / Feature(Collection).
 function aneisDe(g) {
@@ -7079,6 +7192,88 @@ function aneisDe(g) {
   if (g.type === "Polygon") return g.coordinates;
   if (g.type === "MultiPolygon") return g.coordinates.flat();
   return [];
+}
+
+// Enquadramento em Web Mercator (a projeção dos tiles XYZ que a API devolve) para uma área
+// de MW px de largura. A altura segue a proporção do território (limitada a 0,55–1,5 × MW).
+function enquadrar(aneis, MW, margem = 0.05) {
+  let x1 = 1, x2 = 0, y1 = 1, y2 = 0;
+  for (const anel of aneis) for (const [lon, lat] of anel) {
+    const x = lonParaX(lon), y = latParaY(lat);
+    if (x < x1) x1 = x; if (x > x2) x2 = x; if (y < y1) y1 = y; if (y > y2) y2 = y;
+  }
+  const dx = (x2 - x1) * (1 + 2 * margem) || 1e-4, dy = (y2 - y1) * (1 + 2 * margem) || 1e-4;
+  const MH = Math.round(clamp(MW * (dy / dx), MW * 0.55, MW * 1.5));
+  const z = clamp(Math.floor(Math.log2(Math.min(MW / (dx * 256), MH / (dy * 256)))), 1, 14);
+  const k = Math.min(MW / (dx * 256 * 2 ** z), MH / (dy * 256 * 2 ** z)); // escala dos tiles (1 a 2)
+  const mundo = 256 * 2 ** z;
+  const cx = ((x1 + x2) / 2) * mundo, cy = ((y1 + y2) / 2) * mundo;
+  const txIni = Math.floor((cx - MW / (2 * k)) / 256), txFim = Math.floor((cx + MW / (2 * k)) / 256);
+  const tyIni = Math.max(0, Math.floor((cy - MH / (2 * k)) / 256)), tyFim = Math.min(2 ** z - 1, Math.floor((cy + MH / (2 * k)) / 256));
+  const tiles = [];
+  for (let tx = txIni; tx <= txFim; tx++) for (let ty = tyIni; ty <= tyFim; ty++) tiles.push({ tx, ty });
+  // Metros por pixel do canvas na latitude do centro: no Mercator a escala varia com 1/cos(lat),
+  // então a escala gráfica vale para o centro do mapa (o rodapé do Mapa avisa).
+  const latCentro = yParaLat((y1 + y2) / 2);
+  const mpp = (2 * Math.PI * R_TERRA * Math.cos((latCentro * Math.PI) / 180)) / (mundo * k);
+  return {
+    MW, MH, z, k, mundo, cx, cy, tiles, latCentro, mpp,
+    px: (lon, lat) => [MW / 2 + (lonParaX(lon) * mundo - cx) * k, MH / 2 + (latParaY(lat) * mundo - cy) * k],
+    telaX: (tx) => MW / 2 + (tx * 256 - cx) * k,
+    telaY: (ty) => MH / 2 + (ty * 256 - cy) * k,
+  };
+}
+
+// Distância redonda (1, 2 ou 5 × 10^n m) que cabe em até `alvoPx` pixels.
+function escalaRedonda(mpp, alvoPx) {
+  const alvo = mpp * alvoPx;
+  const pot = 10 ** Math.floor(Math.log10(alvo));
+  const metros = [1, 2, 5, 10].map((f) => f * pot).filter((v) => v <= alvo).pop() || pot;
+  const fmt = (v) => new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 }).format(v);
+  return { metros, px: metros / mpp, rotulo: metros >= 1000 ? `${fmt(metros / 1000)} km` : `${fmt(metros)} m` };
+}
+
+// Barra de escala em duas metades (0 · metade · total), com caixa no fundo do tema.
+// (x, y) = canto inferior direito da caixa.
+function desenharEscala(ctx, xDir, yBase, mpp, alvoPx, s, cores) {
+  const e = escalaRedonda(mpp, alvoPx);
+  const h = Math.max(4, Math.round(5 * s)), padI = Math.round(8 * s);
+  ctx.font = `600 ${Math.round(11 * s)}px Montserrat, sans-serif`;
+  const wRot = ctx.measureText(e.rotulo).width;
+  const larg = e.px + wRot / 2 + ctx.measureText("0").width / 2 + 2 * padI;
+  const alt = h + Math.round(16 * s) + 2 * padI;
+  const x0 = xDir - larg, y0 = yBase - alt;
+  ctx.fillStyle = cores.caixa;
+  ctx.fillRect(x0, y0, larg, alt);
+  const bx = x0 + padI + ctx.measureText("0").width / 2, by = y0 + alt - padI - h;
+  ctx.fillStyle = cores.texto;
+  ctx.fillRect(bx, by, e.px / 2, h);
+  ctx.strokeStyle = cores.texto;
+  ctx.lineWidth = Math.max(1, s);
+  ctx.strokeRect(bx, by, e.px, h);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("0", bx, by - Math.round(4 * s));
+  ctx.fillText(e.rotulo, bx + e.px, by - Math.round(4 * s));
+  ctx.textAlign = "left";
+  return e;
+}
+
+// Seta do norte simples (no Web Mercator o norte fica sempre para cima). (x, y) = topo da seta.
+function desenharNorte(ctx, x, y, s, cores) {
+  const r = Math.round(19 * s);
+  ctx.fillStyle = cores.caixa;
+  ctx.beginPath(); ctx.arc(x, y + 17 * s, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = cores.texto;
+  ctx.beginPath(); ctx.moveTo(x, y + 3 * s); ctx.lineTo(x + 7 * s, y + 25 * s); ctx.lineTo(x, y + 20 * s); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = cores.fraco;
+  ctx.beginPath(); ctx.moveTo(x, y + 3 * s); ctx.lineTo(x - 7 * s, y + 25 * s); ctx.lineTo(x, y + 20 * s); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = cores.texto;
+  ctx.font = `700 ${Math.round(10 * s)}px Montserrat, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("N", x, y + 35 * s);
+  ctx.textAlign = "left";
 }
 
 async function carregarImagem(url) {
@@ -7093,6 +7288,7 @@ async function carregarImagem(url) {
 
 // Logo só entra se não "sujar" o canvas (aberto como arquivo local, o navegador bloqueia).
 async function carregarLogo(src) {
+  if (!src) return null;
   const img = await new Promise((resolve) => {
     const i = new Image();
     i.onload = () => resolve(i);
@@ -7111,7 +7307,339 @@ async function carregarLogo(src) {
   }
 }
 
-async function gerarGif(body, reg, status) {
+const novoCanvas = (w, h) => Object.assign(document.createElement("canvas"), { width: w, height: h });
+
+async function desenharTiles(ctx, geo, molde) {
+  const imgs = await mapLimit(geo.tiles, 8, ({ tx, ty }) => {
+    const n = 2 ** geo.z, xx = ((tx % n) + n) % n;
+    return carregarImagem(molde.replace("{z}", geo.z).replace("{x}", xx).replace("{y}", ty));
+  });
+  const t = 256 * geo.k;
+  imgs.forEach((img, i) => { if (img) ctx.drawImage(img, geo.telaX(geo.tiles[i].tx), geo.telaY(geo.tiles[i].ty), t + 0.5, t + 0.5); });
+}
+
+function caminho(ctx, geo, lista) {
+  ctx.beginPath();
+  for (const anel of lista) anel.forEach(([lon, lat], i) => {
+    const [px, py] = geo.px(lon, lat);
+    if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+  });
+}
+
+// ----- Geração -----
+
+// Tudo o que não depende do tamanho da imagem: tema, produto, legenda, território, contornos e quadros.
+async function prepararCena(reg, status) {
+  const p = GIF_PAISES.find((x) => x.region === gifState.region);
+  const tema = temaMapa(gifState.tema);
+  const lang = IDIOMA.gif; // textos das imagens no idioma escolhido na página
+  const tx = GIF_TEXTOS[lang];
+  const marca = tema.marca[IDIOMA.id];
+  const produto = reg.produtos.find((s) => s.key === gifState.produto);
+  if (!produto) throw new Error("Escolha um produto.");
+  const lista = await gifLegendas(p.region, produto.key);
+  const ref = lista.find((l) => String(l.id) === String(gifState.legenda)) || lista[0];
+  if (!ref) throw new Error("A Plataforma não tem legenda para este produto.");
+  const legenda = await gifLegenda(p.region, ref.id, lang);
+  const territorio = (await gifTerritorios(p.region, gifState.categoria)).find((t) => String(t.id) === String(gifState.territorio));
+  if (!territorio) throw new Error("Escolha um território.");
+
+  // Quadros: anos (produtos anuais e acumulados) ou opções de uma propriedade (ex.: profundidade).
+  const props = propsDe(produto);
+  const nomeOpcao = (pr, v) => nomeEm(pr.options.find((o) => o.value === v)?.name, lang) || v;
+  const fixos = Object.fromEntries(props.map((pr) => [pr.key, gifState.props[pr.key] ?? pr.default ?? pr.options[0].value]));
+  const rotuloFixos = (vals) => props.map((pr) => `${nomeEm(pr.name, lang)} ${nomeOpcao(pr, vals[pr.key])}`).join(" · ");
+  const acumula = acumulaAnos(produto);
+  let quadros, unico;
+  if (!semAno(produto)) {
+    const anoP = (a) => ({ ...fixos, year: acumula ? [gifState.ini, a] : a });
+    const rot = (a) => (acumula ? `${gifState.ini}–${a}` : String(a));
+    quadros = range(gifState.ini, gifState.fim).map((a) => ({ rotulo: rot(a), params: anoP(a), extra: rotuloFixos(fixos) }));
+    unico = quadros[quadros.length - 1];
+  } else {
+    const eixo = props.find((pr) => pr.options.length > 1);
+    const ops = eixo ? [...eixo.options].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) : [];
+    const outros = (vals) => props.filter((pr) => pr !== eixo).map((pr) => `${nomeEm(pr.name, lang)} ${nomeOpcao(pr, vals[pr.key])}`).join(" · ");
+    quadros = eixo ? ops.map((o) => ({ rotulo: nomeEm(o.name, lang) || o.value, params: { ...fixos, [eixo.key]: o.value }, extra: outros(fixos), eixo: nomeEm(eixo.name, lang) }))
+      : [{ rotulo: "", params: fixos, extra: "" }];
+    unico = eixo ? quadros.find((x) => x.params[eixo.key] === fixos[eixo.key]) || quadros[0] : quadros[0];
+  }
+
+  status("Buscando o contorno do território…");
+  const geoT = await gifApi(p.region, "/territories/geometry", { territoryId: [territorio.id], spatialMethod: "union", simplify: "true" });
+  const aneis = aneisDe(geoT.geometry || geoT);
+  if (!aneis.length) throw new Error("A Plataforma não devolveu o contorno deste território.");
+  // Limites de referência (ex.: biomas do Brasil), desenhados sob o contorno do território.
+  const cfgPais = PAISES.find((x) => x.region === p.region);
+  const reLim = gifState.limites !== "nenhum" ? cfgPais?.cats?.[gifState.limites] : null;
+  const catLim = reLim ? reg.categorias.find((c) => reLim.test(c.key)) : null;
+  let limites = [];
+  if (catLim) {
+    status("Desenhando os limites…");
+    const terrs = (await gifTerritorios(p.region, catLim.id)).filter((x) => !/\s-\s(costa|mar)$/i.test(x.name));
+    const geoms = await mapLimit(terrs, 6, (x) => gifApi(p.region, "/territories/geometry", { territoryId: [x.id], spatialMethod: "union", simplify: "true" })
+      .then((g) => g.geometry || g).catch(() => null));
+    limites = geoms.map(aneisDe).filter((a) => a.length);
+  }
+  // Subtemas chamados só "Anual" viram "Área queimada anual" no título.
+  const nomeProduto = /^(anual|annual|tahunan)$/i.test(nomeEm(produto.name, lang).trim()) && tema.id === "fogo" ? tx.anual : nomeEm(produto.name, lang);
+  const cores = MAPA_CORES[gifState.fundo] || MAPA_CORES.escuro;
+  const comBase = gifState.base === "com";
+  return {
+    p, tema, lang, tx, marca, produto, legenda, territorio, aneis, limites, quadros, unico, nomeProduto, cores, comBase, acumula,
+    logo: await carregarLogo(tema.logo?.[IDIOMA.id]),
+    titulo: `${marca} · ${nomeProduto}`,
+    fonte: `${tx.fonte}: ${marca}${reg.colecao ? ` · ${tx.colecao} ${reg.colecao}` : ""} · plataforma.mapbiomas.org${comBase ? ` · ${tx.base}` : ""}`,
+  };
+}
+
+async function urlDoQuadro(cena, q) {
+  const r = await gifApi(cena.p.region, "/maps/map", {
+    region: cena.p.region, subthemeKey: cena.produto.key, legendKey: cena.legenda.key,
+    pixelValue: cena.legenda.items.map((i) => i.pixelValue),
+    territoryId: cena.territorio.id, spatialMethod: "union", ...q.params,
+  });
+  return r.url;
+}
+
+// Fundo (mapa base ou território preenchido) e contornos, uma vez por enquadramento.
+async function camadasFixas(cena, geo, s) {
+  const { cores } = cena;
+  const fundo = novoCanvas(geo.MW, geo.MH);
+  const fctx = fundo.getContext("2d");
+  fctx.fillStyle = cores.vazio;
+  fctx.fillRect(0, 0, geo.MW, geo.MH);
+  if (cena.comBase) await desenharTiles(fctx, geo, MAPA_BASEMAP[cores.base]);
+  else { caminho(fctx, geo, cena.aneis); fctx.fillStyle = cores.terra; fctx.fill("evenodd"); }
+  const contorno = novoCanvas(geo.MW, geo.MH);
+  const cctx = contorno.getContext("2d");
+  cctx.lineJoin = "round";
+  if (cena.limites.length) {
+    cctx.strokeStyle = cores.limites;
+    cctx.lineWidth = Math.max(1.2, 1.2 * s);
+    for (const a of cena.limites) { caminho(cctx, geo, a); cctx.stroke(); }
+  }
+  caminho(cctx, geo, cena.aneis);
+  cctx.strokeStyle = cores.contorno;
+  cctx.lineWidth = Math.max(1, 1.3 * s);
+  cctx.stroke();
+  return { fundo, contorno };
+}
+
+// Posições dos itens da legenda em linhas (quebra quando não cabe na largura).
+function posicoesLegenda(itens, largura, x0, s) {
+  const meio = novoCanvas(1, 1).getContext("2d");
+  meio.font = `500 ${Math.round(14 * s)}px Montserrat, sans-serif`;
+  const sw = Math.round(14 * s), gap = Math.round(18 * s);
+  let lx = x0, linha = 0;
+  const pos = itens.map((it) => {
+    const w = sw + 6 * s + meio.measureText(it.name).width;
+    if (lx + w > x0 + largura && lx > x0) { lx = x0; linha++; }
+    const o = { it, x: lx, linha };
+    lx += w + gap;
+    return o;
+  });
+  return { pos, linhas: linha + 1, sw };
+}
+
+function desenharLegenda(ctx, leg, y0, alturaLinha, s, cores) {
+  ctx.font = `500 ${Math.round(14 * s)}px Montserrat, sans-serif`;
+  ctx.textBaseline = "middle";
+  for (const { it, x, linha } of leg.pos) {
+    const yy = y0 + linha * alturaLinha;
+    ctx.fillStyle = it.color;
+    ctx.fillRect(x, yy - leg.sw / 2, leg.sw, leg.sw);
+    ctx.strokeStyle = cores.swatch;
+    ctx.lineWidth = Math.max(1, s);
+    ctx.strokeRect(x + 0.5, yy - leg.sw / 2 + 0.5, leg.sw - 1, leg.sw - 1);
+    ctx.fillStyle = cores.texto2;
+    ctx.fillText(it.name, x + leg.sw + 6 * s, yy);
+  }
+  ctx.textBaseline = "alphabetic";
+}
+
+// Quadro no padrão do GIF (Frame e cada quadro do GIF).
+async function montarQuadros(cena, W, quadros, status, prog, aoQuadro) {
+  const { cores } = cena;
+  const s = W / 900;
+  const pad = Math.round(24 * s), header = Math.round(78 * s);
+  const itensLeg = cena.legenda.items.filter((i) => i.depth === 0);
+  const leg = posicoesLegenda(itensLeg, W - 2 * pad, pad, s);
+  const alturaLinha = Math.round(24 * s);
+  const footer = Math.round(18 * s) + leg.linhas * alturaLinha + Math.round(30 * s);
+  const geo = enquadrar(cena.aneis, W - 2 * pad);
+  const { MW, MH } = geo;
+  const H = header + MH + footer;
+
+  let feitos = 0;
+  const urls = await mapLimit(quadros, 4, async (q) => {
+    const u = await urlDoQuadro(cena, q);
+    status(`Preparando os mapas: ${++feitos}/${quadros.length}`);
+    if (prog) prog.value = 0.15 * (feitos / quadros.length);
+    return u;
+  });
+  status("Desenhando o mapa base…");
+  const { fundo, contorno } = await camadasFixas(cena, geo, s);
+  const quadro = novoCanvas(W, H);
+  const ctx = quadro.getContext("2d");
+  const dados = novoCanvas(MW, MH);
+  const dctx = dados.getContext("2d");
+  const maxTit = W - 2 * pad - (cena.logo ? 170 * s : 0);
+
+  for (let i = 0; i < quadros.length; i++) {
+    const q = quadros[i];
+    status(`Desenhando o quadro ${i + 1} de ${quadros.length} (${q.rotulo || cena.nomeProduto})…`);
+    dctx.clearRect(0, 0, MW, MH);
+    if (urls[i]) await desenharTiles(dctx, geo, urls[i]);
+
+    ctx.fillStyle = cores.bg;
+    ctx.fillRect(0, 0, W, H);
+    // Cabeçalho: título, território (e opções fixas) e logo.
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = cores.texto;
+    ctx.font = `700 ${Math.round(21 * s)}px Montserrat, sans-serif`;
+    ctx.fillText(cena.titulo, pad, Math.round(38 * s), maxTit);
+    ctx.fillStyle = cores.texto2;
+    ctx.font = `500 ${Math.round(15 * s)}px Montserrat, sans-serif`;
+    ctx.fillText([cena.territorio.name, q.extra, q.eixo, cena.legenda.nome].filter(Boolean).join(" · "), pad, Math.round(62 * s), maxTit);
+    if (cena.logo) {
+      const lh = Math.round(46 * s), lw = (cena.logo.width / cena.logo.height) * lh;
+      ctx.drawImage(cena.logo, W - pad - lw, Math.round(16 * s), lw, lh);
+    }
+    // Mapa.
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(pad, header, MW, MH);
+    ctx.clip();
+    ctx.drawImage(fundo, pad, header);
+    ctx.drawImage(dados, pad, header);
+    ctx.drawImage(contorno, pad, header);
+    ctx.restore();
+    ctx.strokeStyle = cores.borda;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(pad + 0.5, header + 0.5, MW - 1, MH - 1);
+    // Norte (canto superior direito) e escala (canto inferior direito, acima da linha do tempo).
+    desenharNorte(ctx, pad + MW - Math.round(28 * s), header + Math.round(10 * s), s, cores);
+    const temLinha = quadros.length > 1;
+    desenharEscala(ctx, pad + MW - Math.round(12 * s), header + MH - Math.round((temLinha ? 22 : 12) * s), geo.mpp, MW * 0.2, s, cores);
+    // Rótulo do quadro (ano ou profundidade) em destaque, com contorno no fundo do tema.
+    const ax = pad + Math.round(16 * s), ay = header + MH - Math.round(24 * s);
+    if (q.rotulo) {
+      ctx.font = `800 ${Math.round(44 * s)}px Montserrat, sans-serif`;
+      ctx.lineWidth = Math.round(6 * s);
+      ctx.strokeStyle = cores.caixa;
+      ctx.fillStyle = cores.texto;
+      ctx.strokeText(q.rotulo, ax, ay);
+      ctx.fillText(q.rotulo, ax, ay);
+    }
+    // Linha do tempo (quanto da série já passou), só no GIF.
+    if (temLinha) {
+      const barY = header + MH - Math.round(10 * s), barW = MW - Math.round(32 * s);
+      ctx.fillStyle = cores.trilho;
+      ctx.fillRect(ax, barY, barW, Math.max(3, 4 * s));
+      ctx.fillStyle = "#ff5340";
+      ctx.fillRect(ax, barY, barW * ((i + 1) / quadros.length), Math.max(3, 4 * s));
+    }
+    // Legenda e fonte.
+    desenharLegenda(ctx, leg, header + MH + Math.round(18 * s) + alturaLinha / 2, alturaLinha, s, cores);
+    ctx.fillStyle = cores.fraco;
+    ctx.font = `500 ${Math.round(12 * s)}px Montserrat, sans-serif`;
+    ctx.fillText(cena.fonte, pad, H - Math.round(16 * s), W - 2 * pad);
+
+    await aoQuadro(ctx, quadro, i, W, H);
+    if (prog) prog.value = 0.15 + 0.85 * ((i + 1) / quadros.length);
+    await sleep(0); // deixa a página respirar entre quadros
+  }
+  return { quadro, W, H, geo };
+}
+
+// Mapa estático pronto para usar: 2x a largura escolhida, título, subtítulo, mapa com moldura,
+// norte e escala, legenda com título, fonte, projeção e data. Sem ano grande nem linha do tempo.
+async function montarMapaEstatico(cena, Wbase, status, prog) {
+  const { cores, tx } = cena;
+  const W = Wbase * 2, s = W / 900;
+  const pad = Math.round(32 * s), header = Math.round(96 * s);
+  const itensLeg = cena.legenda.items.filter((i) => i.depth === 0);
+  const leg = posicoesLegenda(itensLeg, W - 2 * pad, pad, s);
+  const alturaLinha = Math.round(24 * s);
+  const tituloLeg = Math.round(26 * s);
+  const footer = Math.round(20 * s) + tituloLeg + leg.linhas * alturaLinha + Math.round(58 * s);
+  const geo = enquadrar(cena.aneis, W - 2 * pad);
+  const { MW, MH } = geo;
+  const H = header + MH + footer;
+  const q = cena.unico;
+
+  status("Preparando o mapa…");
+  const url = await urlDoQuadro(cena, q);
+  if (prog) prog.value = 0.2;
+  status("Desenhando o mapa base…");
+  const { fundo, contorno } = await camadasFixas(cena, geo, s);
+  if (prog) prog.value = 0.5;
+  const dados = novoCanvas(MW, MH);
+  status("Desenhando o mapa…");
+  await desenharTiles(dados.getContext("2d"), geo, url);
+  if (prog) prog.value = 0.9;
+
+  const cv = novoCanvas(W, H);
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = cores.bg;
+  ctx.fillRect(0, 0, W, H);
+  const maxTit = W - 2 * pad - (cena.logo ? 190 * s : 0);
+  ctx.fillStyle = cores.texto;
+  ctx.font = `700 ${Math.round(24 * s)}px Montserrat, sans-serif`;
+  ctx.fillText(cena.nomeProduto, pad, Math.round(44 * s), maxTit);
+  ctx.fillStyle = cores.texto2;
+  ctx.font = `500 ${Math.round(16 * s)}px Montserrat, sans-serif`;
+  ctx.fillText([cena.territorio.name, q.rotulo && q.eixo ? `${q.eixo} ${q.rotulo}` : q.rotulo, q.extra].filter(Boolean).join(" · "), pad, Math.round(72 * s), maxTit);
+  if (cena.logo) {
+    const lh = Math.round(52 * s), lw = (cena.logo.width / cena.logo.height) * lh;
+    ctx.drawImage(cena.logo, W - pad - lw, Math.round(20 * s), lw, lh);
+  } else {
+    ctx.fillStyle = cores.texto;
+    ctx.font = `700 ${Math.round(15 * s)}px Montserrat, sans-serif`;
+    ctx.textAlign = "right";
+    ctx.fillText(cena.marca, W - pad, Math.round(44 * s));
+    ctx.textAlign = "left";
+  }
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(pad, header, MW, MH);
+  ctx.clip();
+  ctx.drawImage(fundo, pad, header);
+  ctx.drawImage(dados, pad, header);
+  ctx.drawImage(contorno, pad, header);
+  ctx.restore();
+  ctx.strokeStyle = cores.texto2;
+  ctx.lineWidth = Math.max(1, s);
+  ctx.strokeRect(pad, header, MW, MH);
+  desenharNorte(ctx, pad + MW - Math.round(30 * s), header + Math.round(12 * s), s, cores);
+  desenharEscala(ctx, pad + MW - Math.round(12 * s), header + MH - Math.round(12 * s), geo.mpp, MW * 0.22, s, cores);
+  // Legenda com título.
+  let y = header + MH + Math.round(20 * s) + tituloLeg * 0.6;
+  ctx.fillStyle = cores.texto;
+  ctx.font = `700 ${Math.round(14 * s)}px Montserrat, sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.fillText(cena.legenda.nome || cena.nomeProduto, pad, y);
+  y += tituloLeg * 0.4 + alturaLinha / 2;
+  desenharLegenda(ctx, leg, y, alturaLinha, s, cores);
+  // Fonte, projeção e data.
+  const hoje = new Intl.DateTimeFormat(LOCALE, { dateStyle: "short" }).format(new Date());
+  ctx.fillStyle = cores.fraco;
+  ctx.font = `500 ${Math.round(12 * s)}px Montserrat, sans-serif`;
+  ctx.fillText(cena.fonte, pad, H - Math.round(36 * s), W - 2 * pad);
+  ctx.fillText(`${tx.proj} · ${tx.gerado} ${hoje}`, pad, H - Math.round(16 * s), W - 2 * pad);
+  return { quadro: cv, W, H, geo };
+}
+
+const lerPixels = (ctx, W, H) => {
+  try {
+    return ctx.getImageData(0, 0, W, H).data;
+  } catch {
+    throw new Error("O navegador bloqueou a leitura das imagens do mapa. Abra o painel pelo site publicado (mapbiomas.github.io) em vez do arquivo local.");
+  }
+};
+
+async function gerarSaida(tipo, body, reg, status) {
   if (gifState.gerando || !reg) return;
   const q = (s) => body.querySelector(s);
   const prog = q(".gif-prog");
@@ -7121,230 +7649,48 @@ async function gerarGif(body, reg, status) {
   prog.hidden = false;
   prog.value = 0;
   try {
-    const p = GIF_PAISES.find((x) => x.region === gifState.region);
-    const lang = IDIOMA.gif; // textos do quadro no idioma escolhido na página
-    const tx = GIF_TEXTOS[lang];
-    const produto = reg.produtos.find((s) => s.key === gifState.produto);
-    const lista = await gifLegendas(p.region, produto.key);
-    const ref = lista.find((l) => String(l.id) === String(gifState.legenda)) || lista[0];
-    const legenda = await gifLegenda(p.region, ref.id, lang);
-    const territorio = (await gifTerritorios(p.region, gifState.categoria)).find((t) => String(t.id) === String(gifState.territorio));
-    if (!territorio) throw new Error("Escolha um território.");
-    const anos = range(gifState.ini, gifState.fim);
-    const acumula = produto.dataType === "year_interval" || ["accumulated", "frequency"].includes(produto.analysis);
-    const delay = GIF_VELOCIDADES.find((v) => v[0] === gifState.velocidade)[2];
-    const W = GIF_TAMANHOS.find((v) => v[0] === gifState.tamanho)[2];
-    const s = W / 900;
-
-    status("Buscando o contorno do território…");
-    const geo = await gifApi(p.region, "/territories/geometry", { territoryId: [territorio.id], spatialMethod: "union", simplify: "true" });
-    const aneis = aneisDe(geo.geometry || geo);
-    if (!aneis.length) throw new Error("A Plataforma não devolveu o contorno deste território.");
-
-    // Endereço dos tiles de cada ano (cumulativos: do ano inicial até o ano do quadro).
-    let feitos = 0;
-    const urls = await mapLimit(anos, 4, async (a) => {
-      const r = await gifApi(p.region, "/maps/map", {
-        region: p.region, subthemeKey: produto.key, legendKey: legenda.key, pixelValue: legenda.items.map((i) => i.pixelValue),
-        year: acumula ? [gifState.ini, a] : a, territoryId: territorio.id, spatialMethod: "union",
-      });
-      status(`Preparando os mapas de cada ano: ${++feitos}/${anos.length}`);
-      prog.value = 0.15 * (feitos / anos.length);
-      return r.url;
-    });
-    if (!vivo()) return;
-
-    // ---- Layout do quadro ----
-    const pad = Math.round(24 * s);
-    const header = Math.round(78 * s);
-    const meio = document.createElement("canvas").getContext("2d");
-    const itensLeg = legenda.items.filter((i) => i.depth === 0);
-    meio.font = `500 ${Math.round(14 * s)}px Montserrat, sans-serif`;
-    const sw = Math.round(14 * s), gapLeg = Math.round(18 * s), alturaLinha = Math.round(24 * s);
-    let lx = pad, linha = 0;
-    const posLeg = itensLeg.map((it) => {
-      const w = sw + 6 * s + meio.measureText(it.name).width;
-      if (lx + w > W - pad && lx > pad) { lx = pad; linha++; }
-      const pos = { it, x: lx, linha };
-      lx += w + gapLeg;
-      return pos;
-    });
-    const footer = Math.round(18 * s) + (linha + 1) * alturaLinha + Math.round(30 * s);
-
-    // Caixa do território em Web Mercator (unidades de 0 a 1) e zoom dos tiles.
-    let x1 = 1, x2 = 0, y1 = 1, y2 = 0;
-    for (const anel of aneis) for (const [lon, lat] of anel) {
-      const x = lonParaX(lon), y = latParaY(lat);
-      if (x < x1) x1 = x; if (x > x2) x2 = x; if (y < y1) y1 = y; if (y > y2) y2 = y;
+    const cena = await prepararCena(reg, status);
+    const Wbase = GIF_TAMANHOS.find((v) => v[0] === gifState.tamanho)[2];
+    let blob, quadros = 1, W, H, geo;
+    if (tipo === "gif") {
+      if (cena.quadros.length < 2) throw new Error("Este produto tem um mapa só: use Frame ou Mapa.");
+      const { GIFEncoder, quantize, applyPalette } = await import(GIFENC_URL);
+      const gif = GIFEncoder();
+      const delay = GIF_VELOCIDADES.find((v) => v[0] === gifState.velocidade)[2];
+      const n = cena.quadros.length;
+      ({ W, H, geo } = await montarQuadros(cena, Wbase, cena.quadros, status, prog, async (ctx, _c, i, w, h) => {
+        if (!vivo()) throw new Error("cancelado");
+        const img = lerPixels(ctx, w, h);
+        const paleta = quantize(img, 256);
+        gif.writeFrame(applyPalette(img, paleta), w, h, { palette: paleta, delay: i === n - 1 ? delay * 3 : delay });
+      }));
+      gif.finish();
+      blob = new Blob([gif.bytes()], { type: "image/gif" });
+      quadros = n;
+    } else {
+      const r = tipo === "mapa" ? await montarMapaEstatico(cena, Wbase, status, prog)
+        : await montarQuadros(cena, Wbase, [cena.unico], status, prog, async () => {});
+      ({ W, H, geo } = r);
+      lerPixels(r.quadro.getContext("2d"), 1, 1);
+      blob = await new Promise((resolve) => r.quadro.toBlob(resolve, "image/png"));
     }
-    const margem = 0.05;
-    const dx = (x2 - x1) * (1 + 2 * margem) || 1e-4, dy = (y2 - y1) * (1 + 2 * margem) || 1e-4;
-    const MW = W - 2 * pad;
-    const MH = Math.round(clamp(MW * (dy / dx), MW * 0.55, MW * 1.5));
-    const H = header + MH + footer;
-    const z = clamp(Math.floor(Math.log2(Math.min(MW / (dx * 256), MH / (dy * 256)))), 1, 13);
-    const k = Math.min(MW / (dx * 256 * 2 ** z), MH / (dy * 256 * 2 ** z)); // escala dos tiles (1 a 2)
-    const mundo = 256 * 2 ** z;
-    const cx = ((x1 + x2) / 2) * mundo, cy = ((y1 + y2) / 2) * mundo;
-    const tile = 256 * k;
-    const txIni = Math.floor((cx - MW / (2 * k)) / 256), txFim = Math.floor((cx + MW / (2 * k)) / 256);
-    const tyIni = Math.max(0, Math.floor((cy - MH / (2 * k)) / 256)), tyFim = Math.min(2 ** z - 1, Math.floor((cy + MH / (2 * k)) / 256));
-    const tiles = [];
-    for (let tx = txIni; tx <= txFim; tx++) for (let ty = tyIni; ty <= tyFim; ty++) tiles.push({ tx, ty });
-    const telaX = (tx) => MW / 2 + (tx * 256 - cx) * k;
-    const telaY = (ty) => MH / 2 + (ty * 256 - cy) * k;
-    const novoCanvas = (w, h) => Object.assign(document.createElement("canvas"), { width: w, height: h });
-    const desenharTiles = async (ctx, molde) => {
-      const imgs = await mapLimit(tiles, 8, ({ tx, ty }) => {
-        const n = 2 ** z, xx = ((tx % n) + n) % n;
-        return carregarImagem(molde.replace("{z}", z).replace("{x}", xx).replace("{y}", ty));
-      });
-      imgs.forEach((img, i) => { if (img) ctx.drawImage(img, telaX(tiles[i].tx), telaY(tiles[i].ty), tile + 0.5, tile + 0.5); });
-    };
-    const caminho = (ctx, lista = aneis) => {
-      ctx.beginPath();
-      for (const anel of lista) anel.forEach(([lon, lat], i) => {
-        const px = MW / 2 + (lonParaX(lon) * mundo - cx) * k, py = MH / 2 + (latParaY(lat) * mundo - cy) * k;
-        if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
-      });
-    };
-
-    // Fundo (uma vez) e contorno.
-    status("Desenhando o mapa base…");
-    const fundo = novoCanvas(MW, MH);
-    const fctx = fundo.getContext("2d");
-    fctx.fillStyle = "#ffffff";
-    fctx.fillRect(0, 0, MW, MH);
-    if (gifState.fundo === "mapa") await desenharTiles(fctx, GIF_BASEMAP);
-    else { caminho(fctx); fctx.fillStyle = "#f1f1f1"; fctx.fill("evenodd"); }
-    const contorno = novoCanvas(MW, MH);
-    const cctx = contorno.getContext("2d");
-    // Limites de referência (ex.: biomas do Brasil) em cinza, por baixo do contorno do território.
-    const cfgPais = PAISES.find((x) => x.region === p.region);
-    const reLim = gifState.limites !== "nenhum" ? cfgPais?.cats?.[gifState.limites] : null;
-    const catLim = reLim ? reg.categorias.find((c) => reLim.test(c.key)) : null;
-    if (catLim) {
-      status("Desenhando os limites…");
-      const terrs = (await gifTerritorios(p.region, catLim.id)).filter((x) => !/\s-\s(costa|mar)$/i.test(x.name));
-      const geoms = await mapLimit(terrs, 6, (x) => gifApi(p.region, "/territories/geometry", { territoryId: [x.id], spatialMethod: "union", simplify: "true" })
-        .then((g) => g.geometry || g).catch(() => null));
-      cctx.strokeStyle = "rgba(85,85,85,0.95)";
-      cctx.lineWidth = Math.max(1.2, 1.2 * s);
-      cctx.lineJoin = "round";
-      for (const g of geoms) { const a = aneisDe(g); if (a.length) { caminho(cctx, a); cctx.stroke(); } }
-    }
-    caminho(cctx);
-    cctx.strokeStyle = "#2b2b2b";
-    cctx.lineWidth = Math.max(1, 1.3 * s);
-    cctx.lineJoin = "round";
-    cctx.stroke();
-    const logo = await carregarLogo(MARCA[1]); // logo no idioma do quadro
-
-    const { GIFEncoder, quantize, applyPalette } = await import(GIFENC_URL);
-    const gif = GIFEncoder();
-    const quadro = novoCanvas(W, H);
-    const ctx = quadro.getContext("2d");
-    const dados = novoCanvas(MW, MH);
-    const dctx = dados.getContext("2d");
-    // Subtemas chamados só "Anual" viram "Área queimada anual" no título do GIF.
-    const nomeProduto = /^(anual|annual|tahunan)$/i.test(nomeEm(produto.name, lang).trim()) ? tx.anual : nomeEm(produto.name, lang);
-    const titulo = `${tx.marca} · ${nomeProduto}`;
-    const subtitulo = `${territorio.name}${legenda.nome ? ` · ${legenda.nome}` : ""}`;
-    const fonte = `${tx.fonte}${reg.colecao ? ` · ${tx.colecao} ${reg.colecao}` : ""} · plataforma.mapbiomas.org`;
-
-    for (let i = 0; i < anos.length; i++) {
-      if (!vivo()) return;
-      status(`Desenhando o quadro ${i + 1} de ${anos.length} (${anos[i]})…`);
-      dctx.clearRect(0, 0, MW, MH);
-      if (urls[i]) await desenharTiles(dctx, urls[i]);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, W, H);
-      // Cabeçalho: título, território e logo.
-      ctx.fillStyle = "#1f1f1f";
-      ctx.textBaseline = "alphabetic";
-      ctx.font = `700 ${Math.round(21 * s)}px Montserrat, sans-serif`;
-      ctx.fillText(titulo, pad, Math.round(38 * s), W - 2 * pad - (logo ? 170 * s : 0));
-      ctx.fillStyle = "#444444";
-      ctx.font = `500 ${Math.round(15 * s)}px Montserrat, sans-serif`;
-      ctx.fillText(subtitulo, pad, Math.round(62 * s), W - 2 * pad - (logo ? 170 * s : 0));
-      if (logo) {
-        const lh = Math.round(46 * s), lw = (logo.width / logo.height) * lh;
-        ctx.drawImage(logo, W - pad - lw, Math.round(16 * s), lw, lh);
-      }
-      // Mapa.
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(pad, header, MW, MH);
-      ctx.clip();
-      ctx.drawImage(fundo, pad, header);
-      ctx.drawImage(dados, pad, header);
-      ctx.drawImage(contorno, pad, header);
-      ctx.restore();
-      ctx.strokeStyle = "#d0d0d0";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(pad + 0.5, header + 0.5, MW - 1, MH - 1);
-      // Ano em destaque, com contorno branco para ler sobre o mapa.
-      const rotulo = acumula ? `${gifState.ini}–${anos[i]}` : String(anos[i]);
-      ctx.font = `800 ${Math.round(44 * s)}px Montserrat, sans-serif`;
-      ctx.lineWidth = Math.round(6 * s);
-      ctx.strokeStyle = "rgba(255,255,255,0.92)";
-      ctx.fillStyle = "#1f1f1f";
-      const ax = pad + Math.round(16 * s), ay = header + MH - Math.round(24 * s);
-      ctx.strokeText(rotulo, ax, ay);
-      ctx.fillText(rotulo, ax, ay);
-      // Linha do tempo (quanto da série já passou).
-      const barY = header + MH - Math.round(10 * s), barW = MW - Math.round(32 * s);
-      ctx.fillStyle = "rgba(0,0,0,0.12)";
-      ctx.fillRect(ax, barY, barW, Math.max(3, 4 * s));
-      ctx.fillStyle = "#ff5340";
-      ctx.fillRect(ax, barY, barW * ((i + 1) / anos.length), Math.max(3, 4 * s));
-      // Legenda e fonte.
-      ctx.font = `500 ${Math.round(14 * s)}px Montserrat, sans-serif`;
-      ctx.textBaseline = "middle";
-      const y0 = header + MH + Math.round(18 * s) + alturaLinha / 2;
-      for (const { it, x, linha: l } of posLeg) {
-        const yy = y0 + l * alturaLinha;
-        ctx.fillStyle = it.color;
-        ctx.fillRect(x, yy - sw / 2, sw, sw);
-        ctx.strokeStyle = "rgba(0,0,0,0.25)";
-        ctx.strokeRect(x + 0.5, yy - sw / 2 + 0.5, sw - 1, sw - 1);
-        ctx.fillStyle = "#333333";
-        ctx.fillText(it.name, x + sw + 6 * s, yy);
-      }
-      ctx.fillStyle = "#666666";
-      ctx.font = `500 ${Math.round(12 * s)}px Montserrat, sans-serif`;
-      ctx.fillText(fonte, pad, H - Math.round(16 * s), W - 2 * pad);
-
-      let img;
-      try {
-        img = ctx.getImageData(0, 0, W, H).data;
-      } catch {
-        throw new Error("O navegador bloqueou a leitura das imagens do mapa. Abra o painel pelo site publicado (mapbiomas.github.io) em vez do arquivo local.");
-      }
-      const paleta = quantize(img, 256);
-      gif.writeFrame(applyPalette(img, paleta), W, H, { palette: paleta, delay: i === anos.length - 1 ? delay * 3 : delay });
-      prog.value = 0.15 + 0.85 * ((i + 1) / anos.length);
-      await sleep(0); // deixa a página respirar entre quadros
-    }
-    gif.finish();
-    const blob = new Blob([gif.bytes()], { type: "image/gif" });
-    const png = await new Promise((resolve) => quadro.toBlob(resolve, "image/png"));
     if (gifState.resultado?.url) URL.revokeObjectURL(gifState.resultado.url);
-    const sufixo = anos.length > 1 ? `${anos[0]}-${anos[anos.length - 1]}` : String(anos[0]);
+    const sufixo = tipo === "gif" ? (cena.quadros[0].rotulo && `${cena.quadros[0].rotulo}-${cena.quadros.at(-1).rotulo}`) : cena.unico.rotulo;
+    const partes = [`mapbiomas_${cena.tema.arquivo}`, cena.p.nome, cena.nomeProduto, cena.territorio.name, sufixo, tipo === "gif" ? "" : tipo];
     gifState.resultado = {
-      url: URL.createObjectURL(blob), png, bytes: blob.size, quadros: anos.length,
-      titulo: `${titulo} · ${territorio.name} · ${sufixo}`,
-      nome: `mapbiomas_fogo_${nomeSeguro(p.nome)}_${nomeSeguro(nomeProduto)}_${nomeSeguro(territorio.name)}_${sufixo}.gif`.toLowerCase(),
+      tipo, url: URL.createObjectURL(blob), bytes: blob.size, quadros, largura: W, altura: H,
+      escala: geo && { mpp: geo.mpp, lat: geo.latCentro, z: geo.z },
+      titulo: `${cena.titulo} · ${cena.territorio.name}${sufixo ? ` · ${tipo === "gif" ? `${cena.quadros[0].rotulo} – ${cena.quadros.at(-1).rotulo}` : sufixo}` : ""}`,
+      nome: `${partes.filter(Boolean).map(nomeSeguro).join("_")}.${tipo === "gif" ? "gif" : "png"}`.toLowerCase(),
     };
     if (vivo()) {
       mostrarResultadoGif(body);
-      status("Pronto! Veja a prévia abaixo e baixe o GIF.");
+      status("Pronto! Veja a prévia abaixo.");
       body.querySelector(".gif-resultado").scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "nearest" });
     }
   } catch (err) {
     console.error(err);
-    if (vivo()) status(`Não foi possível gerar o GIF: ${err.message}`);
+    if (vivo() && err.message !== "cancelado") status(`Não foi possível gerar: ${err.message}`);
   } finally {
     gifState.gerando = false;
     if (vivo()) prog.hidden = true;

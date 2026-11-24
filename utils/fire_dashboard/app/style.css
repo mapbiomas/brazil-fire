@@ -1245,6 +1245,11 @@ body {
 }
 .gif-form select[data-f="territorio"], .gif-form select[data-f="produto"] { min-width: 260px; }
 .gif-form select[hidden] { display: none; }
+.gif-form .md-passo[hidden] { display: none; }
+.gif-props { display: contents; }
+.gif-prop { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--text-2); }
+.gif-auto { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--text-2); cursor: pointer; }
+.segmented button:disabled { opacity: .45; cursor: not-allowed; }
 .gif-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
 .gif-gerar { padding: 9px 18px; border-color: var(--brand); background: var(--brand); color: #fff; font-size: .9rem; }
 .gif-gerar:hover { filter: brightness(.95); border-color: var(--brand); }

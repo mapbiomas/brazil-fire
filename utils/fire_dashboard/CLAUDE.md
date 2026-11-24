@@ -40,12 +40,18 @@ Página estática (HTML + CSS + JS, sem build) que consulta a API pública da Pl
 - **Dados brutos**: sobrepor uma 2ª camada (com transparência), cortina entre dois anos (só camadas de um ano; recorte com `style.clip`, como o leaflet-side-by-side) e "Destacar o recorte" (`turf.mask`).
 - Não feito: limites de TIs/UCs sobre o mapa (a API só entrega geometria por território, não por categoria inteira) e hotspots (estatística espacial).
 
-## Fábrica de GIFs (aba `gif`)
+## Fábrica de mapas (aba `gif`, antiga Fábrica de GIFs)
 
+- Três saídas da mesma escolha (`gerarSaida(tipo)`): **frame** (`montarQuadros` com um quadro: `cena.unico`), **GIF** (`montarQuadros` com `cena.quadros` + gifenc) e **mapa** (`montarMapaEstatico`, 2x a largura, sem ano grande nem linha do tempo, com título da legenda, projeção e data). `prepararCena` junta tudo que não depende do tamanho (produto, legenda, território, limites, quadros).
+- Temas em `MAPA_TEMAS` (Fogo, Solo): `casa` acha o tema na árvore da API, `produto` filtra as folhas, `marca`/`logo` por idioma, `marcaNota` para `colecaoDaNota(texto, marcas)`. O seletor só habilita os temas que o país tem (`temasDoPais`). Solo só existe no Brasil (Coleção 3, 1985–2024 lido da nota). Sem logo do Solo em `utils/_base/logos`: o mapa escreve a marca em texto. Link direto: `#aba=gif&tema=solo` (lido em `readHash`, gravado em `writeHash`).
+- Eixo dos quadros: anos quando `dataType` ≠ `constant` (acumulados com `year=[ini, ano]`); nos produtos `constant` (textura, granulometria, pedregosidade do Solo) as opções da 1ª propriedade com mais de uma opção (`subtheme.properties`, ex.: `depth`). As propriedades viram seletores e vão como parâmetro em `/maps/map`.
+- Fundos em `MAPA_CORES` (escuro = preto do tema `dark` do gif_factory em Python; claro = branco; creme = #f7f3ea). Mapa base opcional (`MAPA_BASEMAP`: Esri Dark/Light Gray Base). Os quadradinhos da legenda têm contorno (`swatch`) contrastante.
+- Escala (`enquadrar` + `escalaRedonda` + `desenharEscala`): os tiles são Web Mercator; m/px = 2πR·cos(lat do centro)/(256·2^z·k), R = 6378137; arredondada para 1-2-5 × 10ⁿ com ~20% da largura do mapa. Vale na latitude do centro (o rodapé do Mapa avisa). Conferido em 2026-11-24: Tocantins medido na imagem = 554 km de largura, igual à distância geodésica de lon −50,74 a −45,70 na latitude central (−9,34°); Brasil: 4.193 km na imagem contra 4.212 km esperados na latitude central (−15,1°). A largura real do Brasil (~4.320 km a 7°S) difere uns 3% por causa do Mercator, como esperado. Norte simples (`desenharNorte`): no Mercator o norte fica sempre para cima.
+- Testado (servidor local, 2026-11-24): Solo carbono Brasil 2024 (mapa, escuro com mapa base); Fogo Tocantins (frame claro; GIF creme 2022–2025, 4 quadros); Solo grupo textural Sergipe (GIF por profundidade, 6 quadros); Fogo Brasil mapa claro sem mapa base com limites de biomas, em inglês.
 - Padrão do `utils/mapbiomas_gif_factory` (um quadro por ano, título, território, ano, legenda, fonte, logo), mas feito no navegador: tiles de `maps/map` da Plataforma (EE devolve CORS) + mapa base Esri, desenhados em canvas e codificados com gifenc (import dinâmico do jsDelivr).
 - Países em `GIF_PAISES` (região da API, idioma do texto no GIF, logo). Só entram países com tema de fogo na API (verificado em 2026-11: brazil, argentina, bolivia, chile, colombia, paraguay, peru, indonesia). Paraguai e Indonésia não informam o período na nota informativa: os anos vão de 1985 até o ano passado e o usuário confere.
 - Produtos: folhas do tema de fogo, sem mensal, `last_year` e `mean_interval`. Acumulado e frequência (`year_interval`) usam `year=[ini, ano]` em cada quadro.
-- Não usa `state.conn` nem os filtros do topo; conexão própria por país em `gifRegiao` (cache `gif:<região>`).
+- Não usa `state.conn` nem os filtros do topo; conexão própria por país e tema em `gifRegiao(região, tema)` (cache `gif:<região>:<tema>`; árvore de temas em `gif:<região>:temas`).
 - Aberto como `file://`, o logo pode "sujar" o canvas; `carregarLogo` testa e omite o logo nesse caso.
 - Testado (navegador sem interface): Chile 2018–2025, 8 quadros, 0,3 MB.
 
