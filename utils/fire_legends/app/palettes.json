@@ -5541,6 +5541,222 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "paraguay__2__accumulated_burned": {
+  "classes": [
+   {
+    "en": "Burned area",
+    "es": "Área quemada",
+    "hex": "#e84130",
+    "pt": "Área queimada",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "2",
+  "country": "paraguay",
+  "expected": 1,
+  "status": "validada",
+  "subproduct": "accumulated_burned",
+  "updatedAt": "from-repository"
+ },
+ "paraguay__2__annual_burned": {
+  "classes": [
+   {
+    "en": "Burned area",
+    "es": "Área quemada",
+    "hex": "#d4271e",
+    "pt": "Área queimada",
+    "src": "oficial",
+    "v": 1
+   }
+  ],
+  "collection": "2",
+  "country": "paraguay",
+  "expected": 1,
+  "status": "validada",
+  "subproduct": "annual_burned",
+  "updatedAt": "from-repository"
+ },
+ "paraguay__2__annual_burned_scar_size_range": {
+  "classes": [
+   {
+    "en": "< 10 ha",
+    "es": "< 10 ha",
+    "hex": "#d0ae35",
+    "pt": "< 10 ha",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "10 - 250 ha",
+    "es": "10 - 250 ha",
+    "hex": "#c68e2f",
+    "pt": "10 - 250 ha",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "250 - 500 ha",
+    "es": "250 - 500 ha",
+    "hex": "#b96d2b",
+    "pt": "250 - 500 ha",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "500 - 5.000 ha",
+    "es": "500 - 5.000 ha",
+    "hex": "#ac4b28",
+    "pt": "500 - 5.000 ha",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "5.000 - 10.000 ha",
+    "es": "5.000 - 10.000 ha",
+    "hex": "#933328",
+    "pt": "5.000 - 10.000 ha",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "10.000 - 50.000 ha",
+    "es": "10.000 - 50.000 ha",
+    "hex": "#72251d",
+    "pt": "10.000 - 50.000 ha",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "50.000 - 100.000 ha",
+    "es": "50.000 - 100.000 ha",
+    "hex": "#4e180f",
+    "pt": "50.000 - 100.000 ha",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": ">= 100.000 ha",
+    "es": ">= 100.000 ha",
+    "hex": "#240d00",
+    "pt": ">= 100.000 ha",
+    "src": "oficial",
+    "v": 8
+   }
+  ],
+  "collection": "2",
+  "country": "paraguay",
+  "expected": 8,
+  "status": "validada",
+  "subproduct": "annual_burned_scar_size_range",
+  "updatedAt": "from-repository"
+ },
+ "paraguay__2__monthly_burned": {
+  "classes": [
+   {
+    "en": "January",
+    "es": "Enero",
+    "hex": "#cc00ff",
+    "pt": "Janeiro",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "February",
+    "es": "Febrero",
+    "hex": "#6600ff",
+    "pt": "Fevereiro",
+    "src": "oficial",
+    "v": 2
+   },
+   {
+    "en": "March",
+    "es": "Marzo",
+    "hex": "#0000ff",
+    "pt": "Março",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "April",
+    "es": "Abril",
+    "hex": "#00ccff",
+    "pt": "Abril",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "May",
+    "es": "Mayo",
+    "hex": "#00ffcc",
+    "pt": "Maio",
+    "src": "oficial",
+    "v": 5
+   },
+   {
+    "en": "June",
+    "es": "Junio",
+    "hex": "#ffff00",
+    "pt": "Junho",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "July",
+    "es": "Julio",
+    "hex": "#ff9900",
+    "pt": "Julho",
+    "src": "oficial",
+    "v": 7
+   },
+   {
+    "en": "August",
+    "es": "Agosto",
+    "hex": "#ff3300",
+    "pt": "Agosto",
+    "src": "oficial",
+    "v": 8
+   },
+   {
+    "en": "September",
+    "es": "Septiembre",
+    "hex": "#cc0000",
+    "pt": "Setembro",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "October",
+    "es": "Octubre",
+    "hex": "#00cc00",
+    "pt": "Outubro",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "November",
+    "es": "Noviembre",
+    "hex": "#009900",
+    "pt": "Novembro",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "December",
+    "es": "Diciembre",
+    "hex": "#66ff66",
+    "pt": "Dezembro",
+    "src": "oficial",
+    "v": 12
+   }
+  ],
+  "collection": "2",
+  "country": "paraguay",
+  "expected": 12,
+  "status": "validada",
+  "subproduct": "monthly_burned",
+  "updatedAt": "from-repository"
+ },
  "peru__2__accumulated_burned": {
   "classes": [
    {
