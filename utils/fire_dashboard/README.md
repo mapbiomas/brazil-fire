@@ -11,7 +11,7 @@ Brazil uses Collection 5.1 (1985–2025) and falls back to staging only if produ
 | Product | Countries |
 |---|---|
 | Annual, accumulated, monthly, frequency, territories, maps, map factory (Fire) | All eight |
-| Map factory (Soil) | Brazil only (the only country with the Soil theme on the Platform) |
+| Map factory (Soil, Land cover) | Brazil only (among the dashboard countries) |
 | Last fire year, scar size | All except Paraguay and Indonesia |
 | Severity, return interval, land tenure categories | Brazil only |
 
@@ -28,14 +28,15 @@ Highlights:
 - Accumulated tab: share of each biome (or state/municipality) that burned at least once.
 - Municipality × biome: the map and the statistics use only the part of the municipality inside the biome.
 - Interactive maps: search a territory by name when the map has more than 20 (zooms in and opens its detail); burned area, share of the territory, or one year compared with another year or with the historical mean, with a year timeline (play), click-to-outline and detail, CSV export and **PNG download (title, legend, scale bar and source)**; raw subproducts grouped as annual or by period, with an overlay, a two-year swipe for annual subproducts (both years selectable), clickable outlines and a highlight of the selected area.
-- **Map factory** tab (formerly GIF factory): pick a theme (**Fire** or **Soil**), country, territory, product and years, then make one of three outputs from the official Platform map tiles, built in the browser (as in [`mapbiomas_gif_factory`](../mapbiomas_gif_factory/)):
+- **Map factory** tab (formerly GIF factory): pick a theme (**Fire**, **Soil** or **Land cover**), country, **collection**, territory, product and years, then make one of three outputs from the official Platform map tiles, built in the browser (as in [`mapbiomas_gif_factory`](../mapbiomas_gif_factory/)):
   - **Frame**: one PNG frame (the last year of the range, or the chosen depth for Soil products without years).
   - **GIF**: one frame per year (accumulated products add up from the first year); Soil texture and particle-size products animate over depths instead. Speeds of 700, 350 or 180 ms per frame.
   - **Map**: a ready-to-use static PNG at twice the chosen width, with title, subtitle, legend title, source, collection, projection note and date.
   - Every output has a **scale bar and a north arrow**. The scale is computed from the Web Mercator tiles at the latitude of the map centre and rounded to 1, 2 or 5 × 10ⁿ (e.g. 50, 100, 200, 500 km).
   - Backgrounds: **dark** (black, as in the Python factory's dark theme), **light** (white) or **cream**, with or without the Esri basemap (dark or light gray canvas). Legend swatches have a contrasting border so they stay readable on every background.
   - Optional boundaries (e.g. biomes or states over Brazil). Texts and logo follow the chosen language; there is no Soil logo yet in `utils/_base/logos`, so Soil maps show the name only.
-  - Direct link to the Soil theme: `.../dashboard/#aba=gif&tema=solo`. Use the published site or a local server (`python -m http.server` inside `app/`): opened as a local file, the browser may block reading the map images.
+  - **Collection selector:** the Platform API has no list of collections; each Platform environment (production, staging) serves one collection per theme, read from its informative note. The selector offers the distinct ones (checked 2026-11-24, Brazil: Fire 5.1 and 5, Land cover 11 and 10, Soil 3 only; Peru: Fire 2 and 1; other countries: one collection). Switching keeps the product, territory type and territory by name, and the collection is written in the title, the source line and the file name.
+  - Direct links: `.../dashboard/#aba=gif&tema=solo` (Soil), `#aba=gif&tema=cobertura` (Land cover). Use the published site or a local server (`python -m http.server` inside `app/`): opened as a local file, the browser may block reading the map images.
 
 ## 🗂️ Folder structure
 

@@ -6602,7 +6602,9 @@ function readHash() {
   if (/^[0-9a-f]{6}$/i.test(p.get("cor") || "")) salvarCor(`#${p.get("cor")}`);
   if (p.get("cicatriz")) state.cicatrizClasse = p.get("cicatriz");
   // Fábrica de mapas: link direto para o Solo (#aba=gif&tema=solo).
-  if (/^(solo|soil|suelo)$/i.test(p.get("tema") || "")) gifState.tema = "solo";
+  const tema = (p.get("tema") || "").toLowerCase();
+  if (["solo", "soil", "suelo"].includes(tema)) gifState.tema = "solo";
+  if (["cobertura", "coverage"].includes(tema)) gifState.tema = "cobertura";
 }
 
 function writeHash() {
@@ -6787,7 +6789,8 @@ const GIF_PAISES = [
 ];
 
 // Temas que a fábrica desenha. Um tema entra para o país quando a API tem um tema que casa
-// com `casa` (chave e nomes). Solo: só o Brasil tem hoje; não há logo do Solo em utils/_base/logos.
+// com `casa` (chave e nomes). Solo e Cobertura: só o Brasil entre os países do painel; sem logo
+// próprio em utils/_base/logos (a marca vai em texto).
 const MAPA_TEMAS = [
   {
     id: "fogo", rotulo: "Fogo", arquivo: "fogo", marcaNota: "Fuego|Fogo|Fire",
@@ -6806,18 +6809,26 @@ const MAPA_TEMAS = [
     marca: { pt: "MapBiomas Solo", es: "MapBiomas Suelo", en: "MapBiomas Soil", id: "MapBiomas Soil" },
     logo: null,
   },
+  {
+    // Nota da Cobertura cita "MapBiomas Collection 11" sem marca: marcaNota null = 1ª coleção citada.
+    id: "cobertura", rotulo: "Cobertura", arquivo: "cobertura", marcaNota: null,
+    casa: (t) => /^coverage$/i.test(t.key) || /"(Cobertura|Coverage)"/.test(JSON.stringify(t.name)),
+    produto: (s) => Boolean(s.dataType),
+    marca: { pt: "MapBiomas Cobertura e Uso", es: "MapBiomas Cobertura y Uso", en: "MapBiomas Land Cover", id: "MapBiomas Land Cover" },
+    logo: null,
+  },
 ];
 const temaMapa = (id) => MAPA_TEMAS.find((t) => t.id === id) || MAPA_TEMAS[0];
 
 // Textos gravados nas imagens, no idioma da página.
 const GIF_TEXTOS = {
-  "pt-BR": { fonte: "Fonte", colecao: "Coleção", anual: "Área queimada anual", base: "mapa base Esri",
+  "pt-BR": { fonte: "Fonte", colecao: "Coleção", colecaoCurta: "Col.", anual: "Área queimada anual", base: "mapa base Esri",
     proj: "Web Mercator (EPSG:3857) · escala válida na latitude do centro do mapa", gerado: "Gerado em" },
-  "es-ES": { fonte: "Fuente", colecao: "Colección", anual: "Área quemada anual", base: "mapa base Esri",
+  "es-ES": { fonte: "Fuente", colecao: "Colección", colecaoCurta: "Col.", anual: "Área quemada anual", base: "mapa base Esri",
     proj: "Web Mercator (EPSG:3857) · escala válida en la latitud del centro del mapa", gerado: "Generado el" },
-  "en-US": { fonte: "Source", colecao: "Collection", anual: "Annual burned area", base: "Esri basemap",
+  "en-US": { fonte: "Source", colecao: "Collection", colecaoCurta: "Col.", anual: "Annual burned area", base: "Esri basemap",
     proj: "Web Mercator (EPSG:3857) · scale valid at the map's central latitude", gerado: "Generated on" },
-  "id-ID": { fonte: "Sumber", colecao: "Koleksi", anual: "Area terbakar tahunan", base: "peta dasar Esri",
+  "id-ID": { fonte: "Sumber", colecao: "Koleksi", colecaoCurta: "Kol.", anual: "Area terbakar tahunan", base: "peta dasar Esri",
     proj: "Web Mercator (EPSG:3857) · skala berlaku pada lintang tengah peta", gerado: "Dibuat pada" },
 };
 
@@ -6848,25 +6859,29 @@ const GIFENC_URL = "https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js
 const R_TERRA = 6378137; // raio do Web Mercator (m)
 
 const gifState = {
-  tema: "fogo", region: "brazil", produto: "", legenda: "", categoria: "", territorio: "", ini: null, fim: null, props: {},
+  tema: "fogo", region: "brazil", env: "prd", produto: "", legenda: "", categoria: "", territorio: "", ini: null, fim: null, props: {},
   velocidade: "normal", tamanho: "m", fundo: "escuro", base: "com", limites: "nenhum", baixar: true,
   resultado: null, gerando: false,
 };
 
-const gifEnv = () => ENVIRONMENTS[0]; // produção
-const gifApi = (region, path, params) => apiGet(gifEnv(), `/${region}${path}`, params);
+// Cada ambiente da Plataforma (ENVIRONMENTS) serve uma coleção por tema; a coleção escolhida
+// na fábrica é o ambiente (gifState.env). Padrão: produção.
+const gifEnvDe = (id) => ENVIRONMENTS.find((e) => e.id === id) || ENVIRONMENTS[0];
+const gifApi = (region, path, params, env = "prd") => apiGet(gifEnvDe(env), `/${region}${path}`, params);
 const nomeEm = (n, lang) => (typeof n === "string" ? n
   : n?.[lang] || (lang === "id-ID" && n?.["en-US"]) || n?.["pt-BR"] || n?.["es-ES"] || n?.["en-US"] || Object.values(n || {})[0] || "");
 // Nome de arquivo seguro, como safe_name() do gif_factory.
 const nomeSeguro = (v) => String(v || "").normalize("NFKD").replace(/[̀-ͯ]/g, "")
   .replace(/[^A-Za-z0-9_-]+/g, "_").replace(/^[_-]+|[_-]+$/g, "").slice(0, 80) || "sem_nome";
+// Nome da categoria para comparar entre coleções: sem fonte entre parênteses, sem acento e no singular.
+const nomeCategoria = (c) => norm(nomeEm(c?.name, "pt-BR").replace(/\s*\(.*$/, "")).replace(/s$/, "");
 const semAno = (prod) => prod?.dataType === "constant";
 const acumulaAnos = (prod) => prod && (prod.dataType === "year_interval" || ["accumulated", "frequency"].includes(prod.analysis));
 const propsDe = (prod) => (prod?.properties || []).filter((x) => x.options?.length)
   .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-function gifTemas(region) {
-  return cached(`gif:${region}:temas`, () => gifApi(region, "/themes", { page: 1, pageSize: 100 }));
+function gifTemas(region, env = "prd") {
+  return cached(`gif:${env}:${region}:temas`, () => gifApi(region, "/themes", { page: 1, pageSize: 100 }, env));
 }
 
 // Temas da fábrica que o país tem na API.
@@ -6876,12 +6891,12 @@ async function temasDoPais(region) {
 }
 
 // Tema do país: produtos (folhas), categorias de território, anos e coleção.
-function gifRegiao(region, temaId = "fogo") {
-  return cached(`gif:${region}:${temaId}`, async () => {
+function gifRegiao(region, temaId = "fogo", env = "prd") {
+  return cached(`gif:${env}:${region}:${temaId}`, async () => {
     const tm = temaMapa(temaId);
     const [themes, cats] = await Promise.all([
-      gifTemas(region),
-      gifApi(region, "/territories/categories", { page: 1, pageSize: 500 }),
+      gifTemas(region, env),
+      gifApi(region, "/territories/categories", { page: 1, pageSize: 500 }, env),
     ]);
     const tema = (themes.themes || []).find(tm.casa);
     if (!tema) throw new Error(`Este país não tem o tema ${tm.rotulo} na Plataforma MapBiomas.`);
@@ -6895,26 +6910,41 @@ function gifRegiao(region, temaId = "fogo") {
     const anoOk = (a) => a >= 1980 && a <= new Date().getFullYear();
     const anoMin = m && anoOk(Number(m[1])) ? Number(m[1]) : null;
     const anoMax = m && anoOk(Number(m[2])) && Number(m[2]) >= anoMin ? Number(m[2]) : null;
-    const colecao = colecaoDaNota(nota, tm.marcaNota);
+    const colecao = tm.marcaNota ? colecaoDaNota(nota, tm.marcaNota)
+      : nota.match(/(?:Collection|Cole[cç][aã]o|Colecci[oó]n)\s+(\d+(?:\.\d+)?)/i)?.[1] || null;
     const colecaoFinal = colecao || (temaId === "fogo" ? PAISES.find((p) => p.region === region)?.colecaoPadrao : null) || null;
     return { produtos, categorias: cats.categories || [], colecao: colecaoFinal, anoMin: anoMax ? anoMin : null, anoMax };
   });
 }
 
-function gifLegendas(region, subthemeKey) {
-  return cached(`gif:${region}:legs:${subthemeKey}`, async () => {
-    const l = await gifApi(region, "/legends", { page: 1, pageSize: 100, subthemeKey });
+// Coleções de um tema no país. A API não tem uma lista de coleções: cada ambiente da Plataforma
+// serve uma por tema (produção = atual; staging = anterior, hoje), lida da nota informativa.
+// Junta as diferentes, da mais nova para a mais antiga. Ambientes sem o tema ficam de fora.
+function colecoesDoTema(region, temaId) {
+  return cached(`gif:${region}:${temaId}:colecoes`, async () => {
+    const res = await Promise.allSettled(ENVIRONMENTS.map((e) =>
+      gifRegiao(region, temaId, e.id).then((r) => ({ env: e.id, colecao: r.colecao }))));
+    const unicas = new Map();
+    for (const r of res) if (r.status === "fulfilled" && !unicas.has(r.value.colecao ?? "")) unicas.set(r.value.colecao ?? "", r.value);
+    return [...unicas.values()].sort((a, b) => (parseFloat(b.colecao) || 0) - (parseFloat(a.colecao) || 0));
+  });
+}
+
+function gifLegendas(region, subthemeKey, env = "prd") {
+  return cached(`gif:${env}:${region}:legs:${subthemeKey}`, async () => {
+    const l = await gifApi(region, "/legends", { page: 1, pageSize: 100, subthemeKey }, env);
     return [...(l.legends || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   });
 }
 
-function gifLegenda(region, id, lang) {
-  return cached(`gif:${region}:leg:${id}:${lang}`, async () => {
-    const d = await gifApi(region, `/legends/${id}`);
+function gifLegenda(region, id, lang, env = "prd") {
+  return cached(`gif:${env}:${region}:leg:${id}:${lang}`, async () => {
+    const d = await gifApi(region, `/legends/${id}`, undefined, env);
     const lg = d.legend || d;
     const itens = [];
     const andar = (arr, depth) => (arr || []).forEach((i) => {
-      if (!/modis/i.test(nomeEm(i.name, lang))) itens.push({ pixelValue: i.pixelValue, name: nomeEm(i.name, lang) || i.key, color: safeColor(i.color), depth });
+      // folha = classe pintada no mapa (com todos os pixelValue, cada pixel sai na cor da classe mais fina).
+      if (!/modis/i.test(nomeEm(i.name, lang))) itens.push({ pixelValue: i.pixelValue, name: nomeEm(i.name, lang) || i.key, color: safeColor(i.color), depth, folha: !i.children?.length });
       andar(i.children, depth + 1);
     });
     andar(lg.items, 0);
@@ -6922,9 +6952,9 @@ function gifLegenda(region, id, lang) {
   });
 }
 
-function gifTerritorios(region, categoryId) {
-  return cached(`gif:${region}:ter:${categoryId}`, async () => {
-    const pagina = (page) => gifApi(region, "/territories", { page, pageSize: 1000, categoryId });
+function gifTerritorios(region, categoryId, env = "prd") {
+  return cached(`gif:${env}:${region}:ter:${categoryId}`, async () => {
+    const pagina = (page) => gifApi(region, "/territories", { page, pageSize: 1000, categoryId }, env);
     const first = await pagina(1);
     const rest = await Promise.all(range(2, first.numberOfPages || 1).map(pagina));
     return [first, ...rest].flatMap((r) => r.territories || [])
@@ -6962,6 +6992,8 @@ function montarGif(body) {
       <div class="md-passo"><span class="md-num">1</span><span class="md-rotulo">Tema</span>
         <div class="segmented" role="group" data-g="tema"></div>
         <select data-f="region" aria-label="País">${GIF_PAISES.map((p) => `<option value="${p.region}" data-pais="${p.region}"${p.region === gifState.region ? " selected" : ""}>${escapeHtml(rotuloPais(p))}</option>`).join("")}</select>
+        <span class="md-rotulo">Coleção</span>
+        <select data-f="env" aria-label="Coleção"></select>
       </div>
       <div class="md-passo"><span class="md-num">2</span><span class="md-rotulo">Território</span>
         <select data-f="categoria" aria-label="Tipo de território"></select>
@@ -7034,33 +7066,49 @@ function montarGif(body) {
     });
   }
 
-  async function carregarPais() {
+  // lembrar: ao trocar de coleção, produto, categoria e território são procurados pelo nome
+  // (as chaves e os ids mudam entre os ambientes da API).
+  async function carregarPais(lembrar = null) {
     status("Carregando o país…");
     botoes(false);
     try {
       const p = pais();
       const temas = await temasDoPais(p.region);
       if (!temas.some((t) => t.id === gifState.tema)) gifState.tema = temas[0]?.id || "fogo";
+      status("Procurando as coleções…");
+      const cols = await colecoesDoTema(p.region, gifState.tema);
+      if (!cols.some((c) => c.env === gifState.env)) gifState.env = cols[0]?.env || "prd";
+      const selCol = sel("env");
+      opcoes(selCol, (cols.length ? cols : [{ env: "prd", colecao: null }]).map((c) => ({
+        value: c.env, label: c.colecao ? `Coleção ${c.colecao}` : "Coleção não informada",
+      })), gifState.env);
+      selCol.disabled = cols.length < 2;
+      selCol.title = cols.length < 2 ? tr("A Plataforma serve só esta coleção deste tema") : "";
       q('[data-g="tema"]').innerHTML = MAPA_TEMAS.map((t) => `<button type="button" data-v="${t.id}" aria-pressed="${gifState.tema === t.id}"${temas.includes(t) ? "" : ` disabled title="${escapeHtml(tr("Sem este tema na Plataforma para o país"))}"`}>${escapeHtml(t.rotulo)}</button>`).join("");
-      reg = await gifRegiao(p.region, gifState.tema);
+      reg = await gifRegiao(p.region, gifState.tema, gifState.env);
       // Limites que o país tem (biomas/ecorregiões e o 1º nível administrativo).
       const cfg = PAISES.find((x) => x.region === p.region);
       const limOpc = [["nenhum", "Nenhum"],
         ...["bioma", "estado"].filter((k) => cfg?.cats?.[k] && reg.categorias.some((c) => cfg.cats[k].test(c.key))).map((k) => [k, cfg.rotulos[k][1]])];
       if (!limOpc.some(([v]) => v === gifState.limites)) gifState.limites = "nenhum";
       q('[data-g="limites"]').innerHTML = limOpc.map(([v, r]) => `<button type="button" data-v="${v}" aria-pressed="${gifState.limites === v}">${escapeHtml(r)}</button>`).join("");
+      const porNome = lembrar && reg.produtos.find((s) => nomeEm(s.name, "pt-BR") === lembrar.produto);
       gifState.produto = opcoes(sel("produto"), reg.produtos.map((s) => ({
         value: s.key,
         label: nomeEm(s.name, IDIOMA.gif) + (acumulaAnos(s) ? " (acumulado ano a ano)" : ""),
-      })), gifState.produto);
+      })), porNome ? porNome.key : gifState.produto);
       const preferida = reg.categorias.find((c) => /^POLITICAL_LEVEL_1$|^NIVEL_POLITICO_1|^BRASIL_|^PAIS_/i.test(c.key)) || reg.categorias[0];
+      // Mesma categoria na outra coleção: pelo tipo (PAISES[].cats, regex na chave) ou pelo nome.
+      const tipoCat = (c) => Object.keys(cfg?.cats || {}).find((k) => cfg.cats[k].test(c.key)) || null;
+      const catNome = lembrar && (reg.categorias.find((c) => lembrar.catTipo && tipoCat(c) === lembrar.catTipo)
+        || reg.categorias.find((c) => nomeCategoria(c) === lembrar.categoria));
       gifState.categoria = opcoes(sel("categoria"), reg.categorias.map((c) => ({ value: c.id, label: nomeEm(c.name, IDIOMA.gif) || c.key })),
-        reg.categorias.some((c) => String(c.id) === String(gifState.categoria)) ? gifState.categoria : preferida?.id);
+        catNome ? catNome.id : reg.categorias.some((c) => String(c.id) === String(gifState.categoria)) ? gifState.categoria : preferida?.id);
       const min = reg.anoMin || 1985, max = reg.anoMax || new Date().getFullYear() - 1;
       const anos = range(min, max).map((a) => ({ value: a, label: String(a) }));
       gifState.ini = Number(opcoes(sel("ini"), anos, clamp(gifState.ini ?? min, min, max)));
       gifState.fim = Number(opcoes(sel("fim"), anos, clamp(gifState.fim ?? max, gifState.ini, max)));
-      await Promise.all([carregarProduto(), carregarTerritorios()]);
+      await Promise.all([carregarProduto(), carregarTerritorios(lembrar?.territorio)]);
       status(reg.anoMax ? `${reg.anoMin}–${reg.anoMax}${reg.colecao ? ` · Coleção ${reg.colecao}` : ""}`
         : "A Plataforma não informa o período deste país: confira se os anos escolhidos têm dados.");
       botoes(true);
@@ -7073,7 +7121,7 @@ function montarGif(body) {
 
   // Legendas do produto e propriedades (ex.: profundidade no Solo).
   async function carregarProduto() {
-    const lista = await gifLegendas(gifState.region, gifState.produto);
+    const lista = await gifLegendas(gifState.region, gifState.produto, gifState.env);
     const el = sel("legenda");
     gifState.legenda = opcoes(el, lista.map((l) => ({ value: l.id, label: `Legenda: ${nomeEm(l.name, IDIOMA.gif) || l.key}` })), gifState.legenda);
     el.hidden = lista.length < 2;
@@ -7090,11 +7138,25 @@ function montarGif(body) {
     gifState.props = atuais;
   }
 
-  async function carregarTerritorios() {
+  // Escolha atual por nome e tipo, para reencontrá-la em outra coleção ou outro tema.
+  function lembrarEscolha() {
+    const prod = reg?.produtos.find((s) => s.key === gifState.produto);
+    const cat = reg?.categorias.find((c) => String(c.id) === String(gifState.categoria));
+    const cfg = PAISES.find((x) => x.region === gifState.region);
+    return {
+      produto: prod && nomeEm(prod.name, "pt-BR"),
+      catTipo: cat && Object.keys(cfg?.cats || {}).find((k) => cfg.cats[k].test(cat.key)),
+      categoria: cat && nomeCategoria(cat),
+      territorio: sel("territorio").selectedOptions[0]?.textContent || "",
+    };
+  }
+
+  async function carregarTerritorios(nome = null) {
     const el = sel("territorio");
     el.innerHTML = `<option>Carregando…</option>`;
-    const lista = await gifTerritorios(gifState.region, gifState.categoria);
-    gifState.territorio = opcoes(el, lista.map((t) => ({ value: t.id, label: t.name })), gifState.territorio);
+    const lista = await gifTerritorios(gifState.region, gifState.categoria, gifState.env);
+    const porNome = nome && lista.find((t) => t.name === nome);
+    gifState.territorio = opcoes(el, lista.map((t) => ({ value: t.id, label: t.name })), porNome ? porNome.id : gifState.territorio);
   }
 
   body.addEventListener("change", async (e) => {
@@ -7105,8 +7167,14 @@ function montarGif(body) {
     gifState[f] = ["ini", "fim"].includes(f) ? Number(e.target.value) : e.target.value;
     try {
       if (f === "region") {
-        Object.assign(gifState, { produto: "", legenda: "", categoria: "", territorio: "", ini: null, fim: null, props: {} });
+        Object.assign(gifState, { env: "prd", produto: "", legenda: "", categoria: "", territorio: "", ini: null, fim: null, props: {} });
         await carregarPais();
+        return;
+      }
+      if (f === "env") {
+        const lembrar = lembrarEscolha();
+        Object.assign(gifState, { legenda: "", ini: null, fim: null });
+        await carregarPais(lembrar);
         return;
       }
       if (f === "produto") { gifState.legenda = ""; await carregarProduto(); }
@@ -7128,9 +7196,10 @@ function montarGif(body) {
       gifState[g] = b.dataset.v;
       b.parentElement.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
       if (mudouTema) {
-        Object.assign(gifState, { produto: "", legenda: "", ini: null, fim: null, props: {} });
+        const lembrar = { ...lembrarEscolha(), produto: null };
+        Object.assign(gifState, { env: "prd", produto: "", legenda: "", ini: null, fim: null, props: {} });
         writeHash();
-        carregarPais();
+        carregarPais(lembrar);
       }
       return;
     }
@@ -7332,16 +7401,17 @@ function caminho(ctx, geo, lista) {
 async function prepararCena(reg, status) {
   const p = GIF_PAISES.find((x) => x.region === gifState.region);
   const tema = temaMapa(gifState.tema);
+  const env = gifState.env;
   const lang = IDIOMA.gif; // textos das imagens no idioma escolhido na página
   const tx = GIF_TEXTOS[lang];
   const marca = tema.marca[IDIOMA.id];
   const produto = reg.produtos.find((s) => s.key === gifState.produto);
   if (!produto) throw new Error("Escolha um produto.");
-  const lista = await gifLegendas(p.region, produto.key);
+  const lista = await gifLegendas(p.region, produto.key, env);
   const ref = lista.find((l) => String(l.id) === String(gifState.legenda)) || lista[0];
   if (!ref) throw new Error("A Plataforma não tem legenda para este produto.");
-  const legenda = await gifLegenda(p.region, ref.id, lang);
-  const territorio = (await gifTerritorios(p.region, gifState.categoria)).find((t) => String(t.id) === String(gifState.territorio));
+  const legenda = await gifLegenda(p.region, ref.id, lang, env);
+  const territorio = (await gifTerritorios(p.region, gifState.categoria, env)).find((t) => String(t.id) === String(gifState.territorio));
   if (!territorio) throw new Error("Escolha um território.");
 
   // Quadros: anos (produtos anuais e acumulados) ou opções de uma propriedade (ex.: profundidade).
@@ -7366,7 +7436,7 @@ async function prepararCena(reg, status) {
   }
 
   status("Buscando o contorno do território…");
-  const geoT = await gifApi(p.region, "/territories/geometry", { territoryId: [territorio.id], spatialMethod: "union", simplify: "true" });
+  const geoT = await gifApi(p.region, "/territories/geometry", { territoryId: [territorio.id], spatialMethod: "union", simplify: "true" }, env);
   const aneis = aneisDe(geoT.geometry || geoT);
   if (!aneis.length) throw new Error("A Plataforma não devolveu o contorno deste território.");
   // Limites de referência (ex.: biomas do Brasil), desenhados sob o contorno do território.
@@ -7376,8 +7446,8 @@ async function prepararCena(reg, status) {
   let limites = [];
   if (catLim) {
     status("Desenhando os limites…");
-    const terrs = (await gifTerritorios(p.region, catLim.id)).filter((x) => !/\s-\s(costa|mar)$/i.test(x.name));
-    const geoms = await mapLimit(terrs, 6, (x) => gifApi(p.region, "/territories/geometry", { territoryId: [x.id], spatialMethod: "union", simplify: "true" })
+    const terrs = (await gifTerritorios(p.region, catLim.id, env)).filter((x) => !/\s-\s(costa|mar)$/i.test(x.name));
+    const geoms = await mapLimit(terrs, 6, (x) => gifApi(p.region, "/territories/geometry", { territoryId: [x.id], spatialMethod: "union", simplify: "true" }, env)
       .then((g) => g.geometry || g).catch(() => null));
     limites = geoms.map(aneisDe).filter((a) => a.length);
   }
@@ -7386,9 +7456,9 @@ async function prepararCena(reg, status) {
   const cores = MAPA_CORES[gifState.fundo] || MAPA_CORES.escuro;
   const comBase = gifState.base === "com";
   return {
-    p, tema, lang, tx, marca, produto, legenda, territorio, aneis, limites, quadros, unico, nomeProduto, cores, comBase, acumula,
+    p, tema, env, colecao: reg.colecao, lang, tx, marca, produto, legenda, territorio, aneis, limites, quadros, unico, nomeProduto, cores, comBase, acumula,
     logo: await carregarLogo(tema.logo?.[IDIOMA.id]),
-    titulo: `${marca} · ${nomeProduto}`,
+    titulo: `${marca}${reg.colecao ? ` ${tx.colecaoCurta} ${reg.colecao}` : ""} · ${nomeProduto}`,
     fonte: `${tx.fonte}: ${marca}${reg.colecao ? ` · ${tx.colecao} ${reg.colecao}` : ""} · plataforma.mapbiomas.org${comBase ? ` · ${tx.base}` : ""}`,
   };
 }
@@ -7398,7 +7468,7 @@ async function urlDoQuadro(cena, q) {
     region: cena.p.region, subthemeKey: cena.produto.key, legendKey: cena.legenda.key,
     pixelValue: cena.legenda.items.map((i) => i.pixelValue),
     territoryId: cena.territorio.id, spatialMethod: "union", ...q.params,
-  });
+  }, cena.env);
   return r.url;
 }
 
@@ -7463,7 +7533,7 @@ async function montarQuadros(cena, W, quadros, status, prog, aoQuadro) {
   const { cores } = cena;
   const s = W / 900;
   const pad = Math.round(24 * s), header = Math.round(78 * s);
-  const itensLeg = cena.legenda.items.filter((i) => i.depth === 0);
+  const itensLeg = cena.legenda.items.filter((i) => i.folha);
   const leg = posicoesLegenda(itensLeg, W - 2 * pad, pad, s);
   const alturaLinha = Math.round(24 * s);
   const footer = Math.round(18 * s) + leg.linhas * alturaLinha + Math.round(30 * s);
@@ -7559,7 +7629,7 @@ async function montarMapaEstatico(cena, Wbase, status, prog) {
   const { cores, tx } = cena;
   const W = Wbase * 2, s = W / 900;
   const pad = Math.round(32 * s), header = Math.round(96 * s);
-  const itensLeg = cena.legenda.items.filter((i) => i.depth === 0);
+  const itensLeg = cena.legenda.items.filter((i) => i.folha);
   const leg = posicoesLegenda(itensLeg, W - 2 * pad, pad, s);
   const alturaLinha = Math.round(24 * s);
   const tituloLeg = Math.round(26 * s);
@@ -7676,7 +7746,7 @@ async function gerarSaida(tipo, body, reg, status) {
     }
     if (gifState.resultado?.url) URL.revokeObjectURL(gifState.resultado.url);
     const sufixo = tipo === "gif" ? (cena.quadros[0].rotulo && `${cena.quadros[0].rotulo}-${cena.quadros.at(-1).rotulo}`) : cena.unico.rotulo;
-    const partes = [`mapbiomas_${cena.tema.arquivo}`, cena.p.nome, cena.nomeProduto, cena.territorio.name, sufixo, tipo === "gif" ? "" : tipo];
+    const partes = [`mapbiomas_${cena.tema.arquivo}`, cena.colecao && `col${cena.colecao}`, cena.p.nome, cena.nomeProduto, cena.territorio.name, sufixo, tipo === "gif" ? "" : tipo];
     gifState.resultado = {
       tipo, url: URL.createObjectURL(blob), bytes: blob.size, quadros, largura: W, altura: H,
       escala: geo && { mpp: geo.mpp, lat: geo.latCentro, z: geo.z },
