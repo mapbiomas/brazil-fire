@@ -11,7 +11,7 @@ Consult the legends and palettes of every MapBiomas Fire collection published so
 | 🇧🇴 Bolivia | 1 |
 | 🇨🇱 Chile | 1 |
 | 🇨🇴 Colombia | 1 |
-| 🇵🇾 Paraguay | 1 |
+| 🇵🇾 Paraguay | 1 · 2 |
 | 🇵🇪 Peru | 2 · Monitor |
 | 🇮🇩 Indonesia | 1 · 2 · Monitor |
 

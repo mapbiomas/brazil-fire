@@ -47,10 +47,12 @@ colombia_col1_last_fire_year,colombia,1,Year of last fire,active,2000-2025,the p
 colombia_col1_fire_frequency,colombia,1,Fire frequency,active,2000-2025,number of fires (1-26; 26 = 26 or more),colombia_col1_fire_frequency.csv,,colombia,1,fire_frequency
 colombia_col1_annual_burned_coverage,colombia,1,Annual burned coverage,active,2000-2025,land cover class of the burned pixel,colombia_col1_annual_burned_coverage.csv,,colombia,1,annual_burned_coverage
 paraguay_col1_annual_burned_area,paraguay,1,Annual burned area,active,1999-2024,1 = fire,paraguay_col1_annual_burned_area.csv,,paraguay,1,annual_burned
-paraguay_col2_annual_burned_area,paraguay,2,Annual burned area,active,1999-2025,1 = fire,paraguay_col2_annual_burned_area.csv,,paraguay,2,annual_burned
-paraguay_col2_monthly_burned_area,paraguay,2,Monthly burned area,active,1999-2025,month of the fire (1-12),paraguay_col2_monthly_burned_area.csv,,paraguay,2,monthly_burned
-paraguay_col2_fire_scar_size,paraguay,2,Fire scar size,active,1999-2025,scar size class (1-8),paraguay_col2_fire_scar_size.csv,,paraguay,2,annual_burned_scar_size_range
-paraguay_col2_accumulated_burned_area,paraguay,2,Accumulated burned area,active,1999-2025,1 = fire,paraguay_col2_accumulated_burned_area.csv,,paraguay,2,accumulated_burned
+paraguay_col2_annual_burned_area,paraguay,2,Annual burned area,active,1985-2025,1 = fire,paraguay_col2_annual_burned_area.csv,,paraguay,2,annual_burned
+paraguay_col2_monthly_burned_area,paraguay,2,Monthly burned area,active,1985-2025,month of the fire (1-12),paraguay_col2_monthly_burned_area.csv,,paraguay,2,monthly_burned
+paraguay_col2_fire_scar_size,paraguay,2,Fire scar size,active,1985-2025,scar size class (1-8),paraguay_col2_fire_scar_size.csv,,paraguay,2,annual_burned_scar_size_range
+paraguay_col2_accumulated_burned_area,paraguay,2,Accumulated burned area,active,1985-2025,1 = fire,paraguay_col2_accumulated_burned_area.csv,,paraguay,2,accumulated_burned
+paraguay_col2_fire_frequency,paraguay,2,Fire frequency,active,1985-2025,number of fires (1-41),paraguay_col2_fire_frequency.csv,,paraguay,2,fire_frequency
+paraguay_col2_last_fire_year,paraguay,2,Year of last fire,active,1985-2025,the pixel value is the year,paraguay_col2_last_fire_year.csv,,paraguay,2,year_last_fire
 indonesia_col1_annual_burned_area,indonesia,1,Annual burned area,active,2013-2023,1 = fire,indonesia_col1_annual_burned_area.csv,,indonesia,1,annual_burned
 indonesia_col1_monthly_burned_area,indonesia,1,Monthly burned area,active,2013-2023,month of the fire (1-12),indonesia_col1_monthly_burned_area.csv,,indonesia,1,monthly_burned
 indonesia_col1_accumulated_burned_area,indonesia,1,Accumulated burned area,active,2013-2023,1 = fire,indonesia_col1_accumulated_burned_area.csv,,indonesia,1,accumulated_burned
