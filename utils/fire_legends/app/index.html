@@ -146,7 +146,8 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
 /* Mapa: países do MapBiomas Fogo (countries.json) + detalhe das coleções */
 .mapwrap{display:flex;flex-direction:column;gap:18px}
 #worldmap{min-height:120px}
-.chip .cl{font-weight:500;color:var(--muted)}
+.chip .cl,.ovtg .cl{font-weight:500;color:var(--muted)}
+.ovtg{width:100%;justify-content:flex-start;padding:11px 14px;font-size:13.5px}
 #worldmap circle.mring-svg{fill:#fff;stroke:#1e2420;stroke-width:1.3;pointer-events:none}
 .mring{width:10px;height:10px;border-radius:50%;background:#fff;border:1.5px solid #1e2420;display:inline-block;flex:none}
 .mmon{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -178,7 +179,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
     </div>
     <div class="hright">
       <div class="seg" role="tablist" aria-label="Modo">
-        <button id="view-consult" data-view="consultar" role="tab"></button><button id="view-map" data-view="mapa" role="tab"></button><button id="view-reg" data-view="cadastro" role="tab"></button>
+        <button id="view-consult" data-view="consultar" role="tab"></button><button id="view-map" data-view="mapa" role="tab"></button>
       </div>
       <div class="seg" role="group" aria-label="Idioma">
         <button id="lang-pt" data-lang="pt">PT</button><button id="lang-es" data-lang="es">ES</button><button id="lang-en" data-lang="en">EN</button>
@@ -252,6 +253,9 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
     </main>
   </div>
 
+  <!-- Visão geral (matriz de todas as coleções): abre e fecha dentro da aba Legendas -->
+  <div id="ov-bar"><button class="btn ovtg" id="ov-toggle" type="button" aria-controls="v-cadastro"></button></div>
+
   <!-- ===================== MAPA ===================== -->
   <div id="v-mapa" class="mapwrap" hidden>
     <section class="panel">
@@ -291,11 +295,11 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
 /* ===================== Dicionários ===================== */
 const T = {
   pt:{title:"Legendas e paletas",sub:"Consulte os dados publicados de cada país, coleção e subproduto.",
-    v_consult:"Consultar",v_reg:"Visão geral",v_map:"Mapa",
+    v_consult:"Legendas",v_reg:"Visão geral",ov_hint:"todas as coleções e subprodutos",v_map:"Mapa",
     map_title:"Países do MapBiomas Fogo",map_published:"Coleção publicada",map_upcoming:"A publicar",map_pilot:"Piloto / treinamento",
     map_loading:"Carregando o mapa…",map_fail:"Não foi possível carregar o mapa. Use a lista abaixo.",
     map_pick:"Clique em um país no mapa ou na lista para ver as coleções.",map_nocoll:"Ainda sem coleção publicada.",
-    map_modeAll:"Países e coleções",map_labels:"Rótulos no arquivo",map_lab_abbr:"Sigla",map_lab_name:"Nome",map_lab_none:"Nenhum",map_titleMon:"Monitor do Fogo por país",map_mon_published:"Monitor publicado",map_mon_upcoming:"Monitor a publicar",
+    map_modeAll:"Coleções anuais",map_labels:"Rótulos no arquivo",map_preparing:"Preparando o mapa em alta resolução…",map_lab_abbr:"Sigla",map_lab_name:"Nome",map_lab_none:"Nenhum",map_titleMon:"Monitor do Fogo por país",map_mon_published:"Monitor publicado",map_mon_upcoming:"Monitor a publicar",
     map_sumMon:"{a} países com Monitor do Fogo publicado · {b} a publicar",map_monSoon:"Monitor do Fogo previsto para este país.",
     map_showColls:"Detalhar coleções",map_monitor:"Monitor do Fogo",map_collShort:"Col. {c}",
     map_coll:"Coleção {c}",map_regd:"{n} de {m} legendas cadastradas",map_open:"Ver legendas",
@@ -338,11 +342,11 @@ const T = {
     ed_siteNone:"O site não publica cores para este subproduto.",someone:"Alguém",
     m_show:"Mostrar"},
   es:{title:"Leyendas y paletas",sub:"Consulte los datos publicados de cada país, colección y subproducto.",
-    v_consult:"Consultar",v_reg:"Vista general",v_map:"Mapa",
+    v_consult:"Leyendas",v_reg:"Vista general",ov_hint:"todas las colecciones y subproductos",v_map:"Mapa",
     map_title:"Países de MapBiomas Fuego",map_published:"Colección publicada",map_upcoming:"Por publicar",map_pilot:"Piloto / capacitación",
     map_loading:"Cargando el mapa…",map_fail:"No fue posible cargar el mapa. Use la lista de abajo.",
     map_pick:"Haga clic en un país en el mapa o en la lista para ver las colecciones.",map_nocoll:"Aún sin colección publicada.",
-    map_modeAll:"Países y colecciones",map_labels:"Etiquetas en el archivo",map_lab_abbr:"Sigla",map_lab_name:"Nombre",map_lab_none:"Ninguna",map_titleMon:"Monitor del Fuego por país",map_mon_published:"Monitor publicado",map_mon_upcoming:"Monitor por publicar",
+    map_modeAll:"Colecciones anuales",map_labels:"Etiquetas en el archivo",map_preparing:"Preparando el mapa en alta resolución…",map_lab_abbr:"Sigla",map_lab_name:"Nombre",map_lab_none:"Ninguna",map_titleMon:"Monitor del Fuego por país",map_mon_published:"Monitor publicado",map_mon_upcoming:"Monitor por publicar",
     map_sumMon:"{a} países con Monitor del Fuego publicado · {b} por publicar",map_monSoon:"Monitor del Fuego previsto para este país.",
     map_showColls:"Detallar colecciones",map_monitor:"Monitor del Fuego",map_collShort:"Col. {c}",
     map_coll:"Colección {c}",map_regd:"{n} de {m} leyendas registradas",map_open:"Ver leyendas",
@@ -385,11 +389,11 @@ const T = {
     ed_siteNone:"El sitio no publica colores para este subproducto.",someone:"Alguien",
     m_show:"Mostrar"},
   en:{title:"Legends and palettes",sub:"Look up published data for each country, collection and subproduct.",
-    v_consult:"Look up",v_reg:"Overview",v_map:"Map",
+    v_consult:"Legends",v_reg:"Overview",ov_hint:"all collections and subproducts",v_map:"Map",
     map_title:"MapBiomas Fire countries",map_published:"Collection published",map_upcoming:"To be published",map_pilot:"Pilot / training",
     map_loading:"Loading the map…",map_fail:"The map could not be loaded. Use the list below.",
     map_pick:"Click a country on the map or in the list to see its collections.",map_nocoll:"No collection published yet.",
-    map_modeAll:"Countries and collections",map_labels:"Labels in the file",map_lab_abbr:"Code",map_lab_name:"Name",map_lab_none:"None",map_titleMon:"Fire Monitor by country",map_mon_published:"Monitor published",map_mon_upcoming:"Monitor to be published",
+    map_modeAll:"Annual collections",map_labels:"Labels in the file",map_preparing:"Preparing the high-resolution map…",map_lab_abbr:"Code",map_lab_name:"Name",map_lab_none:"None",map_titleMon:"Fire Monitor by country",map_mon_published:"Monitor published",map_mon_upcoming:"Monitor to be published",
     map_sumMon:"{a} countries with the Fire Monitor published · {b} to be published",map_monSoon:"Fire Monitor planned for this country.",
     map_showColls:"Show collections",map_monitor:"Fire Monitor",map_collShort:"Coll. {c}",
     map_coll:"Collection {c}",map_regd:"{n} of {m} legends registered",map_open:"See legends",
@@ -707,7 +711,7 @@ function renderStatic(){
   const LG={pt:["Fogo","MapBiomas_Fogo_PT"],es:["Fuego","MapBiomas_Fuego_ES"],en:["Fire","MapBiomas_Fire_EN"]}[S.lang]||["Fogo","MapBiomas_Fogo_PT"];
   $("logo").src="logos/"+LG[1]+".png";
   $("t-matrix-note").textContent=t("matrixNote");
-  $("view-consult").textContent=t("v_consult");$("view-reg").textContent=t("v_reg");$("view-map").textContent=t("v_map");
+  $("view-consult").textContent=t("v_consult");$("view-map").textContent=t("v_map");
   $("lay-table").textContent=t("table");$("lay-list").textContent=t("list");$("lay-bar").textContent=t("bar");
   $("btn-copyhex").textContent=t("copyHex");
   $("btn-copy").textContent=t("copy");$("btn-dl").textContent=t("download");
@@ -716,8 +720,10 @@ function renderStatic(){
 }
 function originFilters(id){$(id).innerHTML="";$(id).hidden=true}
 function renderView(){
-  $("v-consultar").hidden=S.view!=="consultar";$("v-cadastro").hidden=S.view!=="cadastro";$("v-mapa").hidden=S.view!=="mapa";
-  $("view-consult").setAttribute("aria-selected",S.view==="consultar");$("view-reg").setAttribute("aria-selected",S.view==="cadastro");
+  const lg=S.view==="consultar";
+  $("v-consultar").hidden=!lg;$("ov-bar").hidden=!lg;$("v-cadastro").hidden=!(lg&&S.ov);$("v-mapa").hidden=S.view!=="mapa";
+  const ot=$("ov-toggle");ot.setAttribute("aria-expanded",!!S.ov);ot.innerHTML=`<span aria-hidden="true">${S.ov?"▾":"▸"}</span> ${esc(t("v_reg"))} <span class="cl">· ${esc(t("ov_hint"))}</span>`;
+  $("view-consult").setAttribute("aria-selected",lg);
   $("view-map").setAttribute("aria-selected",S.view==="mapa");
 }
 
@@ -825,8 +831,20 @@ async function fontCSS(){
   }catch(e){FONT_CSS=""}
   return FONT_CSS;
 }
+// contornos mais detalhados (escala 1:50 milhões) só para o arquivo baixado
+let HI_SHAPES = null;
+async function hiresShapes(){
+  if(HI_SHAPES)return HI_SHAPES;
+  try{
+    const topo=await (await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json")).json();
+    const path=d3.geoPath(WORLD.proj),feats=topojson.feature(topo,topo.objects.countries).features.filter(f=>f.id!=="010");
+    HI_SHAPES=feats.map(f=>({id:f.id,d:path(f),c:WORLD.proj(d3.geoCentroid(f))})).filter(f=>f.d);
+  }catch(e){HI_SHAPES=WORLD.shapes}
+  return HI_SHAPES;
+}
 // Mapa para baixar (PNG/JPEG): cores fixas do tema claro; título e legenda em cima, como na tela
-function mapSVG(fontCss=""){
+function mapSVG(fontCss="",SH=null){
+  SH=SH||(WORLD&&SH);
   if(!WORLD)return null;
   const C={published:"#7a1712",upcoming:"#d9463f",pilot:"#f4b4ae",none:"#d9dcd8"},mm=S.mapMode==="monitor",ink="#1e2420";
   const byIso=new Map(CTRY.map(c=>[c.iso_n3,c])),W=WORLD.W;
@@ -837,24 +855,24 @@ function mapSVG(fontCss=""){
   let x=16,y=48;const g=keys.map(([sym,lab])=>{const w=21+lab.length*7.6+18;if(x+w>W-8){x=16;y+=22}
     const s=`<g transform="translate(${x},${y})">${sym}<text x="21" y="11.5" font-size="13" font-weight="500" fill="${ink}">${esc(lab)}</text></g>`;x+=w;return s}).join("");
   const top=y+28,H=top+WORLD.H+8;
-  const paths=WORLD.shapes.map(f=>{const c=byIso.get(f.id),st=c?stOf(c):"";return`<path d="${f.d}" fill="${C[st]||C.none}" stroke="#ffffff" stroke-width=".5"/>`}).join("");
-  const monSh=st=>!mm&&S.monShow?WORLD.shapes.filter(f=>{const c=byIso.get(f.id);return c&&monOf(c.country)===st}):[];
+  const paths=SH.map(f=>{const c=byIso.get(f.id),st=c?stOf(c):"";return`<path d="${f.d}" fill="${C[st]||C.none}" stroke="#ffffff" stroke-width=".5"/>`}).join("");
+  const monSh=st=>!mm&&S.monShow?SH.filter(f=>{const c=byIso.get(f.id);return c&&monOf(c.country)===st}):[];
   const over=monSh("published").map(f=>`<path d="${f.d}" fill="url(#mp-dots)"/>`).join("")
     +monSh("upcoming").filter(f=>f.c).map(f=>`<circle cx="${f.c[0].toFixed(1)}" cy="${f.c[1].toFixed(1)}" r="4" fill="#ffffff" stroke="${ink}" stroke-width="1.3"/>`).join("");
   // rótulos dos países: sigla ISO (BR), nome ou nenhum
   const P=WORLD.proj,abbr=S.mapLabels==="abbr";
   const labels=S.mapLabels==="none"?"":CTRY.filter(c=>stOf(c)).map(c=>{
-    const ll=(abbr?ABBR_AT:LABEL_AT)[c.country]||LABEL_AT[c.country],sh=WORLD.shapes.find(f=>f.id===c.iso_n3),xy=ll?P(ll):sh&&sh.c;if(!xy)return"";
+    const ll=(abbr?ABBR_AT:LABEL_AT)[c.country]||LABEL_AT[c.country],sh=SH.find(f=>f.id===c.iso_n3),xy=ll?P(ll):sh&&sh.c;if(!xy)return"";
     return`<text x="${xy[0].toFixed(1)}" y="${xy[1].toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="${abbr?9:9.5}" font-weight="700" fill="${ink}" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke">${esc(abbr?(c.iso_a2||c.country.slice(0,2).toUpperCase()):ctryName(c))}</text>`}).join("");
   // escala no Equador (Robinson): 2.000 km; norte simples
-  const e0=P([0,0]),e1=P([10,0]),kmPx=Math.hypot(e1[0]-e0[0],e1[1]-e0[1])/1111.95,bar=2000*kmPx,sx=24,sy=WORLD.H-26;
+  const e0=P([0,0]),e1=P([10,0]),kmPx=Math.hypot(e1[0]-e0[0],e1[1]-e0[1])/1111.95,bar=2000*kmPx,sx=W-24-bar-56,sy=WORLD.H-26;
   const scale=`<g transform="translate(${sx},${sy})" font-size="10" font-weight="500" fill="${ink}"><rect width="${(bar/2).toFixed(1)}" height="4" fill="${ink}"/><rect x="${(bar/2).toFixed(1)}" width="${(bar/2).toFixed(1)}" height="4" fill="#ffffff" stroke="${ink}" stroke-width=".8"/>
-    <text y="16" text-anchor="middle">0</text><text x="${bar.toFixed(1)}" y="16" text-anchor="start" dx="-4">2.000 km</text></g>`;
-  const north=`<g transform="translate(${sx+12},${sy-70})" fill="${ink}"><path d="M0-22L8 4 0-2-8 4Z"/><text y="18" text-anchor="middle" font-size="13" font-weight="700">N</text></g>`;
+    <text y="16" text-anchor="middle">0</text><text x="${(bar+6).toFixed(1)}" y="6" dominant-baseline="middle">2.000 km</text></g>`;
+  const north=`<g transform="translate(${W-28},28)" fill="${ink}"><path d="M0-22L8 4 0-2-8 4Z"/><text y="18" text-anchor="middle" font-size="13" font-weight="700">N</text></g>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Montserrat, Helvetica, Arial, sans-serif">
 <style>${fontCss}</style>${PATTERNS}<rect width="100%" height="100%" fill="#ffffff"/>
-<text x="16" y="30" font-size="18" font-weight="700" fill="${ink}">${esc(t(mm?"map_titleMon":"map_title"))}</text>${g}
-<g transform="translate(0,${top})">${paths}${over}${labels}${north}${scale}</g>
+<text x="16" y="30" font-size="18" font-weight="700" fill="${ink}">${esc(t(mm?"map_titleMon":"map_title"))}</text>${g}${north}
+<g transform="translate(0,${top})">${paths}${over}${labels}${scale}</g>
 </svg>`;
 }
 // siglas cabem dentro dos países: só os que precisam de ajuste (bolinha do Monitor no centro, países pequenos)
@@ -1126,7 +1144,7 @@ async function save(filename,data){
   try{await downloads.save({filename,data});toast(t("saved"))}catch(e){toast(e&&e.code==="declined"?t("declined"):t("noDl"))}
 }
 function baseName(){return `mapbiomas_fogo_${S.country}_col${String(collObj().id).replace(".","")}_${S.sub}_${periodLabel().replace("–","_")}`.toLowerCase()}
-function renderAll(){renderView();renderConsult();renderMap();if(S.view==="cadastro"){renderMatrix();renderNewColl();if(ED){const f=findByKey(ED.key);if(f)ED.c=f.c}renderEditor()}}
+function renderAll(){renderView();renderConsult();renderMap();if(S.view==="consultar"&&S.ov){renderMatrix();renderNewColl();if(ED){const f=findByKey(ED.key);if(f)ED.c=f.c}renderEditor()}}
 function setView(v){S.view=v;try{history.replaceState(null,"","#"+v)}catch(e){location.hash=v}renderAll()}
 
 document.addEventListener("click",e=>{
@@ -1146,7 +1164,8 @@ document.addEventListener("click",e=>{
   else switch(b.id){
     case"map-mon-tg":S.monShow=!S.monShow;store.set("monShow",S.monShow);renderMap();break;
     case"map-dl-png":case"map-dl-jpg":{const jpg=b.id==="map-dl-jpg";if(!WORLD)break;
-      fontCSS().then(f=>svgToPng(mapSVG(f),jpg?"image/jpeg":"image/png",3)).then(bl=>save(mapFile()+(jpg?".jpg":".png"),bl)).catch(()=>toast(t("noDl")));break}
+      toast(t("map_preparing"));Promise.all([fontCSS(),hiresShapes()]).then(([f,sh])=>svgToPng(mapSVG(f,sh),jpg?"image/jpeg":"image/png",5)).then(bl=>save(mapFile()+(jpg?".jpg":".png"),bl)).catch(()=>toast(t("noDl")));break}
+    case"ov-toggle":S.ov=!S.ov;store.set("overview",S.ov);renderAll();if(S.ov)$("v-cadastro").scrollIntoView({behavior:"smooth",block:"start"});break;
     case"map-colls-tg":S.mapColls=!S.mapColls;store.set("mapColls",S.mapColls);renderMap();break;
     case"btn-copyhex":copy(items().items.map(o=>o.hex).join("\n"));break;
     case"btn-copy":copy($("code").textContent);break;
@@ -1204,7 +1223,10 @@ document.addEventListener("input",e=>{const el=e.target;if(el.id==="tool-paste"&
 
 /* ===================== Inicialização ===================== */
 const VIEWS=["consultar","mapa","cadastro"];
-{const h=(location.hash||"").replace("#","");S.view=VIEWS.includes(h)?h:"consultar"}
+S.ov=store.get("overview",false)===true;
+// #cadastro (link antigo da Visão geral) abre Legendas com a Visão geral aberta
+function viewFromHash(){const h=(location.hash||"").replace("#","");if(h==="cadastro"){S.ov=true;return"consultar"}return VIEWS.includes(h)?h:"consultar"}
+S.view=viewFromHash();
 renderStatic();renderAll();
 fetch("countries.json",{cache:"no-cache"}).then(r=>r.ok?r.json():[]).then(j=>{CTRY=j.map(c=>({...c,iso_n3:String(c.iso_n3).padStart(3,"0")}));renderMap()}).catch(()=>{});
 (async()=>{
@@ -1224,7 +1246,7 @@ fetch("countries.json",{cache:"no-cache"}).then(r=>r.ok?r.json():[]).then(j=>{CT
   db.collection("colecoes").onSnapshot(snap=>{const next={};snap.docs.forEach(d=>{next[d.id]=d.data()});DEV=next;renderAll()},()=>{});
   renderAll();
 })();
-window.addEventListener("hashchange",()=>{const v=(location.hash||"").replace("#","");if(VIEWS.includes(v)){S.view=v;renderAll()}});
+window.addEventListener("hashchange",()=>{const v=(location.hash||"").replace("#","");if(VIEWS.includes(v)){S.view=viewFromHash();renderAll()}});
 </script>
 
 </body></html>
