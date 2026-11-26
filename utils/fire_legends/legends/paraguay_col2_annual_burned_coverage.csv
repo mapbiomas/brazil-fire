@@ -1,0 +1,16 @@
+pixel_value,name_pt,name_en,name_es,hex
+1,Floresta,Forest,Bosque,#1f8d49
+3,Lenhosas fechadas,Closed Natural Woodlands,Leñosas cerradas,#1f8d49
+4,Lenhosas abertas,Open Natural Woodlands,Leñosas abiertas,#7dc975
+6,Lenhosas inundáveis,Flooded Natural Woodlands,Leñosas inundables,#007785
+10,Vegetação herbácea e arbustiva,Natural herbaceous and shrub vegetation,Vegetación herbácea y arbustiva,#d6bc74
+11,Campos inundáveis,Flooded grasslands,Pastizales inundables,#519799
+12,Campo,Grassland,Pastizal,#d6bc74
+14,Agropecuária,Agricultural Areas,Agropecuario,#ffefc3
+15,Pastagem,Pasture,Pastura,#edde8e
+18,Agricultura,Agriculture,Agricultura,#e974ed
+9,Silvicultura,Forest Plantation,Forestaciones,#7a6c00
+22,Área não vegetada,Non vegetated area,Áreas sin vegetación,#d4271e
+25,Áreas não vegetadas,Non vegetated areas,Áreas sin vegetación,#db4d4f
+26,Corpo d'água,Water body,Cuerpo de agua,#2532e4
+33,"Rios, lagos e oceano","River, Lake and Ocean","Ríos, lagos y océano",#2532e4

@@ -5577,6 +5577,136 @@
   "subproduct": "annual_burned",
   "updatedAt": "from-repository"
  },
+ "paraguay__2__annual_burned_coverage": {
+  "classes": [
+   {
+    "en": "Forest",
+    "es": "Bosque",
+    "hex": "#1f8d49",
+    "pt": "Floresta",
+    "src": "oficial",
+    "v": 1
+   },
+   {
+    "en": "Closed Natural Woodlands",
+    "es": "Leñosas cerradas",
+    "hex": "#1f8d49",
+    "pt": "Lenhosas fechadas",
+    "src": "oficial",
+    "v": 3
+   },
+   {
+    "en": "Open Natural Woodlands",
+    "es": "Leñosas abiertas",
+    "hex": "#7dc975",
+    "pt": "Lenhosas abertas",
+    "src": "oficial",
+    "v": 4
+   },
+   {
+    "en": "Flooded Natural Woodlands",
+    "es": "Leñosas inundables",
+    "hex": "#007785",
+    "pt": "Lenhosas inundáveis",
+    "src": "oficial",
+    "v": 6
+   },
+   {
+    "en": "Natural herbaceous and shrub vegetation",
+    "es": "Vegetación herbácea y arbustiva",
+    "hex": "#d6bc74",
+    "pt": "Vegetação herbácea e arbustiva",
+    "src": "oficial",
+    "v": 10
+   },
+   {
+    "en": "Flooded grasslands",
+    "es": "Pastizales inundables",
+    "hex": "#519799",
+    "pt": "Campos inundáveis",
+    "src": "oficial",
+    "v": 11
+   },
+   {
+    "en": "Grassland",
+    "es": "Pastizal",
+    "hex": "#d6bc74",
+    "pt": "Campo",
+    "src": "oficial",
+    "v": 12
+   },
+   {
+    "en": "Agricultural Areas",
+    "es": "Agropecuario",
+    "hex": "#ffefc3",
+    "pt": "Agropecuária",
+    "src": "oficial",
+    "v": 14
+   },
+   {
+    "en": "Pasture",
+    "es": "Pastura",
+    "hex": "#edde8e",
+    "pt": "Pastagem",
+    "src": "oficial",
+    "v": 15
+   },
+   {
+    "en": "Agriculture",
+    "es": "Agricultura",
+    "hex": "#e974ed",
+    "pt": "Agricultura",
+    "src": "oficial",
+    "v": 18
+   },
+   {
+    "en": "Forest Plantation",
+    "es": "Forestaciones",
+    "hex": "#7a6c00",
+    "pt": "Silvicultura",
+    "src": "oficial",
+    "v": 9
+   },
+   {
+    "en": "Non vegetated area",
+    "es": "Áreas sin vegetación",
+    "hex": "#d4271e",
+    "pt": "Área não vegetada",
+    "src": "oficial",
+    "v": 22
+   },
+   {
+    "en": "Non vegetated areas",
+    "es": "Áreas sin vegetación",
+    "hex": "#db4d4f",
+    "pt": "Áreas não vegetadas",
+    "src": "oficial",
+    "v": 25
+   },
+   {
+    "en": "Water body",
+    "es": "Cuerpo de agua",
+    "hex": "#2532e4",
+    "pt": "Corpo d'água",
+    "src": "oficial",
+    "v": 26
+   },
+   {
+    "en": "River, Lake and Ocean",
+    "es": "Ríos, lagos y océano",
+    "hex": "#2532e4",
+    "pt": "Rios, lagos e oceano",
+    "src": "oficial",
+    "v": 33
+   }
+  ],
+  "collection": "2",
+  "country": "paraguay",
+  "expected": 15,
+  "status": "validada",
+  "subproduct": "annual_burned_coverage",
+  "updatedAt": "from-repository"
+ },
  "paraguay__2__annual_burned_scar_size_range": {
   "classes": [
    {
