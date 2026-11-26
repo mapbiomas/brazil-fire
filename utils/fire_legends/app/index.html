@@ -146,11 +146,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
 /* Mapa: países do MapBiomas Fogo (countries.json) + detalhe das coleções */
 .mapwrap{display:flex;flex-direction:column;gap:18px}
 #worldmap{min-height:120px}
-#worldmap circle{fill:#fff;stroke:#1e2420;stroke-width:1.6;pointer-events:none}
-.mring{width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #1e2420;display:inline-block;flex:none}
 .chip .cl{font-weight:500;color:var(--muted)}
-.mhatch{background:repeating-linear-gradient(45deg,#7a1712 0 3px,#f3d9d6 3px 5px)}
-.mflame{flex:none;display:inline-block;vertical-align:middle}
 .mmon{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
 .mmon .seg button{padding:6px 10px;font-size:12px}
 #map-detail .mcolls{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
@@ -257,7 +253,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
   <!-- ===================== MAPA ===================== -->
   <div id="v-mapa" class="mapwrap" hidden>
     <section class="panel">
-      <div class="card-h"><h3 id="t-mapTitle"></h3>
+      <div class="card-h"><div class="mmon"><h3 id="t-mapTitle"></h3><div class="seg" role="group" id="map-mode"></div></div>
         <div class="btns"><div class="mmon" id="map-mon"></div><button class="btn" type="button" id="map-colls-tg"></button></div></div>
       <div class="mkey" id="map-key"></div>
       <div id="worldmap"></div>
@@ -296,7 +292,9 @@ const T = {
     map_title:"Países do MapBiomas Fogo",map_published:"Coleção publicada",map_upcoming:"A publicar",map_pilot:"Piloto / treinamento",
     map_loading:"Carregando o mapa…",map_fail:"Não foi possível carregar o mapa. Use a lista abaixo.",
     map_pick:"Clique em um país no mapa ou na lista para ver as coleções.",map_nocoll:"Ainda sem coleção publicada.",
-    map_mon_fire:"Fogo",map_mon_ring:"Bolinha",map_mon_hatch:"Hachura",map_mon_none:"Ocultar",
+    map_hatch_fine:"Hachura fina",map_hatch_cross:"Cruzada",map_hatch_dots:"Pontilhada",map_hatch_none:"Ocultar",
+    map_modeAll:"Países e coleções",map_titleMon:"Monitor do Fogo por país",map_mon_published:"Monitor publicado",map_mon_upcoming:"Monitor a publicar",
+    map_sumMon:"{a} países com Monitor do Fogo publicado · {b} a publicar",map_monSoon:"Monitor do Fogo previsto para este país.",
     map_showColls:"Detalhar coleções",map_monitor:"Monitor do Fogo",map_collShort:"Col. {c}",
     map_coll:"Coleção {c}",map_regd:"{n} de {m} legendas cadastradas",map_open:"Ver legendas",
     map_sum:"{a} países com coleção publicada · {b} a publicar · {c} em piloto",
@@ -342,7 +340,9 @@ const T = {
     map_title:"Países de MapBiomas Fuego",map_published:"Colección publicada",map_upcoming:"Por publicar",map_pilot:"Piloto / capacitación",
     map_loading:"Cargando el mapa…",map_fail:"No fue posible cargar el mapa. Use la lista de abajo.",
     map_pick:"Haga clic en un país en el mapa o en la lista para ver las colecciones.",map_nocoll:"Aún sin colección publicada.",
-    map_mon_fire:"Fuego",map_mon_ring:"Círculo",map_mon_hatch:"Rayado",map_mon_none:"Ocultar",
+    map_hatch_fine:"Rayado fino",map_hatch_cross:"Cruzado",map_hatch_dots:"Punteado",map_hatch_none:"Ocultar",
+    map_modeAll:"Países y colecciones",map_titleMon:"Monitor del Fuego por país",map_mon_published:"Monitor publicado",map_mon_upcoming:"Monitor por publicar",
+    map_sumMon:"{a} países con Monitor del Fuego publicado · {b} por publicar",map_monSoon:"Monitor del Fuego previsto para este país.",
     map_showColls:"Detallar colecciones",map_monitor:"Monitor del Fuego",map_collShort:"Col. {c}",
     map_coll:"Colección {c}",map_regd:"{n} de {m} leyendas registradas",map_open:"Ver leyendas",
     map_sum:"{a} países con colección publicada · {b} por publicar · {c} en piloto",
@@ -388,7 +388,9 @@ const T = {
     map_title:"MapBiomas Fire countries",map_published:"Collection published",map_upcoming:"To be published",map_pilot:"Pilot / training",
     map_loading:"Loading the map…",map_fail:"The map could not be loaded. Use the list below.",
     map_pick:"Click a country on the map or in the list to see its collections.",map_nocoll:"No collection published yet.",
-    map_mon_fire:"Flame",map_mon_ring:"Dot",map_mon_hatch:"Hatching",map_mon_none:"Hide",
+    map_hatch_fine:"Fine hatching",map_hatch_cross:"Cross-hatching",map_hatch_dots:"Dots",map_hatch_none:"Hide",
+    map_modeAll:"Countries and collections",map_titleMon:"Fire Monitor by country",map_mon_published:"Monitor published",map_mon_upcoming:"Monitor to be published",
+    map_sumMon:"{a} countries with the Fire Monitor published · {b} to be published",map_monSoon:"Fire Monitor planned for this country.",
     map_showColls:"Show collections",map_monitor:"Fire Monitor",map_collShort:"Coll. {c}",
     map_coll:"Collection {c}",map_regd:"{n} of {m} legends registered",map_open:"See legends",
     map_sum:"{a} countries with a published collection · {b} to be published · {c} in pilot",
@@ -720,12 +722,29 @@ function renderView(){
 }
 
 /* ===================== Mapa de países ===================== */
-// Países e status vêm de countries.json (gerado a partir de countries.csv); coleções vêm de PUBLISHED.
+// Países, status e Monitor vêm de countries.json (gerado a partir de countries.csv); coleções vêm de PUBLISHED.
+// Dois modos: "all" = países e coleções (Monitor publicado como hachura) | "monitor" = só o Monitor do Fogo.
 const MAP_ST = ["published","upcoming","pilot"];
+const MON_ST = ["published","upcoming"];
+const MON_STYLES = ["fine","cross","dots","none"];
 let CTRY = [], WORLD = null, worldLoading = false;
 S.mapColls = store.get("mapColls",false);
+S.mapMode = store.get("mapMode","all")==="monitor"?"monitor":"all";
+S.monStyle = MON_STYLES.includes(store.get("monStyle2","fine"))?store.get("monStyle2","fine"):"fine";
 const ctryName = c=>c["name_"+S.lang]||c.country;
 const collLabel = p=>p.id==="Monitor"?SUBS.fire_monitor.name[S.lang]:t("map_coll",{c:p.id});
+const monOf = k=>(CTRY.find(c=>c.country===k)||{}).monitor||"";
+const hasMonitor = k=>monOf(k)==="published";
+// hachuras: no mapa (padrões SVG, em unidades do viewBox) e nos quadradinhos da legenda/lista (CSS)
+const PATTERNS = `<defs>
+  <pattern id="mp-fine" patternUnits="userSpaceOnUse" width="3.2" height="3.2" patternTransform="rotate(45)"><rect width=".9" height="3.2" fill="#fff" fill-opacity=".85"></rect></pattern>
+  <pattern id="mp-cross" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)"><rect width=".8" height="4" fill="#fff" fill-opacity=".85"></rect><rect width="4" height=".8" fill="#fff" fill-opacity=".85"></rect></pattern>
+  <pattern id="mp-dots" patternUnits="userSpaceOnUse" width="3.4" height="3.4"><circle cx="1.7" cy="1.7" r=".75" fill="#fff" fill-opacity=".9"></circle></pattern></defs>`;
+const SW_BG = {
+  fine:"repeating-linear-gradient(45deg,rgba(255,255,255,.85) 0 1px,transparent 1px 3.5px),var(--m-published)",
+  cross:"repeating-linear-gradient(45deg,rgba(255,255,255,.85) 0 1px,transparent 1px 4px),repeating-linear-gradient(-45deg,rgba(255,255,255,.85) 0 1px,transparent 1px 4px),var(--m-published)",
+  dots:"radial-gradient(rgba(255,255,255,.9) 1px,transparent 1.4px) 0 0/4px 4px,var(--m-published)"};
+const swatch = (bg,title)=>`<i class="msw" style="background:${bg}"${title?` title="${esc(title)}"`:""}></i>`;
 function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
 async function ensureWorld(){
   if(WORLD!==null||worldLoading)return;worldLoading=true;
@@ -741,62 +760,58 @@ async function ensureWorld(){
     const top=proj([12,80])[1],H=Math.ceil(proj([12,-57])[1]-top);
     proj.translate([proj.translate()[0],proj.translate()[1]-top]).clipExtent([[0,0],[W,H]]);
     const path=d3.geoPath(proj);
-    WORLD={W,H,shapes:feats.map(f=>({id:f.id,d:path(f),c:proj(d3.geoCentroid(f))})).filter(f=>f.d)};
+    WORLD={W,H,shapes:feats.map(f=>({id:f.id,d:path(f)})).filter(f=>f.d)};
   }catch(e){WORLD=false}
   worldLoading=false;renderMap();
 }
+// status do país no modo atual ("" = cinza)
+const stOf = c=>S.mapMode==="monitor"?c.monitor:c.status;
+const stLabel = st=>t((S.mapMode==="monitor"?"map_mon_":"map_")+st);
 function renderMap(){
   if(S.view!=="mapa")return;
-  $("t-mapTitle").textContent=t("map_title");
-  const tg=$("map-colls-tg");tg.textContent=t("map_showColls");tg.setAttribute("aria-pressed",!!S.mapColls);
-  $("map-key").innerHTML=MAP_ST.map(s=>`<span><i class="msw" style="background:var(--m-${s})"></i>${esc(t("map_"+s))}</span>`).join("")
-    +(S.monStyle!=="none"?`<span>${monIcon()}${esc(t("map_monitor"))}</span>`:"");
+  const mm=S.mapMode==="monitor";
+  $("t-mapTitle").textContent=t(mm?"map_titleMon":"map_title");
+  $("map-mode").innerHTML=[["all","map_modeAll"],["monitor","map_monitor"]].map(([m,k])=>`<button type="button" data-mapmode="${m}" aria-pressed="${S.mapMode===m}">${esc(t(k))}</button>`).join("");
+  const tg=$("map-colls-tg");tg.hidden=mm;tg.textContent=t("map_showColls");tg.setAttribute("aria-pressed",!!S.mapColls);
+  $("map-mon").hidden=mm;
   $("map-mon").innerHTML=`<span class="lab">${esc(t("map_monitor"))}</span><div class="seg" role="group" aria-label="${esc(t("map_monitor"))}">${
-    MON_STYLES.map(m=>`<button type="button" data-mon="${m}" aria-pressed="${S.monStyle===m}">${esc(t("map_mon_"+m))}</button>`).join("")}</div>`;
+    MON_STYLES.map(m=>`<button type="button" data-mon="${m}" aria-pressed="${S.monStyle===m}">${esc(t("map_hatch_"+m))}</button>`).join("")}</div>`;
+  $("map-key").innerHTML=(mm?MON_ST:MAP_ST).map(s=>`<span>${swatch(`var(--m-${s})`)}${esc(stLabel(s))}</span>`).join("")
+    +(!mm&&S.monStyle!=="none"?`<span>${swatch(SW_BG[S.monStyle])}${esc(t("map_mon_published"))}</span>`:"");
   const byIso=new Map(CTRY.map(c=>[c.iso_n3,c])),box=$("worldmap");
   if(WORLD===null){box.innerHTML=`<p class="note">${t("map_loading")}</p>`;ensureWorld()}
   else if(WORLD===false)box.innerHTML=`<p class="note">${t("map_fail")}</p>`;
   else{
-    const shapes=WORLD.shapes.slice().sort((a,b)=>(byIso.get(a.id)?.country===S.mapSel)-(byIso.get(b.id)?.country===S.mapSel));
-    const mon=WORLD.shapes.filter(f=>{const c=byIso.get(f.id);return c&&hasMonitor(c.country)});
-    const monLayer=S.monStyle==="hatch"?mon.map(f=>`<path d="${f.d}" style="fill:url(#mhatch);stroke:none;pointer-events:none"></path>`).join("")
-      :S.monStyle==="ring"?mon.filter(f=>f.c).map(f=>`<circle cx="${f.c[0].toFixed(1)}" cy="${f.c[1].toFixed(1)}" r="5"></circle>`).join("")
-      :S.monStyle==="fire"?mon.filter(f=>f.c).map(f=>`<g transform="translate(${f.c[0].toFixed(1)},${f.c[1].toFixed(1)}) scale(0.7)" style="pointer-events:none">${FLAME}</g>`).join(""):"";
-    box.innerHTML=`<svg viewBox="0 0 ${WORLD.W} ${WORLD.H}" role="group" aria-label="${esc(t("map_title"))}"><defs><pattern id="mhatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="2" height="5" fill="#ffffff" fill-opacity=".75"></rect></pattern></defs>${shapes.map(f=>{
-      const c=byIso.get(f.id),st=c?c.status:"none";
-      const tip=c?[ctryName(c),t("map_"+st),collSummary(c.country)].filter(Boolean).join(" · "):"";
-      return c?`<path d="${f.d}" style="fill:var(--m-${st})" class="on${c.country===S.mapSel?" sel":""}" data-mc="${esc(c.country)}" tabindex="0" role="button" aria-label="${esc(tip)}"><title>${esc(tip)}</title></path>`
-        :`<path d="${f.d}" style="fill:var(--m-none)"></path>`}).join("")}${monLayer}</svg>`;
+    const on=f=>{const c=byIso.get(f.id);return c&&stOf(c)?c:null};
+    const shapes=WORLD.shapes.slice().sort((a,b)=>(on(a)?.country===S.mapSel)-(on(b)?.country===S.mapSel));
+    const hatch=!mm&&S.monStyle!=="none"?WORLD.shapes.filter(f=>{const c=byIso.get(f.id);return c&&hasMonitor(c.country)})
+      .map(f=>`<path d="${f.d}" style="fill:url(#mp-${S.monStyle});stroke:none;pointer-events:none"></path>`).join(""):"";
+    box.innerHTML=`<svg viewBox="0 0 ${WORLD.W} ${WORLD.H}" role="group" aria-label="${esc(t(mm?"map_titleMon":"map_title"))}">${PATTERNS}${shapes.map(f=>{
+      const c=on(f);if(!c)return`<path d="${f.d}" style="fill:var(--m-none)"></path>`;
+      const st=stOf(c),tip=[ctryName(c),stLabel(st),mm?"":collSummary(c.country)].filter(Boolean).join(" · ");
+      return`<path d="${f.d}" style="fill:var(--m-${st})" class="on${c.country===S.mapSel?" sel":""}" data-mc="${esc(c.country)}" tabindex="0" role="button" aria-label="${esc(tip)}"><title>${esc(tip)}</title></path>`}).join("")}${hatch}</svg>`;
   }
-  $("map-list").innerHTML=MAP_ST.flatMap(s=>CTRY.filter(c=>c.status===s)).map(c=>{const cs=S.mapColls?collSummary(c.country):"";
-    return `<button class="chip" data-mc="${esc(c.country)}" aria-pressed="${c.country===S.mapSel}"><i class="msw" style="background:var(--m-${c.status})"></i>${esc(ctryName(c))}${cs?` <span class="cl">${esc(cs)}</span>`:""}${hasMonitor(c.country)&&S.monStyle!=="none"?monIcon(t("map_monitor")):""}</button>`}).join("");
+  $("map-list").innerHTML=(mm?MON_ST:MAP_ST).flatMap(s=>CTRY.filter(c=>stOf(c)===s)).map(c=>{
+    const cs=mm?monPeriod(c.country):S.mapColls?collSummary(c.country):"";
+    const mk=!mm&&hasMonitor(c.country)&&S.monStyle!=="none"?swatch(SW_BG[S.monStyle],t("map_mon_published")):"";
+    return`<button class="chip" data-mc="${esc(c.country)}" aria-pressed="${c.country===S.mapSel}">${swatch(`var(--m-${stOf(c)})`)}${esc(ctryName(c))}${cs?` <span class="cl">${esc(cs)}</span>`:""}${mk}</button>`}).join("");
   renderMapDetail();
 }
-// Monitor do Fogo: ícone de fogo, bolinha, hachura sobre o país ou oculto
-const MON_STYLES = ["fire","ring","hatch","none"];
-S.monStyle = MON_STYLES.includes(store.get("monStyle","fire"))?store.get("monStyle","fire"):"fire";
-const FLAME = `<path d="M0-9C1.5-5 6-3.5 6 2.2 6 5.9 3.3 8 0 8S-6 5.9-6 2.2C-6-1.2-3.6-3-2.6-5.8-1.6-3.6-.8-2.8.4-2.4.6-4.8 0-7 0-9Z" fill="#ffb703" stroke="#3d0c08" stroke-width="1.3" stroke-linejoin="round"></path><path d="M0 1.5C1.2 3 2.4 3.6 2.4 5.2 2.4 6.6 1.3 7.3 0 7.3S-2.4 6.6-2.4 5.2C-2.4 3.7-1 3-.0 1.5Z" fill="#e85d04"></path>`;
-function monIcon(title){
-  const tt=title?` title="${esc(title)}"`:"";
-  if(S.monStyle==="ring")return`<i class="mring"${tt}></i>`;
-  if(S.monStyle==="hatch")return`<i class="msw mhatch"${tt}></i>`;
-  return`<svg class="mflame" viewBox="-7 -10 14 19" width="12" height="16" aria-hidden="true"${tt}>${FLAME}</svg>`;
-}
-const hasMonitor = k=>PUBLISHED.some(p=>p.country===k&&p.id==="Monitor");
+function monPeriod(k){const p=PUBLISHED.find(x=>x.country===k&&x.id==="Monitor");return p?`${p.start}–${p.end}`:""}
 function collSummary(k){const ids=PUBLISHED.filter(p=>p.country===k&&p.id!=="Monitor").map(p=>p.id);
   return [ids.length?t("map_collShort",{c:ids.join(", ")}):"",hasMonitor(k)?"Monitor":""].filter(Boolean).join(" · ")}
+function collCard(p){const reg=p.subs.filter(s=>PAL[pkey(p,s)]).length;
+  return `<div class="mcoll"><div class="mcoll-h"><b>${esc(collLabel(p))}</b><span class="note">${p.start}–${p.end} · ${esc(p.sensor)}</span></div>
+    <div class="chips">${p.subs.map(s=>`<span class="chip static">${esc(SUBS[s].name[S.lang])}</span>`).join("")}</div>
+    <p class="note">${esc(t("map_regd",{n:reg,m:p.subs.length}))}</p>
+    <div><button class="btn" type="button" data-goto="${esc(p.country)}|${esc(p.id)}">${t("map_open")}</button></div></div>`}
 function renderMapDetail(){
-  const el=$("map-detail"),c=CTRY.find(x=>x.country===S.mapSel);
-  if(!c){const n=s=>CTRY.filter(x=>x.status===s).length;
-    el.innerHTML=`<p>${esc(t("map_sum",{a:n("published"),b:n("upcoming"),c:n("pilot")}))}</p><p class="note">${t("map_pick")}</p>`;return}
-  const colls=PUBLISHED.filter(p=>p.country===c.country);
-  el.innerHTML=`<div class="card-h"><h3>${esc(ctryName(c))}</h3><span class="mbadge ${c.status}" style="background:var(--m-${c.status})">${esc(t("map_"+c.status))}</span></div>`+
-    (colls.length?`<div class="mcolls">`+colls.map(p=>{const reg=p.subs.filter(s=>PAL[pkey(p,s)]).length;
-      return `<div class="mcoll"><div class="mcoll-h"><b>${esc(collLabel(p))}</b><span class="note">${p.start}–${p.end} · ${esc(p.sensor)}</span></div>
-        <div class="chips">${p.subs.map(s=>`<span class="chip static">${esc(SUBS[s].name[S.lang])}</span>`).join("")}</div>
-        <p class="note">${esc(t("map_regd",{n:reg,m:p.subs.length}))}</p>
-        <div><button class="btn" type="button" data-goto="${esc(p.country)}|${esc(p.id)}">${t("map_open")}</button></div></div>`}).join("")+`</div>`
-    :`<p class="note">${t("map_nocoll")}</p>`);
+  const el=$("map-detail"),mm=S.mapMode==="monitor",c=CTRY.find(x=>x.country===S.mapSel&&stOf(x));
+  const n=s=>CTRY.filter(x=>stOf(x)===s).length;
+  if(!c){el.innerHTML=`<p>${esc(mm?t("map_sumMon",{a:n("published"),b:n("upcoming")}):t("map_sum",{a:n("published"),b:n("upcoming"),c:n("pilot")}))}</p><p class="note">${t("map_pick")}</p>`;return}
+  const st=stOf(c),colls=PUBLISHED.filter(p=>p.country===c.country&&(!mm||p.id==="Monitor"));
+  el.innerHTML=`<div class="card-h"><h3>${esc(ctryName(c))}</h3><span class="mbadge ${st}" style="background:var(--m-${st})">${esc(stLabel(st))}</span></div>`+
+    (colls.length?`<div class="mcolls">${colls.map(collCard).join("")}</div>`:`<p class="note">${t(mm?"map_monSoon":"map_nocoll")}</p>`);
 }
 function pickColl(id){S.coll=id;const c=collObj();if(!c)return;S.y=c.end;S.s=c.start;S.e=c.end}
 function defaultColl(list){const m=list.filter(c=>c.id!=="Monitor");return(m[m.length-1]||list[list.length-1])?.id}
@@ -1066,7 +1081,8 @@ function setView(v){S.view=v;try{history.replaceState(null,"","#"+v)}catch(e){lo
 document.addEventListener("click",e=>{
   const mc=e.target.closest("[data-mc]");if(mc){S.mapSel=mc.dataset.mc;renderMap();return}
   const b=e.target.closest("button");if(!b)return;
-  if(b.dataset.mon){S.monStyle=b.dataset.mon;store.set("monStyle",S.monStyle);renderMap();return}
+  if(b.dataset.mon){S.monStyle=b.dataset.mon;store.set("monStyle2",S.monStyle);renderMap();return}
+  if(b.dataset.mapmode){S.mapMode=b.dataset.mapmode;store.set("mapMode",S.mapMode);renderMap();return}
   if(b.dataset.goto){const[k,id]=b.dataset.goto.split("|");S.country=k;pickColl(id);const c=collObj();if(c&&!c.subs.includes(S.sub))S.sub=c.subs[0];setView("consultar");window.scrollTo(0,0);return}
   if(b.dataset.lang){S.lang=b.dataset.lang;store.set("lang",S.lang);renderStatic();renderAll()}
   else if(b.dataset.view){setView(b.dataset.view)}

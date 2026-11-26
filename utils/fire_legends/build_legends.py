@@ -25,8 +25,9 @@ LEGEND_COLUMNS = ["pixel_value", "name_pt", "name_en", "name_es", "hex"]
 STATUSES = {"active", "review", "pending_colors", "deprecated", "not_found"}
 HEX_RE = re.compile(r"^#[0-9a-f]{6}$")
 COUNTRIES = os.path.join(HERE, "countries.csv")
-COUNTRY_COLUMNS = ["country", "iso_n3", "name_pt", "name_en", "name_es", "status"]
+COUNTRY_COLUMNS = ["country", "iso_n3", "name_pt", "name_en", "name_es", "status", "monitor"]
 COUNTRY_STATUSES = {"published", "upcoming", "pilot"}
+MONITOR_STATUSES = {"", "published", "upcoming"}
 
 
 def read_csv(path):
@@ -145,6 +146,8 @@ def load_countries():
             errors.append(f"countries.csv line {n}: iso_n3 must be the 3-digit ISO numeric code (e.g. 076)")
         if r["status"] not in COUNTRY_STATUSES:
             errors.append(f"countries.csv line {n}: status must be one of {sorted(COUNTRY_STATUSES)}")
+        if r["monitor"] not in MONITOR_STATUSES:
+            errors.append(f"countries.csv line {n}: monitor must be published, upcoming or empty")
         if not all(r[k].strip() for k in ("name_pt", "name_en", "name_es")):
             errors.append(f"countries.csv line {n}: name_pt, name_en and name_es are required")
     return rows, errors
