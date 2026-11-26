@@ -724,6 +724,8 @@ function renderView(){
   $("v-consultar").hidden=!lg;$("ov-bar").hidden=!lg;$("v-cadastro").hidden=!(lg&&S.ov);$("v-mapa").hidden=S.view!=="mapa";
   const ot=$("ov-toggle");ot.setAttribute("aria-expanded",!!S.ov);ot.innerHTML=`<span aria-hidden="true">${S.ov?"▾":"▸"}</span> ${esc(t("v_reg"))} <span class="cl">· ${esc(t("ov_hint"))}</span>`;
   $("view-consult").setAttribute("aria-selected",lg);
+  // título e subtítulo só na aba Legendas (o mapa tem o próprio título)
+  $("t-title").closest("h1").hidden=!lg;$("t-sub").hidden=!lg;
   $("view-map").setAttribute("aria-selected",S.view==="mapa");
 }
 
