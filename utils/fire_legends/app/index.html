@@ -260,7 +260,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
       <div class="mkey" id="map-key"></div>
       <div id="worldmap"></div>
       <div class="chips" id="map-list"></div>
-      <div class="btns"><button class="btn" id="map-dl-svg" type="button">SVG</button><button class="btn" id="map-dl-png" type="button">PNG</button></div>
+      <div class="btns"><button class="btn" id="map-dl-png" type="button">PNG</button><button class="btn" id="map-dl-jpg" type="button">JPEG</button></div>
     </section>
     <aside class="panel" id="map-detail" aria-live="polite"></aside>
   </div>
@@ -756,7 +756,7 @@ async function ensureWorld(){
     const top=proj([12,80])[1],H=Math.ceil(proj([12,-57])[1]-top);
     proj.translate([proj.translate()[0],proj.translate()[1]-top]).clipExtent([[0,0],[W,H]]);
     const path=d3.geoPath(proj);
-    WORLD={W,H,shapes:feats.map(f=>({id:f.id,d:path(f),c:proj(d3.geoCentroid(f))})).filter(f=>f.d)};
+    WORLD={W,H,proj,shapes:feats.map(f=>({id:f.id,d:path(f),c:proj(d3.geoCentroid(f))})).filter(f=>f.d)};
   }catch(e){WORLD=false}
   worldLoading=false;renderMap();
 }
@@ -821,15 +821,27 @@ function mapSVG(){
   const keys=(mm?MON_ST:MAP_ST).map(s=>[`<rect width="14" height="14" rx="2" fill="${C[s]}"/>`,stLabel(s)]);
   if(!mm&&S.monShow)keys.push([`<rect width="14" height="14" rx="2" fill="${C.published}"/><rect width="14" height="14" rx="2" fill="url(#mp-dots)"/>`,t("map_mon_published")],
     [`<circle cx="7" cy="7" r="4.5" fill="#ffffff" stroke="#1e2420" stroke-width="1.5"/>`,t("map_mon_upcoming")]);
+  const P=WORLD.proj,shown=CTRY.filter(c=>stOf(c));
+  const labels=shown.map(c=>{const ll=LABEL_AT[c.country];const sh=WORLD.shapes.find(f=>f.id===c.iso_n3);
+    const xy=ll?P(ll):sh&&sh.c;if(!xy)return"";
+    return`<text x="${xy[0].toFixed(1)}" y="${xy[1].toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1b1b1b" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke">${esc(ctryName(c))}</text>`}).join("");
+  // escala no Equador (Robinson): 2.000 km; norte simples
+  const e0=P([0,0]),e1=P([10,0]),kmPx=Math.hypot(e1[0]-e0[0],e1[1]-e0[1])/1111.95,bar=2000*kmPx,sx=24,sy=WORLD.H-26;
+  const scale=`<g transform="translate(${sx},${sy})" font-size="10" fill="#1b1b1b"><rect width="${(bar/2).toFixed(1)}" height="4" fill="#1b1b1b"/><rect x="${(bar/2).toFixed(1)}" width="${(bar/2).toFixed(1)}" height="4" fill="#ffffff" stroke="#1b1b1b" stroke-width=".8"/>
+    <text y="16" text-anchor="middle">0</text><text x="${bar.toFixed(1)}" y="16" text-anchor="start" dx="-4">2.000 km</text></g>`;
+  const north=`<g transform="translate(${sx+12},${sy-70})" fill="#1b1b1b"><path d="M0-22L8 4 0-2-8 4Z"/><text y="18" text-anchor="middle" font-size="13" font-weight="700">N</text></g>`;
   let x=16,y=top+WORLD.H+22;const g=keys.map(([sym,lab])=>{const w=24+lab.length*7.4+22;if(x+w>W-8){x=16;y+=24}
     const s=`<g transform="translate(${x},${y})">${sym}<text x="22" y="11.5" font-size="13" fill="#1b1b1b">${esc(lab)}</text></g>`;x+=w;return s}).join("");
   const H=y+30;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Montserrat, Helvetica, Arial, sans-serif">
 ${PATTERNS}<rect width="100%" height="100%" fill="#ffffff"/>
 <text x="16" y="30" font-size="18" font-weight="700" fill="#1b1b1b">${esc(t(mm?"map_titleMon":"map_title"))}</text>
-<g transform="translate(0,${top})">${paths}${over}</g>${g}
+<g transform="translate(0,${top})">${paths}${over}${labels}${north}${scale}</g>${g}
 </svg>`;
 }
+// posição dos nomes no mapa baixado [lon, lat]; países sem posição usam o centro do país
+const LABEL_AT = {brasil:[-51,-11],argentina:[-65,-36],bolivia:[-64.5,-13.2],chile:[-76.5,-33],colombia:[-73,1],paraguay:[-58,-23.5],
+  peru:[-75,-9.5],indonesia:[117,-6.5],venezuela:[-67.5,9.6],ecuador:[-87,-1.5],guyana:[-53,10.8],suriname:[-48,5.5]};
 const mapFile = ()=>(S.mapMode==="monitor"?"mapbiomas_fogo_mapa_monitor":"mapbiomas_fogo_mapa_paises")+"_"+S.lang;
 function pickColl(id){S.coll=id;const c=collObj();if(!c)return;S.y=c.end;S.s=c.start;S.e=c.end}
 function defaultColl(list){const m=list.filter(c=>c.id!=="Monitor");return(m[m.length-1]||list[list.length-1])?.id}
@@ -930,10 +942,10 @@ function legendSVG(it){
 ${g}
 <text x="16" y="${H-12}" font-size="10.5" fill="#7a7a7a">${esc(cite())}</text></svg>`;
 }
-function svgToPng(svg){return new Promise((res,rej)=>{
+function svgToPng(svg,type="image/png",k=2){return new Promise((res,rej)=>{
   const url=URL.createObjectURL(new Blob([svg],{type:"image/svg+xml"})),img=new Image();
-  img.onload=()=>{const k=2,cv=document.createElement("canvas");cv.width=img.width*k;cv.height=img.height*k;
-    const cx=cv.getContext("2d");cx.scale(k,k);cx.drawImage(img,0,0);URL.revokeObjectURL(url);cv.toBlob(b=>b?res(b):rej(),"image/png")};
+  img.onload=()=>{const cv=document.createElement("canvas");cv.width=img.width*k;cv.height=img.height*k;
+    const cx=cv.getContext("2d");cx.scale(k,k);cx.drawImage(img,0,0);URL.revokeObjectURL(url);cv.toBlob(b=>b?res(b):rej(),type,.92)};
   img.onerror=rej;img.src=url})}
 function renderConsult(){
   if(!renderControls()){["legend","strip","ptable","meta","meta-note"].forEach(i=>$(i).innerHTML="");$("code").textContent="";return}
@@ -1111,8 +1123,8 @@ document.addEventListener("click",e=>{
   else if(b.dataset.rm){ED.classes.splice(+b.dataset.rm,1);ED.dirty=true;renderEditor()}
   else switch(b.id){
     case"map-mon-tg":S.monShow=!S.monShow;store.set("monShow",S.monShow);renderMap();break;
-    case"map-dl-svg":{const s=mapSVG();if(s)save(mapFile()+".svg",s);break}
-    case"map-dl-png":{const s=mapSVG();if(s)svgToPng(s).then(bl=>save(mapFile()+".png",bl)).catch(()=>toast(t("noDl")));break}
+    case"map-dl-png":case"map-dl-jpg":{const s=mapSVG(),jpg=b.id==="map-dl-jpg";
+      if(s)svgToPng(s,jpg?"image/jpeg":"image/png",3).then(bl=>save(mapFile()+(jpg?".jpg":".png"),bl)).catch(()=>toast(t("noDl")));break}
     case"map-colls-tg":S.mapColls=!S.mapColls;store.set("mapColls",S.mapColls);renderMap();break;
     case"btn-copyhex":copy(items().items.map(o=>o.hex).join("\n"));break;
     case"btn-copy":copy($("code").textContent);break;
