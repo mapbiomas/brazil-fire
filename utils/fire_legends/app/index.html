@@ -147,6 +147,8 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
 .mapwrap{display:flex;flex-direction:column;gap:18px}
 #worldmap{min-height:120px}
 .chip .cl{font-weight:500;color:var(--muted)}
+#worldmap circle.mring-svg{fill:#fff;stroke:#1e2420;stroke-width:1.3;pointer-events:none}
+.mring{width:10px;height:10px;border-radius:50%;background:#fff;border:1.5px solid #1e2420;display:inline-block;flex:none}
 .mmon{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
 .mmon .seg button{padding:6px 10px;font-size:12px}
 #map-detail .mcolls{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
@@ -258,6 +260,7 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8
       <div class="mkey" id="map-key"></div>
       <div id="worldmap"></div>
       <div class="chips" id="map-list"></div>
+      <div class="btns"><button class="btn" id="map-dl-svg" type="button">SVG</button><button class="btn" id="map-dl-png" type="button">PNG</button></div>
     </section>
     <aside class="panel" id="map-detail" aria-live="polite"></aside>
   </div>
@@ -292,7 +295,6 @@ const T = {
     map_title:"Países do MapBiomas Fogo",map_published:"Coleção publicada",map_upcoming:"A publicar",map_pilot:"Piloto / treinamento",
     map_loading:"Carregando o mapa…",map_fail:"Não foi possível carregar o mapa. Use a lista abaixo.",
     map_pick:"Clique em um país no mapa ou na lista para ver as coleções.",map_nocoll:"Ainda sem coleção publicada.",
-    map_hatch_fine:"Hachura fina",map_hatch_cross:"Cruzada",map_hatch_dots:"Pontilhada",map_hatch_none:"Ocultar",
     map_modeAll:"Países e coleções",map_titleMon:"Monitor do Fogo por país",map_mon_published:"Monitor publicado",map_mon_upcoming:"Monitor a publicar",
     map_sumMon:"{a} países com Monitor do Fogo publicado · {b} a publicar",map_monSoon:"Monitor do Fogo previsto para este país.",
     map_showColls:"Detalhar coleções",map_monitor:"Monitor do Fogo",map_collShort:"Col. {c}",
@@ -340,7 +342,6 @@ const T = {
     map_title:"Países de MapBiomas Fuego",map_published:"Colección publicada",map_upcoming:"Por publicar",map_pilot:"Piloto / capacitación",
     map_loading:"Cargando el mapa…",map_fail:"No fue posible cargar el mapa. Use la lista de abajo.",
     map_pick:"Haga clic en un país en el mapa o en la lista para ver las colecciones.",map_nocoll:"Aún sin colección publicada.",
-    map_hatch_fine:"Rayado fino",map_hatch_cross:"Cruzado",map_hatch_dots:"Punteado",map_hatch_none:"Ocultar",
     map_modeAll:"Países y colecciones",map_titleMon:"Monitor del Fuego por país",map_mon_published:"Monitor publicado",map_mon_upcoming:"Monitor por publicar",
     map_sumMon:"{a} países con Monitor del Fuego publicado · {b} por publicar",map_monSoon:"Monitor del Fuego previsto para este país.",
     map_showColls:"Detallar colecciones",map_monitor:"Monitor del Fuego",map_collShort:"Col. {c}",
@@ -388,7 +389,6 @@ const T = {
     map_title:"MapBiomas Fire countries",map_published:"Collection published",map_upcoming:"To be published",map_pilot:"Pilot / training",
     map_loading:"Loading the map…",map_fail:"The map could not be loaded. Use the list below.",
     map_pick:"Click a country on the map or in the list to see its collections.",map_nocoll:"No collection published yet.",
-    map_hatch_fine:"Fine hatching",map_hatch_cross:"Cross-hatching",map_hatch_dots:"Dots",map_hatch_none:"Hide",
     map_modeAll:"Countries and collections",map_titleMon:"Fire Monitor by country",map_mon_published:"Monitor published",map_mon_upcoming:"Monitor to be published",
     map_sumMon:"{a} countries with the Fire Monitor published · {b} to be published",map_monSoon:"Fire Monitor planned for this country.",
     map_showColls:"Show collections",map_monitor:"Fire Monitor",map_collShort:"Coll. {c}",
@@ -726,24 +726,20 @@ function renderView(){
 // Dois modos: "all" = países e coleções (Monitor publicado como hachura) | "monitor" = só o Monitor do Fogo.
 const MAP_ST = ["published","upcoming","pilot"];
 const MON_ST = ["published","upcoming"];
-const MON_STYLES = ["fine","cross","dots","none"];
 let CTRY = [], WORLD = null, worldLoading = false;
 S.mapColls = store.get("mapColls",false);
 S.mapMode = store.get("mapMode","all")==="monitor"?"monitor":"all";
-S.monStyle = MON_STYLES.includes(store.get("monStyle2","fine"))?store.get("monStyle2","fine"):"fine";
+S.monShow = store.get("monShow",true)!==false;
 const ctryName = c=>c["name_"+S.lang]||c.country;
 const collLabel = p=>p.id==="Monitor"?SUBS.fire_monitor.name[S.lang]:t("map_coll",{c:p.id});
 const monOf = k=>(CTRY.find(c=>c.country===k)||{}).monitor||"";
 const hasMonitor = k=>monOf(k)==="published";
 // hachuras: no mapa (padrões SVG, em unidades do viewBox) e nos quadradinhos da legenda/lista (CSS)
 const PATTERNS = `<defs>
-  <pattern id="mp-fine" patternUnits="userSpaceOnUse" width="3.2" height="3.2" patternTransform="rotate(45)"><rect width=".9" height="3.2" fill="#fff" fill-opacity=".85"></rect></pattern>
-  <pattern id="mp-cross" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)"><rect width=".8" height="4" fill="#fff" fill-opacity=".85"></rect><rect width="4" height=".8" fill="#fff" fill-opacity=".85"></rect></pattern>
   <pattern id="mp-dots" patternUnits="userSpaceOnUse" width="3.4" height="3.4"><circle cx="1.7" cy="1.7" r=".75" fill="#fff" fill-opacity=".9"></circle></pattern></defs>`;
-const SW_BG = {
-  fine:"repeating-linear-gradient(45deg,rgba(255,255,255,.85) 0 1px,transparent 1px 3.5px),var(--m-published)",
-  cross:"repeating-linear-gradient(45deg,rgba(255,255,255,.85) 0 1px,transparent 1px 4px),repeating-linear-gradient(-45deg,rgba(255,255,255,.85) 0 1px,transparent 1px 4px),var(--m-published)",
-  dots:"radial-gradient(rgba(255,255,255,.9) 1px,transparent 1.4px) 0 0/4px 4px,var(--m-published)"};
+// Monitor publicado = pontilhado branco sobre o país; Monitor a publicar = bolinha no centro do país
+const DOTS_BG = "radial-gradient(rgba(255,255,255,.9) 1px,transparent 1.4px) 0 0/4px 4px,var(--m-published)";
+const ring = title=>`<i class="mring"${title?` title="${esc(title)}"`:""}></i>`;
 const swatch = (bg,title)=>`<i class="msw" style="background:${bg}"${title?` title="${esc(title)}"`:""}></i>`;
 function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
 async function ensureWorld(){
@@ -760,7 +756,7 @@ async function ensureWorld(){
     const top=proj([12,80])[1],H=Math.ceil(proj([12,-57])[1]-top);
     proj.translate([proj.translate()[0],proj.translate()[1]-top]).clipExtent([[0,0],[W,H]]);
     const path=d3.geoPath(proj);
-    WORLD={W,H,shapes:feats.map(f=>({id:f.id,d:path(f)})).filter(f=>f.d)};
+    WORLD={W,H,shapes:feats.map(f=>({id:f.id,d:path(f),c:proj(d3.geoCentroid(f))})).filter(f=>f.d)};
   }catch(e){WORLD=false}
   worldLoading=false;renderMap();
 }
@@ -774,18 +770,18 @@ function renderMap(){
   $("map-mode").innerHTML=[["all","map_modeAll"],["monitor","map_monitor"]].map(([m,k])=>`<button type="button" data-mapmode="${m}" aria-pressed="${S.mapMode===m}">${esc(t(k))}</button>`).join("");
   const tg=$("map-colls-tg");tg.hidden=mm;tg.textContent=t("map_showColls");tg.setAttribute("aria-pressed",!!S.mapColls);
   $("map-mon").hidden=mm;
-  $("map-mon").innerHTML=`<span class="lab">${esc(t("map_monitor"))}</span><div class="seg" role="group" aria-label="${esc(t("map_monitor"))}">${
-    MON_STYLES.map(m=>`<button type="button" data-mon="${m}" aria-pressed="${S.monStyle===m}">${esc(t("map_hatch_"+m))}</button>`).join("")}</div>`;
+  $("map-mon").innerHTML=`<button class="btn" type="button" id="map-mon-tg" aria-pressed="${S.monShow}">${esc(t("map_monitor"))}</button>`;
   $("map-key").innerHTML=(mm?MON_ST:MAP_ST).map(s=>`<span>${swatch(`var(--m-${s})`)}${esc(stLabel(s))}</span>`).join("")
-    +(!mm&&S.monStyle!=="none"?`<span>${swatch(SW_BG[S.monStyle])}${esc(t("map_mon_published"))}</span>`:"");
+    +(!mm&&S.monShow?`<span>${swatch(DOTS_BG)}${esc(t("map_mon_published"))}</span><span>${ring()}${esc(t("map_mon_upcoming"))}</span>`:"");
   const byIso=new Map(CTRY.map(c=>[c.iso_n3,c])),box=$("worldmap");
   if(WORLD===null){box.innerHTML=`<p class="note">${t("map_loading")}</p>`;ensureWorld()}
   else if(WORLD===false)box.innerHTML=`<p class="note">${t("map_fail")}</p>`;
   else{
     const on=f=>{const c=byIso.get(f.id);return c&&stOf(c)?c:null};
     const shapes=WORLD.shapes.slice().sort((a,b)=>(on(a)?.country===S.mapSel)-(on(b)?.country===S.mapSel));
-    const hatch=!mm&&S.monStyle!=="none"?WORLD.shapes.filter(f=>{const c=byIso.get(f.id);return c&&hasMonitor(c.country)})
-      .map(f=>`<path d="${f.d}" style="fill:url(#mp-${S.monStyle});stroke:none;pointer-events:none"></path>`).join(""):"";
+    const monSh=st=>!mm&&S.monShow?WORLD.shapes.filter(f=>{const c=byIso.get(f.id);return c&&monOf(c.country)===st}):[];
+    const hatch=monSh("published").map(f=>`<path d="${f.d}" style="fill:url(#mp-dots);stroke:none;pointer-events:none"></path>`).join("")
+      +monSh("upcoming").filter(f=>f.c).map(f=>`<circle class="mring-svg" cx="${f.c[0].toFixed(1)}" cy="${f.c[1].toFixed(1)}" r="4"></circle>`).join("");
     box.innerHTML=`<svg viewBox="0 0 ${WORLD.W} ${WORLD.H}" role="group" aria-label="${esc(t(mm?"map_titleMon":"map_title"))}">${PATTERNS}${shapes.map(f=>{
       const c=on(f);if(!c)return`<path d="${f.d}" style="fill:var(--m-none)"></path>`;
       const st=stOf(c),tip=[ctryName(c),stLabel(st),mm?"":collSummary(c.country)].filter(Boolean).join(" · ");
@@ -793,7 +789,7 @@ function renderMap(){
   }
   $("map-list").innerHTML=(mm?MON_ST:MAP_ST).flatMap(s=>CTRY.filter(c=>stOf(c)===s)).map(c=>{
     const cs=mm?monPeriod(c.country):S.mapColls?collSummary(c.country):"";
-    const mk=!mm&&hasMonitor(c.country)&&S.monStyle!=="none"?swatch(SW_BG[S.monStyle],t("map_mon_published")):"";
+    const ms=monOf(c.country),mk=mm||!S.monShow?"":ms==="published"?swatch(DOTS_BG,t("map_mon_published")):ms==="upcoming"?ring(t("map_mon_upcoming")):"";
     return`<button class="chip" data-mc="${esc(c.country)}" aria-pressed="${c.country===S.mapSel}">${swatch(`var(--m-${stOf(c)})`)}${esc(ctryName(c))}${cs?` <span class="cl">${esc(cs)}</span>`:""}${mk}</button>`}).join("");
   renderMapDetail();
 }
@@ -813,6 +809,28 @@ function renderMapDetail(){
   el.innerHTML=`<div class="card-h"><h3>${esc(ctryName(c))}</h3><span class="mbadge ${st}" style="background:var(--m-${st})">${esc(stLabel(st))}</span></div>`+
     (colls.length?`<div class="mcolls">${colls.map(collCard).join("")}</div>`:`<p class="note">${t(mm?"map_monSoon":"map_nocoll")}</p>`);
 }
+// Mapa para baixar (SVG/PNG): cores fixas do tema claro, título e legenda embaixo
+function mapSVG(){
+  if(!WORLD)return null;
+  const C={published:"#7a1712",upcoming:"#d9463f",pilot:"#f4b4ae",none:"#d9dcd8"},mm=S.mapMode==="monitor";
+  const byIso=new Map(CTRY.map(c=>[c.iso_n3,c])),W=WORLD.W,top=46;
+  const paths=WORLD.shapes.map(f=>{const c=byIso.get(f.id),st=c?stOf(c):"";return`<path d="${f.d}" fill="${C[st]||C.none}" stroke="#ffffff" stroke-width=".5"/>`}).join("");
+  const monSh=st=>!mm&&S.monShow?WORLD.shapes.filter(f=>{const c=byIso.get(f.id);return c&&monOf(c.country)===st}):[];
+  const over=monSh("published").map(f=>`<path d="${f.d}" fill="url(#mp-dots)"/>`).join("")
+    +monSh("upcoming").filter(f=>f.c).map(f=>`<circle cx="${f.c[0].toFixed(1)}" cy="${f.c[1].toFixed(1)}" r="4" fill="#ffffff" stroke="#1e2420" stroke-width="1.3"/>`).join("");
+  const keys=(mm?MON_ST:MAP_ST).map(s=>[`<rect width="14" height="14" rx="2" fill="${C[s]}"/>`,stLabel(s)]);
+  if(!mm&&S.monShow)keys.push([`<rect width="14" height="14" rx="2" fill="${C.published}"/><rect width="14" height="14" rx="2" fill="url(#mp-dots)"/>`,t("map_mon_published")],
+    [`<circle cx="7" cy="7" r="4.5" fill="#ffffff" stroke="#1e2420" stroke-width="1.5"/>`,t("map_mon_upcoming")]);
+  let x=16,y=top+WORLD.H+22;const g=keys.map(([sym,lab])=>{const w=24+lab.length*7.4+22;if(x+w>W-8){x=16;y+=24}
+    const s=`<g transform="translate(${x},${y})">${sym}<text x="22" y="11.5" font-size="13" fill="#1b1b1b">${esc(lab)}</text></g>`;x+=w;return s}).join("");
+  const H=y+30;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Montserrat, Helvetica, Arial, sans-serif">
+${PATTERNS}<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="16" y="30" font-size="18" font-weight="700" fill="#1b1b1b">${esc(t(mm?"map_titleMon":"map_title"))}</text>
+<g transform="translate(0,${top})">${paths}${over}</g>${g}
+</svg>`;
+}
+const mapFile = ()=>(S.mapMode==="monitor"?"mapbiomas_fogo_mapa_monitor":"mapbiomas_fogo_mapa_paises")+"_"+S.lang;
 function pickColl(id){S.coll=id;const c=collObj();if(!c)return;S.y=c.end;S.s=c.start;S.e=c.end}
 function defaultColl(list){const m=list.filter(c=>c.id!=="Monitor");return(m[m.length-1]||list[list.length-1])?.id}
 function renderControls(){
@@ -1081,8 +1099,7 @@ function setView(v){S.view=v;try{history.replaceState(null,"","#"+v)}catch(e){lo
 document.addEventListener("click",e=>{
   const mc=e.target.closest("[data-mc]");if(mc){S.mapSel=mc.dataset.mc;renderMap();return}
   const b=e.target.closest("button");if(!b)return;
-  if(b.dataset.mon){S.monStyle=b.dataset.mon;store.set("monStyle2",S.monStyle);renderMap();return}
-  if(b.dataset.mapmode){S.mapMode=b.dataset.mapmode;store.set("mapMode",S.mapMode);renderMap();return}
+    if(b.dataset.mapmode){S.mapMode=b.dataset.mapmode;store.set("mapMode",S.mapMode);renderMap();return}
   if(b.dataset.goto){const[k,id]=b.dataset.goto.split("|");S.country=k;pickColl(id);const c=collObj();if(c&&!c.subs.includes(S.sub))S.sub=c.subs[0];setView("consultar");window.scrollTo(0,0);return}
   if(b.dataset.lang){S.lang=b.dataset.lang;store.set("lang",S.lang);renderStatic();renderAll()}
   else if(b.dataset.view){setView(b.dataset.view)}
@@ -1093,6 +1110,9 @@ document.addEventListener("click",e=>{
   else if(b.dataset.copy){copy(b.dataset.copy)}
   else if(b.dataset.rm){ED.classes.splice(+b.dataset.rm,1);ED.dirty=true;renderEditor()}
   else switch(b.id){
+    case"map-mon-tg":S.monShow=!S.monShow;store.set("monShow",S.monShow);renderMap();break;
+    case"map-dl-svg":{const s=mapSVG();if(s)save(mapFile()+".svg",s);break}
+    case"map-dl-png":{const s=mapSVG();if(s)svgToPng(s).then(bl=>save(mapFile()+".png",bl)).catch(()=>toast(t("noDl")));break}
     case"map-colls-tg":S.mapColls=!S.mapColls;store.set("mapColls",S.mapColls);renderMap();break;
     case"btn-copyhex":copy(items().items.map(o=>o.hex).join("\n"));break;
     case"btn-copy":copy($("code").textContent);break;
