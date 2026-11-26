@@ -69,7 +69,7 @@ The map tab colors each country by its status in `countries.csv`:
 | `upcoming` | To be published (red) |
 | `pilot` | Pilot / training (light red) |
 
-To add a country, add a row with `country` (the code the app uses, e.g. `venezuela`), `iso_n3` (3-digit ISO numeric code, e.g. `862`) and the names in PT/EN/ES, and `monitor` (`published`, `upcoming` or empty) for the Fire Monitor view of the map, then run `python build_legends.py` (it writes `app/countries.json`). Clicking a country shows its collections, taken from `PUBLISHED` in `app/index.html`.
+To add a country, add a row with `country` (the code the app uses, e.g. `venezuela`), `iso_n3` (3-digit ISO numeric code, e.g. `862`), `iso_a2` (2-letter ISO code, e.g. `VE`, used for the short labels of the downloaded map) and the names in PT/EN/ES, and `monitor` (`published`, `upcoming` or empty) for the Fire Monitor view of the map, then run `python build_legends.py` (it writes `app/countries.json`). Clicking a country shows its collections, taken from `PUBLISHED` in `app/index.html`.
 
 ## Other countries
 

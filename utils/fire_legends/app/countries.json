@@ -2,6 +2,7 @@
  {
   "country": "brasil",
   "iso_n3": "076",
+  "iso_a2": "BR",
   "name_pt": "Brasil",
   "name_en": "Brazil",
   "name_es": "Brasil",
@@ -11,6 +12,7 @@
  {
   "country": "argentina",
   "iso_n3": "032",
+  "iso_a2": "AR",
   "name_pt": "Argentina",
   "name_en": "Argentina",
   "name_es": "Argentina",
@@ -20,6 +22,7 @@
  {
   "country": "bolivia",
   "iso_n3": "068",
+  "iso_a2": "BO",
   "name_pt": "Bolívia",
   "name_en": "Bolivia",
   "name_es": "Bolivia",
@@ -29,6 +32,7 @@
  {
   "country": "chile",
   "iso_n3": "152",
+  "iso_a2": "CL",
   "name_pt": "Chile",
   "name_en": "Chile",
   "name_es": "Chile",
@@ -38,6 +42,7 @@
  {
   "country": "colombia",
   "iso_n3": "170",
+  "iso_a2": "CO",
   "name_pt": "Colômbia",
   "name_en": "Colombia",
   "name_es": "Colombia",
@@ -47,6 +52,7 @@
  {
   "country": "paraguay",
   "iso_n3": "600",
+  "iso_a2": "PY",
   "name_pt": "Paraguai",
   "name_en": "Paraguay",
   "name_es": "Paraguay",
@@ -56,6 +62,7 @@
  {
   "country": "peru",
   "iso_n3": "604",
+  "iso_a2": "PE",
   "name_pt": "Peru",
   "name_en": "Peru",
   "name_es": "Perú",
@@ -65,6 +72,7 @@
  {
   "country": "indonesia",
   "iso_n3": "360",
+  "iso_a2": "ID",
   "name_pt": "Indonésia",
   "name_en": "Indonesia",
   "name_es": "Indonesia",
@@ -74,6 +82,7 @@
  {
   "country": "venezuela",
   "iso_n3": "862",
+  "iso_a2": "VE",
   "name_pt": "Venezuela",
   "name_en": "Venezuela",
   "name_es": "Venezuela",
@@ -83,6 +92,7 @@
  {
   "country": "ecuador",
   "iso_n3": "218",
+  "iso_a2": "EC",
   "name_pt": "Equador",
   "name_en": "Ecuador",
   "name_es": "Ecuador",
@@ -92,6 +102,7 @@
  {
   "country": "guyana",
   "iso_n3": "328",
+  "iso_a2": "GY",
   "name_pt": "Guiana",
   "name_en": "Guyana",
   "name_es": "Guyana",
@@ -101,6 +112,7 @@
  {
   "country": "suriname",
   "iso_n3": "740",
+  "iso_a2": "SR",
   "name_pt": "Suriname",
   "name_en": "Suriname",
   "name_es": "Surinam",
