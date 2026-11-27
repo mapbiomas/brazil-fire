@@ -386,6 +386,7 @@
   html.px .x-print-head img { height: 34px; }
   html.px .x-print-head .x-ph-desc { margin-left: auto; font-size: 12px; font-weight: 700; }
   html.px .card { break-inside: avoid; }
+  html.px .x-sec { break-after: avoid; page-break-after: avoid; }
 
   /* Telas estreitas: as folhas viram fluxo contínuo de uma coluna.
      html.pm (modo impressão) desliga isso para os gráficos se redesenharem no tamanho da folha. */
@@ -2147,7 +2148,7 @@ function atualizarControles() {
   const cob = f.cob ? `só ${cobNome(f).toLowerCase()}` : 'todas as classes de cobertura';
   X.resumo = `${f.label} · ${mesesTxt(f)}${f.cob ? ` · ${cob}` : ''}`;
   $('x-per-t').textContent = `${f.label}: ${mesesTxt(f)}`;
-  $('x-ph-desc').textContent = `${f.label} · ${mesesTxt(f)} · ${cob}`;
+  $('x-ph-desc').textContent = X.resumo;
 }
 
 /* ---------- busca e distribuição dos dados ---------- */
@@ -2174,6 +2175,7 @@ function xRun() {
   rankP?.catch(() => {});
 
   const job = (id, fn) => async () => {
+    if ($(id)) $(id).hidden = false;
     status(id, 'Carregando…');
     try {
       const r = await fn();
@@ -2187,6 +2189,7 @@ function xRun() {
   };
   const semSub = id => {
     setDl(id, null);
+    if ($(id)) $(id).hidden = true;
     status(id, `${esc(f.label)} não tem subdivisões na API do Monitor do Fogo. Para ver o ranking, escolha Brasil, uma região ou um estado em “Recorte”.`, 'info');
     return 'manter';
   };
@@ -2380,7 +2383,7 @@ function xSaz(M, f) {
   const ds = [...dsReferencia(st, true), ...linhasCmp(f, M), linhaAno(String(f.ano), M[f.ano], SER[0], 3)];
   const outros = P.anos.filter(y => y !== f.ano);
   $('x-saz-t').textContent = noTerr('Área queimada mês a mês, por ano', f);
-  $('x-saz-s').textContent = `Cada linha é um ano. A linha cinza é a média de cada mês nos demais anos (${outros[0]}–${outros[outros.length - 1]}), e a faixa cinza mostra ±1 desvio padrão.`;
+  $('x-saz-s').textContent = `Destacado: ${mesesTxt(f)}. Linha cinza: média dos demais anos (${outros[0]}–${outros[outros.length - 1]}); faixa: ±1 desvio padrão.`;
   mkChart('x-saz', 'xc-saz', {
     type: 'line', data: { labels: MES.map(cap), datasets: ds }, plugins: [faixaPeriodo],
     options: opLinha('Área queimada (ha)', 'Mês', st, { faixaPeriodo: { de: f.ini - 1, ate: f.fim - 1 } }, unid(maxNum(ds.filter(d => !/^(_|Faixa)/.test(d.label)).flatMap(d => d.data))))
@@ -2398,7 +2401,7 @@ function xAcu(M, f) {
   const S = Object.fromEntries(P.anos.map(y => [y, acum(M[y])]));
   const st = estat(S, f);
   const labels = range(a, b).map(m => cap(MES[m - 1]));
-  $('x-acu-t').textContent = noTerr(a === b ? `Área queimada em ${MES_L[a - 1]}` : 'Área queimada acumulada', f);
+  $('x-acu-t').textContent = noTerr(a === b ? `Área queimada em ${MES_L[a - 1]}` : `Área queimada acumulada de ${MES_L[a - 1]} a ${MES_L[b - 1]}`, f);
   const k = S[f.ano].reduce((u, v, i) => v != null ? i : u, -1);
   if (k >= 0 && st[k]) {
     const d = pct(S[f.ano][k], st[k].avg);
@@ -2416,7 +2419,8 @@ function xAcu(M, f) {
 function xAnual(M, f) {
   const anos = P.anos, vals = anos.map(y => somaP(M[y], f.ini, f.fim));
   const parcial = y => y === P.Y && f.fim > P.M;
-  $('x-anual-t').textContent = noTerr(f.ini === f.fim ? `Área queimada em ${MES_L[f.ini - 1]}, por ano` : 'Área queimada por ano', f);
+  $('x-anual-t').textContent = noTerr(f.ini === f.fim ? `Área queimada em ${MES_L[f.ini - 1]}, por ano`
+    : f.ini === 1 && f.fim === 12 ? 'Área queimada no ano' : `Área queimada de ${MES_L[f.ini - 1]} a ${MES_L[f.fim - 1]}, por ano`, f);
   const media = vals.filter((_, i) => anos[i] !== f.ano && !parcial(anos[i]));
   const med = media.length ? media.reduce((s, x) => s + x, 0) / media.length : null;
   $('x-anual-s').textContent = (med ? `Média dos demais anos: ${haC(med)}.` : '') + (anos.some(parcial) ? ` ${P.Y} ainda está incompleto (dados até ${MES_L[P.M - 1]}).` : '');
